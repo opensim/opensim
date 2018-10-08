@@ -87,7 +87,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Dictionary<UUID, PollServiceMeshEventArgs> m_pollservices = new Dictionary<UUID, PollServiceMeshEventArgs>();
 
-
         #region Region Module interfaceBase Members
 
         public Type ReplaceableInterface
@@ -134,7 +133,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             s.EventManager.OnRegisterCaps -= RegisterCaps;
             s.EventManager.OnDeregisterCaps -= DeregisterCaps;
-            s.EventManager.OnThrottleUpdate -= ThrottleUpdate;
             m_NumberScenes--;
             m_scene = null;
         }
@@ -153,7 +151,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             s.EventManager.OnRegisterCaps += RegisterCaps;          
             s.EventManager.OnDeregisterCaps += DeregisterCaps;
-            s.EventManager.OnThrottleUpdate += ThrottleUpdate;
 
             m_NumberScenes++;
 
@@ -212,18 +209,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
-        // Now we know when the throttle is changed by the client in the case of a root agent or by a neighbor region in the case of a child agent.
-        public void ThrottleUpdate(ScenePresence p)
-        {
-            UUID user = p.UUID;
-            int imagethrottle = p.ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset);
-            PollServiceMeshEventArgs args;
-            if (m_pollservices.TryGetValue(user, out args))
-            {
-                args.UpdateThrottle(imagethrottle);
-            }
-        }
-
         private class PollServiceMeshEventArgs : PollServiceEventArgs
         {
             private List<Hashtable> requests =
@@ -233,18 +218,28 @@ namespace OpenSim.Region.ClientStack.Linden
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
-            private MeshCapsDataThrottler m_throttler;
+            private ScenePresence m_presence;
             public PollServiceMeshEventArgs(string uri, UUID pId, Scene scene) :
                 base(null, uri, null, null, null, null, pId, int.MaxValue)
             {
                 m_scene = scene;
-                m_throttler = new MeshCapsDataThrottler(100000);
+
                 // x is request id, y is userid
                 HasEvents = (x, y) =>
                 {
                     lock (responses)
                     {
-                        return m_throttler.hasEvents(x, responses);
+                        APollResponse response;
+                        if (responses.TryGetValue(x, out response))
+                        {
+                            if (m_presence == null)
+                                m_presence = m_scene.GetScenePresence(pId);
+
+                            if (m_presence == null || m_presence.IsDeleted)
+                                return true;
+                            return m_presence.CapCanSendAsset(1, response.bytes);
+                        }
+                        return false;
                     }
                 };
 
@@ -269,7 +264,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         finally
                         {
                             responses.Remove(x);
-                            m_throttler.PassTime();
                         }
                     }
                 };
@@ -282,7 +276,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.request = y;
 
                     m_queue.Add(reqinfo);
-                    m_throttler.PassTime();
                 };
 
                 // this should never happen except possible on shutdown
@@ -307,14 +300,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             public void Process(APollRequest requestinfo)
             {
-                Hashtable response;
+                Hashtable curresponse;
 
                 UUID requestID = requestinfo.reqID;
 
                 if(m_scene.ShuttingDown)
                     return;
 
-               lock(responses)
+                lock(responses)
                 {
                     lock(dropedResponses)
                     {
@@ -324,25 +317,23 @@ namespace OpenSim.Region.ClientStack.Linden
                             return;
                         }
                     }
-                
+
                     // If the avatar is gone, don't bother to get the texture
-                    if (m_scene.GetScenePresence(Id) == null)
+                    if(m_scene.GetScenePresence(Id) == null)
                     {
-                        response = new Hashtable();
-
-                        response["int_response_code"] = 500;
-                        response["str_response_string"] = "Script timeout";
-                        response["content_type"] = "text/plain";
-                        response["keepalive"] = false;
-                        responses[requestID] = new APollResponse() { bytes = 0, response = response};
-
+                        curresponse = new Hashtable();
+                        curresponse["int_response_code"] = 500;
+                        curresponse["str_response_string"] = "Script timeout";
+                        curresponse["content_type"] = "text/plain";
+                        curresponse["keepalive"] = false;
+                        responses[requestID] = new APollResponse() { bytes = 0, response = curresponse };
                         return;
                     }
                 }
 
-                response = m_getMeshHandler.Handle(requestinfo.request);
+                curresponse = m_getMeshHandler.Handle(requestinfo.request);
 
-                lock (responses)
+                lock(responses)
                 {
                     lock(dropedResponses)
                     {
@@ -355,20 +346,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     responses[requestID] = new APollResponse()
                     {
-                        bytes = (int)response["int_bytes"],
-                        response = response
+                        bytes = (int)curresponse["int_bytes"],
+                        response = curresponse
                     };
-
                 }
-                m_throttler.PassTime();
-            }
-
-            internal void UpdateThrottle(int pthrottle)
-            {
-                int tmp = 2 * pthrottle;
-                if(tmp < 10000)
-                    tmp = 10000;
-                m_throttler.ThrottleBytes = tmp;
             }
         }
 
@@ -418,53 +399,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_pollservices.Remove(agentID);
             }
-        }
-
-        internal sealed class MeshCapsDataThrottler
-        {
-            private double lastTimeElapsed = 0;
-            private double BytesSent = 0;
-
-            public MeshCapsDataThrottler(int pBytes)
-            {
-                if(pBytes < 10000)
-                    pBytes = 10000;
-                ThrottleBytes = pBytes;
-                lastTimeElapsed = Util.GetTimeStamp();
-            }
-
-            public bool hasEvents(UUID key, Dictionary<UUID, APollResponse> responses)
-            {
-                PassTime();
-                 APollResponse response;
-                if (responses.TryGetValue(key, out response))
-                {
-                    // Normal
-                    if (response.bytes == 0 || BytesSent <= ThrottleBytes)
-                    {
-                        BytesSent += response.bytes;
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            public void PassTime()
-            {
-                double currenttime = Util.GetTimeStamp();
-                double timeElapsed = currenttime - lastTimeElapsed;
-                if(timeElapsed < .05)
-                    return;
-                int add = (int)(ThrottleBytes * timeElapsed);
-                if (add >= 1000)
-                {
-                    lastTimeElapsed = currenttime;
-                    BytesSent -= add;
-                    if (BytesSent < 0) BytesSent = 0;
-                }
-            }
-
-            public int ThrottleBytes;
         }
     }
 }

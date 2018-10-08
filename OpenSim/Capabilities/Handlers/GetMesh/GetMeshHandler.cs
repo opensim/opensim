@@ -100,7 +100,6 @@ namespace OpenSim.Capabilities.Handlers
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 400; //501; //410; //404;
             responsedata["content_type"] = "text/plain";
-            responsedata["str_response_string"] = "Request wasn't what was expected";
             responsedata["int_bytes"] = 0;
 
             string meshStr = string.Empty;
@@ -125,7 +124,6 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     if (mesh.Type == (SByte)AssetType.Mesh)
                     {
-
                         Hashtable headers = new Hashtable();
                         responsedata["headers"] = headers;
 
