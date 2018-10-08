@@ -6856,33 +6856,37 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_bandwidthBurst = 20000;
         private int m_bytesControl;
         private double m_lastBandwithTime;
+        private object m_throttleLock = new object();
 
         public bool CapCanSendAsset(int type, int size)
         {
             if(size == 0)
                 return true;
 
-            if(type > 1)
+            lock (m_throttleLock)
             {
-                // not texture or mesh
-                m_bytesControl -= size;
-                return true;
-            }
+                if (type > 1)
+                {
+                    // not texture or mesh
+                    m_bytesControl -= size;
+                    return true;
+                }
 
-            double currenttime = Util.GetTimeStamp();
-            double timeElapsed = currenttime - m_lastBandwithTime;
-            if (timeElapsed > .05)
-            {
-                m_lastBandwithTime = currenttime;
-                int add = (int)(m_bandwidth * timeElapsed);
-                m_bytesControl += add;
-                if (m_bytesControl > m_bandwidthBurst)
-                    m_bytesControl = m_bandwidthBurst;
-            }
-            if (m_bytesControl > 0 )
-            {
-                m_bytesControl -= size;
-                return true;
+                double currenttime = Util.GetTimeStamp();
+                double timeElapsed = currenttime - m_lastBandwithTime;
+                if (timeElapsed > .02)
+                {
+                    m_lastBandwithTime = currenttime;
+                    int add = (int)(m_bandwidth * timeElapsed);
+                    m_bytesControl += add;
+                    if (m_bytesControl > m_bandwidthBurst)
+                        m_bytesControl = m_bandwidthBurst;
+                }
+                if (m_bytesControl > 0 )
+                {
+                    m_bytesControl -= size;
+                    return true;
+                }
             }
             return false;
         }
