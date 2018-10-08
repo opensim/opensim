@@ -110,7 +110,9 @@ namespace OpenSim.Capabilities.Handlers
             List<InventoryCollection> invcollSet = Fetch(folders, bad_folders, ref total_folders, ref total_items);
             //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
 
-            int invcollSetCount = invcollSet.Count;
+            int invcollSetCount = 0;
+            if (invcollSet != null)
+                invcollSetCount = invcollSet.Count;
 
             int mem = 8192 + ((256 * invcollSetCount +
                                 384 * total_folders +
