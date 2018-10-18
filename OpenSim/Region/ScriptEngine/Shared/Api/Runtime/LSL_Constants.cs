@@ -89,16 +89,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_ATTACHMENTS = 2;
         public const int AGENT_SCRIPTED = 4;
         public const int AGENT_MOUSELOOK = 8;
-        public const int AGENT_SITTING = 16;
-        public const int AGENT_ON_OBJECT = 32;
-        public const int AGENT_AWAY = 64;
-        public const int AGENT_WALKING = 128;
-        public const int AGENT_IN_AIR = 256;
-        public const int AGENT_TYPING = 512;
-        public const int AGENT_CROUCHING = 1024;
-        public const int AGENT_BUSY = 2048;
-        public const int AGENT_ALWAYS_RUN = 4096;
-        public const int AGENT_MALE = 8192;
+        public const int AGENT_SITTING = 0x10;
+        public const int AGENT_ON_OBJECT = 0x20;
+        public const int AGENT_AWAY = 0x40;
+        public const int AGENT_WALKING = 0x80;
+        public const int AGENT_IN_AIR = 0x100;
+        public const int AGENT_TYPING = 0x200;
+        public const int AGENT_CROUCHING = 0x400;
+        public const int AGENT_BUSY = 0x800;
+        public const int AGENT_ALWAYS_RUN = 0x1000;
+        public const int AGENT_AUTOPILOT = 0x2000;
+        public const int AGENT_MALE = 0x40000000;
 
         //Particle Systems
         public const int PSYS_PART_INTERP_COLOR_MASK = 1;
@@ -506,8 +507,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_TYPE_TORUS = 2;
         public const int PRIM_SCULPT_TYPE_PLANE = 3;
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
-        public const int PRIM_SCULPT_FLAG_INVERT = 64;
-        public const int PRIM_SCULPT_FLAG_MIRROR = 128;
+        public const int PRIM_SCULPT_FLAG_INVERT = 0x40;
+        public const int PRIM_SCULPT_FLAG_MIRROR = 0x80;
+        public const int PRIM_SCULPT_TYPE_MASK = 0x07;  // auxiliar mask
 
         public const int PRIM_PHYSICS_SHAPE_PRIM = 0;
         public const int PRIM_PHYSICS_SHAPE_NONE = 1;
