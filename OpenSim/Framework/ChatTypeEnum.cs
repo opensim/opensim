@@ -38,6 +38,7 @@ namespace OpenSim.Framework
         DebugChannel = 6,
         Region = 7,
         Owner = 8,
+        Direct = 9, //llRegionSayTo
         Broadcast = 0xFF
     }
 }
