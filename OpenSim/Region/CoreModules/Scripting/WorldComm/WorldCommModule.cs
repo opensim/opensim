@@ -442,15 +442,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 // Dont process if this message is from yourself!
                 if (liHostID.Equals(id))
                     continue;
-
+                if (!liHostID.Equals(target))
+                    continue;
                 if (m_scene.GetSceneObjectPart(liHostID) == null)
                     continue;
 
-                if (liHostID.Equals(target))
-                {
-                    QueueMessage(new ListenerInfo(li, name, id, msg));
-                    break;
-                }
+                QueueMessage(new ListenerInfo(li, name, id, msg));
             }
         }
 
