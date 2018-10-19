@@ -17884,7 +17884,7 @@
          <key>osAgentSaveAppearance</key>
          <map>
             <key>energy</key>
-            <undef/>
+            <real>0.0</real>
             <key>sleep</key>
             <undef/>
             <key>return</key>

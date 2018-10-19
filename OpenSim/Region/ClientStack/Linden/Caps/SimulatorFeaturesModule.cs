@@ -77,8 +77,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GridName = string.Empty;
         private string m_GridURL = string.Empty;
 
-        static private UUID m_scriptSyntaxeID = UUID.Zero;
-        static private string m_scriptSyntaxeXML;
+        static private UUID m_scriptSyntaxID = UUID.Zero;
+        static private string m_scriptSyntaxXML;
         private bool m_doScriptSyntax;
 
         #region ISharedRegionModule Members
@@ -86,7 +86,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            m_doScriptSyntax = false;
+            m_doScriptSyntax = true;
             if (config != null)
             {
                 //
@@ -109,10 +109,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (m_GridName == string.Empty)
                     m_GridName = Util.GetConfigVarFromSections<string>(
                         source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
-                m_doScriptSyntax = config.GetBoolean("ScriptSyntaxe", m_doScriptSyntax);
+                m_doScriptSyntax = config.GetBoolean("ScriptSyntax", m_doScriptSyntax);
             }
 
-            ReadScriptSyntaxe();
+            ReadScriptSyntax();
             AddDefaultFeatures();
         }
 
@@ -168,8 +168,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
 
-                if(m_doScriptSyntax && m_scriptSyntaxeID != UUID.Zero)
-                    m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxeID);
+                if(m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero)
+                    m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
@@ -209,11 +209,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     "SimulatorFeatures", agentID.ToString());
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
 
-            if (m_doScriptSyntax && m_scriptSyntaxeID != UUID.Zero && !String.IsNullOrEmpty(m_scriptSyntaxeXML))
+            if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && !String.IsNullOrEmpty(m_scriptSyntaxXML))
             {
                 IRequestHandler sreqHandler = new RestHTTPHandler(
                         "GET", "/CAPS/" + UUID.Random(),
-                        x => { return HandleSyntaxeRequest(x, agentID); },
+                        x => { return HandleSyntaxRequest(x, agentID); },
                         "LSLSyntax", agentID.ToString());
                 caps.RegisterHandler("LSLSyntax", sreqHandler);
             }
@@ -278,11 +278,11 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
-        private Hashtable HandleSyntaxeRequest(Hashtable mDhttpMethod, UUID agentID)
+        private Hashtable HandleSyntaxRequest(Hashtable mDhttpMethod, UUID agentID)
         {
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 200;
-            responsedata["str_response_string"] = m_scriptSyntaxeXML;
+            responsedata["str_response_string"] = m_scriptSyntaxXML;
             return responsedata;
         }
 
@@ -328,22 +328,22 @@ namespace OpenSim.Region.ClientStack.Linden
             return url;
         }
 
-        private void ReadScriptSyntaxe()
+        private void ReadScriptSyntax()
         {
-            if(!m_doScriptSyntax || m_scriptSyntaxeID != UUID.Zero)
+            if(!m_doScriptSyntax || m_scriptSyntaxID != UUID.Zero)
                 return;
 
-            if(!File.Exists("ScriptSyntaxe.xml"))
+            if(!File.Exists("ScriptSyntax.xml"))
                 return;
 
             try
             {
-                using (StreamReader sr = File.OpenText("ScriptSyntaxe.xml"))
+                using (StreamReader sr = File.OpenText("ScriptSyntax.xml"))
                 {
                     string version = sr.ReadLine();
                     if(string.IsNullOrEmpty(version))
                         return;
-                    if(!UUID.TryParse(version, out m_scriptSyntaxeID))
+                    if(!UUID.TryParse(version, out m_scriptSyntaxID))
                         return;
 
                     StringBuilder sb = new StringBuilder(400*1024);
@@ -356,14 +356,14 @@ namespace OpenSim.Region.ClientStack.Linden
                             continue;
                         sb.Append(s);
                     }
-                    m_scriptSyntaxeXML = sb.ToString();
+                    m_scriptSyntaxXML = sb.ToString();
                 }
             }
             catch
             {
-                m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntaxe.xml file");
-                m_scriptSyntaxeID = UUID.Zero;
-                m_scriptSyntaxeXML = "";
+                m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntax.xml file");
+                m_scriptSyntaxID = UUID.Zero;
+                m_scriptSyntaxXML = "";
             }
         }
     }
