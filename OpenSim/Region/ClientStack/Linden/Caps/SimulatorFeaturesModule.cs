@@ -28,7 +28,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
@@ -75,12 +77,16 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GridName = string.Empty;
         private string m_GridURL = string.Empty;
 
+        static private UUID m_scriptSyntaxeID = UUID.Zero;
+        static private string m_scriptSyntaxeXML;
+        private bool m_doScriptSyntax;
+
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-
+            m_doScriptSyntax = false;
             if (config != null)
             {
                 //
@@ -103,8 +109,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (m_GridName == string.Empty)
                     m_GridName = Util.GetConfigVarFromSections<string>(
                         source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
+                m_doScriptSyntax = config.GetBoolean("ScriptSyntaxe", m_doScriptSyntax);
             }
 
+            ReadScriptSyntaxe();
             AddDefaultFeatures();
         }
 
@@ -160,6 +168,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
 
+                if(m_doScriptSyntax && m_scriptSyntaxeID != UUID.Zero)
+                    m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxeID);
+
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
@@ -192,12 +203,20 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler
-                = new RestHTTPHandler(
+            IRequestHandler reqHandler = new RestHTTPHandler(
                     "GET", "/CAPS/" + UUID.Random(),
-                    x => { return HandleSimulatorFeaturesRequest(x, agentID); }, "SimulatorFeatures", agentID.ToString());
-
+                    x => { return HandleSimulatorFeaturesRequest(x, agentID); },
+                    "SimulatorFeatures", agentID.ToString());
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
+
+            if (m_doScriptSyntax && m_scriptSyntaxeID != UUID.Zero && !String.IsNullOrEmpty(m_scriptSyntaxeXML))
+            {
+                IRequestHandler sreqHandler = new RestHTTPHandler(
+                        "GET", "/CAPS/" + UUID.Random(),
+                        x => { return HandleSyntaxeRequest(x, agentID); },
+                        "LSLSyntax", agentID.ToString());
+                caps.RegisterHandler("LSLSyntax", sreqHandler);
+            }
         }
 
         public void AddFeature(string name, OSD value)
@@ -236,7 +255,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
         {
-//            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+            //            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
             OSDMap copy = DeepCopy();
 
@@ -259,12 +278,21 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
+        private Hashtable HandleSyntaxeRequest(Hashtable mDhttpMethod, UUID agentID)
+        {
+            Hashtable responsedata = new Hashtable();
+            responsedata["int_response_code"] = 200;
+            responsedata["str_response_string"] = m_scriptSyntaxeXML;
+            return responsedata;
+        }
+
         /// <summary>
         /// Gets the grid extra features.
         /// </summary>
         /// <param name='featuresURI'>
         /// The URI Robust uses to handle the get_extra_features request
         /// </param>
+
         private void GetGridExtraFeatures(Scene scene)
         {
             Dictionary<string, object> extraFeatures = scene.GridService.GetExtraFeatures();
@@ -298,6 +326,45 @@ namespace OpenSim.Region.ClientStack.Linden
                 return url.Replace(substring, replacement);
 
             return url;
+        }
+
+        private void ReadScriptSyntaxe()
+        {
+            if(!m_doScriptSyntax || m_scriptSyntaxeID != UUID.Zero)
+                return;
+
+            if(!File.Exists("ScriptSyntaxe.xml"))
+                return;
+
+            try
+            {
+                using (StreamReader sr = File.OpenText("ScriptSyntaxe.xml"))
+                {
+                    string version = sr.ReadLine();
+                    if(string.IsNullOrEmpty(version))
+                        return;
+                    if(!UUID.TryParse(version, out m_scriptSyntaxeID))
+                        return;
+
+                    StringBuilder sb = new StringBuilder(400*1024);
+                    string s="";
+                    char[] trimc = new char[] {' ','\t', '\n', '\r'};
+                    while((s = sr.ReadLine()) != null)
+                    {
+                        s = s.Trim(trimc);
+                        if(String.IsNullOrEmpty(s) || s.StartsWith("<--"))
+                            continue;
+                        sb.Append(s);
+                    }
+                    m_scriptSyntaxeXML = sb.ToString();
+                }
+            }
+            catch
+            {
+                m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntaxe.xml file");
+                m_scriptSyntaxeID = UUID.Zero;
+                m_scriptSyntaxeXML = "";
+            }
         }
     }
 }
