@@ -77,16 +77,17 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GridName = string.Empty;
         private string m_GridURL = string.Empty;
 
+        private bool m_doScriptSyntax;
+        static private object m_scriptSyntaxLock = new object();
         static private UUID m_scriptSyntaxID = UUID.Zero;
         static private string m_scriptSyntaxXML;
-        private bool m_doScriptSyntax;
 
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            m_doScriptSyntax = false;
+            m_doScriptSyntax = true;
             if (config != null)
             {
                 //
@@ -330,40 +331,41 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void ReadScriptSyntax()
         {
-            if(!m_doScriptSyntax || m_scriptSyntaxID != UUID.Zero)
-                return;
-
-            if(!File.Exists("ScriptSyntax.xml"))
-                return;
-
-            try
+            lock(m_scriptSyntaxLock)
             {
-                using (StreamReader sr = File.OpenText("ScriptSyntax.xml"))
+                if(!m_doScriptSyntax || m_scriptSyntaxID != UUID.Zero)
+                    return;
+
+                if(!File.Exists("ScriptSyntax.xml"))
+                    return;
+
+                try
                 {
-                    string version = sr.ReadLine();
-                    if(string.IsNullOrEmpty(version))
-                        return;
-                    if(!UUID.TryParse(version, out m_scriptSyntaxID))
-                        return;
-
-                    StringBuilder sb = new StringBuilder(400*1024);
-                    string s="";
-                    char[] trimc = new char[] {' ','\t', '\n', '\r'};
-                    while((s = sr.ReadLine()) != null)
+                    using (StreamReader sr = File.OpenText("ScriptSyntax.xml"))
                     {
-                        s = s.Trim(trimc);
-                        if(String.IsNullOrEmpty(s) || s.StartsWith("<--"))
-                            continue;
-                        sb.Append(s);
+                        StringBuilder sb = new StringBuilder(400*1024);
+                        sb.Append("<llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>");
+
+                        string s="";
+                        char[] trimc = new char[] {' ','\t', '\n', '\r'};
+                        while((s = sr.ReadLine()) != null)
+                        {
+                            s = s.Trim(trimc);
+                            if(String.IsNullOrEmpty(s) || s.StartsWith("<!--"))
+                                continue;
+                            sb.Append(s);
+                        }
+                        sb.Append("</map></llsd>");
+                        m_scriptSyntaxXML = sb.ToString();
+                        m_scriptSyntaxID = Util.ComputeSHA1UUID(m_scriptSyntaxXML);
                     }
-                    m_scriptSyntaxXML = sb.ToString();
                 }
-            }
-            catch
-            {
-                m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntax.xml file");
-                m_scriptSyntaxID = UUID.Zero;
-                m_scriptSyntaxXML = "";
+                catch
+                {
+                    m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntax.xml file");
+                    m_scriptSyntaxID = UUID.Zero;
+                    m_scriptSyntaxXML = "";
+                }
             }
         }
     }

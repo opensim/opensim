@@ -864,9 +864,22 @@ namespace OpenSim.Framework
         private static byte[] ComputeSHA1Hash(byte[] src)
         {
             byte[] ret;
-            using(SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
-                 ret = SHA1.ComputeHash(src);
+            using (SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
+                ret = SHA1.ComputeHash(src);
             return ret;
+        }
+
+        public static UUID ComputeSHA1UUID(string src)
+        {
+            return ComputeSHA1UUID(Encoding.Default.GetBytes(src));
+        }
+
+        public static UUID ComputeSHA1UUID(byte[] src)
+        {
+            byte[] ret;
+            using (SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
+                ret = SHA1.ComputeHash(src);
+            return new UUID(ret, 2);
         }
 
         public static int fast_distance2d(int x, int y)
