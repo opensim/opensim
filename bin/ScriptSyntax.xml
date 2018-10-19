@@ -108,8 +108,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_ATTACHMENTS</key>
     <map>
@@ -126,8 +124,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x2000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_AWAY</key>
     <map>
@@ -135,8 +131,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x40</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_BUSY</key>
     <map>
@@ -144,8 +138,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x800</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_BY_LEGACY_NAME</key>
     <map>
@@ -153,8 +145,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_BY_USERNAME</key>
     <map>
@@ -162,8 +152,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_CROUCHING</key>
     <map>
@@ -171,8 +159,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x400</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_FLYING</key>
     <map>
@@ -189,8 +175,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_LIST_PARCEL</key>
     <map>
@@ -234,8 +218,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x40000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_MOUSELOOK</key>
     <map>
@@ -243,8 +225,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_ON_OBJECT</key>
     <map>
@@ -252,8 +232,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x20</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_SCRIPTED</key>
     <map>
@@ -270,8 +248,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_TYPING</key>
     <map>
@@ -279,8 +255,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>AGENT_WALKING</key>
     <map>
@@ -288,8 +262,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ALL_SIDES</key>
     <map>
@@ -297,8 +269,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ANIM_ON</key>
     <map>
@@ -369,8 +339,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>37</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_BOTTOM_LEFT</key>
     <map>
@@ -378,8 +346,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>36</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_BOTTOM_RIGHT</key>
     <map>
@@ -387,8 +353,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>38</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_CENTER_1</key>
     <map>
@@ -396,8 +360,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>35</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_CENTER_2</key>
     <map>
@@ -405,8 +367,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>31</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_TOP_CENTER</key>
     <map>
@@ -414,8 +374,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>33</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_TOP_LEFT</key>
     <map>
@@ -423,8 +381,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>34</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_HUD_TOP_RIGHT</key>
     <map>
@@ -432,8 +388,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>32</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ATTACH_LEAR</key>
     <map>
@@ -832,8 +786,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>12</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_BEHINDNESS_ANGLE</key>
     <map>
@@ -841,8 +793,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_BEHINDNESS_LAG</key>
     <map>
@@ -850,8 +800,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_DISTANCE</key>
     <map>
@@ -859,8 +807,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS</key>
     <map>
@@ -868,8 +814,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>17</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_X</key>
     <map>
@@ -877,8 +821,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>18</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_Y</key>
     <map>
@@ -886,8 +828,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>19</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_Z</key>
     <map>
@@ -895,8 +835,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>19</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_LAG</key>
     <map>
@@ -904,8 +842,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_LOCKED</key>
     <map>
@@ -913,8 +849,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>22</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_OFFSET</key>
     <map>
@@ -922,8 +856,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_OFFSET_X</key>
     <map>
@@ -931,8 +863,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_OFFSET_Y</key>
     <map>
@@ -940,8 +870,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_OFFSET_Z</key>
     <map>
@@ -949,8 +877,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_FOCUS_THRESHOLD</key>
     <map>
@@ -958,8 +884,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>11</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_PITCH</key>
     <map>
@@ -967,8 +891,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION</key>
     <map>
@@ -976,8 +898,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>13</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_X</key>
     <map>
@@ -985,8 +905,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>14</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_Y</key>
     <map>
@@ -994,8 +912,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>15</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_Z</key>
     <map>
@@ -1003,8 +919,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>16</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_LAG</key>
     <map>
@@ -1012,8 +926,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_LOCKED</key>
     <map>
@@ -1021,8 +933,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>21</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CAMERA_POSITION_THRESHOLD</key>
     <map>
@@ -1030,8 +940,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>10</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CHANGED_ALLOWED_DROP</key>
     <map>
@@ -1084,8 +992,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x800</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CHANGED_OWNER</key>
     <map>
@@ -1093,8 +999,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CHANGED_REGION</key>
     <map>
@@ -1102,8 +1006,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CHANGED_REGION_START</key>
     <map>
@@ -1147,8 +1049,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>CHANGED_TEXTURE</key>
     <map>
@@ -1435,8 +1335,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>DATA_SIM_POS</key>
     <map>
@@ -1444,8 +1342,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>DATA_SIM_RATING</key>
     <map>
@@ -1453,8 +1349,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>DATA_SIM_STATUS</key>
     <map>
@@ -1462,8 +1356,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>DEBUG_CHANNEL</key>
     <map>
@@ -1510,8 +1402,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ERR_MALFORMED_PARAMS</key>
     <map>
@@ -1519,8 +1409,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ERR_PARCEL_PERMISSIONS</key>
     <map>
@@ -1528,8 +1416,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ERR_RUNTIME_PERMISSIONS</key>
     <map>
@@ -1537,8 +1423,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ERR_THROTTLED</key>
     <map>
@@ -1546,8 +1430,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ESTATE_ACCESS_ALLOWED_AGENT_ADD</key>
     <map>
@@ -1636,8 +1518,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_BODY_MAXLENGTH</key>
     <map>
@@ -1645,8 +1525,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_BODY_TRUNCATED</key>
     <map>
@@ -1654,8 +1532,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_CUSTOM_HEADER</key>
     <map>
@@ -1672,8 +1548,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_MIMETYPE</key>
     <map>
@@ -1681,8 +1555,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_PRAGMA_NO_CACHE</key>
     <map>
@@ -1699,8 +1571,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>HTTP_VERIFY_CERT</key>
     <map>
@@ -1708,8 +1578,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_ALL</key>
     <map>
@@ -1717,8 +1585,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_ANIMATION</key>
     <map>
@@ -1726,8 +1592,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>20</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_BODYPART</key>
     <map>
@@ -1735,8 +1599,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>13</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_CLOTHING</key>
     <map>
@@ -1744,8 +1606,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_GESTURE</key>
     <map>
@@ -1753,8 +1613,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>21</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_LANDMARK</key>
     <map>
@@ -1762,8 +1620,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_NONE</key>
     <map>
@@ -1771,8 +1627,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_NOTECARD</key>
     <map>
@@ -1780,8 +1634,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_OBJECT</key>
     <map>
@@ -1789,8 +1641,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_SCRIPT</key>
     <map>
@@ -1798,8 +1648,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>10</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_SOUND</key>
     <map>
@@ -1807,8 +1655,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>INVENTORY_TEXTURE</key>
     <map>
@@ -1816,8 +1662,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_APPEND</key>
     <map>
@@ -1825,8 +1669,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_ARRAY</key>
     <map>
@@ -1834,8 +1676,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD2</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_DELETE</key>
     <map>
@@ -1843,8 +1683,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD8</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_FALSE</key>
     <map>
@@ -1852,8 +1690,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD7</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_INVALID</key>
     <map>
@@ -1861,8 +1697,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD0</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_NULL</key>
     <map>
@@ -1870,8 +1704,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD5</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_NUMBER</key>
     <map>
@@ -1879,8 +1711,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD3</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_OBJECT</key>
     <map>
@@ -1888,8 +1718,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD1</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_STRING</key>
     <map>
@@ -1897,8 +1725,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD4</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>JSON_TRUE</key>
     <map>
@@ -1906,8 +1732,6 @@
         <string>string</string>
         <key>value</key>
         <string>U+FDD6</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>KFM_CMD_PAUSE</key>
     <map>
@@ -1942,8 +1766,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>KFM_DATA</key>
     <map>
@@ -1951,8 +1773,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>KFM_FORWARD</key>
     <map>
@@ -1978,8 +1798,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>KFM_PING_PONG</key>
     <map>
@@ -2059,8 +1877,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LAND_RAISE</key>
     <map>
@@ -2077,8 +1893,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LAND_SMALL_BRUSH</key>
     <map>
@@ -2095,8 +1909,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LINK_ALL_CHILDREN</key>
     <map>
@@ -2167,8 +1979,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_MEAN</key>
     <map>
@@ -2176,8 +1986,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_MEDIAN</key>
     <map>
@@ -2185,8 +1993,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_MIN</key>
     <map>
@@ -2194,8 +2000,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_NUM_COUNT</key>
     <map>
@@ -2203,8 +2007,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_RANGE</key>
     <map>
@@ -2212,8 +2014,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_STD_DEV</key>
     <map>
@@ -2221,8 +2021,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_SUM</key>
     <map>
@@ -2230,8 +2028,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LIST_STAT_SUM_SQUARES</key>
     <map>
@@ -2239,8 +2035,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>LOOP</key>
     <map>
@@ -2257,8 +2051,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>MASK_EVERYONE</key>
     <map>
@@ -2266,8 +2058,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>MASK_GROUP</key>
     <map>
@@ -2275,8 +2065,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>MASK_NEXT</key>
     <map>
@@ -2284,8 +2072,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>MASK_OWNER</key>
     <map>
@@ -2293,8 +2079,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>NPC</key>
     <map>
@@ -2302,8 +2086,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x20</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>NULL_KEY</key>
     <map>
@@ -2311,8 +2093,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>00000000-0000-0000-0000-000000000000</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_ATTACHED_POINT</key>
     <map>
@@ -2446,8 +2226,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>16</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_POS</key>
     <map>
@@ -2464,8 +2242,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>13</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>OBJECT_RENDER_WEIGHT</key>
     <map>
@@ -2482,8 +2259,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_RETURN_PARCEL_OWNER</key>
     <map>
@@ -2491,8 +2266,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_RETURN_REGION</key>
     <map>
@@ -2500,8 +2273,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_REZZER_KEY</key>
     <map>
@@ -2509,8 +2280,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>32</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_ROOT</key>
     <map>
@@ -2536,8 +2305,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_SCRIPT_MEMORY</key>
     <map>
@@ -2545,8 +2312,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>11</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_SCRIPT_TIME</key>
     <map>
@@ -2554,8 +2319,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>12</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_SERVER_COST</key>
     <map>
@@ -2563,8 +2326,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>14</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_STREAMING_COST</key>
     <map>
@@ -2572,8 +2333,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>15</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_TEMP_ON_REZ</key>
     <map>
@@ -2599,8 +2358,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>10</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_UNKNOWN_DETAIL</key>
     <map>
@@ -2608,8 +2365,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OBJECT_VELOCITY</key>
     <map>
@@ -2689,8 +2444,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>OS_NPC_NO_FLY</key>
     <map>
@@ -2698,8 +2452,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_LAND_AT_TARGET</key>
     <map>
@@ -2707,8 +2459,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_SIT_NOW</key>
     <map>
@@ -2716,8 +2466,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_CREATOR_OWNED</key>
     <map>
@@ -2725,8 +2473,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_NOT_OWNED</key>
     <map>
@@ -2734,8 +2480,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x2</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_SENSE_AS_AGENT</key>
     <map>
@@ -2743,8 +2487,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x4</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_OBJECT_GROUP</key>
     <map>
@@ -2752,8 +2494,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OS_NPC_RUNNING</key>
     <map>
@@ -2761,8 +2501,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>OSTPOBJ_NONE</key>
     <map>
@@ -2806,8 +2544,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_COUNT_OTHER</key>
     <map>
@@ -2815,8 +2551,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_COUNT_OWNER</key>
     <map>
@@ -2824,8 +2558,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_COUNT_SELECTED</key>
     <map>
@@ -2833,8 +2565,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_COUNT_TEMP</key>
     <map>
@@ -2842,8 +2572,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_COUNT_TOTAL</key>
     <map>
@@ -2851,8 +2579,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_DETAILS_AREA</key>
     <map>
@@ -2932,8 +2658,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x08000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_CREATE_GROUP_OBJECTS</key>
     <map>
@@ -2941,8 +2665,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x4000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_CREATE_OBJECTS</key>
     <map>
@@ -2950,8 +2672,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x40</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_DAMAGE</key>
     <map>
@@ -2959,8 +2679,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x20</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_FLY</key>
     <map>
@@ -2968,8 +2686,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_GROUP_OBJECT_ENTRY</key>
     <map>
@@ -2977,8 +2693,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_GROUP_SCRIPTS</key>
     <map>
@@ -2986,8 +2700,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x2000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_LANDMARK</key>
     <map>
@@ -2995,8 +2707,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_SCRIPTS</key>
     <map>
@@ -3004,8 +2714,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x2</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_ALLOW_TERRAFORM</key>
     <map>
@@ -3013,8 +2721,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_LOCAL_SOUND_ONLY</key>
     <map>
@@ -3022,8 +2728,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_RESTRICT_PUSHOBJECT</key>
     <map>
@@ -3031,8 +2735,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_USE_ACCESS_GROUP</key>
     <map>
@@ -3040,8 +2742,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_USE_ACCESS_LIST</key>
     <map>
@@ -3049,8 +2749,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_USE_BAN_LIST</key>
     <map>
@@ -3058,8 +2756,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x400</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_FLAG_USE_LAND_PASS_LIST</key>
     <map>
@@ -3067,8 +2763,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x800</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_AGENT</key>
     <map>
@@ -3076,8 +2770,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_AUTO_ALIGN</key>
     <map>
@@ -3085,8 +2777,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_DESC</key>
     <map>
@@ -3103,8 +2793,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_LOOP_SET</key>
     <map>
@@ -3121,8 +2809,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_PLAY</key>
     <map>
@@ -3130,8 +2816,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_SIZE</key>
     <map>
@@ -3148,8 +2832,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_TEXTURE</key>
     <map>
@@ -3157,8 +2839,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_TIME</key>
     <map>
@@ -3166,8 +2846,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_TYPE</key>
     <map>
@@ -3184,8 +2862,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PARCEL_MEDIA_COMMAND_URL</key>
     <map>
@@ -3193,8 +2869,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>PASS_ALWAYS</key>
     <map>
@@ -3232,23 +2907,12 @@
         <key>tooltip</key>
         <string>Static in-world objects.</string>
     </map>
-    <key>PATROL_PAUSE_AT_WAYPOINTS</key>
-    <map>
-        <key>type</key>
-        <string>integer</string>
-        <key>value</key>
-        <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
-    </map>
     <key>PAY_DEFAULT</key>
     <map>
         <key>type</key>
         <string>integer</string>
         <key>value</key>
         <integer>-2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PAY_HIDE</key>
     <map>
@@ -3256,8 +2920,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PAYMENT_INFO_ON_FILE</key>
     <map>
@@ -3265,8 +2927,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PAYMENT_INFO_USED</key>
     <map>
@@ -3274,8 +2934,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERM_ALL</key>
     <map>
@@ -3283,8 +2941,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x7FFFFFFF</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERM_COPY</key>
     <map>
@@ -3292,8 +2948,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERM_MODIFY</key>
     <map>
@@ -3301,8 +2955,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x4000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERM_MOVE</key>
     <map>
@@ -3310,8 +2962,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERM_TRANSFER</key>
     <map>
@@ -3319,8 +2969,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x2000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERMISSION_ATTACH</key>
     <map>
@@ -3355,8 +3003,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x800</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERMISSION_DEBIT</key>
     <map>
@@ -3400,8 +3046,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>65536</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERMISSION_SILENT_ESTATE_MANAGEMENT</key>
     <map>
@@ -3427,8 +3071,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERMISSION_TRACK_CAMERA</key>
     <map>
@@ -3436,8 +3078,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x400</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PERMISSION_TRIGGER_ANIMATION</key>
     <map>
@@ -3526,8 +3166,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_BLOBS</key>
     <map>
@@ -3535,8 +3173,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>12</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_BRICKS</key>
     <map>
@@ -3544,8 +3180,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_BRIGHT</key>
     <map>
@@ -3553,8 +3187,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_CHECKER</key>
     <map>
@@ -3562,8 +3194,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_CONCRETE</key>
     <map>
@@ -3571,8 +3201,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_DARK</key>
     <map>
@@ -3580,8 +3208,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_DISKS</key>
     <map>
@@ -3589,8 +3215,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>10</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_GRAVEL</key>
     <map>
@@ -3598,8 +3222,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>11</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_LARGETILE</key>
     <map>
@@ -3607,8 +3229,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>14</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_NONE</key>
     <map>
@@ -3616,8 +3236,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>PRIM_BUMP_SHINY</key>
     <map>
@@ -3625,8 +3244,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>19</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_SIDING</key>
     <map>
@@ -3634,8 +3251,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>13</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_STONE</key>
     <map>
@@ -3643,8 +3258,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_STUCCO</key>
     <map>
@@ -3652,8 +3265,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>15</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_SUCTION</key>
     <map>
@@ -3661,8 +3272,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>16</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_TILE</key>
     <map>
@@ -3670,8 +3279,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_WEAVE</key>
     <map>
@@ -3679,8 +3286,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>17</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_BUMP_WOOD</key>
     <map>
@@ -3688,8 +3293,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_CAST_SHADOWS</key>
     <map>
@@ -3699,8 +3302,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>24</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_COLOR</key>
     <map>
@@ -3708,8 +3309,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>18</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_DESC</key>
     <map>
@@ -3717,8 +3316,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>28</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_FLEXIBLE</key>
     <map>
@@ -3726,8 +3323,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>21</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_FULLBRIGHT</key>
     <map>
@@ -3735,8 +3330,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>20</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_GLOW</key>
     <map>
@@ -3753,8 +3346,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_HOLE_DEFAULT</key>
     <map>
@@ -3762,8 +3353,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x00</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_HOLE_SQUARE</key>
     <map>
@@ -3771,8 +3360,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x20</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_HOLE_TRIANGLE</key>
     <map>
@@ -3780,8 +3367,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x30</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_LINK_TARGET</key>
     <map>
@@ -3789,8 +3374,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>34</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL</key>
     <map>
@@ -3798,8 +3381,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_FLESH</key>
     <map>
@@ -3807,8 +3388,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_GLASS</key>
     <map>
@@ -3816,8 +3395,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_LIGHT</key>
     <map>
@@ -3825,8 +3402,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_METAL</key>
     <map>
@@ -3834,8 +3409,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_PLASTIC</key>
     <map>
@@ -3843,8 +3416,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_RUBBER</key>
     <map>
@@ -3852,8 +3423,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_STONE</key>
     <map>
@@ -3861,8 +3430,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MATERIAL_WOOD</key>
     <map>
@@ -3870,8 +3437,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_ALT_IMAGE_ENABLE</key>
     <map>
@@ -3987,8 +3552,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2048</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_MAX_URL_LENGTH</key>
     <map>
@@ -3996,8 +3559,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1024</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_MAX_WHITELIST_COUNT</key>
     <map>
@@ -4005,8 +3566,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>64</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_MAX_WHITELIST_SIZE</key>
     <map>
@@ -4014,8 +3573,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1024</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_MAX_WIDTH_PIXELS</key>
     <map>
@@ -4023,8 +3580,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2048</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PARAM_MAX</key>
     <map>
@@ -4032,8 +3587,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>14</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PERM_ANYONE</key>
     <map>
@@ -4041,8 +3594,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PERM_GROUP</key>
     <map>
@@ -4050,8 +3601,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PERM_NONE</key>
     <map>
@@ -4059,8 +3608,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PERM_OWNER</key>
     <map>
@@ -4068,8 +3615,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_MEDIA_PERMS_CONTROL</key>
     <map>
@@ -4122,8 +3667,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>27</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_NORMAL</key>
     <map>
@@ -4140,8 +3683,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>32</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_PHANTOM</key>
     <map>
@@ -4149,8 +3690,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_PHYSICS</key>
     <map>
@@ -4158,8 +3697,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_PHYSICS_SHAPE_CONVEX</key>
     <map>
@@ -4206,8 +3743,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>23</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_POS_LOCAL</key>
     <map>
@@ -4215,8 +3750,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>33</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_POSITION</key>
     <map>
@@ -4224,8 +3757,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_ROT_LOCAL</key>
     <map>
@@ -4233,8 +3764,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>29</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_ROTATION</key>
     <map>
@@ -4242,8 +3771,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SCULPT_FLAG_INVERT</key>
     <map>
@@ -4269,8 +3796,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SCULPT_TYPE_MASK</key>
     <map>
@@ -4278,8 +3803,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SCULPT_TYPE_PLANE</key>
     <map>
@@ -4287,8 +3810,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SCULPT_TYPE_SPHERE</key>
     <map>
@@ -4296,8 +3817,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SCULPT_TYPE_TORUS</key>
     <map>
@@ -4305,8 +3824,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SHINY_HIGH</key>
     <map>
@@ -4314,8 +3831,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SHINY_LOW</key>
     <map>
@@ -4323,8 +3838,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SHINY_MEDIUM</key>
     <map>
@@ -4332,8 +3845,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SHINY_NONE</key>
     <map>
@@ -4341,8 +3852,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SIZE</key>
     <map>
@@ -4350,8 +3859,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SLICE</key>
     <map>
@@ -4359,8 +3866,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>35</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_SPECULAR</key>
     <map>
@@ -4377,8 +3882,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TEXGEN</key>
     <map>
@@ -4386,8 +3889,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>22</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TEXGEN_DEFAULT</key>
     <map>
@@ -4395,8 +3896,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TEXGEN_PLANAR</key>
     <map>
@@ -4404,8 +3903,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TEXT</key>
     <map>
@@ -4413,8 +3910,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>26</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TEXTURE</key>
     <map>
@@ -4422,8 +3917,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>17</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE</key>
     <map>
@@ -4431,8 +3924,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_BOX</key>
     <map>
@@ -4440,8 +3931,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>PRIM_TYPE_CYLINDER</key>
     <map>
@@ -4449,8 +3939,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_PRISM</key>
     <map>
@@ -4458,8 +3946,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_RING</key>
     <map>
@@ -4467,8 +3953,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>6</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_SCULPT</key>
     <map>
@@ -4476,8 +3960,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_SPHERE</key>
     <map>
@@ -4485,8 +3967,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_TORUS</key>
     <map>
@@ -4494,8 +3974,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PRIM_TYPE_TUBE</key>
     <map>
@@ -4503,8 +3981,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PROFILE_NONE</key>
     <map>
@@ -4530,8 +4006,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_ONE</key>
     <map>
@@ -4539,8 +4013,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_ONE_MINUS_DEST_COLOR</key>
     <map>
@@ -4548,8 +4020,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>PSYS_PART_BF_ONE_MINUS_SOURCE_COLOR</key>
     <map>
@@ -4557,8 +4028,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_ONE_MINUS_SOURCE_ALPHA</key>
     <map>
@@ -4566,8 +4035,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>9</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_SOURCE_ALPHA</key>
     <map>
@@ -4575,8 +4042,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>7</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_SOURCE_COLOR</key>
     <map>
@@ -4584,8 +4049,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BF_ZERO</key>
     <map>
@@ -4593,8 +4056,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BLEND_FUNC_DEST</key>
     <map>
@@ -4602,8 +4063,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>25</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BLEND_FUNC_SOURCE</key>
     <map>
@@ -4611,8 +4070,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>24</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_BOUNCE_MASK</key>
     <map>
@@ -4656,8 +4113,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>27</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_END_SCALE</key>
     <map>
@@ -4728,8 +4183,7 @@
         <string>integer</string>
         <key>value</key>
         <string>0x400</string>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>PSYS_PART_START_ALPHA</key>
     <map>
@@ -4755,8 +4209,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>26</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_START_SCALE</key>
     <map>
@@ -4773,8 +4225,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_PART_TARGET_POS_MASK</key>
     <map>
@@ -4938,8 +4388,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>PSYS_SRC_PATTERN_DROP</key>
     <map>
@@ -5001,8 +4449,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_DETECT_PHANTOM</key>
     <map>
@@ -5010,8 +4456,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_GET_LINK_NUM</key>
     <map>
@@ -5019,8 +4463,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_GET_NORMAL</key>
     <map>
@@ -5028,8 +4470,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_GET_ROOT_KEY</key>
     <map>
@@ -5037,8 +4477,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_MAX_HITS</key>
     <map>
@@ -5046,8 +4484,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_REJECT_AGENTS</key>
     <map>
@@ -5055,8 +4491,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_REJECT_LAND</key>
     <map>
@@ -5064,8 +4498,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>8</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_REJECT_NONPHYSICAL</key>
     <map>
@@ -5073,8 +4505,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>4</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_REJECT_PHYSICAL</key>
     <map>
@@ -5082,8 +4512,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RC_REJECT_TYPES</key>
     <map>
@@ -5091,8 +4519,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RCERR_CAST_TIME_EXCEEDED</key>
     <map>
@@ -5100,8 +4526,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RCERR_SIM_PERF_LOW</key>
     <map>
@@ -5109,8 +4533,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>RCERR_UNKNOWN</key>
     <map>
@@ -5118,8 +4540,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>-1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_ALLOW_DAMAGE</key>
     <map>
@@ -5127,8 +4547,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_ALLOW_DIRECT_TELEPORT</key>
     <map>
@@ -5136,8 +4554,7 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100000</string>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>REGION_FLAG_BLOCK_FLY</key>
     <map>
@@ -5145,8 +4562,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_BLOCK_FLYOVER</key>
     <map>
@@ -5154,8 +4569,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x8000000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_BLOCK_TERRAFORM</key>
     <map>
@@ -5163,8 +4576,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x40</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_DISABLE_COLLISIONS</key>
     <map>
@@ -5172,8 +4583,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x1000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_DISABLE_PHYSICS</key>
     <map>
@@ -5181,8 +4590,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x4000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_FIXED_SUN</key>
     <map>
@@ -5190,8 +4597,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x10</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_RESTRICT_PUSHOBJECT</key>
     <map>
@@ -5199,8 +4604,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x400000</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REGION_FLAG_SANDBOX</key>
     <map>
@@ -5208,8 +4611,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REMOTE_DATA_CHANNEL</key>
     <map>
@@ -5217,8 +4618,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>1</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REMOTE_DATA_REPLY</key>
     <map>
@@ -5226,8 +4625,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>3</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REMOTE_DATA_REQUEST</key>
     <map>
@@ -5235,8 +4632,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>2</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>REQUIRE_LINE_OF_SIGHT</key>
     <map>
@@ -5532,8 +4927,7 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200</string>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>STATUS_DIE_AT_EDGE</key>
     <map>
@@ -5613,8 +5007,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>STATUS_ROTATE_X</key>
     <map>
@@ -5676,8 +5068,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x03</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>STRING_TRIM_HEAD</key>
     <map>
@@ -5685,8 +5075,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x01</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>STRING_TRIM_TAIL</key>
     <map>
@@ -5694,8 +5082,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x02</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TEXTURE_BLANK</key>
     <map>
@@ -5703,8 +5089,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>5748decc-f629-461c-9a36-a35a221fe21f</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TEXTURE_DEFAULT</key>
     <map>
@@ -5712,8 +5096,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>89556747-24cb-43ed-920b-47caed15465f</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TEXTURE_MEDIA</key>
     <map>
@@ -5721,8 +5103,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>8b5fec65-8d8d-9dc5-cda8-8fdf2716e361</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TEXTURE_PLYWOOD</key>
     <map>
@@ -5730,8 +5110,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>89556747-24cb-43ed-920b-47caed15465f</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TEXTURE_TRANSPARENT</key>
     <map>
@@ -5739,8 +5117,6 @@
         <string>string</string>
         <key>value</key>
         <uuid>8dcd4a48-2d37-4909-9f78-f7a9eb4ef903</uuid>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TOUCH_INVALID_FACE</key>
     <map>
@@ -5748,8 +5124,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0xFFFFFFFF</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TOUCH_INVALID_TEXCOORD</key>
     <map>
@@ -5757,8 +5131,6 @@
         <string>vector</string>
         <key>value</key>
         <string>&lt;-1.0, -1.0, 0.0&gt;</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TOUCH_INVALID_VECTOR</key>
     <map>
@@ -5766,8 +5138,6 @@
         <string>vector</string>
         <key>value</key>
         <string>&lt;0.0, 0.0, 0.0&gt;</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>TRUE</key>
     <map>
@@ -5856,8 +5226,6 @@
         <string>string</string>
         <key>value</key>
         <string>URL_REQUEST_DENIED</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>URL_REQUEST_GRANTED</key>
     <map>
@@ -5865,8 +5233,6 @@
         <string>string</string>
         <key>value</key>
         <string>URL_REQUEST_GRANTED</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>VEHICLE_ANGULAR_DEFLECTION_EFFICIENCY</key>
     <map>
@@ -5967,8 +5333,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x200</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>VEHICLE_FLAG_HOVER_GLOBAL_HEIGHT</key>
     <map>
@@ -6030,8 +5394,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x100</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>VEHICLE_FLAG_MOUSELOOK_STEER</key>
     <map>
@@ -6039,8 +5401,6 @@
         <string>integer</string>
         <key>value</key>
         <string>0x80</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>VEHICLE_FLAG_NO_DEFLECTION_UP</key>
     <map>
@@ -6146,8 +5506,7 @@
         <string>integer</string>
         <key>value</key>
         <integer>20</integer>
-        <key>tooltip</key>
-        <string/>
+
     </map>
     <key>VEHICLE_LINEAR_MOTOR_TIMESCALE</key>
     <map>
@@ -6209,8 +5568,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>VEHICLE_TYPE_SLED</key>
     <map>
@@ -6245,8 +5602,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ZERO_ROTATION</key>
     <map>
@@ -6254,8 +5609,6 @@
         <string>rotation</string>
         <key>value</key>
         <string>&lt;0.0, 0.0, 0.0, 1.0&gt;</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>ZERO_VECTOR</key>
     <map>
@@ -6263,8 +5616,6 @@
         <string>vector</string>
         <key>value</key>
         <string>&lt;0.0, 0.0, 0.0&gt;</string>
-        <key>tooltip</key>
-        <string/>
     </map>
     <key>default</key>
     <map>
@@ -6283,8 +5634,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6292,8 +5641,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6301,8 +5648,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6318,8 +5663,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6327,8 +5670,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6336,8 +5677,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6353,8 +5692,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6370,8 +5707,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6387,8 +5722,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6407,8 +5740,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6427,8 +5758,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6447,8 +5776,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6456,8 +5783,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6465,8 +5790,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6485,8 +5808,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6494,8 +5815,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6514,8 +5833,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6523,8 +5840,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6532,8 +5847,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6541,8 +5854,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6550,8 +5861,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6570,8 +5879,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6579,8 +5886,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6588,8 +5893,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6605,8 +5908,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6614,8 +5915,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6623,8 +5922,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6632,8 +5929,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6649,8 +5944,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6666,8 +5959,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6683,8 +5974,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6700,8 +5989,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6709,8 +5996,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6718,8 +6003,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6727,8 +6010,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6744,8 +6025,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6753,8 +6032,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6762,8 +6039,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6771,8 +6046,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6791,8 +6064,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6800,8 +6071,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6852,8 +6121,7 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -6869,8 +6137,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6886,8 +6152,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -6895,8 +6160,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6904,8 +6167,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6913,8 +6174,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -6922,8 +6181,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -6931,8 +6189,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6948,8 +6204,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -6968,8 +6222,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7009,8 +6261,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7030,8 +6280,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7050,8 +6298,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7070,8 +6316,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7079,8 +6323,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7088,8 +6330,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7219,7 +6459,6 @@
     </map>
     <key>llAllowInventoryDrop</key>
     <map>
-
         <key>return</key>
         <string>void</string>
         <key>arguments</key>
@@ -7332,8 +6571,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string>A floating-point value.</string>
                 </map>
             </map>
         </array>
@@ -7352,8 +6589,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string>A floating-point value.</string>
                 </map>
             </map>
             <map>
@@ -7361,8 +6596,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string>A floating-point value.</string>
                 </map>
             </map>
         </array>
@@ -7380,8 +6613,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -7511,8 +6743,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -7521,7 +6752,6 @@
     </map>
     <key>llBase64ToString</key>
     <map>
-
         <key>return</key>
         <string>string</string>
         <key>arguments</key>
@@ -7531,8 +6761,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7559,8 +6787,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7578,8 +6804,7 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -7587,8 +6812,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7596,8 +6819,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7615,8 +6836,7 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -7625,7 +6845,6 @@
     </map>
     <key>llClearCameraParams</key>
     <map>
-
         <key>return</key>
         <string>void</string>
         <key>arguments</key>
@@ -7644,8 +6863,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7653,8 +6870,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -7695,8 +6911,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7714,8 +6928,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7733,8 +6945,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7742,8 +6952,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7770,8 +6978,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7779,8 +6985,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7798,8 +7002,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -7808,7 +7011,6 @@
     </map>
     <key>llCos</key>
     <map>
-
         <key>return</key>
         <string>float</string>
         <key>arguments</key>
@@ -7818,8 +7020,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7867,8 +7067,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7877,7 +7075,6 @@
     </map>
     <key>llDeleteSubList</key>
     <map>
-
         <key>return</key>
         <string>list</string>
         <key>arguments</key>
@@ -7887,8 +7084,7 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -7896,8 +7092,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -7905,8 +7100,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7924,8 +7117,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7933,8 +7124,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -7942,8 +7131,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7970,8 +7157,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -7989,8 +7174,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8008,8 +7191,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8027,8 +7208,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8046,8 +7225,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8065,8 +7242,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8084,8 +7259,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8103,8 +7276,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8236,8 +7407,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8255,8 +7424,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8276,8 +7443,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8285,8 +7450,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8294,8 +7457,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8303,8 +7464,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8342,8 +7501,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8351,8 +7508,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8370,8 +7525,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8379,8 +7532,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8398,8 +7549,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8419,8 +7568,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8428,8 +7575,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -8437,8 +7582,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8456,8 +7599,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8478,8 +7619,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8488,7 +7627,6 @@
     </map>
     <key>llFabs</key>
     <map>
-
         <key>return</key>
         <string>float</string>
         <key>arguments</key>
@@ -8498,8 +7636,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8517,8 +7653,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8546,7 +7680,6 @@
     </map>
     <key>llFrand</key>
     <map>
-
         <key>return</key>
         <string>float</string>
         <key>arguments</key>
@@ -8556,8 +7689,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8575,7 +7706,6 @@
     </map>
     <key>llGetAccel</key>
     <map>
-
         <key>return</key>
         <string>vector</string>
         <key>arguments</key>
@@ -8594,8 +7724,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8607,7 +7735,6 @@
     </map>
     <key>llGetAgentLanguage</key>
     <map>
-
         <key>return</key>
         <string>string</string>
         <key>arguments</key>
@@ -8617,8 +7744,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8664,8 +7789,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8683,8 +7806,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8711,8 +7832,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8730,8 +7849,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8749,8 +7866,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8796,8 +7911,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8842,8 +7955,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -8861,7 +7972,6 @@
     </map>
     <key>llGetDate</key>
     <map>
-
         <key>return</key>
         <string>string</string>
         <key>arguments</key>
@@ -8936,7 +8046,6 @@
     </map>
     <key>llGetFreeURLs</key>
     <map>
-
         <key>return</key>
         <string>integer</string>
         <key>arguments</key>
@@ -9001,8 +8110,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9020,8 +8127,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9114,8 +8219,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9143,8 +8246,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9162,8 +8263,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9218,8 +8317,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9293,8 +8390,7 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -9302,8 +8398,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -9321,8 +8416,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9367,7 +8460,6 @@
     </map>
     <key>llGetMaxScaleFactor</key>
     <map>
-
         <key>return</key>
         <string>float</string>
         <key>arguments</key>
@@ -9404,8 +8496,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -9413,8 +8503,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9434,8 +8522,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -9443,8 +8529,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9464,8 +8548,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -9539,8 +8622,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9586,8 +8667,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9624,8 +8703,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9671,8 +8748,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9766,8 +8841,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -9972,8 +9045,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10001,7 +9072,6 @@
     </map>
     <key>llGetSimulatorHostname</key>
     <map>
-
         <key>sleep</key>
         <real>10.0</real>
         <key>return</key>
@@ -10059,8 +9129,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10068,8 +9136,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10077,8 +9143,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10105,8 +9169,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10124,8 +9186,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10143,8 +9203,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10162,8 +9220,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10235,8 +9291,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10272,8 +9326,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10281,8 +9333,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10302,8 +9352,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10311,8 +9359,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10320,8 +9366,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10339,8 +9383,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10348,8 +9390,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10369,8 +9409,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10378,8 +9416,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10397,8 +9433,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10417,8 +9451,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10436,8 +9468,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10496,8 +9526,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10589,8 +9617,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10598,8 +9624,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10607,8 +9631,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10628,8 +9650,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10637,8 +9657,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10656,8 +9674,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10677,8 +9693,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10696,8 +9710,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10705,8 +9717,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10724,8 +9734,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10733,8 +9741,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10742,8 +9748,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10761,8 +9765,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10770,8 +9772,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10873,8 +9873,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10892,8 +9890,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10901,8 +9897,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10920,8 +9914,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -10929,8 +9921,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -10976,8 +9966,7 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -10985,8 +9974,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11004,8 +9991,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11013,8 +9998,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11022,8 +10005,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11041,8 +10022,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11050,8 +10029,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11059,8 +10036,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11068,8 +10043,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11087,8 +10060,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11096,8 +10067,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11115,8 +10084,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11124,8 +10091,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11144,8 +10109,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11153,8 +10116,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11172,8 +10133,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11181,8 +10140,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11190,8 +10147,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11199,8 +10154,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11218,8 +10171,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11227,8 +10178,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11246,8 +10195,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11265,8 +10212,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11274,8 +10219,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11293,8 +10236,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11302,8 +10243,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11311,8 +10250,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11330,8 +10267,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11339,8 +10274,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11358,8 +10291,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11367,8 +10298,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11376,8 +10305,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11385,8 +10312,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11471,8 +10396,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11480,8 +10403,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11489,8 +10410,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11508,8 +10427,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11527,8 +10444,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11546,8 +10461,7 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -11555,8 +10469,7 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -11564,8 +10477,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11583,8 +10494,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11592,8 +10501,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11611,8 +10518,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11620,8 +10525,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11639,8 +10542,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -11648,8 +10550,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11697,8 +10597,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11706,8 +10604,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11715,8 +10611,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11734,8 +10628,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11743,8 +10635,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11762,8 +10652,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11771,8 +10659,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11780,8 +10666,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11789,8 +10673,7 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -11808,8 +10691,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11857,8 +10738,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -11866,8 +10746,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -11875,8 +10754,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11894,8 +10771,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11903,8 +10778,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11924,8 +10797,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11933,8 +10804,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -11942,8 +10811,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11961,8 +10828,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -11980,8 +10845,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12022,8 +10885,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12041,8 +10902,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12050,8 +10909,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12059,8 +10916,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12078,8 +10933,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12087,8 +10940,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12096,8 +10947,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12115,8 +10964,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12172,8 +11019,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12181,8 +11026,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12200,8 +11043,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12209,8 +11050,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12228,8 +11067,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12237,8 +11074,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12258,8 +11093,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12277,8 +11110,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12286,8 +11117,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12295,8 +11124,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12304,8 +11131,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12401,8 +11226,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12453,8 +11276,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12462,8 +11283,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12556,8 +11375,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12575,8 +11392,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12594,8 +11409,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12613,8 +11426,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12634,8 +11445,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12643,8 +11452,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12683,8 +11490,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12702,8 +11507,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12711,8 +11514,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12741,8 +11542,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12750,8 +11549,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12778,8 +11575,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12797,8 +11592,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -12807,7 +11601,6 @@
     </map>
     <key>llResetLandBanList</key>
     <map>
-
         <key>return</key>
         <string>void</string>
         <key>arguments</key>
@@ -12835,8 +11628,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12900,8 +11691,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12921,8 +11710,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12930,8 +11717,7 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -12939,8 +11725,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12948,8 +11732,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12957,8 +11739,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -12978,8 +11758,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12987,8 +11765,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -12996,8 +11772,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13005,8 +11779,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13014,8 +11786,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13033,8 +11803,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13052,8 +11820,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13071,8 +11837,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13090,8 +11854,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13109,8 +11871,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13128,8 +11888,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13149,8 +11907,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13158,8 +11914,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13177,8 +11931,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13186,8 +11938,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13206,8 +11956,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13215,8 +11963,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13224,8 +11970,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13243,8 +11987,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13252,8 +11994,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13271,8 +12011,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13290,8 +12028,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13309,8 +12045,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13377,8 +12111,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13386,8 +12118,7 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -13395,8 +12126,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13414,8 +12143,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13456,8 +12183,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13465,8 +12190,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13474,8 +12197,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13483,8 +12204,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13630,8 +12349,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13639,8 +12356,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13686,8 +12401,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13695,8 +12408,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13714,8 +12425,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13733,8 +12442,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13752,8 +12459,7 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -13771,8 +12477,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13809,8 +12513,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -13818,8 +12520,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -13865,8 +12565,7 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -14034,8 +12733,7 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -14053,8 +12751,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14062,8 +12758,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14071,8 +12765,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14212,8 +12904,7 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -14240,8 +12931,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14261,8 +12950,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14270,8 +12957,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14279,8 +12964,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14382,8 +13065,7 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -14421,8 +13103,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14440,8 +13120,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14491,8 +13169,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14549,8 +13225,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14558,8 +13232,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14567,8 +13239,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14576,8 +13246,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14671,8 +13339,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14713,8 +13379,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14734,8 +13398,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14753,8 +13415,7 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -14772,8 +13433,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14781,8 +13440,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14800,8 +13457,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14857,8 +13512,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14866,8 +13519,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14885,8 +13536,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14894,8 +13543,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14903,8 +13550,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -14924,8 +13569,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -14933,8 +13576,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15025,8 +13666,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15072,8 +13711,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -15092,8 +13730,7 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
         </array>
@@ -15111,8 +13748,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15120,8 +13755,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15139,8 +13772,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15148,8 +13779,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15167,8 +13796,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15186,8 +13813,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15195,8 +13820,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15242,8 +13865,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15261,8 +13882,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15270,8 +13889,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15289,8 +13906,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15308,8 +13923,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15317,8 +13930,6 @@
                 <map>
                     <key>type</key>
                     <string>rotation</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15336,8 +13947,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15357,8 +13966,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15366,8 +13973,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15375,8 +13980,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15384,8 +13987,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15405,8 +14006,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15424,8 +14023,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15443,8 +14040,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15462,8 +14057,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15517,8 +14110,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15536,8 +14127,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15583,8 +14172,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15592,8 +14179,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15613,8 +14198,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15669,8 +14252,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15688,8 +14269,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15697,8 +14276,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15717,8 +14294,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15726,8 +14301,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15735,8 +14308,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15754,8 +14325,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15867,8 +14436,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15888,8 +14455,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15897,8 +14462,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15906,8 +14469,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15925,8 +14486,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15944,8 +14503,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15963,8 +14520,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -15972,8 +14527,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -15991,8 +14544,7 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
+
                 </map>
             </map>
             <map>
@@ -16000,8 +14552,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16019,8 +14569,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16028,8 +14576,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16037,8 +14583,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16046,8 +14590,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16065,8 +14607,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16084,8 +14624,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16103,8 +14641,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16112,8 +14648,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16131,8 +14665,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16150,8 +14682,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16189,8 +14719,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16208,8 +14736,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16217,8 +14743,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16236,8 +14760,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16255,8 +14777,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16264,8 +14784,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16287,8 +14805,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16296,8 +14812,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16317,8 +14831,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16326,8 +14838,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16363,8 +14873,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16372,8 +14880,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
@@ -16391,8 +14897,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
             <map>
@@ -16400,8 +14904,6 @@
                 <map>
                     <key>type</key>
                     <string>string</string>
-                    <key>tooltip</key>
-                    <string/>
                 </map>
             </map>
         </array>
