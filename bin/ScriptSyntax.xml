@@ -2242,7 +2242,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>13</integer>
-
     </map>
     <key>OBJECT_RENDER_WEIGHT</key>
     <map>
@@ -2444,7 +2443,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-
     </map>
     <key>OS_NPC_NO_FLY</key>
     <map>
@@ -2869,7 +2867,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>5</integer>
-
     </map>
     <key>PASS_ALWAYS</key>
     <map>
@@ -3236,7 +3233,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-
     </map>
     <key>PRIM_BUMP_SHINY</key>
     <map>
@@ -3931,7 +3927,6 @@
         <string>integer</string>
         <key>value</key>
         <integer>0</integer>
-
     </map>
     <key>PRIM_TYPE_CYLINDER</key>
     <map>
@@ -5603,6 +5598,265 @@
         <key>value</key>
         <integer>0</integer>
     </map>
+    <key>WL_WATER_COLOR</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>0</integer>
+    </map>
+    <key>WL_WATER_FOG_DENSITY_EXPONENT</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>1</integer>
+    </map>
+    <key>WL_UNDERWATER_FOG_MODIFIER</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>2</integer>
+    </map>
+    <key>WL_REFLECTION_WAVELET_SCALE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>3</integer>
+    </map>
+    <key>WL_FRESNEL_SCALE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>4</integer>
+    </map>
+    <key>WL_FRESNEL_OFFSET</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>5</integer>
+    </map>
+    <key>WL_REFRACT_SCALE_ABOVE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>6</integer>
+    </map>
+    <key>WL_REFRACT_SCALE_BELOW</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>7</integer>
+    </map>
+    <key>WL_BLUR_MULTIPLIER</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>8</integer>
+    </map>
+    <key>WL_BIG_WAVE_DIRECTION</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>9</integer>
+    </map>
+    <key>WL_LITTLE_WAVE_DIRECTION</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>10</integer>
+    </map>
+    <key>WL_NORMAL_MAP_TEXTURE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>11</integer>
+    </map>
+    <key>WL_HORIZON</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>12</integer>
+    </map>
+    <key>WL_HAZE_HORIZON</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>13</integer>
+    </map>
+    <key>WL_BLUE_DENSITY</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>14</integer>
+    </map>
+    <key>WL_HAZE_DENSITY</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>15</integer>
+    </map>
+    <key>WL_DENSITY_MULTIPLIER</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>16</integer>
+    </map>
+    <key>WL_DISTANCE_MULTIPLIER</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>17</integer>
+    </map>
+    <key>WL_MAX_ALTITUDE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>18</integer>
+    </map>
+    <key>WL_SUN_MOON_COLOR</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>19</integer>
+    </map>
+    <key>WL_AMBIENT</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>20</integer>
+    </map>
+    <key>WL_EAST_ANGLE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>21</integer>
+    </map>
+    <key>WL_SUN_GLOW_FOCUS</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>22</integer>
+    </map>
+    <key>WL_SUN_GLOW_SIZE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>23</integer>
+    </map>
+    <key>WL_SCENE_GAMMA</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>24</integer>
+    </map>
+    <key>WL_STAR_BRIGHTNESS</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>25</integer>
+    </map>
+    <key>WL_CLOUD_COLOR</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>26</integer>
+    </map>
+    <key>WL_CLOUD_XY_DENSITY</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>27</integer>
+    </map>
+    <key>WL_CLOUD_COVERAGE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>28</integer>
+    </map>
+    <key>WL_CLOUD_SCALE</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>29</integer>
+    </map>
+    <key>WL_CLOUD_DETAIL_XY_DENSITY</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>30</integer>
+    </map>
+    <key>WL_CLOUD_SCROLL_X</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>31</integer>
+    </map>
+    <key>WL_CLOUD_SCROLL_Y</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>32</integer>
+    </map>
+    <key>WL_CLOUD_SCROLL_Y_LOCK</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>33</integer>
+    </map>
+    <key>WL_CLOUD_SCROLL_X_LOCK</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>34</integer>
+    </map>
+    <key>WL_DRAW_CLASSIC_CLOUDS</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>35</integer>
+    </map>
+    <key>WL_SUN_MOON_POSITION</key>
+    <map>
+        <key>type</key>
+        <string>integer</string>
+        <key>value</key>
+        <integer>36</integer>
+    </map>
     <key>ZERO_ROTATION</key>
     <map>
         <key>type</key>
@@ -6121,7 +6375,6 @@
                 <map>
                     <key>type</key>
                     <string>key</string>
-
                 </map>
             </map>
         </array>
@@ -6380,8 +6633,6 @@
     </map>
     <key>llAddToLandBanList</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6410,8 +6661,6 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6440,8 +6689,6 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6459,8 +6706,6 @@
     </map>
     <key>llAllowInventoryDrop</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6506,8 +6751,7 @@
     </map>
     <key>llApplyImpulse</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -6534,8 +6778,6 @@
     </map>
     <key>llApplyRotationalImpulse</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6579,7 +6821,6 @@
     </map>
     <key>llAtan2</key>
     <map>
-
         <key>return</key>
         <string>float</string>
         <key>arguments</key>
@@ -6604,8 +6845,7 @@
     </map>
     <key>llAttachToAvatar</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -6622,8 +6862,6 @@
     </map>
     <key>llAttachToAvatarTemp</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6769,8 +7007,7 @@
     </map>
     <key>llBreakAllLinks</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -6778,8 +7015,6 @@
     </map>
     <key>llBreakLink</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -6845,8 +7080,6 @@
     </map>
     <key>llClearCameraParams</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -6902,8 +7135,7 @@
     <map>
         <key>sleep</key>
         <real>1.0</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -6936,8 +7168,7 @@
     </map>
     <key>llCollisionFilter</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -6969,8 +7200,7 @@
     </map>
     <key>llCollisionSound</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -6993,8 +7223,7 @@
     </map>
     <key>llCollisionSprite</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -7030,8 +7259,7 @@
     <map>
         <key>sleep</key>
         <real>1.0</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -7139,8 +7367,6 @@
     </map>
     <key>llDetachFromAvatar</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -7434,8 +7660,6 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -7483,8 +7707,6 @@
     </map>
     <key>llDie</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -7540,8 +7762,7 @@
     </map>
     <key>llEjectFromLand</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -7559,8 +7780,6 @@
     <map>
         <key>sleep</key>
         <real>20.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -7661,8 +7880,6 @@
     </map>
     <key>llForceMouselook</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -8236,7 +8453,6 @@
     </map>
     <key>llGetLandOwnerAt</key>
     <map>
-
         <key>return</key>
         <string>key</string>
         <key>arguments</key>
@@ -8390,7 +8606,6 @@
                 <map>
                     <key>type</key>
                     <string>list</string>
-
                 </map>
             </map>
             <map>
@@ -8398,7 +8613,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-
                 </map>
             </map>
         </array>
@@ -8487,8 +8701,6 @@
     </map>
     <key>llGetNextEmail</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9317,8 +9529,6 @@
     </map>
     <key>llGiveInventory</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9343,8 +9553,6 @@
     <map>
         <key>sleep</key>
         <real>3.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9400,8 +9608,6 @@
     <map>
         <key>god-mode</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9441,7 +9647,6 @@
     </map>
     <key>llGroundContour</key>
     <map>
-
         <key>return</key>
         <string>vector</string>
         <key>arguments</key>
@@ -9476,8 +9681,6 @@
     </map>
     <key>llGroundRepel</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9571,8 +9774,6 @@
     </map>
     <key>llHTTPResponse</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9641,8 +9842,6 @@
     <map>
         <key>sleep</key>
         <real>2.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -9682,8 +9881,6 @@
     </map>
     <key>llJson2List</key>
     <map>
-        <key>energy</key>
-        <real>0.0</real>
         <key>return</key>
         <string>list</string>
         <key>arguments</key>
@@ -9799,8 +9996,7 @@
     </map>
     <key>llLinkParticleSystem</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -9827,8 +10023,7 @@
     </map>
     <key>llLinkSitTarget</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10099,7 +10294,6 @@
     </map>
     <key>llList2Vector</key>
     <map>
-
         <key>return</key>
         <string>vector</string>
         <key>arguments</key>
@@ -10162,8 +10356,6 @@
     </map>
     <key>llListenControl</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10186,8 +10378,7 @@
     </map>
     <key>llListenRemove</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10387,8 +10578,6 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10452,8 +10641,6 @@
     </map>
     <key>llLookAt</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10461,7 +10648,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-
                 </map>
             </map>
             <map>
@@ -10469,7 +10655,6 @@
                 <map>
                     <key>type</key>
                     <string>float</string>
-
                 </map>
             </map>
             <map>
@@ -10485,8 +10670,6 @@
     </map>
     <key>llLoopSound</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10509,8 +10692,7 @@
     </map>
     <key>llLoopSoundMaster</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10533,8 +10715,6 @@
     </map>
     <key>llLoopSoundSlave</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10588,8 +10768,6 @@
     <map>
         <key>sleep</key>
         <real>1.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10643,8 +10821,6 @@
     </map>
     <key>llMessageLinked</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10682,8 +10858,6 @@
     </map>
     <key>llMinEventDelay</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10699,8 +10873,7 @@
     </map>
     <key>llModifyLand</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10746,7 +10919,6 @@
                 <map>
                     <key>type</key>
                     <string>integer</string>
-
                 </map>
             </map>
             <map>
@@ -10762,8 +10934,6 @@
     </map>
     <key>llMoveToTarget</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10788,8 +10958,7 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10836,8 +11005,6 @@
     </map>
     <key>llOwnerSay</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10855,8 +11022,7 @@
     <map>
         <key>sleep</key>
         <real>2.0</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10955,8 +11121,7 @@
     </map>
     <key>llParticleSystem</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -10972,8 +11137,6 @@
     </map>
     <key>llPassCollisions</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -10991,8 +11154,6 @@
     </map>
     <key>llPassTouches</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11010,8 +11171,7 @@
     </map>
     <key>llPlaySound</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -11034,8 +11194,6 @@
     </map>
     <key>llPlaySoundSlave</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11084,8 +11242,6 @@
     <map>
         <key>sleep</key>
         <real>1.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11101,8 +11257,6 @@
     </map>
     <key>llPushObject</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11141,8 +11295,6 @@
     <map>
         <key>sleep</key>
         <real>20.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11150,8 +11302,6 @@
     </map>
     <key>llRegionSay</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11178,8 +11328,6 @@
     </map>
     <key>llRegionSayTo</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11217,8 +11365,7 @@
     <map>
         <key>deprecated</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -11234,8 +11381,6 @@
     </map>
     <key>llReleaseControls</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11243,9 +11388,6 @@
     </map>
     <key>llReleaseURL</key>
     <map>
-
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11267,8 +11409,6 @@
         <boolean>true</boolean>
         <key>sleep</key>
         <real>3.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11311,8 +11451,6 @@
     <map>
         <key>sleep</key>
         <real>3.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11366,8 +11504,6 @@
     </map>
     <key>llRemoveFromLandBanList</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11383,8 +11519,7 @@
     </map>
     <key>llRemoveFromLandPassList</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -11400,8 +11535,6 @@
     </map>
     <key>llRemoveInventory</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11417,8 +11550,7 @@
     </map>
     <key>llRemoveVehicleFlags</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -11498,8 +11630,6 @@
     </map>
     <key>llRequestPermissions</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11583,8 +11713,6 @@
     </map>
     <key>llResetAnimationOverride</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11601,8 +11729,7 @@
     </map>
     <key>llResetLandBanList</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11610,8 +11737,6 @@
     </map>
     <key>llResetLandPassList</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11619,8 +11744,6 @@
     </map>
     <key>llResetOtherScript</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11636,8 +11759,7 @@
     </map>
     <key>llResetScript</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11645,8 +11767,6 @@
     </map>
     <key>llResetTime</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -11701,8 +11821,7 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -11717,7 +11836,6 @@
                 <map>
                     <key>type</key>
                     <string>vector</string>
-
                 </map>
             </map>
             <map>
@@ -11749,8 +11867,6 @@
     <map>
         <key>sleep</key>
         <real>0.1</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11898,8 +12014,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -11946,9 +12060,6 @@
     </map>
     <key>llRotLookAt</key>
     <map>
-
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12002,8 +12113,7 @@
     </map>
     <key>llRotTargetRemove</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12053,8 +12163,6 @@
     </map>
     <key>llSay</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12102,8 +12210,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12151,8 +12257,7 @@
     </map>
     <key>llScriptProfiler</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12212,8 +12317,6 @@
     </map>
     <key>llSensor</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12267,8 +12370,6 @@
     </map>
     <key>llSensorRemove</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -12276,8 +12377,6 @@
     </map>
     <key>llSensorRepeat</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12340,8 +12439,6 @@
     </map>
     <key>llSetAlpha</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12364,8 +12461,6 @@
     </map>
     <key>llSetAngularVelocity</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12392,8 +12487,6 @@
     </map>
     <key>llSetAnimationOverride</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12416,8 +12509,7 @@
     </map>
     <key>llSetBuoyancy</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12433,8 +12525,6 @@
     </map>
     <key>llSetCameraAtOffset</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12450,8 +12540,7 @@
     </map>
     <key>llSetCameraEyeOffset</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12468,8 +12557,6 @@
     </map>
     <key>llSetCameraParams</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12485,8 +12572,7 @@
     </map>
     <key>llSetClickAction</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12504,8 +12590,6 @@
     </map>
     <key>llSetColor</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12528,8 +12612,6 @@
     </map>
     <key>llSetContentType</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12556,8 +12638,6 @@
     </map>
     <key>llSetDamage</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12574,8 +12654,7 @@
     </map>
     <key>llSetForce</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12602,8 +12681,6 @@
     </map>
     <key>llSetForceAndTorque</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12639,8 +12716,6 @@
     </map>
     <key>llSetHoverHeight</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12678,8 +12753,6 @@
     <map>
         <key>god-mode</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12715,8 +12788,7 @@
     </map>
     <key>llSetKeyframedMotion</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12742,8 +12814,7 @@
     </map>
     <key>llSetLinkAlpha</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12773,8 +12844,6 @@
     </map>
     <key>llSetLinkCamera</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12810,8 +12879,6 @@
     </map>
     <key>llSetLinkColor</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12886,8 +12953,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12913,8 +12978,6 @@
     </map>
     <key>llSetLinkPrimitiveParamsFast</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -12941,8 +13004,7 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -12972,8 +13034,6 @@
     </map>
     <key>llSetLinkTextureAnim</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13056,8 +13116,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13093,9 +13151,6 @@
     </map>
     <key>llSetObjectDesc</key>
     <map>
-
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13111,8 +13166,6 @@
     </map>
     <key>llSetObjectName</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13130,8 +13183,7 @@
     <map>
         <key>god-mode</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13160,8 +13212,6 @@
     <map>
         <key>sleep</key>
         <real>2.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13177,8 +13227,6 @@
     </map>
     <key>llSetPayPrice</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13205,10 +13253,6 @@
     </map>
     <key>llSetPhysicsMaterial</key>
     <map>
-        <key>energy</key>
-        <real>0.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13256,8 +13300,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13277,8 +13319,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13330,8 +13370,7 @@
         <boolean>true</boolean>
         <key>sleep</key>
         <real>20.0</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13347,8 +13386,6 @@
     </map>
     <key>llSetRegionPos</key>
     <map>
-        <key>energy</key>
-        <real>0.0</real>
         <key>return</key>
         <string>integer</string>
         <key>arguments</key>
@@ -13370,8 +13407,6 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13389,8 +13424,7 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13406,8 +13440,6 @@
     </map>
     <key>llSetScale</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13424,8 +13456,7 @@
     </map>
     <key>llSetScriptState</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13448,8 +13479,6 @@
     </map>
     <key>llSetSitText</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13465,8 +13494,7 @@
     </map>
     <key>llSetSoundQueueing</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13484,8 +13512,7 @@
     </map>
     <key>llSetSoundRadius</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13503,8 +13530,6 @@
     </map>
     <key>llSetStatus</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13527,8 +13552,7 @@
     </map>
     <key>llSetText</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13560,8 +13584,7 @@
     <map>
         <key>sleep</key>
         <real>0.2</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13584,8 +13607,6 @@
     </map>
     <key>llSetTextureAnim</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13657,8 +13678,7 @@
     </map>
     <key>llSetTimerEvent</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13674,8 +13694,6 @@
     </map>
     <key>llSetTorque</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13702,8 +13720,6 @@
     </map>
     <key>llSetTouchText</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13721,8 +13737,7 @@
     <key>llSetVehicleFlags</key>
     <map>
 
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13739,8 +13754,6 @@
     </map>
     <key>llSetVehicleFloatParam</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13763,8 +13776,7 @@
     </map>
     <key>llSetVehicleRotationParam</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13787,8 +13799,7 @@
     </map>
     <key>llSetVehicleType</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13804,8 +13815,6 @@
     </map>
     <key>llSetVehicleVectorParam</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13828,8 +13837,7 @@
     </map>
     <key>llSetVelocity</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13873,8 +13881,6 @@
     </map>
     <key>llShout</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13914,8 +13920,6 @@
     </map>
     <key>llSitTarget</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13938,8 +13942,6 @@
     </map>
     <key>llSleep</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -13957,8 +13959,7 @@
     <map>
         <key>deprecated</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -13997,8 +13998,7 @@
     <map>
         <key>deprecated</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14031,8 +14031,7 @@
     </map>
     <key>llStartAnimation</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14048,8 +14047,6 @@
     </map>
     <key>llStopAnimation</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14065,8 +14062,7 @@
     </map>
     <key>llStopHover</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -14074,8 +14070,6 @@
     </map>
     <key>llStopLookAt</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -14083,8 +14077,7 @@
     </map>
     <key>llStopMoveToTarget</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -14092,8 +14085,7 @@
     </map>
     <key>llStopSound</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <undef/>
         <key>tooltip</key>
@@ -14189,8 +14181,6 @@
     <map>
         <key>deprecated</key>
         <boolean>true</boolean>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14206,8 +14196,6 @@
     </map>
     <key>llTakeControls</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14284,9 +14272,6 @@
     </map>
     <key>llTargetOmega</key>
     <map>
-
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14316,8 +14301,6 @@
     </map>
     <key>llTargetRemove</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14333,8 +14316,7 @@
     </map>
     <key>llTeleportAgent</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14379,8 +14361,6 @@
     </map>
     <key>llTeleportAgentGlobalCoords</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14427,8 +14407,6 @@
     <map>
         <key>sleep</key>
         <real>5.0</real>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14446,8 +14424,7 @@
     <map>
         <key>sleep</key>
         <real>1.0</real>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14535,8 +14512,7 @@
     </map>
     <key>llTriggerSound</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14560,8 +14536,6 @@
     </map>
     <key>llTriggerSoundLimited</key>
     <map>
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14615,8 +14589,7 @@
     </map>
     <key>llUnSit</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14690,9 +14663,6 @@
     </map>
     <key>llVolumeDetect</key>
     <map>
-
-        <key>return</key>
-        <string>void</string>
         <key>arguments</key>
         <array>
             <map>
@@ -14727,8 +14697,7 @@
     </map>
     <key>llWhisper</key>
     <map>
-        <key>return</key>
-        <string>void</string>
+
         <key>arguments</key>
         <array>
             <map>
@@ -14886,10 +14855,32 @@
         <key>tooltip</key>
         <string>Creates a notecard with the specified avatar&apos;s current appearance inside the object</string>
     </map>
-    <key>osTest</key>
+    <key>osAvatarName2Key</key>
     <map>
         <key>return</key>
         <string>key</string>
+        <key>arguments</key>
+        <array>
+            <map>
+                <key>firstname</key>
+                <map>
+                    <key>type</key>
+                    <string>string</string>
+                </map>
+            </map>
+            <map>
+                <key>lastname</key>
+                <map>
+                    <key>type</key>
+                    <string>string</string>
+                </map>
+            </map>
+        </array>
+        <key>tooltip</key>
+        <string>Returns the avatar's key</string>
+    </map>
+    <key>osTest</key>
+    <map>
         <key>arguments</key>
         <array>
             <map>

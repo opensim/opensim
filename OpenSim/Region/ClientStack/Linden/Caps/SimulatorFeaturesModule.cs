@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            m_doScriptSyntax = true;
+            m_doScriptSyntax = false;
             if (config != null)
             {
                 //
