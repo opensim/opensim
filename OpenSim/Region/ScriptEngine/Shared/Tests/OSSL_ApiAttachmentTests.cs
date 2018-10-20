@@ -71,6 +71,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             xengineConfig.Set("AllowOSFunctions", "true");
             xengineConfig.Set("OSFunctionThreatLevel", "Severe");
 
+            IConfig oconfig = initConfigSource.AddConfig("OSSL");
+            oconfig.Set("DebuggerSafe", false);
+            oconfig.Set("Enabled", "true");
+            oconfig.Set("AllowOSFunctions", "true");
+            oconfig.Set("OSFunctionThreatLevel", "Severe");
+
             IConfig modulesConfig = initConfigSource.AddConfig("Modules");
             modulesConfig.Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
