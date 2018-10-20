@@ -262,7 +262,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 message = message.Substring(0, 1023);
 
             World.SimChat(Utils.StringToBytes(message),
-                          ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
+                ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if(wComm != null)
