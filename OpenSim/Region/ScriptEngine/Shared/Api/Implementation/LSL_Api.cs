@@ -3881,7 +3881,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (attachmentsModule == null)
                 return;
 
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) == 0)
                 return;
 
             SceneObjectGroup grp = m_host.ParentGroup;
