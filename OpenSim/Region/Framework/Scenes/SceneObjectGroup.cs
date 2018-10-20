@@ -567,7 +567,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (RootPart.GetStatusSandbox())
                 {
-                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
+                    if (Vector3.DistanceSquared(RootPart.StatusSandboxPos, value) > 100)
                     {
                         RootPart.ScriptSetPhysicsStatus(false);
 
@@ -1994,7 +1994,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveScriptedState(XmlTextWriter writer, bool oldIDs)
         {
             XmlDocument doc = new XmlDocument();
-            doc.XmlResolver=null;
             Dictionary<UUID,string> states = new Dictionary<UUID,string>();
 
             SceneObjectPart[] parts = m_parts.GetArray();
@@ -2783,14 +2782,14 @@ namespace OpenSim.Region.Framework.Scenes
             return RootPart.Torque;
         }
 
-         // This is used by llMoveToTarget() in an attached object
+         // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
         public void MoveToTarget(Vector3 target, float tau)
         {
             if (IsAttachment)
             {
                 ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
-                if (avatar != null)
+                if (avatar != null && !avatar.IsSatOnObject)
                     avatar.MoveToTarget(target, false, false, tau);
             }
             else
@@ -4531,7 +4530,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (RootPart.GetStatusSandbox())
                 {
-                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, pos) > 10)
+                    if (Vector3.DistanceSquared(RootPart.StatusSandboxPos, pos) > 100)
                     {
                         RootPart.ScriptSetPhysicsStatus(false);
                         pos = AbsolutePosition;
@@ -5029,7 +5028,7 @@ namespace OpenSim.Region.Framework.Scenes
                         foreach (uint idx in m_targets.Keys)
                         {
                             scriptPosTarget target = m_targets[idx];
-                            if (Util.GetDistanceTo(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance)
+                            if (Vector3.DistanceSquared(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance * target.tolerance)
                             {
                                 at_target = true;
 
