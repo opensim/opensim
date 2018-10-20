@@ -2413,15 +2413,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return string.Empty;
             }
 
-            // Check if the user is already cached
-
+            // Check local grid
             UUID userID = userManager.GetUserIdByName(firstname, lastname);
             if (userID != UUID.Zero)
                 return userID.ToString();
 
-            // Query for the user
-
-            String realFirstName; String realLastName; String serverURI;
+            // HG ?
+            string realFirstName;
+            string realLastName;
+            string serverURI;
             if (Util.ParseForeignAvatarName(firstname, lastname, out realFirstName, out realLastName, out serverURI))
             {
                 try
@@ -2442,12 +2442,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // m_log.Warn("[osAvatarName2Key] UserAgentServiceConnector - Unable to connect to destination grid ", e);
                 }
-            }
-            else
-            {
-                UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
-                if (account != null)
-                    return account.PrincipalID.ToString();
             }
 
             return UUID.Zero.ToString();
