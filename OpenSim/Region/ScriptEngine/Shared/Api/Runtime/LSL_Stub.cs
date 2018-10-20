@@ -120,7 +120,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llAtan2(x, y);
         }
 
-        public void llAttachToAvatar(int attachment)
+        public void llAttachToAvatar(LSL_Integer attachment)
+        {
+            m_LSL_Functions.llAttachToAvatar(attachment);
+        }
+
+        public void llAttachToAvatarTemp(LSL_Integer attachment)
         {
             m_LSL_Functions.llAttachToAvatar(attachment);
         }
@@ -130,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llAvatarOnSitTarget();
         }
 
-        public LSL_Key llAvatarOnLinkSitTarget(int linknum)
+        public LSL_Key llAvatarOnLinkSitTarget(LSL_Integer linknum)
         {
             return m_LSL_Functions.llAvatarOnLinkSitTarget(linknum);
         }

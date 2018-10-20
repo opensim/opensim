@@ -3864,7 +3864,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llAttachToAvatar(int attachmentPoint)
+        public void llAttachToAvatar(LSL_Integer attachmentPoint)
         {
             m_host.AddScriptLPS(1);
 
@@ -3875,7 +3875,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 AttachToAvatar(attachmentPoint);
         }
 
-        public void llDetachFromAvatar()
+        public void llAttachToAvatarTemp(LSL_Integer attachmentPoint)
+        {
+            IAttachmentsModule attachmentsModule = World.RequestModuleInterface<IAttachmentsModule>();
+            if (attachmentsModule == null)
+                return;
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
+                return;
+
+            SceneObjectGroup grp = m_host.ParentGroup;
+            if (grp == null || grp.IsDeleted || grp.IsAttachment)
+                return;
+
+            ScenePresence target;
+            if (!World.TryGetScenePresence(m_item.PermsGranter, out target))
+                return;
+
+            if (target.UUID != grp.OwnerID)
+            {
+                uint effectivePerms = grp.EffectiveOwnerPerms;
+
+                if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
+                    return;
+
+                grp.SetOwner(target.UUID, target.ControllingClient.ActiveGroupId);
+
+                if (World.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart child in grp.Parts)
+                    {
+                        child.Inventory.ChangeInventoryOwner(target.UUID);
+                        child.TriggerScriptChangedEvent(Changed.OWNER);
+                        child.ApplyNextOwnerPermissions();
+                    }
+                    grp.InvalidateEffectivePerms();
+                }
+
+                grp.RootPart.ObjectSaleType = 0;
+                grp.RootPart.SalePrice = 10;
+
+                grp.HasGroupChanged = true;
+                grp.RootPart.SendPropertiesToClient(target.ControllingClient);
+                grp.RootPart.ScheduleFullUpdate();
+            }
+
+            attachmentsModule.AttachObject(target, grp, (uint)attachmentPoint, false, false, true);
+        }
+
+    public void llDetachFromAvatar()
         {
             m_host.AddScriptLPS(1);
 
@@ -7873,7 +7921,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // http://wiki.secondlife.com/wiki/LlAvatarOnLinkSitTarget
-        public LSL_Key llAvatarOnLinkSitTarget(int linknum)
+        public LSL_Key llAvatarOnLinkSitTarget(LSL_Integer linknum)
         {
             m_host.AddScriptLPS(1);
             if(linknum == ScriptBaseClass.LINK_SET ||
@@ -13052,10 +13100,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float time = 0.0f; // default is from start
 
             ScenePresence presence = null;
-
+            int cmd;
             for (int i = 0; i < commandList.Data.Length; i++)
             {
-                int cmd;
                 if(commandList.Data[i] is LSL_Integer)
                     cmd = (LSL_Integer)commandList.Data[i];
                 else

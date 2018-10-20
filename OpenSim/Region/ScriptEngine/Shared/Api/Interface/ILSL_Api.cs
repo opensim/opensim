@@ -52,9 +52,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llApplyRotationalImpulse(LSL_Vector force, int local);
          LSL_Float llAsin(double val);
          LSL_Float llAtan2(double x, double y);
-              void llAttachToAvatar(int attachment);
+              void llAttachToAvatar(LSL_Integer attachment);
+              void llAttachToAvatarTemp(LSL_Integer attachmentPoint);
            LSL_Key llAvatarOnSitTarget();
-           LSL_Key llAvatarOnLinkSitTarget(int linknum);
+           LSL_Key llAvatarOnLinkSitTarget(LSL_Integer linknum);
       LSL_Rotation llAxes2Rot(LSL_Vector fwd, LSL_Vector left, LSL_Vector up);
       LSL_Rotation llAxisAngle2Rot(LSL_Vector axis, double angle);
        LSL_Integer llBase64ToInteger(string str);
