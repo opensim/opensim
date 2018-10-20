@@ -4798,6 +4798,10 @@ Label_GroupsDone:
             if (sp != null)
             {
                 sp.ControllingClient.Close(force, force);
+
+                if(sp.IsNPC && UserManagementModule != null)
+                    UserManagementModule.RemoveUser(sp.UUID);
+
                 return true;
             }
 
