@@ -92,7 +92,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="firstName"></param>
         /// <param name="profileURL"></param>
         void AddUser(UUID uuid, string firstName, string lastName, string homeURL);
-
+        bool RemoveUser(UUID uuid);
         bool IsLocalGridUser(UUID uuid);
     }
 }

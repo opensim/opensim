@@ -808,9 +808,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public virtual void AddUser(UUID uuid, string first, string last, bool isNPC = false)
         {
-            lock(m_UserCache)
+            lock (m_UserCache)
             {
-                if(!m_UserCache.ContainsKey(uuid))
+                if (!m_UserCache.ContainsKey(uuid))
                 {
                     UserData user = new UserData();
                     user.Id = uuid;
@@ -954,6 +954,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
             }
         }
+
+        public bool RemoveUser(UUID uuid)
+        {
+            lock (m_UserCache)
+            {
+                return m_UserCache.Remove(uuid);
+            }
+        }
+
         #endregion
 
         public virtual bool IsLocalGridUser(UUID uuid)
