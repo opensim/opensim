@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(m_osslconfig == null)
                 m_osslconfig = m_ScriptEngine.Config;
 
-            m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", m_debuggerSafe);
+            m_debuggerSafe = m_osslconfig.GetBoolean("DebuggerSafe", m_debuggerSafe);
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
