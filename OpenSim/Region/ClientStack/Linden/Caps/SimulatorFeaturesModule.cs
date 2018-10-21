@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            m_doScriptSyntax = false;
+            m_doScriptSyntax = true;
             if (config != null)
             {
                 //
@@ -344,7 +344,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     using (StreamReader sr = File.OpenText("ScriptSyntax.xml"))
                     {
                         StringBuilder sb = new StringBuilder(400*1024);
-                        sb.Append("<llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>");
 
                         string s="";
                         char[] trimc = new char[] {' ','\t', '\n', '\r'};
@@ -355,7 +354,6 @@ namespace OpenSim.Region.ClientStack.Linden
                                 continue;
                             sb.Append(s);
                         }
-                        sb.Append("</map></llsd>");
                         m_scriptSyntaxXML = sb.ToString();
                         m_scriptSyntaxID = Util.ComputeSHA1UUID(m_scriptSyntaxXML);
                     }
