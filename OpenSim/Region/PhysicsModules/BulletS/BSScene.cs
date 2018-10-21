@@ -352,13 +352,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (BSParam.UseSeparatePhysicsThread)
             {
                 // The physics simulation should happen independently of the heartbeat loop
-                m_physicsThread
-                    = WorkManager.StartThread(
+                m_physicsThread = WorkManager.StartThread(
                         BulletSPluginPhysicsThread,
-                        string.Format("{0} ({1})", BulletEngineName, RegionName),
-                        ThreadPriority.Normal,
-                        true,
-                        true);
+                        string.Format("{0} ({1})", BulletEngineName, RegionName));
             }
         }
 
@@ -1238,6 +1234,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             if (!m_initialized) return;
 
+/* mantis 8397 ??? avoid out of order operations ???
+
             if (Monitor.TryEnter(PhysicsEngineLock))
             {
                 // If we can get exclusive access to the physics engine, just do the operation
@@ -1246,12 +1244,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             else
             {
+*/
                 // The physics engine is busy, queue the operation
                 lock (_taintLock)
                 {
                     _taintOperations.Add(new TaintCallbackEntry(pOriginator, pIdent, pCallback));
                 }
-            }
+//            }
         }
 
         private void TriggerPreStepEvent(float timeStep)
