@@ -54,15 +54,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public int DebugLevel { get; set; }
 
-        /// <summary>
-        /// Period to sleep per 100 prims in order to avoid CPU spikes when an avatar with many attachments logs in/changes
-        /// outfit or many avatars with a medium levels of attachments login/change outfit simultaneously.
-        /// </summary>
-        /// <remarks>
-        /// A value of 0 will apply no pause.  The pause is specified in milliseconds.
-        /// </remarks>
-        public int ThrottlePer100PrimsRezzed { get; set; }
-
         private Scene m_scene;
         private IInventoryAccessModule m_invAccessModule;
 
@@ -80,8 +71,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (config != null)
             {
                 Enabled = config.GetBoolean("Enabled", true);
-
-                ThrottlePer100PrimsRezzed = config.GetInt("ThrottlePer100PrimsRezzed", 0);
             }
             else
             {
@@ -115,17 +104,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 MainConsole.Instance.Commands.AddCommand(
                     "Debug",
                     false,
-                    "debug attachments throttle",
-                    "debug attachments throttle <ms>",
-                    "Turn on attachments throttling.",
-                    "This requires a millisecond value.  " +
-                    "  == 0 - disable throttling.\n"
-                        + "  > 0 - sleeps for this number of milliseconds per 100 prims rezzed.",
-                    HandleDebugAttachmentsThrottle);
-
-                MainConsole.Instance.Commands.AddCommand(
-                    "Debug",
-                    false,
                     "debug attachments status",
                     "debug attachments status",
                     "Show current attachments debug status",
@@ -151,27 +129,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        private void HandleDebugAttachmentsThrottle(string module, string[] args)
-        {
-            int ms;
-
-            if (args.Length == 4 && int.TryParse(args[3], out ms))
-            {
-                ThrottlePer100PrimsRezzed = ms;
-                MainConsole.Instance.OutputFormat(
-                    "Attachments rez throttle per 100 prims is now {0} in {1}", ThrottlePer100PrimsRezzed, m_scene.Name);
-
-                return;
-            }
-
-            MainConsole.Instance.OutputFormat("Usage: debug attachments throttle <ms>");
-        }
-
         private void HandleDebugAttachmentsStatus(string module, string[] args)
         {
             MainConsole.Instance.OutputFormat("Settings for {0}", m_scene.Name);
             MainConsole.Instance.OutputFormat("Debug logging level: {0}", DebugLevel);
-            MainConsole.Instance.OutputFormat("Throttle per 100 prims: {0}ms", ThrottlePer100PrimsRezzed);
         }
 
         /// <summary>
@@ -211,6 +172,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void RegionLoaded(Scene scene)
         {
             m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+            if (!Enabled)
+                return;
         }
 
         public void Close()
@@ -1212,18 +1175,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (tainted)
                 objatt.HasGroupChanged = true;
-
-            if (ThrottlePer100PrimsRezzed > 0)
-            {
-                int throttleMs = (int)Math.Round((float)objatt.PrimCount / 100 * ThrottlePer100PrimsRezzed);
-
-                if (DebugLevel > 0)
-                    m_log.DebugFormat(
-                        "[ATTACHMENTS MODULE]: Throttling by {0}ms after rez of {1} with {2} prims for attachment to {3} on point {4} in {5}",
-                        throttleMs, objatt.Name, objatt.PrimCount, sp.Name, attachmentPt, m_scene.Name);
-
-                Thread.Sleep(throttleMs);
-            }
 
             return objatt;
         }
