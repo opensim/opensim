@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public int DebugLevel { get; set; }
 
         private Scene m_scene;
+        private IRegionConsole m_regionConsole;
         private IInventoryAccessModule m_invAccessModule;
 
         /// <summary>
@@ -88,8 +89,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // disabled. Registering only when enabled allows for other attachments module implementations.
                 m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
                 m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
-                m_scene.EventManager.OnStartScript += (localID, itemID) => HandleScriptStateChange(localID, true);
-                m_scene.EventManager.OnStopScript += (localID, itemID) => HandleScriptStateChange(localID, false);
+                m_scene.EventManager.OnStartScript += (localID, itemID) => OnScriptStateChange(localID, true);
+                m_scene.EventManager.OnStopScript += (localID, itemID) => OnScriptStateChange(localID, false);
 
                 MainConsole.Instance.Commands.AddCommand(
                     "Debug",
@@ -111,6 +112,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
+
+            if (Enabled)
+                m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!Enabled)
+                return;
+
+            m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+            m_regionConsole = scene.RequestModuleInterface<IRegionConsole>();
+            if (m_regionConsole != null)
+            {
+                m_regionConsole.AddCommand("AttachModule", false, "set auto_grant_attach_perms", "set auto_grant_attach_perms true|false", "Allow objects owned by the region owner or estate managers to obtain attach permissions without asking the user", HandleSetAutoGrantAttachPerms);
+            }
+        }
+
+        public void Close()
+        {
+            if (!Enabled)
+                return;
+            RemoveRegion(m_scene);
         }
 
         private void HandleDebugAttachmentsLog(string module, string[] args)
@@ -135,12 +164,43 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             MainConsole.Instance.OutputFormat("Debug logging level: {0}", DebugLevel);
         }
 
+        private void SendConsoleOutput(UUID agentID, string text)
+        {
+            if (m_regionConsole == null)
+                return;
+
+            m_regionConsole.SendConsoleOutput(agentID, text);
+        }
+
+        private void HandleSetAutoGrantAttachPerms(string module, string[] parms)
+        {
+            UUID agentID = new UUID(parms[parms.Length - 1]);
+            Array.Resize(ref parms, parms.Length - 1);
+
+            if (parms.Length != 3)
+            {
+                SendConsoleOutput(agentID, "Command parameter error");
+                return;
+            }
+
+            string val = parms[2];
+            if (val != "true" && val != "false")
+            {
+                SendConsoleOutput(agentID, "Command parameter error");
+                return;
+            }
+
+            m_scene.StoreExtraSetting("auto_grant_attach_perms", val);
+
+            SendConsoleOutput(agentID, String.Format("auto_grant_attach_perms set to {0}", val));
+        }
+
         /// <summary>
         /// Listen for client triggered running state changes so that we can persist the script's object if necessary.
         /// </summary>
         /// <param name='localID'></param>
         /// <param name='itemID'></param>
-        private void HandleScriptStateChange(uint localID, bool started)
+        private void OnScriptStateChange(uint localID, bool started)
         {
             SceneObjectGroup sog = m_scene.GetGroupByPrim(localID);
             if (sog != null && sog.IsAttachment)
@@ -159,26 +219,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     sog.HasGroupChanged = true;
                 }
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
-
-            if (Enabled)
-                m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            m_invAccessModule = m_scene.RequestModuleInterface<IInventoryAccessModule>();
-            if (!Enabled)
-                return;
-        }
-
-        public void Close()
-        {
-            RemoveRegion(m_scene);
         }
 
         #endregion
