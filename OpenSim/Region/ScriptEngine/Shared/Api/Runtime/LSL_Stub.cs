@@ -961,11 +961,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llKey2Name(id);
         }
 
-        public LSL_Key llName2Key(string name)
-        {
-            return m_LSL_Functions.llName2Key(name);
-        }
-
         public LSL_String llGetUsername(string id)
         {
             return m_LSL_Functions.llGetUsername(id);
@@ -1184,6 +1179,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void llMoveToTarget(LSL_Vector target, double tau)
         {
             m_LSL_Functions.llMoveToTarget(target, tau);
+        }
+
+        public LSL_Key llName2Key(LSL_String name)
+        {
+            return m_LSL_Functions.llName2Key(name);
         }
 
         public void llOffsetTexture(double u, double v, int face)
