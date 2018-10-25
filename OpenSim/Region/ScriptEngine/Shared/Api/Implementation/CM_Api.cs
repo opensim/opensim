@@ -91,7 +91,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_ScriptEngine.World; }
         }
 
-        public string cmDetectedCountry(int number)
+        public LSL_Key cmDetectedCountry(int number)
         {
             m_host.AddScriptLPS(1);
             if(!m_CMFunctionsEnabled)

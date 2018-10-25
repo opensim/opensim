@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_CM_Functions = (ICM_Api)api;
         }
 
-        public string cmDetectedCountry(int num)
+        public key cmDetectedCountry(int num)
         {
             return m_CM_Functions.cmDetectedCountry(num);
         }

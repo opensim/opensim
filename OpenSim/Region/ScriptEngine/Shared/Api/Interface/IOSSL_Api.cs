@@ -133,6 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Float osTerrainGetHeight(int x, int y); // Deprecated
         LSL_Integer osSetTerrainHeight(int x, int y, double val);
         LSL_Integer osTerrainSetHeight(int x, int y, double val); //Deprecated
+        //ApiDesc Send terrain to all agents
         void osTerrainFlush();
 
         int osRegionRestart(double seconds);

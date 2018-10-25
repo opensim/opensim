@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
     public interface ICM_Api
     {
-        string cmDetectedCountry(int num);
-        string cmGetAgentCountry(key key);
+        key cmDetectedCountry(int detectedNumber);
+        string cmGetAgentCountry(key agentId);
     }
 }
