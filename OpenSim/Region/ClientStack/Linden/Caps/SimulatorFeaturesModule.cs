@@ -347,15 +347,24 @@ namespace OpenSim.Region.ClientStack.Linden
 
                         string s="";
                         char[] trimc = new char[] {' ','\t', '\n', '\r'};
-                        while((s = sr.ReadLine()) != null)
+
+                        s = sr.ReadLine();
+                        if(s == null)
+                            return;
+                        s = s.Trim(trimc);
+                        UUID id;
+                        if(!UUID.TryParse(s,out id))
+                            return;
+
+                        while ((s = sr.ReadLine()) != null)
                         {
                             s = s.Trim(trimc);
-                            if(String.IsNullOrEmpty(s) || s.StartsWith("<!--"))
+                            if (String.IsNullOrEmpty(s) || s.StartsWith("<!--"))
                                 continue;
                             sb.Append(s);
                         }
                         m_scriptSyntaxXML = sb.ToString();
-                        m_scriptSyntaxID = Util.ComputeSHA1UUID(m_scriptSyntaxXML);
+                        m_scriptSyntaxID = id;
                     }
                 }
                 catch
