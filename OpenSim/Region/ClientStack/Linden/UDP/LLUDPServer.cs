@@ -2009,7 +2009,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void IncomingPacketHandler()
         {
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
             IncomingPacket incomingPacket;
             // Set this culture for the thread that incoming packets are received
             // on to en-US to avoid number parsing issues
@@ -2051,8 +2050,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void OutgoingPacketHandler()
         {
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
-
             // Set this culture for the thread that outgoing packets are sent
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();

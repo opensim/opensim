@@ -907,7 +907,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public void BulletSPluginPhysicsThread()
         {
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
             m_updateWaitEvent = new ManualResetEvent(false);
 
             while (m_initialized)
