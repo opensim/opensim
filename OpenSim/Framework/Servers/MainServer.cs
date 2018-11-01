@@ -364,7 +364,7 @@ namespace OpenSim.Framework.Servers
                 if (ipaddr != null)
                     m_Servers[port].ListenIPAddress = ipaddr;
 
-                m_Servers[port].Start();
+                m_Servers[port].Start(false,  false);
 
                 return m_Servers[port];
             }
