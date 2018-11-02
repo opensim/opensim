@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private Dictionary<int, Queue<PollServiceHttpRequest>> m_bycontext;
         private BlockingCollection<PollServiceHttpRequest> m_requests = new BlockingCollection<PollServiceHttpRequest>();
-        private static ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
+        private ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
 
         private uint m_WorkerThreadCount = 0;
         private Thread[] m_workerThreads;
@@ -235,7 +235,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     continue;
                 }
 
-                Watchdog.UpdateThread();               
+                Watchdog.UpdateThread();
 
                 try
                 {
