@@ -113,7 +113,7 @@ namespace OpenSim
                         m_networkServersInfo.cert_pass);
 
                     m_log.InfoFormat("[REGION SERVER]: Starting OOB HTTPS server on port {0}", server.SSLPort);
-                    server.Start(false, false);
+                    server.Start(true, true);
                     MainServer.AddHttpServer(server);
                 }
                 else
