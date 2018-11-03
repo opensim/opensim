@@ -373,7 +373,6 @@ namespace OpenSim.Framework.Servers
 
         public static void Stop()
         {
-            PollServiceRequestManager pool = null;
             lock (m_Servers)
             {
                 foreach (BaseHttpServer httpServer in m_Servers.Values)
