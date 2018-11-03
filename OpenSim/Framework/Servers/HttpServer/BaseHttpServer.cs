@@ -44,11 +44,11 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
-using HttpListener = System.Net.HttpListener;
 using LogPrio = HttpServer.LogPrio;
 using OpenSim.Framework.Monitoring;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -57,6 +57,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
         private static Encoding UTF8NoBOM = new System.Text.UTF8Encoding(false);
+        public static PollServiceRequestManager m_pollServiceManager;
+        private static object m_generalLock = new object();
 
         /// <summary>
         /// This is a pending websocket request before it got an sucessful upgrade response.
@@ -119,7 +121,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
 
-        public PollServiceRequestManager PollServiceRequestManager { get; private set; }
 
         public string Protocol
         {
@@ -249,46 +250,46 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_ssl = false;
         }
 
-		static bool MatchDNS (string hostname, string dns) 
- 		{ 
- 			int indx = dns.IndexOf ('*'); 
- 			if (indx == -1)
- 				return (String.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0); 
- 
+        static bool MatchDNS(string hostname, string dns)
+        {
+            int indx = dns.IndexOf('*');
+            if (indx == -1)
+                return (String.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0);
+
             int dnslen = dns.Length;
             dnslen--;
-            if(indx == dnslen)
+            if (indx == dnslen)
                 return true; // just * ?
 
-            if(indx > dnslen - 2)
+            if (indx > dnslen - 2)
                 return false; // 2 short ?
 
-       		if (dns[indx + 1] != '.') 
- 		    	return false; 
-  
- 			int indx2 = dns.IndexOf ('*', indx + 1); 
- 			if (indx2 != -1) 
- 				return false; // there can only be one;
- 
- 			string end = dns.Substring(indx + 1); 
+            if (dns[indx + 1] != '.')
+                return false;
+
+            int indx2 = dns.IndexOf('*', indx + 1);
+            if (indx2 != -1)
+                return false; // there can only be one;
+
+            string end = dns.Substring(indx + 1);
             int hostlen = hostname.Length;
             int endlen = end.Length;
- 			int length = hostlen - endlen; 
- 			if (length <= 0) 
- 				return false; 
+            int length = hostlen - endlen;
+            if (length <= 0)
+                return false;
 
- 			if (String.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0) 
- 				return false; 
- 
- 			if (indx == 0)
-            { 
- 				indx2 = hostname.IndexOf ('.'); 
- 				return ((indx2 == -1) || (indx2 >= length)); 
- 			} 
-  
- 			string start = dns.Substring (0, indx); 
- 			return (String.Compare (hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0); 
- 		} 
+            if (String.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0)
+                return false;
+
+            if (indx == 0)
+            {
+                indx2 = hostname.IndexOf('.');
+                return ((indx2 == -1) || (indx2 >= length));
+            }
+
+            string start = dns.Substring(0, indx);
+            return (String.Compare(hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0);
+        }
 
         public bool CheckSSLCertHost(string hostname)
         {
@@ -527,7 +528,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void OnRequest(object source, RequestEventArgs args)
         {
             RequestNumber++;
-
             try
             {
                 IHttpClientContext context = (IHttpClientContext)source;
@@ -576,7 +576,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         psEvArgs.Request(psreq.RequestID, keysvals);
                     }
 
-                    PollServiceRequestManager.Enqueue(psreq);
+                    m_pollServiceManager.Enqueue(psreq);
                 }
                 else
                 {
@@ -615,16 +615,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 for (int i = 0; i < request.AcceptTypes.Length; i++)
                     request.AcceptTypes[i] = string.Empty;
         }
-
-        // public void ConvertIHttpClientContextToOSHttp(object stateinfo)
-        // {
-        //     HttpServerContextObj objstate = (HttpServerContextObj)stateinfo;
-
-        //     OSHttpRequest request = objstate.oreq;
-        //     OSHttpResponse resp = objstate.oresp;
-
-        //     HandleRequest(request,resp);
-        // }
 
         /// <summary>
         /// This methods is the start of incoming HTTP request handling.
@@ -2036,7 +2026,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
-            Start(true,true);
+            Start(true, true);
         }
 
         /// <summary>
@@ -2085,11 +2075,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //m_httpListener.Start();
                 m_httpListener2.Start(64);
 
-                // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
-                if(runPool)
+                lock(m_generalLock)
                 {
-                    PollServiceRequestManager = new PollServiceRequestManager(this, performPollResponsesAsync, 2, 25000);
-                    PollServiceRequestManager.Start();
+                    if (runPool)
+                    {
+                        if(m_pollServiceManager == null)
+                            m_pollServiceManager = new PollServiceRequestManager(performPollResponsesAsync, 2, 25000);
+                        m_pollServiceManager.Start();
+                    }
                 }
 
                 HTTPDRunning = true;
@@ -2143,27 +2136,22 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (source.ToString() == "HttpServer.HttpListener" && exception.ToString().StartsWith("Mono.Security.Protocol.Tls.TlsException"))
                 return;
             m_log.ErrorFormat("[BASE HTTP SERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
-           /*
-            if (HTTPDRunning)// && NotSocketErrors > 5)
-            {
-                Stop();
-                Thread.Sleep(200);
-                StartHTTP();
-                m_log.Warn("[HTTPSERVER]: Died.  Trying to kick.....");
-            }
-            */
         }
 
-        public void Stop()
+        public void Stop(bool stopPool = false)
         {
             HTTPDRunning = false;
+
 
             StatsManager.DeregisterStat(m_requestsProcessedStat);
 
             try
             {
-                if(PollServiceRequestManager != null)
-                    PollServiceRequestManager.Stop();
+                lock(m_generalLock)
+                {
+                    if (stopPool && m_pollServiceManager != null)
+                        m_pollServiceManager.Stop();
+                }
 
                 m_httpListener2.ExceptionThrown -= httpServerException;
                 //m_httpListener2.DisconnectHandler = null;

@@ -41,8 +41,6 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly BaseHttpServer m_server;
-
         private Dictionary<int, Queue<PollServiceHttpRequest>> m_bycontext;
         private BlockingCollection<PollServiceHttpRequest> m_requests = new BlockingCollection<PollServiceHttpRequest>();
         private ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
@@ -56,9 +54,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private SmartThreadPool m_threadPool;
 
         public PollServiceRequestManager(
-            BaseHttpServer pSrv, bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
+            bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
         {
-            m_server = pSrv;
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
 
@@ -77,6 +74,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
+            if(m_running)
+                return;
             m_running = true;
             m_threadPool.Start();
             //startup worker threads
@@ -85,7 +84,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_workerThreads[i]
                     = WorkManager.StartThread(
                         PoolWorkerJob,
-                        string.Format("PollServiceWorkerThread {0}:{1}", i, m_server.Port),
+                        string.Format("PollServiceWorkerThread {0}", i),
                         ThreadPriority.Normal,
                         true,
                         false,
@@ -95,7 +94,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             m_retrysThread = WorkManager.StartThread(
                 this.CheckRetries,
-                string.Format("PollServiceWatcherThread:{0}", m_server.Port),
+                string.Format("PollServiceWatcherThread"),
                 ThreadPriority.Normal,
                 true,
                 true,
@@ -183,6 +182,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Stop()
         {
+            if(!m_running)
+                return;
+
             m_running = false;
 
             Thread.Sleep(100); // let the world move
@@ -202,7 +204,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 while(m_retryRequests.TryDequeue(out req))
-                    req.DoHTTPstop(m_server);
+                    req.DoHTTPstop();
             }
             catch
             {
@@ -211,7 +213,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 while(m_requests.TryTake(out req, 0))
-                    req.DoHTTPstop(m_server);
+                    req.DoHTTPstop();
             }
             catch
             {
@@ -266,7 +268,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             try
                             {
                                 Hashtable responsedata = nreq.PollServiceArgs.GetEvents(nreq.RequestID, nreq.PollServiceArgs.Id);
-                                nreq.DoHTTPGruntWork(m_server, responsedata);
+                                nreq.DoHTTPGruntWork(responsedata);
                             }
                             catch (ObjectDisposedException) { }
                             finally
@@ -286,8 +288,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 try
                                 {
-                                    nreq.DoHTTPGruntWork(m_server,
-                                            nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
+                                    nreq.DoHTTPGruntWork(nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
                                 }
                                 catch (ObjectDisposedException) {}
                                 finally
