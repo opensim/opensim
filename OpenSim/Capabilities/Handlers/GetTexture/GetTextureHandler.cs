@@ -249,24 +249,13 @@ namespace OpenSim.Capabilities.Handlers
 //                        m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
                         response["content-type"] = texture.Metadata.ContentType;
+                        response["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
+                        headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length);
 
-                        if (start == 0 && len == texture.Data.Length) // well redudante maybe
-                        {
-                            response["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
-                            response["bin_response_data"] = texture.Data;
-                            response["int_bytes"] = texture.Data.Length;
-                        }
-                        else
-                        {
-                            response["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
-                            headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length);
-
-                            byte[] d = new byte[len];
-                            Array.Copy(texture.Data, start, d, 0, len);
-                            response["bin_response_data"] = d;
-                            response["int_bytes"] = len;
-                        }
-//                        response.Body.Write(texture.Data, start, len);
+                        byte[] d = new byte[len];
+                        Array.Copy(texture.Data, start, d, 0, len);
+                        response["bin_response_data"] = d;
+                        response["int_bytes"] = len;
                     }
                 }
                 else
