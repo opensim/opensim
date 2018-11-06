@@ -928,9 +928,7 @@ namespace OpenSim.Framework.Servers
             }
             catch { }
 
-            if (
-                Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem
-                    || Util.FireAndForgetMethod == FireAndForgetMethod.UnsafeQueueUserWorkItem)
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.QueueUserWorkItem)
             {
                 sb.AppendFormat("\nThread pool used: Framework main threadpool\n");
                 return sb.ToString();
