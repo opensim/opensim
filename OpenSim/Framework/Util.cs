@@ -111,9 +111,7 @@ namespace OpenSim.Framework
     {
         None,
         RegressionTest,
-        UnsafeQueueUserWorkItem,
         QueueUserWorkItem,
-        BeginInvoke,
         SmartThreadPool,
         Thread,
     }
@@ -2412,26 +2410,7 @@ namespace OpenSim.Framework
         /// </summary>
         private sealed class FireAndForgetWrapper
         {
-            private static volatile FireAndForgetWrapper instance;
             private static object syncRoot = new Object();
-
-            public static FireAndForgetWrapper Instance {
-                get {
-
-                    if (instance == null)
-                    {
-                        lock (syncRoot)
-                        {
-                            if (instance == null)
-                            {
-                                instance = new FireAndForgetWrapper();
-                            }
-                        }
-                    }
-
-                    return instance;
-                }
-            }
 
             public void FireAndForget(System.Threading.WaitCallback callback)
             {
@@ -2484,9 +2463,7 @@ namespace OpenSim.Framework
 
             switch (FireAndForgetMethod)
             {
-                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
                 case FireAndForgetMethod.QueueUserWorkItem:
-                case FireAndForgetMethod.BeginInvoke:
                     int workerThreads, iocpThreads;
                     ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads);
                     return workerThreads;
@@ -2640,20 +2617,6 @@ namespace OpenSim.Framework
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj, string context, bool dotimeout = true)
         {
             Interlocked.Increment(ref numTotalThreadFuncsCalled);
-/*
-            if (context != null)
-            {
-                if (!m_fireAndForgetCallsMade.ContainsKey(context))
-                    m_fireAndForgetCallsMade[context] = 1;
-                else
-                    m_fireAndForgetCallsMade[context]++;
-
-                if (!m_fireAndForgetCallsInProgress.ContainsKey(context))
-                    m_fireAndForgetCallsInProgress[context] = 1;
-                else
-                    m_fireAndForgetCallsInProgress[context]++;
-            }
-*/
             WaitCallback realCallback;
 
             bool loggingEnabled = LogThreadPool > 0;
@@ -2669,9 +2632,6 @@ namespace OpenSim.Framework
                     {
                         Culture.SetCurrentCulture();
                         callback(o);
-
-//                        if (context != null)
-//                            m_fireAndForgetCallsInProgress[context]--;
                     };
             }
             else
@@ -2692,7 +2652,6 @@ namespace OpenSim.Framework
                             m_log.DebugFormat("Run threadfunc {0} (Queued {1}, Running {2})", threadFuncNum, numQueued1, numRunning1);
 
                         Culture.SetCurrentCulture();
-
                         callback(o);
                     }
                     catch (ThreadAbortException)
@@ -2710,9 +2669,6 @@ namespace OpenSim.Framework
                         activeThreads.TryRemove(threadFuncNum, out dummy);
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
-
-//                        if (context != null)
-//                            m_fireAndForgetCallsInProgress[context]--;
                     }
                 };
             }
@@ -2720,45 +2676,7 @@ namespace OpenSim.Framework
             long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
             try
             {
-/*
-                long numRunning = numRunningThreadFuncs;
-
-                if (m_ThreadPool != null && LogOverloads)
-                {
-                    if ((threadFuncOverloadMode == 0) && (numRunning >= m_ThreadPool.MaxThreads))
-                    {
-                        if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 1, 0) == 0)
-                            m_log.DebugFormat("Threadfunc: enable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
-                    }
-                    else if ((threadFuncOverloadMode == 1) && (numRunning <= (m_ThreadPool.MaxThreads * 2) / 3))
-                    {
-                        if (Interlocked.CompareExchange(ref threadFuncOverloadMode, 0, 1) == 1)
-                            m_log.DebugFormat("Threadfunc: disable overload mode (Queued {0}, Running {1})", numQueued, numRunning);
-                    }
-                }
-
-                if (loggingEnabled || (threadFuncOverloadMode == 1))
-                {
-                    string full, partial;
-                    GetFireAndForgetStackTrace(out full, out partial);
-                    threadInfo.StackTrace = full;
-                    threadInfo.LogThread = ShouldLogThread(partial);
-
-                    if (threadInfo.LogThread)
-                    {
-                        m_log.DebugFormat("Queue threadfunc {0} (Queued {1}, Running {2}) {3}{4}",
-                            threadFuncNum, numQueued, numRunningThreadFuncs,
-                            (context == null) ? "" : ("(" + context + ") "),
-                            (LogThreadPool >= 2) ? full : partial);
-                    }
-                }
-                else
-*/
-                {
-                    // Since we didn't log "Queue threadfunc", don't log "Run threadfunc" or "End threadfunc" either.
-                    // Those log lines aren't useful when we don't know which function is running in the thread.
-                    threadInfo.LogThread = false;
-                }
+                threadInfo.LogThread = false;
 
                 switch (FireAndForgetMethod)
                 {
@@ -2766,15 +2684,8 @@ namespace OpenSim.Framework
                     case FireAndForgetMethod.None:
                         realCallback.Invoke(obj);
                         break;
-                    case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                        ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
-                        break;
                     case FireAndForgetMethod.QueueUserWorkItem:
                         ThreadPool.QueueUserWorkItem(realCallback, obj);
-                        break;
-                    case FireAndForgetMethod.BeginInvoke:
-                        FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
-                        wrapper.FireAndForget(realCallback, obj);
                         break;
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)
