@@ -546,7 +546,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IncomingPacketHandler,
                 string.Format("Incoming Packets ({0})", Scene.Name),
                 ThreadPriority.Normal,
-                false,
+                true,
                 true,
                 GetWatchdogIncomingAlarmData,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
@@ -562,7 +562,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutgoingPacketHandler,
                 string.Format("Outgoing Packets ({0})", Scene.Name),
                 ThreadPriority.Normal,
-                false,
+                true,
                 true,
                 GetWatchdogOutgoingAlarmData,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
