@@ -33,27 +33,12 @@ using OpenSim.Framework;
 using OpenMetaverse;
 using OpenSim.Region.PhysicsModules.SharedBase;
 
-/*
- * Steps to add a new prioritization policy:
- *
- *  - Add a new value to the UpdatePrioritizationSchemes enum.
- *  - Specify this new value in the [InterestManagement] section of your
- *    OpenSim.ini. The name in the config file must match the enum value name
- *    (although it is not case sensitive).
- *  - Write a new GetPriorityBy*() method in this class.
- *  - Add a new entry to the switch statement in GetUpdatePriority() that calls
- *    your method.
- */
-
 namespace OpenSim.Region.Framework.Scenes
 {
     public enum UpdatePrioritizationSchemes
     {
-        Time = 0,
-        Distance = 1,
-        SimpleAngularDistance = 2,
-        FrontBack = 3,
-        BestAvatarResponsiveness = 4,
+        SimpleAngularDistance = 0,
+        BestAvatarResponsiveness = 1,
     }
 
     public class Prioritizer
@@ -68,14 +53,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Returns the priority queue into which the update should be placed. Updates within a
-        /// queue will be processed in arrival order. There are currently 12 priority queues
-        /// implemented in PriorityQueue class in LLClientView. Queue 0 is generally retained
-        /// for avatar updates. The fair queuing discipline for processing the priority queues
-        /// assumes that the number of entities in each priority queues increases exponentially.
-        /// So for example... if queue 1 contains all updates within 10m of the avatar or camera
-        /// then queue 2 at 20m is about 3X bigger in space & about 3X bigger in total number
-        /// of updates.
+        /// Returns the priority queue into which the update should be placed.
         /// </summary>
         public uint GetUpdatePriority(IClientAPI client, ISceneEntity entity)
         {
@@ -94,22 +72,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             switch (m_scene.UpdatePrioritizationScheme)
             {
-/*
-                case UpdatePrioritizationSchemes.Time:
-                    priority = GetPriorityByTime(client, entity);
-                    break;
-                case UpdatePrioritizationSchemes.Distance:
-                    priority = GetPriorityByDistance(client, entity);
-                    break;
                 case UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    priority = GetPriorityByDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
-                    break;
-                case UpdatePrioritizationSchemes.FrontBack:
-                    priority = GetPriorityByFrontBack(client, entity);
-                    break;
-*/
-                case UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    priority = GetPriorityByAngularDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
+                    priority = GetPriorityByAngularDistance(client, entity);
                     break;
                 case UpdatePrioritizationSchemes.BestAvatarResponsiveness:
                 default:
@@ -118,45 +82,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return priority;
-        }
-
-        private uint GetPriorityByTime(IClientAPI client, ISceneEntity entity)
-        {
-            // And anything attached to this avatar gets top priority as well
-            if (entity is SceneObjectPart)
-            {
-                SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
-                    return 1;
-            }
-
-            return PriorityQueue.NumberOfImmediateQueues; // first queue past the immediate queues
-        }
-
-        private uint GetPriorityByDistance(IClientAPI client, ISceneEntity entity)
-        {
-            // And anything attached to this avatar gets top priority as well
-            if (entity is SceneObjectPart)
-            {
-                SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
-                    return 1;
-            }
-
-            return ComputeDistancePriority(client,entity,false);
-        }
-
-        private uint GetPriorityByFrontBack(IClientAPI client, ISceneEntity entity)
-        {
-            // And anything attached to this avatar gets top priority as well
-            if (entity is SceneObjectPart)
-            {
-                SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
-                    return 1;
-            }
-
-            return ComputeDistancePriority(client,entity,true);
         }
 
         private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
@@ -176,7 +101,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // Attachments are high priority,
                     if (sog.IsAttachment)
                         return 2;
-                    
 
                     if(presence.ParentPart != null)
                     {

@@ -1115,7 +1115,7 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception)
                 {
                     m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
-                    UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
+                    UpdatePrioritizationScheme = UpdatePrioritizationSchemes.BestAvatarResponsiveness;
                 }
 
                 IsReprioritizationEnabled
@@ -1196,7 +1196,7 @@ namespace OpenSim.Region.Framework.Scenes
             UseBackup = true;
 
             IsReprioritizationEnabled = true;
-            UpdatePrioritizationScheme = UpdatePrioritizationSchemes.Time;
+            UpdatePrioritizationScheme = UpdatePrioritizationSchemes.BestAvatarResponsiveness;
             ReprioritizationInterval = 5000;
 
             ReprioritizationDistance = m_minReprioritizationDistance;
@@ -1762,7 +1762,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
 
                             m_sceneGridService.InformNeighborsThatRegionisUp(
-                            RequestModuleInterface<INeighbourService>(), RegionInfo);
+                                RequestModuleInterface<INeighbourService>(), RegionInfo);
 
                             // Region ready should always be set
                             Ready = true;

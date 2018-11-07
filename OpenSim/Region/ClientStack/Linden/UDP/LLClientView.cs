@@ -627,10 +627,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ImageManager.Close();
             ImageManager = null;
 
-//            m_entityUpdates.Close();
-//            m_entityProps.Close();
-            m_entityUpdates = new PriorityQueue(1);
-            m_entityProps = new PriorityQueue(1);
+            m_entityUpdates.Close();
+            m_entityProps.Close();
             m_killRecord.Clear();
             GroupsInView.Clear();
 
@@ -2683,11 +2681,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
             ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
-            packet.Header.Reliable = false;
-            packet.Header.Zerocoded = true;
 
-            packet.AgentData.AgentID = AgentId;
-            packet.AgentData.SessionID = SessionId;
+//            packet.AgentData.AgentID = AgentId;
+//            packet.AgentData.SessionID = SessionId;
 
             packet.Effect = effectBlocks;
 

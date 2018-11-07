@@ -52,6 +52,9 @@ namespace OpenSim.Framework
         /// Number of queuest (priorities) that are processed immediately
         /// </summary.
         public const uint NumberOfImmediateQueues = 2;
+        // first queues are immediate, so no counts
+        private static readonly uint[] m_queueCounts = {0,   0,   8,      8,  5,  4, 3,  2,   1,  1,  1,  1};
+        // this is                     ava, ava, attach, <10m, 20,40,80,160m,320,640,1280, +
 
         private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[NumberOfQueues];
         private Dictionary<uint, LookupItem> m_lookupTable;
@@ -61,10 +64,8 @@ namespace OpenSim.Framework
         // each pass. weighted towards the higher priority queues
         private uint m_nextQueue = 0;
         private uint m_countFromQueue = 0;
-        // first queues are imediate, so no counts
-//        private uint[] m_queueCounts = { 0, 0,          8,  4,  4, 2,  2,   2,  2,  1,  1, 1 };
-        private uint[] m_queueCounts = {0,   0,   8,      8,  5,  4, 3,  2,   1,  1,  1,  1};
-        // this is                     ava, ava, attach, <10m, 20,40,80,160m,320,640,1280, +
+        private int m_capacity;
+        private int m_added;
 
         // next request is a counter of the number of updates queued, it provides
         // a total ordering on the updates coming through the queue and is more
@@ -84,17 +85,29 @@ namespace OpenSim.Framework
 
         public PriorityQueue(int capacity)
         {
-            m_lookupTable = new Dictionary<uint, LookupItem>(capacity);
+            m_capacity = capacity;
+            capacity /= 4;
 
             for (int i = 0; i < m_heaps.Length; ++i)
                 m_heaps[i] = new MinHeap<MinHeapItem>(capacity);
 
+            m_lookupTable = new Dictionary<uint, LookupItem>(m_capacity);
             m_nextQueue = NumberOfImmediateQueues;
             m_countFromQueue = m_queueCounts[m_nextQueue];
+            m_added = 0;
         }
 #endregion Constructor
 
 #region PublicMethods
+        public void Close()
+        {
+            for (int i = 0; i < m_heaps.Length; ++i)
+                m_heaps[i] = null;
+            m_heaps = null;
+            m_lookupTable.Clear();
+            m_lookupTable = null;
+        }
+
         /// <summary>
         /// Return the number of items in the queues
         /// </summary>
@@ -116,14 +129,21 @@ namespace OpenSim.Framework
         public bool Enqueue(uint pqueue, EntityUpdate value)
         {
             LookupItem lookup;
+            IHandle lookupH; 
+            UInt64 entry;
 
             uint localid = value.Entity.LocalId;
-            UInt64 entry = m_nextRequest++;
             if (m_lookupTable.TryGetValue(localid, out lookup))
             {
-                entry = lookup.Heap[lookup.Handle].EntryOrder;
-                value.Update(lookup.Heap[lookup.Handle].Value);
-                lookup.Heap.Remove(lookup.Handle);
+                lookupH = lookup.Handle;
+                entry = lookup.Heap[lookupH].EntryOrder;
+                value.Update(lookup.Heap[lookupH].Value);
+                lookup.Heap.Remove(lookupH);
+            }
+            else
+            {
+                entry = m_nextRequest++;
+                ++m_added;
             }
 
             pqueue = Util.Clamp<uint>(pqueue, 0, NumberOfQueues - 1);
@@ -133,7 +153,6 @@ namespace OpenSim.Framework
 
             return true;
         }
-
 
         public void Remove(List<uint> ids)
         {
@@ -147,6 +166,11 @@ namespace OpenSim.Framework
                     m_lookupTable.Remove(localid);
                 }
             }
+            if(m_lookupTable.Count == 0 && m_added > 8 * m_capacity)
+            {
+                m_lookupTable = new Dictionary<uint, LookupItem>(m_capacity);
+                m_added = 0;
+            }
         }
 
         /// <summary>
@@ -156,8 +180,9 @@ namespace OpenSim.Framework
         /// </summary>
         public bool TryDequeue(out EntityUpdate value, out Int32 timeinqueue)
         {
-            // If there is anything in imediate queues, return it first no
+            // If there is anything in immediate queues, return it first no
             // matter what else. Breaks fairness. But very useful.
+            
             for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
             {
                 if (m_heaps[iq].Count > 0)
@@ -177,12 +202,13 @@ namespace OpenSim.Framework
             // to give lower numbered queues a higher priority and higher percentage
             // of the bandwidth.
 
+            MinHeap<MinHeapItem> curheap = m_heaps[m_nextQueue];
             // Check for more items to be pulled from the current queue
-            if (m_heaps[m_nextQueue].Count > 0 && m_countFromQueue > 0)
+            if (m_countFromQueue > 0 && curheap.Count > 0)
             {
-                m_countFromQueue--;
+                --m_countFromQueue;
 
-                MinHeapItem item = m_heaps[m_nextQueue].RemoveMin();
+                MinHeapItem item = curheap.RemoveMin();
                 m_lookupTable.Remove(item.Value.Entity.LocalId);
                 timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
                 value = item.Value;
@@ -196,35 +222,40 @@ namespace OpenSim.Framework
                 m_nextQueue++;
                 if(m_nextQueue >= NumberOfQueues)
                     m_nextQueue = NumberOfImmediateQueues;
+ 
+                curheap = m_heaps[m_nextQueue];
+                if (curheap.Count == 0)
+                    continue;
 
                 m_countFromQueue = m_queueCounts[m_nextQueue];
+                --m_countFromQueue;
 
-                if (m_heaps[m_nextQueue].Count > 0)
-                {
-                    m_countFromQueue--;
-
-                    MinHeapItem item = m_heaps[m_nextQueue].RemoveMin();
-                    m_lookupTable.Remove(item.Value.Entity.LocalId);
-                    timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
-                    value = item.Value;
-                    return true;
-                }
+                MinHeapItem item = curheap.RemoveMin();
+                m_lookupTable.Remove(item.Value.Entity.LocalId);
+                timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
+                value = item.Value;
+                return true;
             }
 
             timeinqueue = 0;
             value = default(EntityUpdate);
+            if(m_lookupTable.Count == 0 && m_added > 8 * m_capacity)
+            {
+                m_lookupTable = new Dictionary<uint, LookupItem>(m_capacity);
+                m_added = 0;
+            }
             return false;
         }
 
         public bool TryOrderedDequeue(out EntityUpdate value, out Int32 timeinqueue)
         {
-            // If there is anything in imediate queues, return it first no
-            // matter what else. Breaks fairness. But very useful.
-            for (int iq = 0; iq < NumberOfQueues; iq++)
+            MinHeap<MinHeapItem> curheap;
+            for (int iq = 0; iq < NumberOfQueues; ++iq)
             {
-                if (m_heaps[iq].Count > 0)
+                curheap = m_heaps[iq];
+                if (curheap.Count > 0)
                 {
-                    MinHeapItem item = m_heaps[iq].RemoveMin();
+                    MinHeapItem item = curheap.RemoveMin();
                     m_lookupTable.Remove(item.Value.Entity.LocalId);
                     timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
                     value = item.Value;
@@ -234,6 +265,11 @@ namespace OpenSim.Framework
 
             timeinqueue = 0;
             value = default(EntityUpdate);
+            if(m_lookupTable.Count == 0 && m_added > 8 * m_capacity)
+            {
+                m_lookupTable = new Dictionary<uint, LookupItem>(m_capacity);
+                m_added = 0;
+            }
             return false;
         }
 
@@ -244,7 +280,7 @@ namespace OpenSim.Framework
         public void Reprioritize(UpdatePriorityHandler handler)
         {
             MinHeapItem item;
-            foreach (LookupItem lookup in new List<LookupItem>(this.m_lookupTable.Values))
+            foreach (LookupItem lookup in new List<LookupItem>(m_lookupTable.Values))
             {
                 if (lookup.Heap.TryGetValue(lookup.Handle, out item))
                 {
@@ -270,7 +306,7 @@ namespace OpenSim.Framework
                     {
                         // m_log.WarnFormat("[PQUEUE]: UpdatePriorityHandler returned false for {0}",item.Value.Entity.UUID);
                         lookup.Heap.Remove(lookup.Handle);
-                        this.m_lookupTable.Remove(localid);
+                        m_lookupTable.Remove(localid);
                     }
                 }
             }
@@ -292,48 +328,55 @@ namespace OpenSim.Framework
         private struct MinHeapItem : IComparable<MinHeapItem>
         {
             private EntityUpdate value;
-            internal EntityUpdate Value {
-                get {
-                    return this.value;
+            internal EntityUpdate Value
+            {
+                get
+                {
+                    return value;
                 }
             }
 
             private uint pqueue;
-            internal uint PriorityQueue {
-                get {
-                    return this.pqueue;
+            internal uint PriorityQueue
+            {
+                get
+                {
+                    return pqueue;
                 }
             }
 
             private Int32 entrytime;
-            internal Int32 EntryTime {
-                get {
-                    return this.entrytime;
+            internal Int32 EntryTime
+             {
+                get
+                {
+                    return entrytime;
                 }
             }
 
             private UInt64 entryorder;
             internal UInt64 EntryOrder
             {
-                get {
-                    return this.entryorder;
+                get
+                {
+                    return entryorder;
                 }
             }
 
-            internal MinHeapItem(uint pqueue, MinHeapItem other)
+            internal MinHeapItem(uint _pqueue, MinHeapItem other)
             {
-                this.entrytime = other.entrytime;
-                this.entryorder = other.entryorder;
-                this.value = other.value;
-                this.pqueue = pqueue;
+                entrytime = other.entrytime;
+                entryorder = other.entryorder;
+                value = other.value;
+                pqueue = _pqueue;
             }
 
-            internal MinHeapItem(uint pqueue, UInt64 entryorder, EntityUpdate value)
+            internal MinHeapItem(uint _pqueue, UInt64 _entryorder, EntityUpdate _value)
             {
-                this.entrytime = Util.EnvironmentTickCount();
-                this.entryorder = entryorder;
-                this.value = value;
-                this.pqueue = pqueue;
+                entrytime = Util.EnvironmentTickCount();
+                entryorder = _entryorder;
+                value = _value;
+                pqueue = _pqueue;
             }
 
             public override string ToString()
