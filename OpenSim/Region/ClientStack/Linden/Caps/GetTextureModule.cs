@@ -241,15 +241,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     lock (responses)
                     {
-                        if (responses.Count > 0)
-                        {
-                            if (m_queue.Count >= 4)
-                            {
-                                // Never allow more than 4 fetches to wait
-                                reqinfo.send503 = true;
-                            }
-                        }
+                        if (responses.Count > 0 && m_queue.Count > 32)
+                            reqinfo.send503 = true;
                     }
+
                     m_queue.Add(reqinfo);
                 };
 
@@ -266,7 +261,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     Hashtable response = new Hashtable();
 
                     response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
+                    response["str_response_string"] = "timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
                     return response;
@@ -293,6 +288,12 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
+                    if (m_presence == null)
+                        m_presence = m_scene.GetScenePresence(Id);
+
+                    if (m_presence == null || m_presence.IsDeleted)
+                        requestinfo.send503 = true;
+
                     if (requestinfo.send503)
                     {
                         response = new Hashtable();
@@ -303,26 +304,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         response["keepalive"] = false;
 
                         Hashtable headers = new Hashtable();
-                        headers["Retry-After"] = 30;
+                        headers["Retry-After"] = 20;
                         response["headers"] = headers;
 
-                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
-
-                        return;
-                    }
-
-                // If the avatar is gone, don't bother to get the texture
-                    if (m_scene.GetScenePresence(Id) == null)
-                    {
-                        response = new Hashtable();
-
-                        response["int_response_code"] = 500;
-                        response["str_response_string"] = "Script timeout";
-                        response["content_type"] = "text/plain";
-                        response["keepalive"] = false;
-
-                        responses[requestID] = new APollResponse() {bytes = 0, response = response};
-
+                        responses[requestID] = new APollResponse() { bytes = 0, response = response };
                         return;
                     }
                 }
