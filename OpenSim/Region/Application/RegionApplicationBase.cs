@@ -83,7 +83,7 @@ namespace OpenSim
                         mainSSLport, m_networkServersInfo.HttpUsesSSL,
                         m_networkServersInfo.HttpSSLCN,
                         m_networkServersInfo.HttpSSLCertPath, m_networkServersInfo.HttpSSLCNCertPass);
-                m_httpServer.Start(true,true);
+                m_httpServer.Start();
                 MainServer.AddHttpServer(m_httpServer);
             }
 
@@ -92,10 +92,10 @@ namespace OpenSim
             if(!m_networkServersInfo.HttpUsesSSL)
             {
                 m_httpServer = server;
-                server.Start(true, true);
+                server.Start();
             }
             else
-                server.Start(false, false);
+                server.Start();
 
             MainServer.AddHttpServer(server);
             MainServer.UnSecureInstance = server;
@@ -113,7 +113,7 @@ namespace OpenSim
                         m_networkServersInfo.cert_pass);
 
                     m_log.InfoFormat("[REGION SERVER]: Starting OOB HTTPS server on port {0}", server.SSLPort);
-                    server.Start(true, true);
+                    server.Start();
                     MainServer.AddHttpServer(server);
                 }
                 else
@@ -121,7 +121,7 @@ namespace OpenSim
                     server = new BaseHttpServer(m_networkServersInfo.https_port);
 
                     m_log.InfoFormat("[REGION SERVER]: Starting HTTP server on port {0} for external HTTPS", server.Port);
-                    server.Start(false, false);
+                    server.Start();
                     MainServer.AddHttpServer(server);
                 }
             }
