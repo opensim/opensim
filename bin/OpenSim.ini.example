@@ -1176,14 +1176,17 @@
 
 
 [InterestManagement]
-     ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
      ;; This section controls how state updates are prioritized for each client
-     ;; Valid values are BestAvatarResponsiveness, Time, Distance,
-     ;; SimpleAngularDistance, FrontBack
+	 
+     ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness SimpleAngularDistance} BestAvatarResponsiveness
+     ;; Valid values are BestAvatarResponsiveness and SimpleAngularDistance
+	 ;; SimpleAngularDistance does use more cpu
      ; UpdatePrioritizationScheme = BestAvatarResponsiveness
 
-	; TEST OPTION KEEP AS FALSE
-	; if true, don't send object updates if outside view range
+	;; ObjectsCullingByDistance, if true, don't send object updates if outside view range
+	;; currently viewers are also told to delete objects that leave view range
+	;; only avater position is considered, free camera may not see objects
+	;; does increase cpu load
 	; ObjectsCullingByDistance = false
 
 [MediaOnAPrim]
