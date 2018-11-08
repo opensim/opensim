@@ -107,7 +107,6 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanRezObject(int objectCount, UUID ownerID, Vector3 objectPosition)
         {
-            
             ILandObject lo = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
 
             string response = DoCommonChecks(objectCount, ownerID, lo);
@@ -200,7 +199,7 @@ namespace OpenSim.Region.OptionalModules
             string response = null;
 
             int OwnedParcelsCapacity = lo.GetSimulatorMaxPrimCount();
-            if ((objectCount + lo.PrimCounts.Total) > OwnedParcelsCapacity)
+            if ((objectCount + lo.PrimCounts.Simulator) > OwnedParcelsCapacity)
             {
                 response = "Unable to rez object because the parcel is full";
             }
