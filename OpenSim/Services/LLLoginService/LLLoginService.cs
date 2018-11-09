@@ -345,7 +345,6 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
 
-
                 //
                 // Get the account and check that it exists
                 //
@@ -802,7 +801,6 @@ namespace OpenSim.Services.LLLoginService
                 //response.LookAt = "[r0,r1,r0]";
                 //// can be: last, home, safe, url
                 //response.StartLocation = "url";
-
             }
 
         }
