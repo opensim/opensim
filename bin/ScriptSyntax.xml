@@ -1,4 +1,4 @@
-a6ccf55f-ded5-9093-571c-478cadca66de
+21c53711-f48d-a201-a7f0-8cb35768e7e2
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -67,7 +67,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>rotation</key>
  <map>
   <key>tooltip</key>
-  <string>The rotation as quaternion &lt;x, y, z, s&gt;</string>
+  <string>A rotation as quaternion &lt;x, y, z, s&gt;</string>
  </map>
  <key>string</key>
  <map>
@@ -77,7 +77,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>vector</key>
  <map>
   <key>tooltip</key>
-  <string>A vector &lt;x, y, z, s&gt;</string>
+  <string>A vector &lt;x, y, z&gt;</string>
  </map>
 </map>
 <key>events</key>
@@ -370,7 +370,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  </map>
  <key>AGENT_LIST_PARCEL</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>1</string>
+  <key>value</key><string>0x1</string>
  </map>
  <key>AGENT_LIST_PARCEL_OWNER</key><map>
   <key>type</key><string>integer</string>
@@ -744,6 +744,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>CHANGED_ANIMATION</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>16384</string>
+  <key>tooltip</key><string>opensim specific</string>
  </map>
  <key>CHANGED_COLOR</key><map>
   <key>type</key><string>integer</string>
@@ -768,6 +769,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>CHANGED_POSITION</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>32768</string>
+  <key>tooltip</key><string>opensim specific</string>
  </map>
  <key>CHANGED_REGION</key><map>
   <key>type</key><string>integer</string>
@@ -1472,34 +1474,42 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>OPT_AVATAR</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_CHARACTER</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>2</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_EXCLUSION_VOLUME</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>6</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_LEGACY_LINKSET</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_MATERIAL_VOLUME</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>5</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_OTHER</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>-1</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_STATIC_OBSTACLE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>4</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OPT_WALKABLE</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>3</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -1569,17 +1579,17 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>OSTPOBJ_SETROT</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0x4</string>
-  <key>tooltip</key><string>osTeleportObject flag the rotation is the final rotation, otherwise is a added rotation</string>
+  <key>tooltip</key><string>osTeleportObject flag: the rotation is the final rotation, otherwise is a added rotation</string>
  </map>
  <key>OSTPOBJ_STOPATTARGET</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0x1</string>
-  <key>tooltip</key><string>osTeleportObject flag stop at destination</string>
+  <key>tooltip</key><string>osTeleportObject flag: stop at destination</string>
  </map>
  <key>OSTPOBJ_STOPONFAIL</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>0x2</string>
-  <key>tooltip</key><string>osTeleportObject flag stop at jump point if tp fails</string>
+  <key>tooltip</key><string>osTeleportObject flag: stop at jump point if tp fails</string>
  </map>
  <key>PARCEL_COUNT_GROUP</key><map>
   <key>type</key><string>integer</string>
@@ -1860,6 +1870,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>PRIM_ALLOW_UNSIT</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>39</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>PRIM_ALPHA_MODE</key><map>
   <key>type</key><string>integer</string>
@@ -1960,6 +1971,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>PRIM_CAST_SHADOWS</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>24</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>PRIM_COLOR</key><map>
   <key>type</key><string>integer</string>
@@ -2184,6 +2196,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>PRIM_SCRIPTED_SIT_ONLY</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>40</string>
+  <key>tooltip</key><string>not supported</string>
  </map>
  <key>PRIM_SCULPT_FLAG_INVERT</key><map>
   <key>type</key><string>integer</string>
@@ -3235,7 +3248,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>i</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>val</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llAcos</key>
@@ -3248,22 +3261,25 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>llAddToLandBanList</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>hours</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 0.1</string>
  </map>
  <key>llAddToLandPassList</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>hours</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 0.1</string>
  </map>
  <key>llAdjustSoundVolume</key>
  <map>
   <key>arguments</key><array>
    <map><key>volume</key><map><key>type</key><string>float</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 0.1</string>
  </map>
  <key>llAllowInventoryDrop</key>
  <map>
@@ -3407,12 +3423,14 @@ a6ccf55f-ded5-9093-571c-478cadca66de
   <key>arguments</key><array>
    <map><key>face</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 0.1</string>
  </map>
  <key>llCloseRemoteDataChannel</key>
  <map>
   <key>arguments</key><array>
    <map><key>channel</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 1.0</string>
  </map>
  <key>llCloud</key>
  <map>
@@ -3441,6 +3459,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
   <key>arguments</key><array>
    <map><key>impact_sprite</key><map><key>type</key><string>string</string></map></map>
   </array>
+  <key>tooltip</key><string>Not Supported - does nothing</string>
  </map>
  <key>llCos</key>
  <map>
@@ -3452,9 +3471,10 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>llCreateLink</key>
  <map>
   <key>arguments</key><array>
-   <map><key>target</key><map><key>type</key><string>string</string></map></map>
+   <map><key>targetId</key><map><key>type</key><string>string</string></map></map>
    <map><key>parent</key><map><key>type</key><string>integer</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 1.0</string>
  </map>
  <key>llCSV2List</key>
  <map>
@@ -3600,7 +3620,7 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>llDialog</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>message</key><map><key>type</key><string>string</string></map></map>
    <map><key>buttons</key><map><key>type</key><string>list</string></map></map>
    <map><key>chat_channel</key><map><key>type</key><string>integer</string></map></map>
@@ -3629,8 +3649,9 @@ a6ccf55f-ded5-9093-571c-478cadca66de
  <key>llEjectFromLand</key>
  <map>
   <key>arguments</key><array>
-   <map><key>pest</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
   </array>
+  <key>tooltip</key><string>Sleep 1.0</string>
  </map>
  <key>llEmail</key>
  <map>

@@ -210,7 +210,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llCos(f);
         }
 
-        public void llCreateLink(string target, int parent)
+        public void llCreateLink(LSL_String target, LSL_Integer parent)
         {
             m_LSL_Functions.llCreateLink(target, parent);
         }
@@ -315,7 +315,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llDetectedVel(number);
         }
 
-        public void llDialog(string avatar, string message, LSL_List buttons, int chat_channel)
+        public void llDialog(LSL_Key avatar, LSL_String message, LSL_List buttons, int chat_channel)
         {
             m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel);
         }
@@ -336,7 +336,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llEdgeOfWorld(pos, dir);
         }
 
-        public void llEjectFromLand(string pest)
+        public void llEjectFromLand(LSL_Key pest)
         {
             m_LSL_Functions.llEjectFromLand(pest);
         }

@@ -377,7 +377,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_REGION_RESTART = 1024;
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
         public const int CHANGED_MEDIA = 2048;
+        //ApiDesc opensim specific
         public const int CHANGED_ANIMATION = 16384;
+        //ApiDesc opensim specific
         public const int CHANGED_POSITION = 32768;
 
         public const int TYPE_INVALID = 0;
@@ -430,6 +432,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_FLEXIBLE = 21;
         public const int PRIM_TEXGEN = 22;
         public const int PRIM_POINT_LIGHT = 23; // Huh?
+        //ApiDesc not supported
         public const int PRIM_CAST_SHADOWS = 24; // Not implemented, here for completeness sake
         public const int PRIM_GLOW = 25;
         public const int PRIM_TEXT = 26;
@@ -445,7 +448,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SPECULAR = 36;
         public const int PRIM_NORMAL = 37;
         public const int PRIM_ALPHA_MODE = 38;
+        //ApiDesc not supported
         public const int PRIM_ALLOW_UNSIT = 39; // experiences related. unsupported
+        //ApiDesc not supported
         public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
         public const int PRIM_SIT_TARGET = 41;
 
@@ -659,20 +664,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_ATTACHED_SLOTS_AVAILABLE = 35;
 
         // Pathfinding types
+        //ApiDesc not supported
         public const int OPT_OTHER = -1;
+        //ApiDesc not supported
         public const int OPT_LEGACY_LINKSET = 0;
+        //ApiDesc not supported
         public const int OPT_AVATAR = 1;
+        //ApiDesc not supported
         public const int OPT_CHARACTER = 2;
+        //ApiDesc not supported
         public const int OPT_WALKABLE = 3;
+        //ApiDesc not supported
         public const int OPT_STATIC_OBSTACLE = 4;
+        //ApiDesc not supported
         public const int OPT_MATERIAL_VOLUME = 5;
+        //ApiDesc not supported
         public const int OPT_EXCLUSION_VOLUME = 6;
 
         // for llGetAgentList
-        public const int AGENT_LIST_PARCEL = 1;
+        public const int AGENT_LIST_PARCEL = 0x1;
         public const int AGENT_LIST_PARCEL_OWNER = 2;
         public const int AGENT_LIST_REGION = 4;
-        public const int AGENT_LIST_EXCLUDENPC = 0x4000000; // our flag, not SL and it is a bit mask
+        public const int AGENT_LIST_EXCLUDENPC = 0x4000000;
 
         // Can not be public const?
         public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
@@ -875,11 +888,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         //ApiDesc osTeleportObject no flags
         public const int OSTPOBJ_NONE           = 0x0;
-        //ApiDesc osTeleportObject flag stop at destination
+        //ApiDesc osTeleportObject flag: stop at destination
         public const int OSTPOBJ_STOPATTARGET   = 0x1;
-        //ApiDesc osTeleportObject flag stop at jump point if tp fails
+        //ApiDesc osTeleportObject flag: stop at jump point if tp fails
         public const int OSTPOBJ_STOPONFAIL     = 0x2;
-        //ApiDesc osTeleportObject flag the rotation is the final rotation, otherwise is a added rotation
+        //ApiDesc osTeleportObject flag: the rotation is the final rotation, otherwise is a added rotation
         public const int OSTPOBJ_SETROT         = 0x4;
 
         // Constants for Windlight

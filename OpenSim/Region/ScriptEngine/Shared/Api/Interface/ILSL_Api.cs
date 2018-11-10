@@ -41,10 +41,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void state(string newState);
 
-       LSL_Integer llAbs(int i);
+       LSL_Integer llAbs(int val);
          LSL_Float llAcos(double val);
-              void llAddToLandBanList(string avatar, double hours);
-              void llAddToLandPassList(string avatar, double hours);
+                   //ApiDesc Sleep 0.1
+              void llAddToLandBanList(LSL_Key avatarId, double hours);
+                    //ApiDesc Sleep 0.1
+              void llAddToLandPassList(LSL_Key avatarId, double hours);
+                   //ApiDesc Sleep 0.1
               void llAdjustSoundVolume(double volume);
               void llAllowInventoryDrop(int add);
          LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b);
@@ -66,14 +69,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llCeil(double f);
               void llClearCameraParams();
        LSL_Integer llClearLinkMedia(LSL_Integer link, LSL_Integer face);
+                   //ApiDesc Sleep 0.1
        LSL_Integer llClearPrimMedia(LSL_Integer face);
+                   //ApiDesc Sleep 1.0
               void llCloseRemoteDataChannel(string channel);
          LSL_Float llCloud(LSL_Vector offset);
               void llCollisionFilter(string name, string id, int accept);
               void llCollisionSound(string impact_sound, double impact_volume);
+                   //ApiDesc Not Supported - does nothing
               void llCollisionSprite(string impact_sprite);
          LSL_Float llCos(double f);
-              void llCreateLink(string target, int parent);
+                   //ApiDesc Sleep 1.0
+              void llCreateLink(LSL_String targetId, LSL_Integer parent);
           LSL_List llCSV2List(string src);
           LSL_List llDeleteSubList(LSL_List src, int start, int end);
         LSL_String llDeleteSubString(string src, int start, int end);
@@ -94,11 +101,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llDetectedTouchST(int index);
         LSL_Vector llDetectedTouchUV(int index);
         LSL_Vector llDetectedVel(int number);
-              void llDialog(string avatar, string message, LSL_List buttons, int chat_channel);
+              void llDialog(LSL_Key avatarId, LSL_String message, LSL_List buttons, int chat_channel);
               void llDie();
         LSL_String llDumpList2String(LSL_List src, string seperator);
        LSL_Integer llEdgeOfWorld(LSL_Vector pos, LSL_Vector dir);
-              void llEjectFromLand(string pest);
+                   //ApiDesc Sleep 1.0
+              void llEjectFromLand(LSL_Key avatarId);
               void llEmail(string address, string subject, string message);
         LSL_String llEscapeURL(string url);
       LSL_Rotation llEuler2Rot(LSL_Vector v);
