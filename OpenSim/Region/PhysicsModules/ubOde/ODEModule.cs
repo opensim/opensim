@@ -62,6 +62,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         return;
                     }
                     m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
+                    OSOdeLib = true;
                 }
             }
         }
