@@ -333,11 +333,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    "[INVENTORY ACCESS MODULE]: Updating item {0} {1} with new asset {2}",
 //                    item.Name, item.ID, asset.ID);
 
-                item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
-                item.AssetType = asset.Type;
-                item.InvType = (int)InventoryType.Object;
 
                 m_Scene.AssetService.Store(asset);
                 m_Scene.InventoryService.UpdateItem(item);

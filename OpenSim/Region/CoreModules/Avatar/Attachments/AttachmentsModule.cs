@@ -997,18 +997,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                          (uint)PermissionMask.Export |
                          (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
 
+                    string name = grp.RootPart.Name;
+                    string desc = grp.RootPart.Description;
+
                     AssetBase asset = m_scene.CreateAsset(
-                        grp.GetPartName(grp.LocalId),
-                        grp.GetPartDescription(grp.LocalId),
+                        name, desc,
                         (sbyte)AssetType.Object,
                         Utils.StringToBytes(sceneObjectXml),
                         sp.UUID);
 
+                    item.Name = name;
+                    item.Description = desc;
+                    item.AssetID = asset.FullID;
+                    item.AssetType = (int)AssetType.Object;
+                    item.InvType = (int)InventoryType.Object;
+
                     if (m_invAccessModule != null)
                         m_invAccessModule.UpdateInventoryItemAsset(sp.UUID, item, asset);
 
-                    // If the name of the object has been changed whilst attached then we want to update the inventory
-                    // item in the viewer.
                     if (sp.ControllingClient != null)
                         sp.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
                 }
