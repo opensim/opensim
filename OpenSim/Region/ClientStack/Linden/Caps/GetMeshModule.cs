@@ -291,7 +291,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     Hashtable response = new Hashtable();
 
                     response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
+                    response["str_response_string"] = "timeout";
                     response["content_type"] = "text/plain";
                     response["keepalive"] = false;
                     return response;
@@ -323,7 +323,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         curresponse = new Hashtable();
                         curresponse["int_response_code"] = 500;
-                        curresponse["str_response_string"] = "Script timeout";
+                        curresponse["str_response_string"] = "timeout";
                         curresponse["content_type"] = "text/plain";
                         curresponse["keepalive"] = false;
                         responses[requestID] = new APollResponse() { bytes = 0, response = curresponse };
