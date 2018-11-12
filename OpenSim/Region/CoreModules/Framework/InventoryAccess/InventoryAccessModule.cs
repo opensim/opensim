@@ -437,7 +437,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if (objectGroup.RootPart.Shape.PCode != (byte) PCode.Tree &&
                             objectGroup.RootPart.Shape.PCode != (byte) PCode.NewTree)
                         objectGroup.RootPart.Shape.LastAttachPoint = (byte)objectGroup.AttachmentPoint;
-
                 }
 
                 objectGroup.AbsolutePosition = inventoryStoredPosition;
@@ -513,15 +512,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.SalePrice = objlist[0].RootPart.SalePrice;
             }
 
+            string name = objlist[0].RootPart.Name;
+            string desc = objlist[0].RootPart.Description;
             AssetBase asset = CreateAsset(
-                objlist[0].GetPartName(objlist[0].RootPart.LocalId),
-                objlist[0].GetPartDescription(objlist[0].RootPart.LocalId),
+                name, desc,
                 (sbyte)AssetType.Object,
                 Utils.StringToBytes(itemXml),
                 objlist[0].OwnerID.ToString());
             m_Scene.AssetService.Store(asset);
 
             item.AssetID = asset.FullID;
+            item.Description = desc;
+            item.Name = name;
 
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
@@ -530,12 +532,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             else
             {
                 AddPermissions(item, objlist[0], objlist, remoteClient);
-
-                item.CreationDate = Util.UnixTimeSinceEpoch();
-                item.Description = asset.Description;
-                item.Name = asset.Name;
-                item.AssetType = asset.Type;
-
                 m_Scene.AddInventoryItem(item);
 
                 if (remoteClient != null && item.Owner == remoteClient.AgentId)
@@ -784,6 +780,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = folder.ID;
                 item.Owner = userID;
+                item.CreationDate = Util.UnixTimeSinceEpoch();
             }
 
             return item;
