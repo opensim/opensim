@@ -743,10 +743,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return CreateiOSTerrain(space, data, bPlaceable);
         }
 
-
-
-
-
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeom"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiGeom(int classnum);
         internal static IntPtr CreateGeom(int classnum)
@@ -794,8 +790,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             NTotalGeoms++;
             return CreateiTriMesh(space, data, callback, arrayCallback, rayCallback);
         }
-        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dDot"), SuppressUnmanagedCodeSecurity]
-        internal static extern dReal Dot(ref dReal X0, ref dReal X1, int n);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dDQfromW"), SuppressUnmanagedCodeSecurity]
         internal static extern void DQfromW(dReal[] dq, ref Vector3 w, ref Quaternion q);
@@ -883,9 +877,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetAABB"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomGetAABB(IntPtr geom, out AABB aabb);
-
-        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetAABB"), SuppressUnmanagedCodeSecurity]
-        internal static extern void GeomGetAABB(IntPtr geom, out dReal minX);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetBody"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr GeomGetBody(IntPtr geom);

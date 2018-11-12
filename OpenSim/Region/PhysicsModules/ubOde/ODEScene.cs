@@ -190,8 +190,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         // this netx dimensions are only relevant for terrain partition (mega regions)
         // WorldExtents below has the simulation dimensions
         // they should be identical except on mega regions
-        private uint m_regionWidth = Constants.RegionSize;
-        private uint m_regionHeight = Constants.RegionSize;
+        private int m_regionWidth = (int)Constants.RegionSize;
+        private int m_regionHeight = (int)Constants.RegionSize;
 
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
@@ -255,9 +255,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public ContactData[] m_materialContactsData = new ContactData[8];
 
-        private IntPtr TerrainGeom;
-        private float[] TerrainHeightFieldHeight;
-        private GCHandle TerrainHeightFieldHeightsHandler = new GCHandle();
+        private IntPtr m_terrainGeom;
+        private float[] m_terrainHeights;
+        private GCHandle m_terrainHeightsHandler = new GCHandle();
+        private IntPtr HeightmapData;
+        private int m_lastRegionWidth;
+        private int m_lastRegionHeight;
 
         private int m_physicsiterations = 15;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
@@ -326,10 +329,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_frameWorkScene.RegisterModuleInterface<PhysicsScene>(this);
 
             Initialization();
-
-            base.Initialise(m_frameWorkScene.PhysicsRequestAsset,
-                (m_frameWorkScene.Heightmap != null ? m_frameWorkScene.Heightmap.GetFloatsSerialised() : new float[m_frameWorkScene.RegionInfo.RegionSizeX * m_frameWorkScene.RegionInfo.RegionSizeY]),
-                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);
         }
 
         public void RegionLoaded()
@@ -360,9 +359,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_rayCastManager = new ODERayCastRequestManager(this);
 
             WorldExtents.X = m_frameWorkScene.RegionInfo.RegionSizeX;
-            m_regionWidth = (uint)WorldExtents.X;
+            m_regionWidth = (int)WorldExtents.X;
             WorldExtents.Y = m_frameWorkScene.RegionInfo.RegionSizeY;
-            m_regionHeight = (uint)WorldExtents.Y;
+            m_regionHeight = (int)WorldExtents.Y;
 
             lock (OdeLock)
             {
@@ -549,6 +548,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_lastframe = Util.GetTimeStamp();
             m_lastMeshExpire = m_lastframe;
             step_time = -1;
+
+
+            base.Initialise(m_frameWorkScene.PhysicsRequestAsset,
+                (m_frameWorkScene.Heightmap != null ? m_frameWorkScene.Heightmap.GetFloatsSerialised() : new float[m_frameWorkScene.RegionInfo.RegionSizeX * m_frameWorkScene.RegionInfo.RegionSizeY]),
+                (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -1867,10 +1871,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public float GetTerrainHeightAtXY(float x, float y)
         {
-            if (TerrainGeom == IntPtr.Zero)
+            if (m_terrainGeom == IntPtr.Zero)
                 return 0f;
 
-            if (TerrainHeightFieldHeight == null || TerrainHeightFieldHeight.Length == 0)
+            if (m_terrainHeights == null || m_terrainHeights.Length == 0)
                 return 0f;
 
             // TerrainHeightField for ODE as offset 1m
@@ -1894,57 +1898,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
             int regsize = regsizeX;
 
-            if (m_OSOdeLib)
+            if (x < regsizeX - 1)
             {
-                if (x < regsizeX - 1)
-                {
-                    ix = (int)x;
-                    dx = x - (float)ix;
-                }
-                else // out world use external height
-                {
-                    ix = regsizeX - 2;
-                    dx = 0;
-                }
-                if (y < regsizeY - 1)
-                {
-                    iy = (int)y;
-                    dy = y - (float)iy;
-                }
-                else
-                {
-                    iy = regsizeY - 2;
-                    dy = 0;
-                }
+                ix = (int)x;
+                dx = x - (float)ix;
+            }
+            else // out world use external height
+            {
+                ix = regsizeX - 2;
+                dx = 0;
+            }
+            if (y < regsizeY - 1)
+            {
+                iy = (int)y;
+                dy = y - (float)iy;
             }
             else
             {
-                // we  still have square fixed size regions
-                // also flip x and y because of how map is done for ODE fliped axis
-                // so ix,iy,dx and dy are inter exchanged
-
-                regsize = regsizeY;
-
-                if (x < regsizeX - 1)
-                {
-                    iy = (int)x;
-                    dy = x - (float)iy;
-                }
-                else // out world use external height
-                {
-                    iy = regsizeX - 2;
-                    dy = 0;
-                }
-                if (y < regsizeY - 1)
-                {
-                    ix = (int)y;
-                    dx = y - (float)ix;
-                }
-                else
-                {
-                    ix = regsizeY - 2;
-                    dx = 0;
-                }
+                iy = regsizeY - 2;
+                dy = 0;
             }
 
             float h0;
@@ -1954,7 +1926,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             iy *= regsize;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = TerrainHeightFieldHeight;
+            float[] heights = m_terrainHeights;
             /*
                         if ((dx + dy) <= 1.0f)
                         {
@@ -1993,10 +1965,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             Vector3 norm = new Vector3(0, 0, 1);
 
-            if (TerrainGeom == IntPtr.Zero)
+            if (m_terrainGeom == IntPtr.Zero)
                 return norm;
 
-            if (TerrainHeightFieldHeight == null || TerrainHeightFieldHeight.Length == 0)
+            if (m_terrainHeights == null || m_terrainHeights.Length == 0)
                 return norm;
 
             // TerrainHeightField for ODE as offset 1m
@@ -2024,62 +1996,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int ystep = regsizeX;
             bool firstTri = false;
 
-            if (m_OSOdeLib)
+            if (x < regsizeX - 1)
             {
-                if (x < regsizeX - 1)
-                {
-                    ix = (int)x;
-                    dx = x - (float)ix;
-                }
-                else // out world use external height
-                {
-                    ix = regsizeX - 2;
-                    dx = 0;
-                }
-                if (y < regsizeY - 1)
-                {
-                    iy = (int)y;
-                    dy = y - (float)iy;
-                }
-                else
-                {
-                    iy = regsizeY - 2;
-                    dy = 0;
-                }
-                firstTri = dy > dx;
+                ix = (int)x;
+                dx = x - (float)ix;
             }
-
+            else // out world use external height
+            {
+                ix = regsizeX - 2;
+                dx = 0;
+            }
+            if (y < regsizeY - 1)
+            {
+                iy = (int)y;
+                dy = y - (float)iy;
+            }
             else
             {
-                xstep = regsizeY;
-                ystep = 1;
-                regsize = regsizeY;
-
-                // we  still have square fixed size regions
-                // also flip x and y because of how map is done for ODE fliped axis
-                // so ix,iy,dx and dy are inter exchanged
-                if (x < regsizeX - 1)
-                {
-                    iy = (int)x;
-                    dy = x - (float)iy;
-                }
-                else // out world use external height
-                {
-                    iy = regsizeX - 2;
-                    dy = 0;
-                }
-                if (y < regsizeY - 1)
-                {
-                    ix = (int)y;
-                    dx = y - (float)ix;
-                }
-                else
-                {
-                    ix = regsizeY - 2;
-                    dx = 0;
-                }
-                firstTri = dx > dy;
+                iy = regsizeY - 2;
+                dy = 0;
             }
+            firstTri = dy > dx;
 
             float h0;
             float h1;
@@ -2088,7 +2025,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             iy *= regsize;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = TerrainHeightFieldHeight;
+            float[] heights = m_terrainHeights;
 
             if (firstTri)
             {
@@ -2113,229 +2050,117 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return norm;
         }
 
-        public override void SetTerrain(float[] heightMap)
+        private void InitTerrain()
         {
-            if (m_OSOdeLib)
-                OSSetTerrain(heightMap);
-            else
-                OriSetTerrain(heightMap);
-        }
-
-        public void OriSetTerrain(float[] heightMap)
-        {
-            // assumes 1m size grid and constante size square regions
-            // needs to know about sims around in future
-
-            float[] _heightmap;
-
-            uint regionsizeX = m_regionWidth;
-            uint regionsizeY = m_regionHeight;
-
-            // map is rotated
-            uint heightmapWidth = regionsizeY + 2;
-            uint heightmapHeight = regionsizeX + 2;
-
-            uint heightmapWidthSamples = heightmapWidth + 1;
-            uint heightmapHeightSamples = heightmapHeight + 1;
-
-            _heightmap = new float[heightmapWidthSamples * heightmapHeightSamples];
-
-            const float scale = 1.0f;
-            const float offset = 0.0f;
-            const float thickness = 10f;
-            const int wrap = 0;
-
-
-            float hfmin = float.MaxValue;
-            float hfmax = float.MinValue;
-            float val;
-            uint xx;
-            uint yy;
-
-            uint maxXX = regionsizeX - 1;
-            uint maxYY = regionsizeY - 1;
-            // flipping map adding one margin all around so things don't fall in edges
-
-            uint xt = 0;
-            xx = 0;
-
-            for (uint x = 0; x < heightmapWidthSamples; x++)
-            {
-                if (x > 1 && xx < maxXX)
-                    xx++;
-                yy = 0;
-                for (uint y = 0; y < heightmapHeightSamples; y++)
-                {
-                    if (y > 1 && y < maxYY)
-                        yy += regionsizeX;
-
-                    val = heightMap[yy + xx];
-                    if (val < -100.0f)
-                        val = -100.0f;
-                    _heightmap[xt + y] = val;
-
-                    if (hfmin > val)
-                        hfmin = val;
-                    if (hfmax < val)
-                        hfmax = val;
-                }
-                xt += heightmapHeightSamples;
-            }
-
             lock (OdeLock)
             {
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                if (TerrainGeom != IntPtr.Zero)
+                if (m_terrainGeom != IntPtr.Zero)
                 {
-                    actor_name_map.Remove(TerrainGeom);
-                    SafeNativeMethods.GeomDestroy(TerrainGeom);
-
+                    actor_name_map.Remove(m_terrainGeom);
+                    SafeNativeMethods.GeomDestroy(m_terrainGeom);
                 }
 
-                if (TerrainHeightFieldHeightsHandler.IsAllocated)
-                    TerrainHeightFieldHeightsHandler.Free();
+                if (m_terrainHeightsHandler.IsAllocated)
+                    m_terrainHeightsHandler.Free();
+                m_terrainHeights = null;
 
-                IntPtr HeightmapData = SafeNativeMethods.GeomHeightfieldDataCreate();
+                int heightmapWidthSamples = m_regionWidth + 3;
+                int heightmapHeightSamples = m_regionHeight + 3;
 
-                TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
+                m_terrainHeights = new float[heightmapWidthSamples * heightmapHeightSamples];
+                m_terrainHeightsHandler = GCHandle.Alloc(m_terrainHeights, GCHandleType.Pinned);
 
-                SafeNativeMethods.GeomHeightfieldDataBuildSingle(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0,
-                                                heightmapHeight, heightmapWidth ,
-                                                 (int)heightmapHeightSamples, (int)heightmapWidthSamples, scale,
-                                                offset, thickness, wrap);
+                m_lastRegionWidth = m_regionWidth;
 
-                SafeNativeMethods.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                HeightmapData = SafeNativeMethods.GeomOSTerrainDataCreate();
+                SafeNativeMethods.GeomOSTerrainDataBuild(HeightmapData, m_terrainHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
+                                                 heightmapWidthSamples, heightmapHeightSamples,
+                                                 1, 0);
 
-                TerrainGeom = SafeNativeMethods.CreateHeightfield(GroundSpace, HeightmapData, 1);
-
-                if (TerrainGeom != IntPtr.Zero)
+                m_terrainGeom = SafeNativeMethods.CreateOSTerrain(GroundSpace, HeightmapData, 1);
+                if (m_terrainGeom != IntPtr.Zero)
                 {
-                    SafeNativeMethods.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
-                    SafeNativeMethods.GeomSetCollideBits(TerrainGeom, 0);
+                    SafeNativeMethods.GeomSetCategoryBits(m_terrainGeom, (uint)(CollisionCategories.Land));
+                    SafeNativeMethods.GeomSetCollideBits(m_terrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
                     pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[TerrainGeom] = pa;
+                    actor_name_map[m_terrainGeom] = pa;
 
-//                    geom_name_map[GroundGeom] = "Terrain";
+                    //geom_name_map[GroundGeom] = "Terrain";
 
-                    SafeNativeMethods.Quaternion q = new SafeNativeMethods.Quaternion();
-                    q.X = 0.5f;
-                    q.Y = 0.5f;
-                    q.Z = 0.5f;
-                    q.W = 0.5f;
-
-                    SafeNativeMethods.GeomSetQuaternion(TerrainGeom, ref q);
-                    SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
-                    TerrainHeightFieldHeight = _heightmap;
+                    SafeNativeMethods.GeomSetPosition(m_terrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
                 }
                 else
-                    TerrainHeightFieldHeightsHandler.Free();
+                    m_terrainHeightsHandler.Free();
             }
         }
 
-        public void OSSetTerrain(float[] heightMap)
+        public override void SetTerrain(float[] heightMap)
         {
             // assumes 1m size grid and constante size square regions
             // needs to know about sims around in future
 
-            float[] _heightmap;
+            if(m_regionWidth != m_lastRegionWidth ||
+                    m_regionHeight != m_lastRegionHeight ||
+                    !m_terrainHeightsHandler.IsAllocated ||
+                    m_terrainGeom == IntPtr.Zero)
+                InitTerrain();
 
-            uint regionsizeX = m_regionWidth;
-            uint regionsizeY = m_regionHeight;
+            int regionsizeX = m_regionWidth;
+            int regionsizeY = m_regionHeight;
 
-            uint heightmapWidth = regionsizeX + 2;
-            uint heightmapHeight = regionsizeY + 2;
+            int heightmapWidth = regionsizeX + 2;
+            int heightmapHeight = regionsizeY + 2;
 
-            uint heightmapWidthSamples = heightmapWidth + 1;
-            uint heightmapHeightSamples = heightmapHeight + 1;
+            int heightmapWidthSamples = heightmapWidth + 1;
+            int heightmapHeightSamples = heightmapHeight + 1;
 
-            _heightmap = new float[heightmapWidthSamples * heightmapHeightSamples];
-
-
-            float hfmin = float.MaxValue;
-//            float hfmax = float.MinValue;
             float val;
 
-
-            uint maxXX = regionsizeX + 1;
-            uint maxYY = regionsizeY + 1;
+            int maxXX = regionsizeX + 1;
+            int maxYY = regionsizeY + 1;
             // adding one margin all around so things don't fall in edges
 
-            uint xx;
-            uint yy = 0;
-            uint yt = 0;
+            int xx;
+            int yy = 0;
+            int yt = 0;
+            float minH = float.MaxValue;
+            float maxH = float.MinValue;
 
-            for (uint y = 0; y < heightmapHeightSamples; y++)
+            for (int y = 0; y < heightmapHeightSamples; y++)
             {
                 if (y > 1 && y < maxYY)
                     yy += regionsizeX;
                 xx = 0;
-                for (uint x = 0; x < heightmapWidthSamples; x++)
+
+                lock(OdeLock)
                 {
-                    if (x > 1 && x < maxXX)
-                        xx++;
+                    for (int x = 0; x < heightmapWidthSamples; x++)
+                    {
+                        if (x > 1 && x < maxXX)
+                            xx++;
 
-                    val = heightMap[yy + xx];
-                    if (val < -100.0f)
-                        val = -100.0f;
-                    _heightmap[yt + x] = val;
-
-                    if (hfmin > val)
-                        hfmin = val;
-//                    if (hfmax < val)
-//                        hfmax = val;
+                        val = heightMap[yy + xx];
+                        if (val < -100.0f)
+                            val = -100.0f;
+                        if(val > maxH)
+                            maxH = val;
+                        if(val < minH)
+                            minH = val;
+                        m_terrainHeights[yt + x] = val;
+                    }
                 }
                 yt += heightmapWidthSamples;
             }
 
             lock (OdeLock)
             {
-                if (TerrainGeom != IntPtr.Zero)
-                {
-                    actor_name_map.Remove(TerrainGeom);
-                    SafeNativeMethods.GeomDestroy(TerrainGeom);
-                }
-
-                if (TerrainHeightFieldHeightsHandler.IsAllocated)
-                            TerrainHeightFieldHeightsHandler.Free();
-
-                TerrainHeightFieldHeight = null;
-
-                IntPtr HeightmapData = SafeNativeMethods.GeomOSTerrainDataCreate();
-
-                const int wrap = 0;
-                float thickness = hfmin;
-                if (thickness < 0)
-                    thickness = 1;
-
-                TerrainHeightFieldHeightsHandler = GCHandle.Alloc(_heightmap, GCHandleType.Pinned);
-
-                SafeNativeMethods.GeomOSTerrainDataBuild(HeightmapData, TerrainHeightFieldHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples,
-                                                 thickness, wrap);
-
-//                d.GeomOSTerrainDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
-                TerrainGeom = SafeNativeMethods.CreateOSTerrain(GroundSpace, HeightmapData, 1);
-                if (TerrainGeom != IntPtr.Zero)
-                {
-                    SafeNativeMethods.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
-                    SafeNativeMethods.GeomSetCollideBits(TerrainGeom, 0);
-
-                    PhysicsActor pa = new NullPhysicsActor();
-                    pa.Name = "Terrain";
-                    pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[TerrainGeom] = pa;
-
-//                    geom_name_map[GroundGeom] = "Terrain";
-
-                    SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
-                    TerrainHeightFieldHeight = _heightmap;
-                 }
-                 else
-                    TerrainHeightFieldHeightsHandler.Free();
+                SafeNativeMethods.GeomOSTerrainDataSetBounds(HeightmapData, minH, maxH);
+                SafeNativeMethods.GeomSetPosition(m_terrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
             }
         }
 
@@ -2394,14 +2219,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 foreach (OdeCharacter ch in chtorem)
                     ch.DoAChange(changes.Remove, null);
 
-                if (TerrainGeom != IntPtr.Zero)
-                        SafeNativeMethods.GeomDestroy(TerrainGeom);
-                TerrainGeom = IntPtr.Zero;
+                if (m_terrainGeom != IntPtr.Zero)
+                        SafeNativeMethods.GeomDestroy(m_terrainGeom);
+                m_terrainGeom = IntPtr.Zero;
 
-                if (TerrainHeightFieldHeightsHandler.IsAllocated)
-                    TerrainHeightFieldHeightsHandler.Free();
+                if (m_terrainHeightsHandler.IsAllocated)
+                    m_terrainHeightsHandler.Free();
 
-                TerrainHeightFieldHeight = null;
+                m_terrainHeights = null;
+                m_lastRegionWidth = 0;
+                m_lastRegionHeight = 0;
 
                 if (ContactgeomsArray != IntPtr.Zero)
                 {

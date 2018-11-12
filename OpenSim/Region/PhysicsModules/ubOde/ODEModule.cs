@@ -55,15 +55,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.InitODE();
 
                     string ode_config = SafeNativeMethods.GetConfiguration();
-                    if (ode_config != null && ode_config != "")
+                    if (ode_config == null || ode_config == "" || !ode_config.Contains("ODE_OPENSIM"))
                     {
-                        m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
-
-                        if (ode_config.Contains("ODE_OPENSIM"))
-                        {
-                            OSOdeLib = true;
-                        }
+                        m_log.Error("[ubODE] Native ode library version not supported");
+                        m_Enabled = false;
+                        return;
                     }
+                    m_log.InfoFormat("[ubODE] ode library configuration: {0}", ode_config);
                 }
             }
         }
