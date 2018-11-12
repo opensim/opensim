@@ -112,17 +112,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
         public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType, int salePrice)
         {
-            SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
+            SceneObjectPart rootpart = m_scene.GetSceneObjectPart(localID);
 
-            if (part == null)
+            if (rootpart == null)
                 return false;
 
-            SceneObjectGroup group = part.ParentGroup;
+            SceneObjectGroup group = rootpart.ParentGroup;
             if(group == null || group.IsDeleted || group.inTransit)
                 return false;
 
             // make sure we are not buying a child part
-            part = group.RootPart;            
+            rootpart = group.RootPart;            
 
             switch (saleType)
             {
@@ -149,15 +149,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                     group.InvalidateDeepEffectivePerms();
                 }
 
-                part.ObjectSaleType = 0;
-                part.SalePrice = 10;
-                part.ClickAction = Convert.ToByte(0);
+                rootpart.ObjectSaleType = 0;
+                rootpart.SalePrice = 10;
+                rootpart.ClickAction = Convert.ToByte(0);
 
                 group.HasGroupChanged = true;
-                part.SendPropertiesToClient(remoteClient);
-                part.TriggerScriptChangedEvent(Changed.OWNER);
+                rootpart.SendPropertiesToClient(remoteClient);
+                rootpart.TriggerScriptChangedEvent(Changed.OWNER);
                 group.ResumeScripts();
-                part.ScheduleFullUpdate();
+                rootpart.ScheduleFullUpdate();
 
                 break;
 
@@ -180,23 +180,25 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
 
+                string name = rootpart.Name;
+                string desc = rootpart.Description;
+
                 AssetBase asset = m_scene.CreateAsset(
-                    group.GetPartName(localID),
-                    group.GetPartDescription(localID),
+                    name, desc,
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml),
-                    group.OwnerID);
+                    rootpart.CreatorID);
                 m_scene.AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = part.CreatorID.ToString();
-                item.CreatorData = part.CreatorData;
+                item.CreatorId = rootpart.CreatorID.ToString();
+                item.CreatorData = rootpart.CreatorData;
 
                 item.ID = UUID.Random();
                 item.Owner = remoteClient.AgentId;
                 item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
+                item.Description = desc;
+                item.Name = name;
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = categoryID;
@@ -205,15 +207,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 // apply parts inventory next perms            
                 PermissionsUtil.ApplyNoModFoldedPermissions(perms, ref perms);
                 // change to next owner perms
-                perms &=  part.NextOwnerMask; 
+                perms &=  rootpart.NextOwnerMask; 
                 // update folded
                 perms = PermissionsUtil.FixAndFoldPermissions(perms);
 
                 item.BasePermissions = perms;
                 item.CurrentPermissions = perms;
-                item.NextPermissions = part.NextOwnerMask & perms;
-                item.EveryOnePermissions = part.EveryoneMask & perms;
-                item.GroupPermissions = part.GroupMask & perms;
+                item.NextPermissions = rootpart.NextOwnerMask & perms;
+                item.EveryOnePermissions = rootpart.EveryoneMask & perms;
+                item.GroupPermissions = rootpart.GroupMask & perms;
 
                 item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 item.CreationDate = Util.UnixTimeSinceEpoch();
@@ -231,13 +233,13 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 break;
 
             case 3: // Sell contents
-                List<UUID> invList = part.Inventory.GetInventoryList();
+                List<UUID> invList = rootpart.Inventory.GetInventoryList();
 
                 bool okToSell = true;
 
                 foreach (UUID invID in invList)
                 {
-                    TaskInventoryItem item1 = part.Inventory.GetInventoryItem(invID);
+                    TaskInventoryItem item1 = rootpart.Inventory.GetInventoryItem(invID);
                     if ((item1.CurrentPermissions &
                             (uint)PermissionMask.Transfer) == 0)
                     {
@@ -255,7 +257,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 }
 
                 if (invList.Count > 0)
-                    m_scene.MoveTaskInventoryItems(remoteClient.AgentId, part.Name, part, invList);
+                    m_scene.MoveTaskInventoryItems(remoteClient.AgentId, rootpart.Name, rootpart, invList);
                 break;
             }
 
