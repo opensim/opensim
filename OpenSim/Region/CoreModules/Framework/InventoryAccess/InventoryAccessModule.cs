@@ -673,15 +673,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return null;
             }
 
-            // If we're returning someone's item, it goes back to the
-            // owner's Lost And Found folder.
-            // Delete is treated like return in this case
-            // Deleting your own items makes them go to trash
-            //
-
-            InventoryFolderBase folder = null;
             InventoryItemBase item = null;
-
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
                 item = m_Scene.InventoryService.GetItem(userID, so.RootPart.FromUserInventoryItemID);
@@ -689,7 +681,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 //item = userInfo.RootFolder.FindItem(
                 //        objectGroup.RootPart.FromUserInventoryItemID);
 
-                if (null == item)
+                if (item == null)
                 {
                     m_log.DebugFormat(
                         "[INVENTORY ACCESS MODULE]:  Object {0} {1} scheduled for save to inventory has already been deleted.",
@@ -702,6 +694,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // Folder magic
             //
+            // If we're returning someone's item, it goes back to the
+            // owner's Lost And Found folder.
+            // Delete is treated like return in this case
+            // Deleting your own items makes them go to trash
+            //
+            InventoryFolderBase folder = null;
+
             if (action == DeRezAction.Delete)
             {
                 // Deleting someone else's item
@@ -758,7 +757,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
 
-                    if(folder.Type == 14 || folder.Type == 16)
+                    if(folder.Type == (int)FolderType.Trash || folder.Type == (int)FolderType.LostAndFound)
                     {
                         // folder.Type = 6;
                         folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
@@ -817,6 +816,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                 RezSelected, RemoveItem, fromTaskID, attachment);
         }
+
         // compatility
         public virtual SceneObjectGroup RezObject(
             IClientAPI remoteClient, InventoryItemBase item, UUID assetID, Vector3 RayEnd, Vector3 RayStart,
