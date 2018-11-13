@@ -521,9 +521,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 objlist[0].OwnerID.ToString());
             m_Scene.AssetService.Store(asset);
 
-            item.AssetID = asset.FullID;
             item.Description = desc;
             item.Name = name;
+            item.AssetType = (int)AssetType.Object;
+            item.AssetID = asset.FullID;
 
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
@@ -696,95 +697,95 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     return null;
                 }
+                return item;
             }
-            else
+
+            // Folder magic
+            //
+            if (action == DeRezAction.Delete)
             {
-                // Folder magic
+                // Deleting someone else's item
                 //
-                if (action == DeRezAction.Delete)
+                if (remoteClient == null ||
+                    so.OwnerID != remoteClient.AgentId)
                 {
-                    // Deleting someone else's item
-                    //
-                    if (remoteClient == null ||
-                        so.OwnerID != remoteClient.AgentId)
-                    {
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
-                    }
-                    else
-                    {
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Trash);
-                    }
-                }
-                else if (action == DeRezAction.Return)
-                {
-                    // Dump to lost + found unconditionally
-                    //
                     folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
                 }
-
-                if (folderID == UUID.Zero && folder == null)
+                else
                 {
-                    if (action == DeRezAction.Delete)
+                    folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Trash);
+                }
+            }
+            else if (action == DeRezAction.Return)
+            {
+                // Dump to lost + found unconditionally
+                //
+                folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
+            }
+
+            if (folderID == UUID.Zero && folder == null)
+            {
+                if (action == DeRezAction.Delete)
+                {
+                    // Deletes go to trash by default
+                    //
+                    folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Trash);
+                }
+                else
+                {
+                    if (remoteClient == null || so.RootPart.OwnerID != remoteClient.AgentId)
                     {
-                        // Deletes go to trash by default
-                        //
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Trash);
+                        // Taking copy of another person's item. Take to
+                        // Objects folder.
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
+                        so.FromFolderID = UUID.Zero;
                     }
                     else
                     {
-                        if (remoteClient == null || so.RootPart.OwnerID != remoteClient.AgentId)
-                        {
-                            // Taking copy of another person's item. Take to
-                            // Objects folder.
-                            folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
-                            so.FromFolderID = UUID.Zero;
-                        }
-                        else
-                        {
-                            // Catch all. Use lost & found
-                            //
-                            folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
-                        }
+                        // Catch all. Use lost & found
+                        //
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
                     }
                 }
-
-                // Override and put into where it came from, if it came
-                // from anywhere in inventory and the owner is taking it back.
-                //
-                if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
-                {
-                    if (so.FromFolderID != UUID.Zero && so.RootPart.OwnerID == remoteClient.AgentId)
-                    {
-                        folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
-
-                        if(folder.Type == 14 || folder.Type == 16)
-                        {
-                            // folder.Type = 6;
-                            folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
-                        }
-                    }
-                }
-
-                if (folder == null) // None of the above
-                {
-                    folder = new InventoryFolderBase(folderID);
-
-                    if (folder == null) // Nowhere to put it
-                    {
-                        return null;
-                    }
-                }
-
-                item = new InventoryItemBase();
-                item.ID = UUID.Random();
-                item.InvType = (int)InventoryType.Object;
-                item.Folder = folder.ID;
-                item.Owner = userID;
-                item.CreationDate = Util.UnixTimeSinceEpoch();
             }
+
+            // Override and put into where it came from, if it came
+            // from anywhere in inventory and the owner is taking it back.
+            //
+            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
+            {
+                if (so.FromFolderID != UUID.Zero && so.RootPart.OwnerID == remoteClient.AgentId)
+                {
+                    folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
+
+                    if(folder.Type == 14 || folder.Type == 16)
+                    {
+                        // folder.Type = 6;
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
+                    }
+                }
+            }
+
+            if (folder == null) // None of the above
+            {
+                folder = new InventoryFolderBase(folderID);
+
+                if (folder == null) // Nowhere to put it
+                {
+                    return null;
+                }
+            }
+
+            item = new InventoryItemBase();
+            item.ID = UUID.Random();
+            item.InvType = (int)InventoryType.Object;
+            item.Folder = folder.ID;
+            item.Owner = userID;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
 
             return item;
         }
+
         // compatibility do not use
         public virtual SceneObjectGroup RezObject(
             IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
