@@ -103,14 +103,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capID = UUID.Random();
+            string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-//            m_log.Debug("[UPLOAD OBJECT ASSET MODULE]: /CAPS/" + capID);
+            // m_log.Debug("[UPLOAD OBJECT ASSET MODULE]: /CAPS/" + capID);
             caps.RegisterHandler(
                 "UploadObjectAsset",
                 new RestHTTPHandler(
                     "POST",
-                    "/CAPS/OA/" + capID + "/",
+                    capUrl,
                     httpMethod => ProcessAdd(httpMethod, agentID, caps),
                     "UploadObjectAsset",
                     agentID.ToString()));

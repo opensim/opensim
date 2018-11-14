@@ -51,10 +51,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private Scene m_scene = null;
         private UUID regionID = UUID.Zero;
-        private static bool Enabled = false;
-
-        private static readonly string capsName = "EnvironmentSettings";
-        private static readonly string capsBase = "/CAPS/0020/";
+        private bool Enabled = false;
 
         #region INonSharedRegionModule
         public void Initialise(IConfigSource source)
@@ -133,17 +130,17 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             //            m_log.DebugFormat("[{0}]: Register capability for agentID {1} in region {2}",
             //                Name, agentID, caps.RegionName);
 
-            string capsPath = capsBase + UUID.Random();
+            string capsPath = "/CAPS/" + UUID.Random();
 
             // Get handler
             caps.RegisterHandler(
-                capsName,
+                "EnvironmentSettings",
                 new RestStreamHandler(
                     "GET",
                     capsPath,
                     (request, path, param, httpRequest, httpResponse)
                      => GetEnvironmentSettings(request, path, param, agentID, caps),
-                     capsName,
+                     "EnvironmentSettings",
                      agentID.ToString()));
 
             // Set handler
@@ -153,7 +150,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 capsPath,
                 (request, path, param, httpRequest, httpResponse)
                  => SetEnvironmentSettings(request, path, param, agentID, caps),
-                 capsName,
+                 "EnvironmentSettings",
                  agentID.ToString()));
         }
         #endregion

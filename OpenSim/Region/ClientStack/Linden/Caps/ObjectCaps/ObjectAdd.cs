@@ -93,7 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capuuid = UUID.Random();
+            string capUrl = "/CAPS/" + UUID.Random() + "/";
 
             //            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
@@ -101,7 +101,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 "ObjectAdd",
                 new RestHTTPHandler(
                     "POST",
-                    "/CAPS/OA/" + capuuid + "/",
+                    capUrl,
                     httpMethod => ProcessAdd(httpMethod, agentID, caps),
                     "ObjectAdd",
                     agentID.ToString())); ;
