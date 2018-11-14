@@ -2031,11 +2031,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Wrong type in request {0}", request);
             }
 
-            LLSDRemoteParcelResponse response = new LLSDRemoteParcelResponse();
-            response.parcel_id = parcelID;
             //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
-
-            return LLSDHelpers.SerialiseLLSDReply(response);
+            StringBuilder sb = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(sb);
+                  LLSDxmlEncode.AddElem("parcel_id", parcelID,sb);
+                LLSDxmlEncode.AddEndMap(sb);
+            return LLSDxmlEncode.End(sb);
         }
 
         #endregion
