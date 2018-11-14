@@ -93,15 +93,33 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier, AssetType type)
         {
             UUID key;
+            if (UUID.TryParse(identifier, out key))
+                return key;
 
-            if (!UUID.TryParse(identifier, out key))
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
+            if (item != null && item.Type == (int)type)
+                return item.AssetID;
+
+            return UUID.Zero;
+        }
+
+        public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, SceneObjectPart host, string identifier, AssetType type)
+        {
+            UUID key;
+            if (UUID.TryParse(identifier, out key))
+                return key;
+
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
+            if (item != null && item.Type == (int)type)
+                return item.AssetID;
+
+            if (part.LocalId != host.LocalId)
             {
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
+                item = host.Inventory.GetInventoryItem(identifier);
                 if (item != null && item.Type == (int)type)
-                    key = item.AssetID;
+                    return item.AssetID;
             }
-
-            return key;
+            return UUID.Zero;
         }
     }
 }
