@@ -42,22 +42,27 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    public class FriendsRequestHandler : BaseStreamHandlerBasicDOSProtector
+    
+//    public class FriendsRequestHandler : BaseStreamHandlerBasicDOSProtector
+    public class FriendsRequestHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private FriendsModule m_FriendsModule;
-
+        /*
+                public FriendsRequestHandler(FriendsModule fmodule)
+                        : base("POST", "/friends", new BasicDosProtectorOptions()
+                                                  {
+                                                      AllowXForwardedFor = true,
+                                                      ForgetTimeSpan = TimeSpan.FromMinutes(2),
+                                                      MaxRequestsInTimeframe = 20,
+                                                      ReportingName = "FRIENDSDOSPROTECTOR",
+                                                      RequestTimeSpan = TimeSpan.FromSeconds(5),
+                                                      ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
+                                                  })
+        */
         public FriendsRequestHandler(FriendsModule fmodule)
-                : base("POST", "/friends", new BasicDosProtectorOptions()
-                                          {
-                                              AllowXForwardedFor = true,
-                                              ForgetTimeSpan = TimeSpan.FromMinutes(2),
-                                              MaxRequestsInTimeframe = 20,
-                                              ReportingName = "FRIENDSDOSPROTECTOR",
-                                              RequestTimeSpan = TimeSpan.FromSeconds(5),
-                                              ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
-                                          })
+                : base("POST", "/friends")
         {
             m_FriendsModule = fmodule;
         }

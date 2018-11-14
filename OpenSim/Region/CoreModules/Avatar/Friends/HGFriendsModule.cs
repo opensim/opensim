@@ -170,6 +170,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // we do this only for the root agent
                 if (m_Friends[agentID].Refcount == 1)
                 {
+                    IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                    if(uMan == null)
+                        return true;
                     // We need to preload the user management cache with the names
                     // of foreign friends, just like we do with SOPs' creators
                     foreach (FriendInfo finfo in m_Friends[agentID].Friends)
@@ -182,8 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                                 string url = string.Empty, first = string.Empty, last = string.Empty, tmp = string.Empty;
                                 if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
                                 {
-                                    IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
-                                    m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
+//                                    m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
                                     uMan.AddUser(id, url + ";" + first + " " + last);
                                 }
                             }
