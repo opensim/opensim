@@ -84,7 +84,7 @@ namespace OpenSim.Server.Base
                                                      HandleConsoleListAvailablePlugin);
             // List available updates
             MainConsole.Instance.Commands.AddCommand("Plugin", true,
-                                                     "plugin updates", "plugin updates","List availble updates",
+                                                     "plugin updates", "plugin updates","List available updates",
                                                      HandleConsoleListUpdates);
 
             // Update plugin

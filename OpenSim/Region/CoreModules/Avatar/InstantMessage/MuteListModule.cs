@@ -78,7 +78,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             IXfer xfer = scene.RequestModuleInterface<IXfer>();
             if (xfer == null)
             {
-                m_log.ErrorFormat("[MuteListModule]: Xfer not availble in region {0}. Module Disabled", scene.Name);
+                m_log.ErrorFormat("[MuteListModule]: Xfer not available in region {0}. Module Disabled", scene.Name);
                 m_Enabled = false;
                 return;
             }
@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             IMuteListService srv = scene.RequestModuleInterface<IMuteListService>();
             if(srv == null)
             {
-                m_log.ErrorFormat("[MuteListModule]: MuteListService not availble in region {0}. Module Disabled", scene.Name);
+                m_log.ErrorFormat("[MuteListModule]: MuteListService not available in region {0}. Module Disabled", scene.Name);
                 m_Enabled = false;
                 return;
             }
@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             get { return null; }
         }
-        
+
         public void Close()
         {
         }
