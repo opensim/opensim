@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
@@ -54,8 +55,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private static readonly string capsName = "EnvironmentSettings";
         private static readonly string capsBase = "/CAPS/0020/";
-
-        private LLSDEnvironmentSetResponse setResponse = null;
 
         #region INonSharedRegionModule
         public void Initialise(IConfigSource source)
@@ -105,7 +104,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             if (!Enabled)
                 return;
 
-            setResponse = new LLSDEnvironmentSetResponse();
             scene.EventManager.OnRegisterCaps += OnRegisterCaps;
         }
 
@@ -179,7 +177,16 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
 
             if (String.IsNullOrEmpty(env))
-                env = EnvironmentSettings.EmptySettings(UUID.Zero, regionID);
+            {
+                StringBuilder sb = LLSDxmlEncode.Start();
+                    LLSDxmlEncode.AddArray(sb);
+                        LLSDxmlEncode.AddMap(sb);
+                            LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
+                            LLSDxmlEncode.AddElem("regionID", regionID, sb);
+                        LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
+                env = LLSDxmlEncode.End(sb);
+            }
 
             return env;
         }
@@ -191,33 +198,42 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             //            m_log.DebugFormat("[{0}]: Environment SET handle from agentID {1} in region {2}",
             //                Name, agentID, caps.RegionName);
 
-            setResponse.regionID = regionID;
-            setResponse.success = false;
+            bool success = false;
+            string fail_reason = "";
 
             if (!m_scene.Permissions.CanIssueEstateCommand(agentID, false))
             {
-                setResponse.fail_reason = "Insufficient estate permissions, settings has not been saved.";
-                return LLSDHelpers.SerialiseLLSDReply(setResponse);
+                fail_reason = "Insufficient estate permissions, settings has not been saved.";
             }
-
-            try
+            else
             {
-                m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, request);
-                setResponse.success = true;
+                try
+                {
+                    m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, request);
+                    success = true;
 
-                m_log.InfoFormat("[{0}]: New Environment settings has been saved from agentID {1} in region {2}",
-                    Name, agentID, caps.RegionName);
+                    m_log.InfoFormat("[{0}]: New Environment settings has been saved from agentID {1} in region {2}",
+                        Name, agentID, caps.RegionName);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[{0}]: Environment settings has not been saved for region {1}, Exception: {2} - {3}",
+                        Name, caps.RegionName, e.Message, e.StackTrace);
+
+                    success = false;
+                    fail_reason = String.Format("Environment Set for region {0} has failed, settings not saved.", caps.RegionName);
+                }
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[{0}]: Environment settings has not been saved for region {1}, Exception: {2} - {3}",
-                    Name, caps.RegionName, e.Message, e.StackTrace);
 
-                setResponse.success = false;
-                setResponse.fail_reason = String.Format("Environment Set for region {0} has failed, settings has not been saved.", caps.RegionName);
-            }
-
-            return LLSDHelpers.SerialiseLLSDReply(setResponse);
+            StringBuilder sb = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
+                    LLSDxmlEncode.AddElem("regionID", regionID, sb);
+                    LLSDxmlEncode.AddElem("success", success, sb);
+                    if(!success)
+                        LLSDxmlEncode.AddElem("fail_reason", fail_reason, sb);
+                LLSDxmlEncode.AddEndMap(sb);
+            return LLSDxmlEncode.End(sb);
         }
     }
 }
