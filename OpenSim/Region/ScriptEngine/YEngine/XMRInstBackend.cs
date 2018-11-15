@@ -215,6 +215,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void ApiReset()
         {
+            // do not do llResetScript on entry
+            if(eventCode == ScriptEventCode.state_entry && stateCode == 0)
+                return;
             ClearQueueExceptLinkMessages();
             throw new ScriptResetException();
         }
