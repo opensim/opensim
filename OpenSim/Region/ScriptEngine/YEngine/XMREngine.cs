@@ -975,7 +975,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
                 instance.ApiReset();
-
         }
 
         public void ResetScript(UUID itemID)
@@ -1211,15 +1210,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // Requested engine not defined, warn on console.
                 // Then we try to handle it if we're the default engine, else we ignore it.
-                m_log.Warn("[YEngine]: " + itemID.ToString() + " requests undefined/disabled engine " + engineName);
-                m_log.Info("[YEngine]: - " + part.GetWorldPosition());
-                m_log.Info("[YEngine]: first line: " + firstline);
+//                m_log.Warn("[YEngine]: " + itemID.ToString() + " requests undefined/disabled engine " + engineName);
+//                m_log.Info("[YEngine]: - " + part.GetWorldPosition());
+//                m_log.Info("[YEngine]: first line: " + firstline);
                 if(defEngine != ScriptEngineName)
                 {
-                    m_log.Info("[YEngine]: leaving it to the default script engine (" + defEngine + ") to process it");
+//                    m_log.Info("[YEngine]: leaving it to the default script engine (" + defEngine + ") to process it");
                     return;
                 }
-                m_log.Info("[YEngine]: will attempt to processing it anyway as default script engine");
+//                m_log.Info("[YEngine]: will attempt to processing it anyway as default script engine");
             }
 
             // Put on object/instance lists.
@@ -1884,7 +1883,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static Thread StartMyThread(ThreadStart start, string name, ThreadPriority priority)
         {
             m_log.Debug("[YEngine]: starting thread " + name);
-            Thread thread = WorkManager.StartThread(start, name, priority, true, false, false);
+            Thread thread = WorkManager.StartThread(start, name, priority, false, false);
             return thread;
         }
 
