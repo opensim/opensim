@@ -1282,5 +1282,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osPreloadSound(linknum, sound);
         }
+
+        public LSL_String osDetectedCountry(LSL_Integer number)
+        {
+            return m_OSSL_Functions.osDetectedCountry(number);
+        }
+
+        public LSL_String osGetAgentCountry(LSL_Key agentId)
+        {
+            return m_OSSL_Functions.osGetAgentCountry(agentId);
+        }
     }
 }

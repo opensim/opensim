@@ -5102,5 +5102,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return m_host.ParentGroup.GetLinkNumPart(linkType);
             }
         }
+
+        // funtions to retrieve user country
+        // adaptation cm* counter parts from Avination Careminster extensions API
+        // included in Avination code contribution
+        // for now users country can only be set directly on DB
+
+        public LSL_String osDetectedCountry(LSL_Integer number)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel(ThreatLevel.Moderate, "osDetectedCountry");
+
+            if (World.UserAccountService == null)
+                return String.Empty;
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, number);
+            if (detectedParams == null)
+                return String.Empty;
+            UUID key = detectedParams.Key;
+            if (key == UUID.Zero)
+                return String.Empty;
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+            return account.UserCountry;
+        }
+
+        public LSL_String osGetAgentCountry(LSL_Key id)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetAgentCountry");
+
+            if (World.UserAccountService == null)
+                return String.Empty;
+
+            UUID key;
+            if (!UUID.TryParse(id, out key))
+                return String.Empty;
+            if (key == UUID.Zero)
+                return String.Empty;
+
+            //if owner is not god, target must be in region, or nearby regions
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+            {
+                ScenePresence sp = World.GetScenePresence(key);
+                if(sp == null)
+                    return String.Empty;
+            }
+
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+            return account.UserCountry;
+        }
     }
 }
