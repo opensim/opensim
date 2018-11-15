@@ -173,7 +173,8 @@ public class BSPrimLinkable : BSPrimDisplaced
     // Body is being taken apart. Remove physical dependencies and schedule a rebuild.
     protected override void RemoveDependencies()
     {
-        Linkset.RemoveDependencies(this);
+        if (Linkset != null)
+            Linkset.RemoveDependencies(this);
         base.RemoveDependencies();
     }
 
