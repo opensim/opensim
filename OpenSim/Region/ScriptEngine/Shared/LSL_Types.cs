@@ -84,16 +84,26 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
-                string[] tmps = str.Split(new Char[] { ',', '<', '>' });
+                string[] tmps = str.Split(new Char[] {','});
                 if (tmps.Length < 3)
                 {
-                    x=y=z=0;
+                    z = y = x = 0;
                     return;
                 }
-                bool res;
-                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x);
-                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y);
-                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z);
+                if (!Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x))
+                {
+                    z = y = 0;
+                    return;
+                }
+                if (!Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y))
+                {
+                    z = x = 0;
+                    return;
+                }
+                if (!Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z))
+                {
+                    y = x = 0;
+                }
             }
 
             #endregion
@@ -364,19 +374,31 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
-                string[] tmps = str.Split(new Char[] { ',', '<', '>' });
-                if (tmps.Length < 4)
+                string[] tmps = str.Split(new Char[] {','});
+                if (tmps.Length < 4 ||
+                    !Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s))
                 {
-                    x=y=z=s=0;
+                    z = y = x = 0;
+                    s = 1;
                     return;
                 }
-                bool res;
-                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x);
-                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y);
-                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z);
-                res = res & Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s);
-                if (s == 0 && x == 0 && y == 0 && z == 0)
+                if (!Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x))
+                {
+                    z = y = 0;
                     s = 1;
+                    return;
+                }
+                if (!Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y))
+                {
+                    z = x = 0;
+                    s = 1;
+                    return;
+                }
+                if (!Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z))
+                {
+                    y = x = 0;
+                    s = 1;
+                }
             }
 
             public Quaternion(OMV_Quaternion rot)

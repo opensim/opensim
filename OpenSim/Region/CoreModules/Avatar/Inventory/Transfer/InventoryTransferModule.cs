@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     folder = invService.GetFolder(client.AgentId, inventoryID);
 
-                    if (folder != null & trashFolder != null)
+                    if (folder != null && trashFolder != null)
                     {
                         previousParentFolderID = folder.ParentID;
                         folder.ParentID = trashFolder.ID;
@@ -405,7 +405,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     }
                 }
 
-                if ((null == item && null == folder) | null == trashFolder)
+                if ((null == item && null == folder) || null == trashFolder)
                 {
                     string reason = String.Empty;
 

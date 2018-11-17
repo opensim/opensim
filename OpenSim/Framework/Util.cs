@@ -899,7 +899,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static bool IsInsideBox(Vector3 v, Vector3 min, Vector3 max)
         {
-            return v.X >= min.X & v.Y >= min.Y && v.Z >= min.Z
+            return v.X >= min.X && v.Y >= min.Y && v.Z >= min.Z
                 && v.X <= max.X && v.Y <= max.Y && v.Z <= max.Z;
         }
 

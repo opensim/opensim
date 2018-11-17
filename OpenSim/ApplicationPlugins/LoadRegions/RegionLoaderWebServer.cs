@@ -122,7 +122,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                                 throw ex;
                         }
 
-                        if (regionCount > 0 | allowRegionless)
+                        if (regionCount > 0 || allowRegionless)
                             return regionInfos;
 
                         m_log.Debug("[WEBLOADER]: Request yielded no regions.");

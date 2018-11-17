@@ -492,7 +492,7 @@ namespace OpenSim.Groups
 
             // check permissions
             bool limited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMemberLimited);
-            bool unlimited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMember) | IsOwner(RequestingAgentID, GroupID);
+            bool unlimited = HasPower(RequestingAgentID, GroupID, GroupPowers.AssignMember) || IsOwner(RequestingAgentID, GroupID);
             if (!limited && !unlimited)
             {
                 m_log.DebugFormat("[Groups]: ({0}) Attempt at assigning {1} to role {2} denied because of lack of permission", RequestingAgentID, AgentID, RoleID);
