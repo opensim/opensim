@@ -1082,8 +1082,9 @@ namespace OpenSim.Framework
                 returnBytes[i++] |= (byte)((byte)(_flexiDrag * 10.01f) & 0x7F);
                 returnBytes[i++] = (byte)((_flexiGravity + 10.0f) * 10.01f);
                 returnBytes[i++] = (byte)(_flexiWind * 10.01f);
-                Vector3 lForce = new Vector3(_flexiForceX, _flexiForceY, _flexiForceZ);
-                lForce.GetBytes().CopyTo(returnBytes, i);
+                Utils.FloatToBytes(_flexiForceX, returnBytes, i);
+                Utils.FloatToBytes(_flexiForceY, returnBytes, i + 4);
+                Utils.FloatToBytes(_flexiForceZ, returnBytes, i + 8);
                 i += 12;
             }
 
@@ -1097,9 +1098,9 @@ namespace OpenSim.Framework
                 // Alpha channel in color is intensity
                 Color4 tmpColor = new Color4(_lightColorR, _lightColorG, _lightColorB, _lightIntensity);
                 tmpColor.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_lightRadius).CopyTo(returnBytes, i + 4);
-                Utils.FloatToBytes(_lightCutoff).CopyTo(returnBytes, i + 8);
-                Utils.FloatToBytes(_lightFalloff).CopyTo(returnBytes, i + 12);
+                Utils.FloatToBytes(_lightRadius, returnBytes, i + 4);
+                Utils.FloatToBytes(_lightCutoff, returnBytes, i + 8);
+                Utils.FloatToBytes(_lightFalloff, returnBytes, i + 12);
                 i += 16;
             }
 
@@ -1179,100 +1180,67 @@ namespace OpenSim.Framework
 
         public void ReadInExtraParamsBytes(byte[] data)
         {
-            if (data == null || data.Length == 1)
+            if (data == null)
                 return;
 
-            const ushort FlexiEP = 0x10;
-            const ushort LightEP = 0x20;
-            const ushort SculptEP = 0x30;
-            const ushort ProjectionEP = 0x40;
+            _flexiEntry = false;
+            _lightEntry = false;
+            _sculptEntry = false;
+            _projectionEntry = false;
 
-            bool lGotFlexi = false;
-            bool lGotLight = false;
-            bool lGotSculpt = false;
-            bool lGotFilter = false;
+            if (data.Length == 1)
+                return;
 
-            int i = 0;
-            byte extraParamCount = 0;
-            if (data.Length > 0)
-            {
-                extraParamCount = data[i++];
-            }
+            const byte FlexiEP = 0x10;
+            const byte LightEP = 0x20;
+            const byte SculptEP = 0x30;
+            const byte ProjectionEP = 0x40;
 
+            byte extraParamCount = data[0];
+            int i = 1;
             for (int k = 0; k < extraParamCount; k++)
             {
-                ushort epType = Utils.BytesToUInt16(data, i);
+                byte epType = data[i];
+                i += 6;
 
-                i += 2;
-                // uint paramLength = Helpers.BytesToUIntBig(data, i);
-
-                i += 4;
                 switch (epType)
                 {
                     case FlexiEP:
                         ReadFlexiData(data, i);
                         i += 16;
-                        lGotFlexi = true;
                         break;
 
                     case LightEP:
                         ReadLightData(data, i);
                         i += 16;
-                        lGotLight = true;
                         break;
 
                     case SculptEP:
                         ReadSculptData(data, i);
                         i += 17;
-                        lGotSculpt = true;
                         break;
                     case ProjectionEP:
                         ReadProjectionData(data, i);
                         i += 28;
-                        lGotFilter = true;
                         break;
                 }
             }
-
-            if (!lGotFlexi)
-                _flexiEntry = false;
-            if (!lGotLight)
-                _lightEntry = false;
-            if (!lGotSculpt)
-                _sculptEntry = false;
-            if (!lGotFilter)
-                _projectionEntry = false;
         }
 
         public void ReadSculptData(byte[] data, int pos)
         {
-            UUID SculptUUID;
-            byte SculptTypel;
-
             if (data.Length-pos >= 17)
             {
-                _sculptEntry = true;
-                byte[] SculptTextureUUID = new byte[16];
-                SculptTypel = data[16 + pos];
-                Array.Copy(data, pos, SculptTextureUUID,0, 16);
-                SculptUUID = new UUID(SculptTextureUUID, 0);
+                _sculptTexture = new UUID(data, pos);
+                _sculptType = data[pos + 16];
+                _sculptEntry = (_sculptType != 0);
             }
             else
             {
                 _sculptEntry = false;
-                SculptUUID = UUID.Zero;
-                SculptTypel = 0x00;
+                _sculptTexture = UUID.Zero;
+                _sculptType = 0x00;
             }
-
-            if (_sculptEntry)
-            {
-                if (_sculptType != (byte)1 && _sculptType != (byte)2 && _sculptType != (byte)3 && _sculptType != (byte)4)
-                    _sculptType = 4;
-            }
-
-            _sculptTexture = SculptUUID;
-            _sculptType = SculptTypel;
-            //m_log.Info("[SCULPT]:" + SculptUUID.ToString());
         }
 
         public void ReadFlexiData(byte[] data, int pos)
@@ -1286,10 +1254,9 @@ namespace OpenSim.Framework
                 _flexiDrag = (float)(data[pos++] & 0x7F) / 10.0f;
                 _flexiGravity = (float)(data[pos++] / 10.0f) - 10.0f;
                 _flexiWind = (float)data[pos++] / 10.0f;
-                Vector3 lForce = new Vector3(data, pos);
-                _flexiForceX = lForce.X;
-                _flexiForceY = lForce.Y;
-                _flexiForceZ = lForce.Z;
+                _flexiForceX = Utils.BytesToFloat(data, pos);
+                _flexiForceY = Utils.BytesToFloat(data, pos + 4);
+                _flexiForceZ = Utils.BytesToFloat(data, pos + 8);
             }
             else
             {
@@ -1338,14 +1305,10 @@ namespace OpenSim.Framework
 
         public void ReadProjectionData(byte[] data, int pos)
         {
-            byte[] ProjectionTextureUUID = new byte[16];
-
             if (data.Length - pos >= 28)
             {
                 _projectionEntry = true;
-                Array.Copy(data, pos, ProjectionTextureUUID,0, 16);
-                _projectionTextureID = new UUID(ProjectionTextureUUID, 0);
-
+                _projectionTextureID = new UUID(data, pos);
                 _projectionFOV = Utils.BytesToFloat(data, pos + 16);
                 _projectionFocus = Utils.BytesToFloat(data, pos + 20);
                 _projectionAmb = Utils.BytesToFloat(data, pos + 24);
