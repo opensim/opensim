@@ -84,7 +84,7 @@ namespace OpenSim.Framework
         private int size;
         private object sync_root;
         private int version;
-        private int capacity;
+        private int minCapacity;
 
         private Comparison<T> comparison;
 
@@ -96,8 +96,8 @@ namespace OpenSim.Framework
         public MinHeap(Comparison<T> comparison) : this(DEFAULT_CAPACITY, comparison) { }
         public MinHeap(int _capacity, Comparison<T> _comparison)
         {
-            capacity = _capacity;
-            items = new HeapItem[capacity];
+            minCapacity = _capacity;
+            items = new HeapItem[minCapacity];
             comparison = _comparison;
             size = version = 0;
         }
@@ -236,10 +236,10 @@ namespace OpenSim.Framework
         {
             if (size == items.Length)
             {
-                int capacity = (int)((items.Length * 200L) / 100L);
-                if (capacity < (items.Length + DEFAULT_CAPACITY))
-                    capacity = items.Length + DEFAULT_CAPACITY;
-                Array.Resize<HeapItem>(ref items, capacity);
+                int newcapacity = (int)((items.Length * 200L) / 100L);
+                if (newcapacity < (items.Length + DEFAULT_CAPACITY))
+                    newcapacity = items.Length + DEFAULT_CAPACITY;
+                Array.Resize<HeapItem>(ref items, newcapacity);
             }
 
             Handle handle = null;
@@ -273,8 +273,8 @@ namespace OpenSim.Framework
             for (int index = 0; index < size; ++index)
                 items[index].Clear();
             size = 0;
-            if(items.Length > capacity)
-                items = new HeapItem[capacity];
+            if(items.Length > minCapacity)
+                items = new HeapItem[minCapacity];
             ++version;
         }
 
@@ -282,7 +282,7 @@ namespace OpenSim.Framework
         {
             int length = (int)(items.Length * 0.9);
             if (size < length)
-                Array.Resize<HeapItem>(ref items, Math.Min(size, capacity));
+                Array.Resize<HeapItem>(ref items, Math.Min(size, minCapacity));
         }
 
         private void RemoveAt(int index)
@@ -300,8 +300,8 @@ namespace OpenSim.Framework
                 if (!BubbleUp(index))
                     BubbleDown(index);
             }
-            if(size == 0 && items.Length > 4 * capacity)
-                items = new HeapItem[capacity];
+            if(size == 0 && items.Length > 4 * minCapacity)
+                items = new HeapItem[minCapacity];
         }
 
         public T RemoveMin()
