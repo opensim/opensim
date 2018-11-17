@@ -1233,7 +1233,7 @@ namespace OpenSim.Framework
             {
                 _sculptTexture = new UUID(data, pos);
                 _sculptType = data[pos + 16];
-                _sculptEntry = (_sculptType != 0);
+                _sculptEntry = true;
             }
             else
             {
