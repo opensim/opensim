@@ -778,11 +778,11 @@ namespace OpenSim.Services.LLLoginService
                             string domainLocator = parts[1];
                             parts = domainLocator.Split(new char[] {':'});
                             string domainName = parts[0];
-                            uint port = 0;
+                            uint regionport = 0;
                             if (parts.Length > 1)
-                                UInt32.TryParse(parts[1], out port);
+                                UInt32.TryParse(parts[1], out regionport);
 
-                            region = FindForeignRegion(domainName, port, regionName, account, out gatekeeper);
+                            region = FindForeignRegion(domainName, regionport, regionName, account, out gatekeeper);
                             return region;
                         }
                     }
