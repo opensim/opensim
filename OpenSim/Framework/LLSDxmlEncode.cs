@@ -290,7 +290,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<string>");
-                EscapeToXML(e.ToString(), sb);
+                EscapeToXML(e, sb);
                 sb.Append("</string>");
             }
         }
