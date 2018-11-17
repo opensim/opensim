@@ -114,49 +114,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                 foreach (DetectParams det in ep.DetectParams)
                 {
-                    XmlElement objectElem = xmldoc.CreateElement("", "Object",
-                                                                 "");
+                    XmlElement objectElem = xmldoc.CreateElement("", "Object", "");
                     XmlAttribute pos = xmldoc.CreateAttribute("", "pos", "");
                     pos.Value = det.OffsetPos.ToString();
                     objectElem.Attributes.Append(pos);
 
-                    XmlAttribute d_linkNum = xmldoc.CreateAttribute("",
-                            "linkNum", "");
+                    XmlAttribute d_linkNum = xmldoc.CreateAttribute("", "linkNum", "");
                     d_linkNum.Value = det.LinkNum.ToString();
                     objectElem.Attributes.Append(d_linkNum);
 
-                    XmlAttribute d_group = xmldoc.CreateAttribute("",
-                            "group", "");
+                    XmlAttribute d_group = xmldoc.CreateAttribute("", "group", "");
                     d_group.Value = det.Group.ToString();
                     objectElem.Attributes.Append(d_group);
 
-                    XmlAttribute d_name = xmldoc.CreateAttribute("",
-                            "name", "");
+                    XmlAttribute d_name = xmldoc.CreateAttribute("", "name", "");
                     d_name.Value = det.Name.ToString();
                     objectElem.Attributes.Append(d_name);
 
-                    XmlAttribute d_owner = xmldoc.CreateAttribute("",
-                            "owner", "");
+                    XmlAttribute d_owner = xmldoc.CreateAttribute("", "owner", "");
                     d_owner.Value = det.Owner.ToString();
                     objectElem.Attributes.Append(d_owner);
 
-                    XmlAttribute d_position = xmldoc.CreateAttribute("",
-                            "position", "");
+                    XmlAttribute d_position = xmldoc.CreateAttribute("", "position", "");
                     d_position.Value = det.Position.ToString();
                     objectElem.Attributes.Append(d_position);
 
-                    XmlAttribute d_rotation = xmldoc.CreateAttribute("",
-                            "rotation", "");
+                    XmlAttribute d_rotation = xmldoc.CreateAttribute("", "rotation", "");
                     d_rotation.Value = det.Rotation.ToString();
                     objectElem.Attributes.Append(d_rotation);
 
-                    XmlAttribute d_type = xmldoc.CreateAttribute("",
-                            "type", "");
+                    XmlAttribute d_type = xmldoc.CreateAttribute("", "type", "");
                     d_type.Value = det.Type.ToString();
                     objectElem.Attributes.Append(d_type);
 
-                    XmlAttribute d_velocity = xmldoc.CreateAttribute("",
-                            "velocity", "");
+                    XmlAttribute d_velocity = xmldoc.CreateAttribute("", "velocity", "");
                     d_velocity.Value = det.Velocity.ToString();
                     objectElem.Attributes.Append(d_velocity);
 
