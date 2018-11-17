@@ -472,14 +472,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static explicit operator string(Quaternion r)
             {
-                string s=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
-                return s;
+                string st=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                return st;
             }
 
             public static explicit operator LSLString(Quaternion r)
             {
-                string s=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
-                return new LSLString(s);
+                string st=String.Format(Culture.FormatProvider,"<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                return new LSLString(st);
             }
 
             public static explicit operator Quaternion(string s)
