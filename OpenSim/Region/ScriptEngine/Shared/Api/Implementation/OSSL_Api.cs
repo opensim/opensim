@@ -5130,5 +5130,180 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
             return account.UserCountry;
         }
+
+        public LSL_String osStringSubString(LSL_String src, LSL_Integer offset)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return "";
+            if (offset >= src.Length)
+                return "";
+            if (offset <= 0)
+                return src;
+            return ((string)src).Substring(offset);
+        }
+
+        public LSL_String osStringSubString(LSL_String src, LSL_Integer offset, LSL_Integer length)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return "";
+            if (length <= 0 || offset >= src.Length)
+                return "";
+            if (offset <= 0)
+            {
+                if(length == src.Length)
+                    return src;
+                offset = 0;
+            }
+            if (length > src.Length - offset)
+                length = src.Length - offset;
+            return ((string)src).Substring(offset, length);
+        }
+
+        public LSL_Integer osStringStartsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return 0;
+            if (string.IsNullOrEmpty(value))
+                return 0;
+
+            bool ign = (ignorecase != 0);
+            return ((string)src).StartsWith(value, ignorecase, Culture.GetDefaultCurrentCulture()) ? 1 : 0;
+        }
+
+        public LSL_Integer osStringEndsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return 0;
+            if (string.IsNullOrEmpty(value))
+                return 0;
+
+            bool ign = (ignorecase != 0);
+            return ((string)src).EndsWith(value, ign, Culture.GetDefaultCurrentCulture()) ? 1 : 0;
+        }
+
+        public LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return -1;
+            if (string.IsNullOrEmpty(value))
+                return -1;
+
+            if (ignorecase == 0)
+                return ((string)src).IndexOf(value, StringComparison.CurrentCulture);
+            return ((string)src).IndexOf(value, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public LSL_Integer osStringIndexOf(LSL_String src, LSL_String value,
+            LSL_Integer offset, LSL_Integer count, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return -1;
+            if (string.IsNullOrEmpty(value))
+                return -1;
+            if (offset >= src.Length)
+                return -1;
+            else if (offset < 0)
+                offset = 0;
+
+            if (count <= 0)
+                count = src.Length - offset;
+            else if (count > src.Length - offset)
+                count = src.Length - offset;
+
+            if (ignorecase == 0)
+                return ((string)src).IndexOf(value, offset, count, StringComparison.CurrentCulture);
+            return ((string)src).IndexOf(value, offset, count, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return -1;
+            if (string.IsNullOrEmpty(value))
+                return -1;
+
+            if (ignorecase == 0)
+                return ((string)src).LastIndexOf(value, StringComparison.CurrentCulture);
+            return ((string)src).LastIndexOf(value, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value,
+            LSL_Integer offset, LSL_Integer count, LSL_Integer ignorecase)
+        {
+            m_host.AddScriptLPS(1);
+            CheckThreatLevel();
+
+            if (string.IsNullOrEmpty(src))
+                return -1;
+            if (string.IsNullOrEmpty(value))
+                return -1;
+            if (offset >= src.Length)
+                return -1;
+            if (offset < 0)
+                offset = 0;
+
+            if (count <= 0)
+                count = src.Length - offset;
+            else if (count > src.Length - offset)
+                count = src.Length - offset;
+
+            if (ignorecase == 0)
+                return ((string)src).LastIndexOf(value, offset, count, StringComparison.CurrentCulture);
+            return ((string)src).LastIndexOf(value, offset, count, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        public LSL_String osStringRemove(LSL_String src, LSL_Integer offset, LSL_Integer count)
+        {
+            if (string.IsNullOrEmpty(src))
+                return "";
+            if (offset >= src.Length)
+                return "";
+            if (offset < 0)
+                offset = 0;
+
+            if (count <= 0)
+                count = src.Length - offset;
+            else if (count > src.Length - offset)
+                count = src.Length - offset;
+
+            if (count >= src.Length)
+                return "";
+
+
+            return ((string)src).Remove(offset, count);
+        }
+
+        public LSL_String osStringReplace(LSL_String src, LSL_String oldvalue, LSL_String newvalue)
+        {
+            if (string.IsNullOrEmpty(src))
+                return "";
+            if (string.IsNullOrEmpty(oldvalue))
+                return "";
+            if (string.IsNullOrEmpty(newvalue))
+                newvalue = null;
+
+            return ((string)src).Replace(oldvalue, newvalue);
+        }
     }
 }

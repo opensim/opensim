@@ -529,5 +529,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_String osDetectedCountry(LSL_Integer number);
         LSL_String osGetAgentCountry(LSL_Key agentId);
+
+        LSL_String osStringSubString(LSL_String src, LSL_Integer start);
+        LSL_String osStringSubString(LSL_String src, LSL_Integer start, LSL_Integer length);
+        LSL_Integer osStringStartsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+        LSL_Integer osStringEndsWith(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+        LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+        LSL_Integer osStringIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
+        LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer ignorecase);
+        LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
+        LSL_String osStringRemove(LSL_String src, LSL_Integer start, LSL_Integer count);
+        LSL_String osStringReplace(LSL_String src, LSL_String oldvalue, LSL_String newvalue);
     }
 }
