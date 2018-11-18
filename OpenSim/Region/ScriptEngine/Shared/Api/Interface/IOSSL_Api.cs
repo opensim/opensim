@@ -244,8 +244,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         vector osGetDrawStringSize(string contentType, string text, string fontName, int fontSize);
         void osSetStateEvents(int events);
 
-        double osList2Double(LSL_Types.list src, int index);
-
         void osSetRegionWaterHeight(double height);
         void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour);
         void osSetEstateSunSettings(bool sunFixed, double sunHour);

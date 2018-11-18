@@ -136,11 +136,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osParcelSetDetails(pos,rules);
         }
 
-        public double osList2Double(LSL_Types.list src, int index)
-        {
-            return m_OSSL_Functions.osList2Double(src, index);
-        }
-
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {

@@ -1812,26 +1812,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public double osList2Double(LSL_Types.list src, int index)
-        {
-            // There is really no double type in OSSL. C# and other
-            // have one, but the current implementation of LSL_Types.list
-            // is not allowed to contain any.
-            // This really should be removed.
-            //
-            CheckThreatLevel();
-
-            if (index < 0)
-            {
-                index = src.Length + index;
-            }
-            if (index >= src.Length)
-            {
-                return 0.0;
-            }
-            return Convert.ToDouble(src.Data[index]);
-        }
-
         public void osSetParcelMediaURL(string url)
         {
             // What actually is the difference to the LL function?
