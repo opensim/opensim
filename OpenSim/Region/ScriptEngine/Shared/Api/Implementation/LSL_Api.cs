@@ -12963,33 +12963,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetForceMouselook(mouselook != 0);
         }
 
-        public LSL_Float llGetObjectMass(string id)
+        public LSL_Float llGetObjectMass(LSL_Key id)
         {
             m_host.AddScriptLPS(1);
             UUID key = new UUID();
-            if (UUID.TryParse(id, out key))
-            {
-                // return total object mass
-                SceneObjectPart part = World.GetSceneObjectPart(key);
-                if (part != null)
-                    return part.ParentGroup.GetMass();
+            if (!UUID.TryParse(id, out key))
+                return 0;
 
-                // the object is null so the key is for an avatar
-                ScenePresence avatar = World.GetScenePresence(key);
-                if (avatar != null)
+            // return total object mass
+            SceneObjectPart part = World.GetSceneObjectPart(key);
+            if (part != null)
+                return part.ParentGroup.GetMass();
+
+            // the object is null so the key is for an avatar
+            ScenePresence avatar = World.GetScenePresence(key);
+            if (avatar != null)
+            {
+                if (avatar.IsChildAgent)
                 {
-                    if (avatar.IsChildAgent)
-                    {
-                        // reference http://www.lslwiki.net/lslwiki/wakka.php?wakka=llGetObjectMass
-                        // child agents have a mass of 1.0
-                        return 1;
-                    }
-                    else
-                    {
-                        return (double)avatar.GetMass();
-                    }
+                    // reference http://www.lslwiki.net/lslwiki/wakka.php?wakka=llGetObjectMass
+                    // child agents have a mass of 1.0
+                    return 1;
+                }
+                else
+                {
+                    return avatar.GetMass();
                 }
             }
+
             return 0;
         }
 
@@ -14197,18 +14198,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
-        public LSL_Integer llGetObjectPrimCount(string object_id)
+        public LSL_Integer llGetObjectPrimCount(LSL_Key object_id)
         {
             m_host.AddScriptLPS(1);
-            SceneObjectPart part = World.GetSceneObjectPart(new UUID(object_id));
-            if (part == null)
-            {
+            UUID id;
+            if(!UUID.TryParse(object_id, out id))
                 return 0;
-            }
-            else
-            {
-                return part.ParentGroup.PrimCount;
-            }
+
+            SceneObjectPart part = World.GetSceneObjectPart(id);
+            if (part == null)
+                return 0;
+
+            return part.ParentGroup.PrimCount;
         }
 
         public LSL_Integer llGetParcelMaxPrims(LSL_Vector pos, int sim_wide)
@@ -14265,406 +14266,399 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
-        public LSL_String llStringTrim(string src, int type)
+        public LSL_String llStringTrim(LSL_String src, LSL_Integer type)
         {
             m_host.AddScriptLPS(1);
-            if (type == (int)ScriptBaseClass.STRING_TRIM_HEAD) { return src.TrimStart(); }
-            if (type == (int)ScriptBaseClass.STRING_TRIM_TAIL) { return src.TrimEnd(); }
-            if (type == (int)ScriptBaseClass.STRING_TRIM) { return src.Trim(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM_HEAD) { return ((string)src).TrimStart(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM_TAIL) { return ((string)src).TrimEnd(); }
+            if (type == (int)ScriptBaseClass.STRING_TRIM) { return ((string)src).Trim(); }
             return src;
         }
 
-        public LSL_List llGetObjectDetails(string id, LSL_List args)
+        public LSL_List llGetObjectDetails(LSL_Key id, LSL_List args)
         {
             m_host.AddScriptLPS(1);
-
             LSL_List ret = new LSL_List();
             UUID key = new UUID();
+            if (!UUID.TryParse(id, out key))
+                return ret;
 
-
-            if (UUID.TryParse(id, out key))
+            ScenePresence av = World.GetScenePresence(key);
+            if (av != null)
             {
-                ScenePresence av = World.GetScenePresence(key);
-
-                if (av != null)
+                foreach (object o in args.Data)
                 {
-                    foreach (object o in args.Data)
+                    switch (int.Parse(o.ToString()))
                     {
-                        switch (int.Parse(o.ToString()))
-                        {
-                            case ScriptBaseClass.OBJECT_NAME:
-                                ret.Add(new LSL_String(av.Firstname + " " + av.Lastname));
-                                break;
-                            case ScriptBaseClass.OBJECT_DESC:
-                                ret.Add(new LSL_String(""));
-                                break;
-                            case ScriptBaseClass.OBJECT_POS:
-                                Vector3 avpos;
+                        case ScriptBaseClass.OBJECT_NAME:
+                            ret.Add(new LSL_String(av.Firstname + " " + av.Lastname));
+                            break;
+                        case ScriptBaseClass.OBJECT_DESC:
+                            ret.Add(new LSL_String(""));
+                            break;
+                        case ScriptBaseClass.OBJECT_POS:
+                            Vector3 avpos;
 
-                                if (av.ParentID != 0 && av.ParentPart != null &&
-                                    av.ParentPart.ParentGroup != null && av.ParentPart.ParentGroup.RootPart != null )
+                            if (av.ParentID != 0 && av.ParentPart != null &&
+                                av.ParentPart.ParentGroup != null && av.ParentPart.ParentGroup.RootPart != null )
+                            {
+                                avpos = av.OffsetPosition;
+
+                                if(!av.LegacySitOffsets)
                                 {
-                                    avpos = av.OffsetPosition;
-
-                                    if(!av.LegacySitOffsets)
-                                    {
-                                        Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
-                                        avpos -= sitOffset;
-                                    }
-
-                                    SceneObjectPart sitRoot = av.ParentPart.ParentGroup.RootPart;
-                                    avpos = sitRoot.GetWorldPosition() + avpos * sitRoot.GetWorldRotation();
+                                    Vector3 sitOffset = (Zrot(av.Rotation)) * (av.Appearance.AvatarHeight * 0.02638f *2.0f);
+                                    avpos -= sitOffset;
                                 }
-                                else
-                                    avpos = av.AbsolutePosition;
 
-                                ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
-                                break;
-                            case ScriptBaseClass.OBJECT_ROT:
-                                Quaternion avrot = av.GetWorldRotation();
-                                ret.Add(new LSL_Rotation(avrot));
-                                break;
-                            case ScriptBaseClass.OBJECT_VELOCITY:
-                                Vector3 avvel = av.GetWorldVelocity();
-                                ret.Add(new LSL_Vector((double)avvel.X, (double)avvel.Y, (double)avvel.Z));
-                                break;
-                            case ScriptBaseClass.OBJECT_OWNER:
-                                ret.Add(new LSL_String(id));
-                                break;
-                            case ScriptBaseClass.OBJECT_GROUP:
-                                ret.Add(new LSL_String(UUID.Zero.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_CREATOR:
-                                ret.Add(new LSL_String(UUID.Zero.ToString()));
-                                break;
-                            // For the following 8 see the Object version below
-                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(av.RunningScriptCount()));
-                                break;
-                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(av.ScriptCount()));
-                                break;
-                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
-                                ret.Add(new LSL_Integer(av.RunningScriptCount() * 16384));
-                                break;
-                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                ret.Add(new LSL_Float(av.ScriptExecutionTime() / 1000.0f));
-                                break;
-                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
-                                ret.Add(new LSL_Integer(1));
-                                break;
-                            case ScriptBaseClass.OBJECT_SERVER_COST:
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_STREAMING_COST:
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_ROOT:
-                                SceneObjectPart p = av.ParentPart;
-                                if (p != null)
+                                SceneObjectPart sitRoot = av.ParentPart.ParentGroup.RootPart;
+                                avpos = sitRoot.GetWorldPosition() + avpos * sitRoot.GetWorldRotation();
+                            }
+                            else
+                                avpos = av.AbsolutePosition;
+
+                            ret.Add(new LSL_Vector((double)avpos.X, (double)avpos.Y, (double)avpos.Z));
+                            break;
+                        case ScriptBaseClass.OBJECT_ROT:
+                            Quaternion avrot = av.GetWorldRotation();
+                            ret.Add(new LSL_Rotation(avrot));
+                            break;
+                        case ScriptBaseClass.OBJECT_VELOCITY:
+                            Vector3 avvel = av.GetWorldVelocity();
+                            ret.Add(new LSL_Vector((double)avvel.X, (double)avvel.Y, (double)avvel.Z));
+                            break;
+                        case ScriptBaseClass.OBJECT_OWNER:
+                            ret.Add(new LSL_Key((string)id));
+                            break;
+                        case ScriptBaseClass.OBJECT_GROUP:
+                            ret.Add(new LSL_String(UUID.Zero.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_CREATOR:
+                            ret.Add(new LSL_Key(UUID.Zero.ToString()));
+                            break;
+                        // For the following 8 see the Object version below
+                        case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                            ret.Add(new LSL_Integer(av.RunningScriptCount()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                            ret.Add(new LSL_Integer(av.ScriptCount()));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                            ret.Add(new LSL_Integer(av.RunningScriptCount() * 16384));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                            ret.Add(new LSL_Float(av.ScriptExecutionTime() / 1000.0f));
+                            break;
+                        case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                            ret.Add(new LSL_Integer(1));
+                            break;
+                        case ScriptBaseClass.OBJECT_SERVER_COST:
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_STREAMING_COST:
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_ROOT:
+                            SceneObjectPart p = av.ParentPart;
+                            if (p != null)
+                            {
+                                ret.Add(new LSL_String(p.ParentGroup.RootPart.UUID.ToString()));
+                            }
+                            else
+                            {
+                                ret.Add(new LSL_Key((string)id));
+                            }
+                            break;
+                        case ScriptBaseClass.OBJECT_ATTACHED_POINT:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_PATHFINDING_TYPE: // Pathfinding
+                            ret.Add(new LSL_Integer(ScriptBaseClass.OPT_AVATAR));
+                            break;
+                        case ScriptBaseClass.OBJECT_PHYSICS:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_PHANTOM:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
+                            ret.Add(new LSL_Integer(-1));
+                            break;
+                        case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
+                            LSL_Float shapeType;
+                            if (av.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] != 0)
+                                shapeType = new LSL_Float(1);
+                            else
+                                shapeType = new LSL_Float(0);
+                            ret.Add(shapeType);
+                            break;
+                        case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
+                            ret.Add(new LSL_Key(ScriptBaseClass.NULL_KEY));
+                            break;
+                        case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_OMEGA:
+                            ret.Add(new LSL_Vector(Vector3.Zero));
+                            break;
+                        case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                            List<SceneObjectGroup> Attachments = av.GetAttachments();
+                            int count = 0;
+                            try
+                            {
+                                foreach (SceneObjectGroup Attachment in Attachments)
+                                    count += Attachment.PrimCount;
+                            } catch { };
+                            ret.Add(new LSL_Integer(count));
+                            break;
+                        case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                            List<SceneObjectGroup> invAttachments = av.GetAttachments();
+                            int invcount = 0;
+                            try
+                            {
+                                foreach (SceneObjectGroup Attachment in invAttachments)
                                 {
-                                    ret.Add(new LSL_String(p.ParentGroup.RootPart.UUID.ToString()));
+                                    SceneObjectPart[] parts = Attachment.Parts;
+                                    int nparts = parts.Count();
+                                    for(int i = 0; i < nparts; i++)
+                                        invcount += parts[i].Inventory.Count;
                                 }
-                                else
-                                {
-                                    ret.Add(new LSL_String(id));
-                                }
-                                break;
-                            case ScriptBaseClass.OBJECT_ATTACHED_POINT:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_PATHFINDING_TYPE: // Pathfinding
-                                ret.Add(new LSL_Integer(ScriptBaseClass.OPT_AVATAR));
-                                break;
-                            case ScriptBaseClass.OBJECT_PHYSICS:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_PHANTOM:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
-                                ret.Add(new LSL_Integer(-1));
-                                break;
-                            case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
-                                LSL_Float shapeType;
-                                if (av.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] != 0)
-                                    shapeType = new LSL_Float(1);
-                                else
-                                    shapeType = new LSL_Float(0);
-                                ret.Add(shapeType);
-                                break;
-                            case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
-                                ret.Add(new LSL_Key(ScriptBaseClass.NULL_KEY));
-                                break;
-                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_OMEGA:
-                                ret.Add(new LSL_Vector(Vector3.Zero));
-                                break;
-                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
-                                List<SceneObjectGroup> Attachments = av.GetAttachments();
-                                int count = 0;
-                                try
-                                {
-                                    foreach (SceneObjectGroup Attachment in Attachments)
-                                        count += Attachment.PrimCount;
-                                } catch { };
-                                ret.Add(new LSL_Integer(count));
-                                break;
-                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
-                                List<SceneObjectGroup> invAttachments = av.GetAttachments();
-                                int invcount = 0;
-                                try
-                                {
-                                    foreach (SceneObjectGroup Attachment in invAttachments)
-                                    {
-                                        SceneObjectPart[] parts = Attachment.Parts;
-                                        int nparts = parts.Count();
-                                        for(int i = 0; i < nparts; i++)
-                                            invcount += parts[i].Inventory.Count;
-                                    }
-                                } catch { };
-                                ret.Add(new LSL_Integer(invcount));
-                                break;
-                            case ScriptBaseClass.OBJECT_REZZER_KEY:
-                                ret.Add(new LSL_Key(id));
-                                break;
-                            case ScriptBaseClass.OBJECT_GROUP_TAG:
-                                ret.Add(new LSL_String(av.Grouptitle));
-                                break;
-                            case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
-                                ret.Add(new LSL_Integer(0));
-                                break;
-                            default:
-                                // Invalid or unhandled constant.
-                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
-                                break;
-                        }
+                            } catch { };
+                            ret.Add(new LSL_Integer(invcount));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZZER_KEY:
+                            ret.Add(new LSL_Key((string)id));
+                            break;
+                        case ScriptBaseClass.OBJECT_GROUP_TAG:
+                            ret.Add(new LSL_String(av.Grouptitle));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        default:
+                            // Invalid or unhandled constant.
+                            ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
+                            break;
                     }
-
-                    return ret;
                 }
+                return ret;
+            }
 
-                SceneObjectPart obj = World.GetSceneObjectPart(key);
-                if (obj != null)
+            SceneObjectPart obj = World.GetSceneObjectPart(key);
+            if (obj != null)
+            {
+                foreach (object o in args.Data)
                 {
-                    foreach (object o in args.Data)
+                    switch (int.Parse(o.ToString()))
                     {
-                        switch (int.Parse(o.ToString()))
-                        {
-                            case ScriptBaseClass.OBJECT_NAME:
-                                ret.Add(new LSL_String(obj.Name));
-                                break;
-                            case ScriptBaseClass.OBJECT_DESC:
-                                ret.Add(new LSL_String(obj.Description));
-                                break;
-                            case ScriptBaseClass.OBJECT_POS:
-                                Vector3 opos = obj.AbsolutePosition;
-                                ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
-                                break;
-                            case ScriptBaseClass.OBJECT_ROT:
-                                Quaternion rot = Quaternion.Identity;
+                        case ScriptBaseClass.OBJECT_NAME:
+                            ret.Add(new LSL_String(obj.Name));
+                            break;
+                        case ScriptBaseClass.OBJECT_DESC:
+                            ret.Add(new LSL_String(obj.Description));
+                            break;
+                        case ScriptBaseClass.OBJECT_POS:
+                            Vector3 opos = obj.AbsolutePosition;
+                            ret.Add(new LSL_Vector(opos.X, opos.Y, opos.Z));
+                            break;
+                        case ScriptBaseClass.OBJECT_ROT:
+                            Quaternion rot = Quaternion.Identity;
 
-                                if (obj.ParentGroup.IsAttachment)
-                                {
-                                    ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+                            if (obj.ParentGroup.IsAttachment)
+                            {
+                                ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
 
-                                    if (sp != null)
-                                        rot = sp.GetWorldRotation();
-                                }
+                                if (sp != null)
+                                    rot = sp.GetWorldRotation();
+                            }
+                            else
+                            {
+                                if (obj.ParentGroup.RootPart == obj)
+                                    rot = obj.ParentGroup.GroupRotation;
                                 else
-                                {
-                                    if (obj.ParentGroup.RootPart == obj)
-                                        rot = obj.ParentGroup.GroupRotation;
-                                    else
-                                        rot = obj.GetWorldRotation();
-                                }
+                                    rot = obj.GetWorldRotation();
+                            }
 
-                                LSL_Rotation objrot = new LSL_Rotation(rot);
-                                ret.Add(objrot);
+                            LSL_Rotation objrot = new LSL_Rotation(rot);
+                            ret.Add(objrot);
 
-                                break;
-                            case ScriptBaseClass.OBJECT_VELOCITY:
-                                Vector3 vel = Vector3.Zero;
+                            break;
+                        case ScriptBaseClass.OBJECT_VELOCITY:
+                            Vector3 vel = Vector3.Zero;
 
-                                if (obj.ParentGroup.IsAttachment)
-                                {
-                                    ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
+                            if (obj.ParentGroup.IsAttachment)
+                            {
+                                ScenePresence sp = World.GetScenePresence(obj.ParentGroup.AttachedAvatar);
 
-                                    if (sp != null)
-                                        vel = sp.GetWorldVelocity();
-                                }
-                                else
-                                {
-                                    vel = obj.Velocity;
-                                }
+                                if (sp != null)
+                                    vel = sp.GetWorldVelocity();
+                            }
+                            else
+                            {
+                                vel = obj.Velocity;
+                            }
 
-                                ret.Add(vel);
-                                break;
-                            case ScriptBaseClass.OBJECT_OWNER:
-                                ret.Add(new LSL_String(obj.OwnerID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_GROUP:
-                                ret.Add(new LSL_String(obj.GroupID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_CREATOR:
-                                ret.Add(new LSL_String(obj.CreatorID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount()));
-                                break;
-                            case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
-                                ret.Add(new LSL_Integer(obj.ParentGroup.ScriptCount()));
-                                break;
-                            case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
-                                // The value returned in SL for mono scripts is 65536 * number of active scripts
-                                // and 16384 * number of active scripts for LSO. since llGetFreememory
-                                // is coded to give the LSO value use it here
-                                ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount() * 16384));
-                                break;
-                            case ScriptBaseClass.OBJECT_SCRIPT_TIME:
-                                // Average cpu time in seconds per simulator frame expended on all scripts in the object
-                                ret.Add(new LSL_Float(obj.ParentGroup.ScriptExecutionTime() / 1000.0f));
-                                break;
-                            case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
-                                // according to the SL wiki A prim or linkset will have prim
-                                // equivalent of the number of prims in a linkset if it does not
-                                // contain a mesh anywhere in the link set or is not a normal prim
-                                // The value returned in SL for normal prims is prim count
-                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
-                                break;
+                            ret.Add(vel);
+                            break;
+                        case ScriptBaseClass.OBJECT_OWNER:
+                            ret.Add(new LSL_String(obj.OwnerID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_GROUP:
+                            ret.Add(new LSL_String(obj.GroupID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_CREATOR:
+                            ret.Add(new LSL_String(obj.CreatorID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_RUNNING_SCRIPT_COUNT:
+                            ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TOTAL_SCRIPT_COUNT:
+                            ret.Add(new LSL_Integer(obj.ParentGroup.ScriptCount()));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCRIPT_MEMORY:
+                            // The value returned in SL for mono scripts is 65536 * number of active scripts
+                            // and 16384 * number of active scripts for LSO. since llGetFreememory
+                            // is coded to give the LSO value use it here
+                            ret.Add(new LSL_Integer(obj.ParentGroup.RunningScriptCount() * 16384));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCRIPT_TIME:
+                            // Average cpu time in seconds per simulator frame expended on all scripts in the object
+                            ret.Add(new LSL_Float(obj.ParentGroup.ScriptExecutionTime() / 1000.0f));
+                            break;
+                        case ScriptBaseClass.OBJECT_PRIM_EQUIVALENCE:
+                            // according to the SL wiki A prim or linkset will have prim
+                            // equivalent of the number of prims in a linkset if it does not
+                            // contain a mesh anywhere in the link set or is not a normal prim
+                            // The value returned in SL for normal prims is prim count
+                            ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
+                            break;
 
-                            // costs below may need to be diferent for root parts, need to check
-                            case ScriptBaseClass.OBJECT_SERVER_COST:
-                                // The linden calculation is here
-                                // http://wiki.secondlife.com/wiki/Mesh/Mesh_Server_Weight
-                                // The value returned in SL for normal prims looks like the prim count
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_STREAMING_COST:
-                                // The value returned in SL for normal prims is prim count * 0.06
-                                ret.Add(new LSL_Float(obj.StreamingCost));
-                                break;
-                            case ScriptBaseClass.OBJECT_PHYSICS_COST:
-                                // The value returned in SL for normal prims is prim count
-                                ret.Add(new LSL_Float(obj.PhysicsCost));
-                                break;
-                            case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_ROOT:
-                                ret.Add(new LSL_String(obj.ParentGroup.RootPart.UUID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_ATTACHED_POINT:
-                                ret.Add(new LSL_Integer(obj.ParentGroup.AttachmentPoint));
-                                break;
-                            case ScriptBaseClass.OBJECT_PATHFINDING_TYPE:
-                                byte pcode = obj.Shape.PCode;
-                                if (obj.ParentGroup.AttachmentPoint != 0
-                                   || pcode == (byte)PCode.Grass
-                                   || pcode == (byte)PCode.Tree
-                                   || pcode == (byte)PCode.NewTree)
-                                {
-                                    ret.Add(new LSL_Integer(ScriptBaseClass.OPT_OTHER));
-                                }
-                                else
-                                {
-                                    ret.Add(new LSL_Integer(ScriptBaseClass.OPT_LEGACY_LINKSET));
-                                }
-                                break;
-                            case ScriptBaseClass.OBJECT_PHYSICS:
-                                if (obj.ParentGroup.AttachmentPoint != 0)
-                                {
-                                    ret.Add(new LSL_Integer(0)); // Always false if attached
-                                }
-                                else
-                                {
-                                    ret.Add(new LSL_Integer(obj.ParentGroup.UsesPhysics ? 1 : 0));
-                                }
-                                break;
-                            case ScriptBaseClass.OBJECT_PHANTOM:
-                                if (obj.ParentGroup.AttachmentPoint != 0)
-                                {
-                                    ret.Add(new LSL_Integer(0)); // Always false if attached
-                                }
-                                else
-                                {
-                                    ret.Add(new LSL_Integer(obj.ParentGroup.IsPhantom ? 1 : 0));
-                                }
-                                break;
-                            case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
-                                ret.Add(new LSL_Integer(obj.ParentGroup.IsTemporary ? 1 : 0));
-                                break;
-                            case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
+                        // costs below may need to be diferent for root parts, need to check
+                        case ScriptBaseClass.OBJECT_SERVER_COST:
+                            // The linden calculation is here
+                            // http://wiki.secondlife.com/wiki/Mesh/Mesh_Server_Weight
+                            // The value returned in SL for normal prims looks like the prim count
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_STREAMING_COST:
+                            // The value returned in SL for normal prims is prim count * 0.06
+                            ret.Add(new LSL_Float(obj.StreamingCost));
+                            break;
+                        case ScriptBaseClass.OBJECT_PHYSICS_COST:
+                            // The value returned in SL for normal prims is prim count
+                            ret.Add(new LSL_Float(obj.PhysicsCost));
+                            break;
+                        case ScriptBaseClass.OBJECT_CHARACTER_TIME: // Pathfinding
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_ROOT:
+                            ret.Add(new LSL_String(obj.ParentGroup.RootPart.UUID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_ATTACHED_POINT:
+                            ret.Add(new LSL_Integer(obj.ParentGroup.AttachmentPoint));
+                            break;
+                        case ScriptBaseClass.OBJECT_PATHFINDING_TYPE:
+                            byte pcode = obj.Shape.PCode;
+                            if (obj.ParentGroup.AttachmentPoint != 0
+                                || pcode == (byte)PCode.Grass
+                                || pcode == (byte)PCode.Tree
+                                || pcode == (byte)PCode.NewTree)
+                            {
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OPT_OTHER));
+                            }
+                            else
+                            {
+                                ret.Add(new LSL_Integer(ScriptBaseClass.OPT_LEGACY_LINKSET));
+                            }
+                            break;
+                        case ScriptBaseClass.OBJECT_PHYSICS:
+                            if (obj.ParentGroup.AttachmentPoint != 0)
+                            {
+                                ret.Add(new LSL_Integer(0)); // Always false if attached
+                            }
+                            else
+                            {
+                                ret.Add(new LSL_Integer(obj.ParentGroup.UsesPhysics ? 1 : 0));
+                            }
+                            break;
+                        case ScriptBaseClass.OBJECT_PHANTOM:
+                            if (obj.ParentGroup.AttachmentPoint != 0)
+                            {
+                                ret.Add(new LSL_Integer(0)); // Always false if attached
+                            }
+                            else
+                            {
+                                ret.Add(new LSL_Integer(obj.ParentGroup.IsPhantom ? 1 : 0));
+                            }
+                            break;
+                        case ScriptBaseClass.OBJECT_TEMP_ON_REZ:
+                            ret.Add(new LSL_Integer(obj.ParentGroup.IsTemporary ? 1 : 0));
+                            break;
+                        case ScriptBaseClass.OBJECT_RENDER_WEIGHT:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
+                            ret.Add(new LSL_Float(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
+                            ret.Add(new LSL_Float(-1));
+                            break;
+                        case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
+                            ret.Add(new LSL_Key(obj.ParentGroup.LastOwnerID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_CLICK_ACTION:
+                            ret.Add(new LSL_Integer(obj.ClickAction));
+                            break;
+                        case ScriptBaseClass.OBJECT_OMEGA:
+                            ret.Add(new LSL_Vector(obj.AngularVelocity));
+                            break;
+                        case ScriptBaseClass.OBJECT_PRIM_COUNT:
+                            ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
+                            break;
+                        case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
+                            SceneObjectPart[] parts = obj.ParentGroup.Parts;
+                            int nparts = parts.Count();
+                            int count = 0;
+                            for(int i = 0; i < nparts; i++)
+                                count += parts[i].Inventory.Count;
+                            ret.Add(new LSL_Integer(count));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZZER_KEY:
+                            ret.Add(new LSL_Key(obj.ParentGroup.RezzerID.ToString()));
+                            break;
+                        case ScriptBaseClass.OBJECT_GROUP_TAG:
+                            ret.Add(new LSL_String(String.Empty));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
+                            if (obj.ParentGroup.AttachmentPoint != 0 && obj.ParentGroup.FromItemID == UUID.Zero)
+                            {
+                                ret.Add(new LSL_Integer(1));
+                            }
+                            else
+                            {
                                 ret.Add(new LSL_Integer(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_HOVER_HEIGHT:
-                                ret.Add(new LSL_Float(0));
-                                break;
-                            case ScriptBaseClass.OBJECT_BODY_SHAPE_TYPE:
-                                ret.Add(new LSL_Float(-1));
-                                break;
-                            case ScriptBaseClass.OBJECT_LAST_OWNER_ID:
-                                ret.Add(new LSL_Key(obj.ParentGroup.LastOwnerID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_CLICK_ACTION:
-                                ret.Add(new LSL_Integer(obj.ClickAction));
-                                break;
-                            case ScriptBaseClass.OBJECT_OMEGA:
-                                ret.Add(new LSL_Vector(obj.AngularVelocity));
-                                break;
-                            case ScriptBaseClass.OBJECT_PRIM_COUNT:
-                                ret.Add(new LSL_Integer(obj.ParentGroup.PrimCount));
-                                break;
-                            case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
-                                SceneObjectPart[] parts = obj.ParentGroup.Parts;
-                                int nparts = parts.Count();
-                                int count = 0;
-                                for(int i = 0; i < nparts; i++)
-                                    count += parts[i].Inventory.Count;
-                                ret.Add(new LSL_Integer(count));
-                                break;
-                            case ScriptBaseClass.OBJECT_REZZER_KEY:
-                                ret.Add(new LSL_Key(obj.ParentGroup.RezzerID.ToString()));
-                                break;
-                            case ScriptBaseClass.OBJECT_GROUP_TAG:
-                                ret.Add(new LSL_String(String.Empty));
-                                break;
-                            case ScriptBaseClass.OBJECT_TEMP_ATTACHED:
-                                if (obj.ParentGroup.AttachmentPoint != 0 && obj.ParentGroup.FromItemID == UUID.Zero)
-                                {
-                                    ret.Add(new LSL_Integer(1));
-                                }
-                                else
-                                {
-                                    ret.Add(new LSL_Integer(0));
-                                }
-                                break;
-                            default:
-                                // Invalid or unhandled constant.
-                                ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
-                                break;
-                        }
+                            }
+                            break;
+                        default:
+                            // Invalid or unhandled constant.
+                            ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
+                            break;
                     }
-
-                    return ret;
                 }
             }
 
-            return new LSL_List();
+            return ret;
         }
 
         internal UUID GetScriptByName(string name)

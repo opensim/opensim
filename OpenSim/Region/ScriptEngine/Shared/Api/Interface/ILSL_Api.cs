@@ -169,11 +169,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetNumberOfPrims();
        LSL_Integer llGetNumberOfSides();
         LSL_String llGetObjectDesc();
-          LSL_List llGetObjectDetails(string id, LSL_List args);
-         LSL_Float llGetObjectMass(string id);
+          LSL_List llGetObjectDetails(LSL_Key objectId, LSL_List args);
+         LSL_Float llGetObjectMass(LSL_Key objectId);
         LSL_String llGetObjectName();
        LSL_Integer llGetObjectPermMask(int mask);
-       LSL_Integer llGetObjectPrimCount(string object_id);
+       LSL_Integer llGetObjectPrimCount(LSL_Key objectId);
         LSL_Vector llGetOmega();
            LSL_Key llGetOwner();
            LSL_Key llGetOwnerKey(string id);
@@ -416,7 +416,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llStopSound();
        LSL_Integer llStringLength(string str);
         LSL_String llStringToBase64(string str);
-        LSL_String llStringTrim(string src, int type);
+        LSL_String llStringTrim(LSL_String src, LSL_Integer type);
        LSL_Integer llSubStringIndex(string source, string pattern);
               void llTakeCamera(string avatar);
               void llTakeControls(int controls, int accept, int pass_on);

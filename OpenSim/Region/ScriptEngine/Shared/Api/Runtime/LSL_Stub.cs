@@ -641,7 +641,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetObjectDesc();
         }
 
-        public LSL_List llGetObjectDetails(string id, LSL_List args)
+        public LSL_List llGetObjectDetails(LSL_Key id, LSL_List args)
         {
             return m_LSL_Functions.llGetObjectDetails(id, args);
         }
@@ -661,7 +661,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetObjectPermMask(mask);
         }
 
-        public LSL_Integer llGetObjectPrimCount(string object_id)
+        public LSL_Integer llGetObjectPrimCount(LSL_Key object_id)
         {
             return m_LSL_Functions.llGetObjectPrimCount(object_id);
         }
@@ -1871,7 +1871,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llStringToBase64(str);
         }
 
-        public LSL_String llStringTrim(string src, int type)
+        public LSL_String llStringTrim(LSL_String src, LSL_Integer type)
         {
             return m_LSL_Functions.llStringTrim(src, type);
         }
