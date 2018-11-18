@@ -20,7 +20,7 @@ From the distribution type:
  * type msbuild or xbuild
  * cd bin 
  * copy OpenSim.ini.example to OpenSim.ini and other appropriate files in bin/config-include
- * review and change those ini files acording to your needes
+ * review and change those ini files according to your needs
  * windows: execute opensim.exe or opensim32.exe for small regions
  * linux: run ./opensim.sh
  !* msbuild (xbuild) option switches
