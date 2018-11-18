@@ -52,7 +52,6 @@ namespace OpenSim.Services.FSAssetService
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-        static SHA256CryptoServiceProvider SHA256 = new SHA256CryptoServiceProvider();
 
         static byte[] ToCString(string s)
         {
@@ -357,7 +356,9 @@ namespace OpenSim.Services.FSAssetService
 
         string GetSHA256Hash(byte[] data)
         {
-            byte[] hash = SHA256.ComputeHash(data);
+            byte[] hash;
+            using (SHA256CryptoServiceProvider SHA256 = new SHA256CryptoServiceProvider())
+                hash = SHA256.ComputeHash(data);
 
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }

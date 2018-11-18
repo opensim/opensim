@@ -58,11 +58,6 @@ namespace OpenSim.Data.MySQL
         private bool m_enableCompression = false;
         private string m_connectionString;
 
-        /// <summary>
-        /// We can reuse this for all hashing since all methods are single-threaded through m_dbBLock
-        /// </summary>
-        private HashAlgorithm hasher = new SHA256CryptoServiceProvider();
-
         #region IPlugin Members
 
         public string Version { get { return "1.0.0.0"; } }
@@ -250,7 +245,9 @@ namespace OpenSim.Data.MySQL
                         }
                     }
 
-                    byte[] hash = hasher.ComputeHash(asset.Data);
+                    byte[] hash;
+                    using (HashAlgorithm hasher = new SHA256CryptoServiceProvider())
+                        hash = hasher.ComputeHash(asset.Data);
 
 //                        m_log.DebugFormat(
 //                            "[XASSET DB]: Compressed data size for {0} {1}, hash {2} is {3}",
