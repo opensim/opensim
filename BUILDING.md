@@ -13,7 +13,7 @@ Prereqs:
 *	Mono > 5.0
 *	On some Linux distributions you may need to install additional packages.
 *	msbuild or xbuild if still supported by the mono version
-	See http://opensimulator.org/wiki/Dependencies for more information.
+*   See http://opensimulator.org/wiki/Dependencies for more information.
 
 From the distribution type:
  * ./runprebuild.sh
