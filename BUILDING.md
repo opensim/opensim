@@ -12,8 +12,8 @@ Steps:
 Prereqs:
 *	Mono > 5.0
 *	On some Linux distributions you may need to install additional packages.
+*	msbuild or xbuild if still supported by the mono version
 	See http://opensimulator.org/wiki/Dependencies for more information.
-	msbuild or xbuild if still supported by the mono version
 
 From the distribution type:
  * ./runprebuild.sh
@@ -23,10 +23,10 @@ From the distribution type:
  * review and change those ini files according to your needs
  * windows: execute opensim.exe or opensim32.exe for small regions
  * linux: run ./opensim.sh
- !* msbuild (xbuild) option switches
- !*          clean:  msbuild /target:clean
- !*          debug: (default) msbuild /property:Configuration=Debug
- !*          release: msbuild /property:Configuration=Release
+ * msbuild (xbuild) option switches
+   *  clean:  msbuild /target:clean
+   *  debug: (default) msbuild /property:Configuration=Debug
+   *  release: msbuild /property:Configuration=Release
 
 # References
  
