@@ -87,7 +87,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string m_ScriptBasePath;
         private bool m_Enabled = false;
         public bool m_StartProcessing = false;
-        public bool m_UseSourceHashCode = false;
         private Dictionary<UUID, ArrayList> m_ScriptErrors =
                 new Dictionary<UUID, ArrayList>();
         private Dictionary<UUID, List<UUID>> m_ObjectItemList =
@@ -208,7 +207,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(!m_Enabled)
                 return;
 
-            m_UseSourceHashCode = m_Config.GetBoolean("UseSourceHashCode", false);
             numThreadScriptWorkers = m_Config.GetInt("NumThreadScriptWorkers", 1);
 
             m_TraceCalls = m_Config.GetBoolean("TraceCalls", false);

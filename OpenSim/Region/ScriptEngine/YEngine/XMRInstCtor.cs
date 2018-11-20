@@ -173,7 +173,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(i < 0)
                     i = len - 1;
             }
-            if((i >= len) || !m_Engine.m_UseSourceHashCode)
+            if((i >= len))
             {
                 // Source consists of nothing but // comments and whitespace,
                 // or we are being forced to use the asset-id as the key, to
