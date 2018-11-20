@@ -1164,6 +1164,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void OnRezScript(uint localID, UUID itemID, string script,
                 int startParam, bool postOnRez, string defEngine, int stateSource)
         {
+            if (script.StartsWith("//MRM:"))
+                return;
+
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
             TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
 
@@ -1175,22 +1178,29 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             TraceCalls("[YEngine]: OnRezScript(...,{0},...)", itemID.ToString());
 
-            // Assume script uses the default engine, whatever that is.
+            // Assume script uses the default engine
             string engineName = defEngine;
 
-            // Very first line might contain "//" scriptengine ":".
-            string firstline = "";
-            if(script.StartsWith("//"))
+            // Very first line might contain // scriptengine : language
+            string langsrt = "";
+            if (script.StartsWith("//"))
             {
                 int lineEnd = script.IndexOf('\n');
-                if(lineEnd > 1)
-                    firstline = script.Substring(0, lineEnd).Trim();
-                int colon = firstline.IndexOf(':');
-                if(colon >= 2)
+                if(lineEnd > 5)
                 {
-                    engineName = firstline.Substring(2, colon - 2).Trim();
-                    if(engineName == "")
-                        engineName = defEngine;
+                    string firstline = script.Substring(2, lineEnd - 2).Trim();
+                    int colon = firstline.IndexOf(':');
+                    if(colon >= 3)
+                    {
+                        engineName = firstline.Substring(0, colon).TrimEnd();
+                        if(string.IsNullOrEmpty(engineName))
+                            engineName = defEngine;
+                    }
+                    if (colon > 0 && colon < firstline.Length - 2)
+                    {
+                        langsrt = firstline.Substring(colon + 1).Trim();
+                        langsrt = langsrt.ToLower();
+                    }
                 }
             }
 
@@ -1218,6 +1228,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 //                m_log.Info("[YEngine]: will attempt to processing it anyway as default script engine");
             }
+
+            if(!string.IsNullOrEmpty(langsrt) && langsrt !="lsl")
+                return;
 
             // Put on object/instance lists.
             XMRInstance instance = (XMRInstance)Activator.CreateInstance(ScriptCodeGen.xmrInstSuperType);
