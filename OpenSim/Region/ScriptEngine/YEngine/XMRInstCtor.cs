@@ -190,7 +190,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // copy scripts or not.
                 byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode);
                 StringBuilder sb = new StringBuilder((256 + 5) / 6);
-                ByteArrayToSixbitStr(sb, System.Security.Cryptography.SHA256.Create().ComputeHash(scbytes));
+                using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
+                    ByteArrayToSixbitStr(sb, sha.ComputeHash(scbytes));
                 m_ScriptObjCodeKey = sb.ToString();
 
                 // But source code can be just a sixbit string itself

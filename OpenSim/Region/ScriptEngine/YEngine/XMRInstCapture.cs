@@ -87,10 +87,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CheckRunLockInvariants(true);
 
                 // Get copy of script globals and stack in relocateable form.
-                MemoryStream snapshotStream = new MemoryStream();
-                MigrateOutEventHandler(snapshotStream);
-                Byte[] snapshotBytes = snapshotStream.ToArray();
-                snapshotStream.Close();
+                Byte[] snapshotBytes;
+                using (MemoryStream snapshotStream = new MemoryStream())
+                {
+                    MigrateOutEventHandler(snapshotStream);
+                    snapshotBytes = snapshotStream.ToArray();
+                }
+
                 string snapshotString = Convert.ToBase64String(snapshotBytes);
                 XmlElement snapshotN = doc.CreateElement("", "Snapshot", "");
                 snapshotN.AppendChild(doc.CreateTextNode(snapshotString));
@@ -180,11 +183,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // scriptStateN represents the contents of the .state file so
             // write the .state file while we are here.
-            FileStream fs = File.Create(m_StateFileName);
-            StreamWriter sw = new StreamWriter(fs);
-            sw.Write(scriptStateN.OuterXml);
-            sw.Close();
-            fs.Close();
+            using(FileStream fs = File.Create(m_StateFileName))
+            {
+                using(StreamWriter sw = new StreamWriter(fs))
+                    sw.Write(scriptStateN.OuterXml);
+            }
 
             return scriptStateN;
         }
