@@ -32,7 +32,7 @@ Now see the "Configuring OpenSim" section
 
 # Running OpenSim on Linux
 
-You will need Mono >= 2.10.8.1 upt to version 0.9.0.1 and mono > 5.0 on others.  On some Linux distributions you
+You will need Mono >= 2.10.8.1 up to version 0.9.0.1 and mono > 5.0 on others.  On some Linux distributions you
 may need to install additional packages.  See http://opensimulator.org/wiki/Dependencies
 for more information.
 

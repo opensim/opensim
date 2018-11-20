@@ -1,4 +1,4 @@
-9e55237f-19be-984f-6bdc-a8fd07eb2447
+0acc12d6-3dc9-9574-7bd6-d298c045f046
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -6058,6 +6058,57 @@
    <map><key>b</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+ </map>
  <key>osAvatarName2Key</key>
  <map>
   <key>return</key><string>string</string>
@@ -6795,13 +6846,13 @@
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
+   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -6810,6 +6861,7 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionRestart</key>
@@ -6817,7 +6869,6 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osReplaceString</key>
@@ -7153,6 +7204,8 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7162,17 +7215,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
-  </array>
- </map>
- <key>osStringLastIndexOf</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>src</key><map><key>type</key><string>string</string></map></map>
-   <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7184,6 +7226,15 @@
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
    <map><key>count</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
+ <key>osStringLastIndexOf</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>string</string></map></map>
+   <map><key>value</key><map><key>type</key><string>string</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7249,7 +7300,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7258,6 +7308,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

@@ -540,5 +540,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osStringLastIndexOf(LSL_String src, LSL_String value, LSL_Integer start, LSL_Integer count, LSL_Integer ignorecase);
         LSL_String osStringRemove(LSL_String src, LSL_Integer start, LSL_Integer count);
         LSL_String osStringReplace(LSL_String src, LSL_String oldvalue, LSL_String newvalue);
+
+        LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b);
+        LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b, LSL_Float margin);
+        LSL_Integer osApproxEquals(vector va, vector vb);
+        LSL_Integer osApproxEquals(vector va, vector vb, LSL_Float margin);
+        LSL_Integer osApproxEquals(rotation ra, rotation rb);
+        LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin);
     }
 }

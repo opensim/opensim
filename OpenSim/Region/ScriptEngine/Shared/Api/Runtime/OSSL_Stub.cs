@@ -1337,5 +1337,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osStringReplace(src, oldvalue, newvalue);
         }
+
+        public LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b)
+        {
+            return m_OSSL_Functions.osApproxEquals(a, b);
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b, LSL_Float margin)
+        {
+            return m_OSSL_Functions.osApproxEquals(a, b, margin);
+        }
+
+        public LSL_Integer osApproxEquals(vector va, vector vb)
+        {
+            return m_OSSL_Functions.osApproxEquals(va, vb);
+        }
+
+        public LSL_Integer osApproxEquals(vector va, vector vb, LSL_Float margin)
+        {
+            return m_OSSL_Functions.osApproxEquals(va, vb, margin);
+        }
+
+        public LSL_Integer osApproxEquals(rotation ra, rotation rb)
+        {
+            return m_OSSL_Functions.osApproxEquals(ra, rb);
+        }
+
+        public LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin)
+        {
+            return m_OSSL_Functions.osApproxEquals(ra, rb, margin);
+        }
     }
 }

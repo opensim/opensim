@@ -5305,5 +5305,103 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return ((string)src).Replace(oldvalue, newvalue);
         }
+
+        public LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b)
+        {
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            return 1;
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Float a, LSL_Float b, LSL_Float margin)
+        {
+            double e = Math.Abs(margin);
+            if (a > b + e || a < b - e)
+                return 0;
+            return 1;
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Vector va, LSL_Vector vb)
+        {
+            double a = va.x;
+            double b = vb.x;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            a = va.y;
+            b = vb.y;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            a = va.z;
+            b = vb.z;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+
+            return 1;
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Vector va, LSL_Vector vb, LSL_Float margin)
+        {
+            double e = Math.Abs(margin);
+            double a = va.x;
+            double b = vb.x;
+            if (a > b + e || a < b - e)
+                return 0;
+            a = va.y;
+            b = vb.y;
+            if (a > b + e || a < b - e)
+                return 0;
+            a = va.z;
+            b = vb.z;
+            if (a > b + e || a < b - e)
+                return 0;
+
+            return 1;
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Rotation ra, LSL_Rotation rb)
+        {
+            double a = ra.x;
+            double b = rb.x;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            a = ra.y;
+            b = rb.y;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            a = ra.z;
+            b = rb.z;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+            a = ra.s;
+            b = rb.s;
+            if (a > b + 1.0e-6 || a < b - 1.0e-6)
+                return 0;
+
+            return 1;
+        }
+
+        public LSL_Integer osApproxEquals(LSL_Rotation ra, LSL_Rotation rb, LSL_Float margin)
+        {
+            double e = Math.Abs(margin);
+            double a = ra.x;
+            double b = rb.x;
+            if (a > b + e || a < b - e)
+                return 0;
+            a = ra.y;
+            b = rb.y;
+            if (a > b + e || a < b - e)
+                return 0;
+            a = ra.z;
+            b = rb.z;
+            if (a > b + e || a < b - e)
+                return 0;
+            a = ra.s;
+            b = rb.s;
+            if (a > b + e || a < b - e)
+                return 0;
+
+            return 1;
+        }
+
     }
 }
