@@ -378,13 +378,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else
             {
-                FileStream fs = File.Open(m_StateFileName,
+                string xml;
+                using (FileStream fs = File.Open(m_StateFileName,
                                           FileMode.Open,
-                                          FileAccess.Read);
-                StreamReader ss = new StreamReader(fs);
-                string xml = ss.ReadToEnd();
-                ss.Close();
-                fs.Close();
+                                          FileAccess.Read))
+                {
+                    using(StreamReader ss = new StreamReader(fs))
+                        xml = ss.ReadToEnd();
+                }
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(xml);
@@ -471,17 +472,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void LoadScriptState(XmlDocument doc)
         {
-            DetectParams[] detParams;
-            LinkedList<EventParams> eventQueue;
 
             // Everything we know is enclosed in <ScriptState>...</ScriptState>
             XmlElement scriptStateN = (XmlElement)doc.SelectSingleNode("ScriptState");
             if(scriptStateN == null)
                 throw new Exception("no <ScriptState> tag");
 
+            XmlElement XvariablesN = null;
             string sen = scriptStateN.GetAttribute("Engine");
             if((sen == null) || (sen != m_Engine.ScriptEngineName))
-                throw new Exception("<ScriptState> missing Engine=\"YEngine\" attribute");
+            {
+                XvariablesN = (XmlElement)scriptStateN.SelectSingleNode("Variables");
+                if(XvariablesN == null)
+                    throw new Exception("<ScriptState> missing Engine=\"YEngine\" attribute");
+                processXstate(doc);
+                return;
+            }
 
             // AssetID is unique for the script source text so make sure the
             // state file was written for that source file
@@ -508,18 +514,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_Part.Inventory.UpdateInventoryItem(m_Item, false, false);
 
             // get values used by stuff like llDetectedGrab, etc.
-            detParams = RestoreDetectParams(scriptStateN.SelectSingleNode("DetectArray"));
+            DetectParams[] detParams = RestoreDetectParams(scriptStateN.SelectSingleNode("DetectArray"));
 
             // Restore queued events
-            eventQueue = RestoreEventQueue(scriptStateN.SelectSingleNode("EventQueue"));
+            LinkedList<EventParams> eventQueue = RestoreEventQueue(scriptStateN.SelectSingleNode("EventQueue"));
 
             // Restore timers and listeners
             XmlElement pluginN = (XmlElement)scriptStateN.SelectSingleNode("Plugins");
             Object[] pluginData = ExtractXMLObjectArray(pluginN, "plugin");
 
             // Script's global variables and stack contents
-            XmlElement snapshotN =
-                    (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
+            XmlElement snapshotN = (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
 
             Byte[] data = Convert.FromBase64String(snapshotN.InnerText);
             MemoryStream ms = new MemoryStream();
@@ -553,16 +558,424 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     pluginData);
         }
 
-        /**
-         * @brief Read llDetectedGrab, etc, values from XML
-         *  <EventQueue>
-         *      <DetectParams>...</DetectParams>
-         *          .
-         *          .
-         *          .
-         *  </EventQueue>
-         */
-        private LinkedList<EventParams> RestoreEventQueue(XmlNode eventsN)
+        private void processXstate(XmlDocument doc)
+        {
+
+            XmlNodeList rootL = doc.GetElementsByTagName("ScriptState");
+            if (rootL.Count != 1)
+                throw new Exception("Xstate <ScriptState> missing");
+
+            XmlNode rootNode = rootL[0];
+            if (rootNode == null)
+                throw new Exception("Xstate root missing");
+
+            string stateName = "";
+            bool running = false;
+
+            UUID permsGranter = UUID.Zero;
+            int permsMask = 0;
+            double minEventDelay = 0.0;
+            Object[] pluginData = new Object[0];
+
+            LinkedList<EventParams> eventQueue = new LinkedList<EventParams>();
+
+            Dictionary<string, int> intNames = new Dictionary<string, int>();
+            Dictionary<string, int> doubleNames = new Dictionary<string, int>();
+            Dictionary<string, int> stringNames = new Dictionary<string, int>();
+            Dictionary<string, int> vectorNames = new Dictionary<string, int>();
+            Dictionary<string, int> rotationNames = new Dictionary<string, int>();
+            Dictionary<string, int> listNames = new Dictionary<string, int>();
+
+            int nn = m_ObjCode.globalVarNames.Count;
+            int[] ints = null;
+            double[] doubles = null;
+            string[] strings = null;
+            LSL_Vector[] vectors = null;
+            LSL_Rotation[] rotations = null;
+            LSL_List[] lists = null;
+
+            if (nn > 0)
+            {
+                if (m_ObjCode.globalVarNames.ContainsKey("iarIntegers"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarIntegers"], intNames);
+                    ints = new int[m_ObjCode.globalVarNames["iarIntegers"].Count];
+                }
+                if (m_ObjCode.globalVarNames.ContainsKey("iarFloats"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarFloats"], doubleNames);
+                    doubles = new double[m_ObjCode.globalVarNames["iarFloats"].Count];
+                }
+                if (m_ObjCode.globalVarNames.ContainsKey("iarVectors"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarVectors"], vectorNames);
+                    vectors = new LSL_Vector[m_ObjCode.globalVarNames["iarVectors"].Count];
+                }
+                if (m_ObjCode.globalVarNames.ContainsKey("iarRotations"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarRotations"], rotationNames);
+                    rotations = new LSL_Rotation[m_ObjCode.globalVarNames["iarRotations"].Count];
+                }
+                if (m_ObjCode.globalVarNames.ContainsKey("iarStrings"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarStrings"], stringNames);
+                    strings = new string[m_ObjCode.globalVarNames["iarStrings"].Count];
+                }
+                if (m_ObjCode.globalVarNames.ContainsKey("iarLists"))
+                {
+                    getvarNames(m_ObjCode.globalVarNames["iarLists"], listNames);
+                    lists = new LSL_List[m_ObjCode.globalVarNames["iarLists"].Count];
+                }
+            }
+
+            int heapsz = 0;
+
+            try
+            {
+                XmlNodeList partL = rootNode.ChildNodes;
+                foreach (XmlNode part in partL)
+                {
+                    switch (part.Name)
+                    {
+                        case "State":
+                            stateName = part.InnerText;
+                            break;
+                        case "Running":
+                            running = bool.Parse(part.InnerText);
+                            break;
+                        case "Variables":
+                            int indx;
+                            XmlNodeList varL = part.ChildNodes;
+                            foreach (XmlNode var in varL)
+                            {
+                                string varName;
+                                object o = ReadXTypedValue(var, out varName);
+                                Type otype = o.GetType();
+                                if (otype == typeof(LSL_Integer))
+                                {
+                                    if (intNames.TryGetValue(varName, out indx))
+                                        ints[indx] = ((LSL_Integer)o);
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_Float))
+                                {
+                                    if (doubleNames.TryGetValue(varName, out indx))
+                                        doubles[indx] = ((LSL_Float)o);
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_String))
+                                {
+                                    if (stringNames.TryGetValue(varName, out indx))
+                                    {
+                                        strings[indx] = ((LSL_String)o);
+                                        heapsz += ((LSL_String)o).Length;
+                                    }
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_Rotation))
+                                {
+                                    if (rotationNames.TryGetValue(varName, out indx))
+                                        rotations[indx] = ((LSL_Rotation)o);
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_Vector))
+                                {
+                                    if (vectorNames.TryGetValue(varName, out indx))
+                                        vectors[indx] = ((LSL_Vector)o);
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_Key))
+                                {
+                                    if (stringNames.TryGetValue(varName, out indx))
+                                    {
+                                        strings[indx] = ((LSL_Key)o);
+                                        heapsz += ((LSL_String)o).Length;
+                                    }
+                                    continue;
+                                }
+                                if (otype == typeof(UUID))
+                                {
+                                    if (stringNames.TryGetValue(varName, out indx))
+                                    {
+                                        LSL_String id = ((UUID)o).ToString();
+                                        strings[indx] = (id);
+                                        heapsz += id.Length;
+                                    }
+                                    continue;
+                                }
+                                if (otype == typeof(LSL_List))
+                                {
+                                    if (listNames.TryGetValue(varName, out indx))
+                                    {
+                                        LSL_List lo = (LSL_List)o;
+                                        lists[indx] = (lo);
+                                        heapsz += lo.Size;
+                                    }
+                                    continue;
+                                }
+                            }
+                            break;
+                        case "Queue":
+                            XmlNodeList itemL = part.ChildNodes;
+                            foreach (XmlNode item in itemL)
+                            {
+                                List<Object> parms = new List<Object>();
+                                List<DetectParams> detected = new List<DetectParams>();
+
+                                string eventName = item.Attributes.GetNamedItem("event").Value;
+                                XmlNodeList eventL = item.ChildNodes;
+                                foreach (XmlNode evt in eventL)
+                                {
+                                    switch (evt.Name)
+                                    {
+                                        case "Params":
+                                            XmlNodeList prms = evt.ChildNodes;
+                                            foreach (XmlNode pm in prms)
+                                                parms.Add(ReadXTypedValue(pm));
+
+                                            break;
+                                        case "Detected":
+                                            XmlNodeList detL = evt.ChildNodes;
+                                            foreach (XmlNode det in detL)
+                                            {
+                                                string vect = det.Attributes.GetNamedItem("pos").Value;
+                                                LSL_Vector v = new LSL_Vector(vect);
+
+                                                int d_linkNum = 0;
+                                                UUID d_group = UUID.Zero;
+                                                string d_name = String.Empty;
+                                                UUID d_owner = UUID.Zero;
+                                                LSL_Vector d_position = new LSL_Vector();
+                                                LSL_Rotation d_rotation = new LSL_Rotation();
+                                                int d_type = 0;
+                                                LSL_Vector d_velocity = new LSL_Vector();
+
+                                                try
+                                                {
+                                                    string tmp;
+
+                                                    tmp = det.Attributes.GetNamedItem("linkNum").Value;
+                                                    int.TryParse(tmp, out d_linkNum);
+
+                                                    tmp = det.Attributes.GetNamedItem("group").Value;
+                                                    UUID.TryParse(tmp, out d_group);
+
+                                                    d_name = det.Attributes.GetNamedItem("name").Value;
+
+                                                    tmp = det.Attributes.GetNamedItem("owner").Value;
+                                                    UUID.TryParse(tmp, out d_owner);
+
+                                                    tmp = det.Attributes.GetNamedItem("position").Value;
+                                                    d_position = new LSL_Types.Vector3(tmp);
+
+                                                    tmp = det.Attributes.GetNamedItem("rotation").Value;
+                                                    d_rotation = new LSL_Rotation(tmp);
+
+                                                    tmp = det.Attributes.GetNamedItem("type").Value;
+                                                    int.TryParse(tmp, out d_type);
+
+                                                    tmp = det.Attributes.GetNamedItem("velocity").Value;
+                                                    d_velocity = new LSL_Vector(tmp);
+                                                }
+                                                catch (Exception) // Old version XML
+                                                {
+                                                }
+
+                                                UUID uuid = new UUID();
+                                                UUID.TryParse(det.InnerText, out uuid);
+
+                                                DetectParams d = new DetectParams();
+                                                d.Key = uuid;
+                                                d.OffsetPos = v;
+                                                d.LinkNum = d_linkNum;
+                                                d.Group = d_group;
+                                                d.Name = d_name;
+                                                d.Owner = d_owner;
+                                                d.Position = d_position;
+                                                d.Rotation = d_rotation;
+                                                d.Type = d_type;
+                                                d.Velocity = d_velocity;
+
+                                                detected.Add(d);
+                                            }
+                                            break;
+                                    }
+                                }
+                                EventParams ep = new EventParams(
+                                        eventName, parms.ToArray(),
+                                        detected.ToArray());
+                                eventQueue.AddLast(ep);
+                            }
+                            break;
+                        case "Plugins":
+                            List<Object> olist = new List<Object>();
+                            XmlNodeList itemLP = part.ChildNodes;
+                            foreach (XmlNode item in itemLP)
+                                olist.Add(ReadXTypedValue(item));
+                            pluginData = olist.ToArray();
+                            break;
+                        case "Permissions":
+                            string tmpPerm;
+                            int mask = 0;
+                            tmpPerm = part.Attributes.GetNamedItem("mask").Value;
+                            if (tmpPerm != null)
+                            {
+                                int.TryParse(tmpPerm, out mask);
+                                if (mask != 0)
+                                {
+                                    tmpPerm = part.Attributes.GetNamedItem("granter").Value;
+                                    if (tmpPerm != null)
+                                    {
+                                        UUID granter = new UUID();
+                                        UUID.TryParse(tmpPerm, out granter);
+                                        if (granter != UUID.Zero)
+                                        {
+                                            permsMask = mask;
+                                            permsGranter = granter;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case "MinEventDelay":
+                            double.TryParse(part.InnerText, out minEventDelay);
+                            break;
+                    }
+                }
+            }
+            catch
+            {
+                throw new Exception("Xstate fail decode");
+            }
+
+            int k = 0;
+            stateCode = 0;
+            foreach (string sn in m_ObjCode.stateNames)
+            {
+                if (stateName == sn)
+                {
+                    stateCode = k;
+                    break;
+                }
+                k++;
+            }
+            eventCode = ScriptEventCode.None;
+            m_Running = running;
+            doGblInit = false;
+
+            m_Item.PermsGranter = permsGranter;
+            m_Item.PermsMask = permsMask;
+            m_Part.Inventory.UpdateInventoryItem(m_Item, false, false);
+
+            lock (m_RunLock)
+            {
+                glblVars.iarIntegers = ints;
+                glblVars.iarFloats = doubles;
+                glblVars.iarVectors = vectors;
+                glblVars.iarRotations = rotations;
+                glblVars.iarStrings = strings;
+                glblVars.iarLists = lists;
+
+                AddHeapUse(heapsz);
+                CheckRunLockInvariants(true);
+            }
+
+            lock (m_QueueLock)
+            {
+                m_DetectParams = null;
+                foreach (EventParams evt in m_EventQueue)
+                    eventQueue.AddLast(evt);
+
+                m_EventQueue = eventQueue;
+                for (int i = m_EventCounts.Length; --i >= 0;)
+                    m_EventCounts[i] = 0;
+                foreach (EventParams evt in m_EventQueue)
+                {
+                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
+                                                                             evt.EventName);
+                    m_EventCounts[(int)eventCode]++;
+                }
+            }
+
+            AsyncCommandManager.CreateFromData(m_Engine,
+                     m_LocalID, m_ItemID, m_Part.UUID, pluginData);
+        }
+
+        private static void getvarNames(Dictionary<int, string> s, Dictionary<string, int> d)
+        {
+            foreach(KeyValuePair<int, string> kvp in s)
+                d[kvp.Value] = kvp.Key;
+        }
+
+        private static LSL_Types.list ReadXList(XmlNode parent)
+        {
+            List<Object> olist = new List<Object>();
+
+            XmlNodeList itemL = parent.ChildNodes;
+            foreach (XmlNode item in itemL)
+                olist.Add(ReadXTypedValue(item));
+
+            return new LSL_Types.list(olist.ToArray());
+        }
+
+        private static object ReadXTypedValue(XmlNode tag, out string name)
+        {
+            name = tag.Attributes.GetNamedItem("name").Value;
+
+            return ReadXTypedValue(tag);
+        }
+
+        private static object ReadXTypedValue(XmlNode tag)
+        {
+            Object varValue;
+            string assembly;
+
+            string itemType = tag.Attributes.GetNamedItem("type").Value;
+
+            if (itemType == "list")
+                return ReadXList(tag);
+
+            if (itemType == "OpenMetaverse.UUID")
+            {
+                UUID val = new UUID();
+                UUID.TryParse(tag.InnerText, out val);
+
+                return val;
+            }
+
+            Type itemT = Type.GetType(itemType);
+            if (itemT == null)
+            {
+                Object[] args =
+                    new Object[] { tag.InnerText };
+
+                assembly = itemType + ", OpenSim.Region.ScriptEngine.Shared";
+                itemT = Type.GetType(assembly);
+                if (itemT == null)
+                    return null;
+
+                varValue = Activator.CreateInstance(itemT, args);
+
+                if (varValue == null)
+                    return null;
+            }
+            else
+            {
+                varValue = Convert.ChangeType(tag.InnerText, itemT);
+            }
+            return varValue;
+        }
+
+    /**
+     * @brief Read llDetectedGrab, etc, values from XML
+     *  <EventQueue>
+     *      <DetectParams>...</DetectParams>
+     *          .
+     *          .
+     *          .
+     *  </EventQueue>
+     */
+    private LinkedList<EventParams> RestoreEventQueue(XmlNode eventsN)
         {
             LinkedList<EventParams> eventQueue = new LinkedList<EventParams>();
             if(eventsN != null)

@@ -452,6 +452,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return newuse;
         }
 
+        public virtual void AddHeapUse(int delta)
+        {
+            Interlocked.Add(ref heapUsed, delta);
+        }
+
         public int xmrHeapLeft()
         {
             return heapLimit - heapUsed;

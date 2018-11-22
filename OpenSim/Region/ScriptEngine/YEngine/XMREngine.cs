@@ -1092,17 +1092,27 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(stateN == null)
                 return false;
 
-            if(stateN.GetAttribute("Engine") != ScriptEngineName)
+            bool isX = false;
+            string sen = stateN.GetAttribute("Engine");
+            if (sen == null)
                 return false;
-
-            // <ScriptState>...</ScriptState> contains contents of .state file.
-            XmlElement scriptStateN = (XmlElement)stateN.SelectSingleNode("ScriptState");
+            if (sen != ScriptEngineName)
+            {   
+                if(sen != "XEngine")
+                    return false;
+                isX = true;
+            }
+                // <ScriptState>...</ScriptState> contains contents of .state file.
+                XmlElement scriptStateN = (XmlElement)stateN.SelectSingleNode("ScriptState");
             if(scriptStateN == null)
                 return false;
 
-            string sen = stateN.GetAttribute("Engine");
-            if((sen == null) || (sen != ScriptEngineName))
-                return false;
+            if(!isX)
+            {
+                sen = stateN.GetAttribute("Engine");
+                if ((sen == null) || (sen != ScriptEngineName))
+                    return false;
+            }
 
             XmlAttribute assetA = doc.CreateAttribute("", "Asset", "");
             assetA.Value = stateN.GetAttribute("Asset");
@@ -1110,11 +1120,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Write out the .state file with the <ScriptState ...>...</ScriptState> XML text
             string statePath = XMRInstance.GetStateFileName(m_ScriptBasePath, itemID);
-            FileStream ss = File.Create(statePath);
-            StreamWriter sw = new StreamWriter(ss);
-            sw.Write(scriptStateN.OuterXml);
-            sw.Close();
-            ss.Close();
+            using (FileStream ss = File.Create(statePath))
+            {
+                using (StreamWriter sw = new StreamWriter(ss))
+                    sw.Write(scriptStateN.OuterXml);
+            }
 
             return true;
         }
