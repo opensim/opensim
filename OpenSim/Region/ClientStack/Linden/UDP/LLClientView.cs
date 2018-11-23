@@ -6990,8 +6990,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        uint m_DeRezObjectLasSeq = 0;
+        Dictionary<UUID, List<uint>> m_DeRezObjectDelayed = new Dictionary<UUID, List<uint>>();
+
         private bool HandlerDeRezObject(IClientAPI sender, Packet Pack)
         {
+            DeRezObject handlerDeRezObject = OnDeRezObject;
+            if (handlerDeRezObject == null)
+                return true;
+
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)Pack;
 
             #region Packet Session and User Check
@@ -7003,24 +7010,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            DeRezObject handlerDeRezObject = OnDeRezObject;
-            if (handlerDeRezObject != null)
-            {
-                List<uint> deRezIDs = new List<uint>();
+            uint seq = DeRezPacket.Header.Sequence;
+            if(seq <= m_DeRezObjectLasSeq)
+                return true;
+            m_DeRezObjectLasSeq = seq;
 
-                foreach (DeRezObjectPacket.ObjectDataBlock data in
-                    DeRezPacket.ObjectData)
+            List<uint> deRezIDs;
+            DeRezAction action = (DeRezAction)DeRezPacket.AgentBlock.Destination;
+            int numberPackets = DeRezPacket.AgentBlock.PacketCount;
+            int curPacket = DeRezPacket.AgentBlock.PacketNumber;
+            UUID id = DeRezPacket.AgentBlock.TransactionID;
+
+            if (numberPackets > 1) 
+            {
+                if(!m_DeRezObjectDelayed.TryGetValue(id, out deRezIDs))
+                {
+                    deRezIDs = new List<uint>();
+                    m_DeRezObjectDelayed[id] = deRezIDs;
+                }
+
+                foreach (DeRezObjectPacket.ObjectDataBlock data in DeRezPacket.ObjectData)
                 {
                     deRezIDs.Add(data.ObjectLocalID);
                 }
-                // It just so happens that the values on the DeRezAction enumerator match the Destination
-                // values given by a Second Life client
-                handlerDeRezObject(this, deRezIDs,
-                                   DeRezPacket.AgentBlock.GroupID,
-                                   (DeRezAction)DeRezPacket.AgentBlock.Destination,
-                                   DeRezPacket.AgentBlock.DestinationID);
 
+                if (curPacket < numberPackets - 1)
+                    return true;
+
+                m_DeRezObjectDelayed.Remove(id);
             }
+            else
+            {
+                deRezIDs = new List<uint>();
+                foreach (DeRezObjectPacket.ObjectDataBlock data in DeRezPacket.ObjectData)
+                {
+                    deRezIDs.Add(data.ObjectLocalID);
+                }
+            }
+            if (handlerDeRezObject != null)
+                handlerDeRezObject(this, deRezIDs, DeRezPacket.AgentBlock.GroupID,
+                                action, DeRezPacket.AgentBlock.DestinationID);
+
             return true;
         }
 
