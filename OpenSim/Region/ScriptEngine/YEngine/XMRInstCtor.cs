@@ -893,7 +893,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     ScriptEventCode evtCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
                                                                              evt.EventName);
-                    m_EventCounts[(int)eventCode]++;
+                    m_EventCounts[(int)evtCode]++;
                 }
             }
 
