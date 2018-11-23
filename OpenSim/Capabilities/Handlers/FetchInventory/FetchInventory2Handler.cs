@@ -99,7 +99,7 @@ namespace OpenSim.Capabilities.Handlers
                 foreach (InventoryItemBase item in items)
                 {
                     if (item != null)
-                        item.ToLLSDxml(lsl);
+                        item.ToLLSDxml(lsl, 0xff);
                 }
                 LLSDxmlEncode.AddEndArray(lsl);
             }            

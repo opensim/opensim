@@ -417,7 +417,7 @@ namespace OpenSim.Framework
             return MemberwiseClone();
         }
 
-        public void ToLLSDxml(StringBuilder lsl)
+        public void ToLLSDxml(StringBuilder lsl, uint flagsMask = 0xffffffff)
         {
             LLSDxmlEncode.AddMap(lsl);
                 LLSDxmlEncode.AddElem("parent_id", Folder, lsl);
@@ -433,21 +433,21 @@ namespace OpenSim.Framework
                     LLSDxmlEncode.AddElem("group_mask", (int)GroupPermissions, lsl);
                     LLSDxmlEncode.AddElem("everyone_mask", (int)EveryOnePermissions, lsl);
                     LLSDxmlEncode.AddElem("next_owner_mask", (int)NextPermissions, lsl);
-                    LLSDxmlEncode.AddElem("is_owner_group", GroupOwned, lsl);               
+                    LLSDxmlEncode.AddElem("is_owner_group", GroupOwned, lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
 
-                LLSDxmlEncode.AddElem("type", AssetType, lsl);               
-                LLSDxmlEncode.AddElem("inv_type", InvType, lsl);               
-                LLSDxmlEncode.AddElem("flags", ((int)Flags) & 0xff, lsl);               
+                LLSDxmlEncode.AddElem("type", AssetType, lsl);
+                LLSDxmlEncode.AddElem("inv_type", InvType, lsl);
+                LLSDxmlEncode.AddElem("flags", (int)(Flags & flagsMask), lsl);
 
                 LLSDxmlEncode.AddMap("sale_info",lsl);
-                    LLSDxmlEncode.AddElem("sale_price", SalePrice, lsl);               
-                    LLSDxmlEncode.AddElem("sale_type", SaleType, lsl);               
+                    LLSDxmlEncode.AddElem("sale_price", SalePrice, lsl);
+                    LLSDxmlEncode.AddElem("sale_type", SaleType, lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
 
-                LLSDxmlEncode.AddElem("name", Name, lsl);               
-                LLSDxmlEncode.AddElem("desc", Description, lsl);               
-                LLSDxmlEncode.AddElem("created_at", CreationDate, lsl);               
+                LLSDxmlEncode.AddElem("name", Name, lsl);
+                LLSDxmlEncode.AddElem("desc", Description, lsl);
+                LLSDxmlEncode.AddElem("created_at", CreationDate, lsl);
 
             LLSDxmlEncode.AddEndMap(lsl);
         }
