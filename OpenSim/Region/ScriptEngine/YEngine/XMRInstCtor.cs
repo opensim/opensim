@@ -891,7 +891,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_EventCounts[i] = 0;
                 foreach (EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
+                    ScriptEventCode evtCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
                                                                              evt.EventName);
                     m_EventCounts[(int)eventCode]++;
                 }
