@@ -6,7 +6,6 @@ people that make the day to day of OpenSim happen.
 
 * Melanie Thielker
 * Diva (Crista Lopes, University of California, Irvine)
-* Nebadon Izumi (Michael Cerquoni, OSgrid)
 * Robert Adams (MisterBlue)
 * Kevin Cozens
 * Leal Duarte (Ubit Umarov)
@@ -16,14 +15,7 @@ Core developers who have temporarily (we hope) gone chasing the white rabbit.
 They are in all similar to the active core developers, except that they haven't
 been that active lately, so their voting rights are awaiting their come back. 
 
-* Arthur Rodrigo S Valadares (IBM)
-* BlueWall (James Hughes)
-* Dan Lake 
- * Marck
-* Mic Bowman
-* Oren Hurvitz (Kitely)
-* Snoopy Pfeffer
-* Teravus (w3z)
+* Nebadon Izumi (Michael Cerquoni, OSgrid)
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -57,6 +49,14 @@ where we are today.
 * chi11ken (Genkii)
 * dahlia
 * justincc (OSVW Consulting, justincc.org)
+* Arthur Rodrigo S Valadares (IBM)
+* BlueWall (James Hughes)
+* Dan Lake 
+* Marck
+* Mic Bowman
+* Oren Hurvitz (Kitely)
+* Snoopy Pfeffer
+* Teravus (w3z)
 
 = Additional OpenSim Contributors =
 These folks have contributed code patches or content to OpenSimulator to help make it
@@ -71,6 +71,7 @@ what it is today.
 * Alicia Raven
 * Allen Kerensky
 * BigFootAg
+* Bill Blight
 * BlueWall Slade
 * bobshaffer2
 * brianw/Sir_Ahzz
@@ -130,6 +131,7 @@ what it is today.
 * KittyLiu
 * Kurt Taylor (IBM)
 * Lani Global
+* lickx
 * lillith_xue
 * lkalif
 * LuciusSirnah
@@ -141,6 +143,7 @@ what it is today.
 * Mandarinka Tasty
 * MarcelEdward
 * Matt Lehmann
+* mewtwo0641
 * Mic Bowman
 * Michelle Argus
 * Michael Cortez (The Flotsam Project, http://osflotsam.org/)
@@ -192,6 +195,7 @@ what it is today.
 * TomTheDragon (muckwaddle)
 * tyre
 * Vegaslon <vegaslon@gmail.com>
+* Vincent Sylvester
 * VikingErik
 * Vytek
 * webmage (IBM)
