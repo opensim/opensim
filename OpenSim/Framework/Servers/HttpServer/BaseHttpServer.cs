@@ -2142,7 +2142,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             HTTPDRunning = false;
 
-
             StatsManager.DeregisterStat(m_requestsProcessedStat);
 
             try

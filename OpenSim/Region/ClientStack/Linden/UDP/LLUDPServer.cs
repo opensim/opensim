@@ -466,7 +466,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_circuitManager = circuitManager;
             int sceneThrottleBps = 0;
-            bool usePools = false;
+//            bool usePools = false;
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
@@ -497,8 +497,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packetConfig != null)
             {
                 PacketPool.Instance.RecyclePackets = packetConfig.GetBoolean("RecyclePackets", true);
-                PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
-                usePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", usePools);
+//                PacketPool.Instance.RecycleDataBlocks = packetConfig.GetBoolean("RecycleDataBlocks", true);
+//                usePools = packetConfig.GetBoolean("RecycleBaseUDPPackets", usePools);
             }
 
             #region BinaryStats
@@ -896,7 +896,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
-            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+            if (allowSplitting && packet.Type == PacketType.CoarseLocationUpdate)
                 allowSplitting = false;
 
 //            bool packetQueued = false;
@@ -1055,7 +1055,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendPing(LLUDPClient udpClient)
         {
             StartPingCheckPacket pc = (StartPingCheckPacket)PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
-            pc.Header.Reliable = false;
 
             pc.PingID.PingID = (byte)udpClient.CurrentPingSequence++;
             // We *could* get OldestUnacked, but it would hurt performance and not provide any benefit
@@ -1962,7 +1961,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (createNew)
                 {
                     LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, Throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
-
 
                     client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                     client.OnLogout += LogoutHandler;
