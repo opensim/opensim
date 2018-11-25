@@ -141,7 +141,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
-        internal bool m_debuggerSafe = true;
+        internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
@@ -1683,7 +1683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case ScriptBaseClass.PARCEL_DETAILS_OWNER:
                         if(es != null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
                         {
-                            OSSLError("script owner does not have permission to modify the parcel owner");
+                            OSSLShoutError("script owner does not have permission to modify the parcel owner");
                         }
                         else
                         {
@@ -1718,7 +1718,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                         if (groupsModule != null)
                                             member = groupsModule.GetMembershipData(uuid, newLand.OwnerID);
                                         if (member == null)
-                                            OSSLError(string.Format("land owner is not member of the new group for parcel"));
+                                            OSSLShoutError(string.Format("land owner is not member of the new group for parcel"));
                                         else
                                         {
                                             changed = true;
@@ -1730,14 +1730,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            OSSLError("script owner does not have permission to modify the parcel group");
+                            OSSLShoutError("script owner does not have permission to modify the parcel group");
                         }
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_CLAIMDATE:
                         if(es != null && !es.IsEstateManagerOrOwner(m_host.OwnerID))
                         {
-                            OSSLError("script owner does not have permission to modify the parcel CLAIM DATE");
+                            OSSLShoutError("script owner does not have permission to modify the parcel CLAIM DATE");
                         }
                         else
                         {
