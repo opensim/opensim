@@ -343,6 +343,8 @@ namespace OpenSim.Tests.Common
         public event GodlikeMessage onGodlikeMessage;
         public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
         public event GenericCall2 OnUpdateThrottles;
+        public event AgentFOV OnAgentFOV;
+
 #pragma warning restore 67
 
         /// <value>

@@ -684,17 +684,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         public void ClientOnParcelAccessListUpdateRequest(UUID agentID,
-                uint flags, int landLocalID, UUID transactionID, int sequenceID,
-                int sections, List<LandAccessEntry> entries,
+                uint flags, UUID transactionID, int landLocalID, List<LandAccessEntry> entries,
                 IClientAPI remote_client)
         {
-            // Flags is the list to update, it can mean either the ban or
-            // the access list (WTH is a pass list? Mentioned in ParcelFlags)
-            //
-            // There may be multiple packets, because these can get LONG.
-            // Use transactionID to determine a new chain of packets since
-            // packets may have come in out of sequence and that would be
-            // a big mess if using the sequenceID
+            if ((flags & 0x03) == 0)
+                return; // we only have access and ban
+
             ILandObject land;
             lock (m_landList)
             {
@@ -703,15 +698,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
-                GroupPowers requiredPowers = GroupPowers.LandManageAllowed;
-                if (flags == (uint)AccessList.Ban)
-                    requiredPowers = GroupPowers.LandManageBanned;
+                GroupPowers requiredPowers = GroupPowers.None;
+                if ((flags & (uint)AccessList.Access) != 0)
+                    requiredPowers |= GroupPowers.LandManageAllowed;
+                if ((flags & (uint)AccessList.Ban) != 0)
+                    requiredPowers |= GroupPowers.LandManageBanned;
+
+                if(requiredPowers == GroupPowers.None)
+                    return;
 
                 if (m_scene.Permissions.CanEditParcelProperties(agentID,
                         land, requiredPowers, false))
                 {
-                    land.UpdateAccessList(flags, transactionID, sequenceID,
-                            sections, entries, remote_client);
+                    land.UpdateAccessList(flags, transactionID, entries);
                 }
             }
             else

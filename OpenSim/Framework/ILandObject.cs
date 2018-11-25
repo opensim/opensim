@@ -85,7 +85,7 @@ namespace OpenSim.Framework
         void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client);
         List<LandAccessEntry> CreateAccessListArrayByFlag(AccessList flag);
         void SendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
-        void UpdateAccessList(uint flags, UUID transactionID, int sequenceID, int sections, List<LandAccessEntry> entries, IClientAPI remote_client);
+        void UpdateAccessList(uint flags, UUID transationID, List<LandAccessEntry> entries);
         void UpdateLandBitmapByteArray();
         void SetLandBitmapFromByteArray();
         bool[,] GetLandBitmap();
