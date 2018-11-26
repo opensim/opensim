@@ -929,6 +929,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                     string text = e.InnerException.Message +
                                                 "(script: " + ScriptName +
                                                 " event: " + data.EventName +
+                                                " primID:" + Part.UUID.ToString() +
                                                 " at " + Part.AbsolutePosition + ")";
                                     if (text.Length > 1000)
                                         text = text.Substring(0, 1000);

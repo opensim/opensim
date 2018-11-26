@@ -492,13 +492,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (e.Message != null)
                 msg.Append(e.Message);
 
-            msg.Append(" (prim: ");
-            msg.Append(m_Part.Name);
-
             msg.Append(" script: ");
             msg.Append(m_Item.Name);
             msg.Append(" event: ");
             msg.Append(ev.ToString());
+            msg.Append(" (primID: ");
+            msg.Append(m_Part.UUID.ToString());
             msg.Append(" at: <");
             Vector3 pos = m_Part.AbsolutePosition;
             msg.Append((int)Math.Floor(pos.X));
