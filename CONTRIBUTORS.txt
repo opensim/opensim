@@ -16,6 +16,7 @@ They are in all similar to the active core developers, except that they haven't
 been that active lately, so their voting rights are awaiting their come back. 
 
 * Nebadon Izumi (Michael Cerquoni, OSgrid)
+* Alicia Raven
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -68,7 +69,6 @@ what it is today.
 * alex_carnell
 * Alan Webb (IBM)
 * Aleric
-* Alicia Raven
 * Allen Kerensky
 * BigFootAg
 * Bill Blight
