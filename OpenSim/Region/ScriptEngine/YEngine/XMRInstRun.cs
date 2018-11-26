@@ -444,8 +444,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void HandleScriptException(Exception e)
         {
-             // The script threw some kind of exception that was not caught at
-             // script level, so the script is no longer running an event handler.
+            // The script threw some kind of exception that was not caught at
+            // script level, so the script is no longer running an event handler.
+
+            ScriptEventCode curevent = eventCode;
             eventCode = ScriptEventCode.None;
             stackFrames = null;
 
@@ -464,17 +466,58 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 m_SleepUntil = DateTime.MaxValue;
                 m_Engine.World.DeleteSceneObject(m_Part.ParentGroup, false);
             }
-            else if(e is ScriptResetException)
+            else if (e is ScriptResetException)
             {
                  // Script did an llResetScript().
                 m_RunOnePhase = "resetting...";
                 ResetLocked("HandleScriptResetException");
             }
+            else if (e is ScriptException)
+            {
+                // Some general script error.
+                SendScriptErrorMessage(e, curevent);
+            }
             else
             {
-                 // Some general script error.
+                // Some general script error.
                 SendErrorMessage(e);
             }
+        }
+
+        private void SendScriptErrorMessage(Exception e, ScriptEventCode ev)
+        {
+            StringBuilder msg = new StringBuilder();
+
+            msg.Append("YEngine: ");
+            if (e.Message != null)
+                msg.Append(e.Message);
+
+            msg.Append(" (prim: ");
+            msg.Append(m_Part.Name);
+
+            msg.Append(" script: ");
+            msg.Append(m_Item.Name);
+            msg.Append(" event: ");
+            msg.Append(ev.ToString());
+            msg.Append(" at: <");
+            Vector3 pos = m_Part.AbsolutePosition;
+            msg.Append((int)Math.Floor(pos.X));
+            msg.Append(',');
+            msg.Append((int)Math.Floor(pos.Y));
+            msg.Append(',');
+            msg.Append((int)Math.Floor(pos.Z));
+            msg.Append(">) Script must be Reset to re-enable.\n");
+
+            string msgst = msg.ToString();
+            if (msgst.Length > 1000)
+                msgst = msgst.Substring(0, 1000);
+
+            m_log.Info(msgst);
+            m_Engine.World.SimChat(Utils.StringToBytes(msgst),
+                                                           ChatTypeEnum.DebugChannel, 2147483647,
+                                                           m_Part.AbsolutePosition,
+                                                           m_Part.Name, m_Part.UUID, false);
+            m_SleepUntil = DateTime.MaxValue;
         }
 
         /**
@@ -536,41 +579,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         continue;
                 }
                 this.llOwnerSay(line);
-                imstr.Append(line);
-                imstr.Append('\n');
             }
 
-             // Send as instant message in case user not online.
-             // Code modelled from llInstantMessage().
-            IMessageTransferModule transferModule = m_Engine.World.RequestModuleInterface<IMessageTransferModule>();
-            if(transferModule != null)
-            {
-                UUID friendTransactionID = UUID.Random();
-                GridInstantMessage gim = new GridInstantMessage();
-                gim.fromAgentID = new Guid(m_Part.UUID.ToString());
-                gim.toAgentID = new Guid(m_Part.OwnerID.ToString());
-                gim.imSessionID = new Guid(friendTransactionID.ToString());
-                gim.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                gim.message = imstr.ToString();
-                gim.dialog = (byte)19; // messgage from script
-                gim.fromGroup = false;
-                gim.offline = (byte)0;
-                gim.ParentEstateID = 0;
-                gim.Position = pos;
-                gim.RegionID = m_Engine.World.RegionInfo.RegionID.Guid;
-                gim.binaryBucket = Util.StringToBytes256(
-                    "{0}/{1}/{2}/{3}",
-                    m_Engine.World.RegionInfo.RegionName,
-                    (int)Math.Floor(pos.X),
-                    (int)Math.Floor(pos.Y),
-                    (int)Math.Floor(pos.Z));
-                transferModule.SendInstantMessage(gim, delegate (bool success)
-                {
-                });
-            }
-
-             // Say script is sleeping for a very long time.
-             // Reset() is able to cancel this sleeping.
+            // Say script is sleeping for a very long time.
+            // Reset() is able to cancel this sleeping.
             m_SleepUntil = DateTime.MaxValue;
         }
 
