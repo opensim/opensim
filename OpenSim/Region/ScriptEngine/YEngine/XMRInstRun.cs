@@ -492,11 +492,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (e.Message != null)
                 msg.Append(e.Message);
 
-            msg.Append(" script: ");
+            msg.Append(" (script: ");
             msg.Append(m_Item.Name);
             msg.Append(" event: ");
             msg.Append(ev.ToString());
-            msg.Append(" (primID: ");
+            msg.Append(" primID: ");
             msg.Append(m_Part.UUID.ToString());
             msg.Append(" at: <");
             Vector3 pos = m_Part.AbsolutePosition;
@@ -511,11 +511,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (msgst.Length > 1000)
                 msgst = msgst.Substring(0, 1000);
 
-            m_log.Info(msgst);
             m_Engine.World.SimChat(Utils.StringToBytes(msgst),
                                                            ChatTypeEnum.DebugChannel, 2147483647,
                                                            m_Part.AbsolutePosition,
                                                            m_Part.Name, m_Part.UUID, false);
+            m_log.Debug(string.Format(
+                "[SCRIPT ERROR]: {0} (at event {1}, part {2} {3} at {4} in {5}",
+                (e.Message == null)? "" : e.Message,
+                ev.ToString(),
+                m_Part.Name,
+                m_Part.UUID,
+                m_Part.AbsolutePosition,
+                m_Part.ParentGroup.Scene.Name));
+
             m_SleepUntil = DateTime.MaxValue;
         }
 

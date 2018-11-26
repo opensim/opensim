@@ -938,7 +938,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                            Part.AbsolutePosition,
                                                            Part.Name, Part.UUID, false);
                                     m_log.Debug(string.Format(
-                                        "[SCRIPT INSTANCE]: {0} (at event {1}, part {2} {3} at {4} in {5}",
+                                        "[SCRIPT ERROR]: {0} (at event {1}, part {2} {3} at {4} in {5}",
                                         e.InnerException.Message,
                                         data.EventName,
                                         PrimName,
@@ -962,7 +962,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 
                                     m_log.Debug(string.Format(
-                                        "[SCRIPT INSTANCE]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ",
+                                        "[SCRIPT ERROR]: Runtime error in script {0} (event {1}), part {2} {3} at {4} in {5} ",
                                         ScriptName,
                                         data.EventName,
                                         PrimName,
