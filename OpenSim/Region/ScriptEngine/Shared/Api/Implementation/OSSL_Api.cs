@@ -141,7 +141,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
-        internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
@@ -157,8 +156,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_osslconfig = m_ScriptEngine.ConfigSource.Configs["OSSL"];
             if(m_osslconfig == null)
                 m_osslconfig = m_ScriptEngine.Config;
-
-            m_debuggerSafe = m_osslconfig.GetBoolean("DebuggerSafe", m_debuggerSafe);
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
@@ -226,14 +223,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void OSSLError(string msg)
         {
-            if (m_debuggerSafe)
-            {
-                OSSLShoutError(msg);
-            }
-            else
-            {
-                throw new ScriptException("OSSL Runtime Error: " + msg);
-            }
+            throw new ScriptException("OSSL Runtime Error: " + msg);
         }
 
         /// <summary>
