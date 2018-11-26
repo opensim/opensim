@@ -1128,15 +1128,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Adam's super super custom animation functions
-        public void osAvatarPlayAnimation(string avatar, string animation)
+        public void osAvatarPlayAnimation(LSL_Key avatar, string animation)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarPlayAnimation");
 
-            AvatarPlayAnimation(avatar, animation);
-        }
-
-        private void AvatarPlayAnimation(string avatar, string animation)
-        {
             UUID avatarID;
             if(!UUID.TryParse(avatar, out avatarID))
                 return;
@@ -1166,44 +1161,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 target.Animator.AddAnimation(animID, m_host.UUID);
         }
 
-        public void osAvatarStopAnimation(string avatar, string animation)
+        public void osAvatarStopAnimation(LSL_Key avatar, string animation)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAvatarStopAnimation");
 
-            AvatarStopAnimation(avatar, animation);
-        }
+            UUID avatarID;
+            if(!UUID.TryParse(avatar, out avatarID))
+                return;
 
-        private void AvatarStopAnimation(string avatar, string animation)
-        {
-            UUID avatarID = (UUID)avatar;
+            ScenePresence target = World.GetScenePresence(avatarID);
+            if (target == null)
+                return;
 
-            // FIXME: What we really want to do here is factor out the similar code in llStopAnimation() to a common
-            // method (though see that doesn't do the is animation check, which is probably a bug) and have both
-            // these functions call that common code.  However, this does mean navigating the brain-dead requirement
-            // of calling InitLSL()
-            if (World.Entities.ContainsKey(avatarID) && World.Entities[avatarID] is ScenePresence)
+            UUID animID;
+            if (!UUID.TryParse(animation, out animID))
             {
-                ScenePresence target = (ScenePresence)World.Entities[avatarID];
-                if (target != null)
-                {
-                    UUID animID;
-
-                    if (!UUID.TryParse(animation, out animID))
-                    {
-                        TaskInventoryItem item = m_host.Inventory.GetInventoryItem(animation);
-                        if (item != null && item.Type == (int)AssetType.Animation)
-                            animID = item.AssetID;
-                        else
-                            animID = UUID.Zero;
-                    }
-
-
-                    if (animID == UUID.Zero)
-                        target.Animator.RemoveAnimation(animation);
-                    else
-                        target.Animator.RemoveAnimation(animID, true);
-                }
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(animation);
+                if (item != null && item.Type == (int)AssetType.Animation)
+                    animID = item.AssetID;
+                else
+                    animID = UUID.Zero;
             }
+
+            if (animID == UUID.Zero)
+                target.Animator.RemoveAnimation(animation);
+            else
+                target.Animator.RemoveAnimation(animID, true);
         }
 
         //Texture draw functions
@@ -3340,13 +3323,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcPlayAnimation");
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
-            if (module != null)
-            {
-                UUID npcID = new UUID(npc.m_string);
+            if (module == null)
+                return;
 
-                if (module.CheckPermissions(npcID, m_host.OwnerID))
-                    AvatarPlayAnimation(npcID.ToString(), animation);
+            UUID npcID;
+            if(!UUID.TryParse(npc.m_string, out npcID))
+                return;
+
+            ScenePresence target = World.GetScenePresence(npcID);
+            if (target == null || !target.IsNPC)
+                return;
+
+            if (!module.CheckPermissions(npcID, m_host.OwnerID))
+                return;
+
+            UUID animID = UUID.Zero;
+            m_host.TaskInventory.LockItemsForRead(true);
+            foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+               if (inv.Value.Type == (int)AssetType.Animation)
+               {
+                   if (inv.Value.Name == animation)
+                   {
+                       animID = inv.Value.AssetID;
+                       break;
+                   }
+               }
             }
+            m_host.TaskInventory.LockItemsForRead(false);
+
+            if (animID == UUID.Zero)
+                target.Animator.AddAnimation(animation, m_host.UUID);
+            else
+                target.Animator.AddAnimation(animID, m_host.UUID);
         }
 
         public void osNpcStopAnimation(LSL_Key npc, string animation)
@@ -3354,13 +3363,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osNpcStopAnimation");
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
-            if (module != null)
-            {
-                UUID npcID = new UUID(npc.m_string);
+            if (module == null)
+                return;
 
-                if (module.CheckPermissions(npcID, m_host.OwnerID))
-                    AvatarStopAnimation(npcID.ToString(), animation);
+            UUID npcID;
+            if (!UUID.TryParse(npc.m_string, out npcID))
+                return;
+
+            ScenePresence target = World.GetScenePresence(npcID);
+            if (target == null || !target.IsNPC)
+                return;
+
+            if (!module.CheckPermissions(npcID, m_host.OwnerID))
+                return;
+
+            UUID animID;
+            if (!UUID.TryParse(animation, out animID))
+            {
+                TaskInventoryItem item = m_host.Inventory.GetInventoryItem(animation);
+                if (item != null && item.Type == (int)AssetType.Animation)
+                    animID = item.AssetID;
+                else
+                    animID = UUID.Zero;
             }
+
+            if (animID == UUID.Zero)
+                target.Animator.RemoveAnimation(animation);
+            else
+                target.Animator.RemoveAnimation(animID, true);
         }
 
         public void osNpcWhisper(LSL_Key npc, int channel, string message)

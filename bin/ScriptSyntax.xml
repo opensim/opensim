@@ -1,4 +1,4 @@
-0acc12d6-3dc9-9574-7bd6-d298c045f046
+a56cd39c-7cce-5185-6e57-d5284505356d
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1510,6 +1510,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>3</string>
   <key>tooltip</key><string>not supported</string>
+ </map>
+ <key>OS_APIVERSION</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -6120,14 +6124,14 @@
  <key>osAvatarPlayAnimation</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osAvatarStopAnimation</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>

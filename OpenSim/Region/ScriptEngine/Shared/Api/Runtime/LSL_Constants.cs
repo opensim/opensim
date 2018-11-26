@@ -29,13 +29,14 @@ using System;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSLInteger = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using LSLString = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
+        public static readonly LSLInteger OS_APIVERSION = 1;
+
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
 
