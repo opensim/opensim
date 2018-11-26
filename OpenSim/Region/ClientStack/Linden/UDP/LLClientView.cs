@@ -6341,7 +6341,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_thisAgentUpdateArgs.lastpacketSequence = seq;
 
-            OnPreAgentUpdate?.Invoke(this, m_thisAgentUpdateArgs);
+            if (OnPreAgentUpdate != null)
+                OnPreAgentUpdate(this, m_thisAgentUpdateArgs);
 
             bool movement;
             bool camera;
@@ -6370,7 +6371,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_thisAgentUpdateArgs.NeedsCameraCollision = !camera;
 
-                OnAgentUpdate?.Invoke(this, m_thisAgentUpdateArgs);
+                if (OnAgentUpdate != null)
+                    OnAgentUpdate(this, m_thisAgentUpdateArgs);
             }
 
             // Was there a significant camera(s) change?
@@ -6383,7 +6385,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_thisAgentUpdateArgs.NeedsCameraCollision = true;
 
-                OnAgentCameraUpdate?.Invoke(this, m_thisAgentUpdateArgs);
+                if (OnAgentCameraUpdate != null)
+                    OnAgentCameraUpdate(this, m_thisAgentUpdateArgs);
             }
 
             if(movement && camera)
