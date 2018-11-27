@@ -2432,7 +2432,6 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="log4net"/>
       <Reference name="Mono.Addins"/>
-      <Reference name="Mono.Tasklets"/>
       <Reference name="Nini"/>
       <Reference name="OpenMetaverse"/>
       <Reference name="OpenMetaverse.StructuredData"/>
