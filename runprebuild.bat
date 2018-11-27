@@ -33,19 +33,22 @@ if defined FOUNDGREP (
   set FINDCMD=find
 )
 
-
-for %%v in (14.0, 12.0, 4.0) do (
-	FOR /F "usebackq tokens=1-3" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSBuild\ToolsVersions\%%v" /v %VALUE_NAME% 2^>nul ^| %FINDCMD% "%VALUE_NAME%"`) DO (
-		set ValueValue=%%C
-		goto :found
-	)
+rem try vs2015
+FOR /F "usebackq tokens=1-3" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14" /v %VALUE_NAME% 2^>nul ^| %FINDCMD% "%VALUE_NAME%"`) DO (
+	set ValueValue=%%C
+	goto :found
 )
 
-@echo %KEY_NAME%\%VALUE_NAME% not found.
+@echo msbuild for at least VS2015 not found, please install a (Community) edition of VS2017 or VS2015
 @echo Not creating compile.bat
-exit
+if exist "compile.bat" (
+	del compile.bat
+	)
+goto :done
 
 :found
     @echo Found msbuild at %ValueValue%
     @echo Creating compile.bat
     @echo %ValueValue%\msbuild opensim.sln > compile.bat
+
+:done
