@@ -1631,8 +1631,6 @@
       <Reference name="Ionic.Zip" path="../../../bin/"/>
       <Reference name="MySql.Data" path="../../../bin/"/>
 
-      <Reference name="GlynnTucker.Cache" path="../../../bin/"/>
-
       <!-- For scripting in funny languages by default -->
       <Reference name="XMLRPC" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>

@@ -64,8 +64,6 @@
     ;AssetCaching = "CenomeMemoryAssetCache"
     ;Include-CenomeCache = "config-include/CenomeCache.ini"
 
-    ;AssetCaching = "GlynnTuckerAssetCache"
-
     ;; Authorization is not on by default, as it depends on external php
     ;AuthorizationServices = "LocalAuthorizationServicesConnector"
 
