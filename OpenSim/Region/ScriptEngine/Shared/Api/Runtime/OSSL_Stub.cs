@@ -476,16 +476,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
            return m_OSSL_Functions.osGetSimulatorVersion();
         }
 
-        public Hashtable osParseJSON(string JSON)
-        {
-            return m_OSSL_Functions.osParseJSON(JSON);
-        }
-
-        public Object osParseJSONNew(string JSON)
-        {
-            return m_OSSL_Functions.osParseJSONNew(JSON);
-        }
-
         public void osMessageObject(key objectUUID,string message)
         {
             m_OSSL_Functions.osMessageObject(objectUUID,message);

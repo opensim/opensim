@@ -269,8 +269,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osCheckODE();
         string osGetPhysicsEngineType();
         string osGetPhysicsEngineName();
-        Object osParseJSONNew(string JSON);
-        Hashtable osParseJSON(string JSON);
 
         void osMessageObject(key objectUUID,string message);
 
