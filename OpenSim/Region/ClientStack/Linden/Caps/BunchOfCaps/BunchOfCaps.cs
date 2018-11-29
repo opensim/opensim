@@ -1312,7 +1312,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(folder == null)
                     break;
 
-                StringBuilder sb = LLSDxmlEncode.Start(256);
+                StringBuilder sb = LLSDxmlEncode.Start();
                 LLSDxmlEncode.AddMap(sb);
                 LLSDxmlEncode.AddElem("folder_id", folder.ID, sb);
                 LLSDxmlEncode.AddElem("name", folder.Name, sb);
@@ -1324,9 +1324,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return resp;
              }
 
-            httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
-            httpResponse.StatusDescription = "Error";
-            httpResponse.KeepAlive = false;
+            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
             return "";
         }
 
@@ -1376,21 +1374,25 @@ namespace OpenSim.Region.ClientStack.Linden
             return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
         }
 
+
+        private string CopyInventoryFromNotecardError(IOSHttpResponse response)
+        {
+            response.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+            response.StatusDescription = "";
+            return "";
+        }
+
         /// <summary>
         /// Called by the CopyInventoryFromNotecard caps handler.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param"></param>
+
         public string CopyInventoryFromNotecard(string request, string path, string param,
                                              IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            Hashtable response = new Hashtable();
-            response["int_response_code"] = 404;
-            response["content_type"] = "text/plain";
-            response["keepalive"] = false;
-            response["str_response_string"] = "";
-
+            InventoryItemBase copyItem = null;
             try
             {
                 OSDMap content = (OSDMap)OSDParser.DeserializeLLSDXml(request);
@@ -1408,14 +1410,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
 //                        TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
                         if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, m_HostCapsObj.AgentID))
-                        {
-                            return LLSDHelpers.SerialiseLLSDReply(response);
-                        }
+                            return CopyInventoryFromNotecardError(httpResponse);
                     }
                 }
 
                 InventoryItemBase item = null;
-                InventoryItemBase copyItem = null;
                 IClientAPI client = null;
 
                 m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
@@ -1440,10 +1439,13 @@ namespace OpenSim.Region.ClientStack.Linden
             catch (Exception e)
             {
                 m_log.ErrorFormat("[CAPS]: CopyInventoryFromNotecard : {0}", e.ToString());
+                copyItem = null;
             }
 
-            response["int_response_code"] = 200;
-            return LLSDHelpers.SerialiseLLSDReply(response);
+            if(copyItem == null)
+                return CopyInventoryFromNotecardError(httpResponse);
+
+            return "";
         }
 
         public string GetObjectPhysicsData(string request, string path,
