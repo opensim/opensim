@@ -312,8 +312,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterHandler("UpdateAgentInformation", UpdateAgentInformationHandler);
 
                 IRequestHandler CopyInventoryFromNotecardHandler = new RestStreamHandler(
-                        "POST",  GetNewCapPath(), CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null);
+                        "POST", GetNewCapPath(), CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null);
                 m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", CopyInventoryFromNotecardHandler);
+
+                IRequestHandler CreateInventoryCategoryHandler = new RestStreamHandler(
+                        "POST", GetNewCapPath(), CreateInventoryCategory, "CreateInventoryCategory", null);
+                m_HostCapsObj.RegisterHandler("CreateInventoryCategory", CreateInventoryCategoryHandler);
 
             }
             catch (Exception e)
@@ -1260,6 +1264,71 @@ namespace OpenSim.Region.ClientStack.Linden
             return String.Empty;
         }
 
+        public string CreateInventoryCategory(string request, string path, string param,
+                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            if (m_Scene.InventoryService == null)
+            {
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.ServiceUnavailable;
+                httpResponse.StatusDescription = "Service not avaiable";
+                return "";
+            }
+
+            ScenePresence sp = m_Scene.GetScenePresence(m_AgentID);
+            if (sp == null || sp.IsDeleted)
+            {
+                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.ServiceUnavailable;
+                httpResponse.StatusDescription = "Retry later";
+                httpResponse.AddHeader("Retry-After", "30");
+                return "";
+            }
+
+            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+
+            while (true) // kinda goto
+            {
+                if (!hash.Contains("folder_id") || !(hash["folder_id"] is UUID))
+                    break;
+                UUID folderID = (UUID)hash["folder_id"];
+
+                if (!hash.Contains("parent_id") || !(hash["parent_id"] is UUID))
+                    break;
+                UUID parentID = (UUID)hash["parent_id"];
+
+                if (!hash.Contains("name") || !(hash["name"] is string))
+                    break;
+                string folderName = (string)hash["name"];
+
+                if (!hash.Contains("type") || !(hash["type"] is int))
+                    break;
+                int folderType = (int)hash["type"];
+
+                InventoryFolderBase folder = new InventoryFolderBase(folderID, folderName, m_AgentID, (short)folderType, parentID, 1);
+                if (!m_Scene.InventoryService.AddFolder(folder))
+                    break;
+
+                // costly double check plus possible service changes
+                folder = m_Scene.InventoryService.GetFolder(m_AgentID, folderID);
+                if(folder == null)
+                    break;
+
+                StringBuilder sb = LLSDxmlEncode.Start(256);
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("folder_id", folder.ID, sb);
+                LLSDxmlEncode.AddElem("name", folder.Name, sb);
+                LLSDxmlEncode.AddElem("parent_id", folder.ParentID, sb);
+                LLSDxmlEncode.AddElem("type", folder.Type, sb);
+                LLSDxmlEncode.AddEndMap(sb);
+                string resp = LLSDxmlEncode.End(sb);
+
+                return resp;
+             }
+
+            httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
+            httpResponse.StatusDescription = "Error";
+            httpResponse.KeepAlive = false;
+            return "";
+        }
 
         /// <summary>
         /// Called by the notecard update handler.  Provides a URL to which the client can upload a new asset.
