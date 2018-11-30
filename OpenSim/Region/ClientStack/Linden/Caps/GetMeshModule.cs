@@ -56,10 +56,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Scene m_scene;
         private bool m_Enabled = true;
         private string m_URL;
-
         private string m_URL2;
-        private string m_RedirectURL = null;
-        private string m_RedirectURL2 = null;
 
         class APollRequest
         {
@@ -81,11 +78,10 @@ namespace OpenSim.Region.ClientStack.Linden
         private IAssetService m_assetService = null;
 
         private Dictionary<UUID, string> m_capsDict = new Dictionary<UUID, string>();
+        private Dictionary<UUID, string> m_capsDict2 = new Dictionary<UUID, string>();
         private static Thread[] m_workerThreads = null;
         private static int m_NumberScenes = 0;
         private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
-
-        private Dictionary<UUID, PollServiceMeshEventArgs> m_pollservices = new Dictionary<UUID, PollServiceMeshEventArgs>();
 
         #region Region Module interfaceBase Members
 
@@ -103,19 +99,12 @@ namespace OpenSim.Region.ClientStack.Linden
             m_URL = config.GetString("Cap_GetMesh", string.Empty);
             // Cap doesn't exist
             if (m_URL != string.Empty)
-            {
                 m_Enabled = true;
-                m_RedirectURL = config.GetString("GetMeshRedirectURL");
-            }
 
             m_URL2 = config.GetString("Cap_GetMesh2", string.Empty);
             // Cap doesn't exist
             if (m_URL2 != string.Empty)
-            {
                 m_Enabled = true;
-
-                m_RedirectURL2 = config.GetString("GetMesh2RedirectURL");
-            }
         }
 
         public void AddRegion(Scene pScene)
@@ -146,6 +135,12 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_assetService = m_scene.RequestModuleInterface<IAssetService>();
                 // We'll reuse the same handler for all requests.
+                if(m_assetService == null)
+                {
+                    m_Enabled = false;
+                    return;
+                }
+
                 m_getMeshHandler = new GetMeshHandler(m_assetService);
             }
 
@@ -355,49 +350,58 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-//            UUID capID = UUID.Random();
+            string hostName = m_scene.RegionInfo.ExternalHostName;
+            uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
+            string protocol = "http";
+            if (MainServer.Instance.UseSSL)
+            {
+                hostName = MainServer.Instance.SSLCommonName;
+                port = MainServer.Instance.SSLPort;
+                protocol = "https";
+            }
+
             if (m_URL == "localhost")
             {
                 string capUrl = "/CAPS/" + UUID.Random() + "/";
 
                 // Register this as a poll service
                 PollServiceMeshEventArgs args = new PollServiceMeshEventArgs(capUrl, agentID, m_scene);
-
                 args.Type = PollServiceEventArgs.EventType.Mesh;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
-                string hostName = m_scene.RegionInfo.ExternalHostName;
-                uint port = (MainServer.Instance == null) ? 0 : MainServer.Instance.Port;
-                string protocol = "http";
-
-                if (MainServer.Instance.UseSSL)
-                {
-                    hostName = MainServer.Instance.SSLCommonName;
-                    port = MainServer.Instance.SSLPort;
-                    protocol = "https";
-                }
                 caps.RegisterHandler("GetMesh", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
-                m_pollservices[agentID] = args;
                 m_capsDict[agentID] = capUrl;
             }
-            else
-            {
+            else if (m_URL != string.Empty)
                 caps.RegisterHandler("GetMesh", m_URL);
+
+            if (m_URL2 == "localhost")
+            {
+                string capUrl = "/CAPS/" + UUID.Random() + "/";
+
+                // Register this as a poll service
+                PollServiceMeshEventArgs args = new PollServiceMeshEventArgs(capUrl, agentID, m_scene);
+                args.Type = PollServiceEventArgs.EventType.Mesh;
+                MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
+                caps.RegisterHandler("GetMesh2", String.Format("{0}://{1}:{2}{3}", protocol, hostName, port, capUrl));
+                m_capsDict2[agentID] = capUrl;
             }
+            else if(m_URL2 != string.Empty)
+                caps.RegisterHandler("GetMesh2", m_URL2);
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
         {
             string capUrl;
-            PollServiceMeshEventArgs args;
             if (m_capsDict.TryGetValue(agentID, out capUrl))
             {
-                MainServer.Instance.RemoveHTTPHandler("", capUrl);
-                m_capsDict.Remove(agentID);
+                 MainServer.Instance.RemovePollServiceHTTPHandler("", capUrl);
+                 m_capsDict.Remove(agentID);
             }
-            if (m_pollservices.TryGetValue(agentID, out args))
+            if (m_capsDict2.TryGetValue(agentID, out capUrl))
             {
-                m_pollservices.Remove(agentID);
+                MainServer.Instance.RemovePollServiceHTTPHandler("", capUrl);
+                m_capsDict2.Remove(agentID);
             }
         }
     }
