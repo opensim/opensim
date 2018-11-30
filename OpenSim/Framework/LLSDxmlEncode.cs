@@ -147,9 +147,19 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<integer>");
-                sb.Append(e.ToString());     
+                sb.Append(e.ToString());
                 sb.Append("</integer>");
             }
+        }
+
+        public static void AddElem(uint e, StringBuilder sb)
+        {
+            AddElem(uintToByteArray(e), sb);
+        }
+
+        public static void AddElem(ulong e, StringBuilder sb)
+        {
+            AddElem(ulongToByteArray(e), sb);
         }
 
         public static void AddElem(float e, StringBuilder sb)
@@ -266,7 +276,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real>");
             }
         }
@@ -414,7 +424,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<integer>");
-                sb.Append(e.ToString());     
+                sb.Append(e.ToString());
                 sb.Append("</integer>");
             }
         }
@@ -430,7 +440,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<binary>"); // encode64 is default
-                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));     
+                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));
                 sb.Append("</binary>");
             }
         }
@@ -446,9 +456,19 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<integer>");
-                sb.Append(e.ToString());     
+                sb.Append(e.ToString());
                 sb.Append("</integer>");
             }
+        }
+
+        public static void AddElem(string name, uint e, StringBuilder sb)
+        {
+            AddElem(name, uintToByteArray(e), sb);
+        }
+
+        public static void AddElem(string name, ulong e, StringBuilder sb)
+        {
+            AddElem(name, ulongToByteArray(e), sb);
         }
 
         public static void AddElem(string name, float e, StringBuilder sb)
@@ -579,7 +599,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<real>");
-                sb.Append(e.ToString(CultureInfo.InvariantCulture));     
+                sb.Append(e.ToString(CultureInfo.InvariantCulture));
                 sb.Append("</real>");
             }
         }
@@ -611,7 +631,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<string>");
-                EscapeToXML(e.ToString(), sb);
+                EscapeToXML(e, sb);
                 sb.Append("</string>");
             }
         }
@@ -627,7 +647,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<string>");
-                sb.Append(e);     
+                sb.Append(e);
                 sb.Append("</string>");
             }
         }
@@ -720,6 +740,32 @@ namespace OpenSim.Framework
                         break;
                 }
             }
-         }
+        }
+
+        public static byte[] ulongToByteArray(ulong uLongValue)
+        {
+            return new byte[8]
+            {
+                (byte)((uLongValue >> 56) & 0xff),
+                (byte)((uLongValue >> 48) & 0xff),
+                (byte)((uLongValue >> 40) & 0xff),
+                (byte)((uLongValue >> 32) & 0xff),
+                (byte)((uLongValue >> 24) & 0xff),
+                (byte)((uLongValue >> 16) & 0xff),
+                (byte)((uLongValue >> 8) & 0xff),
+                (byte)(uLongValue & 0xff)
+            };
+        }
+
+        public static byte[] uintToByteArray(uint value)
+        {
+            return new byte[4]
+            {
+                (byte)((value >> 24) & 0xff),
+                (byte)((value >> 16) & 0xff),
+                (byte)((value >> 8) & 0xff),
+                (byte)(value & 0xff)
+            };
+        }
     }
 }
