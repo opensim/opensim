@@ -338,4 +338,9 @@
     <Key Name="assetType" Value="1" />
     <Key Name="fileName" Value="snd_TerrainRubber.ogg" />
   </Section>
-</Nini>
+  <Section Name="snd_SandStep">
+    <Key Name="assetID" Value="e8af4a28-aa83-4310-a7c4-c047e15ea0df" />
+    <Key Name="name" Value="snd_SandStep" />
+    <Key Name="assetType" Value="1" />
+    <Key Name="fileName" Value="snd_SandStep.ogg" />
+  </Section></Nini>
