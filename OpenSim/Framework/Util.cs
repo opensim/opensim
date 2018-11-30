@@ -2382,6 +2382,38 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        public static bool TryParseHttpRange(string header, out int start, out int end)
+        {
+            start = end = 0;
+
+            if (header.StartsWith("bytes="))
+            {
+                string[] rangeValues = header.Substring(6).Split('-');
+
+                if (rangeValues.Length == 2)
+                {
+                    string rawStart = rangeValues[0].Trim();
+                    if (rawStart != "" && !Int32.TryParse(rawStart, out start))
+                        return false;
+
+                    if (start < 0)
+                        return false;
+
+                    string rawEnd = rangeValues[1].Trim();
+                    if (rawEnd == "")
+                    {
+                        end = -1;
+                        return true;
+                    }
+                    else if (Int32.TryParse(rawEnd, out end))
+                        return end > 0;
+                }
+            }
+
+            start = end = 0;
+            return false;
+        }
+
         /// <summary>
         /// Used to trigger an early library load on Windows systems.
         /// </summary>
