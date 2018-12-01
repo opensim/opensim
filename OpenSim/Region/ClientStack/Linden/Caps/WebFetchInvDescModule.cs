@@ -59,7 +59,6 @@ namespace OpenSim.Region.ClientStack.Linden
             public PollServiceInventoryEventArgs thepoll;
             public UUID reqID;
             public Hashtable request;
-            public ScenePresence presence;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -287,79 +286,16 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 Request = (x, y) =>
                 {
-                    ScenePresence sp = m_module.Scene.GetScenePresence(Id);
-
                     APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
                     reqinfo.reqID = x;
                     reqinfo.request = y;
-                    reqinfo.presence = sp;
-
-/* why where we doing this? just to get cof ?
-                    List<UUID> folders = new List<UUID>();
-                                        
-                    // Decode the request here
-                    string request = y["body"].ToString();
-
-                    request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
-
-                    request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
-                    request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
-
-                    Hashtable hash = new Hashtable();
-                    try
-                    {
-                        hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
-                    }
-                    catch (LLSD.LLSDParseException e)
-                    {
-                        m_log.ErrorFormat("[INVENTORY]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
-                        m_log.Error("Request: " + request);
-                        return;
-                    }
-                    catch (System.Xml.XmlException)
-                    {
-                        m_log.ErrorFormat("[INVENTORY]: XML Format error");
-                    }
-
-                    ArrayList foldersrequested = (ArrayList)hash["folders"];
-
-                    bool highPriority = false;
-
-                    for (int i = 0; i < foldersrequested.Count; i++)
-                    {
-                        Hashtable inventoryhash = (Hashtable)foldersrequested[i];
-                        string folder = inventoryhash["folder_id"].ToString();
-                        UUID folderID;
-                        if (UUID.TryParse(folder, out folderID))
-                        {
-                            if (!folders.Contains(folderID))
-                            {
-                                if (sp.COF != UUID.Zero && sp.COF == folderID)
-                                    highPriority = true;
-                                folders.Add(folderID);
-                            }
-                        }
-                    }
-
-                    if (highPriority)
-                        m_queue.PriorityEnqueue(reqinfo);
-                    else
-*/
-                        m_queue.Add(reqinfo);
+                    m_queue.Add(reqinfo);
                 };
 
                 NoEvents = (x, y) =>
                 {
-/*
-                    lock (requests)
-                    {
-                        Hashtable request = requests.Find(id => id["RequestID"].ToString() == x.ToString());
-                        requests.Remove(request);
-                    }
-*/
                     Hashtable response = new Hashtable();
-
                     response["int_response_code"] = 500;
                     response["str_response_string"] = "Script timeout";
                     response["content_type"] = "text/plain";
@@ -375,7 +311,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     return;
 
                 UUID requestID = requestinfo.reqID;
-
 
                 lock(responses)
                 {
@@ -393,9 +328,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 response["int_response_code"] = 200;
                 response["content_type"] = "text/plain";
-
-//                response["str_response_string"] = m_webFetchHandler.FetchInventoryDescendentsRequest(
-//                        requestinfo.request["body"].ToString(), String.Empty, String.Empty, null, null);
 
                 response["bin_response_data"] = System.Text.Encoding.UTF8.GetBytes(
                         m_webFetchHandler.FetchInventoryDescendentsRequest(
@@ -459,29 +391,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                     caps.RegisterHandler(capName, capUrl);
             }
-
-            // m_log.DebugFormat(
-            //     "[FETCH INVENTORY DESCENDENTS2 MODULE]: Registered capability {0} at {1} in region {2} for {3}",
-            //     capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
         }
-
-//        private void DeregisterCaps(UUID agentID, Caps caps)
-//        {
-//            string capUrl;
-//
-//            if (m_capsDict.TryGetValue(agentID, out capUrl))
-//            {
-//                MainServer.Instance.RemoveHTTPHandler("", capUrl);
-//                m_capsDict.Remove(agentID);
-//            }
-//        }
 
         private static void DoInventoryRequests()
         {
-            APollRequest poolreq;
             while (true)
             {
-                if(!m_queue.TryTake(out poolreq, 4500) || poolreq == null || poolreq.thepoll == null)
+                APollRequest poolreq;
+                if (!m_queue.TryTake(out poolreq, 4500) || poolreq == null || poolreq.thepoll == null)
                 {
                     Watchdog.UpdateThread();
                     continue;
@@ -490,14 +407,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 Watchdog.UpdateThread();
                 try
                 {
-                    APollRequest req = poolreq;
-                    req.thepoll.Process(req);
+                    poolreq.thepoll.Process(poolreq);
                 }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[INVENTORY]: Failed to process queued inventory request {0} for {1}.  Exception {2}",
-                        poolreq.reqID, poolreq.presence != null ? poolreq.presence.Name : "unknown", e);
+                        "[INVENTORY]: Failed to process queued inventory Exception {0}", e.Message);
                 }
             }
         }
