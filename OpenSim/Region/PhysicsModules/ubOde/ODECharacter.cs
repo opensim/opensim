@@ -973,6 +973,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(collider != IntPtr.Zero)
             {
+                m_parent_scene.actor_name_map.Remove(collider);
                 SafeNativeMethods.SpaceDestroy(collider);
                 collider = IntPtr.Zero;
             }
