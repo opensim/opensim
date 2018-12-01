@@ -116,24 +116,25 @@ namespace OpenSim.Region.CoreModules.Framework
             //m_log.DebugFormat("[SERVICE THROTTLE]: RegionHandleRequest {0}", regionID);
             Action action = delegate
             {
-                if(!client.IsActive)
+                if(!client.IsActive || m_scenes.Count == 0 || m_scenes[0] == null )
+                {
+                    client = null;
                     return;
-
-                if(m_scenes.Count == 0)
-                    return;
+                }
 
                 Scene baseScene = m_scenes[0];
-
-                if(baseScene == null || baseScene.ShuttingDown)
+                if(baseScene.ShuttingDown)
+                {
+                    client = null;
                     return;
+                }
 
                 GridRegion r = baseScene.GridService.GetRegionByUUID(UUID.Zero, regionID);
 
-                if(!client.IsActive)
-                    return;
-
-                if (r != null && r.RegionHandle != 0)
+                if (client.IsActive && r != null && r.RegionHandle != 0)
                     client.SendRegionHandle(regionID, r.RegionHandle);
+
+                client = null;
             };
 
             m_processorJobEngine.QueueJob("regionHandle", action, regionID.ToString());
