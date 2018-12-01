@@ -124,7 +124,7 @@ namespace OpenSim.Capabilities.Handlers
             AssetBase asset = m_assetService.Get(assetID.ToString());
             if(asset == null)
             {
-                m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
                 responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
                 responsedata["str_response_string"] = "Asset not found.";
                 return responsedata;
@@ -136,8 +136,8 @@ namespace OpenSim.Capabilities.Handlers
                 return responsedata;
             }
 
-            if(type != AssetType.Mesh && type != AssetType.Texture)
-                m_log.Warn("[GETASSETS]: type: " + query);
+            // if(type != AssetType.Mesh && type != AssetType.Texture)
+            //    m_log.Warn("[GETASSETS]: type: " + query);
 
             string range = String.Empty;
             if (((Hashtable)request["headers"])["range"] != null)
