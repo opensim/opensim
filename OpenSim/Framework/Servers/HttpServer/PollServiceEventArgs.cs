@@ -56,7 +56,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             LslHttp = 1,
             Inventory = 2,
             Texture = 3,
-            Mesh = 4
+            Mesh = 4,
+            Mesh2 = 5,
+            Asset = 6
         }
 
         public string Url { get; set; }

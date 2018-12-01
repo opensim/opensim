@@ -207,6 +207,7 @@ namespace OpenSim.Framework.Capabilities
             {
                 m_httpListener.RemovePollServiceHTTPHandler("", handler.Url);
             }
+            m_pollServiceHandlers.Clear();
         }
 
         public bool TryGetPollHandler(string name, out PollServiceEventArgs pollHandler)

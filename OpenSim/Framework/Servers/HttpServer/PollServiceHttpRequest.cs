@@ -91,7 +91,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
 
             try
             {
@@ -118,7 +117,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             int responsecode;
             string responseString = String.Empty;
-            byte[] responseData = null;
+            byte[] responseBytes = null;
             string contentType;
 
             if (responsedata == null)
@@ -134,8 +133,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
                     responsecode = (int)responsedata["int_response_code"];
+
                     if (responsedata["bin_response_data"] != null)
-                        responseData = (byte[])responsedata["bin_response_data"];
+                        responseBytes = (byte[])responsedata["bin_response_data"];
                     else
                         responseString = (string)responsedata["str_response_string"];
                     contentType = (string)responsedata["content_type"];
@@ -170,9 +170,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (responsedata.ContainsKey("access_control_allow_origin"))
                 response.AddHeader("Access-Control-Allow-Origin", (string)responsedata["access_control_allow_origin"]);
 
-            //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
-            //and should check for NullReferenceExceptions
-
             if (string.IsNullOrEmpty(contentType))
             {
                 contentType = "text/html";
@@ -185,7 +182,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (responsecode == (int)OSHttpStatusCode.RedirectMovedPermanently)
             {
                 response.RedirectLocation = (string)responsedata["str_redirect_location"];
-                response.StatusCode = responsecode;
             }
 
             response.AddHeader("Content-Type", contentType);
@@ -199,9 +195,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             byte[] buffer;
 
-            if (responseData != null)
+            if (responseBytes != null)
             {
-                buffer = responseData;
+                buffer = responseBytes;
             }
             else
             {
@@ -218,9 +214,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // Binary!
                     buffer = Convert.FromBase64String(responseString);
                 }
-
-                response.SendChunked = false;
-                response.ContentLength64 = buffer.Length;
                 response.ContentEncoding = Encoding.UTF8;
             }
 

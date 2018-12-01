@@ -398,22 +398,13 @@ namespace OpenSim.Region.ClientStack.Linden
             while (true)
             {
                 APollRequest poolreq;
-                if (!m_queue.TryTake(out poolreq, 4500) || poolreq == null || poolreq.thepoll == null)
+                if (m_queue.TryTake(out poolreq, 4500))
                 {
                     Watchdog.UpdateThread();
-                    continue;
+                    if (poolreq.thepoll != null)
+                        poolreq.thepoll.Process(poolreq);
                 }
-
                 Watchdog.UpdateThread();
-                try
-                {
-                    poolreq.thepoll.Process(poolreq);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat(
-                        "[INVENTORY]: Failed to process queued inventory Exception {0}", e.Message);
-                }
             }
         }
     }
