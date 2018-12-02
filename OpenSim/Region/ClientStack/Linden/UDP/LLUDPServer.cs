@@ -402,16 +402,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int IncomingOrphanedPacketCount { get; protected set; }
 
         /// <summary>
-        /// Record current outgoing client for monitoring purposes.
-        /// </summary>
-        protected IClientAPI m_currentOutgoingClient;
-
-        /// <summary>
-        /// Recording current incoming client for monitoring purposes.
-        /// </summary>
-        protected IClientAPI m_currentIncomingClient;
-
-        /// <summary>
         /// Queue some low priority but potentially high volume async requests so that they don't overwhelm available
         /// threadpool threads.
         /// </summary>
@@ -548,7 +538,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ThreadPriority.Normal,
                 true,
                 true,
-                GetWatchdogIncomingAlarmData,
+                null,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
         }
 
@@ -564,7 +554,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ThreadPriority.Normal,
                 true,
                 true,
-                GetWatchdogOutgoingAlarmData,
+                null,
                 Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS);
         }
 
@@ -654,27 +644,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_incomingPacketPoolStat = null;
         }
 
-        /// <summary>
+         /// <summary>
         /// If the outgoing UDP thread times out, then return client that was being processed to help with debugging.
         /// </summary>
         /// <returns></returns>
-        protected string GetWatchdogIncomingAlarmData()
-        {
-            return string.Format(
-                "Client is {0}",
-                m_currentIncomingClient != null ? m_currentIncomingClient.Name : "none");
-        }
-
-        /// <summary>
-        /// If the outgoing UDP thread times out, then return client that was being processed to help with debugging.
-        /// </summary>
-        /// <returns></returns>
-        protected string GetWatchdogOutgoingAlarmData()
-        {
-            return string.Format(
-                "Client is {0}",
-                m_currentOutgoingClient != null ? m_currentOutgoingClient.Name : "none");
-        }
 
         public void AddScene(IScene scene)
         {
@@ -2106,8 +2079,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // client. m_packetSent will be set to true if a packet is sent
                     Scene.ForEachClient(clientPacketHandler);
 
-                    m_currentOutgoingClient = null;
-
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
 
@@ -2132,8 +2103,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void ClientOutgoingPacketHandler(IClientAPI client)
         {
-            m_currentOutgoingClient = client;
-
             try
             {
                 if (client is LLClientView)
@@ -2163,6 +2132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Error(
                     string.Format("[LLUDPSERVER]: OutgoingPacketHandler iteration for {0} threw ", client.Name), ex);
             }
+            client = null;
         }
 
         #region Emergency Monitoring
@@ -2198,8 +2168,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(!client.IsActive)
                 return;
 
-            m_currentIncomingClient = client;
-
             try
             {
                 // Process this packet
@@ -2219,10 +2187,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         "[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw ",
                         client.Name,packet.Type),
                     e);
-            }
-            finally
-            {
-                m_currentIncomingClient = null;
             }
 
             IncomingPacketsProcessed++;
