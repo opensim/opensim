@@ -139,22 +139,21 @@ namespace OpenSim.Capabilities.Handlers
             // if(type != AssetType.Mesh && type != AssetType.Texture)
             //    m_log.Warn("[GETASSETS]: type: " + query);
 
+            responsedata["content_type"] = asset.Metadata.ContentType;
+            responsedata["bin_response_data"] = asset.Data;
+            responsedata["int_bytes"] = asset.Data.Length;
+            responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
+
             string range = String.Empty;
             if (((Hashtable)request["headers"])["range"] != null)
                range = (string)((Hashtable)request["headers"])["range"];
             else if (((Hashtable)request["headers"])["Range"] != null)
                 range = (string)((Hashtable)request["headers"])["Range"];
-
-            responsedata["content_type"] = asset.Metadata.ContentType;
+            else
+                return responsedata; // full asset
 
             if (String.IsNullOrEmpty(range))
-            {
-                // full asset
-                responsedata["bin_response_data"] = asset.Data;
-                responsedata["int_bytes"] = asset.Data.Length;
-                responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
-                return responsedata;
-            }
+                return responsedata; // full asset
 
             // range request
             int start, end;
@@ -181,18 +180,12 @@ namespace OpenSim.Capabilities.Handlers
                 headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length);
                 responsedata["headers"] = headers;
                 responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
-
-                byte[] d = new byte[len];
-                Array.Copy(asset.Data, start, d, 0, len);
-                responsedata["bin_response_data"] = d;
+                responsedata["bin_start"] = start;
                 responsedata["int_bytes"] = len;
                 return responsedata;
             }
 
             m_log.Warn("[GETASSETS]: Failed to parse a range, sending full asset: " + assetStr);
-            responsedata["bin_response_data"] = asset.Data;
-            responsedata["int_bytes"] = asset.Data.Length;
-            responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
             return responsedata;
         }
     }
