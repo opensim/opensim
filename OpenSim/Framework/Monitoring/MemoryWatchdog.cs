@@ -110,20 +110,17 @@ namespace OpenSim.Framework.Monitoring
             long memoryNow = GC.GetTotalMemory(false);
             long memoryDiff = memoryNow - m_lastUpdateMemory;
 
-            if (memoryDiff >= 0)
-            {
-                if (m_samples.Count >= m_maxSamples)
+            if (m_samples.Count >= m_maxSamples)
                     m_samples.Dequeue();
 
-                double elapsed = Util.EnvironmentTickCountSubtract(now, m_lastUpdateTick);
+            double elapsed = Util.EnvironmentTickCountSubtract(now, m_lastUpdateTick);
 
-                // This should never happen since it's not useful for updates to occur with no time elapsed, but
-                // protect ourselves from a divide-by-zero just in case.
-                if (elapsed == 0)
-                    return;
+            // This should never happen since it's not useful for updates to occur with no time elapsed, but
+            // protect ourselves from a divide-by-zero just in case.
+            if (elapsed == 0)
+                return;
 
-                m_samples.Enqueue(memoryDiff / (double)elapsed);
-            }
+            m_samples.Enqueue(memoryDiff / (double)elapsed);
 
             UpdateLastRecord(memoryNow, now);
         }
