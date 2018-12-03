@@ -206,11 +206,17 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 if(rangeLen > 0)
-                    response.OutputStream.Write(buffer, rangeStart, rangeLen);
+                {
+                    response.RawBufferStart = rangeStart;
+                    response.RawBufferLen = rangeLen;
+                    response.RawBuffer = buffer;
+                    //response.OutputStream.Write(buffer, rangeStart, rangeLen);
+                }
 
                 buffer = null;
 
                 response.Send();
+                response.RawBuffer = null;
             }
             catch (Exception ex)
             {

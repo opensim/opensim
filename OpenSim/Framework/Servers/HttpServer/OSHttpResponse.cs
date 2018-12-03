@@ -195,6 +195,42 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public byte[] RawBuffer
+        {
+            get
+            {
+                return _httpResponse.RawBuffer;
+            }
+            set
+            {
+                _httpResponse.RawBuffer = value;
+            }
+        }
+
+        public int RawBufferStart
+        {
+            get
+            {
+                return _httpResponse.RawBufferStart;
+            }
+            set
+            {
+                _httpResponse.RawBufferStart = value;
+            }
+        }
+
+        public int RawBufferLen
+        {
+            get
+            {
+                return _httpResponse.RawBufferLen;
+            }
+            set
+            {
+                _httpResponse.RawBufferLen = value;
+            }
+        }
+
         /// <summary>
         /// Set a redirct location.
         /// </summary>
