@@ -85,7 +85,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                 Request.Body.Dispose();
 
             OSHttpResponse response
-                = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
+                = new OSHttpResponse(new HttpResponse(HttpContext, Request));
+
+            if (responsedata == null)
+            {
+                SendNoContentError(response);
+                return;
+            }
 
             int responsecode = 200;
             string responseString = String.Empty;
@@ -94,61 +100,44 @@ namespace OpenSim.Framework.Servers.HttpServer
             int rangeStart = 0;
             int rangeLen = -1;
 
-            if (responsedata == null)
+            try
             {
-                responsecode = 500;
-                responseString = "No response could be obtained";
-                contentType = "text/plain";
-                responsedata = new Hashtable();
+                //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
+                if(responsedata["int_response_code"] != null)
+                    responsecode = (int)responsedata["int_response_code"];
+
+                if (responsedata["bin_response_data"] != null)
+                {
+                    buffer = (byte[])responsedata["bin_response_data"];
+                    responsedata["bin_response_data"] = null;
+
+                    if (responsedata["bin_start"] != null)
+                        rangeStart = (int)responsedata["bin_start"];
+
+                    if (responsedata["int_bytes"] != null)
+                        rangeLen = (int)responsedata["int_bytes"];
+                }
+                else
+                    responseString = (string)responsedata["str_response_string"];
+
+                contentType = (string)responsedata["content_type"];
+                if (responseString == null)
+                    responseString = String.Empty;
             }
-            else
+            catch
             {
-                try
-                {
-                    //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
-                    if(responsedata["int_response_code"] != null)
-                        responsecode = (int)responsedata["int_response_code"];
-
-                    if (responsedata["bin_response_data"] != null)
-                    {
-                        buffer = (byte[])responsedata["bin_response_data"];
-                        responsedata["bin_response_data"] = null;
-
-                        if (responsedata["bin_start"] != null)
-                            rangeStart = (int)responsedata["bin_start"];
-
-                        if (responsedata["int_bytes"] != null)
-                            rangeLen = (int)responsedata["int_bytes"];
-                    }
-                    else
-                        responseString = (string)responsedata["str_response_string"];
-
-                    contentType = (string)responsedata["content_type"];
-                    if (responseString == null)
-                        responseString = String.Empty;
-                }
-                catch
-                {
-                    responsecode = 500;
-                    responseString = "No response could be obtained";
-                    contentType = "text/plain";
-                    responsedata = new Hashtable();
-                }
+                SendNoContentError(response);
+                return;
             }
 
             if (responsedata.ContainsKey("error_status_text"))
-            {
                 response.StatusDescription = (string)responsedata["error_status_text"];
-            }
+
             if (responsedata.ContainsKey("http_protocol_version"))
-            {
                 response.ProtocolVersion = (string)responsedata["http_protocol_version"];
-            }
+
             if (responsedata.ContainsKey("keepalive"))
-            {
-                bool keepalive = (bool)responsedata["keepalive"];
-                response.KeepAlive = keepalive;
-            }
+                response.KeepAlive = (bool)responsedata["keepalive"];
 
             // Cross-Origin Resource Sharing with simple requests
             if (responsedata.ContainsKey("access_control_allow_origin"))
@@ -200,7 +189,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             else if (rangeLen + rangeStart > buffer.Length)
                 rangeLen = buffer.Length - rangeStart;
 
-            response.SendChunked = false;
             response.ContentLength64 = rangeLen;
 
             try
@@ -233,10 +221,24 @@ namespace OpenSim.Framework.Servers.HttpServer
             PollServiceArgs.RequestsHandled++;
         }
 
+        internal void SendNoContentError(OSHttpResponse response)
+        {
+            response.ContentLength64 = 0;
+            response.ContentEncoding = Encoding.UTF8;
+            response.StatusCode = 500;
+
+            try
+            {
+                response.Send();
+            }
+            catch { }
+            return;
+        }
+
         internal void DoHTTPstop()
         {
             OSHttpResponse response
-                = new OSHttpResponse(new HttpResponse(HttpContext, Request), HttpContext);
+                = new OSHttpResponse(new HttpResponse(HttpContext, Request));
 
             if(Request.Body.CanRead)
                 Request.Body.Dispose();
@@ -244,7 +246,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.ContentLength64 = 0;
             response.ContentEncoding = Encoding.UTF8;
             response.KeepAlive = false;
-            response.SendChunked = false;
             response.StatusCode = 503;
 
             try

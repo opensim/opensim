@@ -251,12 +251,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             get
             {
-                    return _httpResponse.Chunked;
+               return _httpResponse.Chunked;
             }
 
             set
             {
-                _httpResponse.Chunked = value;
+               _httpResponse.Chunked = value;
             }
         }
 
@@ -294,7 +294,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         protected IHttpResponse _httpResponse;
-        private IHttpClientContext _httpClientContext;
 
         public OSHttpResponse() {}
 
@@ -312,12 +311,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         public OSHttpResponse(OSHttpRequest req)
         {
             _httpResponse = new HttpResponse(req.IHttpClientContext, req.IHttpRequest);
-            _httpClientContext = req.IHttpClientContext;
+
         }
-        public OSHttpResponse(HttpResponse resp, IHttpClientContext clientContext)
+
+        public OSHttpResponse(HttpResponse resp)
         {
             _httpResponse = resp;
-            _httpClientContext = clientContext;
         }
 
         /// <summary>
@@ -337,13 +336,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public void Send()
         {
+            _httpResponse.Chunked = false;
             _httpResponse.Send();
-        }
-
-        public void FreeContext()
-        {
-            if (_httpClientContext != null)
-                _httpClientContext.Close();
         }
     }
 }
