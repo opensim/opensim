@@ -48,12 +48,9 @@ namespace OpenSim.Framework.Monitoring
                 Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
 
             sb.AppendFormat(
-                "Last heap allocation rate   : {0} MB/s\n",
-                Math.Round((MemoryWatchdog.LastHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
-
-            sb.AppendFormat(
-                "Average heap allocation rate: {0} MB/s\n",
-                Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1024.0 / 1024, 3));
+                "Heap allocation rate (last/avg): {0}/{1}MB/s\n",
+                Math.Round((MemoryWatchdog.LastHeapAllocationRate * 1000) / 1048576.0, 3),
+                Math.Round((MemoryWatchdog.AverageHeapAllocationRate * 1000) / 1048576.0, 3));
 
             Process myprocess = Process.GetCurrentProcess();
 //            if (!myprocess.HasExited)

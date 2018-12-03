@@ -843,7 +843,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (!response.SendChunked && response.ContentLength64 <= 0)
                         response.ContentLength64 = buffer.LongLength;
 
-                    response.OutputStream.Write(buffer, 0, buffer.Length);
+                    //response.OutputStream.Write(buffer, 0, buffer.Length);
+                    response.RawBufferStart = 0;
+                    response.RawBufferLen = buffer.Length;
+                    response.RawBuffer = buffer;
                 }
 
                 // Do not include the time taken to actually send the response to the caller in the measurement
@@ -851,7 +854,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // server
                 requestEndTick = Environment.TickCount;
 
+                buffer = null;
                 response.Send();
+                response.RawBuffer = null;
             }
             catch (SocketException e)
             {
