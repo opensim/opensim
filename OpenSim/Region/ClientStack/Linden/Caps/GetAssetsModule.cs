@@ -212,6 +212,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     Watchdog.UpdateThread();
                     if (poolreq.reqID != UUID.Zero)
                         poolreq.thepoll.Process(poolreq);
+                    poolreq = null;
                 }
                 Watchdog.UpdateThread();
             }
@@ -323,7 +324,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             return;
                         }
                     }
-
+/* can't do this with current viewers; HG problem
                     // If the avatar is gone, don't bother to get the texture
                     if(m_scene.GetScenePresence(Id) == null)
                     {
@@ -335,6 +336,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         responses[requestID] = new APollResponse() { bytes = 0, response = curresponse };
                         return;
                     }
+*/
                 }
 
                 curresponse = m_getAssetHandler.Handle(requestinfo.request);

@@ -403,6 +403,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     Watchdog.UpdateThread();
                     if (poolreq.thepoll != null)
                         poolreq.thepoll.Process(poolreq);
+                    poolreq = null;
                 }
                 Watchdog.UpdateThread();
             }
