@@ -130,7 +130,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             RequestAssetMethod = m;
             SetTerrain(terrain);
             SetWaterLevel(waterHeight);
-
         }
 
         public virtual void TriggerPhysicsBasedRestart()
@@ -310,8 +309,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// </returns>
         public virtual Dictionary<string, float> GetStats() { return null; }
 
-        public abstract void GetResults();
-
         public abstract void SetTerrain(float[] heightMap);
 
         public abstract void SetWaterLevel(float baseheight);
@@ -321,8 +318,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract void Dispose();
 
         public abstract Dictionary<uint, float> GetTopColliders();
-
-        public abstract bool IsThreaded { get; }
 
         /// <summary>
         /// True if the physics plugin supports raycasting against the physics scene
@@ -409,5 +404,8 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             // A NOP if the extension thing is not implemented by the physics engine
             return null;
         }
+
+        public virtual void GetResults() { }
+        public virtual bool IsThreaded { get {return false;} }
     }
 }
