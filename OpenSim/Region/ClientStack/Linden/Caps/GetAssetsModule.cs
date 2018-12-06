@@ -72,6 +72,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public Hashtable response;
             public int bytes;
+            public bool throttle;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -244,7 +245,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
                             if (m_presence == null || m_presence.IsDeleted)
                                 return true;
-                            return m_presence.CapCanSendAsset(1, response.bytes);
+                            if(response.throttle)
+                                return m_presence.CapCanSendAsset(1, response.bytes);
+                            return m_presence.CapCanSendAsset(2, response.bytes);
                         }
                         return false;
                     }
@@ -352,11 +355,14 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-                    responses[requestID] = new APollResponse()
+                    APollResponse preq= new APollResponse()
                     {
                         bytes = (int)curresponse["int_bytes"],
                         response = curresponse
                     };
+                    if(curresponse.Contains("throttle"))
+                        preq.throttle = true;
+                    responses[requestID] = preq;
                 }
             }
         }
