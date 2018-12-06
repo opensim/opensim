@@ -86,6 +86,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float m_density = 60f;
         private bool m_pidControllerActive = true;
 
+        public int m_bodydisablecontrol = 0;
+
         const float basePID_D = 0.55f; // scaled for unit mass unit time (2200 /(50*80))
         const float basePID_P = 0.225f; // scaled for unit mass unit time (900 /(50*80))
         public float PID_D;
@@ -803,6 +805,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_pidControllerActive = true;
             _acceleration = accel;
+            if (Body != IntPtr.Zero)
+                SafeNativeMethods.BodyEnable(Body);
         }
 
         /// <summary>
@@ -894,7 +898,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _velocity = Vector3.Zero;
 
-            SafeNativeMethods.BodySetAutoDisableFlag(Body,false);
+            // SafeNativeMethods.BodySetAutoDisableFlag(Body,false);
+            SafeNativeMethods.BodySetAutoDisableFlag(Body, true);
+            m_bodydisablecontrol = 0;
+
             SafeNativeMethods.BodySetPosition(Body,npositionX,npositionY,npositionZ);
 
             _position.X = npositionX;
@@ -973,7 +980,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(collider != IntPtr.Zero)
             {
-                m_parent_scene.actor_name_map.Remove(collider);
                 SafeNativeMethods.SpaceDestroy(collider);
                 collider = IntPtr.Zero;
             }
@@ -1141,6 +1147,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if(Body == IntPtr.Zero)
                 return;
+
+            if (!SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                if (++m_bodydisablecontrol < 50)
+                    return;
+
+                // clear residuals
+                SafeNativeMethods.BodySetAngularVel(Body, 0f, 0f, 0f);
+                SafeNativeMethods.BodySetLinearVel(Body, 0f, 0f, 0f);
+                _zeroFlag = true;
+                SafeNativeMethods.BodyEnable(Body);
+            }
+
+            m_bodydisablecontrol = 0;
 
             SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetPosition(Body);
             Vector3 localpos = new Vector3(dtmp.X,dtmp.Y,dtmp.Z);
@@ -1780,6 +1800,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(m_cureventsubscription < m_eventsubscription)
                 return;
 
+            if(Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+                return;
+
             lock(CollisionEventsThisFrame)
             {
                 int ncolisions = CollisionEventsThisFrame.m_objCollisionList.Count;
@@ -1820,7 +1843,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     AvatarGeomAndBodyCreation(_position.X,_position.Y,_position.Z);
 
-                    m_parent_scene.actor_name_map[collider] = (PhysicsActor)this;
                     m_parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                     m_parent_scene.AddCharacter(this);
                 }
@@ -1874,7 +1896,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     //                    Velocity = Vector3.Zero;
                     m_targetVelocity = Vector3.Zero;
 
-                    m_parent_scene.actor_name_map[collider] = (PhysicsActor)this;
                     m_parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
                 }
                 m_freemove = false;
@@ -1889,7 +1910,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void changePosition(Vector3 newPos)
         {
             if(Body != IntPtr.Zero)
-                SafeNativeMethods.BodySetPosition(Body,newPos.X,newPos.Y,newPos.Z);
+            {
+                SafeNativeMethods.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
+                SafeNativeMethods.BodyEnable(Body);
+            }
+
             _position = newPos;
             m_freemove = false;
             m_pidControllerActive = true;
@@ -1920,12 +1945,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_orientation2D.Y = 0f;
                 m_orientation2D.X = 0f;
 
-                SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
-                myrot.X = m_orientation2D.X;
-                myrot.Y = m_orientation2D.Y;
-                myrot.Z = m_orientation2D.Z;
-                myrot.W = m_orientation2D.W;
-                SafeNativeMethods.BodySetQuaternion(Body,ref myrot);
+                if (Body != IntPtr.Zero)
+                {
+                    SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
+                    myrot.X = m_orientation2D.X;
+                    myrot.Y = m_orientation2D.Y;
+                    myrot.Z = m_orientation2D.Z;
+                    myrot.W = m_orientation2D.W;
+                    SafeNativeMethods.BodySetQuaternion(Body,ref myrot);
+                    SafeNativeMethods.BodyEnable(Body);
+                }
             }
         }
 
@@ -1934,8 +1963,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             _velocity = newVel;
             setFreeMove();
 
-            if(Body != IntPtr.Zero)
-                SafeNativeMethods.BodySetLinearVel(Body,newVel.X,newVel.Y,newVel.Z);
+            if (Body != IntPtr.Zero)
+            {
+                SafeNativeMethods.BodySetLinearVel(Body, newVel.X, newVel.Y, newVel.Z);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeTargetVelocity(Vector3 newVel)
@@ -1943,6 +1975,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_pidControllerActive = true;
             m_freemove = false;
             _target_velocity = newVel;
+            if (Body != IntPtr.Zero)
+                SafeNativeMethods.BodyEnable(Body);
         }
 
         private void changeSetTorque(Vector3 newTorque)
@@ -2006,6 +2040,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if(newForce.X != 0f || newForce.Y != 0f || newForce.Z != 0)
                     SafeNativeMethods.BodyAddForce(Body,newForce.X,newForce.Y,newForce.Z);
+                SafeNativeMethods.BodyEnable(Body);
             }
         }
 
@@ -2016,7 +2051,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             setFreeMove();
 
             if(Body != IntPtr.Zero)
+            {
                 SafeNativeMethods.BodySetLinearVel(Body,newmomentum.X,newmomentum.Y,newmomentum.Z);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDHoverHeight(float val)

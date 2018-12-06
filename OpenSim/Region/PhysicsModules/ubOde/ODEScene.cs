@@ -221,7 +221,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float bodyPIDD = 35f;
         public float bodyPIDG = 25;
 
-        public int bodyFramesAutoDisable = 5;
+        public int bodyFramesAutoDisable = 10;
 
         private SafeNativeMethods.NearCallback nearCallback;
 
@@ -1856,17 +1856,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             return fps;
-        }
-
-        /// <summary>
-        public override void GetResults()
-        {
-        }
-
-        public override bool IsThreaded
-        {
-            // for now we won't be multithreaded
-            get { return (false); }
         }
 
         public float GetTerrainHeightAtXY(float x, float y)
