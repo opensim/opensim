@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GetTextureURL;
         private string m_GetMeshURL;
         private string m_GetMesh2URL;
-        private string m_GetAssetURL;
+//        private string m_GetAssetURL;
 
         class APollRequest
         {
@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDictTexture = new Dictionary<UUID, string>();
         private Dictionary<UUID, string> m_capsDictGetMesh = new Dictionary<UUID, string>();
         private Dictionary<UUID, string> m_capsDictGetMesh2 = new Dictionary<UUID, string>();
-        private Dictionary<UUID, string> m_capsDictGetAsset = new Dictionary<UUID, string>();
+        //private Dictionary<UUID, string> m_capsDictGetAsset = new Dictionary<UUID, string>();
 
         #region Region Module interfaceBase Members
 
