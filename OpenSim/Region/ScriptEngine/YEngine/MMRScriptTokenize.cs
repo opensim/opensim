@@ -784,6 +784,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     exponent = x;
                 }
+                if ((c == 'F') || (c == 'f'))
+                {
+                    if (++j >= source.Length)
+                    {
+                        TokenError(i, "f at end of source");
+                        return j;
+                    }
+
+                    c = source[j];
+                    if (((c >= '0') && (c <= '9')) || c == '.' || ((c == 'E') || (c == 'e')) || ((c == 'F') || (c == 'f')))
+                    {
+                        TokenError(j-1, "Syntax error");
+                        return j;
+                    }
+                    break;
+                }
                 break;
             }
             if(!decimals)
