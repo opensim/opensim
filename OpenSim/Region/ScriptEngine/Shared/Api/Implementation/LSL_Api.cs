@@ -2041,19 +2041,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-/*
-        public void llSetContentType(LSL_Key id, LSL_Integer content_type)
-        {
-            if (m_UrlModule != null)
-            {
-                string type = "text.plain";
-                if (content_type == (int)ScriptBaseClass.CONTENT_TYPE_HTML)
-                    type = "text/html";
-
-                m_UrlModule.HttpContentType(new UUID(id),type);
-            }
-        }
-*/
         public void SetTexGen(SceneObjectPart part, int face,int style)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
