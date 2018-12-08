@@ -180,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         /*
          * Makes sure migration data version is same on both ends.
          */
-        public static byte migrationVersion = 10;
+        public static byte migrationVersion = 11;
 
         // Incremented each time script gets reset.
         public int m_ResetCount = 0;
