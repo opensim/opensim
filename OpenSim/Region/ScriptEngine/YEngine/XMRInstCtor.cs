@@ -188,7 +188,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Use the same object code for identical source code
                 // regardless of asset ID, so we don't care if they
                 // copy scripts or not.
-                byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode);
+                byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode + migrationVersion.ToString());
                 StringBuilder sb = new StringBuilder((256 + 5) / 6);
                 using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
                     ByteArrayToSixbitStr(sb, sha.ComputeHash(scbytes));
@@ -378,18 +378,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else
             {
-                string xml;
-                using (FileStream fs = File.Open(m_StateFileName,
+                try
+                {
+                    string xml;
+                    using (FileStream fs = File.Open(m_StateFileName,
                                           FileMode.Open,
                                           FileAccess.Read))
-                {
-                    using(StreamReader ss = new StreamReader(fs))
-                        xml = ss.ReadToEnd();
-                }
+                    {
+                        using(StreamReader ss = new StreamReader(fs))
+                            xml = ss.ReadToEnd();
+                    }
 
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(xml);
-                LoadScriptState(doc);
+                    XmlDocument doc = new XmlDocument();
+                    doc.LoadXml(xml);
+                    LoadScriptState(doc);
+                }
+                catch (Exception e)
+                {
+                    m_Running = true;                  // event processing is enabled
+                    eventCode = ScriptEventCode.None;  // not processing any event
+
+                    // default state_entry() must initialize global variables
+                    doGblInit = true;
+                    stateCode = 0;
+
+                    PostEvent(new EventParams("state_entry",
+                                              zeroObjectArray,
+                                              zeroDetectParams));
+                }
             }
 
              // Post event(s) saying what caused the script to start.
@@ -527,11 +543,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             XmlElement snapshotN = (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
 
             Byte[] data = Convert.FromBase64String(snapshotN.InnerText);
-            MemoryStream ms = new MemoryStream();
-            ms.Write(data, 0, data.Length);
-            ms.Seek(0, SeekOrigin.Begin);
-            MigrateInEventHandler(ms);
-            ms.Close();
+            using(MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(data, 0, data.Length);
+                ms.Seek(0, SeekOrigin.Begin);
+                MigrateInEventHandler(ms);
+            }
 
             // Restore event queues, preserving any events that queued
             // whilst we were restoring the state
