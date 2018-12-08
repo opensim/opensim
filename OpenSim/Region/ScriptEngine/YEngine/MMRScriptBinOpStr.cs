@@ -83,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static TokenTypeVec tokenTypeVec = new TokenTypeVec(null);
 
         private static MethodInfo stringAddStringMethInfo = ScriptCodeGen.GetStaticMethod(typeof(string), "Concat", new Type[] { typeof(string), typeof(string) });
-        private static MethodInfo stringCmpStringMethInfo = ScriptCodeGen.GetStaticMethod(typeof(string), "Compare", new Type[] { typeof(string), typeof(string) });
+        private static MethodInfo stringCmpStringMethInfo = ScriptCodeGen.GetStaticMethod(typeof(string), "Compare", new Type[] { typeof(string), typeof(string), typeof(StringComparison) });
 
         private static MethodInfo infoMethListAddFloat = GetBinOpsMethod("MethListAddFloat", new Type[] { typeof(LSL_List), typeof(double) });
         private static MethodInfo infoMethListAddInt = GetBinOpsMethod("MethListAddInt", new Type[] { typeof(LSL_List), typeof(int) });
@@ -959,6 +959,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -970,6 +971,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1172,6 +1174,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1183,6 +1186,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Ceq);
@@ -1196,6 +1200,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Clt);
@@ -1207,6 +1212,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_1);
             scg.ilGen.Emit(errorAt, OpCodes.Clt);
@@ -1218,6 +1224,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_0);
             scg.ilGen.Emit(errorAt, OpCodes.Cgt);
@@ -1229,6 +1236,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeStr);
             right.PushVal(scg, errorAt, tokenTypeStr);
+            scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4, (int)StringComparison.Ordinal);
             scg.ilGen.Emit(errorAt, OpCodes.Call, stringCmpStringMethInfo);
             scg.ilGen.Emit(errorAt, OpCodes.Ldc_I4_M1);
             scg.ilGen.Emit(errorAt, OpCodes.Cgt);

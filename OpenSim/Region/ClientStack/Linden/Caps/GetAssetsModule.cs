@@ -441,7 +441,7 @@ namespace OpenSim.Region.ClientStack.Linden
             else if (m_GetMesh2URL != string.Empty)
                 caps.RegisterHandler("GetMesh2", m_GetMesh2URL);
 
-/* we can't support this cap. Current viewers connect to the workng regions.
+/* we can't support this cap. Current viewers connect to the wrong regions.
             //ViewerAsset
             if (m_GetAssetURL == "localhost")
             {
