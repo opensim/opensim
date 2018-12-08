@@ -393,7 +393,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     doc.LoadXml(xml);
                     LoadScriptState(doc);
                 }
-                catch (Exception e)
+                catch
                 {
                     m_Running = true;                  // event processing is enabled
                     eventCode = ScriptEventCode.None;  // not processing any event
