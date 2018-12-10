@@ -748,19 +748,34 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
-            // Override and put into where it came from, if it came
-            // from anywhere in inventory and the owner is taking it back.
-            //
-            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
+            if (action == DeRezAction.TakeCopy)
+                folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
+            else if (action == DeRezAction.Take)
             {
+                // Override and put into where it came from, if it came
+                // from anywhere in inventory and the owner is taking it back.
                 if (so.FromFolderID != UUID.Zero && so.RootPart.OwnerID == remoteClient.AgentId)
                 {
                     folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
 
-                    if(folder.Type == (int)FolderType.Trash || folder.Type == (int)FolderType.LostAndFound)
+                    if(folder == null  || folder.Type == (int)FolderType.Trash || folder.Type == (int)FolderType.LostAndFound)
                     {
-                        // folder.Type = 6;
                         folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
+                    }
+                    else
+                    {
+                        InventoryFolderBase parent = folder;
+                        while(true)
+                        {
+                            parent = m_Scene.InventoryService.GetFolder(userID, parent.ParentID);
+                            if (parent != null && parent.ParentID == UUID.Zero)
+                                break;
+                            if (parent == null || parent.Type == (int)FolderType.Trash || parent.Type == (int)FolderType.LostAndFound)
+                            {
+                                folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.Object);
+                                break;
+                            }
+                        }
                     }
                 }
             }
