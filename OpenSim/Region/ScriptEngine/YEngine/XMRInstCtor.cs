@@ -188,7 +188,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Use the same object code for identical source code
                 // regardless of asset ID, so we don't care if they
                 // copy scripts or not.
-                byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode + migrationVersion.ToString());
+                byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode);
                 StringBuilder sb = new StringBuilder((256 + 5) / 6);
                 using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
                     ByteArrayToSixbitStr(sb, sha.ComputeHash(scbytes));
@@ -395,6 +395,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 catch
                 {
+                    File.Delete(m_StateFileName);
+
                     m_Running = true;                  // event processing is enabled
                     eventCode = ScriptEventCode.None;  // not processing any event
 
