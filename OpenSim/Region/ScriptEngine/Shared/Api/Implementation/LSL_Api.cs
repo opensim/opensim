@@ -1974,23 +1974,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
-        public void llSetContentType(LSL_Key id, LSL_Integer type)
+        public void llSetContentType(LSL_Key reqid, LSL_Integer type)
         {
             m_host.AddScriptLPS(1);
 
             if (m_UrlModule == null)
                 return;
 
+            UUID id;
+            if(!UUID.TryParse(reqid, out id))
+                return;
+
             // Make sure the content type is text/plain to start with
-            m_UrlModule.HttpContentType(new UUID(id), "text/plain");
+            m_UrlModule.HttpContentType(id, "text/plain");
 
             // Is the object owner online and in the region
             ScenePresence agent = World.GetScenePresence(m_host.ParentGroup.OwnerID);
-            if (agent == null || agent.IsChildAgent)
+            if (agent == null || agent.IsChildAgent || agent.IsDeleted)
                 return;  // Fail if the owner is not in the same region
 
             // Is it the embeded browser?
-            string userAgent = m_UrlModule.GetHttpHeader(new UUID(id), "user-agent");
+            string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
             if (userAgent.IndexOf("SecondLife") < 0)
                 return; // Not the embedded browser. Is this check good enough?
 
@@ -1998,15 +2002,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // seperate logins from the same IP will allow all of them to get non-text/plain as long
             // as the owner is in the region. Same as SL!
             string logonFromIPAddress = agent.ControllingClient.RemoteEndPoint.Address.ToString();
-            string requestFromIPAddress = m_UrlModule.GetHttpHeader(new UUID(id), "remote_addr");
-            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
-            if (requestFromIPAddress == null || requestFromIPAddress.Trim() == "")
-                return;
-            if (logonFromIPAddress == null || logonFromIPAddress.Trim() == "")
+            if (string.IsNullOrEmpty(logonFromIPAddress))
                 return;
 
+            string requestFromIPAddress = m_UrlModule.GetHttpHeader(id, "x-remote-ip");
+            //m_log.Debug("IP from header='" + requestFromIPAddress + "' IP from endpoint='" + logonFromIPAddress + "'");
+            if (requestFromIPAddress == null)
+                return;
+
+            requestFromIPAddress = requestFromIPAddress.Trim();
+
             // If the request isnt from the same IP address then the request cannot be from the owner
-            if (!requestFromIPAddress.Trim().Equals(logonFromIPAddress.Trim()))
+            if (!requestFromIPAddress.Equals(logonFromIPAddress))
                 return;
 
             switch (type)
