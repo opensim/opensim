@@ -3164,7 +3164,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 module.Say(npcId, World, message, channel);
             }
         }
+		
+        public void osNpcSayTo(LSL_Key npc, string target, int channel, string msg)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcSayTo");
 
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID npcId = new UUID(npc.m_string);
+
+               if (!module.CheckPermissions(npcId, m_host.OwnerID))
+                   return;
+			
+			     ScenePresence NPCpresence = World.GetScenePresence(npcId);
+                if (NPCpresence == null || NPCpresence.IsDeleted)
+                    return;
+        
+            Vector3 npcPOS = NPCpresence.AbsolutePosition;
+			string npcNAME = NPCpresence.Name;
+            UUID TargetID;
+            UUID.TryParse(target, out TargetID);
+            
+                IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if (wComm != null)
+                wComm.DeliverMessageTo(TargetID, channel, npcPOS, npcNAME, npcId, msg);
+            }
+        }
         public void osNpcShout(LSL_Key npc, int channel, string message)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcShout");
