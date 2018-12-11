@@ -580,7 +580,10 @@ namespace OpenSim.Services.LLLoginService
 
                 // We need to send an openid_token back in the response too
                 if (openIDURL != String.Empty)
+                {
                     responseData["openid_url"] = openIDURL;
+                    responseData["openid_token"] = AgentID.ToString() + ":" + Util.Md5Hash(SecureSessionID.ToString());
+                }
 
                 if (m_buddyList != null)
                 {
@@ -696,7 +699,10 @@ namespace OpenSim.Services.LLLoginService
                     map["profile-server-url"] = OSD.FromString(profileURL);
 
                 if (openIDURL != String.Empty)
+                {
                     map["openid_url"] = OSD.FromString(openIDURL);
+                    map["openid_token"] = OSD.FromString(AgentID.ToString() + ":" + Util.Md5Hash(SecureSessionID.ToString()));
+                }
 
                 if (searchURL != String.Empty)
                     map["search"] = OSD.FromString(searchURL);
