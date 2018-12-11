@@ -358,7 +358,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void        osNpcSetProfileImage(LSL_Key npc, string image);
         void        osNpcSay(key npc, string message);
         void        osNpcSay(key npc, int channel, string message);
-		void        osNpcSayTo(LSL_Key npc, string target, int channel, string msg);
+        void        osNpcSayTo(LSL_Key npc, LSL_Key target, int channel, string msg);
         void        osNpcShout(key npc, int channel, string message);
         void        osNpcSit(key npc, key target, int options);
         void        osNpcStand(LSL_Key npc);
