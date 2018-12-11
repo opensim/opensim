@@ -3380,7 +3380,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
                             SafeNativeMethods.BodyEnable(Body);
-                        }                            
+                        }
                     }
                 }
                 m_collisionscore = 0;
@@ -3504,6 +3504,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return;
 
             m_vehicle.ProcessFloatVehicleParam((Vehicle)fp.param, fp.value);
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeVehicleVectorParam(strVehicleVectorParam vp)
@@ -3511,6 +3516,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_vehicle == null)
                 return;
             m_vehicle.ProcessVectorVehicleParam((Vehicle)vp.param, vp.value);
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeVehicleRotationParam(strVehicleQuatParam qp)
@@ -3518,6 +3528,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_vehicle == null)
                 return;
             m_vehicle.ProcessRotationVehicleParam((Vehicle)qp.param, qp.value);
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeVehicleFlags(strVehicleBoolParam bp)
@@ -3525,48 +3540,93 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (m_vehicle == null)
                 return;
             m_vehicle.ProcessVehicleFlags(bp.param, bp.value);
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeBuoyancy(float b)
         {
             m_buoyancy = b;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDTarget(Vector3 trg)
         {
             m_PIDTarget = trg;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDTau(float tau)
         {
             m_PIDTau = tau;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDActive(bool val)
         {
             m_usePID = val;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDHoverHeight(float val)
         {
-          m_PIDHoverHeight = val;
-          if (val == 0)
-            m_useHoverPID = false;
+            m_PIDHoverHeight = val;
+            if (val == 0)
+                m_useHoverPID = false;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDHoverType(PIDHoverType type)
         {
             m_PIDHoverType = type;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDHoverTau(float tau)
         {
             m_PIDHoverTau = tau;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changePIDHoverActive(bool active)
         {
             m_useHoverPID = active;
+            if (Body != IntPtr.Zero && !SafeNativeMethods.BodyIsEnabled(Body))
+            {
+                SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
+                SafeNativeMethods.BodyEnable(Body);
+            }
         }
 
         private void changeInertia(PhysicsInertiaData inertia)

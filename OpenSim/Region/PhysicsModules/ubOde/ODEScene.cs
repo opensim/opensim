@@ -288,10 +288,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public IConfigSource m_config;
 
-        public bool physics_logging = false;
-        public int physics_logging_interval = 0;
-        public bool physics_logging_append_existing_logfile = false;
-
         public Vector2 WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
 
         private ODERayCastRequestManager m_rayCastManager;
@@ -469,10 +465,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", geomDefaultDensity);
 //                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", bodyFramesAutoDisable);
 
-                    physics_logging = physicsconfig.GetBoolean("physics_logging", false);
-                    physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
-                    physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
-
                     minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", minimumGroundFlightOffset);
                     maximumMassObject = physicsconfig.GetFloat("maximum_mass_object", maximumMassObject);
 
@@ -633,50 +625,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return;
             }
 
-            // get geom bodies to check if we already a joint contact
-            // guess this shouldn't happen now
-            IntPtr b1 = SafeNativeMethods.GeomGetBody(g1);
-            IntPtr b2 = SafeNativeMethods.GeomGetBody(g2);
 
-            // d.GeomClassID id = d.GeomGetClass(g1);
 
             // Figure out how many contact points we have
             int count = 0;
             try
             {
-                // Colliding Geom To Geom
-                // This portion of the function 'was' blatantly ripped off from BoxStack.cs
-
                 if (g1 == g2)
                     return; // Can't collide with yourself
-
-//                if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
-//                    return;
-                /*
-                // debug
-                                PhysicsActor dp2;
-                                if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass)
-                                {
-                                    d.AABB aabb;
-                                    d.GeomGetAABB(g2, out aabb);
-                                    float x = aabb.MaxX - aabb.MinX;
-                                    float y = aabb.MaxY - aabb.MinY;
-                                    float z = aabb.MaxZ - aabb.MinZ;
-                                    if (x > 60.0f || y > 60.0f || z > 60.0f)
-                                    {
-                                        if (!actor_name_map.TryGetValue(g2, out dp2))
-                                            m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
-                                        else
-                                            m_log.WarnFormat("[PHYSICS]: land versus large prim geo {0},size {1}, AABBsize <{2},{3},{4}>, at {5} ori {6},({7})",
-                                                dp2.Name, dp2.Size, x, y, z,
-                                                dp2.Position.ToString(),
-                                                dp2.Orientation.ToString(),
-                                                dp2.Orientation.Length());
-                                        return;
-                                    }
-                                }
-                //
-                */
 
                 if (SafeNativeMethods.GeomGetCategoryBits(g1) == (uint)CollisionCategories.VolumeDtc ||
                     SafeNativeMethods.GeomGetCategoryBits(g2) == (uint)CollisionCategories.VolumeDtc)
@@ -707,28 +663,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (count == 0)
                 return;
 
+            // get first contact
+            SafeNativeMethods.ContactGeom curContact = new SafeNativeMethods.ContactGeom();
+            if (!GetCurContactGeom(0, ref curContact))
+                return;
+
             // try get physical actors
             PhysicsActor p1;
-            PhysicsActor p2;
-
             if (!actor_name_map.TryGetValue(g1, out p1))
             {
                 m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 1");
                 return;
             }
 
+            PhysicsActor p2;
             if (!actor_name_map.TryGetValue(g2, out p2))
             {
                 m_log.WarnFormat("[PHYSICS]: failed actor mapping for geom 2");
                 return;
             }
-
-
-            // get first contact
-            SafeNativeMethods.ContactGeom curContact = new SafeNativeMethods.ContactGeom();
-
-            if (!GetCurContactGeom(0, ref curContact))
-                return;
 
             ContactPoint maxDepthContact = new ContactPoint();
 
@@ -878,6 +831,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(dop1ava || dop2ava)
                 smoothMesh = false;
+
+            IntPtr b1 = SafeNativeMethods.GeomGetBody(g1);
+            IntPtr b2 = SafeNativeMethods.GeomGetBody(g2);
 
             while (true)
             {
