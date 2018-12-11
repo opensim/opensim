@@ -4251,7 +4251,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public void osSetContentType(LSL_Key id, string type)
         {
-            CheckThreatLevel(ThreatLevel.High, "osSetContentType");
+            CheckThreatLevel(ThreatLevel.Severe, "osSetContentType");
 
             if (m_UrlModule != null)
                 m_UrlModule.HttpContentType(new UUID(id),type);
