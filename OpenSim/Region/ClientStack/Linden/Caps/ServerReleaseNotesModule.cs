@@ -77,6 +77,13 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             if (string.IsNullOrEmpty(m_ServerReleaseNotesURL))
                 return;
 
+            Uri dummy;
+            if(!Uri.TryCreate(m_ServerReleaseNotesURL,UriKind.Absolute, out dummy))
+            {
+                m_log.Error("[Cap_ServerReleaseNotes]: Invalid ServerReleaseNotesURL. Cap Disabled");
+                return;
+            }
+
             m_enabled = true;
         }
 
