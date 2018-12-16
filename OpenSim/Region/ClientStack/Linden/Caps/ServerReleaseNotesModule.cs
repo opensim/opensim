@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// Dedicated to Quill Littlefeather
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -46,11 +48,8 @@ namespace OpenSim.Region.ClientStack.LindenCaps
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string, Scene> m_Scenes = new Dictionary<string, Scene>();
-        private Scene m_scene;
-
         private bool m_enabled;
-        private static string m_ServerReleaseNotesURL = string.Empty;
+        private string m_ServerReleaseNotesURL;
 
         public string Name { get { return "ServerReleaseNotesModule"; } }
 
@@ -59,107 +58,70 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             get { return null; }
         }
 
+        public void Initialise(IConfigSource source)
+        {
+            m_enabled = false; // whatever
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
+                return;
+
+            string capURL = config.GetString("Cap_ServerReleaseNotes", string.Empty);
+            if (string.IsNullOrEmpty(capURL) || capURL != "localhost")
+                return;
+
+            config = source.Configs["ServerReleaseNotes"];
+            if (config == null)
+                return;
+
+            m_ServerReleaseNotesURL = config.GetString("ServerReleaseNotesURL", m_ServerReleaseNotesURL);
+            if (string.IsNullOrEmpty(m_ServerReleaseNotesURL))
+                return;
+
+            m_enabled = true;
+        }
+
         public void AddRegion(Scene scene)
         {
             if (!m_enabled)
                 return;
 
-            m_scene = scene;
-
-            if (m_enabled == true)
-            {
-                if (m_Scenes.ContainsKey(scene.RegionInfo.RegionName))
-                {
-                    lock (m_Scenes)
-                    {
-                        m_Scenes[scene.RegionInfo.RegionName] = scene;
-                    }
-                }
-            }
-            else
-            {
-                lock (m_Scenes)
-                {
-                    m_Scenes.Add(scene.RegionInfo.RegionName, scene);
-                }
-            }
-
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
-        public void Close() { }
-
-        public void Initialise(IConfigSource source)
-        {
-            IConfig ServerReleaseNote = source.Configs["ServerReleaseNotes"];
-            m_ServerReleaseNotesURL = ServerReleaseNote.GetString("ServerReleaseNotesURL", m_ServerReleaseNotesURL);
-            m_enabled = ServerReleaseNote.GetBoolean("enabled", false);
-
-            if (m_ServerReleaseNotesURL == null)
-            {
-                m_enabled = false;
-                m_log.Info("[ServerReleaseNotes]: No Configuration Found, module has been disabled");
-                return;
-            }
-
-            if (m_enabled == false)
-            {
-                m_log.InfoFormat("[ServerReleaseNotes]: Module is disabled");
-            }
-        }
-
-        public void PostInitialise() { }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_enabled)
-            {
-                return;
-            }
-        }
+        public void RegionLoaded(Scene scene) { }
 
         public void RemoveRegion(Scene scene)
         {
             if (!m_enabled)
-            {
                 return;
-            }
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
+
+            scene.EventManager.OnRegisterCaps -= RegisterCaps;
         }
+
+        public void PostInitialise() { }
+
+        public void Close() { }
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capId = UUID.Random();
+            string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-            IRequestHandler ServerReleaseNote
-                = new RestHTTPHandler(
-                    "GET", "/CAPS/" + capId + "/",
-                    delegate (Hashtable request)
-                    {
-                        return ProcessServerReleaseNotes(request, agentID, capId);
-                    });
+            IRequestHandler ServerReleaseNote  = new RestHTTPHandler("GET", capUrl,
+                delegate (Hashtable request)
+                {
+                    return ProcessServerReleaseNotes(request, agentID);
+                });
             caps.RegisterHandler("ServerReleaseNotes", ServerReleaseNote);
         }
 
-        private Hashtable ProcessServerReleaseNotes(Hashtable request, UUID agentID, UUID capUUID)
+        private Hashtable ProcessServerReleaseNotes(Hashtable request, UUID agentID)
         {
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 301;
             responsedata["str_redirect_location"] = m_ServerReleaseNotesURL;
             responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
 
-            OSDMap osd = new OSDMap();
-            osd.Add("ServerReleaseNotes", new OSDString(GetServerReleaseNotesURL()));
-
-            string response = OSDParser.SerializeLLSDXmlString(osd);
-            responsedata["str_response_string"] = response;
             return responsedata;
-        }
-
-        private string GetServerReleaseNotesURL()
-        {
-            return "Set the ReleaseNotesUrl in OpenSim.ini under [ServerReleaseNotesURL] section";
         }
     }
 }
