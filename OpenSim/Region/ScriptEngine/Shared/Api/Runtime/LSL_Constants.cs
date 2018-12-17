@@ -842,6 +842,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly LSLInteger RC_REJECT_PHYSICAL = 2;
         public static readonly LSLInteger RC_REJECT_NONPHYSICAL = 4;
         public static readonly LSLInteger RC_REJECT_LAND = 8;
+        public static readonly LSLInteger RC_REJECT_HOST = 0x20000000;
+        public static readonly LSLInteger RC_REJECT_HOSTGROUP = 0x40000000;
 
         public static readonly LSLInteger RC_GET_NORMAL = 1;
         public static readonly LSLInteger RC_GET_ROOT_KEY = 2;

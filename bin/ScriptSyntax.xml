@@ -1,4 +1,4 @@
-fe7d5416-2379-feca-3b16-6b9854799c50
+41ccf83c-178f-6070-7960-1448d28dcdab
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -2566,6 +2566,14 @@ fe7d5416-2379-feca-3b16-6b9854799c50
  <key>RC_REJECT_AGENTS</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
+ </map>
+ <key>RC_REJECT_HOST</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x20000000</string>
+ </map>
+ <key>RC_REJECT_HOSTGROUP</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x40000000</string>
  </map>
  <key>RC_REJECT_LAND</key><map>
   <key>type</key><string>integer</string>
