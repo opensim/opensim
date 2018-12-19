@@ -8743,45 +8743,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected void SetEntityParams(List<ISceneEntity> entities, LSL_List rules, string originFunc)
-        {
-            LSL_List remaining = new LSL_List();
-            uint rulesParsed = 0;
-
-            foreach (ISceneEntity entity in entities)
-            {
-                if (entity is SceneObjectPart)
-                    remaining = SetPrimParams((SceneObjectPart)entity, rules, originFunc, ref rulesParsed);
-                else
-                    remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
-            }
-
-            while (remaining.Length > 2)
-            {
-                int linknumber;
-                try
-                {
-                    linknumber = remaining.GetLSLIntegerItem(0);
-                }
-                catch(InvalidCastException)
-                {
-                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_LINK_TARGET: parameter 2 must be integer", rulesParsed));
-                    return;
-                }
-
-                rules = remaining.GetSublist(1, -1);
-                entities = GetLinkEntities(linknumber);
-
-                foreach (ISceneEntity entity in entities)
-                {
-                    if (entity is SceneObjectPart)
-                        remaining = SetPrimParams((SceneObjectPart)entity, rules, originFunc, ref rulesParsed);
-                    else
-                        remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
-                }
-            }
-        }
-
         public void llSetKeyframedMotion(LSL_List frames, LSL_List options)
         {
             SceneObjectGroup group = m_host.ParentGroup;
@@ -11301,7 +11262,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
                 List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
+                if(parts.Count == 0)
+                    break;
                 foreach (SceneObjectPart part in parts)
                     remaining = GetPrimParams(part, rules, ref result);
             }
@@ -14852,35 +14814,78 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules, string originFunc)
         {
-            SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
-            if (obj == null)
+            UUID id;
+            if (!UUID.TryParse(prim, out id))
+                return;
+            SceneObjectPart obj = World.GetSceneObjectPart(id);
+            if (obj == null || obj.OwnerID != m_host.OwnerID)
                 return;
 
-            if (obj.OwnerID != m_host.OwnerID)
-                return;
+            uint rulesParsed = 0;
+            LSL_List remaining = SetPrimParams(obj, rules, originFunc, ref rulesParsed);
 
-            SetEntityParams(new List<ISceneEntity>() { obj }, rules, originFunc);
+            while (remaining.Length > 2)
+            {
+                int linknumber;
+                try
+                {
+                    linknumber = remaining.GetLSLIntegerItem(0);
+                }
+                catch (InvalidCastException)
+                {
+                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_LINK_TARGET parameter must be integer", rulesParsed));
+                    return;
+                }
+
+                List<ISceneEntity> entities = GetLinkEntities(obj, linknumber);
+                if (entities.Count == 0)
+                    break;
+
+                rules = remaining.GetSublist(1, -1);
+                foreach (ISceneEntity entity in entities)
+                {
+                    if (entity is SceneObjectPart)
+                        remaining = SetPrimParams((SceneObjectPart)entity, rules, originFunc, ref rulesParsed);
+                    else
+                        remaining = SetAgentParams((ScenePresence)entity, rules, originFunc, ref rulesParsed);
+                }
+            }
         }
 
         public LSL_List GetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
         {
-           SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
-
             LSL_List result = new LSL_List();
 
-            if (obj != null && obj.OwnerID == m_host.OwnerID)
+            UUID id;
+            if (!UUID.TryParse(prim, out id))
+                return result;
+
+            SceneObjectPart obj = World.GetSceneObjectPart(id);
+            if (obj == null || obj.OwnerID != m_host.OwnerID)
+                return result;
+
+            LSL_List remaining = GetPrimParams(obj, rules, ref result);
+
+            while (remaining.Length > 2)
             {
-                LSL_List remaining = GetPrimParams(obj, rules, ref result);
-
-                while (remaining.Length > 2)
+                int linknumber;
+                try
                 {
-                    int linknumber = remaining.GetLSLIntegerItem(0);
-                    rules = remaining.GetSublist(1, -1);
-                    List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-                    foreach (SceneObjectPart part in parts)
-                        remaining = GetPrimParams(part, rules, ref result);
+                    linknumber = remaining.GetLSLIntegerItem(0);
                 }
+                catch (InvalidCastException)
+                {
+                    Error("", string.Format("Error PRIM_LINK_TARGET: parameter must be integer"));
+                    return result;
+                }
+
+                List<SceneObjectPart> parts = GetLinkParts(obj, linknumber);
+                if(parts.Count == 0)
+                    break;
+
+                rules = remaining.GetSublist(1, -1);
+                foreach (SceneObjectPart part in parts)
+                    remaining = GetPrimParams(part, rules, ref result);
             }
 
             return result;
