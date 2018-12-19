@@ -14879,13 +14879,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return result;
                 }
 
-                List<SceneObjectPart> parts = GetLinkParts(obj, linknumber);
-                if(parts.Count == 0)
+                List<ISceneEntity> entities = GetLinkEntities(obj, linknumber);
+                if (entities.Count == 0)
                     break;
 
                 rules = remaining.GetSublist(1, -1);
-                foreach (SceneObjectPart part in parts)
-                    remaining = GetPrimParams(part, rules, ref result);
+                foreach (ISceneEntity entity in entities)
+                {
+                    if (entity is SceneObjectPart)
+                        remaining = GetPrimParams((SceneObjectPart)entity, rules, ref result);
+                    else
+                        remaining = GetPrimParams((ScenePresence)entity, rules, ref result);
+                }
             }
 
             return result;
