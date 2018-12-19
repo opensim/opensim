@@ -11257,7 +11257,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List remaining = GetPrimParams(m_host, rules, ref result);
 
-            while ((object)remaining != null && remaining.Length > 2)
+            while ((object)remaining != null && remaining.Length > 1)
             {
                 int linknumber = remaining.GetLSLIntegerItem(0);
                 rules = remaining.GetSublist(1, -1);
@@ -14866,7 +14866,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_List remaining = GetPrimParams(obj, rules, ref result);
 
-            while (remaining.Length > 2)
+            while (remaining.Length > 1)
             {
                 int linknumber;
                 try
