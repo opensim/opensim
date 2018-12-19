@@ -753,6 +753,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (ret.Contains(part.ParentGroup.RootPart))
                         ret.Remove(part.ParentGroup.RootPart);
 
+                    List<ScenePresence> avs = part.ParentGroup.GetSittingAvatars();
+                    if(avs!= null && avs.Count > 0)
+                        ret.AddRange(avs);
+
                     return ret;
 
                 case ScriptBaseClass.LINK_THIS:
