@@ -262,12 +262,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             m_colors.Clear();
             m_warpTextures.Clear();
+
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.Default;
-
             return bitmap;
         }
 
@@ -441,6 +441,34 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             );
         }
 
+        private void UVPlanarMap(Vertex v, Vector3 scale, out float tu, out float tv)
+        {
+            Vector3 scaledPos = v.Position * scale;
+            float d = v.Normal.X;
+            if (d >= 0.5f)
+            {
+                tu = 2f * scaledPos.Y;
+                tv = scaledPos.X * v.Normal.Z - scaledPos.Z * v.Normal.X;
+            }
+            else if( d <= -0.5f)
+            {
+                tu = -2f * scaledPos.Y;
+                tv = -scaledPos.X * v.Normal.Z + scaledPos.Z * v.Normal.X;
+            }
+            else if (v.Normal.Y > 0f)
+            {
+                tu = -2f * scaledPos.X;
+                tv = scaledPos.Y * v.Normal.Z - scaledPos.Z * v.Normal.Y;
+            }
+            else 
+            {
+                tu = 2f * scaledPos.X;
+                tv = -scaledPos.Y * v.Normal.Z + scaledPos.Z * v.Normal.Y;
+            }
+
+            tv *= 2f;
+        }
+
         private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
         {
             if ((PCode)prim.Shape.PCode != PCode.Prim)
@@ -576,8 +604,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         warp_Vertex vert;
                         Vertex v = face.Vertices[j];
                         warp_Vector pos = ConvertVector(v.Position);
-                        tu = v.TexCoord.X - 0.5f;
-                        tv = 0.5f - v.TexCoord.Y;
+                        if(teFace.TexMapType == MappingType.Planar)
+                            UVPlanarMap(v, prim.Scale,out tu, out tv);
+                        else
+                        {
+                            tu = v.TexCoord.X - 0.5f;
+                            tv = 0.5f - v.TexCoord.Y;
+                        }
                         if (rotation != 0)
                         {
                             float tur = tu * rc - tv * rs;
