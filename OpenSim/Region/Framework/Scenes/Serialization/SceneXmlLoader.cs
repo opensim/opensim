@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             XmlTextWriter writer = new XmlTextWriter(stream);
 
             int primCount = 0;
-            stream.WriteLine("<scene>\n");
+            stream.WriteLine("<scene>");
 
             foreach (EntityBase ent in entityList)
             {
@@ -210,13 +210,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                     //stream.WriteLine(SceneObjectSerializer.ToXml2Format(g));
                     SceneObjectSerializer.SOGToXml2(writer, (SceneObjectGroup)ent, new Dictionary<string,object>());
-                    stream.WriteLine();
+//                    stream.WriteLine();
 
                     primCount++;
                 }
             }
 
-            stream.WriteLine("</scene>\n");
+            stream.WriteLine("</scene>");
             stream.Flush();
         }
 
