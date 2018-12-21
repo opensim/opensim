@@ -66,6 +66,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 #pragma warning disable 414
         private static string LogHeader = "[WARP 3D IMAGE MODULE]";
 #pragma warning restore 414
+        private const float m_cameraHeight = 4096f;
 
         internal Scene m_scene;
         private IRendering m_primMesher;
@@ -82,6 +83,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_texturePrims = true;     // true if should texture the rendered prims
         private float m_texturePrimSize = 48f;  // size of prim before we consider texturing it
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
+        private float m_renderMinHeight = -100f;
+        private float m_renderMaxHeight = 4096f;
 
         private bool m_Enabled = false;
 
@@ -117,6 +120,18 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             m_renderMeshes =
                 Util.GetConfigVarFromSections<bool>(m_config, "RenderMeshes", configSections, m_renderMeshes);
 
+            m_renderMaxHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMaxHeight", configSections, m_renderMaxHeight);
+            m_renderMinHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMinHeight", configSections, m_renderMinHeight);
+
+            if (m_renderMaxHeight < 100f)
+                m_renderMaxHeight = 100f;
+            else if (m_renderMaxHeight > m_cameraHeight - 10f)
+                m_renderMaxHeight = m_cameraHeight - 10f;
+
+            if (m_renderMinHeight < -100f)
+                m_renderMinHeight = -100f;
+            else if (m_renderMinHeight > m_renderMaxHeight - 10f)
+                m_renderMinHeight = m_renderMaxHeight - 10f;
         }
 
         public void AddRegion(Scene scene)
@@ -183,7 +198,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             cameraPos = new Vector3(
                             (m_scene.RegionInfo.RegionSizeX) * 0.5f,
                             (m_scene.RegionInfo.RegionSizeY) * 0.5f,
-                            4096f);
+                            m_cameraHeight);
 
             cameraDir = -Vector3.UnitZ;
             viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
@@ -474,7 +489,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if ((PCode)prim.Shape.PCode != PCode.Prim)
                 return;
 
-            warp_Vector primPos = ConvertVector(prim.GetWorldPosition());
+            Vector3 ppos = prim.GetWorldPosition();
+            if (ppos.Z < m_renderMinHeight || ppos.Z > m_renderMaxHeight)
+                return;
+
+            warp_Vector primPos = ConvertVector(ppos);
             warp_Quaternion primRot = ConvertQuaternion(prim.GetWorldRotation());
             warp_Matrix m = warp_Matrix.quaternionMatrix(primRot);
 
