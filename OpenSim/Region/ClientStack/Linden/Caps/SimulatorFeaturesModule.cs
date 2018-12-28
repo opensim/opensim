@@ -172,6 +172,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 if(m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero)
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
+                OSDMap meshAnim = new OSDMap();
+                meshAnim["AnimatedObjectMaxTris"] = OSD.FromInteger(10000);
+                meshAnim["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2);
+                m_features["AnimatedObjects"] = meshAnim;
+
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;

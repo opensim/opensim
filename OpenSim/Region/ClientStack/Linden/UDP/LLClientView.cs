@@ -454,9 +454,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string Name { get { return FirstName + " " + LastName; } }
 
         public uint CircuitCode { get { return m_circuitCode; } }
+
+        protected int m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0x5fffafL);
         public int NextAnimationSequenceNumber
         {
-            get { return m_udpServer.NextAnimationSequenceNumber; }
+            get
+            {
+                int ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                if (ret <= 0)
+                {
+                    m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0xafff5fL);
+                    ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                }
+                return ret;
+            }
+            set
+            {
+                m_animationSequenceNumber = value;
+            }
         }
 
         /// <summary>
@@ -3904,6 +3919,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(ani, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
+        public void SendObjectAnimations(UUID[] animations, int[] seqs, UUID senderId)
+        {
+            // m_log.DebugFormat("[LLCLIENTVIEW]: Sending Object animations for {0} to {1}", sourceAgentId, Name);
+
+            ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
+            // TODO: don't create new blocks if recycling an old packet
+            ani.Sender = new ObjectAnimationPacket.SenderBlock();
+            ani.Sender.ID = senderId;
+            ani.AnimationList = new ObjectAnimationPacket.AnimationListBlock[animations.Length];
+
+            for (int i = 0; i < animations.Length; ++i)
+            {
+                ani.AnimationList[i] = new ObjectAnimationPacket.AnimationListBlock();
+                ani.AnimationList[i].AnimID = animations[i];
+                ani.AnimationList[i].AnimSequenceID = seqs[i];
+            }
+            OutPacket(ani, ThrottleOutPacketType.Task);
+        }
+
         #endregion
 
         #region Avatar Packet/Data Sending Methods
@@ -4127,6 +4161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
             OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
+            OpenSim.Framework.Lazy<List<SceneObjectPart>> ObjectAnimationUpdates = new OpenSim.Framework.Lazy<List<SceneObjectPart>>();
 
             // Check to see if this is a flush
             if (maxUpdatesBytes <= 0)
@@ -4297,11 +4332,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bool canUseCompressed = true;
                 bool canUseImproved = true;
 
-
                 // Compressed object updates only make sense for LL primitives
                 if (!(update.Entity is SceneObjectPart))
                 {
                     canUseCompressed = false;
+                }
+                else
+                {
+                    if(updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    {
+                        updateFlags &= ~PrimUpdateFlags.Animations;
+                        SceneObjectPart sop = (SceneObjectPart)update.Entity;
+                        if(sop.Animations != null)
+                        {
+                            ObjectAnimationUpdates.Value.Add(sop);
+                            maxUpdatesBytes -= 32 * sop.Animations.Count + 16;
+                        }
+                    }
                 }
 
                 if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
@@ -4443,6 +4490,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
             }
 
+            foreach (SceneObjectPart sop in ObjectAnimationUpdates.Value)
+            {
+                if (sop.Animations == null)
+                    continue;
+                SceneObjectGroup sog = sop.ParentGroup;
+                if (sog == null || sog.IsDeleted)
+                    continue;
+
+                SceneObjectPart root = sog.RootPart;
+                if (root == null || root.Shape == null || !root.Shape.MeshFlagEntry)
+                    continue;
+
+                UUID[] ids = null;
+                int[] seqs = null;
+                int count = sop.GetAnimations(out ids, out seqs);
+                if(count < 0)
+                    continue;
+
+                ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
+                ani.Sender = new ObjectAnimationPacket.SenderBlock();
+                ani.Sender.ID = sop.UUID;
+                ani.AnimationList = new ObjectAnimationPacket.AnimationListBlock[sop.Animations.Count];
+
+                for(int i = 0; i< count; i++)
+                {
+                    ani.AnimationList[i] = new ObjectAnimationPacket.AnimationListBlock();
+                    ani.AnimationList[i].AnimID = ids[i];
+                    ani.AnimationList[i].AnimSequenceID = seqs[i];
+                }
+                OutPacket(ani, ThrottleOutPacketType.Task);
+            }
+
             #endregion Packet Sending
 
             #region Handle deleted objects
@@ -4462,6 +4541,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         GroupsInView.Add(grp);
                 }
             }
+
             #endregion
         }
 

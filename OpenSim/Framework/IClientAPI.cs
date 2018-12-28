@@ -683,9 +683,16 @@ namespace OpenSim.Framework
         ExtraData = 1 << 20,
         Sound = 1 << 21,
         Joint = 1 << 22,
-        FullUpdate =    0x0fffffff,
-        SendInTransit = 0x20000000, 
-        CancelKill =    0x4fffffff, // 1 << 30 
+
+        TerseUpdate = Position | Rotation | Velocity | Acceleration | AngularVelocity,
+        FullUpdate =    0x00ffffff,
+
+        Animations = 1 << 24,
+
+        FullUpdatewithAnim = FullUpdate | Animations,
+
+        SendInTransit = 0x20000000, // 1 << 29
+        CancelKill =    0x41ffffff, // 1 << 30 
         Kill =          0x80000000 // 1 << 31
     }
 
@@ -736,9 +743,6 @@ namespace OpenSim.Framework
 
         List<uint> SelectedObjects { get; }
 
-        // [Obsolete("LLClientView Specific - Replace with ???")]
-        int NextAnimationSequenceNumber { get; }
-
         /// <summary>
         /// Returns the full name of the agent/avatar represented by this client
         /// </summary>
@@ -764,6 +768,8 @@ namespace OpenSim.Framework
         bool IsLoggingOut { get; set; }
 
         bool SendLogoutPacketWhenClosing { set; }
+
+        int NextAnimationSequenceNumber {get; set;}
 
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }

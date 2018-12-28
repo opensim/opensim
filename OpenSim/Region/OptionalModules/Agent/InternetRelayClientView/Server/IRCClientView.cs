@@ -75,7 +75,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             m_client = client;
             m_scene = scene;
 
-            WorkManager.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false, true);
+            WorkManager.StartThread(InternalLoop, "IRCClientView");
         }
 
         private void SendServerCommand(string command)
@@ -630,6 +630,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public int NextAnimationSequenceNumber
         {
             get { return 0; }
+            set { }
         }
 
         public string Name

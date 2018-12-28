@@ -85,11 +85,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
             return 0f;
         }
 
-        public override void GetResults()
-        {
-            m_log.Info("[PHYSICS]: NullPhysicsScene : GetResults()");
-        }
-
         public override void SetTerrain(float[] heightMap)
         {
             m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : SetTerrain({0} items)", heightMap.Length);
@@ -97,11 +92,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public override void DeleteTerrain()
         {
-        }
-
-        public override bool IsThreaded
-        {
-            get { return false; }
         }
 
         public override void Dispose()

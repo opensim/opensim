@@ -290,6 +290,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 assetGatherer.GatherAll();
 
                 GC.Collect();
+
                 int errors = assetGatherer.FailedUUIDs.Count;
                 m_log.DebugFormat(
                     "[ARCHIVER]: {0} region scene objects to save reference {1} possible assets",

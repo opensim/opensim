@@ -137,6 +137,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             foreach (KeyValuePair<UUID, sbyte> kvp in m_uuids)
             {
+
                 string thiskey = kvp.Key.ToString();
                 try
                 {
@@ -162,7 +163,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     m_foundAssetUuids.Add(asset.FullID);
                     m_assetsArchiver.WriteAsset(PostProcess(asset));
-                    if(++gccontrol > 5000)
+                    if(++gccontrol > 10000)
                     {
                         gccontrol = 0;
                         GC.Collect();

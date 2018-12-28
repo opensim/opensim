@@ -441,6 +441,7 @@ namespace OpenSim.Tests.Common
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }
+            set { }
         }
 
         public IScene Scene

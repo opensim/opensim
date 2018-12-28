@@ -62,9 +62,23 @@ namespace OpenSim.Region.Framework.Scenes
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
 
-
         public delegate void SynchronizeSceneHandler(Scene scene);
 
+        protected static int m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0x5fffafL);
+
+        public int NextObjectAnimationSequenceNumber
+        {
+            get
+            {
+                int ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                if (ret <= 0 )
+                {
+                    m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0xafff5fL);
+                    ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                }
+                return ret;
+            }
+        }
         #region Fields
 
         /// <summary>
@@ -945,6 +959,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 PhysicalPrims = startupConfig.GetBoolean("physical_prim", true);
                 CollidablePrims = startupConfig.GetBoolean("collidable_prim", true);
+
                 m_minNonphys = startupConfig.GetFloat("NonPhysicalPrimMin", m_minNonphys);
                 if (RegionInfo.NonphysPrimMin > 0)
                 {
@@ -1547,10 +1562,9 @@ namespace OpenSim.Region.Framework.Scenes
             // tell physics to finish building actor
             m_sceneGraph.ProcessPhysicsPreSimulation();
 
-            m_heartbeatThread
-                = WorkManager.StartThread(
-                    Heartbeat, string.Format("Heartbeat-({0})", RegionInfo.RegionName.Replace(" ", "_")), ThreadPriority.Normal, false, false);
-
+            m_heartbeatThread = WorkManager.StartThread(
+                Heartbeat, string.Format("Heartbeat-({0})", RegionInfo.RegionName.Replace(" ", "_")), ThreadPriority.Normal, false,
+                false, null, 20000, false);
             StartScripts();
         }
 
@@ -1943,7 +1957,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!m_backingup)
             {
-                WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0}", Name), false);
+                WorkManager.RunInThreadPool(o => Backup(false), null, string.Format("BackupWorker ({0})", Name), false);
             }
         }
 

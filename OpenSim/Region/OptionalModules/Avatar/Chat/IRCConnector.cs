@@ -351,7 +351,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
                     m_log.InfoFormat("[IRC-Connector-{0}]: Connected to {1}:{2}", idn, m_server, m_port);
 
-                    WorkManager.StartThread(ListenerRun, "IRCConnectionListenerThread", ThreadPriority.Normal, true, false);
+                    WorkManager.StartThread(ListenerRun, "IRCConnectionListenerThread", false, false);
 
                     // This is the message order recommended by RFC 2812
                     if (m_password != null)

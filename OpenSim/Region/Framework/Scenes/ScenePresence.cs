@@ -2173,7 +2173,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                      if(root.LocalId != ParentPart.LocalId)
 //                          ControllingClient.SendEntityTerseUpdateImmediate(root);
 //                      ControllingClient.SendEntityTerseUpdateImmediate(ParentPart);
-                        ParentPart.ParentGroup.SendFullUpdateToClient(ControllingClient);
+                        ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
                     }
 
                     // verify baked textures and cache
@@ -4036,7 +4036,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (EntityBase e in entities)
                 {
                     if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
-                        ((SceneObjectGroup)e).SendFullUpdateToClient(ControllingClient);
+                        ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
                 }
 
                 m_reprioritizationLastPosition = AbsolutePosition;
@@ -4883,17 +4883,30 @@ namespace OpenSim.Region.Framework.Scenes
             Animator.ResetAnimations();
 
             Overrides.CopyAOPairsFrom(cAgent.MovementAnimationOverRides);
-
+            int nanim = ControllingClient.NextAnimationSequenceNumber;
             // FIXME: Why is this null check necessary?  Where are the cases where we get a null Anims object?
             if (cAgent.DefaultAnim != null)
+            {
+                if (cAgent.DefaultAnim.SequenceNum > nanim)
+                    nanim = cAgent.DefaultAnim.SequenceNum;
                 Animator.Animations.SetDefaultAnimation(cAgent.DefaultAnim.AnimID, cAgent.DefaultAnim.SequenceNum, UUID.Zero);
+            }
             if (cAgent.AnimState != null)
+            {
+                if (cAgent.AnimState.SequenceNum > nanim)
+                    nanim = cAgent.AnimState.SequenceNum;
                 Animator.Animations.SetImplicitDefaultAnimation(cAgent.AnimState.AnimID, cAgent.AnimState.SequenceNum, UUID.Zero);
+            }
             if (cAgent.Anims != null)
-                Animator.Animations.FromArray(cAgent.Anims);
+            {
+                int canim = Animator.Animations.FromArray(cAgent.Anims);
+                if(canim > nanim)
+                    nanim = canim;
+            }
+            ControllingClient.NextAnimationSequenceNumber = ++nanim;
+
             if (cAgent.MotionState != 0)
                 Animator.currentControlState = (ScenePresenceAnimator.motionControlStates) cAgent.MotionState;
-
 
             crossingFlags = cAgent.CrossingFlags;
             gotCrossUpdate = (crossingFlags != 0);
@@ -5401,14 +5414,18 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = sog.Parts;
             SceneObjectPart rootpart = sog.RootPart;
 
-            p.ControllingClient.SendEntityUpdate(rootpart, PrimUpdateFlags.FullUpdate);
+            PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
+            if (rootpart.Shape.MeshFlagEntry)
+                update = PrimUpdateFlags.FullUpdatewithAnim;
+
+            p.ControllingClient.SendEntityUpdate(rootpart, update);
 
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part == rootpart)
                     continue;
-                p.ControllingClient.SendEntityUpdate(part, PrimUpdateFlags.FullUpdate);
+                p.ControllingClient.SendEntityUpdate(part, update);
             }
         }
 
@@ -5422,51 +5439,30 @@ namespace OpenSim.Region.Framework.Scenes
             PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
 
             SceneObjectPart rootpart = sog.RootPart;
-            UpdateRequired rootreq = sog.RootPart.UpdateFlag;
+            PrimUpdateFlags rootreq = sog.RootPart.GetAndClearUpdateFlag();
 
             int j = 0;
-            bool allterse = true;
+
+            PrimUpdateFlags cur;
             for (int i = 0; i < origparts.Length; i++)
             {
                 if (origparts[i] != rootpart)
                 {
-                    switch (origparts[i].UpdateFlag)
-                    {
-                        case UpdateRequired.NONE:
-                            break;
-
-                        case UpdateRequired.TERSE:
-                            flags[j] = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                            | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-                            parts[j] = origparts[i];
-                            j++;
-                            break;
-
-                        case UpdateRequired.FULL:
-                            flags[j] = PrimUpdateFlags.FullUpdate;
-                            allterse = false;
-                            parts[j] = origparts[i];
-                            j++;
-                            break;
-                    }
+                    cur = origparts[i].GetAndClearUpdateFlag();
+                    if(cur == PrimUpdateFlags.None)
+                        continue;
+                    flags[j] = cur;
+                    parts[j] = origparts[i];
+                    j++;
                 }
-                origparts[i].UpdateFlag = 0;
             }
 
-            if (j == 0 && rootreq == UpdateRequired.NONE)
+            if (j == 0 && rootreq == PrimUpdateFlags.None)
                 return;
-
-            PrimUpdateFlags rootflag = PrimUpdateFlags.FullUpdate;
-
-            if (rootreq != UpdateRequired.FULL && allterse)
-            {
-                rootflag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                        | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-            }
 
             int nparts = j;
 
-            ControllingClient.SendEntityUpdate(rootpart, rootflag);
+            ControllingClient.SendEntityUpdate(rootpart, rootreq);
 
             for (int i = 0; i < nparts; i++)
             {
@@ -5485,7 +5481,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
-                p.ControllingClient.SendEntityUpdate(rootpart, rootflag);
+                p.ControllingClient.SendEntityUpdate(rootpart, rootreq);
 
                 for (int i = 0; i < nparts; i++)
                 {
@@ -5494,41 +5490,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SendAttachmentUpdate(SceneObjectGroup sog, UpdateRequired UpdateFlag)
+        public void SendAttachmentUpdate(SceneObjectGroup sog, PrimUpdateFlags update)
         {
             if (IsChildAgent || IsInTransit)
                 return;
 
-            PrimUpdateFlags flag;
-            switch (UpdateFlag)
-            {
-                case UpdateRequired.TERSE:
-                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-                    break;
-
-                case UpdateRequired.FULL:
-                    flag = PrimUpdateFlags.FullUpdate;
-                    break;
-
-                default:
-                    return;
-            }
-
             SceneObjectPart[] parts = sog.Parts;
             SceneObjectPart rootpart = sog.RootPart;
 
-//            rootpart.UpdateFlag = 0;
-
-            ControllingClient.SendEntityUpdate(rootpart, flag);
+            ControllingClient.SendEntityUpdate(rootpart, update);
 
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part == rootpart)
                     continue;
-                ControllingClient.SendEntityUpdate(part, flag);
-//                part.UpdateFlag = 0;
+                ControllingClient.SendEntityUpdate(part, update);
             }
 
             if (sog.HasPrivateAttachmentPoint)
@@ -5543,14 +5520,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
-                p.ControllingClient.SendEntityUpdate(rootpart, flag);
+                p.ControllingClient.SendEntityUpdate(rootpart, update);
 
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart part = parts[i];
                     if (part == rootpart)
                         continue;
-                    p.ControllingClient.SendEntityUpdate(part, flag);
+                    p.ControllingClient.SendEntityUpdate(part, update);
                 }
             }
         }
@@ -5560,24 +5537,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent || IsInTransit)
                 return;
 
-
-            PrimUpdateFlags flag;
-            switch (part.UpdateFlag)
-            {
-                case UpdateRequired.TERSE:
-                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-                    break;
-
-                case UpdateRequired.FULL:
-                    flag = PrimUpdateFlags.FullUpdate;
-                    break;
-
-                default:
-                    return;
-            }
-
-            part.UpdateFlag = 0;
+            PrimUpdateFlags flag = part.GetAndClearUpdateFlag();
 
             ControllingClient.SendEntityUpdate(part, flag);
 
@@ -5597,29 +5557,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
-        public void SendAttachmentUpdate(SceneObjectPart part, UpdateRequired UpdateFlag)
+        public void SendAttachmentUpdate(SceneObjectPart part, PrimUpdateFlags flag)
         {
             if (IsChildAgent || IsInTransit)
                 return;
-
-            PrimUpdateFlags flag;
-            switch (UpdateFlag)
-            {
-                case UpdateRequired.TERSE:
-                    flag = PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
-                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity;
-                    break;
-
-                case UpdateRequired.FULL:
-                    flag = PrimUpdateFlags.FullUpdate;
-                    break;
-
-                default:
-                    return;
-            }
-
-//            part.UpdateFlag = 0;
 
             ControllingClient.SendEntityUpdate(part, flag);
 

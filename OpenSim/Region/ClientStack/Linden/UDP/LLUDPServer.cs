@@ -341,19 +341,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
-        protected int m_animationSequenceNumber;
-
-        public int NextAnimationSequenceNumber
-        {
-            get
-            {
-                m_animationSequenceNumber++;
-                if (m_animationSequenceNumber > 2147482624)
-                    m_animationSequenceNumber = 1;
-                return m_animationSequenceNumber;
-            }
-        }
-
         protected ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
 
         protected Pool<IncomingPacket> m_incomingPacketPool;
@@ -507,7 +494,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ThrottleRates = new ThrottleRates(configSource);
 
             Random rnd = new Random(Util.EnvironmentTickCount());
-            m_animationSequenceNumber = rnd.Next(11474826);
 
 //            if (usePools)
 //                EnablePools();

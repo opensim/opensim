@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
         public void Process()
         {
             _finished = false;
-            httpThread = WorkManager.StartThread(SendRequest, "XMLRPCreqThread", ThreadPriority.BelowNormal, true, false, null, int.MaxValue);
+            httpThread = WorkManager.StartThread(SendRequest, "XMLRPCreqThread", ThreadPriority.Normal, true, false, null, int.MaxValue);
         }
 
         /*
@@ -728,10 +728,12 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 m_log.Warn("[SendRemoteDataRequest]: Request failed");
                 m_log.Warn(we.StackTrace);
             }
-
-            _finished = true;
-
-            Watchdog.RemoveThread();
+            finally
+            {
+                _finished = true;
+                httpThread = null;
+                Watchdog.RemoveThread();
+            }
         }
 
         public void Stop()

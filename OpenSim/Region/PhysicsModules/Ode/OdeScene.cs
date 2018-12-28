@@ -3204,16 +3204,6 @@ namespace OpenSim.Region.PhysicsModule.ODE
             }
         }
 
-        public override void GetResults()
-        {
-        }
-
-        public override bool IsThreaded
-        {
-            // for now we won't be multithreaded
-            get { return false; }
-        }
-
         public override void SetTerrain(float[] heightMap)
         {
             if (m_worldOffset != Vector3.Zero && m_parentScene != null)

@@ -229,16 +229,6 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
             return fps;
         }
 
-        public override void GetResults()
-        {
-        }
-
-        public override bool IsThreaded
-        {
-            get { return (false); // for now we won't be multithreaded
-            }
-        }
-
         public override void SetTerrain(float[] heightMap)
         {
             _heightMap = heightMap;

@@ -126,8 +126,6 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 301;
             responsedata["str_redirect_location"] = m_ServerReleaseNotesURL;
-            responsedata["content_type"] = "text/plain";
-
             return responsedata;
         }
     }

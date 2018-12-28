@@ -648,6 +648,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }
+            set { }
         }
 
         public virtual void SendWearables(AvatarWearable[] wearables, int serial)

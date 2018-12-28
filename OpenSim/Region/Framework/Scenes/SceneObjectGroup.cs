@@ -2584,14 +2584,33 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            RootPart.SendFullUpdate(remoteClient);
+            PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
+
+            RootPart.SendFullUpdate(remoteClient, update);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdate(remoteClient);
+                    part.SendFullUpdate(remoteClient, update);
+            }
+        }
+
+        public void SendFullAnimUpdateToClient(IClientAPI remoteClient)
+        {
+            PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
+            if (RootPart.Shape.MeshFlagEntry)
+                update = PrimUpdateFlags.FullUpdatewithAnim;
+
+            RootPart.SendFullUpdate(remoteClient, update);
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part != RootPart)
+                    part.SendFullUpdate(remoteClient, update);
             }
         }
 
@@ -3110,7 +3129,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
                 if (sp != null)
                 {
-                    sp.SendAttachmentUpdate(this,UpdateRequired.FULL);
+                    sp.SendAttachmentUpdate(this, PrimUpdateFlags.FullUpdate);
                     return;
                 }
             }
@@ -3160,7 +3179,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
                 if (sp != null)
                 {
-                    sp.SendAttachmentUpdate(this, UpdateRequired.TERSE);
+                    sp.SendAttachmentUpdate(this, PrimUpdateFlags.TerseUpdate);
                     return;
                 }
             }

@@ -352,13 +352,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (BSParam.UseSeparatePhysicsThread)
             {
                 // The physics simulation should happen independently of the heartbeat loop
-                m_physicsThread
-                    = WorkManager.StartThread(
+                m_physicsThread = WorkManager.StartThread(
                         BulletSPluginPhysicsThread,
-                        string.Format("{0} ({1})", BulletEngineName, RegionName),
-                        ThreadPriority.Normal,
-                        true,
-                        true);
+                        string.Format("{0} ({1})", BulletEngineName, RegionName));
             }
         }
 
@@ -942,8 +938,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         #endregion // Simulation
 
-        public override void GetResults() { }
-
         #region Terrain
 
         public override void SetTerrain(float[] heightMap) {
@@ -1123,8 +1117,6 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             return topColliders;
         }
-
-        public override bool IsThreaded { get { return false;  } }
 
         #region Extensions
         public override object Extension(string pFunct, params object[] pParams)
