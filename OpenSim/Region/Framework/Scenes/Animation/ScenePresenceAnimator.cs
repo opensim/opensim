@@ -237,8 +237,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     if (anim == "SIT" || anim == "SITGROUND")
                         anim = m_scenePresence.sitAnimation;
 
-                    if (m_animations.TrySetDefaultAnimation(
-                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
+                    if (m_animations.TrySetDefaultAnimation(anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                     {
 //                    m_log.DebugFormat(
 //                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
