@@ -176,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (cmdHandlerThread == null)
                 {
                     cmdHandlerThread = WorkManager.StartThread(
-                        CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread", ThreadPriority.Normal, true, true);
+                        CmdHandlerThreadLoop, "AsyncLSLCmdHandlerThread");
                 }
             }
         }
