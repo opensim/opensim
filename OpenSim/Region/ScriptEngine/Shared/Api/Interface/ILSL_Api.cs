@@ -409,6 +409,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llSqrt(double f);
               void llStartAnimation(string anim);
               void llStopAnimation(string anim);
+              void llStartObjectAnimation(string anim);
+              void llStopObjectAnimation(string anim);
+          LSL_List llGetObjectAnimationNames();
               void llStopHover();
               void llStopLookAt();
               void llStopMoveToTarget();

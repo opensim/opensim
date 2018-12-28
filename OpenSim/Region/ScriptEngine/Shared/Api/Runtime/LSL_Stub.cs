@@ -1836,6 +1836,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llStopAnimation(anim);
         }
 
+        public void llStartObjectAnimation(string anim)
+        {
+            m_LSL_Functions.llStartObjectAnimation(anim);
+        }
+
+        public void llStopObjectAnimation(string anim)
+        {
+            m_LSL_Functions.llStopObjectAnimation(anim);
+        }
+
+        public LSL_List llGetObjectAnimationNames()
+        {
+            return m_LSL_Functions.llGetObjectAnimationNames();
+        }
+
         public void llStopHover()
         {
             m_LSL_Functions.llStopHover();

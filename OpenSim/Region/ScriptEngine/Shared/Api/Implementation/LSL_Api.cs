@@ -4224,6 +4224,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void llStartObjectAnimation(string anim)
+        {
+            m_host.AddScriptLPS(1);
+
+            // Do NOT try to parse UUID, animations cannot be triggered by ID
+            UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
+            if (animID == UUID.Zero)
+                return;
+            m_host.AddAnimation(animID, anim);
+        }
+
+        public void llStopObjectAnimation(string anim)
+        {
+            m_host.AddScriptLPS(1);
+            UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim, AssetType.Animation);
+            if (animID != UUID.Zero)
+                m_host.RemoveAnimation(animID);
+        }
+
+        public LSL_List llGetObjectAnimationNames()
+        {
+            m_host.AddScriptLPS(1);
+            LSL_List ret = new LSL_List();
+
+            if(m_host.AnimationsNames == null || m_host.AnimationsNames.Count == 0)
+                return ret;
+
+            foreach (string name in m_host.AnimationsNames.Values)
+                ret.Add(new LSL_String(name));
+            return ret;
+        }
+
         public void llPointAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
