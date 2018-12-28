@@ -5526,11 +5526,12 @@ namespace OpenSim.Region.Framework.Scenes
             return -1;
         }
 
-        public void InvalidatePartsLinkMaps()
+        public void InvalidatePartsLinkMaps(bool all = true)
         {
             lock(m_partsNameToLinkMap)
             {
-                m_partsNameToLinkMap.Clear();
+                if(all)
+                    m_partsNameToLinkMap.Clear();
                 GetLinkNumber_lastname = String.Empty;
                 GetLinkNumber_lastnumber = -1;
             }
