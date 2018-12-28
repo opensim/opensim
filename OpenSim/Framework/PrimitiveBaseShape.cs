@@ -133,17 +133,26 @@ namespace OpenSim.Framework
         [XmlIgnore] private float _lightCutoff;
         [XmlIgnore] private float _lightFalloff;
         [XmlIgnore] private float _lightIntensity = 1.0f;
-        [XmlIgnore] private bool _flexiEntry;
-        [XmlIgnore] private bool _lightEntry;
-        [XmlIgnore] private bool _sculptEntry;
+
 
         // Light Projection Filter
-        [XmlIgnore] private bool _projectionEntry;
         [XmlIgnore] private UUID _projectionTextureID;
         [XmlIgnore] private float _projectionFOV;
         [XmlIgnore] private float _projectionFocus;
         [XmlIgnore] private float _projectionAmb;
 
+        [XmlIgnore] private uint _meshFlags;
+
+        [XmlIgnore] private bool _flexiEntry;
+        [XmlIgnore] private bool _lightEntry;
+        [XmlIgnore] private bool _sculptEntry;
+        [XmlIgnore] private bool _projectionEntry;
+        [XmlIgnore] private bool _meshFlagsEntry;
+
+        public bool MeshFlagEntry
+        {
+            get { return _meshFlagsEntry;}
+        }
         public byte ProfileCurve
         {
             get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
@@ -1030,6 +1039,7 @@ namespace OpenSim.Framework
             const byte LightEP = 0x20;
             const byte SculptEP = 0x30;
             const byte ProjectionEP = 0x40;
+            const byte MeshFlagsEP = 0x70;
 
             int TotalBytesLength = 1; // ExtraParamsNum
 
@@ -1058,6 +1068,11 @@ namespace OpenSim.Framework
                 TotalBytesLength += 28 + 2 + 4; // data
             }
 
+            if (_meshFlagsEntry)
+            {
+                ExtraParamsNum++;
+                TotalBytesLength += 4 + 2 + 4; // data
+            }
             byte[] returnBytes = new byte[TotalBytesLength];
 
             returnBytes[0] = (byte)ExtraParamsNum;
@@ -1124,12 +1139,23 @@ namespace OpenSim.Framework
                 i += 4;
 
                 _projectionTextureID.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_projectionFOV).CopyTo(returnBytes, i + 16);
-                Utils.FloatToBytes(_projectionFocus).CopyTo(returnBytes, i + 20);
-                Utils.FloatToBytes(_projectionAmb).CopyTo(returnBytes, i + 24);
+                Utils.FloatToBytes(_projectionFOV, returnBytes, i + 16);
+                Utils.FloatToBytes(_projectionFocus, returnBytes, i + 20);
+                Utils.FloatToBytes(_projectionAmb, returnBytes, i + 24);
+                i += 28;
+            }
+
+            if (_meshFlagsEntry)
+            {
+                returnBytes[i] = MeshFlagsEP;
+                i += 2;
+                returnBytes[i] = 4;
+                i += 4;
+                Utils.UIntToBytes(_meshFlags, returnBytes, i);
             }
 
             return returnBytes;
+
         }
 
         public void ReadInUpdateExtraParam(ushort type, bool inUse, byte[] data)
@@ -1138,6 +1164,7 @@ namespace OpenSim.Framework
             const ushort LightEP = 0x20;
             const ushort SculptEP = 0x30;
             const ushort ProjectionEP = 0x40;
+            const ushort MeshFlagsEP = 0x70;
 
             switch (type)
             {
@@ -1175,6 +1202,14 @@ namespace OpenSim.Framework
                     }
                     ReadProjectionData(data, 0);
                     break;
+                case MeshFlagsEP:
+                    if (!inUse)
+                    {
+                        _meshFlagsEntry = false;
+                        return;
+                    }
+                    ReadMeshFlagsData(data, 0);
+                    break;
             }
         }
 
@@ -1187,6 +1222,7 @@ namespace OpenSim.Framework
             _lightEntry = false;
             _sculptEntry = false;
             _projectionEntry = false;
+            _meshFlagsEntry = false;
 
             if (data.Length == 1)
                 return;
@@ -1195,6 +1231,7 @@ namespace OpenSim.Framework
             const byte LightEP = 0x20;
             const byte SculptEP = 0x30;
             const byte ProjectionEP = 0x40;
+            const byte MeshFlagsEP = 0x70;
 
             byte extraParamCount = data[0];
             int i = 1;
@@ -1219,9 +1256,15 @@ namespace OpenSim.Framework
                         ReadSculptData(data, i);
                         i += 17;
                         break;
+
                     case ProjectionEP:
                         ReadProjectionData(data, i);
                         i += 28;
+                        break;
+
+                    case MeshFlagsEP:
+                        ReadMeshFlagsData(data, i);
+                        i += 4;
                         break;
                 }
             }
@@ -1320,6 +1363,20 @@ namespace OpenSim.Framework
                 _projectionFOV = 0f;
                 _projectionFocus = 0f;
                 _projectionAmb = 0f;
+            }
+        }
+
+        public void ReadMeshFlagsData(byte[] data, int pos)
+        {
+            if (data.Length - pos >= 4)
+            {
+                _meshFlagsEntry = true;
+                _meshFlags = Utils.BytesToUInt(data, pos);
+            }
+            else
+            {
+                _meshFlagsEntry = true;
+                _meshFlags = 0;
             }
         }
 
