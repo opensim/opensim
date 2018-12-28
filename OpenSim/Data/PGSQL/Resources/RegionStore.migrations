@@ -1225,3 +1225,10 @@ ALTER TABLE "public"."prims"
             ELSE NULL
             END;
 COMMIT;
+
+:VERSION 48 #---- field Vehicle to table prims
+
+BEGIN TRANSACTION;
+
+ALTER TABLE prims ADD "Vehicle" TEXT;
+COMMIT;
