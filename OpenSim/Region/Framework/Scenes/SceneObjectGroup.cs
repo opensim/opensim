@@ -5468,15 +5468,19 @@ namespace OpenSim.Region.Framework.Scenes
         // this scales bad but so does GetLinkNumPart
         public int GetLinkNumber(string name)
         {
-            if(String.IsNullOrEmpty(name) || name == "Object")
+            if(String.IsNullOrEmpty(name) || name == "Object" || name == "Primitive")
                 return -1;
 
             lock(m_partsNameToLinkMap)
             {
-                if(m_partsNameToLinkMap.Count == 0)
+                if (name == GetLinkNumber_lastname)
+                    return GetLinkNumber_lastnumber;
+
+                if (m_partsNameToLinkMap.Count == 0)
                 {
                     GetLinkNumber_lastname = String.Empty;
                     GetLinkNumber_lastnumber = -1;
+
                     SceneObjectPart[] parts = m_parts.GetArray();
                     for (int i = 0; i < parts.Length; i++)
                     {
@@ -5495,19 +5499,13 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if(name == GetLinkNumber_lastname)
-                    return GetLinkNumber_lastnumber;
-
                 if(m_partsNameToLinkMap.ContainsKey(name))
                 {
-                    lock(m_partsNameToLinkMap)
-                    {
-                        GetLinkNumber_lastname = name;
-                        GetLinkNumber_lastnumber = m_partsNameToLinkMap[name];
-                        return GetLinkNumber_lastnumber;
-                    }
+                    GetLinkNumber_lastname = name;
+                    GetLinkNumber_lastnumber = m_partsNameToLinkMap[name];
+                    return GetLinkNumber_lastnumber;
                 }
-            }        
+            }
 
             if(m_sittingAvatars.Count > 0)
             {
