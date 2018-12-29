@@ -626,6 +626,8 @@ namespace OpenSim.Region.Framework.Scenes
                 for (int i = 0; i < updates.Count; i++)
                 {
                     SceneObjectGroup sog = updates[i];
+                    if (sog.IsDeleted)
+                        continue;
 
                     // Don't abort the whole update if one entity happens to give us an exception.
                     try

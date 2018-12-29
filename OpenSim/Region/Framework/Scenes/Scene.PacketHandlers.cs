@@ -156,7 +156,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup sog = GetGroupByPrim(primLocalID);
 
             if (sog != null)
-                sog.SendFullUpdateToClient(remoteClient);
+                sog.SendFullAnimUpdateToClient(remoteClient);
         }
 
         /// <summary>

@@ -2168,11 +2168,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
                     {
-
-//                      SceneObjectPart root = ParentPart.ParentGroup.RootPart;
-//                      if(root.LocalId != ParentPart.LocalId)
-//                          ControllingClient.SendEntityTerseUpdateImmediate(root);
-//                      ControllingClient.SendEntityTerseUpdateImmediate(ParentPart);
                         ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
                     }
 
@@ -5439,35 +5434,34 @@ namespace OpenSim.Region.Framework.Scenes
             PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
 
             SceneObjectPart rootpart = sog.RootPart;
-            PrimUpdateFlags rootreq = sog.RootPart.GetAndClearUpdateFlag();
+            PrimUpdateFlags cur = sog.RootPart.GetAndClearUpdateFlag();
 
-            int j = 0;
+            int nparts = 0;
+            if (cur != PrimUpdateFlags.None)
+            {
+                flags[nparts] = cur;
+                parts[nparts] = rootpart;
+                ++nparts;
+            }
 
-            PrimUpdateFlags cur;
             for (int i = 0; i < origparts.Length; i++)
             {
-                if (origparts[i] != rootpart)
-                {
-                    cur = origparts[i].GetAndClearUpdateFlag();
-                    if(cur == PrimUpdateFlags.None)
-                        continue;
-                    flags[j] = cur;
-                    parts[j] = origparts[i];
-                    j++;
-                }
+                if (origparts[i] == rootpart)
+                    continue;
+
+                cur = origparts[i].GetAndClearUpdateFlag();
+                if(cur == PrimUpdateFlags.None)
+                    continue;
+                flags[nparts] = cur;
+                parts[nparts] = origparts[i];
+                ++nparts;
             }
 
-            if (j == 0 && rootreq == PrimUpdateFlags.None)
+            if (nparts == 0)
                 return;
 
-            int nparts = j;
-
-            ControllingClient.SendEntityUpdate(rootpart, rootreq);
-
             for (int i = 0; i < nparts; i++)
-            {
                 ControllingClient.SendEntityUpdate(parts[i], flags[i]);
-            }
 
             if (sog.HasPrivateAttachmentPoint)
                 return;
@@ -5481,12 +5475,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
-                p.ControllingClient.SendEntityUpdate(rootpart, rootreq);
-
                 for (int i = 0; i < nparts; i++)
-                {
                     p.ControllingClient.SendEntityUpdate(parts[i], flags[i]);
-                }
             }
         }
 
@@ -5529,31 +5519,6 @@ namespace OpenSim.Region.Framework.Scenes
                         continue;
                     p.ControllingClient.SendEntityUpdate(part, update);
                 }
-            }
-        }
-
-        public void SendAttachmentScheduleUpdate(SceneObjectPart part)
-        {
-            if (IsChildAgent || IsInTransit)
-                return;
-
-            PrimUpdateFlags flag = part.GetAndClearUpdateFlag();
-
-            ControllingClient.SendEntityUpdate(part, flag);
-
-            if (part.ParentGroup.HasPrivateAttachmentPoint)
-                return;
-
-            List<ScenePresence> allPresences = m_scene.GetScenePresences();
-            foreach (ScenePresence p in allPresences)
-            {
-                if (p == this)
-                    continue;
-
-                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
-                    continue;
-
-                p.ControllingClient.SendEntityUpdate(part, flag);
             }
         }
 

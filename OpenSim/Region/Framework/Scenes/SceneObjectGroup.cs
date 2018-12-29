@@ -2506,24 +2506,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if (isTimeToPersist() || forcedBackup)
                     {
-                        if (m_rootPart.PhysActor != null &&
-                            (!m_rootPart.PhysActor.IsPhysical))
-                        {
-                            // Possible ghost prim
-                            if (m_rootPart.PhysActor.Position != m_rootPart.GroupPosition)
-                            {
-                                foreach (SceneObjectPart part in m_parts.GetArray())
-                                {
-                                    // Re-set physics actor positions and
-                                    // orientations
-                                    part.GroupPosition = m_rootPart.GroupPosition;
-                                }
-                            }
-                        }
-//                        m_log.DebugFormat(
-//                            "[SCENE]: Storing {0}, {1} in {2}",
-//                            Name, UUID, m_scene.RegionInfo.RegionName);
-
                         if (RootPart.Shape.PCode == 9 && RootPart.Shape.State != 0)
                         {
                             RootPart.Shape.LastAttachPoint = RootPart.Shape.State;
@@ -2557,12 +2539,6 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.Clear();
                         backup_group = null;
                     }
-//                    else
-//                    {
-//                        m_log.DebugFormat(
-//                            "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
-//                            Name, UUID, IsSelected);
-//                    }
                 }
             }
             catch (Exception e)
@@ -2582,35 +2558,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used when the client initially connects and when client sends RequestPrim packet
         /// </remarks>
         /// <param name="remoteClient"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient)
-        {
-            PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
-
-            RootPart.SendFullUpdate(remoteClient, update);
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part != RootPart)
-                    part.SendFullUpdate(remoteClient, update);
-            }
-        }
-
         public void SendFullAnimUpdateToClient(IClientAPI remoteClient)
         {
             PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
             if (RootPart.Shape.MeshFlagEntry)
                 update = PrimUpdateFlags.FullUpdatewithAnim;
 
-            RootPart.SendFullUpdate(remoteClient, update);
+            RootPart.SendUpdate(remoteClient, update);
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdate(remoteClient, update);
+                    part.SendUpdate(remoteClient, update);
             }
         }
 
@@ -3033,28 +2994,13 @@ namespace OpenSim.Region.Framework.Scenes
             // the race conditions.
             if (IsDeleted || inTransit)
                 return;
-
-            // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
-            //if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
-            //    return;
-
-            // If we somehow got here to updating the SOG and its root part is not scheduled for update,
-            // check to see if the physical position or rotation warrant an update.
-/*
-            if (m_rootPart.UpdateFlag == UpdateRequired.NONE)
-            {
-                // rootpart SendScheduledUpdates will check if a update is needed
-                m_rootPart.UpdateFlag = UpdateRequired.TERSE;
-            }
-*/
+ 
             if (IsAttachment)
             {
                 ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
                 if (sp != null)
-                {
                     sp.SendAttachmentScheduleUpdate(this);
-                    return;
-                }
+                return;
             }
 
             // while physics doesn't suports LookAt, we do it in RootPart
@@ -3134,13 +3080,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            RootPart.SendFullUpdateToAllClientsInternal();
+            RootPart.SendFullUpdateToAllClientsNoAttachment();
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
-                    part.SendFullUpdateToAllClientsInternal();
+                    part.SendFullUpdateToAllClientsNoAttachment();
             }
         }
 
@@ -5465,7 +5411,6 @@ namespace OpenSim.Region.Framework.Scenes
         private string GetLinkNumber_lastname;
         private int GetLinkNumber_lastnumber;
 
-        // this scales bad but so does GetLinkNumPart
         public int GetLinkNumber(string name)
         {
             if(String.IsNullOrEmpty(name) || name == "Object" || name == "Primitive")

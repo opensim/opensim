@@ -660,7 +660,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
         public Dictionary<int, string> CollisionFilter
         {
             get { return m_CollisionFilter; }
@@ -3282,8 +3281,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleFullUpdate()
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Scheduling full update for {0} {1}", Name, LocalId);
-
             if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.Scene == null)
                 return;
  
@@ -3315,16 +3312,18 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.QueueForUpdateCheck();
 
             bool isfull = false;
-            lock (UpdateFlagLock)
+            PrimUpdateFlags update;
+            if (ParentGroup.IsAttachment)
             {
-                if (ParentGroup.IsAttachment)
-                {
-                    UpdateFlag |= PrimUpdateFlags.FullUpdate;
-                    isfull = true;
-                }
-                else
-                    UpdateFlag |= PrimUpdateFlags.TerseUpdate;
+                update = PrimUpdateFlags.FullUpdate;
+                isfull = true;
             }
+            else
+                update = PrimUpdateFlags.TerseUpdate;
+
+            lock (UpdateFlagLock)
+                UpdateFlag |= update;
+
             ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, isfull);
         }
 
@@ -3341,16 +3340,14 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.QueueForUpdateCheck();
 
             bool isfull = false;
-            lock (UpdateFlagLock)
+            if (ParentGroup.IsAttachment)
             {
-                if (ParentGroup.IsAttachment)
-                {
-                    UpdateFlag |= update | PrimUpdateFlags.FullUpdate;
-                    isfull = true;
-                }
-                else
-                    UpdateFlag |= update;
+                update |= PrimUpdateFlags.FullUpdate;
+                isfull = true;
             }
+
+            lock (UpdateFlagLock)
+                UpdateFlag |= update;
 
             ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, isfull);
         }
@@ -3369,40 +3366,28 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null)
                 return;
 
-//            m_log.DebugFormat(
-//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
-
-
             if (ParentGroup.IsAttachment)
             {
                 ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
                 if (sp != null)
-                {
                     sp.SendAttachmentUpdate(this, PrimUpdateFlags.FullUpdate);
-                }
             }
             else
             {
-                SendFullUpdateToClient(remoteClient);
+                SendUpdateToClient(remoteClient, PrimUpdateFlags.FullUpdate);
             }
         }
 
-        protected internal void SendFullUpdate(IClientAPI remoteClient, PrimUpdateFlags update)
+        protected internal void SendUpdate(IClientAPI remoteClient, PrimUpdateFlags update)
         {
             if (ParentGroup == null)
                 return;
 
-            //            m_log.DebugFormat(
-            //                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
-
-
             if (ParentGroup.IsAttachment)
             {
                 ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
                 if (sp != null)
-                {
                     sp.SendAttachmentUpdate(this, update);
-                }
             }
             else
             {
@@ -3413,7 +3398,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Send a full update for this part to all clients.
         /// </summary>
-        public void SendFullUpdateToAllClientsInternal()
+        public void SendFullUpdateToAllClientsNoAttachment()
         {
             if (ParentGroup == null)
                 return;
@@ -3427,11 +3412,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastAcceleration = Acceleration;
                 m_lastAngularVelocity = AngularVelocity;
                 m_lastUpdateSentTime = Util.GetTimeStampMS();
+                UpdateFlag &= ~PrimUpdateFlags.FullUpdate;
             }
 
             ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
-                SendFullUpdate(avatar.ControllingClient);
+                SendUpdateToClient(avatar.ControllingClient, PrimUpdateFlags.FullUpdate);
             });
         }
 
@@ -3449,50 +3435,22 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastAcceleration = Acceleration;
                 m_lastAngularVelocity = AngularVelocity;
                 m_lastUpdateSentTime = Util.GetTimeStampMS();
+                UpdateFlag &= ~PrimUpdateFlags.FullUpdate;
             }
 
             if (ParentGroup.IsAttachment)
             {
                 ScenePresence sp = ParentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
                 if (sp != null)
-                {
                     sp.SendAttachmentUpdate(this, PrimUpdateFlags.FullUpdate);
-                }
             }
             else
             {
                 ParentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                 {
-                    SendFullUpdate(avatar.ControllingClient);
+                    SendUpdateToClient(avatar.ControllingClient, PrimUpdateFlags.FullUpdate);
                 });
             }
-        }
-
-        /// <summary>
-        /// Sends a full update to the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient)
-        {
-             if (ParentGroup == null || ParentGroup.IsDeleted)
-                return;
-
-            if (ParentGroup.IsAttachment
-                && ParentGroup.AttachedAvatar != remoteClient.AgentId
-                && ParentGroup.HasPrivateAttachmentPoint)
-                return;
-
-            if (remoteClient.AgentId == OwnerID)
-            {
-                if ((Flags & PrimFlags.CreateSelected) != 0)
-                    Flags &= ~PrimFlags.CreateSelected;
-            }
-            //bool isattachment = IsAttachment;
-            //if (LocalId != ParentGroup.RootPart.LocalId)
-                //isattachment = ParentGroup.RootPart.IsAttachment;
-
-            remoteClient.SendEntityUpdate(this, PrimUpdateFlags.FullUpdate);
-            ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
 
         private const float ROTATION_TOLERANCE = 0.01f;
@@ -3546,17 +3504,12 @@ namespace OpenSim.Region.Framework.Scenes
                         if(vz > 128.0)
                             break;
 
-                        if(
-                                vx <  VELOCITY_TOLERANCE &&
-                                vy <  VELOCITY_TOLERANCE &&
-                                vz <  VELOCITY_TOLERANCE
+                        if(vx <  VELOCITY_TOLERANCE && vy <  VELOCITY_TOLERANCE && vz <  VELOCITY_TOLERANCE
                                 )
                         {
                             if(!AbsolutePosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                                 break;
-                            if(vx <  1e-4 &&
-                                    vy <  1e-4 &&
-                                    vz <  1e-4 &&
+                            if(vx <  1e-4 && vy <  1e-4 && vz <  1e-4 &&
                                     (
                                     Math.Abs(m_lastVelocity.X) > 1e-4 ||
                                     Math.Abs(m_lastVelocity.Y) > 1e-4 ||
@@ -4750,10 +4703,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             AggregateInnerPerms();
 
-            if (OwnerMask != prevOwnerMask ||
-                GroupMask != prevGroupMask ||
-                EveryoneMask != prevEveryoneMask ||
-                NextOwnerMask != prevNextOwnerMask)
+            if (OwnerMask != prevOwnerMask || GroupMask != prevGroupMask ||
+                    EveryoneMask != prevEveryoneMask || NextOwnerMask != prevNextOwnerMask)
                 SendFullUpdateToAllClients();
         }
 
