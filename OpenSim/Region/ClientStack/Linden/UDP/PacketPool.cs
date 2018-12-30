@@ -55,8 +55,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool RecyclePackets { get; set; }
 
-        public bool RecycleDataBlocks { get; set; }
-
         /// <summary>
         /// The number of packets pooled
         /// </summary>
@@ -105,8 +103,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // defaults
             RecyclePackets = true;
-            //            RecycleDataBlocks = true;
-            RecycleDataBlocks = false;
         }
 
         /// <summary>
@@ -209,32 +205,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 case PacketType.ObjectUpdate:
                     ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
-
-                    if (RecycleDataBlocks)
-                    {
-                        foreach (ObjectUpdatePacket.ObjectDataBlock oupod in oup.ObjectData)
-                            ReturnDataBlock<ObjectUpdatePacket.ObjectDataBlock>(oupod);
-                    }
-
                     oup.ObjectData = null;
                     trypool = true;
                     break;
 
                 case PacketType.ImprovedTerseObjectUpdate:
                     ImprovedTerseObjectUpdatePacket itoup = (ImprovedTerseObjectUpdatePacket)packet;
-
-                    if (RecycleDataBlocks)
-                    {
-                        foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock itoupod in itoup.ObjectData)
-                            ReturnDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>(itoupod);
-                    }
-
                     itoup.ObjectData = null;
                     trypool = true;
                     break;
 
-                case PacketType.AgentUpdate:
                 case PacketType.PacketAck:
+                    PacketAckPacket ackup = (PacketAckPacket)packet;
+                    ackup.Packets = null;
+                    trypool = true;
+                    break;
+
+                case PacketType.AgentUpdate:
                     trypool = true;
                     break;
                 default:

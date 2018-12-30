@@ -5732,7 +5732,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Z, -64.0f, 64.0f), data, pos); pos += 2;
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock block
-                = PacketPool.Instance.GetDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+                    = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
 
             block.Data = data;
             block.TextureEntry = Utils.EmptyBytes;

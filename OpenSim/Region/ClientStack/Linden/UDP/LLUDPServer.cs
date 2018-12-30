@@ -855,7 +855,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
-            if (allowSplitting && packet.HasVariableBlocks && packet.Type != PacketType.CoarseLocationUpdate)
+            if (allowSplitting && packet.HasVariableBlocks && packet.Type != PacketType.CoarseLocationUpdate &&
+                    packet.Length + 20 > MTU)
             {
                 byte[][] datas = packet.ToBytesMultiple();
                 int packetCount = datas.Length;
