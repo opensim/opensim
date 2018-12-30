@@ -2424,8 +2424,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Send an alert message to the client.  On the Linden client (tested 1.19.1.4), this pops up a brief duration
-        /// blue information box in the bottom right hand corner.
+        /// Send an alert message to the client. This pops up a brief duration information box at a corner
         /// </summary>
         /// <param name="message"></param>
         public void SendAlertMessage(string message)
@@ -2464,17 +2463,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the AlertMessage packet).</param>
         public void SendAgentAlertMessage(string message, bool modal)
         {
-            OutPacket(BuildAgentAlertPacket(message, modal), ThrottleOutPacketType.Task);
-        }
-
-        /// <summary>
-        /// Construct an agent alert packet
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="modal"></param>
-        /// <returns></returns>
-        public AgentAlertMessagePacket BuildAgentAlertPacket(string message, bool modal)
-        {
             // Prepend a slash to make the message come up in the top right
             // again.
             // Allow special formats to be sent from aware modules.
@@ -2484,8 +2472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Util.StringToBytes256(message);
             alertPack.AlertData.Modal = modal;
-
-            return alertPack;
+            OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
 
         public void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message,

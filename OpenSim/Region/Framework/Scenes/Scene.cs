@@ -64,21 +64,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void SynchronizeSceneHandler(Scene scene);
 
-        protected static int m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0x5fffafL);
 
-        public int NextObjectAnimationSequenceNumber
-        {
-            get
-            {
-                int ret = Interlocked.Increment(ref m_animationSequenceNumber);
-                if (ret <= 0 )
-                {
-                    m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0xafff5fL);
-                    ret = Interlocked.Increment(ref m_animationSequenceNumber);
-                }
-                return ret;
-            }
-        }
         #region Fields
 
         /// <summary>

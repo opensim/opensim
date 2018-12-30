@@ -32,6 +32,8 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using System.Threading;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using log4net;
@@ -5657,13 +5659,29 @@ namespace OpenSim.Region.Framework.Scenes
             UpdatePrimFlags(wasUsingPhysics,wasTemporary,wasPhantom,makeVolumeDetect,false);
         }
 
+        protected static int m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0x5fffafL);
+        public static int NextObjectAnimationSequenceNumber
+        {
+            get
+            {
+                int ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                if (ret <= 0)
+                {
+                    m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0xafff5fL);
+                    ret = Interlocked.Increment(ref m_animationSequenceNumber);
+                }
+                return ret;
+            }
+        }
+
         private object animsLock = new object();
         public Dictionary<UUID, int> Animations = null;
         public Dictionary<UUID, string> AnimationsNames = null;
 
         public bool AddAnimation(UUID animId, string animName)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+            if (animId == UUID.Zero || string.IsNullOrEmpty(animName) ||
+                    ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
             lock (animsLock)
@@ -5676,7 +5694,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Animations.ContainsKey(animId))
                     return false;
 
-                Animations[animId] = ParentGroup.Scene.NextObjectAnimationSequenceNumber;
+                Animations[animId] = NextObjectAnimationSequenceNumber;
                 AnimationsNames[animId] = animName;
                 ScheduleUpdate(PrimUpdateFlags.Animations);
             }
@@ -5685,7 +5703,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool RemoveAnimation(UUID animId)
         {
-            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+            if (animId == UUID.Zero || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
             lock (animsLock)
@@ -5725,6 +5743,88 @@ namespace OpenSim.Region.Framework.Scenes
                 Animations.Values.CopyTo(seqs, 0);
                 return Animations.Count;
             }
+        }
+
+        public Byte[] SerializeAnimations()
+        {
+            if (AnimationsNames == null)
+                return null;
+
+
+            lock (animsLock)
+            {
+                if (AnimationsNames.Count == 0)
+                    return new byte[] { 0 };
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    byte[] tmp = Utils.UInt16ToBytes((ushort)Animations.Count);
+                    ms.Write(tmp, 0, 2);
+
+                    foreach(KeyValuePair<UUID,string> kvp in AnimationsNames)
+                    {
+                        tmp = kvp.Key.GetBytes();
+                        ms.Write(tmp, 0, 16);
+                        if(string.IsNullOrEmpty(kvp.Value))
+                            ms.WriteByte(0);
+                        else
+                        {
+                            byte[] str = Util.StringToBytes(kvp.Value, 64);
+                            int len = str.Length - 1;
+                            ms.WriteByte((byte)len);
+                            ms.Write(str, 0 , len);
+                        }
+                    }
+                    return ms.ToArray();
+                }
+            }
+        }
+
+        public void DeSerializeAnimations(Byte[] data)
+        {
+            if(data == null)
+            {
+                Animations = null;
+                AnimationsNames = null;
+                return;
+            }
+
+            if (data.Length < 2)
+            {
+                Animations = new Dictionary<UUID, int>();
+                AnimationsNames = new Dictionary<UUID, string>();
+                return;
+            }
+
+            try
+            {
+                int count = (int)Utils.BytesToUInt16(data, 0);
+                if(count == 0)
+                    return;
+
+                Animations = new Dictionary<UUID, int>(count);
+                AnimationsNames = new Dictionary<UUID, string>(count);
+                int pos = 2;
+                while(--count >= 0)
+                {
+                    UUID id = new UUID(data, pos);
+                    if(id == UUID.Zero)
+                        break;
+                    pos += 16;
+                    int strlen = data[pos++];
+                    string name = UTF8Encoding.UTF8.GetString(data, pos, strlen);
+                    if(string.IsNullOrEmpty(name))
+                        break;
+                    pos += strlen;
+                    Animations[id] = NextObjectAnimationSequenceNumber;
+                    AnimationsNames[id] = name;
+                }
+                return;
+            }
+            catch { }
+
+            Animations = null;
+            AnimationsNames = null;
         }
     }
 }

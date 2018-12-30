@@ -467,3 +467,10 @@ COMMIT;
 BEGIN;
 ALTER TABLE `prims` ADD COLUMN `PhysInertia` TEXT default NULL;
 COMMIT;
+
+:VERSION 58         #----- Add sop animations
+
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `sopanims` blob default NULL;
+COMMIT;
+

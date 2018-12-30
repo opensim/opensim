@@ -62,7 +62,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private object m_dbLock = new object();
 
-        protected virtual Assembly Assembly
+        protected Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
@@ -76,7 +76,7 @@ namespace OpenSim.Data.MySQL
             Initialise(connectionString);
         }
 
-        public virtual void Initialise(string connectionString)
+        public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
 
@@ -189,7 +189,7 @@ namespace OpenSim.Data.MySQL
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
-                                    "RotationAxisLocks" +
+                                    "RotationAxisLocks, sopanims" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -226,7 +226,7 @@ namespace OpenSim.Data.MySQL
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
-                                    "?RotationAxisLocks)";
+                                    "?RotationAxisLocks, ?sopanims)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1499,6 +1499,19 @@ namespace OpenSim.Data.MySQL
                 pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
             prim.PhysicsInertia = pdata;
 
+            if (!(row["sopanims"] is DBNull))
+            {
+                Byte[] data = (byte[])row["sopanims"];
+                if (data.Length > 0)
+                    prim.DeSerializeAnimations(data);
+                else
+                    prim.Animations = null;
+            }
+            else
+            {
+                prim.Animations = null;
+            }
+
             return prim;
         }
 
@@ -1878,6 +1891,11 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Friction", (double)prim.Friction);
             cmd.Parameters.AddWithValue("Restitution", (double)prim.Restitution);
             cmd.Parameters.AddWithValue("RotationAxisLocks", prim.RotationAxisLocks);
+
+            if (prim.Animations!= null)
+                cmd.Parameters.AddWithValue("sopanims", prim.SerializeAnimations());
+            else
+                cmd.Parameters.AddWithValue("sopanims", null);
         }
 
         /// <summary>
