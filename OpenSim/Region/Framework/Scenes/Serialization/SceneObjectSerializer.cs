@@ -235,7 +235,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if (doScriptStates)
                 sceneObject.SaveScriptedState(writer);
 
-
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup
 
@@ -498,6 +497,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("SoundFlags", ProcessSoundFlags);
             m_SOPXmlProcessors.Add("SoundRadius", ProcessSoundRadius);
             m_SOPXmlProcessors.Add("SoundQueueing", ProcessSoundQueueing);
+
+            m_SOPXmlProcessors.Add("SOPAnims", ProcessSOPAnims);
 
             #endregion
 
@@ -824,6 +825,27 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 obj.PhysicsInertia = pdata;
             }
+        }
+
+        private static void ProcessSOPAnims(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.Animations = null;
+            try
+            {
+                string datastr;
+                datastr = reader.ReadElementContentAsString();
+                if(string.IsNullOrEmpty(datastr))
+                    return;
+
+                byte[] pdata = Convert.FromBase64String(datastr);
+                obj.DeSerializeAnimations(pdata);
+                return;
+            }
+            catch {}
+
+            m_log.DebugFormat(
+                    "[SceneObjectSerializer]: Parsing ProcessSOPAnims for object part {0} {1} encountered errors",
+                    obj.Name, obj.UUID);
         }
 
         private static void ProcessShape(SceneObjectPart obj, XmlReader reader)
@@ -1587,6 +1609,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("SoundRadius", sop.SoundRadius.ToString(Culture.FormatProvider));
             }
             writer.WriteElementString("SoundQueueing", sop.SoundQueueing.ToString().ToLower());
+
+            if (sop.Animations != null)
+            {
+                Byte[] data = sop.SerializeAnimations();
+                if(data != null && data.Length > 0)
+                    writer.WriteElementString("SOPAnims", Convert.ToBase64String(data));
+            }
 
             writer.WriteEndElement();
         }

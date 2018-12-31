@@ -5750,7 +5750,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (AnimationsNames == null)
                 return null;
 
-
             lock (animsLock)
             {
                 if (AnimationsNames.Count == 0)
