@@ -62,7 +62,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private object m_dbLock = new object();
 
-        protected Assembly Assembly
+        protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
@@ -76,7 +76,7 @@ namespace OpenSim.Data.MySQL
             Initialise(connectionString);
         }
 
-        public void Initialise(string connectionString)
+        public virtual void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
 
