@@ -950,7 +950,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sog.inTransit = false;
                 AttachToBackup();
-                sog.ScheduleGroupForFullUpdate();
+                sog.ScheduleGroupForFullAnimUpdate();
             }
         }
 
@@ -2668,7 +2668,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
 
-                dupe.ScheduleGroupForFullUpdate();
+                dupe.ScheduleGroupForFullAnimUpdate();
             }
 
             dupe.InvalidatePartsLinkMaps();
@@ -3028,10 +3028,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void ScheduleGroupForFullUpdate()
         {
-//            if (IsAttachment)
-//                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
-
+            //            if (IsAttachment)
+            //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
             checkAtTargets();
+            if (Scene.GetNumberOfClients() == 0)
+                return;
+
             RootPart.ScheduleFullUpdate();
 
             SceneObjectPart[] parts = m_parts.GetArray();
@@ -3040,6 +3042,40 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = parts[i];
                 if (part != RootPart)
                     part.ScheduleFullUpdate();
+            }
+        }
+
+        public void ScheduleGroupForFullAnimUpdate()
+        {
+            //            if (IsAttachment)
+            //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
+            checkAtTargets();
+
+            if (Scene.GetNumberOfClients() == 0)
+                return;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+
+            if (!RootPart.Shape.MeshFlagEntry)
+            {
+                RootPart.ScheduleFullUpdate();
+
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    if (part != RootPart)
+                        part.ScheduleFullUpdate();
+                }
+                return;
+            }
+
+            RootPart.ScheduleFullAnimUpdate();
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part != RootPart)
+                    part.ScheduleFullAnimUpdate();
             }
         }
 
@@ -3058,36 +3094,6 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].ScheduleTerseUpdate();
-        }
-
-        /// <summary>
-        /// Immediately send a full update for this scene object.
-        /// </summary>
-        public void SendGroupFullUpdate()
-        {
-            if (IsDeleted)
-                return;
-
-//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);
-
-            if (IsAttachment)
-            {
-                ScenePresence sp = m_scene.GetScenePresence(AttachedAvatar);
-                if (sp != null)
-                {
-                    sp.SendAttachmentUpdate(this, PrimUpdateFlags.FullUpdate);
-                    return;
-                }
-            }
-
-            RootPart.SendFullUpdateToAllClientsNoAttachment();
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part != RootPart)
-                    part.SendFullUpdateToAllClientsNoAttachment();
-            }
         }
 
         /// <summary>

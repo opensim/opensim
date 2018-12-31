@@ -485,7 +485,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (sendClientUpdates)
-                sceneObject.ScheduleGroupForFullUpdate();
+                sceneObject.ScheduleGroupForFullAnimUpdate();
 
             if (attachToBackup)
                 sceneObject.AttachToBackup();
@@ -1825,7 +1825,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
 
                 // We do this in reverse to get the link order of the prims correct
@@ -1870,8 +1869,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     parentGroup.RootPart.CreateSelected = true;
                     parentGroup.TriggerScriptChangedEvent(Changed.LINK);
-                    parentGroup.HasGroupChanged = true;
-                    parentGroup.ScheduleGroupForFullUpdate();
                 }
             }
             finally
@@ -1886,7 +1883,7 @@ namespace OpenSim.Region.Framework.Scenes
                 parentGroup.AdjustChildPrimPermissions(false);
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
-                parentGroup.ScheduleGroupForFullUpdate();
+                parentGroup.ScheduleGroupForFullAnimUpdate();
                 Monitor.Exit(m_updateLock);
             }
         }
@@ -1949,7 +1946,7 @@ namespace OpenSim.Region.Framework.Scenes
                         child.ParentGroup.DelinkFromGroup(child, true);
                         //child.ParentGroup is now other
                         child.ParentGroup.HasGroupChanged = true;
-                        child.ParentGroup.ScheduleGroupForFullUpdate();
+                        child.ParentGroup.ScheduleGroupForFullAnimUpdate();
                     }
                 }
 
@@ -1991,7 +1988,7 @@ namespace OpenSim.Region.Framework.Scenes
                         newRoot.TriggerScriptChangedEvent(Changed.LINK);
                         newRoot.ParentGroup.HasGroupChanged = true;
                         newRoot.ParentGroup.InvalidatePartsLinkMaps();
-                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();
+                        newRoot.ParentGroup.ScheduleGroupForFullAnimUpdate();
                     }
                 }
 
@@ -2131,7 +2128,7 @@ namespace OpenSim.Region.Framework.Scenes
                     copy.ResumeScripts();
 
                     copy.HasGroupChanged = true;
-                    copy.ScheduleGroupForFullUpdate();
+                    copy.ScheduleGroupForFullAnimUpdate();
                     return copy;
                 }
             }

@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // will succeed, as that will not update if an attachment is selected.
                 so.IsSelected = false; // fudge....
 
-                so.ScheduleGroupForFullUpdate();
+                so.ScheduleGroupForFullAnimUpdate();
             }
 
             // In case it is later dropped again, don't let

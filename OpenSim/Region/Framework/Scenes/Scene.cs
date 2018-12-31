@@ -2537,7 +2537,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
 
             sceneObject.InvalidateDeepEffectivePerms();;
-            sceneObject.ScheduleGroupForFullUpdate();
+            sceneObject.ScheduleGroupForFullAnimUpdate();
 
             return sceneObject;
         }

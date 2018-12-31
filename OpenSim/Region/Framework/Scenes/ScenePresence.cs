@@ -5364,7 +5364,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return validated;
         }
-
+/*
         public void SendAttachmentsToAllAgents()
         {
             lock (m_attachments)
@@ -5385,7 +5385,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+*/
         // send attachments to a client without filters except for huds
         // for now they are checked in several places down the line...
         public void SendAttachmentsToAgentNF(ScenePresence p)
@@ -5429,14 +5429,18 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent || IsInTransit)
                 return;
 
+            
             SceneObjectPart[] origparts = sog.Parts;
             SceneObjectPart[] parts = new SceneObjectPart[origparts.Length];
             PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
 
             SceneObjectPart rootpart = sog.RootPart;
             PrimUpdateFlags cur = sog.RootPart.GetAndClearUpdateFlag();
+            bool noanim = !rootpart.Shape.MeshFlagEntry;
 
             int nparts = 0;
+            if (noanim || rootpart.Animations == null)
+                cur &= ~PrimUpdateFlags.Animations;
             if (cur != PrimUpdateFlags.None)
             {
                 flags[nparts] = cur;
@@ -5450,7 +5454,9 @@ namespace OpenSim.Region.Framework.Scenes
                     continue;
 
                 cur = origparts[i].GetAndClearUpdateFlag();
-                if(cur == PrimUpdateFlags.None)
+                if (noanim || origparts[i].Animations == null)
+                    cur &= ~PrimUpdateFlags.Animations;
+                if (cur == PrimUpdateFlags.None)
                     continue;
                 flags[nparts] = cur;
                 parts[nparts] = origparts[i];
@@ -5485,18 +5491,44 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent || IsInTransit)
                 return;
 
-            SceneObjectPart[] parts = sog.Parts;
+            SceneObjectPart[] origparts = sog.Parts;
+            SceneObjectPart[] parts = new SceneObjectPart[origparts.Length];
+            PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
+
             SceneObjectPart rootpart = sog.RootPart;
+            bool noanim = !rootpart.Shape.MeshFlagEntry;
 
-            ControllingClient.SendEntityUpdate(rootpart, update);
-
-            for (int i = 0; i < parts.Length; i++)
+            int nparts = 0;
+            PrimUpdateFlags cur = update;
+            if (noanim || rootpart.Animations == null)
+                cur &= ~PrimUpdateFlags.Animations;
+            if (cur != PrimUpdateFlags.None)
             {
-                SceneObjectPart part = parts[i];
-                if (part == rootpart)
-                    continue;
-                ControllingClient.SendEntityUpdate(part, update);
+                flags[nparts] = cur;
+                parts[nparts] = rootpart;
+                ++nparts;
             }
+
+            for (int i = 0; i < origparts.Length; i++)
+            {
+                if (origparts[i] == rootpart)
+                    continue;
+
+                cur = update;
+                if (noanim || origparts[i].Animations == null)
+                    cur &= ~PrimUpdateFlags.Animations;
+                if (cur == PrimUpdateFlags.None)
+                    continue;
+                flags[nparts] = cur;
+                parts[nparts] = origparts[i];
+                ++nparts;
+            }
+
+            if (nparts == 0)
+                return;
+
+            for(int i = 0; i < nparts; i++)
+                ControllingClient.SendEntityUpdate(parts[i], flags[i]);
 
             if (sog.HasPrivateAttachmentPoint)
                 return;
@@ -5512,22 +5544,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 p.ControllingClient.SendEntityUpdate(rootpart, update);
 
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    SceneObjectPart part = parts[i];
-                    if (part == rootpart)
-                        continue;
-                    p.ControllingClient.SendEntityUpdate(part, update);
-                }
+                for (int i = 0; i < nparts; i++)
+                    p.ControllingClient.SendEntityUpdate(parts[i], flags[i]);
             }
         }
 
-        public void SendAttachmentUpdate(SceneObjectPart part, PrimUpdateFlags flag)
+        public void SendAttachmentUpdate(SceneObjectPart part, PrimUpdateFlags update)
         {
             if (IsChildAgent || IsInTransit)
                 return;
 
-            ControllingClient.SendEntityUpdate(part, flag);
+            if ((update & PrimUpdateFlags.Animations) != 0 && part.Animations == null)
+            {
+                update &= ~PrimUpdateFlags.Animations;
+                if (update == PrimUpdateFlags.None)
+                    return;
+            }
+
+            ControllingClient.SendEntityUpdate(part, update);
 
             if (part.ParentGroup.HasPrivateAttachmentPoint)
                 return;
@@ -5540,7 +5574,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     continue;
 
-                p.ControllingClient.SendEntityUpdate(part, flag);
+                p.ControllingClient.SendEntityUpdate(part, update);
             }
         }
 

@@ -3297,6 +3297,26 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
         }
 
+        public void ScheduleFullAnimUpdate()
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.Scene == null)
+                return;
+
+            if (ParentGroup.Scene.GetNumberOfClients() == 0)
+                return;
+
+            PrimUpdateFlags update = PrimUpdateFlags.FullUpdatewithAnim;
+            if (Animations == null || !ParentGroup.RootPart.Shape.MeshFlagEntry)
+                update = PrimUpdateFlags.FullUpdate;
+
+            ParentGroup.QueueForUpdateCheck(); // just in case
+
+            lock (UpdateFlagLock)
+                UpdateFlag |= update;
+
+            ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, true);
+        }
+
         /// <summary>
         /// Schedule a terse update for this prim.  Terse updates only send position,
         /// rotation, velocity and rotational velocity information.
@@ -3332,6 +3352,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void ScheduleUpdate(PrimUpdateFlags update)
         {
             if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.Scene == null)
+                return;
+
+            if (Animations == null)
+                update &= ~PrimUpdateFlags.Animations;
+            if (update == PrimUpdateFlags.None)
                 return;
 
             ParentGroup.HasGroupChanged = true;
@@ -4571,7 +4596,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup != null)
             {
                 ParentGroup.HasGroupChanged = true;
-                ScheduleFullUpdate();
+                ScheduleFullAnimUpdate();
             }
         }
 
@@ -5367,16 +5392,23 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Public Methods
 
-        public void SendUpdateToClient(IClientAPI remoteClient, PrimUpdateFlags PrimUpdateFlags)
+        public void SendUpdateToClient(IClientAPI remoteClient, PrimUpdateFlags update)
         {
             if (ParentGroup.IsDeleted)
                 return;
+
+            if (Animations == null)
+            {
+                update &= ~PrimUpdateFlags.Animations;
+                if (update == PrimUpdateFlags.None)
+                    return;
+            }
 
             if (ParentGroup.IsAttachment && 
                     (ParentGroup.RootPart != this || ParentGroup.AttachedAvatar != remoteClient.AgentId && ParentGroup.HasPrivateAttachmentPoint))
                 return;
  
-            remoteClient.SendEntityUpdate(this, PrimUpdateFlags);
+            remoteClient.SendEntityUpdate(this, update);
 
             ParentGroup.Scene.StatsReporter.AddObjectUpdates(1);
         }
