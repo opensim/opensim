@@ -344,12 +344,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights;
 
-        // needs optimazation
+        // needs optimization
         private HashSet<SceneObjectGroup> GroupsInView = new HashSet<SceneObjectGroup>();
 #pragma warning disable 0414
         private bool m_VelocityInterpolate;
 #pragma warning restore 0414
         private const uint MaxTransferBytesPerPacket = 600;
+
+        public bool DoObjectAnimations { get; set; }
 
         /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
@@ -3915,6 +3917,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendObjectAnimations(UUID[] animations, int[] seqs, UUID senderId)
         {
             // m_log.DebugFormat("[LLCLIENTVIEW]: Sending Object animations for {0} to {1}", sourceAgentId, Name);
+            if(!DoObjectAnimations)
+                return;
 
             ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
             // TODO: don't create new blocks if recycling an old packet
@@ -4326,10 +4330,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (update.Entity is SceneObjectPart)
                 {
-                    if (updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    if (DoObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
-                        if (sop.Animations != null)
+                        if ( sop.Animations != null)
                         {
                             ObjectAnimationUpdates.Value.Add(sop);
                             maxUpdatesBytes -= 32 * sop.Animations.Count + 16;

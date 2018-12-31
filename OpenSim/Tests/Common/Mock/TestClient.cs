@@ -354,6 +354,8 @@ namespace OpenSim.Tests.Common
 
         public ISceneAgent SceneAgent { get; set; }
 
+        public bool DoObjectAnimations { get; set; }
+
         /// <value>
         /// The last caps seed url that this client was given.
         /// </value>

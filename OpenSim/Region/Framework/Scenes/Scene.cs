@@ -3111,6 +3111,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_LastLogin = Util.EnvironmentTickCount();
 
+//HACK only send object animations to fs beta for now
+            string viewername = Util.GetViewerName(aCircuit);
+            if(sp != null && viewername.StartsWith("Firestorm-Betax64 6"))
+            {
+                sp.ControllingClient.DoObjectAnimations = true;
+            }
             return sp;
         }
 
@@ -4190,7 +4196,6 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
                 }
             }
-
             return true;
         }
 
