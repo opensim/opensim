@@ -3111,12 +3111,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_LastLogin = Util.EnvironmentTickCount();
 
-//HACK only send object animations to fs beta for now
-            string viewername = Util.GetViewerName(aCircuit);
-            if(sp != null && viewername.StartsWith("Firestorm-Betax64 6"))
-            {
-                sp.ControllingClient.DoObjectAnimations = true;
-            }
             return sp;
         }
 
@@ -3207,36 +3201,29 @@ namespace OpenSim.Region.Framework.Scenes
         public override bool CheckClient(UUID agentID, System.Net.IPEndPoint ep)
         {
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
-            if (aCircuit != null)
+            if (aCircuit == null)
+                return false;
+
+            bool vialogin = false;
+            if (VerifyClient(aCircuit, ep, out vialogin))
+                return true;
+
+            // if it doesn't pass, we remove the agentcircuitdata altogether
+            // and the scene presence and the client, if they exist
+            try
             {
-                bool vialogin = false;
-                if (!VerifyClient(aCircuit, ep, out vialogin))
+                ScenePresence sp = WaitGetScenePresence(agentID);
+                if (sp != null)
                 {
-                    // if it doesn't pass, we remove the agentcircuitdata altogether
-                    // and the scene presence and the client, if they exist
-                    try
-                    {
-                        ScenePresence sp = WaitGetScenePresence(agentID);
-
-                        if (sp != null)
-                        {
-                            PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
-
-                            CloseAgent(sp.UUID, false);
-                        }
-
-                        // BANG! SLASH!
-                        m_authenticateHandler.RemoveCircuit(agentID);
-
-                        return false;
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
-                    }
+                    PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
+                    CloseAgent(sp.UUID, false);
                 }
-                else
-                    return true;
+                // BANG! SLASH!
+                m_authenticateHandler.RemoveCircuit(agentID);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
             }
 
             return false;

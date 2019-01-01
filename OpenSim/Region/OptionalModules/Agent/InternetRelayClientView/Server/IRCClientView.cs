@@ -60,7 +60,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public int PingTimeMS { get { return 0; } }
 
-        public bool DoObjectAnimations { get; set; }
+        public bool SupportObjectAnimations { get; set; }
 
         private string m_username;
         private string m_nick;

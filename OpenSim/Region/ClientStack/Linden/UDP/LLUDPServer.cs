@@ -1919,38 +1919,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             IClientAPI client = null;
-            bool createNew = false;
 
             // We currently synchronize this code across the whole scene to avoid issues such as
             // http://opensimulator.org/mantis/view.php?id=5365  However, once locking per agent circuit can be done
             // consistently, this lock could probably be removed.
             lock (this)
             {
-                if (!Scene.TryGetClient(agentID, out client))
+                if (Scene.TryGetClient(agentID, out client))
                 {
-                    createNew = true;
-                }
-                else
-                {
-                    if (client.SceneAgent == null)
-                    {
-                        Scene.CloseAgent(agentID, true);
-                        createNew = true;
-                    }
+                    if (client.SceneAgent != null)
+                        return client;
+                    Scene.CloseAgent(agentID, true);
                 }
 
-                if (createNew)
-                {
-                    LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, Throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
+                LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, Throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
 
-                    client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-                    client.OnLogout += LogoutHandler;
-                    client.DebugPacketLevel = DefaultClientPacketDebugLevel;
+                client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
+                client.OnLogout += LogoutHandler;
+                client.DebugPacketLevel = DefaultClientPacketDebugLevel;
 
-                    ((LLClientView)client).DisableFacelights = m_disableFacelights;
+                ((LLClientView)client).DisableFacelights = m_disableFacelights;
 
-                    client.Start();
-                }
+                client.Start();
             }
 
             return client;

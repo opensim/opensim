@@ -119,6 +119,17 @@ namespace OpenSim.Framework.Capabilities
             get { return m_externalCapsHandlers; }
         }
 
+        [Flags]
+        public enum CapsFlags:uint
+        {
+            None =          0,
+            SentSeeds =     1,
+
+            ObjectAnim = 0x10
+        }
+
+        public CapsFlags Flags { get; set;}
+
         public Caps(IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, string regionName)
         {
@@ -138,12 +149,18 @@ namespace OpenSim.Framework.Capabilities
             m_agentID = agent;
             m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort);
             m_regionName = regionName;
+            Flags = CapsFlags.None;
             m_capsActive.Reset();
         }
 
         ~Caps()
         {
-            m_capsActive.Dispose();
+            Flags = CapsFlags.None;
+            if (m_capsActive!= null)
+            {
+                m_capsActive.Dispose();
+                m_capsActive = null;
+            }
         }
 
         /// <summary>
@@ -262,6 +279,7 @@ namespace OpenSim.Framework.Capabilities
                 caps[kvp.Key] = kvp.Value;
             }
 
+            Flags |= CapsFlags.SentSeeds;
             return caps;
         }
 

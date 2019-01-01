@@ -710,7 +710,7 @@ namespace OpenSim.Framework
         Vector3 StartPos { get; set; }
 
         UUID AgentId { get; }
-        bool DoObjectAnimations { get; set; }
+        bool SupportObjectAnimations { get; set; }
 
         /// <summary>
         /// The scene agent for this client.  This will only be set if the client has an agent in a scene (i.e. if it

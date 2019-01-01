@@ -73,7 +73,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private UUID m_profileImage = UUID.Zero;
         private string m_born;
         public List<uint> SelectedObjects {get; private set;}
-        public bool DoObjectAnimations { get; set; }
+        public bool SupportObjectAnimations { get; set; }
 
         public NPCAvatar(
             string firstname, string lastname, Vector3 position, UUID ownerID, bool senseAsAgent, Scene scene)

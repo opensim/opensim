@@ -374,7 +374,12 @@ namespace OpenSim.Region.ClientStack.Linden
             List<string> validCaps = new List<string>();
 
             foreach (OSD c in capsRequested)
-                validCaps.Add(c.AsString());
+            {
+                string cstr = c.AsString();
+                if(cstr == "ObjectAnimation")
+                    m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
+                validCaps.Add(cstr);
+            }
 
             string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
 

@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 #pragma warning restore 0414
         private const uint MaxTransferBytesPerPacket = 600;
 
-        public bool DoObjectAnimations { get; set; }
+        public bool SupportObjectAnimations { get; set; }
 
         /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
@@ -3917,7 +3917,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendObjectAnimations(UUID[] animations, int[] seqs, UUID senderId)
         {
             // m_log.DebugFormat("[LLCLIENTVIEW]: Sending Object animations for {0} to {1}", sourceAgentId, Name);
-            if(!DoObjectAnimations)
+            if(!SupportObjectAnimations)
                 return;
 
             ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
@@ -4330,7 +4330,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (update.Entity is SceneObjectPart)
                 {
-                    if (DoObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    if (SupportObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         if ( sop.Animations != null)
