@@ -1404,5 +1404,8 @@ namespace OpenSim.Tests.Common
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }
+
+        public void CheckViewerCaps() { }
+
     }
 }

@@ -710,7 +710,6 @@ namespace OpenSim.Framework
         Vector3 StartPos { get; set; }
 
         UUID AgentId { get; }
-        bool SupportObjectAnimations { get; set; }
 
         /// <summary>
         /// The scene agent for this client.  This will only be set if the client has an agent in a scene (i.e. if it
@@ -1515,5 +1514,6 @@ namespace OpenSim.Framework
         void SendAgentTerseUpdate(ISceneEntity presence);
 
         void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data);
+        void CheckViewerCaps();
     }
 }

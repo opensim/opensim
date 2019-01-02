@@ -46,6 +46,7 @@ using OpenMetaverse;
 using Mono.Addins;
 using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
 
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
@@ -1697,8 +1698,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_pendingCache.Remove(endPoint);
                     }
 
-                    m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
+                    client.CheckViewerCaps();
 
+                    m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
                     // Reinject queued packets
                     while (queue.Count > 0)
                     {

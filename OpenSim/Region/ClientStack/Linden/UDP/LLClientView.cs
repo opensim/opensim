@@ -26,15 +26,11 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
-using System.Text;
 using System.Threading;
-using System.Timers;
-using System.Xml;
 
 using log4net;
 using OpenMetaverse;
@@ -48,11 +44,10 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using Timer = System.Timers.Timer;
+using Caps = OpenSim.Framework.Capabilities.Caps;
+
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using RegionFlags = OpenMetaverse.RegionFlags;
-
-using System.IO;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -351,7 +346,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 #pragma warning restore 0414
         private const uint MaxTransferBytesPerPacket = 600;
 
-        public bool SupportObjectAnimations { get; set; }
+        private bool m_SupportObjectAnimations;
 
         /// <value>
         /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
@@ -3917,7 +3912,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendObjectAnimations(UUID[] animations, int[] seqs, UUID senderId)
         {
             // m_log.DebugFormat("[LLCLIENTVIEW]: Sending Object animations for {0} to {1}", sourceAgentId, Name);
-            if(!SupportObjectAnimations)
+            if(!m_SupportObjectAnimations)
                 return;
 
             ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
@@ -4330,7 +4325,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (update.Entity is SceneObjectPart)
                 {
-                    if (SupportObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    if (m_SupportObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         if ( sop.Animations != null)
@@ -13539,6 +13534,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public HashSet<string> GetInPacketDropSet()
         {
             return new HashSet<string>(m_inPacketsToDrop);
+        }
+
+        public void CheckViewerCaps()
+        {
+            m_SupportObjectAnimations = false;
+            if (m_scene.CapsModule != null)
+            {
+                Caps cap = m_scene.CapsModule.GetCapsForUser(CircuitCode);
+                if (cap != null && (cap.Flags & Caps.CapsFlags.ObjectAnim) != 0)
+                    m_SupportObjectAnimations = true;
+            }
         }
     }
 }

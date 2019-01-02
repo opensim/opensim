@@ -45,7 +45,6 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Services.Interfaces;
 using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;
-using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -1111,14 +1110,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             HealRate = 0.5f;
 
-            ControllingClient.SupportObjectAnimations = false;
-            if (m_scene.CapsModule != null)
-            {
-                Caps cap = m_scene.CapsModule.GetCapsForUser(ControllingClient.CircuitCode);
-                if (cap != null && (cap.Flags & Caps.CapsFlags.ObjectAnim) != 0)
-                    ControllingClient.SupportObjectAnimations = true;
-            }
-
             IConfig sconfig = m_scene.Config.Configs["EntityTransfer"];
             if (sconfig != null)
             {
@@ -1142,7 +1133,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             m_bandwidthBurst = m_bandwidth / 5;
             ControllingClient.RefreshGroupMembership();
-
         }
 
         private float lastHealthSent = 0;
