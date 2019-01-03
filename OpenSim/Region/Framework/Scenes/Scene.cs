@@ -4667,16 +4667,6 @@ Label_GroupsDone:
             return false;
         }
 
-//        public bool IncomingCloseAgent(UUID agentID)
-//        {
-//            return IncomingCloseAgent(agentID, false);
-//        }
-
-//        public bool IncomingCloseChildAgent(UUID agentID)
-//        {
-//            return IncomingCloseAgent(agentID, true);
-//        }
-
         /// <summary>
         /// Tell a single client to prepare to close.
         /// </summary>

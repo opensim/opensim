@@ -1251,8 +1251,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
 
         // constants for physics position search
-        const float PhysSearchHeight = 600f;
-        const float PhysMinSkipGap = 50f;
+        const float PhysSearchHeight = 300f;
+        const float PhysMinSkipGap = 20f;
+        const float PhysSkipGapDelta = 30f;
         const int PhysNumberCollisions = 30;
 
         // only in use as part of completemovement
@@ -1398,11 +1399,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                     List<ContactResult> physresults =
                             (List<ContactResult>)m_scene.RayCastFiltered(RayStart, direction, dist, physcount, rayfilter);
-                    if (physresults != null && physresults.Count > 0)
+                    while (physresults != null && physresults.Count > 0)
                     {
                         float dest = physresults[0].Pos.Z;
+                        if (dest - groundHeight > PhysMinSkipGap + PhysSkipGapDelta)
+                            break;
 
-                        if(physresults.Count > 1)
+                        if (physresults.Count > 1)
                         {
                             physresults.Sort(delegate(ContactResult a, ContactResult b)
                             {
@@ -1420,7 +1423,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 if(curd >= nextd)
                                 {
                                     sel = i;
-                                    if(curd >= maxDepth)
+                                    if(curd >= maxDepth || curd >= nextd + PhysSkipGapDelta)
                                         break;
                                 }
                                 nextd = curd + PhysMinSkipGap;
@@ -1428,9 +1431,10 @@ namespace OpenSim.Region.Framework.Scenes
                             dest = physresults[sel].Pos.Z;
                         }
 
-                        dest += localAVHalfHeight;
-                        if(dest > pos.Z)
-                            pos.Z = dest;
+                    dest += localAVHalfHeight;
+                    if(dest > pos.Z)
+                        pos.Z = dest;
+                    break;
                     }
                 }
 
