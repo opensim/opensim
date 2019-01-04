@@ -2340,9 +2340,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                    m_lastChildAgentUpdateDrawDistance = DrawDistance;
-                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
+                    m_lastChildAgentUpdateDrawDistance = DrawDistance;
+
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_childUpdatesBusy = false; // allow them
                 }
 
@@ -4027,6 +4028,15 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         landch.sendClientInitialLandInfo(ControllingClient);
                     }
+                    m_reprioritizationLastPosition = AbsolutePosition;
+                    m_reprioritizationLastDrawDistance = DrawDistance;
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+                }
+                else
+                {
+                    m_reprioritizationLastPosition = AbsolutePosition;
+                    m_reprioritizationLastDrawDistance = -1000;
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount() + 2000; // delay it
                 }
 
                 SendOtherAgentsAvatarFullToMe();
@@ -4037,9 +4047,6 @@ namespace OpenSim.Region.Framework.Scenes
                         ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
                 }
 
-                m_reprioritizationLastPosition = AbsolutePosition;
-                m_reprioritizationLastDrawDistance = DrawDistance;
-                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
                 m_reprioritizationBusy = false;
 
             });
