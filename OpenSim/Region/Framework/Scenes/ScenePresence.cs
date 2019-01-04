@@ -2338,16 +2338,9 @@ namespace OpenSim.Region.Framework.Scenes
                             m_agentTransfer.EnableChildAgents(this);
                         }
                     }
-                    if(gotCrossUpdate)
-                    {
-                        m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                        m_lastChildAgentUpdateDrawDistance = DrawDistance;
-                    }
-                    else
-                    {
-                        m_lastChildUpdatesTime = 0;
-                        m_lastChildAgentUpdateDrawDistance = -1000;
-                    }
+
+                    m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
+                    m_lastChildAgentUpdateDrawDistance = DrawDistance;
                     m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_childUpdatesBusy = false; // allow them
