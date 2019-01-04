@@ -609,7 +609,9 @@ namespace OpenSim.Framework
             // we are on the new one
             PrimUpdateFlags updateFlags = oldupdate.Flags;
             if(m_flags.HasFlag(PrimUpdateFlags.CancelKill))
-                m_flags = PrimUpdateFlags.FullUpdate;
+            {
+                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            }
             else if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
                 return;
             else // kill case will just merge in
