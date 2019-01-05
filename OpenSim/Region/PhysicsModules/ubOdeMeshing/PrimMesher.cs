@@ -43,6 +43,13 @@ namespace PrimMesher
         /// <summary>W value</summary>
         public float W;
 
+        public enum MainAxis : int
+        {
+            X = 0,
+            Y = 1,
+            Z = 2
+        }
+
         public Quat(float x, float y, float z, float w)
         {
             X = x;
@@ -51,20 +58,37 @@ namespace PrimMesher
             W = w;
         }
 
-        public Quat(Coord axis, float angle)
+        public Quat(MainAxis BaseAxis, float angle)
         {
-            axis = axis.Normalize();
-
             angle *= 0.5f;
-            float c = (float)Math.Cos(angle);
-            float s = (float)Math.Sin(angle);
+            double c = Math.Cos(angle);
+            float s = (float)Math.Sqrt(1.0 - c * c);
 
-            X = axis.X * s;
-            Y = axis.Y * s;
-            Z = axis.Z * s;
-            W = c;
-
-            Normalize();
+            W = (float)c;
+            switch (BaseAxis)
+            {
+                case MainAxis.X:
+                    X = s;
+                    Y = 0;
+                    Z = 0;
+                    break;
+                case MainAxis.Y:
+                    X = 0;
+                    Y = s;
+                    Z = 0;
+                    break;
+                case MainAxis.Z:
+                    X = 0;
+                    Y = 0;
+                    Z = s;
+                    break;
+                default: //error
+                    X = 0;
+                    Y = 0;
+                    Z = 0;
+                    W = 1;
+                    break;
+            }
         }
 
         public float Length()
@@ -108,7 +132,7 @@ namespace PrimMesher
 
         public override string ToString()
         {
-            return "< X: " + this.X.ToString() + ", Y: " + this.Y.ToString() + ", Z: " + this.Z.ToString() + ", W: " + this.W.ToString() + ">";
+            return "< X: " + X.ToString() + ", Y: " + Y.ToString() + ", Z: " + Z.ToString() + ", W: " + W.ToString() + ">";
         }
     }
 
@@ -120,21 +144,21 @@ namespace PrimMesher
 
         public Coord(float x, float y, float z)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            X = x;
+            Y = y;
+            Z = z;
         }
 
         public float Length()
         {
-            return (float)Math.Sqrt(this.X * this.X + this.Y * this.Y + this.Z * this.Z);
+            return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
         }
 
         public Coord Invert()
         {
-            this.X = -this.X;
-            this.Y = -this.Y;
-            this.Z = -this.Z;
+            X = -X;
+            Y = -Y;
+            Z = -Z;
 
             return this;
         }
@@ -148,15 +172,15 @@ namespace PrimMesher
             if (mag > MAG_THRESHOLD)
             {
                 float oomag = 1.0f / mag;
-                this.X *= oomag;
-                this.Y *= oomag;
-                this.Z *= oomag;
+                X *= oomag;
+                Y *= oomag;
+                Z *= oomag;
             }
             else
             {
-                this.X = 0.0f;
-                this.Y = 0.0f;
-                this.Z = 0.0f;
+                X = 0.0f;
+                Y = 0.0f;
+                Z = 0.0f;
             }
 
             return this;
@@ -164,7 +188,7 @@ namespace PrimMesher
 
         public override string ToString()
         {
-            return this.X.ToString() + " " + this.Y.ToString() + " " + this.Z.ToString();
+            return "<"+X.ToString() + "," + Y.ToString() + "," + Z.ToString()+ ">";
         }
 
         public static Coord Cross(Coord c1, Coord c2)
@@ -188,40 +212,14 @@ namespace PrimMesher
 
         public static Coord operator *(Coord v, Quat q)
         {
-            // From http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/
+            float rx = q.W * v.X + q.Y * v.Z - q.Z * v.Y;
+            float ry = q.W * v.Y + q.Z * v.X - q.X * v.Z;
+            float rz = q.W * v.Z + q.X * v.Y - q.Y * v.X;
 
-            Coord c2 = new Coord(0.0f, 0.0f, 0.0f);
-
-            c2.X = q.W * q.W * v.X +
-                2f * q.Y * q.W * v.Z -
-                2f * q.Z * q.W * v.Y +
-                     q.X * q.X * v.X +
-                2f * q.Y * q.X * v.Y +
-                2f * q.Z * q.X * v.Z -
-                     q.Z * q.Z * v.X -
-                     q.Y * q.Y * v.X;
-
-            c2.Y =
-                2f * q.X * q.Y * v.X +
-                     q.Y * q.Y * v.Y +
-                2f * q.Z * q.Y * v.Z +
-                2f * q.W * q.Z * v.X -
-                     q.Z * q.Z * v.Y +
-                     q.W * q.W * v.Y -
-                2f * q.X * q.W * v.Z -
-                     q.X * q.X * v.Y;
-
-            c2.Z =
-                2f * q.X * q.Z * v.X +
-                2f * q.Y * q.Z * v.Y +
-                     q.Z * q.Z * v.Z -
-                2f * q.W * q.Y * v.X -
-                     q.Y * q.Y * v.Z +
-                2f * q.W * q.X * v.Y -
-                     q.X * q.X * v.Z +
-                     q.W * q.W * v.Z;
-
-            return c2;
+            return new Coord(
+                2.0f * (rz * q.Y - ry * q.Z) + v.X,
+                2.0f * (rx * q.Z - rz * q.X) + v.Y,
+                2.0f * (ry * q.X - rx * q.Y) + v.Z );
         }
     }
 
@@ -234,25 +232,13 @@ namespace PrimMesher
         public int v2;
         public int v3;
 
-        public Face(int v1, int v2, int v3)
+        public Face(int _v1, int _v2, int _v3)
         {
             primFace = 0;
 
-            this.v1 = v1;
-            this.v2 = v2;
-            this.v3 = v3;
-        }
-
-        public Coord SurfaceNormal(List<Coord> coordList)
-        {
-            Coord c1 = coordList[this.v1];
-            Coord c2 = coordList[this.v2];
-            Coord c3 = coordList[this.v3];
-
-            Coord edge1 = new Coord(c2.X - c1.X, c2.Y - c1.Y, c2.Z - c1.Z);
-            Coord edge2 = new Coord(c3.X - c1.X, c3.Y - c1.Y, c3.Z - c1.Z);
-
-            return Coord.Cross(edge1, edge2).Normalize();
+            v1 = _v1;
+            v2 = _v2;
+            v3 = _v3;
         }
     }
 
@@ -264,9 +250,9 @@ namespace PrimMesher
 
         internal Angle(float angle, float x, float y)
         {
-            this.angle = angle;
-            this.X = x;
-            this.Y = y;
+            this.angle = angle; // 1 is 2pi
+            X = x; // cos
+            Y = y; // sin
         }
     }
 
@@ -373,8 +359,8 @@ namespace PrimMesher
         {
             angles = new List<Angle>();
 
-            const double twoPi = System.Math.PI * 2.0;
-            const float twoPiInv = (float)(1.0d / twoPi);
+            const float twoPi = (float)(Math.PI * 2.0);
+            const float twoPiInv = (float)(0.5 / Math.PI);
 
             if (sides < 1)
                 throw new Exception("number of sides not greater than zero");
@@ -493,7 +479,7 @@ namespace PrimMesher
     /// </summary>
     public class Profile
     {
-        private const float twoPi = 2.0f * (float)Math.PI;
+        private const float twoPi = (float)(2.0 * Math.PI);
 
         public string errorMessage = null;
 
@@ -1032,7 +1018,7 @@ namespace PrimMesher
 
                     float twist = twistBegin + twistTotal * percentOfPath;
 
-                    newNode.rotation = new Quat(new Coord(0.0f, 0.0f, 1.0f), twist);
+                    newNode.rotation = new Quat(Quat.MainAxis.Z, twist);
                     newNode.position = new Coord(xOffset, yOffset, zOffset);
                     newNode.percentOfPath = percentOfPath;
 
@@ -1134,11 +1120,11 @@ namespace PrimMesher
                     // now orient the rotation of the profile layer relative to it's position on the path
                     // adding taperY to the angle used to generate the quat appears to approximate the viewer
 
-                    newNode.rotation = new Quat(new Coord(1.0f, 0.0f, 0.0f), angle + topShearY);
+                    newNode.rotation = new Quat(Quat.MainAxis.X, angle + topShearY);
 
                     // next apply twist rotation to the profile layer
                     if (twistTotal != 0.0f || twistBegin != 0.0f)
-                        newNode.rotation *= new Quat(new Coord(0.0f, 0.0f, 1.0f), twist);
+                        newNode.rotation *= new Quat(Quat.MainAxis.Z, twist);
 
                     newNode.percentOfPath = percentOfPath;
 
@@ -1175,8 +1161,8 @@ namespace PrimMesher
         private float profileStart = 0.0f;
         private float profileEnd = 1.0f;
         private float hollow = 0.0f;
-        public int twistBegin = 0;
-        public int twistEnd = 0;
+        public float twistBegin = 0;
+        public float twistEnd = 0;
         public float topShearX = 0.0f;
         public float topShearY = 0.0f;
         public float pathCutBegin = 0.0f;
@@ -1299,8 +1285,6 @@ namespace PrimMesher
 
             hasHollow = (this.hollow > 0.001f);
 
-            float twistBegin = this.twistBegin / 360.0f * twoPi;
-            float twistEnd = this.twistEnd / 360.0f * twoPi;
             float twistTotal = twistEnd - twistBegin;
             float twistTotalAbs = Math.Abs(twistTotal);
             if (twistTotalAbs > 0.01f)
@@ -1385,7 +1369,7 @@ namespace PrimMesher
 
             if (initialProfileRot != 0.0f)
             {
-                profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
+                profile.AddRot(new Quat(Quat.MainAxis.Z, initialProfileRot));
             }
 
             Path path = new Path();
@@ -1592,29 +1576,29 @@ namespace PrimMesher
         /// <returns></returns>
         public PrimMesh Copy()
         {
-            PrimMesh copy = new PrimMesh(this.sides, this.profileStart, this.profileEnd, this.hollow, this.hollowSides);
-            copy.twistBegin = this.twistBegin;
-            copy.twistEnd = this.twistEnd;
-            copy.topShearX = this.topShearX;
-            copy.topShearY = this.topShearY;
-            copy.pathCutBegin = this.pathCutBegin;
-            copy.pathCutEnd = this.pathCutEnd;
-            copy.dimpleBegin = this.dimpleBegin;
-            copy.dimpleEnd = this.dimpleEnd;
-            copy.skew = this.skew;
-            copy.holeSizeX = this.holeSizeX;
-            copy.holeSizeY = this.holeSizeY;
-            copy.taperX = this.taperX;
-            copy.taperY = this.taperY;
-            copy.radius = this.radius;
-            copy.revolutions = this.revolutions;
-            copy.stepsPerRevolution = this.stepsPerRevolution;
+            PrimMesh copy = new PrimMesh(sides, profileStart, profileEnd, hollow, hollowSides);
+            copy.twistBegin = twistBegin;
+            copy.twistEnd = twistEnd;
+            copy.topShearX = topShearX;
+            copy.topShearY = topShearY;
+            copy.pathCutBegin = pathCutBegin;
+            copy.pathCutEnd = pathCutEnd;
+            copy.dimpleBegin = dimpleBegin;
+            copy.dimpleEnd = dimpleEnd;
+            copy.skew = skew;
+            copy.holeSizeX = holeSizeX;
+            copy.holeSizeY = holeSizeY;
+            copy.taperX = taperX;
+            copy.taperY = taperY;
+            copy.radius = radius;
+            copy.revolutions = revolutions;
+            copy.stepsPerRevolution = stepsPerRevolution;
 
-            copy.numPrimFaces = this.numPrimFaces;
-            copy.errorMessage = this.errorMessage;
+            copy.numPrimFaces = numPrimFaces;
+            copy.errorMessage = errorMessage;
 
-            copy.coords = new List<Coord>(this.coords);
-            copy.faces = new List<Face>(this.faces);
+            copy.coords = new List<Coord>(coords);
+            copy.faces = new List<Face>(faces);
 
             return copy;
         }

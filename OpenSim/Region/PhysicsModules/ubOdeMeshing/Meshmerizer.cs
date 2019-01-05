@@ -56,6 +56,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
 
+        const float floatPI = (float)Math.PI;
         private static string cacheControlFilename = "cntr";
         private bool m_Enabled = false;
 
@@ -931,11 +932,11 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             primMesh.topShearY = pathShearY;
             primMesh.pathCutBegin = pathBegin;
             primMesh.pathCutEnd = pathEnd;
-
+            
             if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
             {
-                primMesh.twistBegin = (primShape.PathTwistBegin * 18) / 10;
-                primMesh.twistEnd = (primShape.PathTwist * 18) / 10;
+                primMesh.twistBegin = (float)(primShape.PathTwistBegin * (floatPI * 0.01f));
+                primMesh.twistEnd = (float)(primShape.PathTwist * (floatPI * 0.01f));
                 primMesh.taperX = pathScaleX;
                 primMesh.taperY = pathScaleY;
 
@@ -959,8 +960,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 primMesh.radius = 0.01f * primShape.PathRadiusOffset;
                 primMesh.revolutions = 1.0f + 0.015f * primShape.PathRevolutions;
                 primMesh.skew = 0.01f * primShape.PathSkew;
-                primMesh.twistBegin = (primShape.PathTwistBegin * 36) / 10;
-                primMesh.twistEnd = (primShape.PathTwist * 36) / 10;
+                primMesh.twistBegin = (float)(primShape.PathTwistBegin * (floatPI * 0.02f));
+                primMesh.twistEnd = (float)(primShape.PathTwistBegin * (floatPI * 0.02f));
                 primMesh.taperX = primShape.PathTaperX * 0.01f;
                 primMesh.taperY = primShape.PathTaperY * 0.01f;
 
