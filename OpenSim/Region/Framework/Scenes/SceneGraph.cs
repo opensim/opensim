@@ -150,21 +150,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void Close()
         {
-            m_scenePresencesLock.EnterWriteLock();
+            bool entered = false;
             try
             {
-                m_scenePresenceMap = new ConcurrentDictionary<UUID, ScenePresence>();
-                m_scenePresenceLocalIDMap = new ConcurrentDictionary<uint, ScenePresence>();
-                m_scenePresenceArray = new List<ScenePresence>();
-                m_spArrayLastVersion = 0;
-                m_spArrayVersion = 0;
-                if (_PhyScene != null)
-                    _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
-                _PhyScene = null;
+                try { }
+                finally
+                {
+                    m_scenePresencesLock.EnterWriteLock();
+                    entered = true;
+                    m_scenePresenceMap = new ConcurrentDictionary<UUID, ScenePresence>();
+                    m_scenePresenceLocalIDMap = new ConcurrentDictionary<uint, ScenePresence>();
+                    m_scenePresenceArray = new List<ScenePresence>();
+                    m_spArrayLastVersion = 0;
+                    m_spArrayVersion = 0;
+                    if (_PhyScene != null)
+                        _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
+                    _PhyScene = null;
+                }
             }
             finally
             {
-                m_scenePresencesLock.ExitWriteLock();
+                if(entered)
+                    m_scenePresencesLock.ExitWriteLock();
             }
 
             lock (SceneObjectGroupsByFullID)
@@ -708,32 +715,36 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                m_scenePresencesLock.EnterWriteLock();
-                entered = true;
-
-                m_numChildAgents++;
-
-                if (!m_scenePresenceMap.ContainsKey(presence.UUID))
+                try{ }
+                finally
                 {
-                    m_scenePresenceMap[presence.UUID] = presence;
-                    m_scenePresenceLocalIDMap[presence.LocalId] = presence;
-                }
-                else
-                {
-                    // Remember the old presence reference from the dictionary
-                    ScenePresence oldref = m_scenePresenceMap[presence.UUID];
-                    uint oldLocalID = oldref.LocalId;
-                    // Replace the presence reference in the dictionary with the new value
-                    m_scenePresenceMap[presence.UUID] = presence;
-                    if(presence.LocalId != oldLocalID)
+                    m_scenePresencesLock.EnterWriteLock();
+                    entered = true;
+
+                    m_numChildAgents++;
+
+                    if (!m_scenePresenceMap.ContainsKey(presence.UUID))
                     {
-                        m_scenePresenceLocalIDMap.TryRemove(oldLocalID, out oldref);
+                        m_scenePresenceMap[presence.UUID] = presence;
                         m_scenePresenceLocalIDMap[presence.LocalId] = presence;
                     }
-                    // Find the index in the list where the old ref was stored and update the reference
-                }
+                    else
+                    {
+                        // Remember the old presence reference from the dictionary
+                        ScenePresence oldref = m_scenePresenceMap[presence.UUID];
+                        uint oldLocalID = oldref.LocalId;
+                        // Replace the presence reference in the dictionary with the new value
+                        m_scenePresenceMap[presence.UUID] = presence;
+                        if(presence.LocalId != oldLocalID)
+                        {
+                            m_scenePresenceLocalIDMap.TryRemove(oldLocalID, out oldref);
+                            m_scenePresenceLocalIDMap[presence.LocalId] = presence;
+                        }
+                        // Find the index in the list where the old ref was stored and update the reference
+                    }
 
-                ++m_spArrayVersion;
+                    ++m_spArrayVersion;
+                }
             }
             finally
             {
@@ -759,19 +770,23 @@ namespace OpenSim.Region.Framework.Scenes
             bool entered = false;
             try
             {
-                m_scenePresencesLock.EnterWriteLock();
-                entered = true;
-                // Remove the presence reference from the dictionary
-                ScenePresence oldref;
-                if(m_scenePresenceMap.TryRemove(agentID, out oldref))
+                try { }
+                finally
                 {
-                    // Find the index in the list where the old ref was stored and remove the reference
-                    m_scenePresenceLocalIDMap.TryRemove(oldref.LocalId, out oldref);
-                    ++m_spArrayVersion;
-                }
-                else
-                {
-                    m_log.WarnFormat("[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_scenePresencesLock.EnterWriteLock();
+                    entered = true;
+                    // Remove the presence reference from the dictionary
+                    ScenePresence oldref;
+                    if(m_scenePresenceMap.TryRemove(agentID, out oldref))
+                    {
+                        // Find the index in the list where the old ref was stored and remove the reference
+                        m_scenePresenceLocalIDMap.TryRemove(oldref.LocalId, out oldref);
+                        ++m_spArrayVersion;
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[SCENE GRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    }
                 }
             }
             finally
@@ -905,26 +920,28 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal List<ScenePresence> GetScenePresences()
         {
             bool entered = false;
+            List<ScenePresence> ret = new List<ScenePresence>();
             try
             {
-                m_scenePresencesLock.EnterWriteLock();
-                entered = true;
-                if(m_spArrayLastVersion != m_spArrayVersion)
+                try{ }
+                finally
                 {
-                    m_scenePresenceArray = new List<ScenePresence>(m_scenePresenceMap.Values);
-                    m_spArrayLastVersion = m_spArrayVersion;
+                    m_scenePresencesLock.EnterWriteLock();
+                    entered = true;
+                    if(m_spArrayLastVersion != m_spArrayVersion)
+                    {
+                        m_scenePresenceArray = new List<ScenePresence>(m_scenePresenceMap.Values);
+                        m_spArrayLastVersion = m_spArrayVersion;
+                    }
+                    ret = m_scenePresenceArray;
                 }
-                return m_scenePresenceArray;
-            }
-            catch
-            {
-                return new List<ScenePresence>();
             }
             finally
             {
                 if(entered)
                     m_scenePresencesLock.ExitWriteLock();
             }
+            return ret;
         }
 
         /// <summary>
