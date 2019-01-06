@@ -3345,7 +3345,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parts.Add(linkPart.UUID, linkPart);
 
                 linkPart.SetParent(this);
-                m_scene.updateScenePartGroup(linkPart, this);
 
                 linkPart.CreateSelected = true;
 
@@ -3726,8 +3725,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_parts.Add(part.UUID, part);
 
             part.LinkNum = linkNum;
-
-            m_scene.updateScenePartGroup(part, this);
 
             // Compute the new position of this SOP relative to the group position
             part.setOffsetPosition(newPos - AbsolutePosition);
