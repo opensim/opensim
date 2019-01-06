@@ -329,28 +329,12 @@ namespace OpenSim.Framework
 
         public void ForEach(Action<TValue> action)
         {
-            bool gotLock = false;
+            TValue[] values = GetArray();
+            if(values == null || values.Length == 0)
+                return;
 
-            try
-            {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
-                try {}
-                finally
-                {
-                    rwLock.EnterReadLock();
-                    gotLock = true;
-                }
-
-                foreach (TValue value in Dictionary1.Values)
-                    action(value);
-            }
-            finally
-            {
-                if (gotLock)
-                    rwLock.ExitReadLock();
-            }
+            foreach (TValue value in values)
+                action(value);
         }
 
         public void ForEach(Action<KeyValuePair<TKey1, TValue>> action)
