@@ -41,8 +41,6 @@ namespace OpenSim.Framework
     {
         private Dictionary<TKey, TValue> m_dict;
         private TValue[] m_array;
-        private int m_lastArrayVersion;
-        private int m_arrayVersion;
 
         /// <summary>Number of values currently stored in the collection</summary>
         public int Count { get { return m_dict.Count; } }
@@ -59,9 +57,7 @@ namespace OpenSim.Framework
         public MapAndArray()
         {
             m_dict = new Dictionary<TKey, TValue>();
-            m_array = new TValue[0];
-            m_lastArrayVersion = 0;
-            m_arrayVersion = 0;
+            m_array = null;
         }
 
         /// <summary>
@@ -71,9 +67,7 @@ namespace OpenSim.Framework
         public MapAndArray(int capacity)
         {
             m_dict = new Dictionary<TKey, TValue>(capacity);
-            m_array = new TValue[0];
-            m_lastArrayVersion = 0;
-            m_arrayVersion = 0;
+            m_array = null;
         }
 
         /// <summary>
@@ -91,7 +85,7 @@ namespace OpenSim.Framework
                 bool containedKey = m_dict.ContainsKey(key);
 
                 m_dict[key] = value;
-                ++m_arrayVersion;
+                m_array = null;
 
                 return !containedKey;
             }
@@ -109,7 +103,7 @@ namespace OpenSim.Framework
             lock (m_syncRoot)
             {
                 m_dict.Add(key, value);
-                ++m_arrayVersion;
+                m_array = null;
                 return m_dict.Count;
             }
         }
@@ -124,7 +118,7 @@ namespace OpenSim.Framework
             lock (m_syncRoot)
             {
                 bool removed = m_dict.Remove(key);
-                ++m_arrayVersion;
+                m_array = null;
                 return removed;
             }
         }
@@ -163,9 +157,7 @@ namespace OpenSim.Framework
             lock (m_syncRoot)
             {
                 m_dict = new Dictionary<TKey, TValue>();
-                m_array = new TValue[0];
-                m_lastArrayVersion = 0;
-                m_arrayVersion = 0;
+                m_array = null;
             }
         }
 
@@ -179,12 +171,10 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                if(m_lastArrayVersion != m_arrayVersion)
+                if (m_array == null)
                 {
-                    TValue[] array = new TValue[m_dict.Count];
-                    m_dict.Values.CopyTo(array, 0);
-                    m_array = array;
-                    m_lastArrayVersion = m_arrayVersion;
+                    m_array = new TValue[m_dict.Count];
+                    m_dict.Values.CopyTo(m_array, 0);
                 }
                 return m_array;
             }

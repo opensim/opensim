@@ -2796,12 +2796,6 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-
-        public void updateScenePartGroup(SceneObjectPart part, SceneObjectGroup grp)
-        {
-            m_sceneGraph.updateScenePartGroup(part, grp);
-        }
-
 /* not in use, outdate by async method
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
@@ -5064,16 +5058,6 @@ Label_GroupsDone:
         #endregion
 
         #region SceneGraph wrapper methods
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <returns></returns>
-        public UUID ConvertLocalIDToFullID(uint localID)
-        {
-            return m_sceneGraph.ConvertLocalIDToFullID(localID);
-        }
 
         public void SwapRootAgentCount(bool rootChildChildRootTF)
         {
