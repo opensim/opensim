@@ -94,9 +94,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public EntityBase[] GetEntities()
         {
-            List<EntityBase> tmp = new List<EntityBase>(m_entities.Count);
-            ForEach(delegate(EntityBase entity) { tmp.Add(entity); });
-            return tmp.ToArray();
+            return m_entities.GetArray();
         }
 
         public void ForEach(Action<EntityBase> action)

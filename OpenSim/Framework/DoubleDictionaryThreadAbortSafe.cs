@@ -41,18 +41,27 @@ namespace OpenSim.Framework
     {
         Dictionary<TKey1, TValue> Dictionary1;
         Dictionary<TKey2, TValue> Dictionary2;
+        private TValue[] m_array;
+        private int m_lastArrayVersion;
+        private int m_arrayVersion;
+
         ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
 
         public DoubleDictionaryThreadAbortSafe()
         {
             Dictionary1 = new Dictionary<TKey1,TValue>();
             Dictionary2 = new Dictionary<TKey2,TValue>();
+            m_array = new TValue[0];
+            m_lastArrayVersion = 0;
+            m_arrayVersion = 0;
         }
 
         public DoubleDictionaryThreadAbortSafe(int capacity)
         {
             Dictionary1 = new Dictionary<TKey1, TValue>(capacity);
             Dictionary2 = new Dictionary<TKey2, TValue>(capacity);
+            m_lastArrayVersion = 0;
+            m_arrayVersion = 0;
         }
 
         ~DoubleDictionaryThreadAbortSafe()
@@ -86,6 +95,7 @@ namespace OpenSim.Framework
                     }
                     Dictionary1[key1] = value;
                     Dictionary2[key2] = value;
+                    ++m_arrayVersion;
                 }
             }
             finally
@@ -112,6 +122,7 @@ namespace OpenSim.Framework
                     gotLock = true;
                     Dictionary1.Remove(key1);
                     success = Dictionary2.Remove(key2);
+                    ++m_arrayVersion;
                 }
             }
             finally
@@ -153,6 +164,7 @@ namespace OpenSim.Framework
                             {
                                 Dictionary1.Remove(key1);
                                 Dictionary2.Remove(kvp.Key);
+                                ++m_arrayVersion;
                             }
                             found = true;
                             break;
@@ -199,6 +211,7 @@ namespace OpenSim.Framework
                             {
                                 Dictionary2.Remove(key2);
                                 Dictionary1.Remove(kvp.Key);
+                                ++m_arrayVersion;
                             }
                             found = true;
                             break;
@@ -231,6 +244,9 @@ namespace OpenSim.Framework
                     gotLock = true;
                     Dictionary1.Clear();
                     Dictionary2.Clear();
+                    m_array = new TValue[0];
+                    m_arrayVersion = 0;
+                    m_lastArrayVersion = 0;
                 }
             }
             finally
@@ -497,6 +513,7 @@ namespace OpenSim.Framework
 
                         for (int i = 0; i < list2.Count; i++)
                             Dictionary2.Remove(list2[i]);
+                        ++m_arrayVersion;
                     }
                 }
                 finally
@@ -512,6 +529,36 @@ namespace OpenSim.Framework
             }
 
             return list.Count;
+        }
+
+        public TValue[] GetArray()
+        {
+            TValue[] ret = new TValue[0];
+            bool gotLock = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    rwLock.EnterWriteLock();
+                    gotLock = true;
+
+                    if (m_lastArrayVersion != m_arrayVersion)
+                    {
+                        TValue[] array = new TValue[Dictionary1.Count];
+                        Dictionary1.Values.CopyTo(array, 0);
+                        m_array = array;
+                        m_lastArrayVersion = m_arrayVersion;
+                    }
+                    ret = m_array;
+                }
+            }
+            finally
+            {
+                if (gotLock)
+                    rwLock.ExitWriteLock();
+            }
+            return ret;
         }
     }
 }
