@@ -43,9 +43,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate void PhysicsCrash();
 
     public delegate void AttachToBackupDelegate(SceneObjectGroup sog);
-
     public delegate void DetachFromBackupDelegate(SceneObjectGroup sog);
-
     public delegate void ChangedBackupDelegate(SceneObjectGroup sog);
 
     /// <summary>
@@ -74,6 +72,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected ConcurrentDictionary<UUID, ScenePresence> m_scenePresenceMap = new ConcurrentDictionary<UUID, ScenePresence>();
         protected ConcurrentDictionary<uint, ScenePresence> m_scenePresenceLocalIDMap = new ConcurrentDictionary<uint, ScenePresence>();
         protected List<ScenePresence> m_scenePresenceArray = new List<ScenePresence>();
+        private int m_spArrayLastVersion;
+        private int m_spArrayVersion;
 
         protected internal EntityManager Entities = new EntityManager();
 
@@ -121,6 +121,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_scenePresencesLock = new System.Threading.ReaderWriterLockSlim();
             m_parentScene = parent;
+            m_spArrayLastVersion = 0;
+            m_spArrayVersion = 0;
         }
 
         public PhysicsScene PhysicsScene
@@ -154,6 +156,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scenePresenceMap = new ConcurrentDictionary<UUID, ScenePresence>();
                 m_scenePresenceLocalIDMap = new ConcurrentDictionary<uint, ScenePresence>();
                 m_scenePresenceArray = new List<ScenePresence>();
+                m_spArrayLastVersion = 0;
+                m_spArrayVersion = 0;
                 if (_PhyScene != null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
                 _PhyScene = null;
@@ -709,13 +713,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_numChildAgents++;
 
-                List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
-
                 if (!m_scenePresenceMap.ContainsKey(presence.UUID))
                 {
                     m_scenePresenceMap[presence.UUID] = presence;
                     m_scenePresenceLocalIDMap[presence.LocalId] = presence;
-                    newlist.Add(presence);
                 }
                 else
                 {
@@ -724,8 +725,6 @@ namespace OpenSim.Region.Framework.Scenes
                     uint oldLocalID = oldref.LocalId;
                     // Replace the presence reference in the dictionary with the new value
                     m_scenePresenceMap[presence.UUID] = presence;
-                    newlist[newlist.IndexOf(oldref)] = presence;
-
                     if(presence.LocalId != oldLocalID)
                     {
                         m_scenePresenceLocalIDMap.TryRemove(oldLocalID, out oldref);
@@ -734,8 +733,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Find the index in the list where the old ref was stored and update the reference
                 }
 
-                // Swap out the dictionary and list with new references
-                m_scenePresenceArray = newlist;
+                ++m_spArrayVersion;
             }
             finally
             {
@@ -768,10 +766,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_scenePresenceMap.TryRemove(agentID, out oldref))
                 {
                     // Find the index in the list where the old ref was stored and remove the reference
-                    List<ScenePresence> newsps = new List<ScenePresence>(m_scenePresenceArray);
-                    newsps.RemoveAt(newsps.IndexOf(oldref));
-                    m_scenePresenceArray = newsps;
                     m_scenePresenceLocalIDMap.TryRemove(oldref.LocalId, out oldref);
+                    ++m_spArrayVersion;
                 }
                 else
                 {
@@ -911,8 +907,13 @@ namespace OpenSim.Region.Framework.Scenes
             bool entered = false;
             try
             {
-                m_scenePresencesLock.EnterReadLock();
+                m_scenePresencesLock.EnterWriteLock();
                 entered = true;
+                if(m_spArrayLastVersion != m_spArrayVersion)
+                {
+                    m_scenePresenceArray = new List<ScenePresence>(m_scenePresenceMap.Values);
+                    m_spArrayLastVersion = m_spArrayVersion;
+                }
                 return m_scenePresenceArray;
             }
             catch
@@ -922,7 +923,7 @@ namespace OpenSim.Region.Framework.Scenes
             finally
             {
                 if(entered)
-                    m_scenePresencesLock.ExitReadLock();
+                    m_scenePresencesLock.ExitWriteLock();
             }
         }
 
