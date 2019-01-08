@@ -52,11 +52,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static string LogHeader = "[TERRAIN COMPRESSOR]";
 #pragma warning restore 414
 
-        public const int END_OF_PATCHES = 97;
-
         private const float OO_SQRT2 = 0.7071068f;
+        private const int END_OF_PATCHES = 97;
         private const int STRIDE = 264;
-
         private const int ZERO_CODE = 0x0;
         private const int ZERO_EOB = 0x2;
         private const int POSITIVE_VALUE = 0x6;
@@ -236,13 +234,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (Math.Round((double)frange, 2) == 1.0)
             {
                 // flat terrain speed up things
-
-                header.DCOffset -= 0.5f;
-
-                header.QuantWBits = 0x00;
-                output.PackBits(header.QuantWBits, 8);
-                output.PackFloat(header.DCOffset);
-                output.PackBits(1, 16);
+                output.PackBitsFromByte(0); //QuantWBits
+                output.PackFloat(header.DCOffset - 0.5f);
+                output.PackBitsFromByte(1); //range low
+                output.PackBitsFromByte(0); //range high
                 if (largeRegion)
                     output.PackBits(header.PatchIDs, 32);
                 else
@@ -296,7 +291,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.QuantWBits &= 0xf0;
             header.QuantWBits |= (wbits - 2);
 
-            output.PackBits(header.QuantWBits, 8);
+            output.PackBitsFromByte((byte)header.QuantWBits);
             output.PackFloat(header.DCOffset);
             output.PackBits(header.Range, 16);
             if (largeRegion)
@@ -341,11 +336,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         return;
                     }
 
-                    while(i < j)
+                    i = j - i;
+                    while(i > 8)
                     {
-                        output.PackBits(ZERO_CODE, 1);
-                        ++i;
+                        output.PackBitsFromByte(ZERO_CODE);
+                        i -= 8;
                     }
+                    if( i > 0)
+                        output.PackBitsFromByte(ZERO_CODE, i);
+                    i = j;
                     continue;
                 }
 
