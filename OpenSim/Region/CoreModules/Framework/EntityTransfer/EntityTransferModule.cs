@@ -1233,7 +1233,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
-            Thread.Sleep(2000);
+            Thread.Sleep(2800);
 
             if (logout)
                 sp.closeAllChildAgents();
