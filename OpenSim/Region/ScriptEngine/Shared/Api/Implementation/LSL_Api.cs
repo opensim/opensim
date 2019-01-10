@@ -8135,10 +8135,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int length = buttons.Length;
             if (length < 1)
             {
-                Error("llDialog", "At least 1 button must be shown");
-                return;
+                buttons.Add(new LSL_String("Ok"));
+                length = 1;
             }
-            if (length > 12)
+            else if (length > 12)
             {
                 Error("llDialog", "No more than 12 buttons can be shown");
                 return;
