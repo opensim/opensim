@@ -5701,27 +5701,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Velocity
             ClampVectorForUint(ref velocity, 128f);
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.X, -128.0f, 128.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.Y, -128.0f, 128.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(velocity.Z, -128.0f, 128.0f), data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(velocity.X, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(velocity.Y, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(velocity.Z, 128.0f, data, pos); pos += 2;
 
             // Acceleration
             ClampVectorForUint(ref acceleration, 64f);
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.X, -64.0f, 64.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.Y, -64.0f, 64.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(acceleration.Z, -64.0f, 64.0f), data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(acceleration.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(acceleration.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(acceleration.Z, 64.0f, data, pos); pos += 2;
 
             // Rotation
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(rotation.X, -1.0f, 1.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(rotation.Y, -1.0f, 1.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(rotation.Z, -1.0f, 1.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(rotation.W, -1.0f, 1.0f), data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
 
             // Angular Velocity
             ClampVectorForUint(ref angularVelocity, 64f);
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.X, -64.0f, 64.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Y, -64.0f, 64.0f), data, pos); pos += 2;
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(angularVelocity.Z, -64.0f, 64.0f), data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(angularVelocity.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(angularVelocity.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(angularVelocity.Z, 64.0f, data, pos); pos += 2;
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock block
                     = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock();
