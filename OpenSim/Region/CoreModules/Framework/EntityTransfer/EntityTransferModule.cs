@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
 
             List<ulong> childRegionsToClose = null;
-            if (ctx.OutboundVersion < 0.7)
+            if (ctx.OutboundVersion < 0.7f)
             {
                 childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
@@ -1226,7 +1226,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
-            if(ctx.OutboundVersion < 0.7)
+            if(ctx.OutboundVersion < 0.7f)
             {
                 if (logout)
                     sp.closeAllChildAgents();
@@ -1249,8 +1249,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
                     sp.Scene.CloseAgent(sp.UUID, false);
                 }
+                sp.IsInTransit = false;
             }
-            sp.IsInTransit = false;
         }
 
         /// <summary>
@@ -2077,7 +2077,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
             List<ulong> newneighbours = new List<ulong>();
 
-            bool notHG = (sp.TeleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0;
+            bool notHG = (sp.TeleportFlags & Constants.TeleportFlags.ViaHGLogin) == 0;
 
             foreach (GridRegion neighbour in neighbours)
             {
@@ -2120,12 +2120,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 cagents.Add(agent);
             }
 
-            if (previousRegionNeighbourHandles.Contains(currentRegionHandler))
-                previousRegionNeighbourHandles.Remove(currentRegionHandler);
-
             // previousRegionNeighbourHandles now contains regions to forget
-            foreach (ulong handler in previousRegionNeighbourHandles)
-                seeds.Remove(handler);
+            if (previousRegionNeighbourHandles.Count > 0)
+            {
+                if (previousRegionNeighbourHandles.Contains(currentRegionHandler))
+                    previousRegionNeighbourHandles.Remove(currentRegionHandler);
+
+                foreach (ulong handler in previousRegionNeighbourHandles)
+                    seeds.Remove(handler);
+
+                List<ulong> toclose = new List<ulong>(previousRegionNeighbourHandles);
+                sp.CloseChildAgents(toclose);
+            }
 
             /// Update all child agent with everyone's seeds
             //            foreach (AgentCircuitData a in cagents)
@@ -2137,7 +2143,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             sp.KnownRegions = seeds;
             sp.SetNeighbourRegionSizeInfo(neighbours);
 
-            if(neighbours.Count > 0)
+            if (neighbours.Count > 0)
             {
                 AgentPosition agentpos = new AgentPosition();
                 agentpos.AgentID = new UUID(sp.UUID.Guid);
@@ -2158,12 +2164,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     Thread.Sleep(200);  // the original delay that was at InformClientOfNeighbourAsync start
                     int count = 0;
                     IPEndPoint ipe;
-
-                    if(previousRegionNeighbourHandles.Count > 0)
-                    {
-                        List<ulong> toclose = new List<ulong>(previousRegionNeighbourHandles);
-                        sp.CloseChildAgents(toclose);
-                    }
  
                     foreach (GridRegion neighbour in neighbours)
                     {
