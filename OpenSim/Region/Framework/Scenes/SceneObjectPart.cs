@@ -248,11 +248,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public scriptEvents AggregateScriptEvents;
 
-        public Vector3 AttachedPos
-        {
-            get;
-            set;
-        }
+        public Vector3 AttachedPos  { get; set; }
 
         // rotation locks on local X,Y and or Z axis bit flags
         // bits are as in llSetStatus defined in SceneObjectGroup.axisSelect enum
@@ -955,13 +951,6 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.Error("[SCENEOBJECTPART]: ROTATIONOFFSET" + ex.Message);
                     }
                 }
-
-//                float roll, pitch, yaw = 0;
-//                m_rotationOffset.GetEulerAngles(out roll, out pitch, out yaw);
-//
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Set euler {0} for RotationOffset on {1} {2}",
-//                    new Vector3(roll, pitch, yaw), Name, LocalId);
             }
         }
 
@@ -2266,7 +2255,8 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.KeyframeMotion = null;
             dupe.PayPrice = (int[])PayPrice.Clone();
 
-            dupe.DynAttrs.CopyFrom(DynAttrs);
+            if(DynAttrs != null)
+                dupe.DynAttrs.CopyFrom(DynAttrs);
 
             if (userExposed)
             {
@@ -3834,7 +3824,7 @@ namespace OpenSim.Region.Framework.Scenes
                     texcolor.A = clippedAlpha;
                 }
                 tex.FaceTextures[face].RGBA = texcolor;
-                UpdateTextureEntry(tex.GetBytes());
+                UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ALL_SIDES)
@@ -3863,7 +3853,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                UpdateTextureEntry(tex.GetBytes());
+                UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -5178,15 +5168,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="serializedTextureEntry"></param>
         public void UpdateTextureEntry(byte[] serializedTextureEntry)
         {
-            UpdateTextureEntry(new Primitive.TextureEntry(serializedTextureEntry, 0, serializedTextureEntry.Length));
-        }
-
-        /// <summary>
-        /// Update the texture entry for this part.
-        /// </summary>
-        /// <param name="newTex"></param>
-        public void UpdateTextureEntry(Primitive.TextureEntry newTex)
-        {
+            Primitive.TextureEntry newTex = new Primitive.TextureEntry(serializedTextureEntry, 0, serializedTextureEntry.Length);
             Primitive.TextureEntry oldTex = Shape.Textures;
 
             Changed changeFlags = 0;
@@ -5215,7 +5197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool otherFieldsChanged = false;
             int nsides = GetNumberOfSides();
-            for (int i = 0 ; i < nsides; i++)
+            for (int i = 0; i < nsides; i++)
             {
                 Primitive.TextureEntryFace newFace = defaultNewFace;
                 Primitive.TextureEntryFace oldFace = defaultOldFace;
@@ -5253,13 +5235,43 @@ namespace OpenSim.Region.Framework.Scenes
                     if (oldFace.Rotation != newFace.Rotation) otherFieldsChanged = true;
                     if (oldFace.Shiny != newFace.Shiny) otherFieldsChanged = true;
                     if (oldFace.TexMapType != newFace.TexMapType) otherFieldsChanged = true;
-                    if(otherFieldsChanged)
+                    if (otherFieldsChanged)
                         changeFlags |= Changed.TEXTURE;
                 }
             }
 
             if (changeFlags == 0)
                 return;
+            m_shape.TextureEntry = newTex.GetBytes();
+            TriggerScriptChangedEvent(changeFlags);
+            ParentGroup.HasGroupChanged = true;
+            ScheduleFullUpdate();
+
+        }
+
+        /// <summary>
+        /// Update the texture entry for this part.
+        /// </summary>
+        /// <param name="newTex"></param>
+        public void UpdateTextureEntry(Primitive.TextureEntry newTex)
+        {
+            TextureAttributes dirty = newTex.GetDirtyFlags(32, true);
+            dirty &= ~TextureAttributes.MaterialID;
+            if(dirty == TextureAttributes.None)
+                return;
+
+            Changed changeFlags = 0;
+            if((dirty & TextureAttributes.RGBA) != 0)
+            {
+                changeFlags = Changed.COLOR;
+                dirty &= ~TextureAttributes.RGBA;
+            }
+            if (dirty != TextureAttributes.None)
+                changeFlags |= Changed.TEXTURE;
+
+            if (changeFlags == 0)
+                return;
+
             m_shape.TextureEntry = newTex.GetBytes();
             TriggerScriptChangedEvent(changeFlags);
             ParentGroup.HasGroupChanged = true;

@@ -1947,7 +1947,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
                 texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -1968,7 +1968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
 
@@ -2069,7 +2069,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].TexMapType = textype;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2080,9 +2080,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         tex.FaceTextures[i].TexMapType = textype;
                     }
-                    tex.DefaultTexture.TexMapType = textype;
                 }
-                part.UpdateTextureEntry(tex.GetBytes());
+                tex.DefaultTexture.TexMapType = textype;
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2099,7 +2099,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Glow = glow;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2110,9 +2110,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         tex.FaceTextures[i].Glow = glow;
                     }
-                    tex.DefaultTexture.Glow = glow;
                 }
-                part.UpdateTextureEntry(tex.GetBytes());
+                tex.DefaultTexture.Glow = glow;
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2151,7 +2151,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Shiny = sval;
                 tex.FaceTextures[face].Bump = bump;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2163,10 +2163,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         tex.FaceTextures[i].Shiny = sval;
                         tex.FaceTextures[i].Bump = bump;
                     }
-                    tex.DefaultTexture.Shiny = sval;
-                    tex.DefaultTexture.Bump = bump;
                 }
-                part.UpdateTextureEntry(tex.GetBytes());
+                tex.DefaultTexture.Shiny = sval;
+                tex.DefaultTexture.Bump = bump;
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2182,7 +2182,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              {
                  tex.CreateFace((uint) face);
                  tex.FaceTextures[face].Fullbright = bright;
-                 part.UpdateTextureEntry(tex.GetBytes());
+                 part.UpdateTextureEntry(tex);
                  return;
              }
              else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                      }
                  }
                  tex.DefaultTexture.Fullbright = bright;
-                 part.UpdateTextureEntry(tex.GetBytes());
+                 part.UpdateTextureEntry(tex);
                  return;
              }
          }
@@ -2263,7 +2263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2287,7 +2287,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     tex.DefaultTexture.RGBA = texcolor;
                 }
 
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2464,7 +2464,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
@@ -2477,7 +2477,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 tex.DefaultTexture.TextureID = textureID;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2504,7 +2504,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texface.RepeatU = (float)u;
                 texface.RepeatV = (float)v;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2519,7 +2519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 tex.DefaultTexture.RepeatU = (float)u;
                 tex.DefaultTexture.RepeatV = (float)v;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2545,7 +2545,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 texface.OffsetU = (float)u;
                 texface.OffsetV = (float)v;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2560,7 +2560,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 tex.DefaultTexture.OffsetU = (float)u;
                 tex.DefaultTexture.OffsetV = (float)v;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -2585,7 +2585,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
                 tex.FaceTextures[face] = texface;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
             if (face == ScriptBaseClass.ALL_SIDES)
@@ -2598,7 +2598,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
                 tex.DefaultTexture.Rotation = (float)rotation;
-                part.UpdateTextureEntry(tex.GetBytes());
+                part.UpdateTextureEntry(tex);
                 return;
             }
         }
@@ -13110,6 +13110,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ParcelMediaCommandEnum? commandToSend = null;
             float time = 0.0f; // default is from start
 
+            uint cmndFlags = 0;
             ScenePresence presence = null;
             int cmd;
             for (int i = 0; i < commandList.Data.Length; i++)
@@ -13142,19 +13143,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case ParcelMediaCommandEnum.Loop:
                         loop = 1;
+                        cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_LOOP);
                         commandToSend = command;
                         update = true; //need to send the media update packet to set looping
                         break;
 
                     case ParcelMediaCommandEnum.Play:
                         loop = 0;
+                        cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_PLAY);
                         commandToSend = command;
                         update = true; //need to send the media update packet to make sure it doesn't loop
                         break;
 
                     case ParcelMediaCommandEnum.Pause:
+                        cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_PAUSE);
+                        commandToSend = command;
+                        break;
                     case ParcelMediaCommandEnum.Stop:
+                        cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_STOP);
+                        commandToSend = command;
+                        break;
                     case ParcelMediaCommandEnum.Unload:
+                        cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_UNLOAD);
                         commandToSend = command;
                         break;
 
@@ -13190,6 +13200,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (commandList.Data[i + 1] is LSL_Float)
                             {
                                 time = (float)(LSL_Float)commandList.Data[i + 1];
+                                cmndFlags |= (1 << ScriptBaseClass.PARCEL_MEDIA_COMMAND_TIME);
                             }
                             else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_TIME must be a float");
                             ++i;
@@ -13316,14 +13327,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         if (sp.currentParcelUUID == landData.GlobalID)
                         {
-                            sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
+                            sp.ControllingClient.SendParcelMediaCommand(cmndFlags,
                                             commandToSend.Value, time);
                         }
                     });
                 }
                 else if (!presence.IsChildAgent)
                 {
-                    presence.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
+                    presence.ControllingClient.SendParcelMediaCommand(cmndFlags,
                                             commandToSend.Value, time);
                 }
             }
@@ -13334,6 +13345,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             LSL_List list = new LSL_List();
+            Vector3 pos = m_host.AbsolutePosition;
+
+            ILandObject landObject = World.LandChannel.GetLandObject(pos);
+            if(landObject == null)
+                return list;
+
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia, false))
+                return list;
+
+            LandData land = landObject.LandData;
+            if(land == null)
+                return list;
+
             //TO DO: make the implementation for the missing commands
             //PARCEL_MEDIA_COMMAND_LOOP_SET    float loop      Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             for (int i = 0; i < aList.Data.Length; i++)
@@ -13344,27 +13368,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch ((ParcelMediaCommandEnum) Convert.ToInt32(aList.Data[i].ToString()))
                     {
                         case ParcelMediaCommandEnum.Url:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaURL));
+                            list.Add(new LSL_String(land.MediaURL));
                             break;
                         case ParcelMediaCommandEnum.Desc:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).Description));
+                            list.Add(new LSL_String(land.MediaDescription));
                             break;
                         case ParcelMediaCommandEnum.Texture:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaID.ToString()));
+                            list.Add(new LSL_String(land.MediaID.ToString()));
                             break;
                         case ParcelMediaCommandEnum.Type:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaType));
+                            list.Add(new LSL_String(land.MediaType));
                             break;
                         case ParcelMediaCommandEnum.Size:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaWidth));
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition).MediaHeight));
+                            list.Add(new LSL_String(land.MediaWidth));
+                            list.Add(new LSL_String(land.MediaHeight));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;
                             NotImplemented("llParcelMediaQuery", "Parameter not supported yet: " + Enum.Parse(mediaCommandEnum.GetType() , aList.Data[i].ToString()).ToString());
                             break;
                     }
-
                 }
             }
             ScriptSleep(m_sleepMsOnParcelMediaQuery);
