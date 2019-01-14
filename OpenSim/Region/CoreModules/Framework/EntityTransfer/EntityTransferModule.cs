@@ -1099,7 +1099,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             ulong destinationHandle = finalDestination.RegionHandle;
 
             List<ulong> childRegionsToClose = null;
-            if (ctx.OutboundVersion < 0.7f)
+            // HG needs a deeper change
+            bool localclose = (ctx.OutboundVersion < 0.7f || ((teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0));
+            if (localclose)
             {
                 childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
 
@@ -1226,7 +1228,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
-            if(ctx.OutboundVersion < 0.7f)
+            if(localclose)
             {
                 if (logout)
                     sp.closeAllChildAgents();
@@ -2129,8 +2131,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 foreach (ulong handler in previousRegionNeighbourHandles)
                     seeds.Remove(handler);
 
-                List<ulong> toclose = new List<ulong>(previousRegionNeighbourHandles);
-                sp.CloseChildAgents(toclose);
+                if(notHG) // does not work on HG
+                {
+                    List<ulong> toclose = new List<ulong>(previousRegionNeighbourHandles);
+                    sp.CloseChildAgents(toclose);
+                }
             }
 
             /// Update all child agent with everyone's seeds
