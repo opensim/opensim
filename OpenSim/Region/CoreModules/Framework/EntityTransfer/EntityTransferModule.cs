@@ -1098,13 +1098,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             ulong destinationHandle = finalDestination.RegionHandle;
 
-            List<ulong> childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
-            
-            if(agentCircuit.ChildrenCapSeeds != null)
+            List<ulong> childRegionsToClose = null;
+            if (ctx.OutboundVersion < 0.7)
             {
-                foreach(ulong handler in childRegionsToClose)
+                childRegionsToClose = sp.GetChildAgentsToClose(destinationHandle, finalDestination.RegionSizeX, finalDestination.RegionSizeY);
+
+                if(agentCircuit.ChildrenCapSeeds != null)
                 {
-                    agentCircuit.ChildrenCapSeeds.Remove(handler);
+                    foreach(ulong handler in childRegionsToClose)
+                    {
+                        agentCircuit.ChildrenCapSeeds.Remove(handler);
+                    }
                 }
             }
 
@@ -1214,47 +1218,37 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
-            /* now some viewers also need time bf closing child regions
-             * so this is moved down and delay added
-
-            if (logout)
-                sp.closeAllChildAgents();
-            else
-                sp.CloseChildAgents(childRegionsToClose);
-            */
-
             sp.HasMovedAway(!(OutSideViewRange || logout));
 
             //HG hook
             AgentHasMovedAway(sp, logout);
 
-//            ulong sourceRegionHandle = sp.RegionHandle;
-
             // Now let's make it officially a child agent
             sp.MakeChildAgent(destinationHandle);
 
-            Thread.Sleep(2800);
-
-            if (logout)
-                sp.closeAllChildAgents();
-            else
-                sp.CloseChildAgents(childRegionsToClose);
-
-            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-            // goes by HG hook
-            if (NeedsClosing(reg, OutSideViewRange))
+            if(ctx.OutboundVersion < 0.7)
             {
-                if (!sp.Scene.IncomingPreCloseClient(sp))
+                if (logout)
+                    sp.closeAllChildAgents();
+                else
+                    sp.CloseChildAgents(childRegionsToClose);
+
+                // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+                // goes by HG hook
+                if (NeedsClosing(reg, OutSideViewRange))
                 {
-                    sp.IsInTransit = false;
-                    return;
-                }
+                    if (!sp.Scene.IncomingPreCloseClient(sp))
+                    {
+                        sp.IsInTransit = false;
+                        return;
+                    }
 
                 // viewers and target region take extra time to process the tp
-//                Thread.Sleep(2000);
-                m_log.DebugFormat(
+                    Thread.Sleep(15000);
+                    m_log.DebugFormat(
                             "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
-                sp.Scene.CloseAgent(sp.UUID, false);
+                    sp.Scene.CloseAgent(sp.UUID, false);
+                }
             }
             sp.IsInTransit = false;
         }
@@ -2083,11 +2077,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
             List<ulong> newneighbours = new List<ulong>();
 
+            bool notHG = (sp.TeleportFlags & Constants.TeleportFlags.ViaHGLogin) != 0;
+
             foreach (GridRegion neighbour in neighbours)
             {
                 ulong handler = neighbour.RegionHandle;
 
-                if (previousRegionNeighbourHandles.Contains(handler))
+                if (notHG && previousRegionNeighbourHandles.Contains(handler))
                 {
                     // agent already knows this region
                     previousRegionNeighbourHandles.Remove(handler);
@@ -2163,6 +2159,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     int count = 0;
                     IPEndPoint ipe;
 
+                    if(previousRegionNeighbourHandles.Count > 0)
+                    {
+                        List<ulong> toclose = new List<ulong>(previousRegionNeighbourHandles);
+                        sp.CloseChildAgents(toclose);
+                    }
+ 
                     foreach (GridRegion neighbour in neighbours)
                     {
                         ulong handler = neighbour.RegionHandle;
@@ -2179,7 +2181,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 }
                                 count++;
                             }
-                            else if (!previousRegionNeighbourHandles.Contains(handler))
+                            else if (notHG && !previousRegionNeighbourHandles.Contains(handler))
                             {
                                 spScene.SimulationService.UpdateAgent(neighbour, agentpos);
                             }
