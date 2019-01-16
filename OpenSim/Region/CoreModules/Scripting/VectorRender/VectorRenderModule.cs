@@ -354,6 +354,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 // under lock.
                 lock (this)
                 {
+
+                    if (alpha == 256 && bgColor.A != 255)
+                        alpha = bgColor.A;
+
                     if (alpha == 256)
                     {
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
@@ -367,13 +371,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     {
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                         graph = Graphics.FromImage(bitmap);
+
                         Color newbg = Color.FromArgb(alpha,bgColor);
                         using (SolidBrush bgFillBrush = new SolidBrush(newbg))
                         {
+                            graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
                             graph.FillRectangle(bgFillBrush, 0, 0, width, height);
                         }
                     }
-
+                    graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
                     GDIDraw(data, graph, altDataDelim, out reuseable);
                 }
 

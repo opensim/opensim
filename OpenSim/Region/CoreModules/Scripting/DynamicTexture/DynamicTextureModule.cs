@@ -625,51 +625,85 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             {
                 Bitmap joint;
                 Graphics jG;
-                if(alpha >= 255)
+                int Width = back.Width;
+                int Height = back.Height;
+
+                PixelFormat format;
+                if(alpha < 255 || front.PixelFormat == PixelFormat.Format32bppArgb || back.PixelFormat == PixelFormat.Format32bppArgb)
+                    format = PixelFormat.Format32bppArgb;
+                else
+                    format = PixelFormat.Format32bppRgb;
+
+                joint = new Bitmap(Width, Height, format);
+
+                if (alpha >= 255)
                 {
-                    joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
                     using (jG = Graphics.FromImage(joint))
                     {
-                        jG.CompositingMode = CompositingMode.SourceOver;
                         jG.CompositingQuality = CompositingQuality.HighQuality;
 
-                        jG.DrawImage(back, 0, 0, back.Width, back.Height);
-                        jG.DrawImage(front, 0, 0, back.Width, back.Height);
+                        jG.CompositingMode = CompositingMode.SourceCopy;
+                        jG.DrawImage(back, 0, 0, Width, Height);
+
+                        jG.CompositingMode = CompositingMode.SourceOver;
+                        jG.DrawImage(front, 0, 0, Width, Height);
                         return joint;
                     }
                 }
-                ColorMatrix matrix = new ColorMatrix(new float[][]{
-                new float[] {1F, 0, 0, 0, 0},
-                new float[] {0, 1F, 0, 0, 0},
-                new float[] {0, 0, 1F, 0, 0},
-                new float[] {0, 0, 0, alpha/255f, 0},
-                new float[] {0, 0, 0, 0, 1F}});
 
-                ImageAttributes imageAttributes = new ImageAttributes();
-
-                imageAttributes.SetColorMatrix(matrix);
-                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
                 using (jG = Graphics.FromImage(joint))
                 {
-                    jG.CompositingMode = CompositingMode.SourceOver;
                     jG.CompositingQuality = CompositingQuality.HighQuality;
+                    jG.CompositingMode = CompositingMode.SourceCopy;
+                    jG.DrawImage(back, 0, 0, Width, Height);
 
-                    jG.DrawImage(back, 0, 0, back.Width, back.Height);
-                    if(alpha > 0)
-                        jG.DrawImage(front, new Rectangle(0, 0, back.Width, back.Height),  0, 0, front.Width, front.Height, GraphicsUnit.Pixel,imageAttributes);
+                    if (alpha > 0)
+                    {
+                        ColorMatrix matrix = new ColorMatrix(new float[][]{
+                            new float[] {1F, 0, 0, 0, 0},
+                            new float[] {0, 1F, 0, 0, 0},
+                            new float[] {0, 0, 1F, 0, 0},
+                            new float[] {0, 0, 0, alpha/255f, 0},
+                            new float[] {0, 0, 0, 0, 1F}});
+
+                        ImageAttributes imageAttributes = new ImageAttributes();
+                        imageAttributes.SetColorMatrix(matrix);
+
+                        jG.CompositingMode = CompositingMode.SourceOver;
+                        jG.DrawImage(front, new Rectangle(0, 0, Width, Height), 0, 0, front.Width, front.Height, GraphicsUnit.Pixel, imageAttributes);
+                    }
+
                     return joint;
                 }
             }
 
             private void SetAlpha(ref Bitmap b, byte alpha)
             {
-                for (int w = 0; w < b.Width; w++)
+                int Width = b.Width;
+                int Height = b.Height;
+                Bitmap joint = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+                if(alpha > 0)
                 {
-                    for (int h = 0; h < b.Height; h++)
+                    ColorMatrix matrix = new ColorMatrix(new float[][]{
+                    new float[] {1F, 0, 0, 0, 0},
+                    new float[] {0, 1F, 0, 0, 0},
+                    new float[] {0, 0, 1F, 0, 0},
+                    new float[] {0, 0, 0, alpha/255f, 0},
+                    new float[] {0, 0, 0, 0, 1F}});
+
+                    ImageAttributes imageAttributes = new ImageAttributes();
+                    imageAttributes.SetColorMatrix(matrix);
+
+                    using (Graphics jG = Graphics.FromImage(joint))
                     {
-                        b.SetPixel(w, h, Color.FromArgb(alpha, b.GetPixel(w, h)));
+                        jG.CompositingQuality = CompositingQuality.HighQuality;
+                        jG.CompositingMode = CompositingMode.SourceCopy;
+                        jG.DrawImage(b, new Rectangle(0, 0, Width, Height), 0, 0, Width, Height, GraphicsUnit.Pixel, imageAttributes);
                     }
                 }
+                Bitmap t = b;
+                b = joint;
+                t.Dispose();
             }
         }
 
