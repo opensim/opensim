@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using Nini.Config;
 using OpenMetaverse;
@@ -454,7 +455,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                         }
                     }
 
-                    part.UpdateTextureEntry(tmptex.GetBytes());
+                    part.UpdateTextureEntry(tmptex);
                 }
 
                 return oldID;
@@ -508,6 +509,9 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                             assetData = BlendTextures(data, oldAsset.Data, FrontAlpha);
                     }
                 }
+                else if(FrontAlpha < 255)
+                    assetData = BlendTextures(data, null, FrontAlpha);
+
 
                 if (assetData == null)
                 {
@@ -567,6 +571,25 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 Bitmap image1 = new Bitmap(image);
                 image.Dispose();
 
+                if(backImage == null)
+                {
+                    SetAlpha(ref image1, newAlpha);
+                    byte[] result = new byte[0];
+
+                    try
+                    {
+                        result = OpenJPEG.EncodeFromImage(image1, false);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                        "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
+                            e.Message, e.StackTrace);
+                    }
+                    image1.Dispose();
+                    return result;
+                }
+
                 if (!OpenJPEG.DecodeToImage(backImage, out managedImage, out image) || image == null)
                 {
                     image1.Dispose();
@@ -576,10 +599,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 Bitmap image2 = new Bitmap(image);
                 image.Dispose();
 
-                if (newAlpha < 255)
-                    SetAlpha(ref image1, newAlpha);
-
-                using(Bitmap joint = MergeBitMaps(image1, image2))
+                using(Bitmap joint = MergeBitMaps(image1, image2, newAlpha))
                 {
                     image1.Dispose();
                     image2.Dispose();
@@ -594,23 +614,49 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     {
                         m_log.ErrorFormat(
                         "[DYNAMICTEXTUREMODULE]: OpenJpeg Encode Failed.  Exception {0}{1}",
-                                e.Message, e.StackTrace);
+                            e.Message, e.StackTrace);
                     }
 
                     return result;
                 }
             }
 
-            public Bitmap MergeBitMaps(Bitmap front, Bitmap back)
+            public Bitmap MergeBitMaps(Bitmap front, Bitmap back, byte alpha)
             {
                 Bitmap joint;
                 Graphics jG;
-
-                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
-                using(jG = Graphics.FromImage(joint))
+                if(alpha >= 255)
                 {
+                    joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
+                    using (jG = Graphics.FromImage(joint))
+                    {
+                        jG.CompositingMode = CompositingMode.SourceOver;
+                        jG.CompositingQuality = CompositingQuality.HighQuality;
+
+                        jG.DrawImage(back, 0, 0, back.Width, back.Height);
+                        jG.DrawImage(front, 0, 0, back.Width, back.Height);
+                        return joint;
+                    }
+                }
+                ColorMatrix matrix = new ColorMatrix(new float[][]{
+                new float[] {1F, 0, 0, 0, 0},
+                new float[] {0, 1F, 0, 0, 0},
+                new float[] {0, 0, 1F, 0, 0},
+                new float[] {0, 0, 0, alpha/255f, 0},
+                new float[] {0, 0, 0, 0, 1F}});
+
+                ImageAttributes imageAttributes = new ImageAttributes();
+
+                imageAttributes.SetColorMatrix(matrix);
+                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
+                using (jG = Graphics.FromImage(joint))
+                {
+                    jG.CompositingMode = CompositingMode.SourceOver;
+                    jG.CompositingQuality = CompositingQuality.HighQuality;
+
                     jG.DrawImage(back, 0, 0, back.Width, back.Height);
-                    jG.DrawImage(front, 0, 0, back.Width, back.Height);
+                    if(alpha > 0)
+                        jG.DrawImage(front, new Rectangle(0, 0, back.Width, back.Height),  0, 0, front.Width, front.Height, GraphicsUnit.Pixel,imageAttributes);
                     return joint;
                 }
             }
