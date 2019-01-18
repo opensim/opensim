@@ -362,24 +362,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     {
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppRgb);
                         graph = Graphics.FromImage(bitmap);
-                        using (SolidBrush bgFillBrush = new SolidBrush(bgColor))
-                        {
-                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
-                        }
+                        graph.Clear(bgColor);
                     }
                     else
                     {
+                        Color newbg = Color.FromArgb(alpha, bgColor);
                         bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                         graph = Graphics.FromImage(bitmap);
-
-                        Color newbg = Color.FromArgb(alpha,bgColor);
-                        using (SolidBrush bgFillBrush = new SolidBrush(newbg))
-                        {
-                            graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
-                            graph.FillRectangle(bgFillBrush, 0, 0, width, height);
-                        }
+                        graph.Clear(newbg);
                     }
-                    graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
                     GDIDraw(data, graph, altDataDelim, out reuseable);
                 }
 

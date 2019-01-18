@@ -450,6 +450,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // scan thru the dynAttrs map of this part for any textures used as materials
             OSD osdMaterials = null;
+            if(part.DynAttrs == null)
+                return;
 
             lock (part.DynAttrs)
             {
