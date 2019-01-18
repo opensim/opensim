@@ -391,7 +391,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             try
             {
-
                 if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
                 {
                     if(!sp.AllowMovement)
@@ -486,7 +485,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 position.Z = posZLimit;
             }
-
+/*
+            if(!sp.CheckLocalTPLandingPoint(ref position))
+            {
+                sp.ControllingClient.SendTeleportFailed("Not allowed at destination");
+                return;
+            }
+*/
             if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
 
@@ -1389,45 +1394,67 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual bool TeleportHome(UUID id, IClientAPI client)
         {
-            m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, client.AgentId);
-
-            //OpenSim.Services.Interfaces.PresenceInfo pinfo = Scene.PresenceService.GetAgent(client.SessionId);
-            GridUserInfo uinfo = Scene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
-
-            if (uinfo != null)
+            bool isSame = false;
+            if (client != null && id == client.AgentId)
             {
-                if (uinfo.HomeRegionID == UUID.Zero)
-                {
-                    // can't find the Home region: Tell viewer and abort
-                    m_log.ErrorFormat("{0} No grid user info found for {1} {2}. Cannot send home.",
-                                    LogHeader, client.Name, client.AgentId);
-                    client.SendTeleportFailed("You don't have a home position set.");
-                    return false;
-                }
-                GridRegion regionInfo = Scene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
-                if (regionInfo == null)
-                {
-                    // can't find the Home region: Tell viewer and abort
-                    client.SendTeleportFailed("Your home region could not be found.");
-                    return false;
-                }
-
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Home region of {0} is {1} ({2}-{3})",
-                    client.Name, regionInfo.RegionName, regionInfo.RegionCoordX, regionInfo.RegionCoordY);
-
-                // a little eekie that this goes back to Scene and with a forced cast, will fix that at some point...
-                ((Scene)(client.Scene)).RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
-                    (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
-                return true;
+                isSame = true;
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, id);
             }
             else
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Request to teleport {0} home by {1} {2}", id, client.Name, client.AgentId);
+
+            ScenePresence sp = ((Scene)(client.Scene)).GetScenePresence(id);
+            if (sp == null || sp.IsDeleted || sp.IsChildAgent || sp.ControllingClient == null || !sp.ControllingClient.IsActive)
+            {
+                if (isSame)
+                    client.SendTeleportFailed("Internal error, agent presence not found");
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent not found in the scene where it is supposed to be");
+                return false;
+            }
+
+            if (sp.IsInTransit)
+            {
+                if (isSame)
+                    client.SendTeleportFailed("Already processing a teleport");
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent still in teleport");
+                return false;
+            }
+
+            //OpenSim.Services.Interfaces.PresenceInfo pinfo = Scene.PresenceService.GetAgent(client.SessionId);
+            GridUserInfo uinfo = Scene.GridUserService.GetGridUserInfo(id.ToString());
+            if(uinfo == null)
+            {
+                m_log.ErrorFormat("[ENTITY TRANSFER MODULE] Griduser info not found for {1}. Cannot send home.", id);
+                if (isSame)
+                    client.SendTeleportFailed("Your home region could not be found.");
+                return false;
+            }
+
+            if (uinfo.HomeRegionID == UUID.Zero)
             {
                 // can't find the Home region: Tell viewer and abort
-                client.SendTeleportFailed("Your home region could not be found.");
+                m_log.ErrorFormat("[ENTITY TRANSFER MODULE] no home set {0}", id);
+                if (isSame)
+                    client.SendTeleportFailed("home position set not");
+                return false;
             }
-            return false;
+
+            GridRegion regionInfo = Scene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
+            if (regionInfo == null)
+            {
+                // can't find the Home region: Tell viewer and abort
+                m_log.ErrorFormat("[ENTITY TRANSFER MODULE] {0} home region {1} not found", id, uinfo.HomeRegionID);
+                if (isSame)
+                    client.SendTeleportFailed("Your home region could not be found.");
+                return false;
+            }
+
+            Teleport(sp, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
+                (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+
+            return true;
         }
 
         #endregion

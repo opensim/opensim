@@ -225,13 +225,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     continue;
 
                 ScenePresence p = scene.GetScenePresence(prey);
-                if (p != null && !p.IsChildAgent )
+                if (p != null && !p.IsChildAgent && !p.IsDeleted && !p.IsInTransit)
                 {
-                    if(!p.IsDeleted && !p.IsInTransit)
-                    {
-                        p.ControllingClient.SendTeleportStart(16);
-                        scene.TeleportClientHome(prey, p.ControllingClient);
-                    }
+                    p.ControllingClient.SendTeleportStart(16);
+                    scene.TeleportClientHome(prey, client);
                     return;
                 }
             }
@@ -256,13 +253,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 if (s.RegionInfo.EstateSettings.EstateID != estateID)
                     continue;
 
-                scene.ForEachScenePresence(delegate(ScenePresence p) {
-                    if (p != null && !p.IsChildAgent)
+                scene.ForEachScenePresence(delegate(ScenePresence p)
                     {
-                        p.ControllingClient.SendTeleportStart(16);
-                        scene.TeleportClientHome(p.ControllingClient.AgentId, p.ControllingClient);
-                    }
-                });
+                        if (p != null && !p.IsChildAgent && !p.IsDeleted && !p.IsInTransit)
+                        {
+                            p.ControllingClient.SendTeleportStart(16);
+                            scene.TeleportClientHome(p.ControllingClient.AgentId, client);
+                        }
+                    });
             }
 
             m_EstateConnector.SendTeleportHomeAllUsers(estateID);
