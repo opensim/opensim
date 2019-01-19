@@ -141,11 +141,10 @@ namespace OpenSim.Framework.Servers
             
             MainServer.Stop();
 
-            Thread.Sleep(5000);
+            Thread.Sleep(500);
             Util.StopThreadPool();
             WorkManager.Stop();
 
-            Thread.Sleep(1000);
             RemovePIDFile();
 
             m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
