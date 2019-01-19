@@ -573,14 +573,16 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterWriteLock();
                     entered = true;
                 }
-
-                for (int i = 0; i < parts.Length; ++i)
+                if (!resultOfObjectLinked)
                 {
-                    part = parts[i];
-                    m_scenePartsByID.Remove(part.UUID);
-                    m_scenePartsByLocalID.Remove(part.LocalId);
+                    for (int i = 0; i < parts.Length; ++i)
+                    {
+                        part = parts[i];
+                        m_scenePartsByID.Remove(part.UUID);
+                        m_scenePartsByLocalID.Remove(part.LocalId);
+                    }
+                    m_scenePartsArray = null;
                 }
-                m_scenePartsArray = null;
                 ret = Entities.Remove(uuid);
             }
             finally
