@@ -442,48 +442,70 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (uMan != null && uMan.IsLocalGridUser(id))
             {
                 // local grid user
-                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is local");
                 return base.TeleportHome(id, client);
             }
 
-            bool issame = false;
-            if (client != null && id == client.AgentId)
+            bool notsame = false;
+            if (client == null)
             {
-                issame = true;
                 m_log.DebugFormat(
-                    "[HG ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, id);
+                    "[HG ENTITY TRANSFER MODULE]: Request to teleport {0} home", id);
             }
             else
-                m_log.DebugFormat(
-                    "[HG ENTITY TRANSFER MODULE]: Request to teleport {0} home by {1} {2}", id, client.Name, client.AgentId);
+            {
+                if (id == client.AgentId)
+                {
+                    m_log.DebugFormat(
+                        "[HG ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, id);
+                }
+                else
+                {
+                    notsame = true;
+                    m_log.DebugFormat(
+                        "[HG ENTITY TRANSFER MODULE]: Request to teleport {0} home by {1} {2}", id, client.Name, client.AgentId);
+                }
+            }
 
             ScenePresence sp = ((Scene)(client.Scene)).GetScenePresence(id);
             if (sp == null || sp.IsDeleted || sp.IsChildAgent || sp.ControllingClient == null || !sp.ControllingClient.IsActive)
             {
-                if (issame)
-                    client.SendTeleportFailed("Internal error, agent presence not found");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent not found in the scene");
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent not found in the scene");
                 return false;
             }
 
+            IClientAPI targetClient = sp.ControllingClient;
+
             if (sp.IsInTransit)
             {
-                if (issame)
-                    client.SendTeleportFailed("Already processing a teleport");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent already processing a teleport");
+                targetClient.SendTeleportFailed("Already processing a teleport");
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent still in teleport");
                 return false;
             }
 
             // Foreign user wants to go home
             //
-            AgentCircuitData aCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
-            if (aCircuit == null || !aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            AgentCircuitData aCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(targetClient.CircuitCode);
+            if (aCircuit == null)
             {
-                if (issame)
-                    client.SendTeleportFailed("Agent Home information has been lost");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent information not found");
+                targetClient.SendTeleportFailed("Home information not found");
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Unable to locate agent's gateway information");
                 return false;
             }
+            if (!aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            {
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent home not set");
+                targetClient.SendTeleportFailed("Home not set");
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent home not set");
+                return false;
+            }
+
             string homeURI = aCircuit.ServiceURLs["HomeURI"].ToString();
 
             IUserAgentService userAgentService = new UserAgentServiceConnector(homeURI);
@@ -501,17 +523,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (finalDestination == null)
             {
-                if (issame)
-                    client.SendTeleportFailed("Home region could not be found");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent Home region not found");
+                targetClient.SendTeleportFailed("Home region not found");
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent's home region not found");
-                return false;
-            }
-
-            if (sp.IsDeleted || sp.IsChildAgent || sp.IsInTransit)
-            {
-                if (issame)
-                    client.SendTeleportFailed("Agent lost or started other tp");
-                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent lost or started other tp");
                 return false;
             }
 

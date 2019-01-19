@@ -1394,30 +1394,42 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual bool TeleportHome(UUID id, IClientAPI client)
         {
-            bool isSame = false;
-            if (client != null && id == client.AgentId)
+            bool notsame = false;
+            if (client == null)
             {
-                isSame = true;
                 m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, id);
+                    "[ENTITY TRANSFER MODULE]: Request to teleport {0} home", id);
             }
             else
-                m_log.DebugFormat(
-                    "[ENTITY TRANSFER MODULE]: Request to teleport {0} home by {1} {2}", id, client.Name, client.AgentId);
+            {
+                if (id == client.AgentId)
+                {
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.Name, id);
+                }
+                else
+                {
+                    notsame = true;
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Request to teleport {0} home by {1} {2}", id, client.Name, client.AgentId);
+                }
+            }
 
             ScenePresence sp = ((Scene)(client.Scene)).GetScenePresence(id);
             if (sp == null || sp.IsDeleted || sp.IsChildAgent || sp.ControllingClient == null || !sp.ControllingClient.IsActive)
             {
-                if (isSame)
-                    client.SendTeleportFailed("Internal error, agent presence not found");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent not found in the scene");
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent not found in the scene where it is supposed to be");
                 return false;
             }
 
+            IClientAPI targetClient = sp.ControllingClient;
             if (sp.IsInTransit)
             {
-                if (isSame)
-                    client.SendTeleportFailed("Already processing a teleport");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent already processing a teleport");
+                targetClient.SendTeleportFailed("Already processing a teleport");
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent still in teleport");
                 return false;
             }
@@ -1427,8 +1439,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if(uinfo == null)
             {
                 m_log.ErrorFormat("[ENTITY TRANSFER MODULE] Griduser info not found for {1}. Cannot send home.", id);
-                if (isSame)
-                    client.SendTeleportFailed("Your home region could not be found.");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent home region not found");
+                targetClient.SendTeleportFailed("Your home region not found");
                 return false;
             }
 
@@ -1436,8 +1449,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // can't find the Home region: Tell viewer and abort
                 m_log.ErrorFormat("[ENTITY TRANSFER MODULE] no home set {0}", id);
-                if (isSame)
-                    client.SendTeleportFailed("home position set not");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent home not set");
+                targetClient.SendTeleportFailed("Home set not");
                 return false;
             }
 
@@ -1446,8 +1460,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // can't find the Home region: Tell viewer and abort
                 m_log.ErrorFormat("[ENTITY TRANSFER MODULE] {0} home region {1} not found", id, uinfo.HomeRegionID);
-                if (isSame)
-                    client.SendTeleportFailed("Your home region could not be found.");
+                if (notsame)
+                    client.SendAlertMessage("TeleportHome: Agent home region not found");
+                targetClient.SendTeleportFailed("Home region not found");
                 return false;
             }
 
