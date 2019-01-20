@@ -80,6 +80,10 @@ namespace OpenSim.Framework
 
         public abstract float[] GetFloatsSerialized();
         public abstract double[,] GetDoubles();
+
+        public abstract void GetPatchMinMax(int px, int py, out float zmin, out float zmax);
+        public abstract void GetPatchBlock(ref float[] block, int px, int py, float sub, float premult);
+
         public abstract TerrainData Clone();
     }
 
@@ -275,6 +279,37 @@ namespace OpenSim.Framework
             return ret;
         }
 
+        public override void GetPatchMinMax(int px, int py, out float zmin, out float zmax)
+        {
+            zmax = float.MinValue;
+            zmin = float.MaxValue;
+
+            int startx = px * 16;
+            int starty = py * 16;
+            for (int i = startx; i < startx + 16; i++)
+            {
+                for (int j = starty; j < starty + 16; j++)
+                {
+                    float val = m_heightmap[i, j];
+                    if (val > zmax) zmax = val;
+                    if (val < zmin) zmin = val;
+                }
+            }
+        }
+
+        public override void GetPatchBlock(ref float[] block, int px, int py, float sub, float premult)
+        {
+            int k = 0;
+            int startX = px * 16;
+            int startY = py * 16;
+            for (int y = startY; y < startY + 16; y++)
+            {
+                for (int x = startX; x < startX + 16; x++)
+                {
+                    block[k++] = (m_heightmap[x, y] - sub) * premult;
+                }
+            }
+        }
 
         // =============================================================
 
@@ -476,13 +511,9 @@ namespace OpenSim.Framework
                     ret = str.ToArray();
                 }
             }
-            catch
-            {
+            catch {}
 
-            }
-
-            m_log.DebugFormat("{0} V2D {1} bytes",
-                     LogHeader, ret.Length);
+            m_log.DebugFormat("{0} V2D {1} bytes", LogHeader, ret.Length);
 
             return ret;
         }
@@ -520,12 +551,9 @@ namespace OpenSim.Framework
                     }
                 }
             }
-            catch
-            {
+            catch {}
 
-            }
-            m_log.DebugFormat("{0} V2DGzip {1} bytes",
-                 LogHeader, ret.Length);
+            m_log.DebugFormat("{0} V2DGzip {1} bytes", LogHeader, ret.Length);
             return ret;
         }
 

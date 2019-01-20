@@ -256,18 +256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float zmax = float.MinValue;
             float zmin = float.MaxValue;
 
-            int startx = patchX * 16;
-            int starty = patchY * 16;
-
-            for (int i = startx; i < startx + 16; i++)
-            {
-                for (int j = starty; j < starty + 16; j++)
-                {
-                    float val = terrData[i, j];
-                    if (val > zmax) zmax = val;
-                    if (val < zmin) zmin = val;
-                }
-            }
+            terrData.GetPatchMinMax(patchX, patchY, out zmin, out zmax);
 
             header.DCOffset = zmin;
             frange = ((zmax - zmin) + 1.0f);
@@ -380,16 +369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.QuantWBits = wordsize;
             header.QuantWBits |= wordsize << 4;
 
-            int k = 0;
-            int startX = patchX * 16;
-            int startY = patchY * 16;
-            for (int y = startY; y < startY + 16; y++)
-            {
-                for (int x = startX; x < startX + 16; x++)
-                {
-                    block[k++] = (terrData[x, y] - sub) * premult;
-                }
-            }
+            terrData.GetPatchBlock(ref block, patchX, patchY, sub, premult);
 
             wbits = (prequant >> 1);
 
