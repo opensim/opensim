@@ -46,12 +46,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public static class OpenSimTerrainCompressor
     {
-        //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-#pragma warning disable 414
-        private static string LogHeader = "[TERRAIN COMPRESSOR]";
-#pragma warning restore 414
-
         private const float OO_SQRT2 = 0.7071068f;
         private const int END_OF_PATCHES = 97;
         private const int STRIDE = 264;
@@ -175,16 +169,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             BitPack bitpack = new BitPack(data, 0);
             bitpack.PackBits(STRIDE, 16);
-            bitpack.PackBits(16, 8);
-            bitpack.PackBits(landPacketType, 8);
+            bitpack.PackBitsFromByte(16);
+            bitpack.PackBitsFromByte(landPacketType);
 
             for (int i = 0; i < x.Length; i++)
             {
                 CreatePatchFromTerrainData(bitpack, terrData, x[i], y[i]);
+
                 if (bitpack.BytePos > 980 && i != x.Length - 1)
                 {
                     //finish this packet
-                    bitpack.PackBits(END_OF_PATCHES, 8);
+                    bitpack.PackBitsFromByte(END_OF_PATCHES);
 
                     layer.LayerData.Data = new byte[bitpack.BytePos + 1];
                     Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
@@ -196,12 +191,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     bitpack = new BitPack(data, 0);
                     bitpack.PackBits(STRIDE, 16);
-                    bitpack.PackBits(16, 8);
-                    bitpack.PackBits(landPacketType, 8);
+                    bitpack.PackBitsFromByte(16);
+                    bitpack.PackBitsFromByte(landPacketType);
                 }
             }
 
-            bitpack.PackBits(END_OF_PATCHES, 8);
+            bitpack.PackBitsFromByte(END_OF_PATCHES);
 
             layer.LayerData.Data = new byte[bitpack.BytePos + 1];
             Buffer.BlockCopy(bitpack.Data, 0, layer.LayerData.Data, 0, bitpack.BytePos + 1);
@@ -231,7 +226,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 header.PatchIDs += (patchX << 5);
             }
 
-            if (Math.Round((double)frange, 2) == 1.0)
+            if (Math.Round(frange, 2) == 1.0)
             {
                 // flat terrain speed up things
                 output.PackBitsFromByte(0); //QuantWBits
@@ -264,9 +259,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int startx = patchX * 16;
             int starty = patchY * 16;
 
-            for (int j = starty; j < starty + 16; j++)
+            for (int i = startx; i < startx + 16; i++)
             {
-                for (int i = startx; i < startx + 16; i++)
+                for (int j = starty; j < starty + 16; j++)
                 {
                     float val = terrData[i, j];
                     if (val > zmax) zmax = val;
@@ -399,7 +394,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             wbits = (prequant >> 1);
 
             dct16x16(block, iout, ref wbits);
-
             return iout;
         }
 
