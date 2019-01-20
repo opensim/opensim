@@ -630,9 +630,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         if (faceEntry != null)
                                         {
                                             faceEntry.MaterialID = id;
-
                                             //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
-
                                             // We can't use sop.UpdateTextureEntry(te) because it filters, so do it manually
                                             sop.Shape.TextureEntry = te.GetBytes();
                                         }

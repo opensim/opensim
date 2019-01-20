@@ -1185,13 +1185,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         ///  region's patches to the client.
         /// </summary>
         /// <param name="map">heightmap</param>
-        public virtual void SendLayerData(float[] map)
+        public virtual void SendLayerData()
         {
-            Util.FireAndForget(DoSendLayerData, m_scene.Heightmap.GetTerrainData(), "LLClientView.DoSendLayerData");
-
-            // Send it sync, and async. It's not that much data
-            // and it improves user experience just so much!
-//            DoSendLayerData(map);
+            Util.FireAndForget(DoSendLayerData, null, "LLClientView.DoSendLayerData");
         }
 
         /// <summary>
@@ -1200,21 +1196,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="o"></param>
         private void DoSendLayerData(object o)
         {
-            TerrainData map = (TerrainData)o;
-
+            TerrainData map = m_scene.Heightmap.GetTerrainData();
             try
             {
-                // Send LayerData in typerwriter pattern
-                //for (int y = 0; y < 16; y++)
-                //{
-                //    for (int x = 0; x < 16; x++)
-                //    {
-                //        SendLayerData(x, y, map);
-                //    }
-                //}
-
                 // Send LayerData in a spiral pattern. Fun!
-                SendLayerTopRight(map, 0, 0, map.SizeX / Constants.TerrainPatchSize - 1, map.SizeY / Constants.TerrainPatchSize - 1);
+                SendLayerTopRight(0, 0, map.SizeX / Constants.TerrainPatchSize - 1, map.SizeY / Constants.TerrainPatchSize - 1);
             }
             catch (Exception e)
             {
@@ -1222,63 +1208,68 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void SendLayerTopRight(TerrainData map, int x1, int y1, int x2, int y2)
+        private void SendLayerTopRight(int x1, int y1, int x2, int y2)
         {
+            int[] p = new int[2];
+
             // Row
-            for (int i = x1; i <= x2; i++)
-                SendLayerData(i, y1, map);
+            p[1] = y1;
+            for (int i = x1; i <= x2; ++i)
+            {
+                p[0] = i;
+                SendLayerData(p);
+            }
 
             // Column
-            for (int j = y1 + 1; j <= y2; j++)
-                SendLayerData(x2, j, map);
+            p[0] = x2;
+            for (int j = y1 + 1; j <= y2; ++j)
+            {
+                p[1] = j;
+                SendLayerData(p);
+            }
 
             if (x2 - x1 > 0 && y2 - y1 > 0)
-                SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
+                SendLayerBottomLeft(x1, y1 + 1, x2 - 1, y2);
         }
 
-        void SendLayerBottomLeft(TerrainData map, int x1, int y1, int x2, int y2)
+        void SendLayerBottomLeft(int x1, int y1, int x2, int y2)
         {
+            int[] p = new int[2];
+
             // Row in reverse
-            for (int i = x2; i >= x1; i--)
-                SendLayerData(i, y2, map);
+            p[1] = y2;
+            for (int i = x2; i >= x1; --i)
+            {
+                p[0] = i;
+                SendLayerData(p);
+            }
 
             // Column in reverse
-            for (int j = y2 - 1; j >= y1; j--)
-                SendLayerData(x1, j, map);
+            p[0] = x1;
+            for (int j = y2 - 1; j >= y1; --j)
+            {
+                p[1] = j;
+                SendLayerData(p);
+            }
 
             if (x2 - x1 > 0 && y2 - y1 > 0)
-                SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
+                SendLayerTopRight(x1 + 1, y1, x2, y2 - 1);
         }
 
-
-        // Legacy form of invocation that passes around a bare data array.
-        // Just ignore what was passed and use the real terrain info that is part of the scene.
-        // As a HORRIBLE kludge in an attempt to not change the definition of IClientAPI,
-        //    there is a special form for specifying multiple terrain patches to send.
-        //    The form is to pass 'px' as negative the number of patches to send and to
-        //    pass the float array as pairs of patch X and Y coordinates. So, passing 'px'
-        //    as -2 and map= [3, 5, 8, 4] would mean to send two terrain heightmap patches
-        //    and the patches to send are <3,5> and <8,4>.
-        public void SendLayerData(int px, int py, float[] map)
+        public void SendLayerData(int[] map)
         {
-            if (px >= 0)
+            if(map == null)
+                return;
+
+            try
             {
-                SendLayerData(px, py, m_scene.Heightmap.GetTerrainData());
+                List<LayerDataPacket> packets = OpenSimTerrainCompressor.CreateLayerDataPackets(m_scene.Heightmap.GetTerrainData(), map);
+                foreach (LayerDataPacket pkt in packets)
+                    OutPacket(pkt, ThrottleOutPacketType.Land);
             }
-            else
+            catch (Exception e)
             {
-                int numPatches = -px;
-                int[] xPatches = new int[numPatches];
-                int[] yPatches = new int[numPatches];
-                for (int pp = 0; pp < numPatches; pp++)
-                {
-                    xPatches[pp] = (int)map[pp * 2];
-                    yPatches[pp] = (int)map[pp * 2 + 1];
-                }
-
-                // DebugSendingPatches("SendLayerData", xPatches, yPatches);
-
-                SendLayerData(xPatches, yPatches, m_scene.Heightmap.GetTerrainData());
+                m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
         }
 
@@ -1297,43 +1288,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.DebugFormat("{0} {1}: numPatches={2}, X={3}, Y={4}", LogHeader, pWho, numPatches, Xs, Ys);
             }
         }
-
-        /// <summary>
-
-        /// Sends a terrain packet for the point specified.
-        /// This is a legacy call that has refarbed the terrain into a flat map of floats.
-        /// We just use the terrain from the region we know about.
-        /// </summary>
-        /// <param name="px">Patch coordinate (x) 0..15</param>
-        /// <param name="py">Patch coordinate (y) 0..15</param>
-        /// <param name="map">heightmap</param>
-        public void SendLayerData(int px, int py, TerrainData terrData)
-        {
-            int[] xPatches = new[] { px };
-            int[] yPatches = new[] { py };
-            SendLayerData(xPatches, yPatches, terrData);
-        }
-
-        private void SendLayerData(int[] px, int[] py, TerrainData terrData)
-        {
-            try
-            {
-                byte landPacketType;
-                if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
-                    landPacketType = (byte)TerrainPatch.LayerType.LandExtended;
-                else
-                    landPacketType = (byte)TerrainPatch.LayerType.Land;
-
-                List<LayerDataPacket> packets = OpenSimTerrainCompressor.CreateLayerDataPackets(terrData, px, py, landPacketType);
-                foreach(LayerDataPacket pkt in packets)
-                    OutPacket(pkt, ThrottleOutPacketType.Land);
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
-            }
-        }
-
 
         // wind caching
         private static Dictionary<ulong,int> lastWindVersion = new Dictionary<ulong,int>();

@@ -1014,19 +1014,16 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             return false;
         }
 
-        public void SendLayerData(float[] map)
+        public void SendLayerData()
         {
-
         }
 
-        public void SendLayerData(int px, int py, float[] map)
+        public void SendLayerData(int[] map)
         {
-
         }
 
         public void SendWindData(int version, Vector2[] windSpeeds)
         {
-
         }
 
         public void SendCloudData(int version, float[] cloudCover)

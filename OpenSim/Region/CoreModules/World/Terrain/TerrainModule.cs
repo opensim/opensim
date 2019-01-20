@@ -592,7 +592,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else
             {
                 // The traditional way is to call into the protocol stack to send them all.
-                pClient.SendLayerData(new float[10]);
+                pClient.SendLayerData();
             }
         }
 
@@ -1066,13 +1066,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 // Legacy update sending where the update is sent out as soon as noticed
                 // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
                 //float[] heightMap = terrData.GetFloatsSerialized();
-                float[] heightMap = new float[10];
+                int[] map = new int[]{ x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize };
                 m_scene.ForEachClient(
                     delegate (IClientAPI controller)
                     {
-                        controller.SendLayerData(x / Constants.TerrainPatchSize,
-                                                 y / Constants.TerrainPatchSize,
-                                                 heightMap);
+                        controller.SendLayerData(map);
                     }
                 );
             }
@@ -1131,14 +1129,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                 }
                                 */
 
-                                float[] patchPieces = new float[toSend.Count * 2];
+                                int[] patchPieces = new int[toSend.Count * 2];
                                 int pieceIndex = 0;
                                 foreach (PatchesToSend pts in toSend)
                                 {
                                     patchPieces[pieceIndex++] = pts.PatchX;
                                     patchPieces[pieceIndex++] = pts.PatchY;
                                 }
-                                pups.Presence.ControllingClient.SendLayerData(-toSend.Count, 0, patchPieces);
+                                pups.Presence.ControllingClient.SendLayerData(patchPieces);
                             }
                             if (pups.sendAll && toSend.Count < 1024)
                                 SendAllModifiedPatchs(pups);
@@ -1206,16 +1204,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             npatchs = patchs.Count;
             if (npatchs > 0)
             {
-                int[] xPieces = new int[npatchs];
-                int[] yPieces = new int[npatchs];
-                float[] patchPieces = new float[npatchs * 2];
+                int[] patchPieces = new int[npatchs * 2];
                 int pieceIndex = 0;
                 foreach (PatchesToSend pts in patchs)
                 {
                     patchPieces[pieceIndex++] = pts.PatchX;
                     patchPieces[pieceIndex++] = pts.PatchY;
                 }
-                pups.Presence.ControllingClient.SendLayerData(-npatchs, 0, patchPieces);
+                pups.Presence.ControllingClient.SendLayerData(patchPieces);
             }
         }
 
@@ -1457,8 +1453,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
             // SendLayerData does not use the heightmap parameter. This kludge is so as to not change IClientAPI.
-            float[] heightMap = new float[10];
-            client.SendLayerData(patchX, patchY, heightMap);
+            client.SendLayerData(new int[]{patchX, patchY});
         }
 
         private void StoreUndoState()

@@ -82,7 +82,7 @@ namespace OpenSim.Framework
         public abstract double[,] GetDoubles();
 
         public abstract void GetPatchMinMax(int px, int py, out float zmin, out float zmax);
-        public abstract void GetPatchBlock(ref float[] block, int px, int py, float sub, float premult);
+        public abstract void GetPatchBlock(float[] block, int px, int py, float sub, float premult);
 
         public abstract TerrainData Clone();
     }
@@ -279,34 +279,47 @@ namespace OpenSim.Framework
             return ret;
         }
 
-        public override void GetPatchMinMax(int px, int py, out float zmin, out float zmax)
+        public override unsafe void GetPatchMinMax(int px, int py, out float zmin, out float zmax)
         {
             zmax = float.MinValue;
             zmin = float.MaxValue;
 
-            int startx = px * 16;
+            int stride = m_heightmap.GetLength(1);
+
+            int startx = px * 16 * stride;
+            int endx = (px + 1) * 16 * stride;
             int starty = py * 16;
-            for (int i = startx; i < startx + 16; i++)
+            fixed (float* map = m_heightmap)
             {
-                for (int j = starty; j < starty + 16; j++)
+                for (int i = startx; i < endx; i += stride)
                 {
-                    float val = m_heightmap[i, j];
-                    if (val > zmax) zmax = val;
-                    if (val < zmin) zmin = val;
+                    float* p = &map[i];
+                    for (int j = starty; j < starty + 16; j++)
+                    {
+                        float val = p[j];
+                        if (val > zmax) zmax = val;
+                        if (val < zmin) zmin = val;
+                    }
                 }
             }
         }
 
-        public override void GetPatchBlock(ref float[] block, int px, int py, float sub, float premult)
+        public override unsafe void GetPatchBlock(float[] _block, int px, int py, float sub, float premult)
         {
             int k = 0;
-            int startX = px * 16;
+            int stride = m_heightmap.GetLength(1);
+
+            int startX = px * 16 * stride;
+            int endX = (px + 1) * 16 * stride;
             int startY = py * 16;
-            for (int y = startY; y < startY + 16; y++)
+            fixed(float* block = _block, map = m_heightmap)
             {
-                for (int x = startX; x < startX + 16; x++)
+                for (int y = startY; y < startY + 16; y++)
                 {
-                    block[k++] = (m_heightmap[x, y] - sub) * premult;
+                    for (int x = startX; x < endX; x += stride)
+                    {
+                        block[k++] = (map[x + y] - sub) * premult;
+                    }
                 }
             }
         }

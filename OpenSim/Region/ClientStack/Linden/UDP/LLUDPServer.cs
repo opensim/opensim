@@ -866,21 +866,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
 
                 for (int i = 0; i < packetCount; i++)
-                {
-                    byte[] data = datas[i];
-//                    if (!SendPacketData(udpClient, data, packet.Type, category, method))
-//                        packetQueued = true;
-                    SendPacketData(udpClient, data, packet.Type, category, method);
-                }
+                    SendPacketData(udpClient, datas[i], packet.Type, category, method);
             }
             else
             {
                 byte[] data = packet.ToBytes();
-//                if (!SendPacketData(udpClient, data, packet.Type, category, method))
-//                    packetQueued = true;
                 SendPacketData(udpClient, data, packet.Type, category, method);
             }
-
             PacketPool.Instance.ReturnPacket(packet);
         }
 
@@ -908,7 +900,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (zerocount != 0)
                     {
                         dest[zerolen++] = 0x00;
-                        dest[zerolen++] = (byte)zerocount;
+                        dest[zerolen++] = zerocount;
                         zerocount = 0;
                     }
 
@@ -919,10 +911,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (zerocount != 0)
             {
                 dest[zerolen++] = 0x00;
-                dest[zerolen++] = (byte)zerocount;
+                dest[zerolen++] = zerocount;
             }
 
-            return (int)zerolen;
+            return zerolen;
         }
         /// <summary>
         /// Start the process of sending a packet to the client.

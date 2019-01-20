@@ -103,8 +103,8 @@ namespace OpenSim.Framework
             /// <summary>Finished, Same Sim</summary>
             FinishedViaSameSim = 1 << 29,
             /// <summary>Agent coming into the grid from another grid</summary>
-            ViaHGLogin = 1 << 30
+            ViaHGLogin = 1 << 30,
+            notViaHGLogin = 0xbffffff
         }
-
     }
 }

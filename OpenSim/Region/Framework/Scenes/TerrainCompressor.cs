@@ -155,15 +155,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return iout;
         }
 
+        static double tt;
         // new using terrain data and patchs indexes
-        public static List<LayerDataPacket> CreateLayerDataPackets(TerrainData terrData, int[] x, int[] y, byte landPacketType)
+        public static List<LayerDataPacket> CreateLayerDataPackets(TerrainData terrData, int[] map)
         {
             List<LayerDataPacket> ret = new List<LayerDataPacket>();
 
-            byte[] data = new byte[x.Length * 256 * 2];
+            int numberPatchs = map.Length / 2;
+            byte[] data = new byte[numberPatchs * 256 * 2];
 
             //create packet and global header
             LayerDataPacket layer = new LayerDataPacket();
+
+            byte landPacketType;
+            if (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize)
+                landPacketType = (byte)TerrainPatch.LayerType.LandExtended;
+            else
+                landPacketType = (byte)TerrainPatch.LayerType.Land;
 
             layer.LayerID.Type = landPacketType;
 
@@ -172,11 +180,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bitpack.PackBitsFromByte(16);
             bitpack.PackBitsFromByte(landPacketType);
 
-            for (int i = 0; i < x.Length; i++)
-            {
-                CreatePatchFromTerrainData(bitpack, terrData, x[i], y[i]);
+            tt = 0;
 
-                if (bitpack.BytePos > 980 && i != x.Length - 1)
+            int s;
+            for (int i = 0; i < numberPatchs; i++)
+            {
+                s = 2 * i;
+                tt -= Util.GetTimeStampMS();
+                CreatePatchFromTerrainData(bitpack, terrData, map[s], map[s + 1]);
+                tt += Util.GetTimeStampMS();
+
+                if (bitpack.BytePos > 980 && i != numberPatchs - 1)
                 {
                     //finish this packet
                     bitpack.PackBitsFromByte(END_OF_PATCHES);
@@ -284,7 +298,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 output.PackBits(header.PatchIDs, 10);
         }
 
-        private static void EncodePatch(BitPack output, int[] patch, int postquant, int wbits)
+        private unsafe static void EncodePatch(BitPack output, int[] _patch, int postquant, int wbits)
         {
             int maxwbitssize = (1 << wbits) - 1;
 
@@ -296,60 +310,63 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int lastZeroindx = 256 - postquant;
 
-            if (lastZeroindx != 256)
-                patch[lastZeroindx] = 0;
-
-            int i = 0;
-            while(i < 256)
+            fixed(int * patch = _patch)
             {
-                int temp = patch[i];
+                if (lastZeroindx != 256)
+                    patch[lastZeroindx] = 0;
 
-                if (temp == 0)
+                int i = 0;
+                while(i < 256)
                 {
-                    int j = i + 1;
-                    while(j < lastZeroindx)
+                    int temp = patch[i];
+
+                    if (temp == 0)
                     {
-                        if (patch[j] != 0)
-                            break;
-                        ++j;
+                        int j = i + 1;
+                        while(j < lastZeroindx)
+                        {
+                            if (patch[j] != 0)
+                                break;
+                            ++j;
+                        }
+
+                        if (j == lastZeroindx)
+                        {
+                            output.PackBits(ZERO_EOB, 2);
+                            return;
+                        }
+
+                        i = j - i;
+                        while(i > 8)
+                        {
+                            output.PackBitsFromByte(ZERO_CODE);
+                            i -= 8;
+                        }
+                        if( i > 0)
+                            output.PackBitsFromByte(ZERO_CODE, i);
+                        i = j;
+                        continue;
                     }
 
-                    if (j == lastZeroindx)
+                    if (temp < 0)
                     {
-                        output.PackBits(ZERO_EOB, 2);
-                        return;
-                    }
+                        temp *= -1;
+                        if (temp > maxwbitssize)
+                            temp = maxwbitssize;
 
-                    i = j - i;
-                    while(i > 8)
+                        output.PackBits(NEGATIVE_VALUE, 3);
+                        output.PackBits(temp, wbits);
+                    }
+                    else
                     {
-                        output.PackBitsFromByte(ZERO_CODE);
-                        i -= 8;
+                        if (temp > maxwbitssize)
+                            temp = maxwbitssize;
+
+                        output.PackBits(POSITIVE_VALUE, 3);
+                        output.PackBits(temp, wbits);
                     }
-                    if( i > 0)
-                        output.PackBitsFromByte(ZERO_CODE, i);
-                    i = j;
-                    continue;
+                    ++i;
                 }
-
-                if (temp < 0)
-                {
-                    temp *= -1;
-                    if (temp > maxwbitssize)
-                        temp = maxwbitssize;
-
-                    output.PackBits(NEGATIVE_VALUE, 3);
-                    output.PackBits(temp, wbits);
-                }
-                else
-                {
-                    if (temp > maxwbitssize)
-                        temp = maxwbitssize;
-
-                    output.PackBits(POSITIVE_VALUE, 3);
-                    output.PackBits(temp, wbits);
-                }
-                ++i;
             }
         }
 
@@ -369,7 +386,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.QuantWBits = wordsize;
             header.QuantWBits |= wordsize << 4;
 
-            terrData.GetPatchBlock(ref block, patchX, patchY, sub, premult);
+            terrData.GetPatchBlock(block, patchX, patchY, sub, premult);
 
             wbits = (prequant >> 1);
 
@@ -391,20 +408,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private static void BuildQuantizeTable16()
+        private unsafe static void BuildQuantizeTable16()
         {
             const float oosob = 2.0f / 16;
-            for (int j = 0; j < 16; j++)
+            fixed(float* fQuantizeTable16 = QuantizeTable16)
             {
-                int c = j * 16;
-                for (int i = 0; i < 16; i++)
+                for (int j = 0; j < 16; j++)
                 {
-                    QuantizeTable16[c + i] = oosob / (1.0f + 2.0f * (i + j));
+                    int c = j * 16;
+                    for (int i = 0; i < 16; i++)
+                    {
+                        fQuantizeTable16[c + i] = oosob / (1.0f + 2.0f * (i + j));
+                    }
                 }
             }
         }
 
-        private static void BuildCopyMatrix16()
+        private unsafe static void BuildCopyMatrix16()
         {
             bool diag = false;
             bool right = true;
@@ -412,51 +432,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int j = 0;
             int count = 0;
 
-            while (i < 16 && j < 16)
+            fixed (int* fCopyMatrix16 = CopyMatrix16)
             {
-                CopyMatrix16[j * 16 + i] = count++;
-
-                if (!diag)
+                while (i < 16 && j < 16)
                 {
-                    if (right)
-                    {
-                        if (i < 15) i++;
-                        else j++;
+                    fCopyMatrix16[j * 16 + i] = count++;
 
-                        right = false;
-                        diag = true;
+                    if (!diag)
+                    {
+                        if (right)
+                        {
+                            if (i < 15) i++;
+                            else j++;
+
+                            right = false;
+                            diag = true;
+                        }
+                        else
+                        {
+                            if (j < 15 ) j++;
+                            else i++;
+
+                            right = true;
+                            diag = true;
+                        }
                     }
                     else
                     {
-                        if (j < 15 ) j++;
-                        else i++;
-
-                        right = true;
-                        diag = true;
-                    }
-                }
-                else
-                {
-                    if (right)
-                    {
-                        i++;
-                        j--;
-                        if (i == 15 || j == 0) diag = false;
-                    }
-                    else
-                    {
-                        i--;
-                        j++;
-                        if (j == 15 || i == 0) diag = false;
+                        if (right)
+                        {
+                            i++;
+                            j--;
+                            if (i == 15 || j == 0) diag = false;
+                        }
+                        else
+                        {
+                            i--;
+                            j++;
+                            if (j == 15 || i == 0) diag = false;
+                        }
                     }
                 }
             }
         }
 
         #endregion Initialization
-
-
-
 
         #region DCT
 
@@ -506,9 +526,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         const float W16_8R = 0.70710678118654752440f;
 
 
-        static void dct16x16(float[] a, int[] iout, ref int wbits)
+        unsafe static void dct16x16(float[] _a, int[] _iout, ref int wbits)
         {
-            float[] tmp = new float[256];
+            float[] _tmp = new float[256];
 
             float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
             float x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
@@ -523,479 +543,483 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int wbitsMaxValue = 1 << wbits;
             bool dowbits = wbits < 17;
 
-            for (j = 0, k = 0; j < 256; j += 16, k++)
+            fixed (float* a = _a, tmp = _tmp, fQuantizeTable16 = QuantizeTable16)
+            fixed (int* iout = _iout, fCopyMatrix16 = CopyMatrix16)
             {
-                x4r = a[0 + j] - a[15 + j];
-                xr = a[0 + j] + a[15 + j];
-                x4i = a[8 + j] - a[7 + j];
-                xi = a[8 + j] + a[7 + j];
-                x0r = xr + xi;
-                x0i = xr - xi;
-                x5r = a[2 + j] - a[13 + j];
-                xr = a[2 + j] + a[13 + j];
-                x5i = a[10 + j] - a[5 + j];
-                xi = a[10 + j] + a[5 + j];
-                x1r = xr + xi;
-                x1i = xr - xi;
-                x6r = a[4 + j] - a[11 + j];
-                xr = a[4 + j] + a[11 + j];
-                x6i = a[12 + j] - a[3 + j];
-                xi = a[12 + j] + a[3 + j];
-                x2r = xr + xi;
-                x2i = xr - xi;
-                x7r = a[6 + j] - a[9 + j];
-                xr = a[6 + j] + a[9 + j];
-                x7i = a[14 + j] - a[1 + j];
-                xi = a[14 + j] + a[1 + j];
-                x3r = xr + xi;
-                x3i = xr - xi;
-                xr = x0r + x2r;
-                xi = x1r + x3r;
-                tmp[k] = C16_8R * (xr + xi); //
-                tmp[8 * 16 + k] = C16_8R * (xr - xi); //
-                xr = x0r - x2r;
-                xi = x1r - x3r;
-                tmp[4 * 16 + k] = C16_4R * xr - C16_4I * xi; //
-                tmp[12 * 16 + k] = C16_4R * xi + C16_4I * xr;  //
-                x0r = W16_8R * (x1i - x3i);
-                x2r = W16_8R * (x1i + x3i);
-                xr = x0i + x0r;
-                xi = x2r + x2i;
-                tmp[2 * 16 + k] = C16_2R * xr - C16_2I * xi;  //
-                tmp[14 * 16 + k] = C16_2R * xi + C16_2I * xr;  //
-                xr = x0i - x0r;
-                xi = x2r - x2i;
-                tmp[6 * 16 + k] = C16_6R * xr - C16_6I * xi;  //
-                tmp[10 * 16 + k] = C16_6R * xi + C16_6I * xr; //
-                xr = W16_8R * (x6r - x6i);
-                xi = W16_8R * (x6i + x6r);
-                x6r = x4r - xr;
-                x6i = x4i - xi;
-                x4r += xr;
-                x4i += xi;
-                xr = W16_4I * x7r - W16_4R * x7i;
-                xi = W16_4I * x7i + W16_4R * x7r;
-                x7r = W16_4R * x5r - W16_4I * x5i;
-                x7i = W16_4R * x5i + W16_4I * x5r;
-                x5r = x7r + xr;
-                x5i = x7i + xi;
-                x7r -= xr;
-                x7i -= xi;
-                xr = x4r + x5r;
-                xi = x5i + x4i;
-                tmp[16 + k] = C16_1R * xr - C16_1I * xi;  //
-                tmp[15 * 16 + k] = C16_1R * xi + C16_1I * xr;  //
-                xr = x4r - x5r;
-                xi = x5i - x4i;
-                tmp[7 * 16 + k] = C16_7R * xr - C16_7I * xi;  //
-                tmp[9 * 16 + k] = C16_7R * xi + C16_7I * xr;  //
-                xr = x6r - x7i;
-                xi = x7r + x6i;
-                tmp[5 * 16 + k] = C16_5R * xr - C16_5I * xi;  //
-                tmp[11 * 16 + k] = C16_5R * xi + C16_5I * xr;  //
-                xr = x6r + x7i;
-                xi = x7r - x6i;
-                tmp[3 * 16 + k] = C16_3R * xr - C16_3I * xi;  //
-                tmp[13 * 16 + k] = C16_3R * xi + C16_3I * xr;  //
-            }
-
-            for (j = 0, k = 0; j < 256; j += 16, k++)
-            {
-                x4r = tmp[0 + j] - tmp[15 + j];
-                xr = tmp[0 + j] + tmp[15 + j];
-                x4i = tmp[8 + j] - tmp[7 + j];
-                xi = tmp[8 + j] + tmp[7 + j];
-                x0r = xr + xi;
-                x0i = xr - xi;
-                x5r = tmp[2 + j] - tmp[13 + j];
-                xr = tmp[2 + j] + tmp[13 + j];
-                x5i = tmp[10 + j] - tmp[5 + j];
-                xi = tmp[10 + j] + tmp[5 + j];
-                x1r = xr + xi;
-                x1i = xr - xi;
-                x6r = tmp[4 + j] - tmp[11 + j];
-                xr = tmp[4 + j] + tmp[11 + j];
-                x6i = tmp[12 + j] - tmp[3 + j];
-                xi = tmp[12 + j] + tmp[3 + j];
-                x2r = xr + xi;
-                x2i = xr - xi;
-                x7r = tmp[6 + j] - tmp[9 + j];
-                xr = tmp[6 + j] + tmp[9 + j];
-                x7i = tmp[14 + j] - tmp[1 + j];
-                xi = tmp[14 + j] + tmp[1 + j];
-                x3r = xr + xi;
-                x3i = xr - xi;
-                xr = x0r + x2r;
-                xi = x1r + x3r;
-
-                //tmp[0 + k] = C16_8R * (xr + xi); //
-                ftmp = C16_8R * (xr + xi);
-                itmp = (int)(ftmp * QuantizeTable16[k]);
-                iout[CopyMatrix16[k]] = itmp;
-
-                if (dowbits)
+                for (j = 0, k = 0; j < 256; j += 16, k++)
                 {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
-                    {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
-                        {
-                            dowbits = false;
-                            break;
-                        }
-                    }
+                    x4r = a[0 + j] - a[15 + j];
+                    xr = a[0 + j] + a[15 + j];
+                    x4i = a[8 + j] - a[7 + j];
+                    xi = a[8 + j] + a[7 + j];
+                    x0r = xr + xi;
+                    x0i = xr - xi;
+                    x5r = a[2 + j] - a[13 + j];
+                    xr = a[2 + j] + a[13 + j];
+                    x5i = a[10 + j] - a[5 + j];
+                    xi = a[10 + j] + a[5 + j];
+                    x1r = xr + xi;
+                    x1i = xr - xi;
+                    x6r = a[4 + j] - a[11 + j];
+                    xr = a[4 + j] + a[11 + j];
+                    x6i = a[12 + j] - a[3 + j];
+                    xi = a[12 + j] + a[3 + j];
+                    x2r = xr + xi;
+                    x2i = xr - xi;
+                    x7r = a[6 + j] - a[9 + j];
+                    xr = a[6 + j] + a[9 + j];
+                    x7i = a[14 + j] - a[1 + j];
+                    xi = a[14 + j] + a[1 + j];
+                    x3r = xr + xi;
+                    x3i = xr - xi;
+                    xr = x0r + x2r;
+                    xi = x1r + x3r;
+                    tmp[k] = C16_8R * (xr + xi); //
+                    tmp[8 * 16 + k] = C16_8R * (xr - xi); //
+                    xr = x0r - x2r;
+                    xi = x1r - x3r;
+                    tmp[4 * 16 + k] = C16_4R * xr - C16_4I * xi; //
+                    tmp[12 * 16 + k] = C16_4R * xi + C16_4I * xr;  //
+                    x0r = W16_8R * (x1i - x3i);
+                    x2r = W16_8R * (x1i + x3i);
+                    xr = x0i + x0r;
+                    xi = x2r + x2i;
+                    tmp[2 * 16 + k] = C16_2R * xr - C16_2I * xi;  //
+                    tmp[14 * 16 + k] = C16_2R * xi + C16_2I * xr;  //
+                    xr = x0i - x0r;
+                    xi = x2r - x2i;
+                    tmp[6 * 16 + k] = C16_6R * xr - C16_6I * xi;  //
+                    tmp[10 * 16 + k] = C16_6R * xi + C16_6I * xr; //
+                    xr = W16_8R * (x6r - x6i);
+                    xi = W16_8R * (x6i + x6r);
+                    x6r = x4r - xr;
+                    x6i = x4i - xi;
+                    x4r += xr;
+                    x4i += xi;
+                    xr = W16_4I * x7r - W16_4R * x7i;
+                    xi = W16_4I * x7i + W16_4R * x7r;
+                    x7r = W16_4R * x5r - W16_4I * x5i;
+                    x7i = W16_4R * x5i + W16_4I * x5r;
+                    x5r = x7r + xr;
+                    x5i = x7i + xi;
+                    x7r -= xr;
+                    x7i -= xi;
+                    xr = x4r + x5r;
+                    xi = x5i + x4i;
+                    tmp[16 + k] = C16_1R * xr - C16_1I * xi;  //
+                    tmp[15 * 16 + k] = C16_1R * xi + C16_1I * xr;  //
+                    xr = x4r - x5r;
+                    xi = x5i - x4i;
+                    tmp[7 * 16 + k] = C16_7R * xr - C16_7I * xi;  //
+                    tmp[9 * 16 + k] = C16_7R * xi + C16_7I * xr;  //
+                    xr = x6r - x7i;
+                    xi = x7r + x6i;
+                    tmp[5 * 16 + k] = C16_5R * xr - C16_5I * xi;  //
+                    tmp[11 * 16 + k] = C16_5R * xi + C16_5I * xr;  //
+                    xr = x6r + x7i;
+                    xi = x7r - x6i;
+                    tmp[3 * 16 + k] = C16_3R * xr - C16_3I * xi;  //
+                    tmp[13 * 16 + k] = C16_3R * xi + C16_3I * xr;  //
                 }
 
-                //tmp[8 * Constants.TerrainPatchSize + k] = C16_8R * (xr - xi); //
-                ftmp = C16_8R * (xr - xi);
-                indx = 8 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
+                for (j = 0, k = 0; j < 256; j += 16, k++)
                 {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    x4r = tmp[0 + j] - tmp[15 + j];
+                    xr = tmp[0 + j] + tmp[15 + j];
+                    x4i = tmp[8 + j] - tmp[7 + j];
+                    xi = tmp[8 + j] + tmp[7 + j];
+                    x0r = xr + xi;
+                    x0i = xr - xi;
+                    x5r = tmp[2 + j] - tmp[13 + j];
+                    xr = tmp[2 + j] + tmp[13 + j];
+                    x5i = tmp[10 + j] - tmp[5 + j];
+                    xi = tmp[10 + j] + tmp[5 + j];
+                    x1r = xr + xi;
+                    x1i = xr - xi;
+                    x6r = tmp[4 + j] - tmp[11 + j];
+                    xr = tmp[4 + j] + tmp[11 + j];
+                    x6i = tmp[12 + j] - tmp[3 + j];
+                    xi = tmp[12 + j] + tmp[3 + j];
+                    x2r = xr + xi;
+                    x2i = xr - xi;
+                    x7r = tmp[6 + j] - tmp[9 + j];
+                    xr = tmp[6 + j] + tmp[9 + j];
+                    x7i = tmp[14 + j] - tmp[1 + j];
+                    xi = tmp[14 + j] + tmp[1 + j];
+                    x3r = xr + xi;
+                    x3i = xr - xi;
+                    xr = x0r + x2r;
+                    xi = x1r + x3r;
+
+                    //tmp[0 + k] = C16_8R * (xr + xi); //
+                    ftmp = C16_8R * (xr + xi);
+                    itmp = (int)(ftmp * fQuantizeTable16[k]);
+                    iout[fCopyMatrix16[k]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = x0r - x2r;
-                xi = x1r - x3r;
+                    //tmp[8 * Constants.TerrainPatchSize + k] = C16_8R * (xr - xi); //
+                    ftmp = C16_8R * (xr - xi);
+                    indx = 8 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[4 * Constants.TerrainPatchSize + k] = C16_4R * xr - C16_4I * xi; //
-                ftmp = C16_4R * xr - C16_4I * xi;
-                indx = 4 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[12 * Constants.TerrainPatchSize + k] = C16_4R * xi + C16_4I * xr;  //
-                ftmp = C16_4R * xi + C16_4I * xr;
-                indx = 12 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = x0r - x2r;
+                    xi = x1r - x3r;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[4 * Constants.TerrainPatchSize + k] = C16_4R * xr - C16_4I * xi; //
+                    ftmp = C16_4R * xr - C16_4I * xi;
+                    indx = 4 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                x0r = W16_8R * (x1i - x3i);
-                x2r = W16_8R * (x1i + x3i);
-                xr = x0i + x0r;
-                xi = x2r + x2i;
+                    //tmp[12 * Constants.TerrainPatchSize + k] = C16_4R * xi + C16_4I * xr;  //
+                    ftmp = C16_4R * xi + C16_4I * xr;
+                    indx = 12 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[2 * Constants.TerrainPatchSize + k] = C16_2R * xr - C16_2I * xi;  //
-                ftmp = C16_2R * xr - C16_2I * xi;
-                indx = 2 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[14 * Constants.TerrainPatchSize + k] = C16_2R * xi + C16_2I * xr;  //
-                ftmp = C16_2R * xi + C16_2I * xr;
-                indx = 14 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    x0r = W16_8R * (x1i - x3i);
+                    x2r = W16_8R * (x1i + x3i);
+                    xr = x0i + x0r;
+                    xi = x2r + x2i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[2 * Constants.TerrainPatchSize + k] = C16_2R * xr - C16_2I * xi;  //
+                    ftmp = C16_2R * xr - C16_2I * xi;
+                    indx = 2 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = x0i - x0r;
-                xi = x2r - x2i;
+                    //tmp[14 * Constants.TerrainPatchSize + k] = C16_2R * xi + C16_2I * xr;  //
+                    ftmp = C16_2R * xi + C16_2I * xr;
+                    indx = 14 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[6 * Constants.TerrainPatchSize + k] = C16_6R * xr - C16_6I * xi;  //
-                ftmp = C16_6R * xr - C16_6I * xi;
-                indx = 6 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[10 * Constants.TerrainPatchSize + k] = C16_6R * xi + C16_6I * xr; //
-                ftmp = C16_6R * xi + C16_6I * xr;
-                indx = 10 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = x0i - x0r;
+                    xi = x2r - x2i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[6 * Constants.TerrainPatchSize + k] = C16_6R * xr - C16_6I * xi;  //
+                    ftmp = C16_6R * xr - C16_6I * xi;
+                    indx = 6 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = W16_8R * (x6r - x6i);
-                xi = W16_8R * (x6i + x6r);
-                x6r = x4r - xr;
-                x6i = x4i - xi;
-                x4r += xr;
-                x4i += xi;
-                xr = W16_4I * x7r - W16_4R * x7i;
-                xi = W16_4I * x7i + W16_4R * x7r;
-                x7r = W16_4R * x5r - W16_4I * x5i;
-                x7i = W16_4R * x5i + W16_4I * x5r;
-                x5r = x7r + xr;
-                x5i = x7i + xi;
-                x7r -= xr;
-                x7i -= xi;
-                xr = x4r + x5r;
-                xi = x5i + x4i;
+                    //tmp[10 * Constants.TerrainPatchSize + k] = C16_6R * xi + C16_6I * xr; //
+                    ftmp = C16_6R * xi + C16_6I * xr;
+                    indx = 10 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[1 * Constants.TerrainPatchSize + k] = C16_1R * xr - C16_1I * xi;  //
-                ftmp = C16_1R * xr - C16_1I * xi;
-                indx = 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[15 * Constants.TerrainPatchSize + k] = C16_1R * xi + C16_1I * xr;  //
-                ftmp = C16_1R * xi + C16_1I * xr;
-                indx = 15 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = W16_8R * (x6r - x6i);
+                    xi = W16_8R * (x6i + x6r);
+                    x6r = x4r - xr;
+                    x6i = x4i - xi;
+                    x4r += xr;
+                    x4i += xi;
+                    xr = W16_4I * x7r - W16_4R * x7i;
+                    xi = W16_4I * x7i + W16_4R * x7r;
+                    x7r = W16_4R * x5r - W16_4I * x5i;
+                    x7i = W16_4R * x5i + W16_4I * x5r;
+                    x5r = x7r + xr;
+                    x5i = x7i + xi;
+                    x7r -= xr;
+                    x7i -= xi;
+                    xr = x4r + x5r;
+                    xi = x5i + x4i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[1 * Constants.TerrainPatchSize + k] = C16_1R * xr - C16_1I * xi;  //
+                    ftmp = C16_1R * xr - C16_1I * xi;
+                    indx = 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = x4r - x5r;
-                xi = x5i - x4i;
+                    //tmp[15 * Constants.TerrainPatchSize + k] = C16_1R * xi + C16_1I * xr;  //
+                    ftmp = C16_1R * xi + C16_1I * xr;
+                    indx = 15 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[7 * Constants.TerrainPatchSize + k] = C16_7R * xr - C16_7I * xi;  //
-                ftmp = C16_7R * xr - C16_7I * xi;
-                indx = 7 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[9 * Constants.TerrainPatchSize + k] = C16_7R * xi + C16_7I * xr;  //
-                ftmp = C16_7R * xi + C16_7I * xr;
-                indx = 9 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = x4r - x5r;
+                    xi = x5i - x4i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[7 * Constants.TerrainPatchSize + k] = C16_7R * xr - C16_7I * xi;  //
+                    ftmp = C16_7R * xr - C16_7I * xi;
+                    indx = 7 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = x6r - x7i;
-                xi = x7r + x6i;
+                    //tmp[9 * Constants.TerrainPatchSize + k] = C16_7R * xi + C16_7I * xr;  //
+                    ftmp = C16_7R * xi + C16_7I * xr;
+                    indx = 9 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[5 * Constants.TerrainPatchSize + k] = C16_5R * xr - C16_5I * xi;  //
-                ftmp = C16_5R * xr - C16_5I * xi;
-                indx = 5 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[11 * Constants.TerrainPatchSize + k] = C16_5R * xi + C16_5I * xr;  //
-                ftmp = C16_5R * xi + C16_5I * xr;
-                indx = 11 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = x6r - x7i;
+                    xi = x7r + x6i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[5 * Constants.TerrainPatchSize + k] = C16_5R * xr - C16_5I * xi;  //
+                    ftmp = C16_5R * xr - C16_5I * xi;
+                    indx = 5 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                xr = x6r + x7i;
-                xi = x7r - x6i;
+                    //tmp[11 * Constants.TerrainPatchSize + k] = C16_5R * xi + C16_5I * xr;  //
+                    ftmp = C16_5R * xi + C16_5I * xr;
+                    indx = 11 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
 
-                //tmp[3 * Constants.TerrainPatchSize + k] = C16_3R * xr - C16_3I * xi;  //
-                ftmp = C16_3R * xr - C16_3I * xi;
-                indx = 3 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
-
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
-                }
 
-                //tmp[13 * Constants.TerrainPatchSize + k] = C16_3R * xi + C16_3I * xr;  //
-                ftmp = C16_3R * xi + C16_3I * xr;
-                indx = 13 * 16 + k;
-                itmp = (int)(ftmp * QuantizeTable16[indx]);
-                iout[CopyMatrix16[indx]] = itmp;
+                    xr = x6r + x7i;
+                    xi = x7r - x6i;
 
-                if (dowbits)
-                {
-                    if (itmp < 0) itmp *= -1;
-                    while (itmp > wbitsMaxValue)
+                    //tmp[3 * Constants.TerrainPatchSize + k] = C16_3R * xr - C16_3I * xi;  //
+                    ftmp = C16_3R * xr - C16_3I * xi;
+                    indx = 3 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
                     {
-                        wbits++;
-                        wbitsMaxValue = 1 << wbits;
-                        if (wbits == maxwbits)
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
                         {
-                            dowbits = false;
-                            break;
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    //tmp[13 * Constants.TerrainPatchSize + k] = C16_3R * xi + C16_3I * xr;  //
+                    ftmp = C16_3R * xi + C16_3I * xr;
+                    indx = 13 * 16 + k;
+                    itmp = (int)(ftmp * fQuantizeTable16[indx]);
+                    iout[fCopyMatrix16[indx]] = itmp;
+
+                    if (dowbits)
+                    {
+                        if (itmp < 0) itmp *= -1;
+                        while (itmp > wbitsMaxValue)
+                        {
+                            wbits++;
+                            wbitsMaxValue = 1 << wbits;
+                            if (wbits == maxwbits)
+                            {
+                                dowbits = false;
+                                break;
+                            }
                         }
                     }
                 }

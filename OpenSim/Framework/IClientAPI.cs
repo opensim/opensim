@@ -1146,8 +1146,8 @@ namespace OpenSim.Framework
 
         bool CanSendLayerData();
 
-        void SendLayerData(float[] map);
-        void SendLayerData(int px, int py, float[] map);
+        void SendLayerData();
+        void SendLayerData(int[] map);
 
         void SendWindData(int version, Vector2[] windSpeeds);
         void SendCloudData(int version, float[] cloudCover);
