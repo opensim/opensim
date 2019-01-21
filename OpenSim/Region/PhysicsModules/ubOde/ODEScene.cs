@@ -282,7 +282,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr GroundSpace; // space for ground
 
         public object OdeLock = new object();
-//        public static object SimulationLock = new object();
+        public static object SimulationLock = new object();
 
         public IMesher mesher;
 
@@ -1134,7 +1134,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, float feetOffset, bool isFlying)
         {
-             OdeCharacter newAv = new OdeCharacter(localID, avName, this, position,
+            OdeCharacter newAv = new OdeCharacter(localID, avName, this, position,
                 size, feetOffset, avDensity, avMovementDivisorWalk, avMovementDivisorRun);
             newAv.Flying = isFlying;
             newAv.MinimumGroundFlightOffset = minimumGroundFlightOffset;
@@ -1214,7 +1214,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             OdePrim newPrim;
             lock (OdeLock)
             {
-
                 newPrim = new OdePrim(name, this, position, size, rotation, pbs, isphysical, isPhantom, shapeType, localID);
             }
             return newPrim;
@@ -1453,10 +1452,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             try
                             {
-                                if (item.actor is OdeCharacter)
-                                    ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
-                                else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                    RemovePrimThreadLocked((OdePrim)item.actor);
+                                lock (SimulationLock)
+                                {
+                                    if (item.actor is OdeCharacter)
+                                        ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                                    else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                        RemovePrimThreadLocked((OdePrim)item.actor);
+                                }
                             }
                             catch
                             {
@@ -1546,10 +1548,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             try
                             {
-                                if (item.actor is OdeCharacter)
-                                    ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
-                                else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                    RemovePrimThreadLocked((OdePrim)item.actor);
+                                lock (SimulationLock)
+                                {
+                                    if (item.actor is OdeCharacter)
+                                        ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                                    else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                        RemovePrimThreadLocked((OdePrim)item.actor);
+                                }
                             }
                             catch
                             {
@@ -1601,17 +1606,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 aprim.Move();
                             }
                         }
-//                        moveTime += Util.GetTimeStampMS() - tmpTime;
+                        // moveTime += Util.GetTimeStampMS() - tmpTime;
+                        // tmpTime =  Util.GetTimeStampMS();
+                        lock (SimulationLock)
+                        {
+                            m_rayCastManager.ProcessQueuedRequests();
+                            // rayTime += Util.GetTimeStampMS() - tmpTime;
 
-//                        tmpTime =  Util.GetTimeStampMS();
-                        m_rayCastManager.ProcessQueuedRequests();
-//                        rayTime += Util.GetTimeStampMS() - tmpTime;
+                            // tmpTime =  Util.GetTimeStampMS();
+                            collision_optimized();
+                        }
+                        // collisionTime += Util.GetTimeStampMS() - tmpTime;
 
-//                        tmpTime =  Util.GetTimeStampMS();
-                        collision_optimized();
-//                        collisionTime += Util.GetTimeStampMS() - tmpTime;
-
-//                        tmpTime =  Util.GetTimeStampMS();
+                        // tmpTime =  Util.GetTimeStampMS();
                         lock(_collisionEventPrimRemove)
                         {
                             foreach (PhysicsActor obj in _collisionEventPrimRemove)
@@ -1650,13 +1657,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         foreach(OdePrim prm in sleepers)
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
-//                        collisonRepo += Util.GetTimeStampMS() - tmpTime;
+                        //                        collisonRepo += Util.GetTimeStampMS() - tmpTime;
 
- 
+
                         // do a ode simulation step
-//                        tmpTime =  Util.GetTimeStampMS();
-                        SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
-                        SafeNativeMethods.JointGroupEmpty(contactgroup);
+                        //                        tmpTime =  Util.GetTimeStampMS();
+                        lock (SimulationLock)
+                        {
+                            SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
+                            SafeNativeMethods.JointGroupEmpty(contactgroup);
+                        }
 //                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core

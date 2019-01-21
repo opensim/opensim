@@ -124,8 +124,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// /lib/x86_64-linux-gnu/libpthread.so.0(+0xfc60) [0x7f03c9849c60]
         /// .../opensim/bin/libode-x86_64.so(_Z12dCollideCCTLP6dxGeomS0_iP12dContactGeomi+0x92) [0x7f03b44bcf82]
         /// </remarks>
-//        internal static Object UniversalColliderSyncObject = new Object();
-        internal static Object SimulationLock = new Object();
+        internal static object UniversalColliderSyncObject = new object();
+        internal static object SimulationLock = new object();
 
         /// <summary>
         /// Is stats collecting enabled for this ODE scene?
@@ -880,7 +880,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         {
             int count;
 
-//            lock (OdeScene.UniversalColliderSyncObject)
+            lock (OdeScene.UniversalColliderSyncObject)
             {
                 // We do this inside the lock so that we don't count any delay in acquiring it
                 if (CollectStats)
@@ -2869,7 +2869,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             tempTick = tempTick2;
                         }
 
-//                        lock(SimulationLock)
+                        lock(SimulationLock)
                             SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
 
                         if (CollectStats)
