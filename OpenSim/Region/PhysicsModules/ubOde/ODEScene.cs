@@ -281,8 +281,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
 
-        public Object OdeLock;
-        public static Object SimulationLock;
+        public object OdeLock = new object();
+//        public static object SimulationLock = new object();
 
         public IMesher mesher;
 
@@ -310,8 +310,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion, bool pOSOdeLib)
         {
-            OdeLock = new Object();
-
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;
@@ -347,8 +345,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void Initialization()
         {
             SafeNativeMethods.AllocateODEDataForThread(~0U);
-
-            SimulationLock = new Object();
 
             nearCallback = near;
 
@@ -1512,8 +1508,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int nodeframes = 0;
             float fps = 0;
 
-            lock (SimulationLock)
-                lock(OdeLock)
+            lock(OdeLock)
             {
                 if (world == IntPtr.Zero)
                 {
