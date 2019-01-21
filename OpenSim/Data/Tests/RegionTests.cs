@@ -648,11 +648,13 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T020_PrimInventoryEmpty()
         {
+/*
             TestHelpers.InMethod();
 
             SceneObjectGroup sog = GetMySOG("object1");
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
+*/
         }
 
         // TODO: Is there any point to call StorePrimInventory on a list, rather than on the prim itself?
@@ -672,6 +674,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T021_PrimInventoryBasic()
         {
+/*
             TestHelpers.InMethod();
 
             SceneObjectGroup sog = GetMySOG("object1");
@@ -707,11 +710,13 @@ namespace OpenSim.Data.Tests
             sog = FindSOG("object1", region1);
             t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
+*/
         }
 
         [Test]
         public void T025_PrimInventoryPersistency()
         {
+/*
             TestHelpers.InMethod();
 
             InventoryItemBase i = new InventoryItemBase();
@@ -779,12 +784,14 @@ namespace OpenSim.Data.Tests
 //            Assert.That(t.CurrentPermissions, Is.EqualTo(curperm | 16), "Assert.That(t.CurrentPermissions, Is.EqualTo(curperm | 8))");
             Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID), "Assert.That(t.ParentID,Is.EqualTo(sog.RootPart.FolderID))");
             Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID), "Assert.That(t.ParentPartID,Is.EqualTo(sog.RootPart.UUID))");
+*/
         }
-
+/*
         [Test]
         [ExpectedException(typeof(ArgumentException))]
         public void T026_PrimInventoryMany()
         {
+
             TestHelpers.InMethod();
 
             UUID i1,i2,i3,i4;
@@ -812,8 +819,9 @@ namespace OpenSim.Data.Tests
             Assert.That(t3.Name, Is.EqualTo(ib3.Name), "Assert.That(t3.Name, Is.EqualTo(ib3.Name))");
             TaskInventoryItem t4 = sog.GetInventoryItem(sog.RootPart.LocalId, i4);
             Assert.That(t4, Is.Null);
-        }
 
+        }
+*/
         [Test]
         public void T052_RemoveObject()
         {
@@ -1078,7 +1086,6 @@ namespace OpenSim.Data.Tests
             sop.Shape = PrimitiveBaseShape.Default;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
-//            sog.SetScene(scene);
 
             return sog;
         }
