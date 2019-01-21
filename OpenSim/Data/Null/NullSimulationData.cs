@@ -151,7 +151,7 @@ namespace OpenSim.Data.Null
         // Legacy. Just don't do this.
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
-            TerrainData terrData = new HeightmapTerrainData(ter);
+            TerrainData terrData = new TerrainData(ter);
             StoreTerrain(terrData, regionID);
         }
 

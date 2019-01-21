@@ -736,7 +736,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             get
             {
                 SceneObjectPart sop = m_scene.GetSceneObjectPart(m_objectID);
-                if (sop == null)
+                if (sop == null || sop.DynAttrs == null)
                 {
                     // This is bad
                     return null;

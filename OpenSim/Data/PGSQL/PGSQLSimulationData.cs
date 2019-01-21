@@ -610,7 +610,7 @@ namespace OpenSim.Data.PGSQL
         // Legacy entry point for when terrain was always a 256x256 heightmap
         public void StoreTerrain(double[,] terrain, UUID regionID)
         {
-            StoreTerrain(new HeightmapTerrainData(terrain), regionID);
+            StoreTerrain(new TerrainData(terrain), regionID);
         }
 
         /// <summary>
@@ -1797,7 +1797,7 @@ namespace OpenSim.Data.PGSQL
             if (!(primRow["DynAttrs"] is System.DBNull) && (string)primRow["DynAttrs"] != "")
                 prim.DynAttrs = DAMap.FromXml((string)primRow["DynAttrs"]);
             else
-                prim.DynAttrs = new DAMap();
+                prim.DynAttrs = null;
 
             prim.PhysicsShapeType = Convert.ToByte(primRow["PhysicsShapeType"]);
             prim.Density = Convert.ToSingle(primRow["Density"]);
@@ -2245,7 +2245,7 @@ namespace OpenSim.Data.PGSQL
             else
                 parameters.Add(_Database.CreateParameter("PhysInertia", String.Empty));
 
-            if (prim.DynAttrs.CountNamespaces > 0)
+            if (prim.DynAttrs != null && prim.DynAttrs.CountNamespaces > 0)
                 parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
             else
                 parameters.Add(_Database.CreateParameter("DynAttrs", null));

@@ -99,6 +99,8 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DOExampleModule
         private void OnObjectAddedToScene(SceneObjectGroup so)
         {
             SceneObjectPart rootPart = so.RootPart;
+            if(rootPart.DynAttrs == null)
+                return;
 
             OSDMap attrs;
 

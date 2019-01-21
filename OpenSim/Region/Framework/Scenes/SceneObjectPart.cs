@@ -410,8 +410,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
             Description = String.Empty;
-            DynAttrs = new DAMap();
-
+ 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
@@ -3475,7 +3474,29 @@ namespace OpenSim.Region.Framework.Scenes
         private const float ANGVELOCITY_TOLERANCE = 0.005f;
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
         private const double TIME_MS_TOLERANCE = 200.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
-        
+
+        private Vector3 ClampVectorForTerseUpdate(Vector3 v, float max)
+        {
+            float a, b;
+
+            a = Math.Abs(v.X);
+            b = Math.Abs(v.Y);
+            if (b > a)
+                a = b;
+            b = Math.Abs(v.Z);
+            if (b > a)
+                a = b;
+
+            if (a > max)
+            {
+                a = max / a;
+                v.X *= a;
+                v.Y *= a;
+                v.Z *= a;
+            }
+            return v;
+        }
+
         /// <summary>
         /// Tell all the prims which have had updates scheduled
         /// </summary>
@@ -3491,73 +3512,43 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if(current == PrimUpdateFlags.TerseUpdate)
                 {
-                    Vector3 curvel = Velocity;
-                    Vector3 curacc = Acceleration;
-                    Vector3 angvel = AngularVelocity;
-
                     while(true) // just to avoid ugly goto
                     {
                         double elapsed = now - m_lastUpdateSentTime;
                         if (elapsed > TIME_MS_TOLERANCE)
                             break;
 
-                        if( Math.Abs(curacc.X - m_lastAcceleration.X) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(curacc.Y - m_lastAcceleration.Y) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(curacc.Z - m_lastAcceleration.Z) >  VELOCITY_TOLERANCE)
+                        if ( !Acceleration.ApproxEquals(m_lastAcceleration, VELOCITY_TOLERANCE))
                             break;
 
-                        if( Math.Abs(curvel.X - m_lastVelocity.X) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(curvel.Y - m_lastVelocity.Y) >  VELOCITY_TOLERANCE ||
-                                Math.Abs(curvel.Z - m_lastVelocity.Z) >  VELOCITY_TOLERANCE)
+                        Vector3 curvel = ClampVectorForTerseUpdate(Velocity, 128f);
+                        Vector3 tmp = ClampVectorForTerseUpdate(m_lastVelocity, 128f);
+                        if (!curvel.ApproxEquals(tmp, VELOCITY_TOLERANCE))
                             break;
 
-                        float vx = Math.Abs(curvel.X);
-                        if(vx > 128.0)
-                            break;
-                        float vy = Math.Abs(curvel.Y);
-                        if(vy > 128.0)
-                            break;
-                        float vz = Math.Abs(curvel.Z);
-                        if(vz > 128.0)
-                            break;
-
-                        if(vx <  VELOCITY_TOLERANCE && vy <  VELOCITY_TOLERANCE && vz <  VELOCITY_TOLERANCE
-                                )
+                        if (Math.Abs(curvel.X) < 1e-4 && Math.Abs(curvel.Y) < 1e-4 && Math.Abs(curvel.Z) < 1e-4)
                         {
-                            if(!AbsolutePosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                            if (!AbsolutePosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                                 break;
-                            if(vx <  1e-4 && vy <  1e-4 && vz <  1e-4 &&
-                                    (
-                                    Math.Abs(m_lastVelocity.X) > 1e-4 ||
+                            if (    Math.Abs(m_lastVelocity.X) > 1e-4 ||
                                     Math.Abs(m_lastVelocity.Y) > 1e-4 ||
                                     Math.Abs(m_lastVelocity.Z) > 1e-4
-                                    ))
-                                break;
+                                    )
+                            break;
                         }
 
-                        if( Math.Abs(angvel.X - m_lastAngularVelocity.X) >  ANGVELOCITY_TOLERANCE ||
-                                Math.Abs(angvel.Y - m_lastAngularVelocity.Y) >  ANGVELOCITY_TOLERANCE ||
-                                Math.Abs(angvel.Z - m_lastAngularVelocity.Z) >  ANGVELOCITY_TOLERANCE)
+                        Vector3 angvel = ClampVectorForTerseUpdate(AngularVelocity, 64f);
+                        tmp = ClampVectorForTerseUpdate(m_lastAngularVelocity, 64f);
+                        if (!angvel.ApproxEquals(tmp, ANGVELOCITY_TOLERANCE))
                             break;
 
-                                // viewer interpolators have a limit of 64rad/s
-                        float ax = Math.Abs(angvel.X);
-                        if(ax > 64.0)
-                            break;
-                        float ay = Math.Abs(angvel.Y);
-                        if(ay > 64.0)
-                            break;
-                        float az = Math.Abs(angvel.Z);
-                        if(az > 64.0)
-                            break;
-
-                        if (
-                                ax <  ANGVELOCITY_TOLERANCE &&
-                                ay <  ANGVELOCITY_TOLERANCE &&
-                                az <  ANGVELOCITY_TOLERANCE &&
+                        if (    Math.Abs(AngularVelocity.X) < 1e-4 && 
+                                Math.Abs(AngularVelocity.Y) < 1e-4 &&
+                                Math.Abs(AngularVelocity.Z) < 1e-4 &&
                                 !RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE)
                                 )
                             break;
+
                         return;
                     }
                 }

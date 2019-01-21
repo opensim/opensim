@@ -598,7 +598,7 @@ namespace OpenSim.Data.MySQL
         // Legacy entry point for when terrain was always a 256x256 hieghtmap
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
-            StoreTerrain(new HeightmapTerrainData(ter), regionID);
+            StoreTerrain(new TerrainData(ter), regionID);
         }
 
         public void StoreTerrain(TerrainData terrData, UUID regionID)
@@ -1463,7 +1463,7 @@ namespace OpenSim.Data.MySQL
             if (!(row["DynAttrs"] is System.DBNull))
                 prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
             else
-                prim.DynAttrs = new DAMap();
+                prim.DynAttrs = null;
 
             if (!(row["KeyframeMotion"] is DBNull))
             {
@@ -1880,7 +1880,7 @@ namespace OpenSim.Data.MySQL
             else
                 cmd.Parameters.AddWithValue("Vehicle", String.Empty);
 
-            if (prim.DynAttrs.CountNamespaces > 0)
+            if (prim.DynAttrs != null && prim.DynAttrs.CountNamespaces > 0)
                 cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
             else
                 cmd.Parameters.AddWithValue("DynAttrs", null);

@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
             OSDMap attrs = null;
             SceneObjectPart sop = m_scene.GetSceneObjectPart(groupId);
 
-            if (sop == null)
+            if (sop == null || sop.DynAttrs == null)
                 return true;
 
             if (!sop.DynAttrs.TryGetStore(Namespace, StoreName, out attrs))

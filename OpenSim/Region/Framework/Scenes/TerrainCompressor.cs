@@ -155,7 +155,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return iout;
         }
 
-        static double tt;
         // new using terrain data and patchs indexes
         public static List<LayerDataPacket> CreateLayerDataPackets(TerrainData terrData, int[] map)
         {
@@ -180,15 +179,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bitpack.PackBitsFromByte(16);
             bitpack.PackBitsFromByte(landPacketType);
 
-            tt = 0;
-
             int s;
             for (int i = 0; i < numberPatchs; i++)
             {
                 s = 2 * i;
-                tt -= Util.GetTimeStampMS();
                 CreatePatchFromTerrainData(bitpack, terrData, map[s], map[s + 1]);
-                tt += Util.GetTimeStampMS();
 
                 if (bitpack.BytePos > 980 && i != numberPatchs - 1)
                 {

@@ -176,7 +176,7 @@ namespace OpenSim.Framework
             LogOutgoingDetail(string.Format("RESPONSE {0}: ", reqnum), input);
         }
 
-        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc)
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed, bool rpc, bool keepalive = false)
         {
             int reqnum = RequestNumber++;
 
@@ -197,7 +197,7 @@ namespace OpenSim.Framework
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = method;
                 request.Timeout = timeout;
-                request.KeepAlive = false;
+                request.KeepAlive = keepalive;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
