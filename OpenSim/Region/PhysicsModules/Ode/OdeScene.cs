@@ -124,7 +124,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         /// /lib/x86_64-linux-gnu/libpthread.so.0(+0xfc60) [0x7f03c9849c60]
         /// .../opensim/bin/libode-x86_64.so(_Z12dCollideCCTLP6dxGeomS0_iP12dContactGeomi+0x92) [0x7f03b44bcf82]
         /// </remarks>
-        internal static Object UniversalColliderSyncObject = new Object();
+//        internal static Object UniversalColliderSyncObject = new Object();
         internal static Object SimulationLock = new Object();
 
         /// <summary>
@@ -498,6 +498,8 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         public OdeScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
         {
+            SafeNativeMethods.AllocateODEDataForThread(~0U);
+
             m_config = psourceconfig;
             m_frameWorkScene = pscene;
 
@@ -878,7 +880,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         {
             int count;
 
-            lock (OdeScene.UniversalColliderSyncObject)
+//            lock (OdeScene.UniversalColliderSyncObject)
             {
                 // We do this inside the lock so that we don't count any delay in acquiring it
                 if (CollectStats)
@@ -2867,7 +2869,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
                             tempTick = tempTick2;
                         }
 
-                        lock(SimulationLock)
+//                        lock(SimulationLock)
                             SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
 
                         if (CollectStats)
