@@ -989,7 +989,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessDynAttrs(SceneObjectPart obj, XmlReader reader)
         {
-            obj.DynAttrs.ReadXml(reader);
+            DAMap waste = new DAMap();
+            waste.ReadXml(reader);
+            if(waste.CountNamespaces > 0)
+                obj.DynAttrs = waste;
+            else
+                obj.DynAttrs = null;
         }
 
         private static void ProcessTextureAnimation(SceneObjectPart obj, XmlReader reader)
@@ -1559,7 +1564,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
             WriteVector(writer, "AttachedPos", sop.AttachedPos);
 
-            if (sop.DynAttrs.CountNamespaces > 0)
+            if (sop.DynAttrs != null && sop.DynAttrs.CountNamespaces > 0)
             {
                 writer.WriteStartElement("DynAttrs");
                 sop.DynAttrs.WriteXml(writer);
