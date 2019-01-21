@@ -44,11 +44,11 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using Caps = OpenSim.Framework.Capabilities.Caps;
 
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
-using RegionFlags = OpenMetaverse.RegionFlags;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using RegionFlags = OpenMetaverse.RegionFlags;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -1168,7 +1168,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GATRP.HistoryData[0] = History;
             OutPacket(GATRP, ThrottleOutPacketType.Task);
         }
-
 
         public virtual bool CanSendLayerData()
         {
@@ -4093,21 +4092,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ResendPrimUpdate(update);
         }
 
-        private List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = new List<ObjectUpdatePacket.ObjectDataBlock>();
-        private List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = new List<ObjectUpdateCompressedPacket.ObjectDataBlock>();
-        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-
         private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
             if (!IsActive)
                 return;
 
-            OpenSim.Framework.Lazy<List<EntityUpdate>> objectUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-            OpenSim.Framework.Lazy<List<EntityUpdate>> compressedUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-            OpenSim.Framework.Lazy<List<EntityUpdate>> terseUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-            OpenSim.Framework.Lazy<List<EntityUpdate>> terseAgentUpdates = new OpenSim.Framework.Lazy<List<EntityUpdate>>();
-            OpenSim.Framework.Lazy<List<SceneObjectPart>> ObjectAnimationUpdates = new OpenSim.Framework.Lazy<List<SceneObjectPart>>();
+            List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = null;
+            List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
+            List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseUpdateBlocks = null;
+            List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseAgentUpdateBlocks = null;
+            List<EntityUpdate> objectUpdates = null;
+            List<EntityUpdate> compressedUpdates = null;
+            List<EntityUpdate> terseUpdates = null;
+            List<EntityUpdate> terseAgentUpdates = null;
+            List<SceneObjectPart> ObjectAnimationUpdates = null;
 
             // Check to see if this is a flush
             if (maxUpdatesBytes <= 0)
@@ -4284,7 +4282,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         if ( sop.Animations != null)
                         {
-                            ObjectAnimationUpdates.Value.Add(sop);
+                            if(ObjectAnimationUpdates == null)
+                                ObjectAnimationUpdates = new List<SceneObjectPart>();
+                            ObjectAnimationUpdates.Add(sop);
                             maxUpdatesBytes -= 32 * sop.Animations.Count + 16;
                         }
                     }
@@ -4344,14 +4344,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (update.Entity is ScenePresence)
                     {
                         // ALL presence updates go into a special list
+                        if (terseAgentUpdateBlocks == null)
+                        {
+                            terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+                            terseAgentUpdates = new List<EntityUpdate>();
+                        }
                         terseAgentUpdateBlocks.Add(ablock);
-                        terseAgentUpdates.Value.Add(update);
+                        terseAgentUpdates.Add(update);
                     }
                     else
                     {
                         // Everything else goes here
+                        if (terseAgentUpdateBlocks == null)
+                        {
+                            terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+                            terseAgentUpdates = new List<EntityUpdate>();
+                        }
                         terseUpdateBlocks.Add(ablock);
-                        terseUpdates.Value.Add(update);
+                        terseUpdates.Add(update);
                     }
                     maxUpdatesBytes -= ablock.Length;
                 }
@@ -4362,8 +4372,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ablock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
                     else
                         ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, mysp);
+                    if(objectUpdateBlocks == null)
+                    {
+                        objectUpdateBlocks = new List<ObjectUpdatePacket.ObjectDataBlock>();
+                        objectUpdates = new List<EntityUpdate>();
+                    }
                     objectUpdateBlocks.Add(ablock);
-                    objectUpdates.Value.Add(update);
+                    objectUpdates.Add(update);
                     maxUpdatesBytes -= ablock.Length;
                 }
 
@@ -4379,7 +4394,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
-            if (terseAgentUpdateBlocks.Count > 0)
+            if (terseAgentUpdateBlocks!= null)
             {
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
@@ -4388,10 +4403,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData = terseAgentUpdateBlocks.ToArray();
                 terseAgentUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates.Value, oPacket); });
+                OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates, oPacket); });
             }
 
-            if (objectUpdateBlocks.Count > 0)
+            if (objectUpdateBlocks != null)
             {
                 ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
@@ -4399,10 +4414,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData = objectUpdateBlocks.ToArray();
                 objectUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates.Value, oPacket); });
+                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates, oPacket); });
             }
 
-            if (compressedUpdateBlocks.Count > 0)
+            if (compressedUpdateBlocks != null)
             {
                 ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
@@ -4410,10 +4425,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData = compressedUpdateBlocks.ToArray();
                 compressedUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates.Value, oPacket); });
+                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates, oPacket); });
             }
 
-            if (terseUpdateBlocks.Count > 0)
+            if (terseUpdateBlocks != null)
             {
                 ImprovedTerseObjectUpdatePacket packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
                         PacketType.ImprovedTerseObjectUpdate);
@@ -4422,39 +4437,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.ObjectData = terseUpdateBlocks.ToArray();
                 terseUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
+                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates, oPacket); });
             }
 
-            foreach (SceneObjectPart sop in ObjectAnimationUpdates.Value)
+            if(ObjectAnimationUpdates != null)
             {
-                if (sop.Animations == null)
-                    continue;
-                SceneObjectGroup sog = sop.ParentGroup;
-                if (sog == null || sog.IsDeleted)
-                    continue;
-
-                SceneObjectPart root = sog.RootPart;
-                if (root == null || root.Shape == null || !root.Shape.MeshFlagEntry)
-                    continue;
-
-                UUID[] ids = null;
-                int[] seqs = null;
-                int count = sop.GetAnimations(out ids, out seqs);
-                if(count < 0)
-                    continue;
-
-                ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
-                ani.Sender = new ObjectAnimationPacket.SenderBlock();
-                ani.Sender.ID = sop.UUID;
-                ani.AnimationList = new ObjectAnimationPacket.AnimationListBlock[sop.Animations.Count];
-
-                for(int i = 0; i< count; i++)
+                foreach (SceneObjectPart sop in ObjectAnimationUpdates)
                 {
-                    ani.AnimationList[i] = new ObjectAnimationPacket.AnimationListBlock();
-                    ani.AnimationList[i].AnimID = ids[i];
-                    ani.AnimationList[i].AnimSequenceID = seqs[i];
+                    if (sop.Animations == null)
+                        continue;
+                    SceneObjectGroup sog = sop.ParentGroup;
+                    if (sog == null || sog.IsDeleted)
+                        continue;
+
+                    SceneObjectPart root = sog.RootPart;
+                    if (root == null || root.Shape == null || !root.Shape.MeshFlagEntry)
+                        continue;
+
+                    UUID[] ids = null;
+                    int[] seqs = null;
+                    int count = sop.GetAnimations(out ids, out seqs);
+                    if(count < 0)
+                        continue;
+
+                    ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
+                    ani.Sender = new ObjectAnimationPacket.SenderBlock();
+                    ani.Sender.ID = sop.UUID;
+                    ani.AnimationList = new ObjectAnimationPacket.AnimationListBlock[sop.Animations.Count];
+
+                    for(int i = 0; i< count; i++)
+                    {
+                        ani.AnimationList[i] = new ObjectAnimationPacket.AnimationListBlock();
+                        ani.AnimationList[i].AnimID = ids[i];
+                        ani.AnimationList[i].AnimSequenceID = seqs[i];
+                    }
+                    OutPacket(ani, ThrottleOutPacketType.Task, true);
                 }
-                OutPacket(ani, ThrottleOutPacketType.Task);
             }
 
             #endregion Packet Sending
@@ -5750,14 +5768,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Don't send texture entry for avatars here - this is accomplished via the AvatarAppearance packet
             update.TextureEntry = Utils.EmptyBytes;
-//            update.TextureEntry = (data.Appearance.Texture != null) ? data.Appearance.Texture.GetBytes() : Utils.EmptyBytes;
-
-/*  all this flags seem related to prims and not avatars. This allow for wrong viewer side move of a avatar in prim edition mode (anv mantis 854)
-            update.UpdateFlags = (uint)(
-                PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner |
-                PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer |
-                PrimFlags.ObjectOwnerModify);
-*/
             update.UpdateFlags = 0;
 
             return update;

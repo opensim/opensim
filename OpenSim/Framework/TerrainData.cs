@@ -185,7 +185,6 @@ namespace OpenSim.Framework
                     newMap[ind++] = m_heightmap[xx, yy];
 
             return newMap;
-
         }
 
         public TerrainData Clone()
