@@ -337,7 +337,7 @@ namespace OpenSim.Data.Null
 
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
-            m_terrains[regionID] = new HeightmapTerrainData(ter);
+            m_terrains[regionID] = new TerrainData(ter);
         }
 
         public TerrainData LoadTerrain(UUID regionID, int pSizeX, int pSizeY, int pSizeZ)
