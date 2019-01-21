@@ -1231,36 +1231,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                }
             }
         }
-        // PlaySoundMasterPrim no longer in use  to remove
-        private SceneObjectPart m_PlaySoundMasterPrim = null;
-        public SceneObjectPart PlaySoundMasterPrim
-        {
-            get { return m_PlaySoundMasterPrim; }
-            set { m_PlaySoundMasterPrim = value; }
-        }
-        // PlaySoundSlavePrims no longer in use  to remove
-        private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
-        public List<SceneObjectPart> PlaySoundSlavePrims
-        {
-            get { return m_PlaySoundSlavePrims; }
-            set { m_PlaySoundSlavePrims = value; }
-        }
-
-        //  LoopSoundMasterPrim no longer in use  to remove
-        private SceneObjectPart m_LoopSoundMasterPrim = null;
-        public SceneObjectPart LoopSoundMasterPrim
-        {
-            get { return m_LoopSoundMasterPrim; }
-            set { m_LoopSoundMasterPrim = value; }
-        }
-
-        //  m_LoopSoundSlavePrims no longer in use  to remove
-        private List<SceneObjectPart> m_LoopSoundSlavePrims = new List<SceneObjectPart>();
-        public List<SceneObjectPart> LoopSoundSlavePrims
-        {
-            get { return m_LoopSoundSlavePrims; }
-            set { m_LoopSoundSlavePrims = value; }
-        }
 
         private double m_lastCollisionSoundMS;
         
@@ -1465,9 +1435,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
             SceneObjectPart[] parts = m_parts.GetArray();
+            SceneObjectPart part;
             for (int i = 0; i < parts.Length; i++)
             {
-                SceneObjectPart part = parts[i];
+                part = parts[i];
                 if (part.KeyframeMotion != null)
                 {
                     part.KeyframeMotion.UpdateSceneObject(this);
@@ -1963,12 +1934,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void GetSelectedCosts(out float PhysCost, out float StreamCost, out float SimulCost)
         {
             SceneObjectPart p;
-            SceneObjectPart[] parts;
-
-            lock (m_parts)
-            {
-                parts = m_parts.GetArray();
-            }
+            SceneObjectPart[] parts = m_parts.GetArray();
 
             int nparts = parts.Length;
 
@@ -2096,11 +2062,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             part.ParentID = m_rootPart.LocalId;
             part.ClearUndoState();
-        }
-
-        public ushort GetTimeDilation()
-        {
-            return Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
         }
 
         /// <summary>
@@ -2765,24 +2726,29 @@ namespace OpenSim.Region.Framework.Scenes
          // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
         public void MoveToTarget(Vector3 target, float tau)
         {
-            if (IsAttachment)
+            if(tau > 0)
             {
-                ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
-
-                if (avatar != null && !avatar.IsSatOnObject)
-                    avatar.MoveToTarget(target, false, false, tau);
-            }
-            else
-            {
-                PhysicsActor pa = RootPart.PhysActor;
-
-                if (pa != null)
+                if (IsAttachment)
                 {
-                    pa.PIDTarget = target;
-                    pa.PIDTau = tau;
-                    pa.PIDActive = true;
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
+
+                    if (avatar != null && !avatar.IsSatOnObject)
+                        avatar.MoveToTarget(target, false, false, tau);
+                }
+                else
+                {
+                    PhysicsActor pa = RootPart.PhysActor;
+
+                    if (pa != null)
+                    {
+                        pa.PIDTarget = target;
+                        pa.PIDTau = tau;
+                        pa.PIDActive = true;
+                    }
                 }
             }
+            else
+                StopMoveToTarget();
         }
 
         public void StopMoveToTarget()
@@ -3188,13 +3154,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if a part with the local ID was not found</returns>
         public SceneObjectPart GetPart(uint localID)
         {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                if (parts[i].LocalId == localID)
-                    return parts[i];
-            }
-
+            SceneObjectPart sop = m_scene.GetSceneObjectPart(localID);
+            if(sop.ParentGroup.Equals(this))
+                return sop;
             return null;
         }
 
@@ -4013,7 +3975,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AttachToBackup();
             }
 
-
             SceneObjectPart[] parts = m_parts.GetArray();
 
             if (UsePhysics)
@@ -4054,8 +4015,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 for (int i = 0; i < parts.Length; i++)
                 {
-
-                    if (parts[i].UUID != m_rootPart.UUID)
+                    if (parts[i].LocalId != m_rootPart.LocalId)
                         parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
                 }
 

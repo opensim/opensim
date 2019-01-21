@@ -703,33 +703,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_scriptAccessPin; }
             set { m_scriptAccessPin = (int)value; }
         }
-        private SceneObjectPart m_PlaySoundMasterPrim = null;
-        public SceneObjectPart PlaySoundMasterPrim
-        {
-            get { return m_PlaySoundMasterPrim; }
-            set { m_PlaySoundMasterPrim = value; }
-        }
-
-        private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
-        public List<SceneObjectPart> PlaySoundSlavePrims
-        {
-            get { return m_PlaySoundSlavePrims; }
-            set { m_PlaySoundSlavePrims = value; }
-        }
-
-        private SceneObjectPart m_LoopSoundMasterPrim = null;
-        public SceneObjectPart LoopSoundMasterPrim
-        {
-            get { return m_LoopSoundMasterPrim; }
-            set { m_LoopSoundMasterPrim = value; }
-        }
-
-        private List<SceneObjectPart> m_LoopSoundSlavePrims = new List<SceneObjectPart>();
-        public List<SceneObjectPart> LoopSoundSlavePrims
-        {
-            get { return m_LoopSoundSlavePrims; }
-            set { m_LoopSoundSlavePrims = value; }
-        }
 
         public Byte[] TextureAnimation
         {
@@ -2714,18 +2687,6 @@ namespace OpenSim.Region.Framework.Scenes
             return newRot;
         }
 
-        public void MoveToTarget(Vector3 target, float tau)
-        {
-            if (tau > 0)
-            {
-                ParentGroup.MoveToTarget(target, tau);
-            }
-            else
-            {
-                StopMoveToTarget();
-            }
-        }
-
         /// <summary>
         /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
         /// </summary>
@@ -4137,11 +4098,6 @@ namespace OpenSim.Region.Framework.Scenes
                                    (int) (color.Y*0xff),
                                    (int) (color.Z*0xff));
             SetText(text);
-        }
-
-        public void StopMoveToTarget()
-        {
-            ParentGroup.StopMoveToTarget();
         }
 
         public void StoreUndoState(ObjectChangeType change)

@@ -3035,13 +3035,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llMoveToTarget(LSL_Vector target, double tau)
         {
             m_host.AddScriptLPS(1);
-            m_host.MoveToTarget(target, (float)tau);
+            m_host.ParentGroup.MoveToTarget(target, (float)tau);
         }
 
         public void llStopMoveToTarget()
         {
             m_host.AddScriptLPS(1);
-            m_host.StopMoveToTarget();
+            m_host.ParentGroup.StopMoveToTarget();
         }
 
         public void llApplyImpulse(LSL_Vector force, int local)
