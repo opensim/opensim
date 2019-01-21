@@ -5363,9 +5363,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sittingAvatars.Clear();
 //            m_rootPart = null;
 
-            m_PlaySoundMasterPrim = null;
-            m_PlaySoundSlavePrims.Clear();
-            m_LoopSoundMasterPrim = null;
             m_targets.Clear();
             m_partsNameToLinkMap.Clear();
         }
