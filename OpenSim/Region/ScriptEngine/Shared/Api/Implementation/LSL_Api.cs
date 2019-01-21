@@ -8342,7 +8342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 cut.x = 0f;
             }
-            if (cut.x > 1f)
+            else if (cut.x > 1f)
             {
                 cut.x = 1f;
             }
@@ -8350,7 +8350,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 cut.y = 0f;
             }
-            if (cut.y > 1f)
+            else if (cut.y > 1f)
             {
                 cut.y = 1f;
             }
@@ -8395,7 +8395,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 twist.x = -1.0f;
             }
-            if (twist.x > 1.0f)
+            else if (twist.x > 1.0f)
             {
                 twist.x = 1.0f;
             }
@@ -8403,23 +8403,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 twist.y = -1.0f;
             }
-            if (twist.y > 1.0f)
+            else if (twist.y > 1.0f)
             {
                 twist.y = 1.0f;
             }
-            // A fairly large precision error occurs for some calculations,
-            // if a float or double is directly cast to a byte or sbyte
-            // variable, in both .Net and Mono. In .Net, coding
-            // "(sbyte)(float)(some expression)" corrects the precision
-            // errors. But this does not work for Mono. This longer coding
-            // form of creating a tempoary float variable from the
-            // expression first, then casting that variable to a byte or
-            // sbyte, works for both .Net and Mono. These types of
-            // assignments occur in SetPrimtiveBlockShapeParams and
-            // SetPrimitiveShapeParams in support of llSetPrimitiveParams.
-            tempFloat = (float)(100.0d * twist.x);
+            tempFloat = 100.0f * (float)twist.x;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathTwistBegin = (sbyte)tempFloat;
-            tempFloat = (float)(100.0d * twist.y);
+
+            tempFloat = 100.0f * (float)twist.y;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathTwist = (sbyte)tempFloat;
 
             shapeBlock.ObjectLocalID = part.LocalId;
@@ -8443,7 +8442,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 taper_b.x = 0f;
             }
-            if (taper_b.x > 2f)
+            else if (taper_b.x > 2f)
             {
                 taper_b.x = 2f;
             }
@@ -8451,19 +8450,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 taper_b.y = 0f;
             }
-            if (taper_b.y > 2f)
+            else if (taper_b.y > 2f)
             {
                 taper_b.y = 2f;
             }
-            tempFloat = (float)(100.0d * (2.0d - taper_b.x));
+            tempFloat = 100.0f * (2.0f - (float)taper_b.x);
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathScaleX = (byte)tempFloat;
-            tempFloat = (float)(100.0d * (2.0d - taper_b.y));
+
+            tempFloat = 100.0f * (2.0f - (float)taper_b.y);
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathScaleY = (byte)tempFloat;
+
             if (topshear.x < -0.5f)
             {
                 topshear.x = -0.5f;
             }
-            if (topshear.x > 0.5f)
+            else if (topshear.x > 0.5f)
             {
                 topshear.x = 0.5f;
             }
@@ -8471,13 +8480,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 topshear.y = -0.5f;
             }
-            if (topshear.y > 0.5f)
+            else if (topshear.y > 0.5f)
             {
                 topshear.y = 0.5f;
             }
-            tempFloat = (float)(100.0d * topshear.x);
+            tempFloat = 100.0f * (float)topshear.x;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathShearX = (byte)tempFloat;
-            tempFloat = (float)(100.0d * topshear.y);
+
+            tempFloat = 100.0f * (float)topshear.y;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathShearY = (byte)tempFloat;
 
             part.Shape.SculptEntry = false;
@@ -8505,7 +8523,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 dimple.x = 0f;
             }
-            if (dimple.x > 1f)
+            else if (dimple.x > 1f)
             {
                 dimple.x = 1f;
             }
@@ -8513,7 +8531,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 dimple.y = 0f;
             }
-            if (dimple.y > 1f)
+            else if (dimple.y > 1f)
             {
                 dimple.y = 1f;
             }
@@ -8539,7 +8557,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            float tempFloat;                                    // Use in float expressions below to avoid byte cast precision issues.
+            float tempFloat; // Use in float expressions below to avoid byte cast precision issues.
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
             shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist, profileshape, pathcurve);
@@ -8552,47 +8570,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 holesize.x = 0.01f;
             }
-            if (holesize.x > 1f)
+            else if (holesize.x > 1f)
             {
                 holesize.x = 1f;
             }
+            tempFloat = 100.0f * (2.0f - (float)holesize.x) + 0.5f;
+            shapeBlock.PathScaleX = (byte)tempFloat;
+
             if (holesize.y < 0.01f)
             {
                 holesize.y = 0.01f;
             }
-            if (holesize.y > 0.5f)
+            else if (holesize.y > 0.5f)
             {
                 holesize.y = 0.5f;
             }
-            tempFloat = (float)(100.0d * (2.0d - holesize.x));
-            shapeBlock.PathScaleX = (byte)tempFloat;
-            tempFloat = (float)(100.0d * (2.0d - holesize.y));
+            tempFloat = 100.0f * (2.0f - (float)holesize.y) + 0.5f;
             shapeBlock.PathScaleY = (byte)tempFloat;
+
             if (topshear.x < -0.5f)
             {
                 topshear.x = -0.5f;
             }
-            if (topshear.x > 0.5f)
+            else if (topshear.x > 0.5f)
             {
                 topshear.x = 0.5f;
             }
+            tempFloat = (float)(100.0d * topshear.x);
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
+            shapeBlock.PathShearX = (byte)tempFloat;
+
             if (topshear.y < -0.5f)
             {
                 topshear.y = -0.5f;
             }
-            if (topshear.y > 0.5f)
+            else if (topshear.y > 0.5f)
             {
                 topshear.y = 0.5f;
             }
-            tempFloat = (float)(100.0d * topshear.x);
-            shapeBlock.PathShearX = (byte)tempFloat;
             tempFloat = (float)(100.0d * topshear.y);
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathShearY = (byte)tempFloat;
+
             if (profilecut.x < 0f)
             {
                 profilecut.x = 0f;
             }
-            if (profilecut.x > 1f)
+            else if (profilecut.x > 1f)
             {
                 profilecut.x = 1f;
             }
@@ -8600,7 +8630,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 profilecut.y = 0f;
             }
-            if (profilecut.y > 1f)
+            else if (profilecut.y > 1f)
             {
                 profilecut.y = 1f;
             }
@@ -8623,18 +8653,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 taper_a.x = 1f;
             }
+            tempFloat = 100.0f * (float)taper_a.x;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
+            shapeBlock.PathTaperX = (sbyte)tempFloat;
+
             if (taper_a.y < -1f)
             {
                 taper_a.y = -1f;
             }
-            if (taper_a.y > 1f)
+            else if (taper_a.y > 1f)
             {
                 taper_a.y = 1f;
             }
-            tempFloat = (float)(100.0d * taper_a.x);
-            shapeBlock.PathTaperX = (sbyte)tempFloat;
-            tempFloat = (float)(100.0d * taper_a.y);
+            tempFloat = 100.0f * (float)taper_a.y;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathTaperY = (sbyte)tempFloat;
+
             if (revolutions < 1f)
             {
                 revolutions = 1f;
@@ -8643,7 +8683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 revolutions = 4f;
             }
-            tempFloat = 66.66667f * (revolutions - 1.0f);
+            tempFloat = 66.66667f * (revolutions - 1.0f) + 0.5f;
             shapeBlock.PathRevolutions = (byte)tempFloat;
             // limits on radiusoffset depend on revolutions and hole size (how?) seems like the maximum range is 0 to 1
             if (radiusoffset < 0f)
@@ -8654,7 +8694,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 radiusoffset = 1f;
             }
-            tempFloat = 100.0f * radiusoffset;
+            tempFloat = 100.0f * radiusoffset + 0.5f;
             shapeBlock.PathRadiusOffset = (sbyte)tempFloat;
             if (skew < -0.95f)
             {
@@ -8665,6 +8705,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 skew = 0.95f;
             }
             tempFloat = 100.0f * skew;
+            if (tempFloat >= 0)
+                tempFloat += 0.5f;
+            else
+                tempFloat -= 0.5f;
             shapeBlock.PathSkew = (sbyte)tempFloat;
 
             part.Shape.SculptEntry = false;
