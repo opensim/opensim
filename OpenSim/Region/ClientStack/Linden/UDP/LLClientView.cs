@@ -4355,10 +4355,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else
                     {
                         // Everything else goes here
-                        if (terseAgentUpdateBlocks == null)
+                        if (terseUpdateBlocks == null)
                         {
-                            terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-                            terseAgentUpdates = new List<EntityUpdate>();
+                            terseUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+                            terseUpdates = new List<EntityUpdate>();
                         }
                         terseUpdateBlocks.Add(ablock);
                         terseUpdates.Add(update);
@@ -4394,7 +4394,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
-            if (terseAgentUpdateBlocks!= null)
+            if (terseAgentUpdateBlocks != null)
             {
                 ImprovedTerseObjectUpdatePacket packet
                     = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
