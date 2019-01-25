@@ -187,23 +187,6 @@ namespace OpenSim.Region.ClientStack.Linden
             return BuildEvent("TeleportFinish", body);
         }
 
-        public static OSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running)
-        {
-            OSDMap script = new OSDMap();
-            script.Add("ObjectID", OSD.FromUUID(objectID));
-            script.Add("ItemID", OSD.FromUUID(itemID));
-            script.Add("Running", OSD.FromBoolean(running));
-            script.Add("Mono", OSD.FromBoolean(true));
-
-            OSDArray scriptArr = new OSDArray();
-            scriptArr.Add(script);
-
-            OSDMap body = new OSDMap();
-            body.Add("Script", scriptArr);
-
-            return BuildEvent("ScriptRunningReply", body);
-        }
-
         public static OSD EstablishAgentCommunication(UUID agentID, string simIpAndPort, string seedcap,
                                     ulong regionHandle, int regionSizeX, int regionSizeY)
         {

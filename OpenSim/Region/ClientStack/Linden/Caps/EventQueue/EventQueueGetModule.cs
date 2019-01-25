@@ -594,9 +594,22 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(item, avatarID);
         }
 
-        public OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID)
+        public void ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID)
         {
-            return EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, running);
+            StringBuilder sb = EventQueueHelper.StartEvent("ScriptRunningReply");
+            LLSDxmlEncode.AddArray("Script", sb);
+
+            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddElem("ObjectID", objectID, sb);
+            LLSDxmlEncode.AddElem("ItemID", itemID, sb);
+            LLSDxmlEncode.AddElem("Running", running, sb);
+            LLSDxmlEncode.AddElem("Mono", true, sb);
+            LLSDxmlEncode.AddEndMap(sb);
+
+            LLSDxmlEncode.AddEndArray(sb);
+
+            OSDllsdxml item = new OSDllsdxml(EventQueueHelper.EndEvent(sb));
+            Enqueue(item, avatarID);
         }
 
         public OSD BuildEvent(string eventName, OSD eventBody)
