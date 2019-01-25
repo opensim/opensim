@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Text;
 using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -40,7 +41,7 @@ namespace OpenSim.Region.ClientStack.Linden
     {
         private EventQueueHelper() {} // no construction possible, it's an utility class
 
-        private static byte[] ulongToByteArray(ulong uLongValue)
+        public static byte[] ulongToByteArray(ulong uLongValue)
         {
             // Reverse endianness of RegionHandle
             return new byte[8]
@@ -56,12 +57,23 @@ namespace OpenSim.Region.ClientStack.Linden
             };
         }
 
-//        private static byte[] uintToByteArray(uint uIntValue)
-//        {
-//            byte[] result = new byte[4];
-//            Utils.UIntToBytesBig(uIntValue, result, 0);
-//            return result;
-//        }
+        public static StringBuilder StartEvent(string eventName)
+        {
+            StringBuilder sb = new StringBuilder(256);
+            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddElem("message", eventName, sb);
+                LLSDxmlEncode.AddMap("body", sb);
+
+            return sb;
+        }
+
+        public static string EndEvent(StringBuilder sb)
+        {
+				LLSDxmlEncode.AddEndMap(sb); // close body
+            LLSDxmlEncode.AddEndMap(sb); // close event
+            return sb.ToString();
+        }
+
 
         public static OSD BuildEvent(string eventName, OSD eventBody)
         {
