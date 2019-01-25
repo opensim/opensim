@@ -65,7 +65,7 @@ namespace OpenSim.Framework
             {
                 if (handle != null)
                 {
-                    handle.Clear();
+                    handle.heap = null;
                     handle = null;
                 }               
                 value = default(T);
@@ -96,8 +96,8 @@ namespace OpenSim.Framework
         public MinHeap(Comparison<T> comparison) : this(DEFAULT_CAPACITY, comparison) { }
         public MinHeap(int _capacity, Comparison<T> _comparison)
         {
-            minCapacity = _capacity;
-            items = new HeapItem[minCapacity];
+            minCapacity = 16;
+            items = new HeapItem[_capacity];
             comparison = _comparison;
             size = version = 0;
         }
@@ -169,8 +169,8 @@ namespace OpenSim.Framework
             int current, parent;
 
             for (current = index, parent = (current - 1) / 2;
-                (current > 0) && (comparison(items[parent].value, item.value)) > 0;
-                current = parent, parent = (current - 1) / 2)
+                    (current > 0) && (comparison(items[parent].value, item.value)) > 0;
+                    current = parent, parent = (current - 1) / 2)
             {
                 Set(items[parent], current);
             }
@@ -187,11 +187,12 @@ namespace OpenSim.Framework
         private void BubbleDown(int index)
         {
             HeapItem item = items[index];
-            int current, child;
+            int current;
+            int child;
 
-            for (current = index, child = (2 * current) + 1;
-                current < size / 2;
-                current = child, child = (2 * current) + 1)
+            for(current = index , child = (2 * current) + 1;
+                        current < size / 2;
+                        current = child, child = (2 * current) + 1)
             {
                 if ((child < size - 1) && comparison(items[child].value, items[child + 1].value) > 0)
                     ++child;
@@ -293,14 +294,17 @@ namespace OpenSim.Framework
                 throw new ArgumentOutOfRangeException("index");
 
             items[index].Clear();
-            if (--size > 0 && index != size)
-            {
-                Set(items[size], index);
-                items[size].ClearRef();
-                if (!BubbleUp(index))
-                    BubbleDown(index);
+            --size;
+            if (size > 0)
+            {   if(index != size)
+                {
+                    Set(items[size], index);
+                    items[size].ClearRef();
+                    if (!BubbleUp(index))
+                        BubbleDown(index);
+                }
             }
-            if(size == 0 && items.Length > 4 * minCapacity)
+            else if(items.Length > 4 * minCapacity)
                 items = new HeapItem[minCapacity];
         }
 
