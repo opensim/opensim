@@ -2796,56 +2796,57 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-/* not in use, outdate by async method
-        /// <summary>
-        /// Move the given scene object into a new region depending on which region its absolute position has moved
-        /// into.
-        ///
-        /// </summary>
-        /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
-        /// <param name="grp">the scene object that we're crossing</param>
-        public void CrossPrimGroupIntoNewRegion(Vector3 attemptedPosition, SceneObjectGroup grp, bool silent)
-        {
-            if (grp == null)
-                return;
-            if (grp.IsDeleted)
-                return;
 
-            if (grp.RootPart.DIE_AT_EDGE)
-            {
-                // We remove the object here
-                try
+        /* not in use, outdate by async method
+                /// <summary>
+                /// Move the given scene object into a new region depending on which region its absolute position has moved
+                /// into.
+                ///
+                /// </summary>
+                /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
+                /// <param name="grp">the scene object that we're crossing</param>
+                public void CrossPrimGroupIntoNewRegion(Vector3 attemptedPosition, SceneObjectGroup grp, bool silent)
                 {
-                    DeleteSceneObject(grp, false);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[SCENE]: exception when trying to remove the prim that crossed the border.");
-                }
-                return;
-            }
+                    if (grp == null)
+                        return;
+                    if (grp.IsDeleted)
+                        return;
 
-            if (grp.RootPart.RETURN_AT_EDGE)
-            {
-                // We remove the object here
-                try
-                {
-                    List<SceneObjectGroup> objects = new List<SceneObjectGroup>();
-                    objects.Add(grp);
-                    SceneObjectGroup[] objectsArray = objects.ToArray();
-                    returnObjects(objectsArray, UUID.Zero);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[SCENE]: exception when trying to return the prim that crossed the border.");
-                }
-                return;
-            }
+                    if (grp.RootPart.DIE_AT_EDGE)
+                    {
+                        // We remove the object here
+                        try
+                        {
+                            DeleteSceneObject(grp, false);
+                        }
+                        catch (Exception)
+                        {
+                            m_log.Warn("[SCENE]: exception when trying to remove the prim that crossed the border.");
+                        }
+                        return;
+                    }
 
-            if (EntityTransferModule != null)
-                EntityTransferModule.Cross(grp, attemptedPosition, silent);
-        }
-*/
+                    if (grp.RootPart.RETURN_AT_EDGE)
+                    {
+                        // We remove the object here
+                        try
+                        {
+                            List<SceneObjectGroup> objects = new List<SceneObjectGroup>();
+                            objects.Add(grp);
+                            SceneObjectGroup[] objectsArray = objects.ToArray();
+                            returnObjects(objectsArray, UUID.Zero);
+                        }
+                        catch (Exception)
+                        {
+                            m_log.Warn("[SCENE]: exception when trying to return the prim that crossed the border.");
+                        }
+                        return;
+                    }
+
+                    if (EntityTransferModule != null)
+                        EntityTransferModule.Cross(grp, attemptedPosition, silent);
+                }
+        */
 
         // Simple test to see if a position is in the current region.
         // This test is mostly used to see if a region crossing is necessary.
