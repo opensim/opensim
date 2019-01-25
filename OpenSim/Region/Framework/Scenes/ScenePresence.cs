@@ -1093,7 +1093,7 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = posLastMove = posLastSignificantMove = CameraPosition =
                m_reprioritizationLastPosition = ControllingClient.StartPos;
 
-            m_reprioritizationLastDrawDistance = DrawDistance;
+            m_reprioritizationLastDrawDistance = -1000;
 
             // disable updates workjobs for now
             m_childUpdatesBusy = true;
@@ -2928,21 +2928,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             float distanceToTarget;
             if(Flying && !LandAtTarget)
-            {
-                distanceToTarget = LocalVectorToTarget3D.Length();
-            }
+
+                distanceToTarget = LocalVectorToTarget3D.LengthSquared();
             else
-            {
-                distanceToTarget = (float)Math.Sqrt(LocalVectorToTarget3D.X * LocalVectorToTarget3D.X +
-                     LocalVectorToTarget3D.Y * LocalVectorToTarget3D.Y);
-            }
+                distanceToTarget = (LocalVectorToTarget3D.X * LocalVectorToTarget3D.X) + (LocalVectorToTarget3D.Y * LocalVectorToTarget3D.Y);
+
 
             // m_log.DebugFormat(
             //      "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
             //           Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
             // Check the error term of the current position in relation to the target position
-            if (distanceToTarget <= tolerance)
+            if (distanceToTarget <= tolerance * tolerance)
             {
                 // We are close enough to the target
                 Velocity = Vector3.Zero;
@@ -2964,8 +2961,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            if(m_moveToSpeed > 0 && distanceToTarget <= m_moveToSpeed * Scene.FrameTime)
-                m_moveToSpeed = distanceToTarget / Scene.FrameTime;
+            if (m_moveToSpeed > 0 &&
+                    distanceToTarget <= m_moveToSpeed * m_moveToSpeed * Scene.FrameTime * Scene.FrameTime)
+                m_moveToSpeed = (float)Math.Sqrt(distanceToTarget) / Scene.FrameTime;
 
             try
             {
@@ -3857,14 +3855,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 vel = Velocity;
                 Vector3 dpos = m_pos - m_lastPosition;
                 if(     State != m_lastState ||
-                        Math.Abs(vel.X - m_lastVelocity.X) > VELOCITY_TOLERANCE ||
-                        Math.Abs(vel.Y - m_lastVelocity.Y) > VELOCITY_TOLERANCE ||
-                        Math.Abs(vel.Z - m_lastVelocity.Z) > VELOCITY_TOLERANCE ||
+                        !vel.ApproxEquals(m_lastVelocity) ||
+                        !m_bodyRot.ApproxEquals(m_lastRotation) ||
 
-                        Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
-                        Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
-                        Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
-                       
                         (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
 
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
@@ -4028,24 +4021,32 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         landch.sendClientInitialLandInfo(ControllingClient);
                     }
-                    m_reprioritizationLastPosition = AbsolutePosition;
-                    m_reprioritizationLastDrawDistance = DrawDistance;
-                    m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
-                }
-                else
-                {
-                    m_reprioritizationLastPosition = AbsolutePosition;
-                    m_reprioritizationLastDrawDistance = -1000;
-                    m_reprioritizationLastTime = Util.EnvironmentTickCount() + 2000; // delay it
                 }
 
                 SendOtherAgentsAvatarFullToMe();
+
+                if(m_scene.ObjectsCullingByDistance)
+                {
+                    m_reprioritizationBusy = true;
+                    m_reprioritizationLastPosition = AbsolutePosition;
+                    m_reprioritizationLastDrawDistance = DrawDistance;
+
+                    ControllingClient.ReprioritizeUpdates();
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount();
+                    m_reprioritizationBusy = false;
+                    return;
+                }
+
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 foreach (EntityBase e in entities)
                 {
                     if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
                         ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
                 }
+
+                m_reprioritizationLastPosition = AbsolutePosition;
+                m_reprioritizationLastDrawDistance = DrawDistance;
+                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
 
                 m_reprioritizationBusy = false;
 
@@ -4268,9 +4269,9 @@ namespace OpenSim.Region.Framework.Scenes
             bool byDrawdistance = Scene.ObjectsCullingByDistance;
             if(byDrawdistance)
             {
-                float minregionSize = (float)Scene.RegionInfo.RegionSizeX;
-                if(minregionSize > (float)Scene.RegionInfo.RegionSizeY)
-                    minregionSize = (float)Scene.RegionInfo.RegionSizeY;
+                float minregionSize = Scene.RegionInfo.RegionSizeX;
+                if(minregionSize > Scene.RegionInfo.RegionSizeY)
+                    minregionSize = Scene.RegionInfo.RegionSizeY;
                 minregionSize *= 0.5f;
                 if(DrawDistance > minregionSize && m_reprioritizationLastDrawDistance > minregionSize)
                     byDrawdistance = false;
@@ -5945,7 +5946,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // returns true it local teleport allowed and sets the destiny position into pos
 
-        private bool CheckLocalTPLandingPoint(ref Vector3 pos)
+        public bool CheckLocalTPLandingPoint(ref Vector3 pos)
         {
             // Never constrain lures
             if ((TeleportFlags & TeleportFlags.ViaLure) != 0)
