@@ -716,13 +716,11 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_particleSystem = value; }
         }
 
-
         public DateTime Expires
         {
             get { return m_expires; }
             set { m_expires = value; }
         }
-
 
         public DateTime Rezzed
         {
@@ -1932,20 +1930,14 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 data = new byte[16];
-                int pos = 0;
 
-                // The flags don't like conversion from uint to byte, so we have to do
-                // it the crappy way.  See the above function :(
-
-                data[pos] = ConvertScriptUintToByte((uint)pTexAnim.Flags); pos++;
-                data[pos] = (byte)pTexAnim.Face; pos++;
-                data[pos] = (byte)pTexAnim.SizeX; pos++;
-                data[pos] = (byte)pTexAnim.SizeY; pos++;
-
-                Utils.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
-                Utils.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
-                Utils.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
-
+                data[0] = (byte)pTexAnim.Flags;
+                data[1] = (byte)pTexAnim.Face;
+                data[2] = (byte)pTexAnim.SizeX;
+                data[3] = (byte)pTexAnim.SizeY;
+                Utils.FloatToBytesSafepos(pTexAnim.Start, data, 4);
+                Utils.FloatToBytesSafepos(pTexAnim.Length, data, 8);
+                Utils.FloatToBytesSafepos(pTexAnim.Rate, data, 12);
             }
             m_TextureAnimation = data;
         }
@@ -1970,23 +1962,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="impulsei">Vector force</param>
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
-        public void ApplyImpulse(Vector3 impulsei, bool localGlobalTF)
+        public void ApplyImpulse(Vector3 impulse, bool localGlobalTF)
         {
-            Vector3 impulse = impulsei;
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+                return;
 
             if (localGlobalTF)
-            {
-                Quaternion grot = GetWorldRotation();
-                Quaternion AXgrot = grot;
-                Vector3 AXimpulsei = impulsei;
-                Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = newimpulse;
-            }
+                impulse *= GetWorldRotation();
 
-            if (ParentGroup != null)
-            {
-                ParentGroup.applyImpulse(impulse);
-            }
+            ParentGroup.applyImpulse(impulse);
         }
 
         //      SetVelocity for LSL llSetVelocity..  may need revision if having other uses in future
@@ -2009,9 +1993,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             if (localGlobalTF)
-            {
-                pVel = pVel * GetWorldRotation();
-            }
+                pVel *= GetWorldRotation();
 
             ParentGroup.Velocity = pVel;
         }
@@ -2036,9 +2018,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             if (localGlobalTF)
-            {
-                pAngVel = pAngVel * GetWorldRotation();
-            }
+                pAngVel *= GetWorldRotation();
 
             root.AngularVelocity = pAngVel;
         }
@@ -2051,23 +2031,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="impulsei">Vector force</param>
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
-        public void ApplyAngularImpulse(Vector3 impulsei, bool localGlobalTF)
+        public void ApplyAngularImpulse(Vector3 impulse, bool localGlobalTF)
         {
            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return;
 
-            Vector3 impulse = impulsei;
-
             if (localGlobalTF)
-            {
-                Quaternion grot = GetWorldRotation();
-                Quaternion AXgrot = grot;
-                Vector3 AXimpulsei = impulsei;
-                Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = newimpulse;
-            }
-
-            ParentGroup.ApplyAngularImpulse(impulse);
+                ParentGroup.ApplyAngularImpulse(impulse * GetWorldRotation());
+            else
+                ParentGroup.ApplyAngularImpulse(impulse);
         }
 
         /// <summary>
@@ -2084,9 +2056,7 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 torque = torquei;
 
             if (localGlobalTF)
-            {
                 torque *= GetWorldRotation();
-            }
 
             Torque = torque;
         }
@@ -2133,19 +2103,6 @@ namespace OpenSim.Region.Framework.Scenes
                     RemFlag(PrimFlags.CameraDecoupled);
                 }
             }
-        }
-
-        public byte ConvertScriptUintToByte(uint indata)
-        {
-            byte outdata = (byte)TextureAnimFlags.NONE;
-            if ((indata & 1) != 0) outdata |= (byte)TextureAnimFlags.ANIM_ON;
-            if ((indata & 2) != 0) outdata |= (byte)TextureAnimFlags.LOOP;
-            if ((indata & 4) != 0) outdata |= (byte)TextureAnimFlags.REVERSE;
-            if ((indata & 8) != 0) outdata |= (byte)TextureAnimFlags.PING_PONG;
-            if ((indata & 16) != 0) outdata |= (byte)TextureAnimFlags.SMOOTH;
-            if ((indata & 32) != 0) outdata |= (byte)TextureAnimFlags.ROTATE;
-            if ((indata & 64) != 0) outdata |= (byte)TextureAnimFlags.SCALE;
-            return outdata;
         }
 
         /// <summary>
@@ -2505,14 +2462,6 @@ namespace OpenSim.Region.Framework.Scenes
             return 0;
         }
 
-        public double GetDistanceTo(Vector3 a, Vector3 b)
-        {
-            float dx = a.X - b.X;
-            float dy = a.Y - b.Y;
-            float dz = a.Z - b.Z;
-            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
-        }
-
         public uint GetEffectiveObjectFlags()
         {
             // Commenting this section of code out since it doesn't actually do anything, as enums are handled by
@@ -2647,20 +2596,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A Linked Child Prim objects position in world</returns>
         public Vector3 GetWorldPosition()
         {
-            Vector3 ret;
             if (_parentID == 0)
-                // if a root SOP, my position is what it is
-                ret = GroupPosition;
-            else
-            {
-                // If a child SOP, my position is relative to the root SOP so take
-                //    my info and add the root's position and rotation to
-                //    get my world position.
-                Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-                Vector3 translationOffsetPosition = OffsetPosition * parentRot;
-                ret = ParentGroup.AbsolutePosition + translationOffsetPosition;
-            }
-            return ret;
+                return GroupPosition;
+
+            // If a child SOP, my position is relative to the root SOP so take
+            //    my info and add the root's position and rotation to
+            //    get my world position.
+            return ParentGroup.AbsolutePosition + OffsetPosition * ParentGroup.RootPart.RotationOffset;
         }
 
         /// <summary>
@@ -2669,22 +2611,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Quaternion GetWorldRotation()
         {
-            Quaternion newRot;
+            if (_parentID == 0)
+                return RotationOffset;
 
-            if (this.LinkNum == 0 || this.LinkNum == 1)
-            {
-                newRot = RotationOffset;
-            }
-            else
-            {
-                // A child SOP's rotation is relative to the root SOP's rotation.
-                // Combine them to get my absolute rotation.
-                Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-                Quaternion oldRot = RotationOffset;
-                newRot = parentRot * oldRot;
-            }
-
-            return newRot;
+            // A child SOP's rotation is relative to the root SOP's rotation.
+            // Combine them to get my absolute rotation.
+            return ParentGroup.RootPart.RotationOffset * RotationOffset;
         }
 
         /// <summary>
@@ -3066,27 +2998,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 //ParentGroup.RootPart.m_groupPosition = newpos;
             }
-/*
-            if (pa != null && _parentID != 0 && ParentGroup != null)
-            {
-                // Special case where a child object is requesting property updates.
-                // This happens when linksets are modified to use flexible links rather than
-                //    the default links.
-                // The simulator code presumes that child parts are only modified by scripts
-                //    so the logic for changing position/rotation/etc does not take into
-                //    account the physical object actually moving.
-                // This code updates the offset position and rotation of the child and then
-                //    lets the update code push the update to the viewer.
-                // Since physics engines do not normally generate this event for linkset children,
-                //    this code will not be active unless you have a specially configured
-                //    physics engine.
-                Quaternion invRootRotation = Quaternion.Normalize(Quaternion.Inverse(ParentGroup.RootPart.RotationOffset));
-                m_offsetPosition = pa.Position - m_groupPosition;
-                RotationOffset = pa.Orientation * invRootRotation;
-                // m_log.DebugFormat("{0} PhysicsRequestingTerseUpdate child: pos={1}, rot={2}, offPos={3}, offRot={4}",
-                //                     "[SCENE OBJECT PART]", pa.Position, pa.Orientation, m_offsetPosition, RotationOffset);
-            }
-*/
+
             ScheduleTerseUpdate();
         }
 
@@ -4460,7 +4372,7 @@ namespace OpenSim.Region.Framework.Scenes
                         q = iray.Origin + iray.Direction * a;
                     //}
 
-                    float distance2 = (float)GetDistanceTo(q, AXpos);
+                    float distance2 = Vector3.Distance(q, AXpos);
                     // Is this the closest hit to the object's origin?
                     //if (faceCenters)
                     //{
