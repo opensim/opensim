@@ -97,6 +97,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// conditions can occur.
         /// </remarks>
         private Object m_updateLock = new Object();
+        private Object m_linkLock = new Object();
         private System.Threading.ReaderWriterLockSlim m_scenePresencesLock;
         private System.Threading.ReaderWriterLockSlim m_scenePartsLock;
 
@@ -634,41 +635,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected internal void UpdateObjectGroups()
         {
-            if (!Monitor.TryEnter(m_updateLock))
-                return;
-            try
+            Dictionary<UUID, SceneObjectGroup> updates;
+            // Get the current list of updates and clear the list before iterating
+            lock (m_updateLock)
             {
-                Dictionary<UUID, SceneObjectGroup> updates;
-                // Get the current list of updates and clear the list before iterating
-                lock (m_updateLock)
-                {
-                    updates = m_updateList;
-                    m_updateList = new Dictionary<UUID, SceneObjectGroup>();
-                }
-
-                // Go through all updates
-                foreach (SceneObjectGroup sog in updates.Values)
-                {
-                    if (sog.IsDeleted)
-                        continue;
-
-                    // Don't abort the whole update if one entity happens to give us an exception.
-                    try
-                    {
-                        sog.Update();
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[INNER SCENE]: Failed to update {0}, {1} - {2}", sog.Name, sog.UUID, e);
-                    }
-                }
-                updates = null;
+                updates = m_updateList;
+                m_updateList = new Dictionary<UUID, SceneObjectGroup>();
             }
-            finally
+
+            // Go through all updates
+            foreach (SceneObjectGroup sog in updates.Values)
             {
-                Monitor.Exit(m_updateLock);
+                if (sog.IsDeleted)
+                    continue;
+
+                // Don't abort the whole update if one entity happens to give us an exception.
+                try
+                {
+                    sog.Update();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[INNER SCENE]: Failed to update {0}, {1} - {2}", sog.Name, sog.UUID, e);
+                }
             }
+            updates = null;
         }
 
         protected internal void AddPhysicalPrim(int number)
@@ -1704,46 +1696,45 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimFlags(
             uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, ExtraPhysicsData PhysData, IClientAPI remoteClient)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if(part == null)
+                return;
+            SceneObjectGroup group = part.ParentGroup;
+            if(group == null || group.IsDeleted)
+                return;
+
+            if (!m_parentScene.Permissions.CanEditObject(group, remoteClient))
+                return;
+
+            // VolumeDetect can't be set via UI and will always be off when a change is made there
+            // now only change volume dtc if phantom off
+
+            bool wantedPhys = UsePhysics;
+            if (PhysData.PhysShapeType == PhysShapeType.invalid) // check for extraPhysics data
             {
-                if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
-                {
-                    // VolumeDetect can't be set via UI and will always be off when a change is made there
-                    // now only change volume dtc if phantom off
+                bool vdtc;
+                if (SetPhantom) // if phantom keep volumedtc
+                    vdtc = group.RootPart.VolumeDetectActive;
+                else // else turn it off
+                    vdtc = false;
 
-                    bool wantedPhys = UsePhysics;
-                    if (PhysData.PhysShapeType == PhysShapeType.invalid) // check for extraPhysics data
-                    {
-                        bool vdtc;
-                        if (SetPhantom) // if phantom keep volumedtc
-                            vdtc = group.RootPart.VolumeDetectActive;
-                        else // else turn it off
-                            vdtc = false;
+                group.UpdateFlags(UsePhysics, SetTemporary, SetPhantom, vdtc);
+            }
+            else
+            {
+                part.UpdateExtraPhysics(PhysData);
+                if (remoteClient != null)
+                    remoteClient.SendPartPhysicsProprieties(part);
+            }
 
-                        group.UpdateFlags(UsePhysics, SetTemporary, SetPhantom, vdtc);
-                    }
-                    else
-                    {
-                        SceneObjectPart part = group.GetPart(localID);
-                        if (part != null)
-                        {
-                            part.UpdateExtraPhysics(PhysData);
-                            if (remoteClient != null)
-                                remoteClient.SendPartPhysicsProprieties(part);
-                        }
-                    }
-
-                    if (wantedPhys != group.UsesPhysics && remoteClient != null)
-                    {
-                        if(m_parentScene.m_linksetPhysCapacity != 0)
-                            remoteClient.SendAlertMessage("Object physics cancelled because it exceeds limits for physical prims, either size or number of primswith shape type not set to None");
-                        else
-                            remoteClient.SendAlertMessage("Object physics cancelled because it exceeds size limits for physical prims");
+            if (wantedPhys != group.UsesPhysics && remoteClient != null)
+            {
+                if(m_parentScene.m_linksetPhysCapacity != 0)
+                    remoteClient.SendAlertMessage("Object physics cancelled because it exceeds limits for physical prims, either size or number of primswith shape type not set to None");
+                else
+                    remoteClient.SendAlertMessage("Object physics cancelled because it exceeds size limits for physical prims");
                         
-                        group.RootPart.ScheduleFullUpdate();
-                    }
-                }
+                group.RootPart.ScheduleFullUpdate();
             }
         }
 
@@ -1899,7 +1890,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (parentGroup.OwnerID == parentGroup.GroupID)
                 return;
 
-            Monitor.Enter(m_updateLock);
+            Monitor.Enter(m_linkLock);
 
             try
             {
@@ -1962,7 +1953,7 @@ namespace OpenSim.Region.Framework.Scenes
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullAnimUpdate();
-                Monitor.Exit(m_updateLock);
+                Monitor.Exit(m_linkLock);
             }
         }
 
@@ -1972,7 +1963,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="prims"></param>
         protected internal void DelinkObjects(List<SceneObjectPart> prims)
         {
-            Monitor.Enter(m_updateLock);
+            Monitor.Enter(m_linkLock);
             try
             {
                 List<SceneObjectPart> childParts = new List<SceneObjectPart>();
@@ -2090,7 +2081,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             finally
             {
-                Monitor.Exit(m_updateLock);
+                Monitor.Exit(m_linkLock);
             }
         }
 
