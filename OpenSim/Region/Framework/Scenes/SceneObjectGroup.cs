@@ -431,29 +431,47 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                Vector3 minScale = new Vector3(Constants.MaximumRegionSize, Constants.MaximumRegionSize, Constants.MaximumRegionSize);
-                Vector3 maxScale = Vector3.Zero;
-                Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
+                Vector3 finalScale = new Vector3();
 
                 SceneObjectPart[] parts = m_parts.GetArray();
+                SceneObjectPart part;
+                Vector3 partscale;
+
+                float ftmp;
+                float minScaleX = float.MaxValue;
+                float minScaleY = float.MaxValue;
+                float minScaleZ = float.MaxValue;
+                float maxScaleX = 0f;
+                float maxScaleY = 0f;
+                float maxScaleZ = 0f;
+
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    SceneObjectPart part = parts[i];
-                    Vector3 partscale = part.Scale;
-                    Vector3 partoffset = part.OffsetPosition;
+                    part = parts[i];
+                    partscale = part.Scale + part.OffsetPosition;
 
-                    minScale.X = (partscale.X + partoffset.X < minScale.X) ? partscale.X + partoffset.X : minScale.X;
-                    minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.Y + partoffset.Y : minScale.Y;
-                    minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.Z + partoffset.Z : minScale.Z;
+                    ftmp = partscale.X;
+                    if (ftmp < minScaleX)
+                        minScaleX = ftmp;
+                    if (ftmp > maxScaleX)
+                        maxScaleX = ftmp;
 
-                    maxScale.X = (partscale.X + partoffset.X > maxScale.X) ? partscale.X + partoffset.X : maxScale.X;
-                    maxScale.Y = (partscale.Y + partoffset.Y > maxScale.Y) ? partscale.Y + partoffset.Y : maxScale.Y;
-                    maxScale.Z = (partscale.Z + partoffset.Z > maxScale.Z) ? partscale.Z + partoffset.Z : maxScale.Z;
+                    ftmp = partscale.Y;
+                    if (ftmp < minScaleY)
+                        minScaleY = ftmp;
+                    if (ftmp > maxScaleY)
+                        maxScaleY = ftmp;
+
+                    ftmp = partscale.Z;
+                    if (ftmp < minScaleZ)
+                        minScaleZ = ftmp;
+                    if (ftmp > maxScaleZ)
+                        maxScaleZ = ftmp;
                 }
 
-                finalScale.X = (minScale.X > maxScale.X) ? minScale.X : maxScale.X;
-                finalScale.Y = (minScale.Y > maxScale.Y) ? minScale.Y : maxScale.Y;
-                finalScale.Z = (minScale.Z > maxScale.Z) ? minScale.Z : maxScale.Z;
+                finalScale.X = (minScaleX > maxScaleX) ? minScaleX : maxScaleX;
+                finalScale.Y = (minScaleY > maxScaleY) ? minScaleY : maxScaleY;
+                finalScale.Z = (minScaleZ > maxScaleZ) ? minScaleZ : maxScaleZ;
 
                 return finalScale;
             }
@@ -1507,13 +1525,80 @@ namespace OpenSim.Region.Framework.Scenes
             return result;
         }
 
-        /// <summary>
-        /// Gets a vector representing the size of the bounding box containing all the prims in the group
-        /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
-        /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
-        /// </summary>
-        /// <returns></returns>
-        public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
+        public void GetBoundingBox(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
+        {
+            uint rootid = RootPart.LocalId;
+            Vector3 scale = RootPart.Scale * 0.5f;
+
+            minX = -scale.X;
+            maxX = scale.X;
+            minY = -scale.Y;
+            maxY = scale.Y;
+            minZ = -scale.Z;
+            maxZ = scale.Z;
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            SceneObjectPart part;
+            for (int i = 0; i < parts.Length; ++i)
+            {
+                part = parts[i];
+                if(part.LocalId == rootid)
+                    continue;
+
+                Vector3 offset = part.OffsetPosition;
+                scale = part.Scale * 0.5f;
+
+                Matrix4 m = Matrix4.CreateFromQuaternion(part.RotationOffset);
+                Vector3 a = m.AtAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
+
+                float tmpS = Vector3.Dot(a, scale);
+                float tmp = offset.X - tmpS;
+                if (tmp < minX)
+                    minX = tmp;
+
+                tmp = offset.X + tmpS;
+                if (tmp > maxX)
+                    maxX = tmp;
+
+                a = m.LeftAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
+                tmpS = Vector3.Dot(a, scale);
+
+                tmp = offset.Y - tmpS;
+                if (tmp < minY)
+                    minY = tmp;
+
+                tmp = offset.Y + tmpS;
+                if (tmp > maxY)
+                    maxY = tmp;
+
+                a = m.UpAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
+
+                tmpS = Vector3.Dot(a, scale);
+                tmp = offset.Z - tmpS;
+                if (tmp < minZ)
+                    minZ = tmp;
+
+                tmp = offset.Z + tmpS;
+                if (tmp > maxZ)
+                    maxZ = tmp;
+            }
+        }
+    /// <summary>
+    /// Gets a vector representing the size of the bounding box containing all the prims in the group
+    /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
+    /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
+    /// </summary>
+    /// <returns></returns>
+    public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
             maxX = float.MinValue;
             maxY = float.MinValue;
@@ -1522,238 +1607,57 @@ namespace OpenSim.Region.Framework.Scenes
             minY = float.MaxValue;
             minZ = float.MaxValue;
 
+            Vector3 absPos = AbsolutePosition;
             SceneObjectPart[] parts = m_parts.GetArray();
-            foreach (SceneObjectPart part in parts)
+            SceneObjectPart part;
+            for(int i = 0; i< parts.Length; ++i)
             {
-                Vector3 worldPos = part.GetWorldPosition();
-                Vector3 offset = worldPos - AbsolutePosition;
-                Quaternion worldRot;
-                if (part.ParentID == 0)
-                {
-                    worldRot = part.RotationOffset;
-                }
-                else
-                {
-                    worldRot = part.GetWorldRotation();
-                }
+                part = parts[i];
+                Vector3 offset = part.GetWorldPosition() - absPos;
+                Vector3 scale = part.Scale * 0.5f;
 
-                Vector3 frontTopLeft;
-                Vector3 frontTopRight;
-                Vector3 frontBottomLeft;
-                Vector3 frontBottomRight;
+                Matrix4 m = Matrix4.CreateFromQuaternion(part.GetWorldRotation());
+                Vector3 a = m.AtAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
 
-                Vector3 backTopLeft;
-                Vector3 backTopRight;
-                Vector3 backBottomLeft;
-                Vector3 backBottomRight;
+                float tmpS = Vector3.Dot(a, scale);
+                float tmp = offset.X - tmpS;
+                if (tmp < minX)
+                    minX = tmp;
 
-               // Vector3[] corners = new Vector3[8];
+                tmp = offset.X + tmpS;
+                if (tmp > maxX)
+                    maxX = tmp;
 
-                Vector3 orig = Vector3.Zero;
+                a = m.LeftAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
+                tmpS = Vector3.Dot(a, scale);
 
-                frontTopLeft.X = orig.X - (part.Scale.X / 2);
-                frontTopLeft.Y = orig.Y - (part.Scale.Y / 2);
-                frontTopLeft.Z = orig.Z + (part.Scale.Z / 2);
+                tmp = offset.Y - tmpS;
+                if (tmp < minY)
+                    minY = tmp;
 
-                frontTopRight.X = orig.X - (part.Scale.X / 2);
-                frontTopRight.Y = orig.Y + (part.Scale.Y / 2);
-                frontTopRight.Z = orig.Z + (part.Scale.Z / 2);
+                tmp = offset.Y + tmpS;
+                if (tmp > maxY)
+                    maxY = tmp;
 
-                frontBottomLeft.X = orig.X - (part.Scale.X / 2);
-                frontBottomLeft.Y = orig.Y - (part.Scale.Y / 2);
-                frontBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
+                a = m.UpAxis;
+                a.X = Math.Abs(a.X);
+                a.Y = Math.Abs(a.Y);
+                a.Z = Math.Abs(a.Z);
 
-                frontBottomRight.X = orig.X - (part.Scale.X / 2);
-                frontBottomRight.Y = orig.Y + (part.Scale.Y / 2);
-                frontBottomRight.Z = orig.Z - (part.Scale.Z / 2);
+                tmpS = Vector3.Dot(a, scale);
+                tmp = offset.Z - tmpS;
+                if (tmp < minZ)
+                    minZ = tmp;
 
-                backTopLeft.X = orig.X + (part.Scale.X / 2);
-                backTopLeft.Y = orig.Y - (part.Scale.Y / 2);
-                backTopLeft.Z = orig.Z + (part.Scale.Z / 2);
-
-                backTopRight.X = orig.X + (part.Scale.X / 2);
-                backTopRight.Y = orig.Y + (part.Scale.Y / 2);
-                backTopRight.Z = orig.Z + (part.Scale.Z / 2);
-
-                backBottomLeft.X = orig.X + (part.Scale.X / 2);
-                backBottomLeft.Y = orig.Y - (part.Scale.Y / 2);
-                backBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
-
-                backBottomRight.X = orig.X + (part.Scale.X / 2);
-                backBottomRight.Y = orig.Y + (part.Scale.Y / 2);
-                backBottomRight.Z = orig.Z - (part.Scale.Z / 2);
-
-
-
-                //m_log.InfoFormat("pre corner 1 is {0} {1} {2}", frontTopLeft.X, frontTopLeft.Y, frontTopLeft.Z);
-                //m_log.InfoFormat("pre corner 2 is {0} {1} {2}", frontTopRight.X, frontTopRight.Y, frontTopRight.Z);
-                //m_log.InfoFormat("pre corner 3 is {0} {1} {2}", frontBottomRight.X, frontBottomRight.Y, frontBottomRight.Z);
-                //m_log.InfoFormat("pre corner 4 is {0} {1} {2}", frontBottomLeft.X, frontBottomLeft.Y, frontBottomLeft.Z);
-                //m_log.InfoFormat("pre corner 5 is {0} {1} {2}", backTopLeft.X, backTopLeft.Y, backTopLeft.Z);
-                //m_log.InfoFormat("pre corner 6 is {0} {1} {2}", backTopRight.X, backTopRight.Y, backTopRight.Z);
-                //m_log.InfoFormat("pre corner 7 is {0} {1} {2}", backBottomRight.X, backBottomRight.Y, backBottomRight.Z);
-                //m_log.InfoFormat("pre corner 8 is {0} {1} {2}", backBottomLeft.X, backBottomLeft.Y, backBottomLeft.Z);
-
-                //for (int i = 0; i < 8; i++)
-                //{
-                //    corners[i] = corners[i] * worldRot;
-                //    corners[i] += offset;
-
-                //    if (corners[i].X > maxX)
-                //        maxX = corners[i].X;
-                //    if (corners[i].X < minX)
-                //        minX = corners[i].X;
-
-                //    if (corners[i].Y > maxY)
-                //        maxY = corners[i].Y;
-                //    if (corners[i].Y < minY)
-                //        minY = corners[i].Y;
-
-                //    if (corners[i].Z > maxZ)
-                //        maxZ = corners[i].Y;
-                //    if (corners[i].Z < minZ)
-                //        minZ = corners[i].Z;
-                //}
-
-                frontTopLeft = frontTopLeft * worldRot;
-                frontTopRight = frontTopRight * worldRot;
-                frontBottomLeft = frontBottomLeft * worldRot;
-                frontBottomRight = frontBottomRight * worldRot;
-
-                backBottomLeft = backBottomLeft * worldRot;
-                backBottomRight = backBottomRight * worldRot;
-                backTopLeft = backTopLeft * worldRot;
-                backTopRight = backTopRight * worldRot;
-
-
-                frontTopLeft += offset;
-                frontTopRight += offset;
-                frontBottomLeft += offset;
-                frontBottomRight += offset;
-
-                backBottomLeft += offset;
-                backBottomRight += offset;
-                backTopLeft += offset;
-                backTopRight += offset;
-
-                //m_log.InfoFormat("corner 1 is {0} {1} {2}", frontTopLeft.X, frontTopLeft.Y, frontTopLeft.Z);
-                //m_log.InfoFormat("corner 2 is {0} {1} {2}", frontTopRight.X, frontTopRight.Y, frontTopRight.Z);
-                //m_log.InfoFormat("corner 3 is {0} {1} {2}", frontBottomRight.X, frontBottomRight.Y, frontBottomRight.Z);
-                //m_log.InfoFormat("corner 4 is {0} {1} {2}", frontBottomLeft.X, frontBottomLeft.Y, frontBottomLeft.Z);
-                //m_log.InfoFormat("corner 5 is {0} {1} {2}", backTopLeft.X, backTopLeft.Y, backTopLeft.Z);
-                //m_log.InfoFormat("corner 6 is {0} {1} {2}", backTopRight.X, backTopRight.Y, backTopRight.Z);
-                //m_log.InfoFormat("corner 7 is {0} {1} {2}", backBottomRight.X, backBottomRight.Y, backBottomRight.Z);
-                //m_log.InfoFormat("corner 8 is {0} {1} {2}", backBottomLeft.X, backBottomLeft.Y, backBottomLeft.Z);
-
-                if (frontTopRight.X > maxX)
-                    maxX = frontTopRight.X;
-                if (frontTopLeft.X > maxX)
-                    maxX = frontTopLeft.X;
-                if (frontBottomRight.X > maxX)
-                    maxX = frontBottomRight.X;
-                if (frontBottomLeft.X > maxX)
-                    maxX = frontBottomLeft.X;
-
-                if (backTopRight.X > maxX)
-                    maxX = backTopRight.X;
-                if (backTopLeft.X > maxX)
-                    maxX = backTopLeft.X;
-                if (backBottomRight.X > maxX)
-                    maxX = backBottomRight.X;
-                if (backBottomLeft.X > maxX)
-                    maxX = backBottomLeft.X;
-
-                if (frontTopRight.X < minX)
-                    minX = frontTopRight.X;
-                if (frontTopLeft.X < minX)
-                    minX = frontTopLeft.X;
-                if (frontBottomRight.X < minX)
-                    minX = frontBottomRight.X;
-                if (frontBottomLeft.X < minX)
-                    minX = frontBottomLeft.X;
-
-                if (backTopRight.X < minX)
-                    minX = backTopRight.X;
-                if (backTopLeft.X < minX)
-                    minX = backTopLeft.X;
-                if (backBottomRight.X < minX)
-                    minX = backBottomRight.X;
-                if (backBottomLeft.X < minX)
-                    minX = backBottomLeft.X;
-
-                //
-                if (frontTopRight.Y > maxY)
-                    maxY = frontTopRight.Y;
-                if (frontTopLeft.Y > maxY)
-                    maxY = frontTopLeft.Y;
-                if (frontBottomRight.Y > maxY)
-                    maxY = frontBottomRight.Y;
-                if (frontBottomLeft.Y > maxY)
-                    maxY = frontBottomLeft.Y;
-
-                if (backTopRight.Y > maxY)
-                    maxY = backTopRight.Y;
-                if (backTopLeft.Y > maxY)
-                    maxY = backTopLeft.Y;
-                if (backBottomRight.Y > maxY)
-                    maxY = backBottomRight.Y;
-                if (backBottomLeft.Y > maxY)
-                    maxY = backBottomLeft.Y;
-
-                if (frontTopRight.Y < minY)
-                    minY = frontTopRight.Y;
-                if (frontTopLeft.Y < minY)
-                    minY = frontTopLeft.Y;
-                if (frontBottomRight.Y < minY)
-                    minY = frontBottomRight.Y;
-                if (frontBottomLeft.Y < minY)
-                    minY = frontBottomLeft.Y;
-
-                if (backTopRight.Y < minY)
-                    minY = backTopRight.Y;
-                if (backTopLeft.Y < minY)
-                    minY = backTopLeft.Y;
-                if (backBottomRight.Y < minY)
-                    minY = backBottomRight.Y;
-                if (backBottomLeft.Y < minY)
-                    minY = backBottomLeft.Y;
-
-                //
-                if (frontTopRight.Z > maxZ)
-                    maxZ = frontTopRight.Z;
-                if (frontTopLeft.Z > maxZ)
-                    maxZ = frontTopLeft.Z;
-                if (frontBottomRight.Z > maxZ)
-                    maxZ = frontBottomRight.Z;
-                if (frontBottomLeft.Z > maxZ)
-                    maxZ = frontBottomLeft.Z;
-
-                if (backTopRight.Z > maxZ)
-                    maxZ = backTopRight.Z;
-                if (backTopLeft.Z > maxZ)
-                    maxZ = backTopLeft.Z;
-                if (backBottomRight.Z > maxZ)
-                    maxZ = backBottomRight.Z;
-                if (backBottomLeft.Z > maxZ)
-                    maxZ = backBottomLeft.Z;
-
-                if (frontTopRight.Z < minZ)
-                    minZ = frontTopRight.Z;
-                if (frontTopLeft.Z < minZ)
-                    minZ = frontTopLeft.Z;
-                if (frontBottomRight.Z < minZ)
-                    minZ = frontBottomRight.Z;
-                if (frontBottomLeft.Z < minZ)
-                    minZ = frontBottomLeft.Z;
-
-                if (backTopRight.Z < minZ)
-                    minZ = backTopRight.Z;
-                if (backTopLeft.Z < minZ)
-                    minZ = backTopLeft.Z;
-                if (backBottomRight.Z < minZ)
-                    minZ = backBottomRight.Z;
-                if (backBottomLeft.Z < minZ)
-                    minZ = backBottomLeft.Z;
+                tmp = offset.Z + tmpS;
+                if (tmp > maxZ)
+                    maxZ = tmp;
             }
         }
 
@@ -1795,12 +1699,26 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private Vector3 m_boundsCenter;
-        public Vector3 getBoundsCenter()
+        private Vector3 m_LastCenterOffset;
+        private Vector3 last_boundsRot = new Vector3(-10, -10, -10);
+        public Vector3 getCenterOffset()
         {
             // math is done in GetBoundsRadius();
             if(m_boundsRadius == null)
                 GetBoundsRadius();
-            return m_boundsCenter;
+
+            Quaternion rot = m_rootPart.RotationOffset;
+            if (last_boundsRot.X != rot.X ||
+                last_boundsRot.Y != rot.Y ||
+                last_boundsRot.Z != rot.Z)
+            {
+                m_LastCenterOffset = m_boundsCenter * rot;
+                last_boundsRot.X = rot.X;
+                last_boundsRot.Y = rot.Y;
+                last_boundsRot.Z = rot.Z;
+            }
+
+            return m_rootPart.GroupPosition + m_LastCenterOffset;
         }
 
         private float m_areaFactor;
@@ -1819,14 +1737,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 float res = 0;
                 float areaF = 0;
-                SceneObjectPart p;
-                SceneObjectPart[] parts;
                 float partR;
                 Vector3 offset = Vector3.Zero;
-                lock (m_parts)
-                {
-                    parts = m_parts.GetArray();
-                }
+                SceneObjectPart p;
+                SceneObjectPart[] parts = m_parts.GetArray();
 
                 int nparts = parts.Length;
                 for (int i = 0; i < nparts; i++)
@@ -1846,11 +1760,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if(parts.Length > 1)
                 {
                     offset /= parts.Length; // basicly geometric center
-                    offset = offset * RootPart.RotationOffset;
                 }
 
-                areaF = 10.0f / areaF;  // scale it
-                areaF = Util.Clamp(areaF, 0.001f, 1000f); // clamp it
+                areaF = 0.5f / areaF;  // scale it
+                areaF = Util.Clamp(areaF, 0.05f, 100f); // clamp it
 
                 m_areaFactor = (float)Math.Sqrt(areaF);
                 m_boundsCenter = offset;
@@ -1872,16 +1785,9 @@ namespace OpenSim.Region.Framework.Scenes
             bool ComplexCost = false;
 
             SceneObjectPart p;
-            SceneObjectPart[] parts;
-
-            lock (m_parts)
-            {
-                parts = m_parts.GetArray();
-            }
+            SceneObjectPart[] parts = m_parts.GetArray();
 
             int nparts = parts.Length;
-
-
             for (int i = 0; i < nparts; i++)
             {
                 p = parts[i];
@@ -2478,7 +2384,6 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
-                        backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
                         GroupContainsForeignPrims = false;
 
@@ -2588,30 +2493,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     newPart = dupe.m_rootPart;
                 }
-/*
-                bool isphys = ((newPart.Flags & PrimFlags.Physics) != 0);
-                bool isphan = ((newPart.Flags & PrimFlags.Phantom) != 0);
 
-                // Need to duplicate the physics actor as well
-                if (userExposed && (isphys || !isphan || newPart.VolumeDetectActive))
-                {
-                    PrimitiveBaseShape pbs = newPart.Shape;
-                    newPart.PhysActor
-                        = m_scene.PhysicsScene.AddPrimShape(
-                            string.Format("{0}/{1}", newPart.Name, newPart.UUID),
-                            pbs,
-                            newPart.AbsolutePosition,
-                            newPart.Scale,
-                            newPart.GetWorldRotation(),
-                            isphys,
-                            isphan,
-                            newPart.LocalId);
-
-                    newPart.DoPhysicsPropertyUpdate(isphys, true);
- */
                 if (userExposed)
                     newPart.ApplyPhysics((uint)newPart.Flags,newPart.VolumeDetectActive,true);
-//                }
+
                 // copy keyframemotion
                 if (part.KeyframeMotion != null)
                     newPart.KeyframeMotion = part.KeyframeMotion.Copy(dupe);
@@ -2619,8 +2504,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (userExposed)
             {
-// done above                dupe.UpdateParentIDs();
-
                 if (dupe.m_rootPart.PhysActor != null)
                     dupe.m_rootPart.PhysActor.Building = false; // tell physics to finish building
 
@@ -4015,7 +3898,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 for (int i = 0; i < parts.Length; i++)
                 {
-                    if (parts[i].LocalId != m_rootPart.LocalId)
+                    if (parts[i].UUID != m_rootPart.UUID)
                         parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect, true);
                 }
 

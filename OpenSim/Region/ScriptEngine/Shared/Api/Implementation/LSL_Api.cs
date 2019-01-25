@@ -11240,50 +11240,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             part = World.GetSceneObjectPart(objID);
+
             // Currently only works for single prims without a sitting avatar
-            if (part != null)
+            if (part == null)
             {
-                float minX;
-                float maxX;
-                float minY;
-                float maxY;
-                float minZ;
-                float maxZ;
-
-                // This BBox is in sim coordinates, with the offset being
-                // a contained point.
-                Vector3[] offsets = Scene.GetCombinedBoundingBox(new List<SceneObjectGroup> { part.ParentGroup },
-                        out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
-
-                minX -= offsets[0].X;
-                maxX -= offsets[0].X;
-                minY -= offsets[0].Y;
-                maxY -= offsets[0].Y;
-                minZ -= offsets[0].Z;
-                maxZ -= offsets[0].Z;
-
-                LSL_Vector lower;
-                LSL_Vector upper;
-
-                // Adjust to the documented error offsets (see LSL Wiki)
-                lower = new LSL_Vector(minX + 0.05f, minY + 0.05f, minZ + 0.05f);
-                upper = new LSL_Vector(maxX - 0.05f, maxY - 0.05f, maxZ - 0.05f);
-
-                if (lower.x > upper.x)
-                    lower.x = upper.x;
-                if (lower.y > upper.y)
-                    lower.y = upper.y;
-                if (lower.z > upper.z)
-                    lower.z = upper.z;
-
-                result.Add(lower);
-                result.Add(upper);
+                result.Add(new LSL_Vector());
+                result.Add(new LSL_Vector());
                 return result;
             }
 
-            // Not found so return empty values
-            result.Add(new LSL_Vector());
-            result.Add(new LSL_Vector());
+            SceneObjectGroup sog = part.ParentGroup;
+            if(sog.IsDeleted)
+            {
+                result.Add(new LSL_Vector());
+                result.Add(new LSL_Vector());
+                return result;
+            }
+
+            float minX;
+            float maxX;
+            float minY;
+            float maxY;
+            float minZ;
+            float maxZ;
+            sog.GetBoundingBox(out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+
+            result.Add(new LSL_Vector(minX, minY, minZ));
+            result.Add(new LSL_Vector(maxX, maxY, maxZ));
             return result;
         }
 
