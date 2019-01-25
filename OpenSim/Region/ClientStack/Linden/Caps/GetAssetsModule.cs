@@ -170,7 +170,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     for (uint i = 0; i < 3; i++)
                     {
                         m_workerThreads[i] = WorkManager.StartThread(DoAssetRequests,
-                                String.Format("GetAssetWorker{0}", i),
+                                String.Format("GetCapsAssetWorker{0}", i),
                                 ThreadPriority.Normal,
                                 true,
                                 false,

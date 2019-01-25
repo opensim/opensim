@@ -136,11 +136,7 @@ namespace OpenSim.Services.Connectors
 
             for (int i = 0 ; i < 2 ; i++)
             {
-                m_fetchThreads[i] = WorkManager.StartThread(AssetRequestProcessor,
-                            String.Format("GetTextureWorker{0}", i),
-                            ThreadPriority.Normal,
-                            true,
-                            false);
+                m_fetchThreads[i] = WorkManager.StartThread(AssetRequestProcessor, String.Format("GetAssetsWorker{0}", i));
             }
         }
 
