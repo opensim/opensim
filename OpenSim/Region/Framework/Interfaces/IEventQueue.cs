@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
-        OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
+        void ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID);
         OSD BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
 

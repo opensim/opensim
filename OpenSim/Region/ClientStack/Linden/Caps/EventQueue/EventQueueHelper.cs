@@ -187,13 +187,13 @@ namespace OpenSim.Region.ClientStack.Linden
             return BuildEvent("TeleportFinish", body);
         }
 
-        public static OSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        public static OSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running)
         {
             OSDMap script = new OSDMap();
             script.Add("ObjectID", OSD.FromUUID(objectID));
             script.Add("ItemID", OSD.FromUUID(itemID));
             script.Add("Running", OSD.FromBoolean(running));
-            script.Add("Mono", OSD.FromBoolean(mono));
+            script.Add("Mono", OSD.FromBoolean(true));
 
             OSDArray scriptArr = new OSDArray();
             scriptArr.Add(script);

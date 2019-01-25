@@ -167,7 +167,7 @@ namespace OpenSim.Tests.Common
             AddEvent(receiverAgent, "AgentGroupDataUpdate", data);
         }
 
-        public OSD ScriptRunningEvent (UUID objectID, UUID itemID, bool running, bool mono)
+        public void ScriptRunningEvent (UUID objectID, UUID itemID, bool running, UUID avatarID)
         {
             Console.WriteLine("ONE");
             throw new System.NotImplementedException ();

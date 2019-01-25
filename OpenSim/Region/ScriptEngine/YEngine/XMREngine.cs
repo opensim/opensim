@@ -1467,9 +1467,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 else
                 {
-                    eq.Enqueue(EventQueueHelper.ScriptRunningReplyEvent(objectID,
-                            itemID, instance.Running, true),
-                            controllingClient.AgentId);
+                    eq.ScriptRunningEvent(objectID, itemID, instance.Running, controllingClient.AgentId);
                 }
             }
         }

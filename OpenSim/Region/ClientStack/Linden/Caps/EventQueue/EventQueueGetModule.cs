@@ -594,9 +594,9 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(item, avatarID);
         }
 
-        public OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        public OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID)
         {
-            return EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, running, mono);
+            return EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, running);
         }
 
         public OSD BuildEvent(string eventName, OSD eventBody)
