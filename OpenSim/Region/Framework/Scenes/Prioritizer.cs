@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if(presence.ParentPart.ParentGroup == sog)
                             return 2;
                     }
-
+                    
                     pqueue = ComputeDistancePriority(client, entity, false);
 
                     // Non physical prims are lower priority than physical prims
@@ -165,15 +165,6 @@ namespace OpenSim.Region.Framework.Scenes
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
             uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
-            uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
-/*
-            for (int i = 0; i < queues - 1; i++)
-            {
-                if (distance < 30 * Math.Pow(2.0,i))
-                    break;
-                pqueue++;
-            }
-*/
             if (distance > 10f)
             {
                 float tmp = (float)Math.Log((double)distance) * 1.442695f - 3.321928f;
@@ -182,8 +173,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
                 pqueue += (uint)tmp;
-                if (pqueue > queues - 1)
-                    pqueue = queues - 1;
             }
 
             // If this is a root agent, then determine front & back
@@ -216,11 +205,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint ComputeAngleDistancePriority(ScenePresence presence, ISceneEntity entity)
         {
-            // And convert the distance to a priority queue, this computation gives queues
-            // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-//            uint minpqueue = PriorityQueue.NumberOfImmediateQueues;
-            uint maxqueue = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues -1;
-//            uint pqueue = minpqueue;
             uint pqueue = PriorityQueue.NumberOfImmediateQueues;
             float distance;
 
@@ -228,35 +212,48 @@ namespace OpenSim.Region.Framework.Scenes
             if(entity is ScenePresence)
             {
                 ScenePresence sp = entity as ScenePresence;
-                distance = Vector3.Distance(presencePos, sp.AbsolutePosition);
-                distance *= 0.5f;
+                distance = Vector3.DistanceSquared(presencePos, sp.AbsolutePosition);
+                if (distance > 400f)
+                {
+                    float tmp = (float)Math.Log(distance) * 0.7213475f - 4.321928f;
+                    pqueue += (uint)tmp;
+                }
+                return pqueue;
             }
-            else
-            {
-                SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
-                if(presence.ParentPart != null)
-                {
-                    if(presence.ParentPart.ParentGroup == group)
-                        return pqueue;
-                }
-                if(group.IsAttachment)
-                {
-                    if(group.RootPart.LocalId == presence.LocalId)
-                        return pqueue;
-                }
 
-                float bradius = group.GetBoundsRadius();
-                Vector3 grppos = group.AbsolutePosition + group.getBoundsCenter();
-                distance = Vector3.Distance(presencePos, grppos);
-                distance -= bradius;
-                distance *= group.getAreaFactor();
-                if(group.IsAttachment)
-                    distance *= 0.5f;
-                else if(group.UsesPhysics)
-                    distance *= 0.6f;
-                else if(group.GetSittingAvatarsCount() > 0)
-                    distance *= 0.5f;
+            SceneObjectPart sop = entity as SceneObjectPart;
+            SceneObjectGroup group = sop.ParentGroup;
+            if(presence.ParentPart != null)
+            {
+                if(presence.ParentPart.ParentGroup == group)
+                    return pqueue;
             }
+
+            if (group.IsAttachment)
+            {
+                if(group.RootPart.LocalId == presence.LocalId)
+                    return pqueue;
+
+                distance = Vector3.DistanceSquared(presencePos, group.AbsolutePosition);
+                if (distance > 400f)
+                {
+                    float tmp = (float)Math.Log(distance) * 0.7213475f - 4.321928f;
+                    pqueue += (uint)tmp;
+                }
+                return pqueue;
+            }
+
+            float bradius = group.GetBoundsRadius();
+            Vector3 grppos = group.getCenterOffset();
+            distance = Vector3.Distance(presencePos, grppos);
+            distance -= bradius;
+            distance *= group.getAreaFactor();
+            if(group.IsAttachment)
+                distance *= 0.5f;
+            else if(group.UsesPhysics)
+                distance *= 0.6f;
+            else if(group.GetSittingAvatarsCount() > 0)
+                distance *= 0.5f;
 
             if (distance > 10f)
             {
@@ -265,10 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // now
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
-
                 pqueue += (uint)tmp;
-                if (pqueue > maxqueue)
-                    pqueue = maxqueue;
             }
 
             return pqueue;

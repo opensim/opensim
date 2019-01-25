@@ -45,6 +45,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
+
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using PermissionMask = OpenSim.Framework.PermissionMask;
@@ -4097,6 +4098,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!IsActive)
                 return;
 
+            ScenePresence mysp = (ScenePresence)SceneAgent;
+            if (mysp == null)
+                return;
+
             List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = null;
             List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
             List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseUpdateBlocks = null;
@@ -4114,39 +4119,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             EntityUpdate update;
-            Int32 timeinqueue; // this is just debugging code & can be dropped later
 
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
-            HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
-//            Vector3 mycamera = Vector3.Zero;
             Vector3 mypos = Vector3.Zero;
-            ScenePresence mysp = (ScenePresence)SceneAgent;
 
             bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
-            // we should have a presence
-            if(mysp == null)
-                return;
 
-            if(doCulling)
+            HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+
+            if (doCulling)
             {
                 cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
-//                mycamera = mysp.CameraPosition;
                 mypos = mysp.AbsolutePosition;
             }
 
             while (maxUpdatesBytes > 0)
             {
+                if (!IsActive)
+                    return;
+
                 lock (m_entityUpdates.SyncRoot)
                 {
                     if(orderedDequeue)
                     {
-                        if (!m_entityUpdates.TryOrderedDequeue(out update, out timeinqueue))
+                        if (!m_entityUpdates.TryOrderedDequeue(out update))
                             break;
                     }
                     else
                     {
-                        if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
+                        if (!m_entityUpdates.TryDequeue(out update))
                             break;
                     }
                 }
@@ -4166,13 +4168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     SceneObjectGroup grp = part.ParentGroup;
                     if (grp.inTransit && !update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
                         continue;
-/* debug
-                    if (update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
-                    {
 
-
-                    }
-*/
                     if (grp.IsDeleted)
                     {
                         // Don't send updates for objects that have been marked deleted.
@@ -4234,20 +4230,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if(GroupsNeedFullUpdate.Contains(grp))
                             continue;
 
-                        bool inview = false;
+                        bool inViewGroups = false;
                         lock(GroupsInView)
-                            inview = GroupsInView.Contains(grp);
+                            inViewGroups = GroupsInView.Contains(grp);
 
-                        if(!inview)
+                        if(!inViewGroups)
                         {
-                            float bradius = grp.GetBoundsRadius();
-                            Vector3 partpos = grp.AbsolutePosition + grp.getBoundsCenter();
-//                            float dcam = (partpos - mycamera).LengthSquared();
+                            Vector3 partpos = grp.getCenterOffset();
                             float dpos = (partpos - mypos).LengthSquared();
-//                            if(dcam < dpos)
-//                                dpos = dcam;
-                            dpos = (float)Math.Sqrt(dpos) - bradius;
-                            if(dpos > cullingrange)
+                            float maxview = grp.GetBoundsRadius() + cullingrange;
+                            if (dpos > maxview * maxview)
                                 continue;
 
                             GroupsNeedFullUpdate.Add(grp);
@@ -4488,10 +4480,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
                 {
-                    foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.CancelKill);
-                    lock(GroupsInView)
+                    lock (GroupsInView)
                         GroupsInView.Add(grp);
+                    foreach (SceneObjectPart p in grp.Parts)
+                        SendEntityUpdate(p, PrimUpdateFlags.CancelKill);
                 }
             }
 
@@ -4542,26 +4534,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(!doCulling)
                 return;
 
-            if(CheckGroupsInViewBusy)
+            if (!IsActive)
+                return;
+
+            if (CheckGroupsInViewBusy)
+                return;
+
+            ScenePresence mysp = (ScenePresence)SceneAgent;
+            if (mysp == null || mysp.IsDeleted)
                 return;
 
             CheckGroupsInViewBusy = true;
 
-            float cullingrange = 64.0f;
-//                Vector3 mycamera = Vector3.Zero;
-            Vector3 mypos = Vector3.Zero;
-            ScenePresence mysp = (ScenePresence)SceneAgent;
-            if(mysp != null && !mysp.IsDeleted)
-            {
-                cullingrange  = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
-//                    mycamera = mysp.CameraPosition;
-                mypos = mysp.AbsolutePosition;
-            }
-            else
-            {
-                CheckGroupsInViewBusy= false;
-                return;
-            }
+            float cullingrange = mysp.DrawDistance + m_scene.ReprioritizationDistance + 16f;
+            Vector3 mypos = mysp.AbsolutePosition;
 
             HashSet<SceneObjectGroup> NewGroupsInView = new HashSet<SceneObjectGroup>();
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
@@ -4570,7 +4556,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase e in entities)
             {
-                if(!IsActive)
+                if (!IsActive)
                     return;
 
                 if (e != null && e is SceneObjectGroup)
@@ -4579,27 +4565,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if(grp.IsDeleted || grp.IsAttachment)
                         continue;
 
-                    float bradius = grp.GetBoundsRadius();
-                    Vector3 grppos = grp.AbsolutePosition + grp.getBoundsCenter();
-//                        float dcam = (grppos - mycamera).LengthSquared();
+                    bool inviewgroups;
+                    lock (GroupsInView)
+                        inviewgroups = GroupsInView.Contains(grp);
+
+                    Vector3 grppos = grp.getCenterOffset();
                     float dpos = (grppos - mypos).LengthSquared();
-//                        if(dcam < dpos)
-//                            dpos = dcam;
 
-                    dpos = (float)Math.Sqrt(dpos) - bradius;
-
-                    bool inview;
-                    lock(GroupsInView)
-                        inview = GroupsInView.Contains(grp);
-
-                    if(dpos > cullingrange)
+                    float maxview = grp.GetBoundsRadius() + cullingrange;
+                    if (dpos > maxview * maxview)
                     {
-                        if(inview)
+                        if(inviewgroups)
                             kills.Add(grp);
                     }
                     else
                     {
-                        if(!inview)
+                        if(!inviewgroups)
                             GroupsNeedFullUpdate.Add(grp);
                         NewGroupsInView.Add(grp);
                     }
@@ -4614,7 +4595,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 List<uint> partIDs = new List<uint>();
                 foreach(SceneObjectGroup grp in kills)
                 {
-                    SendEntityUpdate(grp.RootPart,PrimUpdateFlags.Kill);
+                    SendEntityUpdate(grp.RootPart, PrimUpdateFlags.Kill);
                     foreach(SceneObjectPart p in grp.Parts)
                     {
                         if(p != grp.RootPart)
@@ -4636,7 +4617,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 foreach(SceneObjectGroup grp in GroupsNeedFullUpdate)
                 {
                     foreach(SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p,PrimUpdateFlags.CancelKill);
+                        SendEntityUpdate(p, PrimUpdateFlags.CancelKill);
                 }
             }
 
@@ -4645,13 +4626,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity)
         {
-            if (entity != null)
-            {
-                priority = m_prioritizer.GetUpdatePriority(this, entity);
-                return true;
-            }
+            if (entity == null)
+                return false;
 
-            return false;
+            priority = m_prioritizer.GetUpdatePriority(this, entity);
+            return true;
         }
 
         public void FlushPrimUpdates()
@@ -4831,7 +4810,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,false));
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity, requestFlags, true, false));
         }
 
         private void ResendPropertyUpdate(ObjectPropertyUpdate update)
@@ -4885,7 +4864,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
 
             EntityUpdate iupdate;
-            Int32 timeinqueue; // this is just debugging code & can be dropped later
 
             while (maxUpdateBytes > 0)
             {
@@ -4893,12 +4871,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if(orderedDequeue)
                     {
-                        if (!m_entityProps.TryOrderedDequeue(out iupdate, out timeinqueue))
+                        if (!m_entityProps.TryOrderedDequeue(out iupdate))
                             break;
                     }
                     else
                     {
-                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                        if (!m_entityProps.TryDequeue(out iupdate))
                             break;
                     }
                 }

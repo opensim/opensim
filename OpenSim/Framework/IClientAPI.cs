@@ -587,7 +587,6 @@ namespace OpenSim.Framework
     {
         private ISceneEntity m_entity;
         private PrimUpdateFlags m_flags;
-        private int m_updateTime;
 
         public ISceneEntity Entity
         {
@@ -599,41 +598,29 @@ namespace OpenSim.Framework
             get { return m_flags; }
         }
 
-        public int UpdateTime
+        public virtual void Update()
         {
-            get { return m_updateTime; }
+            // we are on the new one
+            if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
+                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
         }
 
         public virtual void Update(EntityUpdate oldupdate)
         {
             // we are on the new one
             PrimUpdateFlags updateFlags = oldupdate.Flags;
-            if(m_flags.HasFlag(PrimUpdateFlags.CancelKill))
+            if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
             {
                 m_flags = PrimUpdateFlags.FullUpdatewithAnim;
             }
-            else if(updateFlags.HasFlag(PrimUpdateFlags.Kill))
-                return;
-            else // kill case will just merge in
+            else
                 m_flags |= updateFlags;
-
-            // Use the older of the updates as the updateTime
-            if (Util.EnvironmentTickCountCompare(UpdateTime, oldupdate.UpdateTime) > 0)
-                m_updateTime = oldupdate.UpdateTime;
         }
 
         public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
         {
             m_entity = entity;
             m_flags = flags;
-            m_updateTime = Util.EnvironmentTickCount();
-        }
-
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, Int32 updateTime)
-        {
-            m_entity = entity;
-            m_flags = flags;
-            m_updateTime = updateTime;
         }
     }
 
@@ -694,7 +681,7 @@ namespace OpenSim.Framework
         FullUpdatewithAnim = FullUpdate | Animations,
 
         SendInTransit = 0x20000000, // 1 << 29
-        CancelKill =    0x41ffffff, // 1 << 30 
+        CancelKill =    0x40000000, // 1 << 30 
         Kill =          0x80000000 // 1 << 31
     }
 
