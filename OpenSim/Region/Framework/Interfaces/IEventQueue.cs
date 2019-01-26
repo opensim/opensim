@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Text;
 using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -58,11 +59,13 @@ namespace OpenSim.Region.Framework.Interfaces
         void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent,
                                 bool canVoiceChat, bool isModerator, bool textMute, bool isEnterorLeave);
         void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason);
-        void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
+        //void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
         void ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID);
         OSD BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
 
+        StringBuilder StartEvent(string eventName);
+        string EndEvent(StringBuilder sb);
     }
 }

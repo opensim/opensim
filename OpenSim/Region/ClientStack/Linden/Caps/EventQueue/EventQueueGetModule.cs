@@ -499,6 +499,23 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(item, avatarID);
         }
 */
+        public StringBuilder StartEvent(string eventName)
+        {
+            StringBuilder sb = new StringBuilder(256);
+            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddElem("message", eventName, sb);
+                LLSDxmlEncode.AddMap("body", sb);
+
+            return sb;
+        }
+
+        public string EndEvent(StringBuilder sb)
+        {
+                LLSDxmlEncode.AddEndMap(sb); // close body
+            LLSDxmlEncode.AddEndMap(sb); // close event
+            return sb.ToString();
+        }
+
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)

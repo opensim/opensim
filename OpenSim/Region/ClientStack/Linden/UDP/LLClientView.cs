@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
+using System.Text;
 using System.Threading;
 
 using log4net;
@@ -4847,19 +4848,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
         }
 
-       List<ObjectPropertiesFamilyPacket.ObjectDataBlock> objectFamilyBlocks = new
-                List<ObjectPropertiesFamilyPacket.ObjectDataBlock>();
-       List<ObjectPropertiesPacket.ObjectDataBlock> objectPropertiesBlocks =
-                new List<ObjectPropertiesPacket.ObjectDataBlock>();
-       List<SceneObjectPart> needPhysics = new List<SceneObjectPart>();
-
         private void ProcessEntityPropertyRequests(int maxUpdateBytes)
         {
-//            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> familyUpdates =
-//                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
-
-//            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
-//                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
+            List<ObjectPropertiesFamilyPacket.ObjectDataBlock> objectFamilyBlocks = null;
+            List<ObjectPropertiesPacket.ObjectDataBlock> objectPropertiesBlocks = null;
+            List<SceneObjectPart> needPhysics = null;
 
             bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
 
@@ -4888,8 +4881,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
+                        if(objectFamilyBlocks == null)
+                            objectFamilyBlocks = new List<ObjectPropertiesFamilyPacket.ObjectDataBlock>();
                         objectFamilyBlocks.Add(objPropDB);
-//                        familyUpdates.Value.Add(update);
                         maxUpdateBytes -= objPropDB.Length;
                     }
                 }
@@ -4899,25 +4893,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
+                        if(needPhysics == null)
+                            needPhysics = new List<SceneObjectPart>();
                         needPhysics.Add(sop);
                         ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
+                        if(objectPropertiesBlocks == null)
+                            objectPropertiesBlocks = new List<ObjectPropertiesPacket.ObjectDataBlock>();
                         objectPropertiesBlocks.Add(objPropDB);
-//                        propertyUpdates.Value.Add(update);
                         maxUpdateBytes -= objPropDB.Length;
                     }
                 }
             }
 
-            if (objectPropertiesBlocks.Count > 0)
+            if (objectPropertiesBlocks != null)
             {
                 ObjectPropertiesPacket packet = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
                 packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[objectPropertiesBlocks.Count];
                 for (int i = 0; i < objectPropertiesBlocks.Count; i++)
                     packet.ObjectData[i] = objectPropertiesBlocks[i];
-
-
-                objectPropertiesBlocks.Clear();
-                packet.Header.Zerocoded = true;
 
                 // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                 // of the object rather than the properties when the packet was created
@@ -4928,15 +4921,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //              ResendPropertyUpdates(propertyUpdates.Value, oPacket);
                 //          });
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
-
-                // pbcnt += blocks.Count;
-                // ppcnt++;
             }
 
-            // Int32 fpcnt = 0;
-            // Int32 fbcnt = 0;
-
-            if (objectFamilyBlocks.Count > 0)
+            if (objectFamilyBlocks != null)
             {
                 // one packet per object block... uggh...
                 for (int i = 0; i < objectFamilyBlocks.Count; i++)
@@ -4945,7 +4932,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
 
                     packet.ObjectData = objectFamilyBlocks[i];
-                    packet.Header.Zerocoded = true;
 
                     // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                     // of the object rather than the properties when the packet was created
@@ -4958,41 +4944,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //              ResendPropertyUpdates(updates, oPacket);
                     //          });
                     OutPacket(packet, ThrottleOutPacketType.Task, true);
-
-                    // fpcnt++;
-                    // fbcnt++;
                 }
-                objectFamilyBlocks.Clear();
             }
 
-            if(needPhysics.Count > 0)
+            if(needPhysics != null)
             {
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if(eq != null)
                 {
-                    OSDArray array = new OSDArray();
-                    foreach(SceneObjectPart sop in needPhysics)
+                    StringBuilder sb = eq.StartEvent("ObjectPhysicsProperties");
+                    LLSDxmlEncode.AddArray("ObjectData", sb);
+                    foreach (SceneObjectPart sop in needPhysics)
                     {
-                        OSDMap physinfo = new OSDMap(6);
-                        physinfo["LocalID"] = sop.LocalId;
-                        physinfo["Density"] = sop.Density;
-                        physinfo["Friction"] = sop.Friction;
-                        physinfo["GravityMultiplier"] = sop.GravityModifier;
-                        physinfo["Restitution"] = sop.Restitution;
-                        physinfo["PhysicsShapeType"] = (int)sop.PhysicsShapeType;
-                        array.Add(physinfo);
+                        LLSDxmlEncode.AddMap(sb);
+                            LLSDxmlEncode.AddElem("LocalID",(int)sop.LocalId, sb);
+                            LLSDxmlEncode.AddElem("Density", sop.Density, sb);
+                            LLSDxmlEncode.AddElem("Friction", sop.Friction, sb);
+                            LLSDxmlEncode.AddElem("GravityMultiplier", sop.GravityModifier, sb);
+                            LLSDxmlEncode.AddElem("Restitution", sop.Restitution, sb);
+                            LLSDxmlEncode.AddElem("PhysicsShapeType", (int)sop.PhysicsShapeType, sb);
+                        LLSDxmlEncode.AddEndMap(sb);
                     }
-
-                    OSDMap llsdBody = new OSDMap(1);
-                    llsdBody.Add("ObjectData", array);
-
-                    eq.Enqueue(BuildEvent("ObjectPhysicsProperties", llsdBody),AgentId);
-                 }
-                 needPhysics.Clear();
+                    LLSDxmlEncode.AddEndArray(sb);
+                    OSDllsdxml ev = new OSDllsdxml(eq.EndEvent(sb));
+                    eq.Enqueue(ev, AgentId);
+                }
             }
-
-            // m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
-            // m_log.WarnFormat("[PACKETCOUNTS] queued {0} family property packets with {1} blocks",fpcnt,fbcnt);
         }
 
         private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, PrimUpdateFlags requestFlags)
@@ -5309,115 +5286,212 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              int sequence_id, bool snap_selection, int request_result, ILandObject lo,
              float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
-//            m_log.DebugFormat("[LLCLIENTVIEW]: Sending land properties for {0} to {1}", lo.LandData.GlobalID, Name);
+            //            m_log.DebugFormat("[LLCLIENTVIEW]: Sending land properties for {0} to {1}", lo.LandData.GlobalID, Name);
+
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+            {
+                m_log.Warn("[LLCLIENTVIEW]: No EQ Interface when sending parcel data.");
+                return;
+            }
 
             LandData landData = lo.LandData;
+            IPrimCounts pc = lo.PrimCounts;
 
             ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
 
-            updateMessage.AABBMax = landData.AABBMax;
-            updateMessage.AABBMin = landData.AABBMin;
-            updateMessage.Area = landData.Area;
-            updateMessage.AuctionID = landData.AuctionID;
-            updateMessage.AuthBuyerID = landData.AuthBuyerID;
-            updateMessage.Bitmap = landData.Bitmap;
-            updateMessage.Desc = landData.Description;
-            updateMessage.Category = landData.Category;
-            updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
-            updateMessage.ClaimPrice = landData.ClaimPrice;
-            updateMessage.GroupID = landData.GroupID;
-            updateMessage.IsGroupOwned = landData.IsGroupOwned;
-            updateMessage.LandingType = (LandingType) landData.LandingType;
-            updateMessage.LocalID = landData.LocalID;
+            StringBuilder sb = eq.StartEvent("ParcelProperties");
 
+            LLSDxmlEncode.AddArray("ParcelData", sb);
+            LLSDxmlEncode.AddMap(sb);
+
+            LLSDxmlEncode.AddElem("LocalID", landData.LocalID, sb);
+            LLSDxmlEncode.AddElem("AABBMax", landData.AABBMax, sb);
+            LLSDxmlEncode.AddElem("AABBMin", landData.AABBMin, sb);
+            LLSDxmlEncode.AddElem("Area", landData.Area, sb);
+            LLSDxmlEncode.AddElem("AuctionID", (int)landData.AuctionID, sb);
+            LLSDxmlEncode.AddElem("AuthBuyerID", landData.AuthBuyerID, sb);
+            LLSDxmlEncode.AddElem("Bitmap", landData.Bitmap, sb);
+            LLSDxmlEncode.AddElem("Category", (int)landData.Category, sb);
+            LLSDxmlEncode.AddElem("ClaimDate", Util.ToDateTime(landData.ClaimDate), sb);
+            LLSDxmlEncode.AddElem("ClaimPrice", landData.ClaimPrice, sb);
+            LLSDxmlEncode.AddElem("Desc", landData.Description, sb);
+            LLSDxmlEncode.AddElem("ParcelFlags", landData.Flags, sb);
+            LLSDxmlEncode.AddElem("GroupID", landData.GroupID, sb);
+            LLSDxmlEncode.AddElem("GroupPrims", pc.Group, sb);
+            LLSDxmlEncode.AddElem("IsGroupOwned", landData.IsGroupOwned, sb);
+            LLSDxmlEncode.AddElem("LandingType", (int)landData.LandingType, sb);
             if (landData.Area > 0)
-            {
-                updateMessage.MaxPrims = parcelObjectCapacity;
-            }
+                LLSDxmlEncode.AddElem("MaxPrims", parcelObjectCapacity, sb);
             else
-            {
-                updateMessage.MaxPrims = 0;
-            }
-
-            updateMessage.MediaAutoScale = Convert.ToBoolean(landData.MediaAutoScale);
-            updateMessage.MediaID = landData.MediaID;
-            updateMessage.MediaURL = landData.MediaURL;
-            updateMessage.MusicURL = landData.MusicURL;
-            updateMessage.Name = landData.Name;
-            updateMessage.OtherCleanTime = landData.OtherCleanTime;
-            updateMessage.OtherCount = 0; //TODO: Unimplemented
-            updateMessage.OwnerID = landData.OwnerID;
-            updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
-            updateMessage.ParcelPrimBonus = simObjectBonusFactor;
-            updateMessage.PassHours = landData.PassHours;
-            updateMessage.PassPrice = landData.PassPrice;
-            updateMessage.PublicCount = 0; //TODO: Unimplemented
-
-            updateMessage.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
-            updateMessage.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
-
-            //updateMessage.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
-            //updateMessage.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
-
-            updateMessage.RentPrice = 0;
-            updateMessage.RequestResult = (ParcelResult) request_result;
-            updateMessage.SalePrice = landData.SalePrice;
-            updateMessage.SelfCount = 0; //TODO: Unimplemented
-            updateMessage.SequenceID = sequence_id;
-
+                LLSDxmlEncode.AddElem("MaxPrims", (int)0, sb);
+            LLSDxmlEncode.AddElem("MediaID", landData.MediaID, sb);
+            LLSDxmlEncode.AddElem("MediaURL", landData.MediaURL, sb);
+            LLSDxmlEncode.AddElem("MediaAutoScale", landData.MediaAutoScale != 0, sb);
+            LLSDxmlEncode.AddElem("MusicURL", landData.MusicURL, sb);
+            LLSDxmlEncode.AddElem("Name", landData.Name, sb);
+            LLSDxmlEncode.AddElem("OtherCleanTime", landData.OtherCleanTime, sb);
+            LLSDxmlEncode.AddElem("OtherCount", (int)0 , sb); //TODO
+            LLSDxmlEncode.AddElem("OtherPrims", pc.Others, sb);
+            LLSDxmlEncode.AddElem("OwnerID", landData.OwnerID, sb);
+            LLSDxmlEncode.AddElem("OwnerPrims", pc.Owner, sb);
+            LLSDxmlEncode.AddElem("ParcelPrimBonus", simObjectBonusFactor, sb);
+            LLSDxmlEncode.AddElem("PassHours", landData.PassHours, sb);
+            LLSDxmlEncode.AddElem("PassPrice", landData.PassPrice, sb);
+            LLSDxmlEncode.AddElem("PublicCount", (int)0, sb); //TODO
+            LLSDxmlEncode.AddElem("Privacy", false, sb); //TODO ??
+            LLSDxmlEncode.AddElem("RegionDenyAnonymous", (regionFlags & (uint)RegionFlags.DenyAnonymous) != 0, sb);
+            //LLSDxmlEncode.AddElem("RegionDenyIdentified", (regionFlags & (uint)RegionFlags.DenyIdentified) != 0, sb);
+            LLSDxmlEncode.AddElem("RegionDenyIdentified", false, sb);
+            //LLSDxmlEncode.AddElem("RegionDenyTransacted", (regionFlags & (uint)RegionFlags.DenyTransacted) != 0, sb);
+            LLSDxmlEncode.AddElem("RegionDenyTransacted", false, sb);
+            LLSDxmlEncode.AddElem("RegionPushOverride", (regionFlags & (uint)RegionFlags.RestrictPushObject) != 0, sb);
+            LLSDxmlEncode.AddElem("RentPrice", (int) 0, sb);;
+            LLSDxmlEncode.AddElem("RequestResult", request_result, sb);
+            LLSDxmlEncode.AddElem("SalePrice", landData.SalePrice, sb);
+            LLSDxmlEncode.AddElem("SelectedPrims", pc.Selected, sb);
+            LLSDxmlEncode.AddElem("SelfCount", (int)0, sb); //TODO
+            LLSDxmlEncode.AddElem("SequenceID", sequence_id, sb);
             if (landData.SimwideArea > 0)
-            {
-                updateMessage.SimWideMaxPrims = lo.GetSimulatorMaxPrimCount();
-            }
+                LLSDxmlEncode.AddElem("SimWideMaxPrims", lo.GetSimulatorMaxPrimCount(), sb);
             else
-            {
-                updateMessage.SimWideMaxPrims = 0;
-            }
+                LLSDxmlEncode.AddElem("SimWideMaxPrims", (int)0, sb);
+            LLSDxmlEncode.AddElem("SimWideTotalPrims", pc.Simulator, sb);
+            LLSDxmlEncode.AddElem("SnapSelection", snap_selection, sb);
+            LLSDxmlEncode.AddElem("SnapshotID", landData.SnapshotID, sb);
+            LLSDxmlEncode.AddElem("Status", (int)landData.Status, sb);
+            LLSDxmlEncode.AddElem("TotalPrims", pc.Total, sb);
+            LLSDxmlEncode.AddElem("UserLocation", landData.UserLocation, sb);
+            LLSDxmlEncode.AddElem("UserLookAt", landData.UserLookAt, sb);
+            LLSDxmlEncode.AddElem("SeeAVs", landData.SeeAVs, sb);
+            LLSDxmlEncode.AddElem("AnyAVSounds", landData.AnyAVSounds, sb);
+            LLSDxmlEncode.AddElem("GroupAVSounds", landData.GroupAVSounds, sb);
 
-            updateMessage.SnapSelection = snap_selection;
-            updateMessage.SnapshotID    = landData.SnapshotID;
-            updateMessage.Status        = (ParcelStatus) landData.Status;
-            updateMessage.UserLocation  = landData.UserLocation;
-            updateMessage.UserLookAt    = landData.UserLookAt;
+            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode.AddEndArray(sb);
 
-            updateMessage.MediaType     = landData.MediaType;
-            updateMessage.MediaDesc     = landData.MediaDescription;
-            updateMessage.MediaWidth    = landData.MediaWidth;
-            updateMessage.MediaHeight   = landData.MediaHeight;
-            updateMessage.MediaLoop     = landData.MediaLoop;
-            updateMessage.ObscureMusic  = landData.ObscureMusic;
-            updateMessage.ObscureMedia  = landData.ObscureMedia;
+            LLSDxmlEncode.AddArray("MediaData", sb);
+            LLSDxmlEncode.AddMap(sb);
 
-            updateMessage.SeeAVs        = landData.SeeAVs;
-            updateMessage.AnyAVSounds   = landData.AnyAVSounds;
-            updateMessage.GroupAVSounds = landData.GroupAVSounds;
+            LLSDxmlEncode.AddElem("MediaDesc", landData.MediaDescription, sb);
+            LLSDxmlEncode.AddElem("MediaHeight", landData.MediaHeight, sb);
+            LLSDxmlEncode.AddElem("MediaWidth", landData.MediaWidth, sb);
+            LLSDxmlEncode.AddElem("MediaLoop", landData.MediaLoop, sb);
+            LLSDxmlEncode.AddElem("MediaType", landData.MediaType, sb);
+            LLSDxmlEncode.AddElem("ObscureMedia", landData.ObscureMedia, sb);
+            LLSDxmlEncode.AddElem("ObscureMusic", landData.ObscureMusic, sb);
 
-            IPrimCounts pc = lo.PrimCounts;
-            updateMessage.OwnerPrims        = pc.Owner;
-            updateMessage.GroupPrims        = pc.Group;
-            updateMessage.OtherPrims        = pc.Others;
-            updateMessage.SelectedPrims     = pc.Selected;
-            updateMessage.TotalPrims        = pc.Total;
-            updateMessage.SimWideTotalPrims = pc.Simulator;
+            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode.AddEndArray(sb);
 
-            //m_log.DebugFormat("[YYY]: SimWideMaxPrims={0} OwnerPrims={1} TotalPrims={2} SimWideTotalPrims={3} MaxPrims={4}",
-            //    updateMessage.SimWideMaxPrims, updateMessage.OwnerPrims, updateMessage.TotalPrims, updateMessage.SimWideTotalPrims, updateMessage.MaxPrims);
-            try
-            {
-                IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-                if (eq != null)
-                {
-                    eq.ParcelProperties(updateMessage, this.AgentId);
-                }
-                else
-                {
-                    m_log.Warn("[LLCLIENTVIEW]: No EQ Interface when sending parcel data.");
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.Error("[LLCLIENTVIEW]: Unable to send parcel data via eventqueue - exception: " + ex.ToString());
-            }
+            LLSDxmlEncode.AddArray("AgeVerificationBlock", sb);
+            LLSDxmlEncode.AddMap(sb);
+
+            //LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", (regionFlags & (uint)RegionFlags.DenyAgeUnverified) != 0, sb);
+            LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", false, sb);
+
+            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode.AddEndArray(sb);
+
+            OSDllsdxml ev = new OSDllsdxml(eq.EndEvent(sb));
+            eq.Enqueue(ev, AgentId);
+
+            /*
+                        updateMessage.AABBMax = landData.AABBMax;
+                        updateMessage.AABBMin = landData.AABBMin;
+                        updateMessage.Area = landData.Area;
+                        updateMessage.AuctionID = landData.AuctionID;
+                        updateMessage.AuthBuyerID = landData.AuthBuyerID;
+                        updateMessage.Bitmap = landData.Bitmap;
+                        updateMessage.Desc = landData.Description;
+                        updateMessage.Category = landData.Category;
+                        updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
+                        updateMessage.ClaimPrice = landData.ClaimPrice;
+                        updateMessage.GroupID = landData.GroupID;
+                        updateMessage.IsGroupOwned = landData.IsGroupOwned;
+                        updateMessage.LandingType = (LandingType) landData.LandingType;
+                        updateMessage.LocalID = landData.LocalID;
+
+                        if (landData.Area > 0)
+                        {
+                            updateMessage.MaxPrims = parcelObjectCapacity;
+                        }
+                        else
+                        {
+                            updateMessage.MaxPrims = 0;
+                        }
+
+                        updateMessage.MediaAutoScale = Convert.ToBoolean(landData.MediaAutoScale);
+                        updateMessage.MediaID = landData.MediaID;
+                        updateMessage.MediaURL = landData.MediaURL;
+                        updateMessage.MusicURL = landData.MusicURL;
+                        updateMessage.Name = landData.Name;
+                        updateMessage.OtherCleanTime = landData.OtherCleanTime;
+                        updateMessage.OtherCount = 0; //TODO: Unimplemented
+                        updateMessage.OwnerID = landData.OwnerID;
+                        updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
+                        updateMessage.ParcelPrimBonus = simObjectBonusFactor;
+                        updateMessage.PassHours = landData.PassHours;
+                        updateMessage.PassPrice = landData.PassPrice;
+                        updateMessage.PublicCount = 0; //TODO: Unimplemented
+
+                        updateMessage.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
+                        updateMessage.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
+
+                        //updateMessage.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
+                        //updateMessage.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
+
+                        updateMessage.RentPrice = 0;
+                        updateMessage.RequestResult = (ParcelResult) request_result;
+                        updateMessage.SalePrice = landData.SalePrice;
+                        updateMessage.SelfCount = 0; //TODO: Unimplemented
+                        updateMessage.SequenceID = sequence_id;
+
+                        if (landData.SimwideArea > 0)
+                        {
+                            updateMessage.SimWideMaxPrims = lo.GetSimulatorMaxPrimCount();
+                        }
+                        else
+                        {
+                            updateMessage.SimWideMaxPrims = 0;
+                        }
+
+                        updateMessage.SnapSelection = snap_selection;
+                        updateMessage.SnapshotID    = landData.SnapshotID;
+                        updateMessage.Status        = (ParcelStatus) landData.Status;
+                        updateMessage.UserLocation  = landData.UserLocation;
+                        updateMessage.UserLookAt    = landData.UserLookAt;
+
+                        updateMessage.MediaType     = landData.MediaType;
+                        updateMessage.MediaDesc     = landData.MediaDescription;
+                        updateMessage.MediaWidth    = landData.MediaWidth;
+                        updateMessage.MediaHeight   = landData.MediaHeight;
+                        updateMessage.MediaLoop     = landData.MediaLoop;
+                        updateMessage.ObscureMusic  = landData.ObscureMusic;
+                        updateMessage.ObscureMedia  = landData.ObscureMedia;
+
+                        updateMessage.SeeAVs        = landData.SeeAVs;
+                        updateMessage.AnyAVSounds   = landData.AnyAVSounds;
+                        updateMessage.GroupAVSounds = landData.GroupAVSounds;
+
+                        updateMessage.OwnerPrims        = pc.Owner;
+                        updateMessage.GroupPrims        = pc.Group;
+                        updateMessage.OtherPrims        = pc.Others;
+                        updateMessage.SelectedPrims     = pc.Selected;
+                        updateMessage.TotalPrims        = pc.Total;
+                        updateMessage.SimWideTotalPrims = pc.Simulator;
+
+                        //m_log.DebugFormat("[YYY]: SimWideMaxPrims={0} OwnerPrims={1} TotalPrims={2} SimWideTotalPrims={3} MaxPrims={4}",
+                        //    updateMessage.SimWideMaxPrims, updateMessage.OwnerPrims, updateMessage.TotalPrims, updateMessage.SimWideTotalPrims, updateMessage.MaxPrims);
+                        try
+                        {
+                            eq.ParcelProperties(updateMessage, this.AgentId);
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Error("[LLCLIENTVIEW]: Unable to send parcel data via eventqueue - exception: " + ex.ToString());
+                        }
+            */
         }
 
         public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)
