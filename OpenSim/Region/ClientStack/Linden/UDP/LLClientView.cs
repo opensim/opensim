@@ -2816,29 +2816,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
-            SceneObjectPart part = (SceneObjectPart)entity;
-            if (part != null && AgentId != UUID.Zero)
-            {
-                try
-                {
-                    IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-                    if (eq != null)
-                    {
-                        uint localid = part.LocalId;
-                        byte physshapetype = part.PhysicsShapeType;
-                        float density = part.Density;
-                        float friction = part.Friction;
-                        float bounce = part.Restitution;
-                        float gravmod = part.GravityModifier;
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+                return;
 
-                        eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    m_log.Error("Unable to send part Physics Proprieties - exception: " + ex.ToString());
-                }
-            }
+            SceneObjectPart part = (SceneObjectPart)entity;
+            if (part == null)
+                return;
+
+            uint localid = part.LocalId;
+            byte physshapetype = part.PhysicsShapeType;
+            float density = part.Density;
+            float friction = part.Friction;
+            float bounce = part.Restitution;
+            float gravmod = part.GravityModifier;
+
+            eq.partPhysicsProperties(localid, physshapetype, density, friction, bounce, gravmod,AgentId);
         }
 
 
@@ -3406,37 +3399,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
-             OSDMap llsd = new OSDMap(3);
-             OSDArray AgentData = new OSDArray(1);
-             OSDMap AgentDataMap = new OSDMap(1);
-             AgentDataMap.Add("AgentID", OSD.FromUUID(this.AgentId));
-             AgentDataMap.Add("AvatarID", OSD.FromUUID(avatarID));
-             AgentData.Add(AgentDataMap);
-             llsd.Add("AgentData", AgentData);
-             OSDArray GroupData = new OSDArray(data.Length);
-//             OSDArray NewGroupData = new OSDArray(data.Length);
-             foreach (GroupMembershipData m in data)
-             {
-                 OSDMap GroupDataMap = new OSDMap(6);
-                 OSDMap NewGroupDataMap = new OSDMap(1);
-                 GroupDataMap.Add("GroupPowers", OSD.FromULong(m.GroupPowers));
-                 GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
-                 GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
-                 GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
-                 GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
-                 GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
-//                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
-                 GroupData.Add(GroupDataMap);
-//                 NewGroupData.Add(NewGroupDataMap);
-             }
-             llsd.Add("GroupData", GroupData);
- //            llsd.Add("NewGroupData", NewGroupData);
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+                return;
 
-             IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
-             if (eq != null)
-             {
-                 eq.Enqueue(BuildEvent("AvatarGroupsReply", llsd), this.AgentId);
-             }
+            // message template has a GroupData field AcceptNotices ignored by viewers
+            // and a array NewGroupData also ignored
+            StringBuilder sb = eq.StartEvent("AvatarGroupsReply");
+
+            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
+                LLSDxmlEncode.AddElem("AgentID", AgentId, sb);
+                LLSDxmlEncode.AddElem("AvatarID", avatarID, sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
+
+            if(data.Length == 0)
+                LLSDxmlEncode.AddEmptyArray("GroupData", sb);
+            else
+            {
+                LLSDxmlEncode.AddArray("GroupData", sb);
+                foreach (GroupMembershipData m in data)
+                {
+                    LLSDxmlEncode.AddMap(sb);
+                       LLSDxmlEncode.AddElem("GroupPowers", m.GroupPowers, sb);
+                        LLSDxmlEncode.AddElem("GroupTitle", m.GroupTitle, sb);
+                        LLSDxmlEncode.AddElem("GroupID",m.GroupID, sb);
+                        LLSDxmlEncode.AddElem("GroupName", m.GroupName, sb);
+                        LLSDxmlEncode.AddElem("GroupInsigniaID", m.GroupPicture, sb);
+                    LLSDxmlEncode.AddEndMap(sb);
+                }
+                LLSDxmlEncode.AddEndArray(sb);
+            }
+
+            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
+            eq.Enqueue(ev, AgentId);
         }
 
         public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
@@ -5277,7 +5272,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ParcelOverlayPacket packet = (ParcelOverlayPacket)PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
             packet.ParcelData.Data = data;
             packet.ParcelData.SequenceID = sequence_id;
-            packet.Header.Zerocoded = true;
 //            OutPacket(packet, ThrottleOutPacketType.Task);
             OutPacket(packet, ThrottleOutPacketType.Land);
         }
@@ -5298,12 +5292,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LandData landData = lo.LandData;
             IPrimCounts pc = lo.PrimCounts;
 
-            ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
-
             StringBuilder sb = eq.StartEvent("ParcelProperties");
 
-            LLSDxmlEncode.AddArray("ParcelData", sb);
-            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddArrayAndMap("ParcelData", sb);
 
             LLSDxmlEncode.AddElem("LocalID", landData.LocalID, sb);
             LLSDxmlEncode.AddElem("AABBMax", landData.AABBMax, sb);
@@ -5339,7 +5330,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode.AddElem("PassHours", landData.PassHours, sb);
             LLSDxmlEncode.AddElem("PassPrice", landData.PassPrice, sb);
             LLSDxmlEncode.AddElem("PublicCount", (int)0, sb); //TODO
-            LLSDxmlEncode.AddElem("Privacy", false, sb); //TODO ??
             LLSDxmlEncode.AddElem("RegionDenyAnonymous", (regionFlags & (uint)RegionFlags.DenyAnonymous) != 0, sb);
             //LLSDxmlEncode.AddElem("RegionDenyIdentified", (regionFlags & (uint)RegionFlags.DenyIdentified) != 0, sb);
             LLSDxmlEncode.AddElem("RegionDenyIdentified", false, sb);
@@ -5367,11 +5357,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode.AddElem("AnyAVSounds", landData.AnyAVSounds, sb);
             LLSDxmlEncode.AddElem("GroupAVSounds", landData.GroupAVSounds, sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
-            LLSDxmlEncode.AddEndArray(sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            LLSDxmlEncode.AddArray("MediaData", sb);
-            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddArrayAndMap("MediaData", sb);
 
             LLSDxmlEncode.AddElem("MediaDesc", landData.MediaDescription, sb);
             LLSDxmlEncode.AddElem("MediaHeight", landData.MediaHeight, sb);
@@ -5381,117 +5369,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode.AddElem("ObscureMedia", landData.ObscureMedia, sb);
             LLSDxmlEncode.AddElem("ObscureMusic", landData.ObscureMusic, sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
-            LLSDxmlEncode.AddEndArray(sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            LLSDxmlEncode.AddArray("AgeVerificationBlock", sb);
-            LLSDxmlEncode.AddMap(sb);
+            LLSDxmlEncode.AddArrayAndMap("AgeVerificationBlock", sb);
 
             //LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", (regionFlags & (uint)RegionFlags.DenyAgeUnverified) != 0, sb);
             LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", false, sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
-            LLSDxmlEncode.AddEndArray(sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
             OSDllsdxml ev = new OSDllsdxml(eq.EndEvent(sb));
             eq.Enqueue(ev, AgentId);
 
-            /*
-                        updateMessage.AABBMax = landData.AABBMax;
-                        updateMessage.AABBMin = landData.AABBMin;
-                        updateMessage.Area = landData.Area;
-                        updateMessage.AuctionID = landData.AuctionID;
-                        updateMessage.AuthBuyerID = landData.AuthBuyerID;
-                        updateMessage.Bitmap = landData.Bitmap;
-                        updateMessage.Desc = landData.Description;
-                        updateMessage.Category = landData.Category;
-                        updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
-                        updateMessage.ClaimPrice = landData.ClaimPrice;
-                        updateMessage.GroupID = landData.GroupID;
-                        updateMessage.IsGroupOwned = landData.IsGroupOwned;
-                        updateMessage.LandingType = (LandingType) landData.LandingType;
-                        updateMessage.LocalID = landData.LocalID;
-
-                        if (landData.Area > 0)
-                        {
-                            updateMessage.MaxPrims = parcelObjectCapacity;
-                        }
-                        else
-                        {
-                            updateMessage.MaxPrims = 0;
-                        }
-
-                        updateMessage.MediaAutoScale = Convert.ToBoolean(landData.MediaAutoScale);
-                        updateMessage.MediaID = landData.MediaID;
-                        updateMessage.MediaURL = landData.MediaURL;
-                        updateMessage.MusicURL = landData.MusicURL;
-                        updateMessage.Name = landData.Name;
-                        updateMessage.OtherCleanTime = landData.OtherCleanTime;
-                        updateMessage.OtherCount = 0; //TODO: Unimplemented
-                        updateMessage.OwnerID = landData.OwnerID;
-                        updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
-                        updateMessage.ParcelPrimBonus = simObjectBonusFactor;
-                        updateMessage.PassHours = landData.PassHours;
-                        updateMessage.PassPrice = landData.PassPrice;
-                        updateMessage.PublicCount = 0; //TODO: Unimplemented
-
-                        updateMessage.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
-                        updateMessage.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
-
-                        //updateMessage.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
-                        //updateMessage.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
-
-                        updateMessage.RentPrice = 0;
-                        updateMessage.RequestResult = (ParcelResult) request_result;
-                        updateMessage.SalePrice = landData.SalePrice;
-                        updateMessage.SelfCount = 0; //TODO: Unimplemented
-                        updateMessage.SequenceID = sequence_id;
-
-                        if (landData.SimwideArea > 0)
-                        {
-                            updateMessage.SimWideMaxPrims = lo.GetSimulatorMaxPrimCount();
-                        }
-                        else
-                        {
-                            updateMessage.SimWideMaxPrims = 0;
-                        }
-
-                        updateMessage.SnapSelection = snap_selection;
-                        updateMessage.SnapshotID    = landData.SnapshotID;
-                        updateMessage.Status        = (ParcelStatus) landData.Status;
-                        updateMessage.UserLocation  = landData.UserLocation;
-                        updateMessage.UserLookAt    = landData.UserLookAt;
-
-                        updateMessage.MediaType     = landData.MediaType;
-                        updateMessage.MediaDesc     = landData.MediaDescription;
-                        updateMessage.MediaWidth    = landData.MediaWidth;
-                        updateMessage.MediaHeight   = landData.MediaHeight;
-                        updateMessage.MediaLoop     = landData.MediaLoop;
-                        updateMessage.ObscureMusic  = landData.ObscureMusic;
-                        updateMessage.ObscureMedia  = landData.ObscureMedia;
-
-                        updateMessage.SeeAVs        = landData.SeeAVs;
-                        updateMessage.AnyAVSounds   = landData.AnyAVSounds;
-                        updateMessage.GroupAVSounds = landData.GroupAVSounds;
-
-                        updateMessage.OwnerPrims        = pc.Owner;
-                        updateMessage.GroupPrims        = pc.Group;
-                        updateMessage.OtherPrims        = pc.Others;
-                        updateMessage.SelectedPrims     = pc.Selected;
-                        updateMessage.TotalPrims        = pc.Total;
-                        updateMessage.SimWideTotalPrims = pc.Simulator;
-
-                        //m_log.DebugFormat("[YYY]: SimWideMaxPrims={0} OwnerPrims={1} TotalPrims={2} SimWideTotalPrims={3} MaxPrims={4}",
-                        //    updateMessage.SimWideMaxPrims, updateMessage.OwnerPrims, updateMessage.TotalPrims, updateMessage.SimWideTotalPrims, updateMessage.MaxPrims);
-                        try
-                        {
-                            eq.ParcelProperties(updateMessage, this.AgentId);
-                        }
-                        catch (Exception ex)
-                        {
-                            m_log.Error("[LLCLIENTVIEW]: Unable to send parcel data via eventqueue - exception: " + ex.ToString());
-                        }
-            */
         }
 
         public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)

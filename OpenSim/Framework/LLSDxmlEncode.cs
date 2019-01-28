@@ -48,6 +48,8 @@ namespace OpenSim.Framework
                 sb.Append("<llsd>");
         }
 
+        public const string LLSDEmpty = "<llsd><map /></llsd>";
+
         // got tired of creating a stringbuilder all the time;
         public static StringBuilder Start(int size = 256, bool addxmlversion = false)
         {
@@ -95,6 +97,11 @@ namespace OpenSim.Framework
         public static void AddEndArray(StringBuilder sb)
         {
             sb.Append("</array>");
+        }
+
+        public static void AddEndMapAndArray(StringBuilder sb)
+        {
+            sb.Append("</map></array>");
         }
 
         public static void AddEmptyArray(StringBuilder sb)
@@ -384,6 +391,13 @@ namespace OpenSim.Framework
             sb.Append("<key>");
             sb.Append(name);
             sb.Append("</key><array>");
+        }
+
+        public static void AddArrayAndMap(string name, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key><array><map>");
         }
 
         public static void AddEmptyArray(string name, StringBuilder sb)
@@ -706,7 +720,7 @@ namespace OpenSim.Framework
 
         public static void AddLLSD(string e, StringBuilder sb)
         {
-            sb.Append(e);     
+            sb.Append(e);
         }
 
         public static void EscapeToXML(string s, StringBuilder sb)
@@ -746,14 +760,14 @@ namespace OpenSim.Framework
         {
             return new byte[8]
             {
-                (byte)((uLongValue >> 56) & 0xff),
-                (byte)((uLongValue >> 48) & 0xff),
-                (byte)((uLongValue >> 40) & 0xff),
-                (byte)((uLongValue >> 32) & 0xff),
-                (byte)((uLongValue >> 24) & 0xff),
-                (byte)((uLongValue >> 16) & 0xff),
-                (byte)((uLongValue >> 8) & 0xff),
-                (byte)(uLongValue & 0xff)
+                (byte)(uLongValue >> 56),
+                (byte)(uLongValue >> 48),
+                (byte)(uLongValue >> 40),
+                (byte)(uLongValue >> 32),
+                (byte)(uLongValue >> 24),
+                (byte)(uLongValue >> 16),
+                (byte)(uLongValue >> 8),
+                (byte)uLongValue
             };
         }
 
@@ -761,10 +775,10 @@ namespace OpenSim.Framework
         {
             return new byte[4]
             {
-                (byte)((value >> 24) & 0xff),
-                (byte)((value >> 16) & 0xff),
-                (byte)((value >> 8) & 0xff),
-                (byte)(value & 0xff)
+                (byte)(value >> 24),
+                (byte)(value >> 16),
+                (byte)(value >> 8),
+                (byte)value
             };
         }
     }
