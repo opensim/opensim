@@ -10601,11 +10601,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MapItemRequest handlerMapItemRequest = OnMapItemRequest;
             if (handlerMapItemRequest != null)
             {
-                handlerMapItemRequest(this, mirpk.AgentData.Flags, mirpk.AgentData.EstateID,
+                try
+                {
+                    handlerMapItemRequest(this, mirpk.AgentData.Flags, mirpk.AgentData.EstateID,
                                       mirpk.AgentData.Godlike, mirpk.RequestData.ItemType,
                                       mirpk.RequestData.RegionHandle);
-
+                }
+                catch( Exception e)
+                {
+                    m_log.ErrorFormat("{0} HandleMapItemRequest exception: {1}", LogHeader, e.Message);
+                }
             }
+
             return true;
         }
 
