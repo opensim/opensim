@@ -1180,14 +1180,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             //m_log.Debug("[PHYSICS]:ODELOCK");
             if (world == IntPtr.Zero)
                 return;
-
-            lock (OdeLock)
+            lock (SimulationLock)
+                lock (OdeLock)
             {
                 SafeNativeMethods.AllocateODEDataForThread(0);
                 ((OdeCharacter) actor).Destroy();
             }
         }
-
 
         public void addActivePrim(OdePrim activatePrim)
         {
@@ -1510,7 +1509,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int nodeframes = 0;
             float fps = 0;
 
-            lock(OdeLock)
+            lock (OdeLock)
             {
                 if (world == IntPtr.Zero)
                 {
@@ -1548,9 +1547,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         {
                             try
                             {
-                                lock (SimulationLock)
-                                {
-                                    if (item.actor is OdeCharacter)
+                                    lock (SimulationLock)
+                                    {
+                                        if (item.actor is OdeCharacter)
                                         ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
                                     else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
                                         RemovePrimThreadLocked((OdePrim)item.actor);
@@ -1599,17 +1598,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
 
                         // Move other active objects
-                        lock (_activegroups)
-                        {
-                            foreach (OdePrim aprim in _activegroups)
-                            {
-                                aprim.Move();
-                            }
-                        }
-                        // moveTime += Util.GetTimeStampMS() - tmpTime;
-                        // tmpTime =  Util.GetTimeStampMS();
                         lock (SimulationLock)
                         {
+                            lock (_activegroups)
+                            {
+                                foreach (OdePrim aprim in _activegroups)
+                                {
+                                    aprim.Move();
+                                }
+                            }
+                        // moveTime += Util.GetTimeStampMS() - tmpTime;
+                        // tmpTime =  Util.GetTimeStampMS();
                             m_rayCastManager.ProcessQueuedRequests();
                             // rayTime += Util.GetTimeStampMS() - tmpTime;
 
@@ -1667,37 +1666,41 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
                             SafeNativeMethods.JointGroupEmpty(contactgroup);
                         }
-//                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
+                        //                        qstepTIme += Util.GetTimeStampMS() - tmpTime;
 
                         // update managed ideia of physical data and do updates to core
-        /*
-                        lock (_characters)
-                        {
-                            foreach (OdeCharacter actor in _characters)
-                            {
-                                if (actor != null)
-                                {
-                                    if (actor.bad)
-                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        /*
+                                        lock (_characters)
+                                        {
+                                            foreach (OdeCharacter actor in _characters)
+                                            {
+                                                if (actor != null)
+                                                {
+                                                    if (actor.bad)
+                                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
-                                    actor.UpdatePositionAndVelocity();
-                                }
-                            }
-                        }
-        */
-//                        tmpTime =  Util.GetTimeStampMS();
-                        lock (_activegroups)
+                                                    actor.UpdatePositionAndVelocity();
+                                                }
+                                            }
+                                        }
+                        */
+                        //                        tmpTime =  Util.GetTimeStampMS();
+                        lock (SimulationLock)
                         {
+                            lock (_activegroups)
                             {
-                                foreach (OdePrim actor in _activegroups)
                                 {
-                                    if (actor.IsPhysical)
+                                    foreach (OdePrim actor in _activegroups)
                                     {
-                                        actor.UpdatePositionAndVelocity(framecount);
+                                        if (actor.IsPhysical)
+                                        {
+                                            actor.UpdatePositionAndVelocity(framecount);
+                                        }
                                     }
                                 }
                             }
                         }
+
 //                        updatesTime += Util.GetTimeStampMS() - tmpTime;
                     }
                     catch (Exception e)
