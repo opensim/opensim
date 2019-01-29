@@ -1939,7 +1939,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to find parcelID {0}", parcelID);
             }
 
-            return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
+            return LLSDxmlEncode.LLSDEmpty;
         }
         // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
         // "real" parcelID, because we wouldn't be able to map that to the region the parcel belongs to.

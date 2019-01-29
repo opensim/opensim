@@ -477,30 +477,48 @@ namespace OpenSim.Framework
 
         public TValue[] GetArray()
         {
-            TValue[] ret = new TValue[0];
-            bool gotLock = false;
+            bool gotupLock = false;
             try
             {
                 try { }
                 finally
                 {
-                    rwLock.EnterWriteLock();
-                    gotLock = true;
+                    rwLock.EnterUpgradeableReadLock();
+                    gotupLock = true;
+                }
 
-                    if (m_array == null)
+                if (m_array == null)
+                {
+                    bool gotwritelock = false;
+                    try
                     {
+                        try { }
+                        finally
+                        {
+                            rwLock.EnterWriteLock();
+                            gotwritelock = true;
+                        }
+
                         m_array = new TValue[Dictionary1.Count];
                         Dictionary1.Values.CopyTo(m_array, 0);
                     }
-                    ret = m_array;
+                    finally
+                    {
+                        if (gotwritelock)
+                            rwLock.ExitWriteLock();
+                    }
                 }
+                return m_array;
+            }
+            catch
+            {
+                return new TValue[0];
             }
             finally
             {
-                if (gotLock)
-                    rwLock.ExitWriteLock();
+                if (gotupLock)
+                    rwLock.ExitUpgradeableReadLock();
             }
-            return ret;
         }
     }
 }
