@@ -1143,7 +1143,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// This is the avatar's movement control + PID Controller
         /// </summary>
         /// <param name="timeStep"></param>
-        public void Move(List<OdeCharacter> defects)
+        public void Move()
         {
             if(Body == IntPtr.Zero)
                 return;
@@ -1180,40 +1180,50 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 _zeroPosition = localpos;
             }
 
-            if(!localpos.IsFinite())
-            {
-                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
-
-                // destroy avatar capsule and related ODE data
-                AvatarGeomAndBodyDestroy();
-                return;
-            }
-
             // check outbounds forcing to be in world
             bool fixbody = false;
-            if(localpos.X < 0.0f)
+            float tmp = localpos.X;
+            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
+            {
+                fixbody = true;
+                localpos.X = 128f;
+            }
+            else if (tmp < 0.0f)
             {
                 fixbody = true;
                 localpos.X = 0.1f;
             }
-            else if(localpos.X > m_parent_scene.WorldExtents.X - 0.1f)
+            else if (tmp > m_parent_scene.WorldExtents.X - 0.1f)
             {
                 fixbody = true;
                 localpos.X = m_parent_scene.WorldExtents.X - 0.1f;
             }
-            if(localpos.Y < 0.0f)
+
+            tmp = localpos.Y;
+            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
+            {
+                fixbody = true;
+                localpos.X = 128f;
+            }
+            else if (tmp < 0.0f)
             {
                 fixbody = true;
                 localpos.Y = 0.1f;
             }
-            else if(localpos.Y > m_parent_scene.WorldExtents.Y - 0.1)
+            else if(tmp > m_parent_scene.WorldExtents.Y - 0.1)
             {
                 fixbody = true;
                 localpos.Y = m_parent_scene.WorldExtents.Y - 0.1f;
             }
-            if(fixbody)
+
+            tmp = localpos.Z;
+            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
+            {
+                fixbody = true;
+                localpos.Z = 128f;
+            }
+
+            if (fixbody)
             {
                 m_freemove = false;
                 SafeNativeMethods.BodySetPosition(Body,localpos.X,localpos.Y,localpos.Z);
@@ -1387,7 +1397,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _zeroFlag = false;
                         fz /= m_PIDHoverTau;
 
-                        float tmp = Math.Abs(fz);
+                        tmp = Math.Abs(fz);
                         if(tmp > 50)
                             fz = 50 * Math.Sign(fz);
                         else if(tmp < 0.1)
@@ -1573,20 +1583,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(vec.IsFinite())
             {
-                if(vec.X != 0 || vec.Y !=0 || vec.Z !=0)
+                if((vec.X != 0 || vec.Y !=0 || vec.Z !=0))
                     SafeNativeMethods.BodyAddForce(Body,vec.X,vec.Y,vec.Z);
             }
-            else
-            {
-                m_log.Warn("[PHYSICS]: Got a NaN force vector in Move()");
-                m_log.Warn("[PHYSICS]: Avatar Position is non-finite!");
-                defects.Add(this);
-                // _parent_scene.RemoveCharacter(this);
-                // destroy avatar capsule and related ODE data
-                AvatarGeomAndBodyDestroy();
-                return;
-            }
-
+ 
             // update our local ideia of position velocity and aceleration
             //            _position = localpos;
             _position = localpos;
