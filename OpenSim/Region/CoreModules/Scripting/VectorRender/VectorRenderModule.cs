@@ -554,7 +554,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     }
                     else if (nextLine.StartsWith("Text"))
                     {
-                        nextLine = nextLine.Remove(0, 4);
+                        int start = 4;
+                        if(nextLine[4] == ' ')
+                            start++;
+                        nextLine = nextLine.Substring(start);
                         nextLine = nextLine.Trim();
                         graph.DrawString(nextLine, myFont, myBrush, startPoint);
                     }
