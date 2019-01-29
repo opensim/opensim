@@ -13074,15 +13074,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public static OSD BuildEvent(string eventName, OSD eventBody)
-        {
-            OSDMap osdEvent = new OSDMap(2);
-            osdEvent.Add("message", new OSDString(eventName));
-            osdEvent.Add("body", eventBody);
-
-            return osdEvent;
-        }
-
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
         {
             AvatarInterestsReplyPacket packet = (AvatarInterestsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarInterestsReply);
@@ -13235,39 +13226,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendRemoveInventoryItems(UUID[] items)
         {
             IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
-
             if (eq == null)
             {
                 m_log.DebugFormat("[LLCLIENT]: Null event queue");
                 return;
             }
 
-            OSDMap llsd = new OSDMap(3);
+            StringBuilder sb = eq.StartEvent("RemoveInventoryItem");
 
-            OSDMap AgentDataMap = new OSDMap(1);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-            AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
+            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
+                LLSDxmlEncode.AddElem("AgentID", AgentId, sb);
+                LLSDxmlEncode.AddElem("SessionID", SessionId, sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            OSDArray AgentData = new OSDArray(1);
-            AgentData.Add(AgentDataMap);
-
-            llsd.Add("AgentData", AgentData);
-
-            OSDArray ItemData = new OSDArray();
-
+            LLSDxmlEncode.AddArray("InventoryData", sb);
             foreach (UUID item in items)
             {
-                OSDMap ItemDataMap = new OSDMap(2);
-                ItemDataMap.Add("ItemID", OSD.FromUUID(item));
-                ItemDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-
-                ItemData.Add(ItemDataMap);
+                LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("ItemID",item, sb);
+                LLSDxmlEncode.AddEndMap(sb);
             }
+            LLSDxmlEncode.AddEndArray(sb);
 
-            llsd.Add("InventoryData", ItemData);
-
-            eq.Enqueue(BuildEvent("RemoveInventoryItem",
-                    llsd), AgentId);
+            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
+            eq.Enqueue(ev, AgentId);
         }
 
         public void SendRemoveInventoryFolders(UUID[] folders)
@@ -13280,40 +13262,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            OSDMap llsd = new OSDMap(3);
+            StringBuilder sb = eq.StartEvent("RemoveInventoryFolder");
 
-            OSDMap AgentDataMap = new OSDMap(1);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-            AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
+            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
+                LLSDxmlEncode.AddElem("AgentID", AgentId, sb);
+                LLSDxmlEncode.AddElem("SessionID", SessionId, sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            OSDArray AgentData = new OSDArray(1);
-            AgentData.Add(AgentDataMap);
-
-            llsd.Add("AgentData", AgentData);
-
-            OSDArray FolderData = new OSDArray();
-
+            LLSDxmlEncode.AddArray("FolderData", sb);
             foreach (UUID folder in folders)
             {
-                OSDMap FolderDataMap = new OSDMap(2);
-                FolderDataMap.Add("FolderID", OSD.FromUUID(folder));
-                FolderDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-
-                FolderData.Add(FolderDataMap);
+                LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("FolderID", folder, sb);
+                LLSDxmlEncode.AddEndMap(sb);
             }
+            LLSDxmlEncode.AddEndArray(sb);
 
-            llsd.Add("FolderData", FolderData);
-
-            eq.Enqueue(BuildEvent("RemoveInventoryFolder",
-                    llsd), AgentId);
-        }
-
-        private byte[] EncodeU32(uint val)
-        {
-            byte[] ret = BitConverter.GetBytes(val);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(ret);
-            return ret;
+            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
+            eq.Enqueue(ev, AgentId);
         }
 
         public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
@@ -13326,80 +13292,79 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            OSDMap llsd = new OSDMap(3);
+            StringBuilder sb = eq.StartEvent("BulkUpdateInventory");
 
-            OSDMap AgentDataMap = new OSDMap(1);
-            AgentDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-            AgentDataMap.Add("SessionID", OSD.FromUUID(SessionId));
-            AgentDataMap.Add("TransactionID", OSD.FromUUID(UUID.Random()));
+            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode.AddElem("AgentID", AgentId, sb);
+            LLSDxmlEncode.AddElem("TransactionID", UUID.Random(), sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            OSDArray AgentData = new OSDArray(1);
-            AgentData.Add(AgentDataMap);
-
-            llsd.Add("AgentData", AgentData);
-
-            OSDArray FolderData = new OSDArray();
-
-            foreach (InventoryFolderBase folder in folders)
+            if(folders.Length == 0)
             {
-                OSDMap FolderDataMap = new OSDMap(5);
-                FolderDataMap.Add("FolderID", OSD.FromUUID(folder.ID));
-                FolderDataMap.Add("AgentID", OSD.FromUUID(AgentId));
-                FolderDataMap.Add("ParentID", OSD.FromUUID(folder.ParentID));
-                FolderDataMap.Add("Type", OSD.FromInteger(folder.Type));
-                FolderDataMap.Add("Name", OSD.FromString(folder.Name));
-
-                FolderData.Add(FolderDataMap);
+                LLSDxmlEncode.AddEmptyArray("FolderData", sb);
+            }
+            else
+            { 
+                LLSDxmlEncode.AddArray("FolderData", sb);
+                foreach (InventoryFolderBase folder in folders)
+                {
+                    LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("FolderID", folder.ID, sb);
+                    LLSDxmlEncode.AddElem("ParentID", folder.ParentID, sb);
+                    LLSDxmlEncode.AddElem("Type", (int)folder.Type, sb);
+                    LLSDxmlEncode.AddElem("Name", folder.Name, sb);
+                    LLSDxmlEncode.AddEndMap(sb);
+                }
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
-            llsd.Add("FolderData", FolderData);
-
-            OSDArray ItemData = new OSDArray();
-
-            foreach (InventoryItemBase item in items)
+            if(items.Length == 0)
             {
-                OSDMap ItemDataMap = new OSDMap();
-
-                ItemDataMap.Add("ItemID", OSD.FromUUID(item.ID));
-                ItemDataMap.Add("FolderID", OSD.FromUUID(item.Folder));
-
-                ItemDataMap.Add("CreatorID", OSD.FromUUID(item.CreatorIdAsUuid));
-                ItemDataMap.Add("OwnerID", OSD.FromUUID(item.Owner));
-                ItemDataMap.Add("GroupID", OSD.FromUUID(item.GroupID));
-                ItemDataMap.Add("BaseMask", OSD.FromBinary(EncodeU32((uint)item.BasePermissions)));
-                ItemDataMap.Add("OwnerMask", OSD.FromBinary(EncodeU32((uint)item.CurrentPermissions)));
-                ItemDataMap.Add("GroupMask", OSD.FromBinary(EncodeU32((uint)item.GroupPermissions)));
-                ItemDataMap.Add("EveryoneMask", OSD.FromBinary(EncodeU32((uint)item.EveryOnePermissions)));
-                ItemDataMap.Add("NextOwnerMask", OSD.FromBinary(EncodeU32((uint)item.NextPermissions)));
-                ItemDataMap.Add("GroupOwned", OSD.FromBoolean(item.GroupOwned));
-                ItemDataMap.Add("AssetID", OSD.FromUUID(item.AssetID));
-                ItemDataMap.Add("Type", OSD.FromInteger(item.AssetType));
-                ItemDataMap.Add("InvType", OSD.FromInteger(item.InvType));
-                ItemDataMap.Add("Flags", OSD.FromBinary(EncodeU32((uint)item.Flags)));
-                ItemDataMap.Add("SaleType", OSD.FromInteger((byte)item.SaleType));
-                ItemDataMap.Add("SalePrice", OSD.FromInteger(item.SalePrice));
-                ItemDataMap.Add("Name", OSD.FromString(item.Name));
-                ItemDataMap.Add("Description", OSD.FromString(item.Description));
-                ItemDataMap.Add("CreationDate", OSD.FromInteger(item.CreationDate));
-
-                ItemDataMap.Add("CRC", OSD.FromBinary(EncodeU32(
-                        Helpers.InventoryCRC(1000, 0, (sbyte)item.InvType,
-                        (sbyte)item.AssetType, item.AssetID,
-                        item.GroupID, 100,
-                        item.Owner, item.CreatorIdAsUuid,
-                        item.ID, item.Folder,
-                        (uint)PermissionMask.All, 1, (uint)PermissionMask.All, (uint)PermissionMask.All,
-                        (uint)PermissionMask.All)
-                )));
-                ItemDataMap.Add("CallbackID", 0);
-
-                ItemData.Add(ItemDataMap);
+                LLSDxmlEncode.AddEmptyArray("ItemData", sb);
+            }
+            else
+            {
+                LLSDxmlEncode.AddArray("ItemData", sb);
+                foreach (InventoryItemBase item in items)
+                {
+                    LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("ItemID", item.ID, sb);
+                    LLSDxmlEncode.AddElem("CallbackID", (uint)0, sb);
+                    LLSDxmlEncode.AddElem("FolderID", item.Folder, sb);
+                    LLSDxmlEncode.AddElem("CreatorID", item.CreatorIdAsUuid, sb);
+                    LLSDxmlEncode.AddElem("OwnerID", item.Owner, sb);
+                    LLSDxmlEncode.AddElem("GroupID", item.GroupID, sb);
+                    LLSDxmlEncode.AddElem("BaseMask", item.BasePermissions, sb);
+                    LLSDxmlEncode.AddElem("OwnerMask", item.CurrentPermissions, sb);
+                    LLSDxmlEncode.AddElem("GroupMask", item.GroupPermissions, sb);
+                    LLSDxmlEncode.AddElem("EveryoneMask", item.EveryOnePermissions, sb);
+                    LLSDxmlEncode.AddElem("NextOwnerMask", item.NextPermissions, sb);
+                    LLSDxmlEncode.AddElem("GroupOwned", item.GroupOwned, sb);
+                    LLSDxmlEncode.AddElem("AssetID", item.AssetID, sb);
+                    LLSDxmlEncode.AddElem("Type", item.AssetType, sb);
+                    LLSDxmlEncode.AddElem("InvType", item.InvType, sb);
+                    LLSDxmlEncode.AddElem("Flags", item.Flags, sb);
+                    LLSDxmlEncode.AddElem("SaleType", item.SaleType, sb);
+                    LLSDxmlEncode.AddElem("SalePrice", item.SalePrice, sb);
+                    LLSDxmlEncode.AddElem("Name", item.Name, sb);
+                    LLSDxmlEncode.AddElem("Description", item.Description, sb);
+                    LLSDxmlEncode.AddElem("CreationDate", item.CreationDate, sb);
+                    LLSDxmlEncode.AddElem("CRC", 
+                            Helpers.InventoryCRC(1000, 0, (sbyte)item.InvType,
+                            (sbyte)item.AssetType, item.AssetID,
+                            item.GroupID, 100,
+                            item.Owner, item.CreatorIdAsUuid,
+                            item.ID, item.Folder,
+                            (uint)PermissionMask.All, 1, (uint)PermissionMask.All, (uint)PermissionMask.All,
+                            (uint)PermissionMask.All),
+                            sb);
+                    LLSDxmlEncode.AddEndMap(sb);
+                }
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
-            llsd.Add("ItemData", ItemData);
-
-            eq.Enqueue(BuildEvent("BulkUpdateInventory",
-                    llsd), AgentId);
+            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
+            eq.Enqueue(ev, AgentId);
         }
 
         private HashSet<string> m_outPacketsToDrop;
