@@ -558,7 +558,6 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         if(nextLine[4] == ' ')
                             start++;
                         nextLine = nextLine.Substring(start);
-                        nextLine = nextLine.Trim();
                         graph.DrawString(nextLine, myFont, myBrush, startPoint);
                     }
                     else if (nextLine.StartsWith("Image"))
