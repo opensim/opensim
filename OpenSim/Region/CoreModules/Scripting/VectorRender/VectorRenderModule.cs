@@ -125,11 +125,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 using (Font myFont = new Font(fontName, fontSize))
                 {
                     SizeF stringSize = new SizeF();
-
                     // XXX: This lock may be unnecessary.
                     lock (m_graph)
                     {
-                        stringSize = m_graph.MeasureString(text, myFont);
+                        stringSize = m_graph.MeasureString(text, myFont, text.Length, StringFormat.GenericTypographic);
                         xSize = stringSize.Width;
                         ySize = stringSize.Height;
                     }
