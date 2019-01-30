@@ -245,7 +245,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 DetectParams d = new DetectParams();
                 d.Key =detobj.keyUUID;
                 d.Populate(myScriptEngine.World, detobj);
-                d.LinkNum = detobj.linkNumber; // do it here since currently linknum is collided part
                 det.Add(d);
             }
 

@@ -231,13 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     det[i++] = d;
 
                     d.Key = detobj.keyUUID;
-                    d.Populate(this.World);
-
-                    /* not done by XEngine...
-                    d.Position = detobj.posVector;
-                    d.Rotation = detobj.rotQuat;
-                    d.Velocity = detobj.velVector;
-                    ... */
+                    d.Populate(World, detobj);
                 }
 
                 this.PostObjectEvent(localID, new EventParams(
