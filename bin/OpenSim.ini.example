@@ -417,10 +417,17 @@
     ;; If set to true, then all permissions checks are carried out
     ; serverside_object_permissions = true
 
-    ;# {allow_grid_gods} {} {Allow grid gods?} {true false} false
+	; if next 2 are false, several admin powers are only active if god powers requested on viewer
+	; this reduces mistakes
+	; set both to true to enable previus behavour
+    automatic_gods = false
+    implicit_gods = false
+	
+	;# {allow_grid_gods} {} {Allow grid gods?} {true false} false
     ;; This allows users with a UserLevel of 200 or more to assume god
     ;; powers in the regions in this simulator.
-    ; allow_grid_gods = false
+	;; if you don't trust grid admins, what are you doing there?
+    allow_grid_gods = true
 
     ;; This allows some control over permissions
     ;; please note that this still doesn't duplicate SL, and is not intended to
