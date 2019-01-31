@@ -639,6 +639,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Get the current list of updates and clear the list before iterating
             lock (m_updateLock)
             {
+                if(m_updateList.Count == 0)
+                    return;
+
                 updates = m_updateList;
                 m_updateList = new Dictionary<UUID, SceneObjectGroup>();
             }
@@ -728,19 +731,12 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence oldref;
                 if (m_scenePresenceMap.TryGetValue(id, out oldref))
                 {
-                    // Remember the old presence reference from the dictionary
                     uint oldLocalID = oldref.LocalId;
-                    // Replace the presence reference in the dictionary with the new value
-                    m_scenePresenceMap[id] = presence;
                     if (localid != oldLocalID)
                         m_scenePresenceLocalIDMap.Remove(oldLocalID);
-                    m_scenePresenceLocalIDMap[localid] = presence;
                 }
-                else
-                {
-                    m_scenePresenceMap[id] = presence;
-                    m_scenePresenceLocalIDMap[localid] = presence;
-                }
+                m_scenePresenceMap[id] = presence;
+                m_scenePresenceLocalIDMap[localid] = presence;
                 m_scenePresenceList = null;
             }
             finally
@@ -748,7 +744,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if(entered)
                     m_scenePresencesLock.ExitWriteLock();
             }
-
             return presence;
         }
 
@@ -1163,8 +1158,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             EntityBase[] entities = Entities.GetEntities();
             List<SceneObjectGroup> ret = new List<SceneObjectGroup>(256);
-            int len = entities.Length;
-            for (int i = 0; i < len; ++i)
+
+            for (int i = 0; i < entities.Length; ++i)
             {
                 if(entities[i] is SceneObjectGroup)
                     ret.Add((SceneObjectGroup)entities[i]);
@@ -1207,8 +1202,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             EntityBase entity = null;
             EntityBase[] entities = Entities.GetEntities();
-            int len = entities.Length;
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < entities.Length; ++i)
             {
                 entity = entities[i];
                 if (entity is SceneObjectGroup && entity.Name == name)
@@ -1289,9 +1283,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal SceneObjectPart GetSceneObjectPart(string name)
         {
             SceneObjectPart[] parts = GetPartsArray();
-            int len = parts.Length;
             SceneObjectPart sop;
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < parts.Length; ++i)
             {
                 sop = parts[i];
                 if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
@@ -1356,9 +1349,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             EntityBase[] entities = Entities.GetEntities();
-            int len = entities.Length;
             EntityBase entity;
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < entities.Length; ++i)
             {
                 entity = entities[i];
                 if (entity is SceneObjectGroup)
@@ -1790,7 +1782,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
-                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
+                    SceneObjectPart part = group.GetPart(primLocalID);
                     if (part != null)
                     {
                         part.ClickAction = Convert.ToByte(clickAction);
@@ -1807,7 +1799,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
-                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
+                    SceneObjectPart part = group.GetPart(primLocalID);
                     if (part != null)
                     {
                         part.Material = Convert.ToByte(material);
@@ -1963,23 +1955,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="prims"></param>
         protected internal void DelinkObjects(List<SceneObjectPart> prims)
         {
+            List<SceneObjectPart> childParts = new List<SceneObjectPart>();
+            List<SceneObjectPart> rootParts = new List<SceneObjectPart>();
+            List<SceneObjectGroup> affectedGroups = new List<SceneObjectGroup>();
+            // Look them all up in one go, since that is comparatively expensive
+            //
             Monitor.Enter(m_linkLock);
             try
             {
-                List<SceneObjectPart> childParts = new List<SceneObjectPart>();
-                List<SceneObjectPart> rootParts = new List<SceneObjectPart>();
-                List<SceneObjectGroup> affectedGroups = new List<SceneObjectGroup>();
-                // Look them all up in one go, since that is comparatively expensive
-                //
                 foreach (SceneObjectPart part in prims)
                 {
                     if(part == null)
                         continue;
                     SceneObjectGroup parentSOG = part.ParentGroup;
-                    if(parentSOG == null ||
-                        parentSOG.IsDeleted ||
-                        parentSOG.inTransit ||
-                        parentSOG.PrimCount == 1)
+                    if(parentSOG == null || parentSOG.IsDeleted || parentSOG.inTransit || parentSOG.PrimCount == 1)
                         continue;
 
                     if (!affectedGroups.Contains(parentSOG))
@@ -2164,7 +2153,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
                     bool entered = false;
                     try
                     {
@@ -2194,9 +2182,6 @@ namespace OpenSim.Region.Framework.Scenes
                             m_scenePartsLock.ExitWriteLock();
                     }
 
-
-                    // PROBABLE END OF FIXME
-
                     copy.IsSelected = createSelected;
 
                     if (rot != Quaternion.Identity)
@@ -2221,23 +2206,7 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
-        /// Calculates the distance between two Vector3s
-        /// </summary>
-        /// <param name="v1"></param>
-        /// <param name="v2"></param>
-        /// <returns></returns>
-        protected internal float Vector3Distance(Vector3 v1, Vector3 v2)
-        {
-            // We don't really need the double floating point precision...
-            // so casting it to a single
-
-            return
-                (float)
-                Math.Sqrt((v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y) + (v1.Z - v2.Z) * (v1.Z - v2.Z));
-        }
-
         #endregion
-
 
     }
 }
