@@ -4672,7 +4672,10 @@ namespace OpenSim.Region.Framework.Scenes
             bool wasVD = VolumeDetectActive;
 
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
+            {
+                UpdatePhysicsSubscribedEvents();
                 return;
+            }
 
             VolumeDetectActive = SetVD;
 
