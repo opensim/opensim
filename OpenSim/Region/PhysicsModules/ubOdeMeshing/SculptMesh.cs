@@ -165,8 +165,8 @@ namespace PrimMesher
                                 f2 = new Face(p1, p4, p2);
                             }
 
-                        this.faces.Add(f1);
-                        this.faces.Add(f2);
+                        faces.Add(f1);
+                        faces.Add(f2);
                     }
                 }
             }
@@ -203,18 +203,15 @@ namespace PrimMesher
                 return;
             String fileName = name + "_" + title + ".raw";
             String completePath = System.IO.Path.Combine(path, fileName);
-            StreamWriter sw = new StreamWriter(completePath);
-
-            for (int i = 0; i < this.faces.Count; i++)
+            using(StreamWriter sw = new StreamWriter(completePath))
             {
-                string s = this.coords[this.faces[i].v1].ToString();
-                s += " " + this.coords[this.faces[i].v2].ToString();
-                s += " " + this.coords[this.faces[i].v3].ToString();
-
-                sw.WriteLine(s);
+                for (int i = 0; i < faces.Count; i++)
+                {
+                    sw.Write(coords[faces[i].v1].ToString());
+                    sw.Write(coords[faces[i].v2].ToString());
+                    sw.WriteLine(coords[faces[i].v3].ToString());
+                }
             }
-
-            sw.Close();
         }
     }
 }

@@ -1558,33 +1558,36 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         //                        tmpTime =  Util.GetTimeStampMS();
 
-                        lock (SimulationLock)
+                        // Move characters
+                        lock (_characters)
                         {
-                            // Move characters
-                            lock (_characters)
+                            foreach (OdeCharacter actor in _characters)
                             {
-                                foreach (OdeCharacter actor in _characters)
-                                {
+                                lock (SimulationLock)
                                     actor.Move();
-                                }
                             }
+                        }
 
-                            // Move other active objects
-                            lock (_activegroups)
+                        // Move other active objects
+                        lock (_activegroups)
+                        {
+                            foreach (OdePrim aprim in _activegroups)
                             {
-                                foreach (OdePrim aprim in _activegroups)
-                                {
+                                lock (SimulationLock)
                                     aprim.Move();
-                                }
                             }
+                        }
                         // moveTime += Util.GetTimeStampMS() - tmpTime;
                         // tmpTime =  Util.GetTimeStampMS();
+                        lock (SimulationLock)
+                        {
                             m_rayCastManager.ProcessQueuedRequests();
-                            // rayTime += Util.GetTimeStampMS() - tmpTime;
+                        // rayTime += Util.GetTimeStampMS() - tmpTime;
 
-                            // tmpTime =  Util.GetTimeStampMS();
+                        // tmpTime =  Util.GetTimeStampMS();
                             collision_optimized();
                         }
+
                         // collisionTime += Util.GetTimeStampMS() - tmpTime;
 
                         // tmpTime =  Util.GetTimeStampMS();
@@ -1655,7 +1658,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                         }
                         */
                         //                        tmpTime =  Util.GetTimeStampMS();
-                        lock (SimulationLock)
+                        //lock (SimulationLock)
                         {
                             lock (_activegroups)
                             {
@@ -1664,7 +1667,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                     {
                                         if (actor.IsPhysical)
                                         {
-                                            actor.UpdatePositionAndVelocity(framecount);
+                                            lock (SimulationLock)
+                                                actor.UpdatePositionAndVelocity(framecount);
                                         }
                                     }
                                 }

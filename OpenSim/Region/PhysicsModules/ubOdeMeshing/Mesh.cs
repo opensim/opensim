@@ -218,7 +218,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 m_bdata.m_obbZmax = z;
             if (z < m_bdata.m_obbZmin)
                 m_bdata.m_obbZmin = z;
-
         }
 
         public void Add(Triangle triangle)
@@ -324,13 +323,15 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             if (m_bdata.m_vertices == null)
                 throw new NotSupportedException();
             float[] result = new float[m_bdata.m_vertices.Count * 3];
+            int k = 0;
             foreach (KeyValuePair<Vertex, int> kvp in m_bdata.m_vertices)
             {
                 Vertex v = kvp.Key;
                 int i = kvp.Value;
-                result[3 * i + 0] = v.X;
-                result[3 * i + 1] = v.Y;
-                result[3 * i + 2] = v.Z;
+                k = 3 * i;
+                result[k] = v.X;
+                result[k + 1] = v.Y;
+                result[k + 2] = v.Z;
             }
             return result;
         }
@@ -364,12 +365,14 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             if (m_bdata.m_triangles == null)
                 throw new NotSupportedException();
             int[] result = new int[m_bdata.m_triangles.Count * 3];
+            int k;
             for (int i = 0; i < m_bdata.m_triangles.Count; i++)
             {
+                k= 3 * i;
                 Triangle t = m_bdata.m_triangles[i];
-                result[3 * i + 0] = m_bdata.m_vertices[t.v1];
-                result[3 * i + 1] = m_bdata.m_vertices[t.v2];
-                result[3 * i + 2] = m_bdata.m_vertices[t.v3];
+                result[k] = m_bdata.m_vertices[t.v1];
+                result[k + 1] = m_bdata.m_vertices[t.v2];
+                result[k + 2] = m_bdata.m_vertices[t.v3];
             }
             return result;
         }
@@ -463,9 +466,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 if (v == null)
                     continue;
                 float x, y, z;
-                x = v.X*matrix[0, 0] + v.Y*matrix[1, 0] + v.Z*matrix[2, 0];
-                y = v.X*matrix[0, 1] + v.Y*matrix[1, 1] + v.Z*matrix[2, 1];
-                z = v.X*matrix[0, 2] + v.Y*matrix[1, 2] + v.Z*matrix[2, 2];
+                x = v.X * matrix[0, 0] + v.Y * matrix[1, 0] + v.Z * matrix[2, 0];
+                y = v.X * matrix[0, 1] + v.Y * matrix[1, 1] + v.Z * matrix[2, 1];
+                z = v.X * matrix[0, 2] + v.Y * matrix[1, 2] + v.Z * matrix[2, 2];
                 v.X = x + offset[0];
                 v.Y = y + offset[1];
                 v.Z = z + offset[2];
