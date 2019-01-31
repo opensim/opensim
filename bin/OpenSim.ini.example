@@ -1054,30 +1054,6 @@
     Include-osslEnable = "config-include/osslEnable.ini"
 
 
-[MRM]
-    ;; Enables the Mini Region Modules Script Engine.
-    ; Enabled = false
-
-    ;; Runs MRM in a Security Sandbox
-    ;; WARNING: DISABLING IS A SECURITY RISK.
-    ; Sandboxed = true
-
-    ;; The level sandbox to use, adjust at your OWN RISK.
-    ;; Valid values are:
-    ;; *  FullTrust
-    ;; *  SkipVerification
-    ;; *  Execution
-    ;; *  Nothing
-    ;; *  LocalIntranet
-    ;; *  Internet
-    ;; *  Everything
-    ; SandboxLevel = "Internet"
-
-    ;; Only allow Region Owners to run MRMs
-    ;; May represent a security risk if you disable this.
-    ; OwnerOnly = true
-
-
 [FreeSwitchVoice]
     ;; In order for this to work you need a functioning FreeSWITCH PBX set up.
     ;; Configuration details at http://opensimulator.org/wiki/Freeswitch_Module
