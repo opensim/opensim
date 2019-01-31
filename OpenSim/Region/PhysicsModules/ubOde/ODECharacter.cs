@@ -1435,37 +1435,41 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(!m_freemove)
             {
-
                 //  if velocity is zero, use position control; otherwise, velocity control
-                if(tviszero && m_iscolliding && !m_flying)
+                if(tviszero) 
                 {
-                    //  keep track of where we stopped.  No more slippin' & slidin'
-                    if(!_zeroFlag)
+                    if(m_iscolliding || m_flying)
                     {
-                        _zeroFlag = true;
-                        _zeroPosition = localpos;
-                    }
-                    if(m_pidControllerActive)
-                    {
-                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
-                        // react to the physics scene by moving it's position.
-                        // Avatar to Avatar collisions
-                        // Prim to avatar collisions
+                        //  keep track of where we stopped.  No more slippin' & slidin'
+                        if (!_zeroFlag)
+                        {
+                            _zeroFlag = true;
+                            _zeroPosition = localpos;
+                        }
+                        if(m_pidControllerActive)
+                        {
+                            // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                            // react to the physics scene by moving it's position.
+                            // Avatar to Avatar collisions
+                            // Prim to avatar collisions
 
-                        vec.X = -vel.X * PID_D * 2f + (_zeroPosition.X - localpos.X) * (PID_P * 5);
-                        vec.Y = -vel.Y * PID_D * 2f + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
-                        if(vel.Z > 0)
-                            vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
-                        else
-                            vec.Z += (-vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P) * 0.2f;
-                        /*
-                                                if (flying)
-                                                {
-                                                    vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
-                                                }
-                        */
+                            vec.X = -vel.X * PID_D * 2f + (_zeroPosition.X - localpos.X) * (PID_P * 5);
+                            vec.Y = -vel.Y * PID_D * 2f + (_zeroPosition.Y - localpos.Y) * (PID_P * 5);
+                            if(vel.Z > 0)
+                                vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                            else
+                                vec.Z += (-vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P) * 0.2f;
+                        }
                     }
-                    //PidStatus = true;
+                    else
+                    {
+                        _zeroFlag = false;
+                        vec.X += (ctz.X - vel.X) * PID_D * 0.833f;
+                        vec.Y += (ctz.Y - vel.Y) * PID_D * 0.833f;
+                        // hack for  breaking on fall
+                        if (ctz.Z == -9999f)
+                            vec.Z += -vel.Z * PID_D - m_parent_scene.gravityz * m_mass;
+                    }
                 }
                 else
                 {
@@ -1539,7 +1543,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             vec.X += (ctz.X - vel.X) * PID_D * 0.833f;
                             vec.Y += (ctz.Y - vel.Y) * PID_D * 0.833f;
                             // hack for  breaking on fall
-                            if(ctz.Z == -9999f)
+                            if (ctz.Z == -9999f)
                                 vec.Z += -vel.Z * PID_D - m_parent_scene.gravityz * m_mass;
                         }
                     }
