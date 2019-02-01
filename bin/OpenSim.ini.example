@@ -419,7 +419,7 @@
 
 	; if next 2 are false, several admin powers are only active if god powers requested on viewer
 	; this reduces mistakes
-	; set both to true to enable previus behavour
+	; set both to true to enable previous behaviour
     automatic_gods = false
     implicit_gods = false
 	

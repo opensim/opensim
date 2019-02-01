@@ -10174,7 +10174,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         double now = Util.GetTimeStamp();
                         if (now - m_lastMapRegenTime < 120) // 2 minutes global cool down
                         {
-                            SendAlertMessage("Please wait at least 2 minutes between map generation comand");
+                            SendAlertMessage("Please wait at least 2 minutes between map generation commands");
                             return true;
                         }
 
