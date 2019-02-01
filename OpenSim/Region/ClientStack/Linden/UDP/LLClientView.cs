@@ -9826,6 +9826,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion Parcel related packets
 
         #region Estate Packets
+        private static double m_lastMapRegenTime = Double.MinValue;
 
         private bool HandleEstateOwnerMessage(IClientAPI sender, Packet Pack)
         {
@@ -10108,8 +10109,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
 
                         }
-
-
                     }
                     return true;
 
@@ -10161,8 +10160,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
                         IWorldMapModule mapModule = Scene.RequestModuleInterface<IWorldMapModule>();
-                        if (mapModule != null)
-                            mapModule.GenerateMaptile();
+                        if (mapModule == null)
+                        {
+                            SendAlertMessage("Terrain map generator not avaiable");
+                            return true;
+                        }
+                        if (m_lastMapRegenTime == Double.MaxValue)
+                        {
+                            SendAlertMessage("Terrain map generation still in progress");
+                            return true;
+                        }
+
+                        double now = Util.GetTimeStamp();
+                        if (now - m_lastMapRegenTime < 120) // 2 minutes global cool down
+                        {
+                            SendAlertMessage("Please wait at least 2 minutes between map generation comand");
+                            return true;
+                        }
+
+                        m_lastMapRegenTime = Double.MaxValue;
+                        mapModule.GenerateMaptile();
+                        SendAlertMessage("Terrain map generated");
+                        m_lastMapRegenTime = now;
                     }
                     return true;
 
