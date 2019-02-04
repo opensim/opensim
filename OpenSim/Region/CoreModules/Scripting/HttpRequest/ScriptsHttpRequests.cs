@@ -504,14 +504,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 if ((((int)sslPolicyErrors) & ~4) != 0)
                     return false;
 
-                // Check for policy and execute it if defined
-#pragma warning disable 0618
-                if (ServicePointManager.CertificatePolicy != null)
-                {
-                    return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
-                }
-#pragma warning restore 0618
-
                 return true;
             }
 
