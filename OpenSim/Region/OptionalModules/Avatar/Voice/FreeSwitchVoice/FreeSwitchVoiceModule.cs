@@ -183,16 +183,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 m_log.ErrorFormat("[FreeSwitchVoice]: plugin initialization failed: {0} {1}", e.Message, e.StackTrace);
                 return;
             }
-
-            // THIS IS WRONG need to remove later
-
-            try
-            {
-                ServicePointManager.ServerCertificateValidationCallback += CustomCertificateValidation;
-            }
-            catch (NotImplementedException)
-            {
-            }
         }
 
         public void PostInitialise()
@@ -529,6 +519,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             forwardreq.Method = method;
             forwardreq.ContentType = contenttype;
             forwardreq.KeepAlive = false;
+            forwardreq.ServerCertificateValidationCallback = CustomCertificateValidation;
 
             if (method == "POST")
             {
