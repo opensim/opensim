@@ -960,8 +960,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
                 }
-                if (m_maxNonphys > 2048)
-                    m_maxNonphys = 2048;
+                if (m_maxNonphys > 65536)
+                    m_maxNonphys = 65536;
 
                 m_minPhys = startupConfig.GetFloat("PhysicalPrimMin", m_minPhys);
                 if (RegionInfo.PhysPrimMin > 0)
