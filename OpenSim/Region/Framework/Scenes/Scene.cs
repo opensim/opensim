@@ -951,18 +951,25 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_minNonphys = RegionInfo.NonphysPrimMin;
                 }
+                // don't allow nonsense values
+                if(m_minNonphys < 0.001f)
+                    m_minNonphys = 0.001f;
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
                 {
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
                 }
+                if (m_maxNonphys > 2048)
+                    m_maxNonphys = 2048;
 
                 m_minPhys = startupConfig.GetFloat("PhysicalPrimMin", m_minPhys);
                 if (RegionInfo.PhysPrimMin > 0)
                 {
                     m_minPhys = RegionInfo.PhysPrimMin;
                 }
+                if(m_minPhys < 0.01f)
+                    m_minPhys = 0.01f;
 
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
 
@@ -970,6 +977,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_maxPhys = RegionInfo.PhysPrimMax;
                 }
+                if (m_maxPhys > 2048)
+                    m_maxPhys = 2048;
 
                 m_linksetCapacity = startupConfig.GetInt("LinksetPrims", m_linksetCapacity);
                 if (RegionInfo.LinksetCapacity > 0)

@@ -2319,6 +2319,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (pa != null)
                 {
+                    if (UsePhysics != pa.IsPhysical)
+                    {
+                        float minsize = UsePhysics ? ParentGroup.Scene.m_minPhys : ParentGroup.Scene.m_minNonphys;
+                        float maxsize = UsePhysics ? ParentGroup.Scene.m_maxPhys : ParentGroup.Scene.m_maxNonphys;
+                        Vector3 scale = Scale;
+                        scale.X = Util.Clamp(scale.X, minsize, maxsize);
+                        scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
+                        scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
+                        Scale = scale;
+                    }
+
                     if (UsePhysics != pa.IsPhysical || isNew)
                     {
                         if (pa.IsPhysical) // implies UsePhysics==false for this block
@@ -4776,10 +4787,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="applyDynamics">applies velocities, force and torque</param>
         private void AddToPhysics(bool isPhysical, bool isPhantom, bool building, bool applyDynamics)
         {
-            PhysicsActor pa;
+            if (ParentGroup.Scene != null)
+            {
+                float minsize = isPhysical ? ParentGroup.Scene.m_minPhys : ParentGroup.Scene.m_minNonphys;
+                float maxsize = isPhysical ? ParentGroup.Scene.m_maxPhys : ParentGroup.Scene.m_maxNonphys;
+                Vector3 scale = Scale;
+                scale.X = Util.Clamp(scale.X, minsize, maxsize);
+                scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
+                scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
+                Scale = scale;
+            }
 
+            PhysicsActor pa;
             Vector3 velocity = Velocity;
-            Vector3 rotationalVelocity = AngularVelocity;;
+            Vector3 rotationalVelocity = AngularVelocity; ;
 
             try
             {
