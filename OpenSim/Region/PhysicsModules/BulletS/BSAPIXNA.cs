@@ -588,7 +588,7 @@ private sealed class BulletConstraintXNA : BulletConstraint
         IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
         IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
         IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
-        frame2._origin = frame1v;
+        frame2._origin = frame2v;
 
         Generic6DofConstraint consttr = new Generic6DofConstraint(body1, body2, ref frame1, ref frame2,
                                                                   puseLinearReferenceFrameA);
