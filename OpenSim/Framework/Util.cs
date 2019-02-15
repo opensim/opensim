@@ -2437,34 +2437,6 @@ namespace OpenSim.Framework
 
         #region FireAndForget Threading Pattern
 
-        /// <summary>
-        /// Created to work around a limitation in Mono with nested delegates
-        /// </summary>
-        private sealed class FireAndForgetWrapper
-        {
-            private static object syncRoot = new Object();
-
-            public void FireAndForget(System.Threading.WaitCallback callback)
-            {
-                callback.BeginInvoke(null, EndFireAndForget, callback);
-            }
-
-            public void FireAndForget(System.Threading.WaitCallback callback, object obj)
-            {
-                callback.BeginInvoke(obj, EndFireAndForget, callback);
-            }
-
-            private static void EndFireAndForget(IAsyncResult ar)
-            {
-                System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
-
-                try { callback.EndInvoke(ar); }
-                catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
-
-                ar.AsyncWaitHandle.Close();
-            }
-        }
-
         public static void InitThreadPool(int minThreads, int maxThreads)
         {
             if (maxThreads < 2)

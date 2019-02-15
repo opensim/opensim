@@ -212,7 +212,6 @@ namespace OpenSim.Framework
             return heights;
         }
 
-        // TerrainData.GetDoubles
         public double[,] GetDoubles()
         {
             double[,] ret = new double[SizeX, SizeY];
