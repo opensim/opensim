@@ -2242,7 +2242,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (deleteGroups.Count > 0)
             {
                 foreach (SceneObjectGroup g in deleteGroups)
-                    DeleteSceneObject(g, true);
+                    DeleteSceneObject(g, false);
             }
         }
 
