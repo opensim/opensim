@@ -699,7 +699,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // If min event delay is set then ignore any events untill the time has expired
             // This currently only allows 1 event of any type in the given time period.
             // This may need extending to allow for a time for each individual event type.
-            if (m_eventDelayTicks != 0 && data.EventName != "state" && data.EventName != "state_entry" && data.EventName != "state_exit")
+            if (m_eventDelayTicks != 0 && 
+                    data.EventName != "state" && data.EventName != "state_entry" && data.EventName != "state_exit"
+                    && data.EventName != "run_time_permissions" && data.EventName != "http_request" && data.EventName != "link_message")
             {
                 if (DateTime.Now.Ticks < m_nextEventTimeTicks)
                     return;
