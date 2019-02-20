@@ -930,12 +930,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void SetMinEventDelay(UUID itemID, double delay)
         {
+            XMRInstance instance = GetInstance(itemID);
+            if (instance != null)
+                instance.MinEventDelay = delay;
         }
 
         public int GetStartParameter(UUID itemID)
         {
             XMRInstance instance = GetInstance(itemID);
-            if(instance == null)
+            if (instance == null)
                 return 0;
             return instance.StartParam;
         }

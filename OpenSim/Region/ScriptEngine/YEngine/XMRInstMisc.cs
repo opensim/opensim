@@ -298,6 +298,24 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        public double MinEventDelay
+        {
+            get
+            {
+                return m_minEventDelay;
+            }
+            set
+            {
+                if (value > 0.001)
+                    m_minEventDelay = value;
+                else
+                    m_minEventDelay = 0.0;
+
+                m_nextEventTime = 0.0; // reset it
+            }
+        }
+
+
         public SceneObjectPart SceneObject
         {
             get

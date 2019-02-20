@@ -88,10 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         path_update = 40,
 
-        // XMRE specific
-        region_cross = 63,
-
         // marks highest numbered event, ie, number of columns in seht.
-        Size = 64
+        Size = 41
     }
 }
