@@ -1677,8 +1677,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(List<uint> localIDs)
         {
-            //            foreach (uint id in localIDs)
-            //                m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
+            // foreach (uint id in localIDs)
+            //  m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
             // remove pending entities to reduce looping chances.
             lock (m_entityProps.SyncRoot)
@@ -1702,10 +1702,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if(++nsent >= 200)
                 {
-                    kill.Header.Reliable = true;
-                    kill.Header.Zerocoded = true;
                     OutPacket(kill, ThrottleOutPacketType.Task);
-
                     perpacket = localIDs.Count - i - 1;
                     if(perpacket == 0)
                         break;
@@ -1720,8 +1717,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(nsent != 0)
             {
-                kill.Header.Reliable = true;
-                kill.Header.Zerocoded = true;
                 OutPacket(kill, ThrottleOutPacketType.Task);
             }
          }
@@ -10047,7 +10042,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[1].Parameter), out Prey);
 
-                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
+                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey, false);
                     }
                     return true;
                 case "teleporthomeallusers":
@@ -10195,7 +10190,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[0].Parameter), out Prey);
 
-                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
+                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey, true);
                     }
                     return true;
 
