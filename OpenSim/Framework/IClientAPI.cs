@@ -390,7 +390,7 @@ namespace OpenSim.Framework
         IClientAPI remoteClient, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics);
 
     public delegate void EstateTeleportOneUserHomeRequest(
-        IClientAPI remoteClient, UUID invoice, UUID senderID, UUID prey);
+        IClientAPI remoteClient, UUID invoice, UUID senderID, UUID prey, bool kill);
 
     public delegate void EstateTeleportAllUsersHomeRequest(IClientAPI remoteClient, UUID invoice, UUID senderID);
 
