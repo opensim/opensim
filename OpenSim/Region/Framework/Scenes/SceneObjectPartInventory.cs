@@ -816,7 +816,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.Add(item.ItemID, item);
             m_items.LockItemsForWrite(false);
             if (allowedDrop)
-                m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP);
+                m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP, item.ItemID);
             else
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 

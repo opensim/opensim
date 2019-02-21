@@ -215,7 +215,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     det));
         }
 
-        public void changed(uint localID, uint change)
+        public void changed(uint localID, uint change, object parameter)
         {
             // Add to queue for all scripts in localID, Object pass change.
             myScriptEngine.PostObjectEvent(localID, new EventParams(

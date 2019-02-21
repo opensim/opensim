@@ -4439,10 +4439,10 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectSerializer.SOPToXml2(xmlWriter, this, new Dictionary<string, object>());
         }
 
-        public void TriggerScriptChangedEvent(Changed val)
+        public void TriggerScriptChangedEvent(Changed val, object data = null)
         {
             if (ParentGroup != null && ParentGroup.Scene != null)
-                ParentGroup.Scene.EventManager.TriggerOnScriptChangedEvent(LocalId, (uint)val);
+                ParentGroup.Scene.EventManager.TriggerOnScriptChangedEvent(LocalId, (uint)val, data);
         }
 
         public void TrimPermissions()
