@@ -106,6 +106,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             m_nextEventTime = now + m_minEventDelay;
                             break;
                         }
+                        case ScriptEventCode.changed:
+                        {
+                            const int canignore = ~(CHANGED_SCALE | CHANGED_POSITION);
+                            int change = (int)evt.Params[0];
+                            if(change == 0) // what?
+                                return;
+                            if((change & canignore) == 0)
+                            {
+                                double now = Util.GetTimeStamp();
+                                if (now < m_nextEventTime)
+                                    return;
+                                m_nextEventTime = now + m_minEventDelay;
+                            }
+                            break;
+                        }
                         default:
                             break;
                     }
