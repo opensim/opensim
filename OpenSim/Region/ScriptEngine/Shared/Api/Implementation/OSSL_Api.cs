@@ -5404,7 +5404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 1;
         }
 
-        public LSL_Key osGetInventoryLastOwner(string itemNameorid)
+        public LSL_Key osGetInventoryLastOwner(LSL_String itemNameorid)
         {
             m_host.AddScriptLPS(1);
 
@@ -5422,6 +5422,38 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(id == UUID.Zero)
                 id= item.OwnerID;
             return id.ToString();
+        }
+
+        public LSL_String osGetInventoryName(LSL_Key itemId)
+        {
+            m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = null;
+            UUID itemID;
+            if (UUID.TryParse(itemId, out itemID))
+                item = m_host.Inventory.GetInventoryItem(itemID);
+
+            if (item == null)
+                return String.Empty;
+
+            return item.Name;
+        }
+
+        public LSL_String osGetInventoryDescription(LSL_String itemNameorid)
+        {
+            m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = null;
+            UUID itemID;
+            if (UUID.TryParse(itemNameorid, out itemID))
+                item = m_host.Inventory.GetInventoryItem(itemID);
+            else
+                item = m_host.Inventory.GetInventoryItem(itemNameorid);
+
+            if (item == null)
+                return String.Empty;
+
+            return item.Description;
         }
     }
 }
