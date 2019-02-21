@@ -5455,5 +5455,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return item.Description;
         }
+
+        public LSL_Key osGetLastChangedEventKey()
+        {
+            m_host.AddScriptLPS(1);
+            DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_item.ItemID, 0);
+            if (detectedParams == null)
+                return String.Empty;
+            return detectedParams.Key.ToString();
+        }
     }
 }

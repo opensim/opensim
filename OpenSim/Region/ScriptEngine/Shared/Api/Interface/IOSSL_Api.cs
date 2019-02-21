@@ -550,5 +550,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Key osGetInventoryLastOwner(LSL_String itemNameOrId);
         LSL_String osGetInventoryName(LSL_Key itemId);
         LSL_String osGetInventoryDescription(LSL_String itemNameOrId);
+        LSL_Key osGetLastChangedEventKey();
     }
 }
