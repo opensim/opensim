@@ -815,10 +815,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForWrite(true);
             m_items.Add(item.ItemID, item);
             m_items.LockItemsForWrite(false);
-                if (allowedDrop)
-                    m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP);
-                else
-                    m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+            if (allowedDrop)
+                m_part.TriggerScriptChangedEvent(Changed.ALLOWED_DROP);
+            else
+                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
             m_part.AggregateInnerPerms();
             m_inventorySerial++;
