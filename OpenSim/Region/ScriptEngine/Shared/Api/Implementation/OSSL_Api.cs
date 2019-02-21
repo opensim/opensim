@@ -4874,8 +4874,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Math.Atan2(mcross, dot);
         }
 
-
-//******* link sound
        public void osAdjustSoundVolume(LSL_Integer linknum, LSL_Float volume)
         {
             m_host.AddScriptLPS(1);
@@ -5406,5 +5404,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 1;
         }
 
+        public LSL_Key osGetInventoryLastOwner(string itemNameorid)
+        {
+            m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = null;
+            UUID itemID;
+            if (UUID.TryParse(itemNameorid, out itemID))
+                item = m_host.Inventory.GetInventoryItem(itemID);
+            else
+                item = m_host.Inventory.GetInventoryItem(itemNameorid);
+
+            if (item == null)
+                return UUID.Zero.ToString();
+
+            UUID id = item.LastOwnerID;
+            if(id == UUID.Zero)
+                id= item.OwnerID;
+            return id.ToString();
+        }
     }
 }

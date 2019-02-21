@@ -547,5 +547,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osApproxEquals(vector va, vector vb, LSL_Float margin);
         LSL_Integer osApproxEquals(rotation ra, rotation rb);
         LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin);
+        LSL_Key osGetInventoryLastOwner(string itemNameOrId);
     }
 }
