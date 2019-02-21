@@ -182,21 +182,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     new DetectParams[] { det }));
         }
 
-        public void changed(uint localID, uint change, object data)
+        public void changed(uint localID, uint change, object parameter)
         {
             int ch = (int)change;
             // Add to queue for all scripts in localID, Object pass change.
-            if(data == null)
+            if(parameter == null)
             {
                 PostObjectEvent(localID, new EventParams(
                     "changed", new object[] { ch },
                     zeroDetectParams));
                 return;
             }
-            if ( data is UUID)
+            if ( parameter is UUID)
             {
                 DetectParams det = new DetectParams();
-                det.Key = (UUID)data;
+                det.Key = (UUID)parameter;
                 PostObjectEvent(localID, new EventParams(
                     "changed", new object[] { ch },
                     new DetectParams[] { det }));
