@@ -1,4 +1,4 @@
-a0b4b514-3c14-6b98-ca98-e18a79e9792f
+20392e48-fad2-094e-bc5b-cda003a1e940
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1513,7 +1513,7 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>2</string>
+  <key>value</key><string>3</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -6114,17 +6114,8 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6140,8 +6131,17 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osApproxEquals</key>
@@ -6157,8 +6157,8 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
  <key>osAvatarName2Key</key>
@@ -6186,14 +6186,14 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <key>osCauseDamage</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>avatar</key><map><key>type</key><string>key</string></map></map>
    <map><key>damage</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osCauseHealing</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>healing</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
@@ -6284,8 +6284,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6295,6 +6293,8 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6539,14 +6539,14 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>osGetHealth</key>
  <map>
   <key>return</key><string>float</string>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>osGetInertiaData</key>
@@ -6558,8 +6558,27 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><array>
-   <map><key>item</key><map><key>type</key><string>string</string></map></map>
+   <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
   </array>
+ </map>
+ <key>osGetInventoryLastOwner</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>itemNameOrId</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osGetInventoryName</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>itemId</key><map><key>type</key><string>key</string></map></map>
+  </array>
+ </map>
+ <key>osGetLastChangedEventKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><undef/>
  </map>
  <key>osGetLinkNumber</key>
  <map>
@@ -6735,6 +6754,13 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osKickAvatar</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
+   <map><key>alert</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>osLoadedCreationDate</key>
  <map>
   <key>return</key><string>string</string>
@@ -6839,7 +6865,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcCreate</key>
@@ -6850,6 +6875,7 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcGetOwner</key>
@@ -7089,7 +7115,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionRestart</key>
@@ -7097,6 +7122,7 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osReplaceString</key>
@@ -7199,14 +7225,14 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <key>osSetHealRate</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osSetHealth</key>
  <map>
   <key>arguments</key><array>
-   <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>health</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
@@ -7432,6 +7458,8 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7441,8 +7469,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7528,15 +7554,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osTeleportAgent</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
    <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
@@ -7547,6 +7564,15 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>position</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osTeleportAgent</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7564,8 +7590,6 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7581,6 +7605,8 @@ a0b4b514-3c14-6b98-ca98-e18a79e9792f
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
