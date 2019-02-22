@@ -3890,29 +3890,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Get the description from an inventory item
-        /// </summary>
-        /// <param name="inventoryName"></param>
-        /// <returns>Item description</returns>
-        public LSL_String osGetInventoryDesc(string item)
-        {
-            CheckThreatLevel();
-
-            lock (m_host.TaskInventory)
-            {
-                foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
-                {
-                    if (inv.Value.Name == item)
-                    {
-                        return inv.Value.Description.ToString();
-                    }
-                }
-            }
-
-            return String.Empty;
-        }
-
-        /// <summary>
         /// Invite user to the group this object is set to
         /// </summary>
         /// <param name="agentId"></param>
@@ -5439,7 +5416,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return item.Name;
         }
 
-        public LSL_String osGetInventoryDescription(LSL_String itemNameorid)
+        public LSL_String osGetInventoryDesc(LSL_String itemNameorid)
         {
             m_host.AddScriptLPS(1);
 
