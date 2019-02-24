@@ -13945,14 +13945,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
-            // Partial implementation: support for parameter flags needed
-            //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
-            // parameter flags support are implemented in ScriptsHttpRequests.cs
-            //   in StartHttpRequest
-
             m_host.AddScriptLPS(1);
-            IHttpRequestModule httpScriptMod =
-                m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            IHttpRequestModule httpScriptMod = m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            if(httpScriptMod == null)
+                return "";
+
+            if(!httpScriptMod.CheckThrottle(m_host.LocalId))
+                return UUID.Zero.ToString();
+
             List<string> param = new List<string>();
             bool  ok;
             Int32 flag;
@@ -14123,8 +14123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             HttpInitialRequestStatus status;
-            UUID reqID
-                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body, out status);
+            UUID reqID = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body, out status);
 
             if (status == HttpInitialRequestStatus.DISALLOWED_BY_FILTER)
                 Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
@@ -14132,7 +14131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (reqID != UUID.Zero)
                 return reqID.ToString();
             else
-                return null;
+                return "";
         }
 
 

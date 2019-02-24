@@ -48,14 +48,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (m_CmdManager.m_ScriptEngine.World == null)
                 return;
 
-            IHttpRequestModule iHttpReq =
-                m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            IHttpRequestModule iHttpReq = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            if(iHttpReq == null)
+                return;
 
-            HttpRequestClass httpInfo = null;
-
-            if (iHttpReq != null)
-                httpInfo = (HttpRequestClass)iHttpReq.GetNextCompletedRequest();
-
+            HttpRequestClass httpInfo = (HttpRequestClass)iHttpReq.GetNextCompletedRequest();
             while (httpInfo != null)
             {
                 //m_log.Debug("[AsyncLSL]:" + httpInfo.response_body + httpInfo.status);
@@ -66,8 +63,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // only returns the byte for HTTP_BODY_TRUNCATED, which is not
                 // implemented here yet anyway.  Should be fixed if/when maxsize
                 // is supported
-
-                iHttpReq.RemoveCompletedRequest(httpInfo.ReqID);
 
                 object[] resobj = new object[]
                 {
