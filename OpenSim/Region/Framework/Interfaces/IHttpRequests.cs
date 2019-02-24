@@ -87,6 +87,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void StopHttpRequest(uint m_localID, UUID m_itemID);
         IServiceRequest GetNextCompletedRequest();
         void RemoveCompletedRequest(UUID id);
-        bool CheckThrottle(uint localID);
+        bool CheckThrottle(uint localID, UUID onerID);
     }
 }
