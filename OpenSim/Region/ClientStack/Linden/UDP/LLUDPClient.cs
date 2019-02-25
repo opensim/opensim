@@ -120,7 +120,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Circuit code that this client is connected on</summary>
         public readonly uint CircuitCode;
         /// <summary>Sequence numbers of packets we've received (for duplicate checking)</summary>
-        public IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(200);
+        public IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(256);
 
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
@@ -803,8 +803,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-
-
         /// <summary>
         /// Fires the OnQueueEmpty callback and sets the minimum time that it
         /// can be called again
@@ -843,6 +841,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return 0;
         }
 
+        public void FreeUDPBuffer(UDPPacketBuffer buf)
+        {
+            m_udpServer.FreeUDPBuffer(buf);
+        }
+
         /// <summary>
         /// Converts a <seealso cref="ThrottleOutPacketType"/> integer to a
         /// flag value
@@ -852,20 +855,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static ThrottleOutPacketTypeFlags CategoryToFlag(int i)
         {
             ThrottleOutPacketType category = (ThrottleOutPacketType)i;
-
-            /*
-             * Land = 1,
-        /// <summary>Wind data</summary>
-        Wind = 2,
-        /// <summary>Cloud data</summary>
-        Cloud = 3,
-        /// <summary>Any packets that do not fit into the other throttles</summary>
-        Task = 4,
-        /// <summary>Texture assets</summary>
-        Texture = 5,
-        /// <summary>Non-texture assets</summary>
-        Asset = 6,
-             */
 
             switch (category)
             {
