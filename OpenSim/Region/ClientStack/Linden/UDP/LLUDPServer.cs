@@ -1185,15 +1185,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
-                    // Only allocate a buffer for zerodecoding if the packet is zerocoded
-                    ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
+                // get a buffer for zero decode using the udp buffers pool
+                UDPPacketBuffer zerodecodebufferholder = null;
+                byte[] zerodecodebuffer = null;
+                // only if needed
+                if (((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0))
+                {
+                    zerodecodebufferholder = GetNewUDPBuffer(null);
+                    zerodecodebuffer = zerodecodebufferholder.Data;
+                }
+
+                packet = Packet.BuildPacket(buffer.Data, ref packetEnd, zerodecodebuffer);
                 // If OpenSimUDPBase.UsePool == true (which is currently separate from the PacketPool) then we
                 // assume that packet construction does not retain a reference to byte[] buffer.Data (instead, all
                 // bytes are copied out).
-//                packet = PacketPool.Instance.GetPacket(buffer.Data, ref packetEnd,
-                    // Only allocate a buffer for zerodecoding if the packet is zerocoded
-//                    ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
+                // packet = PacketPool.Instance.GetPacket(buffer.Data, ref packetEnd, zerodecodebuffer);
+                if(zerodecodebufferholder != null)
+                    FreeUDPBuffer(zerodecodebufferholder);
             }
             catch (Exception e)
             {
