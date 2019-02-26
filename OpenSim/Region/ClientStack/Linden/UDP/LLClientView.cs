@@ -4094,11 +4094,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = null;
-            List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
-            List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseUpdateBlocks = null;
-            List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> terseAgentUpdateBlocks = null;
+            // List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
             List<EntityUpdate> objectUpdates = null;
-            List<EntityUpdate> compressedUpdates = null;
+            // List<EntityUpdate> compressedUpdates = null;
             List<EntityUpdate> terseUpdates = null;
             List<EntityUpdate> terseAgentUpdates = null;
             List<SceneObjectPart> ObjectAnimationUpdates = null;
@@ -4321,32 +4319,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if ((updateFlags & canNotUseImprovedMask) == 0)
                 {
-                    ImprovedTerseObjectUpdatePacket.ObjectDataBlock ablock =
-                        CreateImprovedTerseBlock(update.Entity);
 
                     if (update.Entity is ScenePresence)
                     {
                         // ALL presence updates go into a special list
-                        if (terseAgentUpdateBlocks == null)
+                        if (terseAgentUpdates == null)
                         {
-                            terseAgentUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
                             terseAgentUpdates = new List<EntityUpdate>();
+                            maxUpdatesBytes -= 18;
                         }
-                        terseAgentUpdateBlocks.Add(ablock);
                         terseAgentUpdates.Add(update);
+                        maxUpdatesBytes -= 63; // no texture entry
                     }
                     else
                     {
                         // Everything else goes here
-                        if (terseUpdateBlocks == null)
+                        if (terseUpdates == null)
                         {
-                            terseUpdateBlocks = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
                             terseUpdates = new List<EntityUpdate>();
+                            maxUpdatesBytes -= 18;
                         }
-                        terseUpdateBlocks.Add(ablock);
                         terseUpdates.Add(update);
+                        maxUpdatesBytes -= 47; // no texture entry
                     }
-                    maxUpdatesBytes -= ablock.Length;
                 }
                 else
                 {
@@ -4359,6 +4354,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         objectUpdateBlocks = new List<ObjectUpdatePacket.ObjectDataBlock>();
                         objectUpdates = new List<EntityUpdate>();
+                        maxUpdatesBytes -= 18;
                     }
                     objectUpdateBlocks.Add(ablock);
                     objectUpdates.Add(update);
@@ -4377,16 +4373,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
-            if (terseAgentUpdateBlocks != null)
+            if (terseAgentUpdates != null)
             {
+                const int maxNBlocks = (LLUDPServer.MTU - 18) / 63; // no texture entry
+                int blocks = terseAgentUpdates.Count;
+
                 ImprovedTerseObjectUpdatePacket packet
-                    = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+                         = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = terseAgentUpdateBlocks.ToArray();
-                terseAgentUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates, oPacket); });
+                int curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
+                List<EntityUpdate> tau = new List<EntityUpdate>(curNBlocks);
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+
+                int count = 0;
+                foreach (EntityUpdate eu in terseAgentUpdates)
+                {
+                    packet.ObjectData[count++] = CreateImprovedTerseBlock(eu.Entity);
+                    tau.Add(eu);
+                    --blocks;
+                    if (count == curNBlocks && blocks > 0)
+                    {
+                        OutPacket(packet, ThrottleOutPacketType.Unknown, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
+                        packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+
+                        curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
+                        tau = new List<EntityUpdate>(curNBlocks);
+                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+                        count = 0;
+                    }
+                }
+
+                if (tau.Count > 0)
+                    OutPacket(packet, ThrottleOutPacketType.Unknown, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
             }
 
             if (objectUpdateBlocks != null)
@@ -4399,7 +4421,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates, oPacket); });
             }
-
+/*
             if (compressedUpdateBlocks != null)
             {
                 ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
@@ -4410,20 +4432,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates, oPacket); });
             }
-
-            if (terseUpdateBlocks != null)
+*/
+            if (terseUpdates != null)
             {
-                ImprovedTerseObjectUpdatePacket packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(
-                        PacketType.ImprovedTerseObjectUpdate);
+                const int maxNBlocks = (LLUDPServer.MTU - 18) / 47; // no texture entry
+                int blocks = terseUpdates.Count;
+
+                ImprovedTerseObjectUpdatePacket packet = 
+                        (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = terseUpdateBlocks.ToArray();
-                terseUpdateBlocks.Clear();
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates, oPacket); });
+                int curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
+                List<EntityUpdate> tau = new List<EntityUpdate>(curNBlocks);
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+
+                int count = 0;
+                foreach (EntityUpdate eu in terseUpdates)
+                {
+                    packet.ObjectData[count++] = CreateImprovedTerseBlock(eu.Entity);
+                    tau.Add(eu);
+                    --blocks;
+                    if (count == curNBlocks && blocks > 0)
+                    {
+                        OutPacket(packet, ThrottleOutPacketType.Task, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
+                        packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+
+                        curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
+                        tau = new List<EntityUpdate>(curNBlocks);
+                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+                        count = 0;
+                    }
+                }
+
+                if (tau.Count > 0)
+                    OutPacket(packet, ThrottleOutPacketType.Task, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
             }
 
-            if(ObjectAnimationUpdates != null)
+            if (ObjectAnimationUpdates != null)
             {
                 foreach (SceneObjectPart sop in ObjectAnimationUpdates)
                 {
@@ -4637,9 +4685,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // These are used to implement an adaptive backoff in the number
         // of updates converted to packets. Since we don't want packets
         // to sit in the queue with old data, only convert enough updates
-        // to packets that can be sent in 200ms.
-//        private Int32 m_LastQueueFill = 0;
-//        private Int32 m_maxUpdates = 0;
+        // to packets that can be sent in 30ms.
 
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
