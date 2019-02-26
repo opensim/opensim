@@ -189,8 +189,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Process all the pending adds
             OutgoingPacket pendingAdd;
             while (m_pendingAdds.TryDequeue(out pendingAdd))
+            {
                 if (pendingAdd != null)
                     m_packets[pendingAdd.SequenceNumber] = pendingAdd;
+            }
 
             // Process all the pending removes, including updating statistics and round-trip times
             PendingAck pendingAcknowledgement;
@@ -203,14 +205,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (ackedPacket != null)
                     {
                         m_packets.Remove(pendingAcknowledgement.SequenceNumber);
+
+                        // Update stats
+                        Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
+
                         ackedPacket.Client.FreeUDPBuffer(ackedPacket.Buffer);
+                        ackedPacket.Buffer = null;
 
                         // As with other network applications, assume that an acknowledged packet is an
                         // indication that the network can handle a little more load, speed up the transmission
                         ackedPacket.Client.FlowThrottle.AcknowledgePackets(1);
-
-                        // Update stats
-                        Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
 
                         if (!pendingAcknowledgement.FromResend)
                         {
@@ -242,10 +246,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (removedPacket != null)
                     {
                         m_packets.Remove(pendingRemove);
-                        removedPacket.Client.FreeUDPBuffer(removedPacket.Buffer);
 
                         // Update stats
                         Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);
+
+                        removedPacket.Client.FreeUDPBuffer(removedPacket.Buffer);
+                        removedPacket.Buffer = null;
                     }
                 }
             }

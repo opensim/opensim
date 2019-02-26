@@ -983,7 +983,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             LLUDPClient udpClient = client.UDPClient;
 
-            if (!udpClient.IsConnected)
+            if (!client.IsActive || !udpClient.IsConnected)
                 return;
 
             // Disconnect an agent if no packets are received for some time
@@ -1053,14 +1053,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         internal void SendPacketFinal(OutgoingPacket outgoingPacket)
         {
             UDPPacketBuffer buffer = outgoingPacket.Buffer;
+            if(buffer == null) // canceled packet
+                return;
+            LLUDPClient udpClient = outgoingPacket.Client;
+            if (!udpClient.IsConnected)
+                return;
+
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
             bool isZerocoded = (flags & Helpers.MSG_ZEROCODED) != 0;
-            LLUDPClient udpClient = outgoingPacket.Client;
-
-            if (!udpClient.IsConnected)
-                return;
 
             int dataLength = buffer.DataLength;
 
@@ -1916,7 +1918,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 Scene.ThreadAlive(2);
 
-
                 try
                 {
                     m_packetSent = false;
@@ -1971,7 +1972,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else if (!m_packetSent)
 //                        Thread.Sleep((int)TickCountResolution);  outch this is bad on linux
-                        Thread.Sleep(15); // match the 16ms of windows7, dont ask 16 or win may decide to do 32ms.
+                        Thread.Sleep(15); // match the 16ms of windows, dont ask 16 or win may decide to do 32ms.
 
                     Watchdog.UpdateThread();
                 }
@@ -1995,14 +1996,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (udpClient.IsConnected)
                     {
-                        if (m_resendUnacked)
+                        if (client.IsActive && m_resendUnacked)
                             HandleUnacked(llClient);
 
-                        if (m_sendAcks)
-                            SendAcks(udpClient);
+                        if (client.IsActive)
+                        {
+                            if (m_sendAcks)
+                                SendAcks(udpClient);
 
-                        if (m_sendPing)
-                            SendPing(udpClient);
+                            if (m_sendPing)
+                                SendPing(udpClient);
+                        }
 
                         // Dequeue any outgoing packets that are within the throttle limits
                         if (udpClient.DequeueOutgoing())
@@ -2015,7 +2019,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Error(
                     string.Format("[LLUDPSERVER]: OutgoingPacketHandler iteration for {0} threw ", client.Name), ex);
             }
-            client = null;
         }
 
         #region Emergency Monitoring
