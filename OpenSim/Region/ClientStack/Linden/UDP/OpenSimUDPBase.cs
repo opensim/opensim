@@ -205,6 +205,7 @@ namespace OpenMetaverse
                 if (m_udpBuffersPoolPtr < 999)
                 {
                     buf.RemoteEndPoint = null;
+                    buf.DataLength = 0;
                     m_udpBuffersPoolPtr++;
                     m_udpBuffersPool[m_udpBuffersPoolPtr] = buf;
                 }
