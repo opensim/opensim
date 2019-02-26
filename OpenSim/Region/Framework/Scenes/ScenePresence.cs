@@ -523,7 +523,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool Invulnerable
         {
-            set { m_invulnerable = value; }
+            set
+            {
+                m_invulnerable = value;
+                if(value && Health != 100.0f)
+                    Health = 100.0f;
+            }
             get { return m_invulnerable; }
         }
 
