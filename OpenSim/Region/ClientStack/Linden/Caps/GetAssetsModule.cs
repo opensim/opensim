@@ -204,19 +204,26 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoAssetRequests()
         {
-            while (m_NumberScenes > 0)
+            try
             {
-                APollRequest poolreq;
-                if(m_queue.TryTake(out poolreq, 4500))
+                while (m_NumberScenes > 0)
                 {
-                    if (m_NumberScenes <= 0)
-                        break;
+                    APollRequest poolreq;
+                    if (m_queue.TryTake(out poolreq, 4500))
+                    {
+                        if (m_NumberScenes <= 0)
+                            break;
+                        Watchdog.UpdateThread();
+                        if (poolreq.reqID != UUID.Zero)
+                            poolreq.thepoll.Process(poolreq);
+                        poolreq = null;
+                    }
                     Watchdog.UpdateThread();
-                    if (poolreq.reqID != UUID.Zero)
-                        poolreq.thepoll.Process(poolreq);
-                    poolreq = null;
                 }
-                Watchdog.UpdateThread();
+            }
+            catch (ThreadAbortException)
+            {
+                Thread.ResetAbort();
             }
         }
 
