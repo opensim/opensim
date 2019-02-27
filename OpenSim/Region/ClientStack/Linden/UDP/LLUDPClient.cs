@@ -575,22 +575,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 DoubleLocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
 
-                if (m_deliverPackets == false)
+                if (forceQueue || m_deliverPackets == false)
                 {
                     queue.Enqueue(packet, highPriority);
                     return true;
                 }
 
-                TokenBucket bucket = m_throttleCategories[category];
-
-                // Don't send this packet if queue is not empty
+                // need to enqueue if queue is not empty
                 if (queue.Count > 0 || m_nextPackets[category] != null)
                 {
                     queue.Enqueue(packet, highPriority);
                     return true;
                 }
 
-                if (!forceQueue && bucket.CheckTokens(packet.Buffer.DataLength))
+                // check bandwidth
+                TokenBucket bucket = m_throttleCategories[category];
+                if (bucket.CheckTokens(packet.Buffer.DataLength))
                 {
                     // enough tokens so it can be sent imediatly by caller
                     bucket.RemoveTokens(packet.Buffer.DataLength);
@@ -608,7 +608,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We don't have a token bucket for this category, so it will not be queued
                 return false;
             }
-
         }
 
         /// <summary>

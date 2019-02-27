@@ -4084,6 +4084,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ResendPrimUpdate(update);
         }
 
+        static private readonly byte[] terseUpdateHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                15 // ID (high frequency)
+                };
+
         private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
             if (!IsActive)
@@ -4377,38 +4384,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 const int maxNBlocks = (LLUDPServer.MTU - 18) / 63; // no texture entry
                 int blocks = terseAgentUpdates.Count;
-
-                ImprovedTerseObjectUpdatePacket packet
-                         = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-
                 int curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
                 List<EntityUpdate> tau = new List<EntityUpdate>(curNBlocks);
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+
+                //setup header and regioninfo block
+                Array.Copy(terseUpdateHeader, buf.Data, 7);
+                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
+                Utils.UInt16ToBytes(timeDilation, buf.Data, 15);
+                buf.Data[17] = (byte)curNBlocks;
+                int pos = 18;
 
                 int count = 0;
                 foreach (EntityUpdate eu in terseAgentUpdates)
                 {
-                    packet.ObjectData[count++] = CreateImprovedTerseBlock(eu.Entity);
+                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos);
                     tau.Add(eu);
+                    ++count;
                     --blocks;
                     if (count == curNBlocks && blocks > 0)
                     {
-                        OutPacket(packet, ThrottleOutPacketType.Unknown, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
-                        packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                        packet.RegionData.TimeDilation = timeDilation;
+                        // we need more packets
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        Array.Copy(buf.Data, newbuf.Data, 17); // start is the same
+
+                        buf.DataLength = pos;
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown,
+                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
 
                         curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
                         tau = new List<EntityUpdate>(curNBlocks);
-                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
                         count = 0;
+
+                        buf = newbuf;
+                        buf.Data[17] = (byte)curNBlocks;
+                        pos = 18;
                     }
                 }
 
-                if (tau.Count > 0)
-                    OutPacket(packet, ThrottleOutPacketType.Unknown, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
+                if (count > 0)
+                {
+                    buf.DataLength = pos;
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown,
+                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
+                }
             }
 
             if (objectUpdateBlocks != null)
@@ -4437,38 +4457,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 const int maxNBlocks = (LLUDPServer.MTU - 18) / 47; // no texture entry
                 int blocks = terseUpdates.Count;
-
-                ImprovedTerseObjectUpdatePacket packet = 
-                        (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-
                 int curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
                 List<EntityUpdate> tau = new List<EntityUpdate>(curNBlocks);
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
+
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+
+                //setup header and regioninfo block
+                Array.Copy(terseUpdateHeader, buf.Data, 7);
+                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
+                Utils.UInt16ToBytes(timeDilation, buf.Data, 15);
+                buf.Data[17] = (byte)curNBlocks;
+                int pos = 18;
 
                 int count = 0;
                 foreach (EntityUpdate eu in terseUpdates)
                 {
-                    packet.ObjectData[count++] = CreateImprovedTerseBlock(eu.Entity);
+                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos);
                     tau.Add(eu);
+                    ++count;
                     --blocks;
                     if (count == curNBlocks && blocks > 0)
                     {
-                        OutPacket(packet, ThrottleOutPacketType.Task, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
-                        packet = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                        packet.RegionData.TimeDilation = timeDilation;
+                        // we need more packets
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        Array.Copy(buf.Data, newbuf.Data, 17); // start is the same
+
+                        buf.DataLength = pos;
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
 
                         curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
                         tau = new List<EntityUpdate>(curNBlocks);
-                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[curNBlocks];
                         count = 0;
+
+                        buf = newbuf;
+                        buf.Data[17] = (byte)curNBlocks;
+                        pos = 18;
                     }
                 }
 
-                if (tau.Count > 0)
-                    OutPacket(packet, ThrottleOutPacketType.Task, false, delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); });
+                if (count > 0)
+                {
+                    buf.DataLength = pos;
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
+                }
             }
 
             if (ObjectAnimationUpdates != null)
@@ -5684,6 +5717,123 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             block.TextureEntry = Utils.EmptyBytes;
 
             return block;
+        }
+
+
+        protected void CreateImprovedTerseBlock(ISceneEntity entity, byte[] data, ref int pos)
+        {
+            #region ScenePresence/SOP Handling
+
+            bool avatar = (entity is ScenePresence);
+            uint localID = entity.LocalId;
+            uint attachPoint;
+            Vector4 collisionPlane;
+            Vector3 position, velocity, acceleration, angularVelocity;
+            Quaternion rotation;
+            byte datasize;
+
+            if (avatar)
+            {
+                ScenePresence presence = (ScenePresence)entity;
+
+                position = presence.OffsetPosition;
+                velocity = presence.Velocity;
+                acceleration = Vector3.Zero;
+                rotation = presence.Rotation;
+                // tpvs can only see rotations around Z in some cases
+                if (!presence.Flying && !presence.IsSatOnObject)
+                {
+                    rotation.X = 0f;
+                    rotation.Y = 0f;
+                }
+                rotation.Normalize();
+                angularVelocity = presence.AngularVelocity;
+
+                //                m_log.DebugFormat(
+                //                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+
+                attachPoint = presence.State;
+                collisionPlane = presence.CollisionPlane;
+
+                datasize = 60;
+            }
+            else
+            {
+                SceneObjectPart part = (SceneObjectPart)entity;
+
+                attachPoint = part.ParentGroup.AttachmentPoint;
+                attachPoint = ((attachPoint % 16) * 16 + (attachPoint / 16));
+                //                m_log.DebugFormat(
+                //                    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
+                //                    attachPoint, part.Name, part.LocalId, Name);
+
+                collisionPlane = Vector4.Zero;
+                position = part.RelativePosition;
+                velocity = part.Velocity;
+                acceleration = part.Acceleration;
+                angularVelocity = part.AngularVelocity;
+                rotation = part.RotationOffset;
+
+                datasize = 44;
+            }
+
+            #endregion ScenePresence/SOP Handling
+            //object block size
+            data[pos++] = datasize;
+
+            // LocalID
+            Utils.UIntToBytes(localID, data, pos);
+            pos += 4;
+
+            // Avatar/CollisionPlane
+            data[pos++] = (byte)attachPoint;
+            if (avatar)
+            {
+                data[pos++] = 1;
+
+                if (collisionPlane == Vector4.Zero)
+                    collisionPlane = Vector4.UnitW;
+                //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
+                collisionPlane.ToBytes(data, pos);
+                pos += 16;
+            }
+            else
+            {
+                data[pos++] = 0;
+            }
+
+            // Position
+            position.ToBytes(data, pos);
+            pos += 12;
+
+            // Velocity
+            ClampVectorForUint(ref velocity, 128f);
+            Utils.FloatToUInt16Bytes(velocity.X, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(velocity.Y, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(velocity.Z, 128.0f, data, pos); pos += 2;
+
+            // Acceleration
+            ClampVectorForUint(ref acceleration, 64f);
+            Utils.FloatToUInt16Bytes(acceleration.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(acceleration.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(acceleration.Z, 64.0f, data, pos); pos += 2;
+
+            // Rotation
+            Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+
+            // Angular Velocity
+            ClampVectorForUint(ref angularVelocity, 64f);
+            Utils.FloatToUInt16Bytes(angularVelocity.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(angularVelocity.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(angularVelocity.Z, 64.0f, data, pos); pos += 2;
+            
+            // texture entry block size
+            data[pos++] = 0;
+            data[pos++] = 0;
+            // total size 63 or 47
         }
 
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)

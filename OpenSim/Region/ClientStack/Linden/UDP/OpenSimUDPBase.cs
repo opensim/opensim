@@ -489,7 +489,7 @@ namespace OpenMetaverse
         public void SyncSend(UDPPacketBuffer buf)
         {
             if(buf.RemoteEndPoint == null)
-                return; // was already expired
+                return; // already expired
             try
             {
                 m_udpSocket.SendTo(
