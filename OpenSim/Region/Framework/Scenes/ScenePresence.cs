@@ -507,7 +507,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Physical scene representation of this Avatar.
         /// </summary>
-        public PhysicsActor PhysicsActor { get; private set; }
+        
+        PhysicsActor m_physActor;
+        public PhysicsActor PhysicsActor
+        {
+            get
+            {
+                return m_physActor;
+            }
+            private set
+            {
+                m_physActor = value;
+            }
+        }
 
         /// <summary>
         /// Record user movement inputs.
@@ -1641,15 +1653,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void RemoveFromPhysicalScene()
         {
-            if (PhysicsActor != null)
+            PhysicsActor pa = Interlocked.Exchange(ref m_physActor, null);
+            if (pa != null)
             {
 //                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
 
-                PhysicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                PhysicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor.UnSubscribeEvents();
-                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                PhysicsActor = null;
+                pa.OnOutOfBounds -= OutOfBoundsCall;
+                pa.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                pa.UnSubscribeEvents();
+                m_scene.PhysicsScene.RemoveAvatar(pa);
             }
 //            else
 //            {
@@ -2542,7 +2554,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_pos.X = 127f;
                     m_pos.Y = 127f;
                     m_pos.Z = 127f;
-                    m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999903");
+                    m_log.Error("[AVATAR]: NonFinite Avatar on lastFiniteposition also. Reset Position. Mantis this please. Error #9999903");
                 }
 
                 if(isphysical)
@@ -5012,16 +5024,17 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsScene scene = m_scene.PhysicsScene;
             Vector3 pVec = AbsolutePosition;
 
-            PhysicsActor = scene.AddAvatar(
+            PhysicsActor pa = scene.AddAvatar(
                 LocalId, Firstname + "." + Lastname, pVec,
                 Appearance.AvatarBoxSize,Appearance.AvatarFeetOffset, isFlying);
-            PhysicsActor.Orientation = m_bodyRot;
+            pa.Orientation = m_bodyRot;
             //PhysicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
-            PhysicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-            PhysicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
-            PhysicsActor.SubscribeEvents(100);
-            PhysicsActor.LocalID = LocalId;
-            PhysicsActor.SetAlwaysRun = m_setAlwaysRun;
+            pa.OnCollisionUpdate += PhysicsCollisionUpdate;
+            pa.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
+            pa.SubscribeEvents(100);
+            pa.LocalID = LocalId;
+            pa.SetAlwaysRun = m_setAlwaysRun;
+            PhysicsActor = pa;
         }
 
         private void OutOfBoundsCall(Vector3 pos)
