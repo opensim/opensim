@@ -4120,9 +4120,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float cullingrange = 64.0f;
             Vector3 mypos = Vector3.Zero;
 
-            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
+            //bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
+            bool orderedDequeue = false; // temporary off
 
             HashSet<SceneObjectGroup> GroupsNeedFullUpdate = new HashSet<SceneObjectGroup>();
+
 
             if (doCulling)
             {
@@ -4304,7 +4306,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         PrimUpdateFlags.Velocity |
                         PrimUpdateFlags.Acceleration |
                         PrimUpdateFlags.AngularVelocity |
-                        PrimUpdateFlags.CollisionPlane
+                        PrimUpdateFlags.CollisionPlane  |
+                        PrimUpdateFlags.Textures
                         );
 
                 #endregion UpdateFlags to packet type conversion
@@ -4347,7 +4350,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             maxUpdatesBytes -= 18;
                         }
                         terseUpdates.Add(update);
-                        maxUpdatesBytes -= 47; // no texture entry
+                        maxUpdatesBytes -= 47;
+                        if ((updateFlags & PrimUpdateFlags.Textures) != 0)
+                            maxUpdatesBytes -= 100; // aprox
                     }
                 }
                 else
@@ -4390,7 +4395,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
                 //setup header and regioninfo block
-                Array.Copy(terseUpdateHeader, buf.Data, 7);
+                Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
                 Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
                 Utils.UInt16ToBytes(timeDilation, buf.Data, 15);
                 buf.Data[17] = (byte)curNBlocks;
@@ -4399,7 +4404,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int count = 0;
                 foreach (EntityUpdate eu in terseAgentUpdates)
                 {
-                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos);
+                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos, false);
                     tau.Add(eu);
                     ++count;
                     --blocks;
@@ -4407,7 +4412,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // we need more packets
                         UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                        Array.Copy(buf.Data, newbuf.Data, 17); // start is the same
+                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, 17); // start is the same
 
                         buf.DataLength = pos;
                         m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown,
@@ -4455,49 +4460,57 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 */
             if (terseUpdates != null)
             {
-                const int maxNBlocks = (LLUDPServer.MTU - 18) / 47; // no texture entry
                 int blocks = terseUpdates.Count;
-                int curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
-                List<EntityUpdate> tau = new List<EntityUpdate>(curNBlocks);
+                List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
                 //setup header and regioninfo block
-                Array.Copy(terseUpdateHeader, buf.Data, 7);
+                Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
                 Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
                 Utils.UInt16ToBytes(timeDilation, buf.Data, 15);
-                buf.Data[17] = (byte)curNBlocks;
                 int pos = 18;
+                int lastpos = 0;
 
                 int count = 0;
                 foreach (EntityUpdate eu in terseUpdates)
                 {
-                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos);
-                    tau.Add(eu);
-                    ++count;
-                    --blocks;
-                    if (count == curNBlocks && blocks > 0)
+                    lastpos = pos;
+                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos,  (eu.Flags & PrimUpdateFlags.Textures) != 0);
+                    if (pos <= LLUDPServer.MTU)
+                    {
+                        tau.Add(eu);
+                        ++count;
+                        --blocks;
+                    }
+                    else if (blocks > 0)
                     {
                         // we need more packets
                         UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                        Array.Copy(buf.Data, newbuf.Data, 17); // start is the same
+                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, 17); // start is the same
+                        // copy what we done in excess
+                        int extralen = pos - lastpos;
+                        if(extralen > 0)
+                            Buffer.BlockCopy(newbuf.Data, 18, buf.Data, lastpos, extralen);
 
-                        buf.DataLength = pos;
+                        pos = 18 + extralen;
+
+                        buf.Data[17] = (byte)count;
+                        buf.DataLength = lastpos;
                         m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                             delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
 
-                        curNBlocks = blocks > maxNBlocks ? maxNBlocks : blocks;
-                        tau = new List<EntityUpdate>(curNBlocks);
-                        count = 0;
-
+                        tau = new List<EntityUpdate>(30);
+                        tau.Add(eu);
+                        count = 1;
+                        --blocks;
                         buf = newbuf;
-                        buf.Data[17] = (byte)curNBlocks;
-                        pos = 18;
                     }
                 }
 
                 if (count > 0)
                 {
+                    buf.Data[17] = (byte)count;
                     buf.DataLength = pos;
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                         delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false);
@@ -5720,7 +5733,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
 
-        protected void CreateImprovedTerseBlock(ISceneEntity entity, byte[] data, ref int pos)
+        protected void CreateImprovedTerseBlock(ISceneEntity entity, byte[] data, ref int pos, bool includeTexture)
         {
             #region ScenePresence/SOP Handling
 
@@ -5731,6 +5744,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Vector3 position, velocity, acceleration, angularVelocity;
             Quaternion rotation;
             byte datasize;
+            byte[] te = null;
 
             if (avatar)
             {
@@ -5775,6 +5789,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 rotation = part.RotationOffset;
 
                 datasize = 44;
+                if(includeTexture)
+                    te = part.Shape.TextureEntry;
             }
 
             #endregion ScenePresence/SOP Handling
@@ -5785,8 +5801,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UIntToBytes(localID, data, pos);
             pos += 4;
 
-            // Avatar/CollisionPlane
             data[pos++] = (byte)attachPoint;
+
+            // Avatar/CollisionPlane
             if (avatar)
             {
                 data[pos++] = 1;
@@ -5829,11 +5846,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.FloatToUInt16Bytes(angularVelocity.X, 64.0f, data, pos); pos += 2;
             Utils.FloatToUInt16Bytes(angularVelocity.Y, 64.0f, data, pos); pos += 2;
             Utils.FloatToUInt16Bytes(angularVelocity.Z, 64.0f, data, pos); pos += 2;
-            
+
             // texture entry block size
-            data[pos++] = 0;
-            data[pos++] = 0;
-            // total size 63 or 47
+            if(te == null)
+            {
+                data[pos++] = 0;
+                data[pos++] = 0;
+            }
+            else
+            {
+                int len = te.Length & 0x7fff;
+                int totlen = len + 4;
+                data[pos++] = (byte)totlen;
+                data[pos++] = (byte)(totlen >> 8);
+                data[pos++] = (byte)len; // wtf ???
+                data[pos++] = (byte)(len >> 8);
+                data[pos++] = 0;
+                data[pos++] = 0;
+                Buffer.BlockCopy(te, 0, data, pos, len);
+                pos += len;
+            }
+            // total size 63 or 47 + (texture size + 4)
         }
 
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)

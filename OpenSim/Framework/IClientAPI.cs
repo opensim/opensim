@@ -671,7 +671,6 @@ namespace OpenSim.Framework
         Particles = 1 << 19,
         ExtraData = 1 << 20,
         Sound = 1 << 21,
-        Joint = 1 << 22,
 
         TerseUpdate = Position | Rotation | Velocity | Acceleration | AngularVelocity,
         FullUpdate =    0x00ffffff,

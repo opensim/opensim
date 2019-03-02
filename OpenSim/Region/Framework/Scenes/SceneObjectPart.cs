@@ -3242,8 +3242,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup.Scene.GetNumberOfClients() == 0)
                 return;
 
-            ParentGroup.QueueForUpdateCheck();
-
             bool isfull = false;
             if (ParentGroup.IsAttachment)
             {
@@ -3253,6 +3251,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (UpdateFlagLock)
                 UpdateFlag |= update;
+
+            ParentGroup.QueueForUpdateCheck();
 
             ParentGroup.Scene.EventManager.TriggerSceneObjectPartUpdated(this, isfull);
         }
@@ -5133,8 +5133,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_shape.TextureEntry = newTex.GetBytes();
             TriggerScriptChangedEvent(changeFlags);
             ParentGroup.HasGroupChanged = true;
-            ScheduleFullUpdate();
-
+            ScheduleUpdate(PrimUpdateFlags.Textures);
         }
 
         /// <summary>
@@ -5163,7 +5162,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_shape.TextureEntry = newTex.GetBytes();
             TriggerScriptChangedEvent(changeFlags);
             ParentGroup.HasGroupChanged = true;
-            ScheduleFullUpdate();
+            ScheduleUpdate(PrimUpdateFlags.Textures);
         }
 
         internal void UpdatePhysicsSubscribedEvents()
@@ -5575,20 +5574,26 @@ namespace OpenSim.Region.Framework.Scenes
         // handle osVolumeDetect
         public void ScriptSetVolumeDetect(bool makeVolumeDetect)
         {
+            if(ParentGroup.IsDeleted)
+                return;
+
             if(_parentID == 0)
             {
-                // if root prim do it via SOG
+                // if root prim do it is like llVolumeDetect
                 ParentGroup.ScriptSetVolumeDetect(makeVolumeDetect);
                 return;
             }
 
-            bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
-            bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
+            if(ParentGroup.IsVolumeDetect)
+                return; // entire linkset is phantom already
+
+            bool wasUsingPhysics = ParentGroup.UsesPhysics;
+            bool wasTemporary = ParentGroup.IsTemporary;
+            bool wasPhantom = ParentGroup.IsPhantom;
 
             if(PhysActor != null)
                 PhysActor.Building = true;
-            UpdatePrimFlags(wasUsingPhysics,wasTemporary,wasPhantom,makeVolumeDetect,false);
+            UpdatePrimFlags(wasUsingPhysics, wasTemporary, wasPhantom, makeVolumeDetect, false);
         }
 
         protected static int m_animationSequenceNumber = (int)(Util.GetTimeStampTicks() & 0x5fffafL);
