@@ -1936,45 +1936,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            Primitive.TextureEntry tex = part.Shape.Textures;
-            int nsides = GetNumberOfSides(part);
-            Color4 texcolor;
-
-            if (face >= 0 && face < nsides)
-            {
-                texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTextureEntry(tex);
-                return;
-            }
-            else if (face == ScriptBaseClass.ALL_SIDES)
-            {              
-                for (uint i = 0; i < nsides; i++)
-                {
-                    if (tex.FaceTextures[i] != null)
-                    {
-                        texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.FaceTextures[i].RGBA = texcolor;
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                }
-                part.UpdateTextureEntry(tex);
-                return;
-            }
-
-            if (face == ScriptBaseClass.ALL_SIDES)
-                face = SceneObjectPart.ALL_SIDES;
-
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
@@ -3577,7 +3538,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void doObjectRez(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param, bool atRoot)
         {
             m_host.AddScriptLPS(1);
-            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+            if (string.IsNullOrEmpty(inventory) || Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                 return;
 
             float dist = (float)llVecDist(llGetPos(), pos);
