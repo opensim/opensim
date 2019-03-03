@@ -4477,7 +4477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     lastpos = pos;
                     CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos,  (eu.Flags & PrimUpdateFlags.Textures) != 0);
-                    if (pos <= LLUDPServer.MTU)
+                    if (pos < LLUDPServer.MTU)
                     {
                         tau.Add(eu);
                         ++count;
@@ -4491,7 +4491,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // copy what we done in excess
                         int extralen = pos - lastpos;
                         if(extralen > 0)
-                            Buffer.BlockCopy(newbuf.Data, 18, buf.Data, lastpos, extralen);
+                            Buffer.BlockCopy(buf.Data, lastpos, newbuf.Data, 18, extralen);
 
                         pos = 18 + extralen;
 
