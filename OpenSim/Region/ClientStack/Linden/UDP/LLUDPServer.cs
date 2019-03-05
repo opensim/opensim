@@ -274,10 +274,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public readonly float TickCountResolution;
 
-        /// <summary>Number of prim updates to put on the queue each time the
-        /// OnQueueEmpty event is triggered for updates</summary>
-        public readonly int PrimUpdatesPerCallback;
-
         /// <summary>Number of texture packets to put on the queue each time the
         /// OnQueueEmpty event is triggered for textures</summary>
         public readonly int TextureSendLimit;
@@ -440,7 +436,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
 
-                PrimUpdatesPerCallback = config.GetInt("PrimUpdatesPerCallback", 100);
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
 
                 m_defaultRTO = config.GetInt("DefaultRTO", 0);
@@ -451,7 +446,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                PrimUpdatesPerCallback = 100;
                 TextureSendLimit = 20;
                 m_ackTimeout = 1000 * 60; // 1 minute
                 m_pausedAckTimeout = 1000 * 300; // 5 minutes
@@ -934,10 +928,72 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion Queue or Send
         }
 
+        public unsafe UDPPacketBuffer ZeroEncode(UDPPacketBuffer input)
+        {
+            UDPPacketBuffer zb = GetNewUDPBuffer(null);
+            int srclen = input.DataLength;
+            byte[] src = input.Data;
+            byte[] dest = zb.Data;
+
+            int zerolen = 6;
+            byte zerocount = 0;
+
+            for (int i = zerolen; i < srclen; i++)
+            {
+                if (src[i] == 0x00)
+                {
+                    zerocount++;
+                    if (zerocount == 0)
+                    {
+                        dest[zerolen++] = 0x00;
+                        dest[zerolen++] = 0xff;
+                        zerocount++;
+                    }
+                }
+                else
+                {
+                    if (zerocount != 0)
+                    {
+                        dest[zerolen++] = 0x00;
+                        dest[zerolen++] = zerocount;
+                        zerocount = 0;
+                    }
+
+                    dest[zerolen++] = src[i];
+                }
+            }
+
+            if (zerocount != 0)
+            {
+                dest[zerolen++] = 0x00;
+                dest[zerolen++] = zerocount;
+            }
+
+            if(zerolen >= srclen)
+            {
+                FreeUDPBuffer(zb);
+
+                src[0] &= unchecked((byte)~Helpers.MSG_ZEROCODED);
+                return input;
+            }
+
+            Buffer.BlockCopy(src, 0, dest, 0, 6);
+
+            zb.RemoteEndPoint = input.RemoteEndPoint;
+            zb.DataLength = zerolen;
+
+            FreeUDPBuffer(input);
+
+            return zb;
+        }
+
         public void SendUDPPacket(
-            LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method, bool forcequeue)
+            LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method, bool forcequeue, bool zerocode)
         {
             bool highPriority = false;
+
+            if(zerocode)
+                buffer = ZeroEncode(buffer);
 
             if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
             {
