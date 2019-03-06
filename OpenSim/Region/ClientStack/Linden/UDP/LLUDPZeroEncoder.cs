@@ -134,7 +134,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void AddByte(byte v)
+        public unsafe void AddByte(byte v)
         {
             if (v == 0x00)
             {
