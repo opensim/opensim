@@ -701,7 +701,7 @@ public sealed class BSCharacter : BSPhysObject
                 }
                 if (m_moveActor != null)
                 {
-                    m_moveActor.SuppressStationayCheckUntilLowVelocity();
+                    m_moveActor.SuppressStationayCheckUntilLowVelocity(BSParam.AvatarAddForceFrames);
                 }
             });
         }
