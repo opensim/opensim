@@ -3898,13 +3898,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             zc.AddByte(1); // block count
 
+            ThrottleOutPacketType ptype = ThrottleOutPacketType.Task;
             if (ent is ScenePresence)
+            {
                 CreateAvatarUpdateBlock(ent as ScenePresence, zc);
+                ptype |= ThrottleOutPacketType.HighPriority;
+            }
             else
                 CreatePrimUpdateBlock(ent as SceneObjectPart, (ScenePresence)SceneAgent, zc);
 
             buf.DataLength = zc.Finish();
-            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority, null, false, false);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ptype , null, false, false);
         }
 
         public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
