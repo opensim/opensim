@@ -3894,22 +3894,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (ent is ScenePresence)
             {
                 ScenePresence presence = ent as ScenePresence;
-
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
-                //setup header and regioninfo block
                 Buffer.BlockCopy(objectUpdateHeader, 0, buf.Data, 0, 7);
-                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
-                Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), buf.Data, 15);
 
-                buf.Data[17] = 1;
-                int pos = 18;
-                CreateAvatarUpdateBlock(presence, buf.Data, ref pos);
-
-                buf.DataLength = pos;
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority, null, false, true);
+                LLUDPZeroEncoder zc = new LLUDPZeroEncoder(buf.Data);
+                zc.Position = 7;
+                zc.AddUInt64(m_scene.RegionInfo.RegionHandle);
+                zc.AddUInt16(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f));
+                zc.AddByte(1); // block count
+                CreateAvatarUpdateBlock(presence, zc);
+                buf.DataLength = zc.Finish();
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority, null, false, false);
             }
-
             else if(ent is SceneObjectPart)
             {
                 ObjectUpdatePacket objupdate = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
@@ -5985,6 +5982,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Array.Clear(dest, pos, lastzeros); pos += lastzeros;
         }
 
+        protected void CreateAvatarUpdateBlock(ScenePresence data, LLUDPZeroEncoder zc)
+        {
+            Quaternion rotation = data.Rotation;
+            // tpvs can only see rotations around Z in some cases
+            if (!data.Flying && !data.IsSatOnObject)
+            {
+                rotation.X = 0f;
+                rotation.Y = 0f;
+            }
+            rotation.Normalize();
+
+            zc.AddUInt(data.LocalId);
+            zc.AddByte(0);
+            zc.AddUUID(data.UUID);
+            zc.AddZeros(4); // crc unused
+            zc.AddByte((byte)PCode.Avatar);
+            zc.AddByte((byte)Material.Flesh);
+            zc.AddByte(0); // clickaction
+            zc.AddVector3(data.Appearance.AvatarSize);
+
+            // objectdata block
+            zc.AddByte(76); // fixed avatar block size
+            zc.AddVector4(data.CollisionPlane);
+            zc.AddVector3(data.OffsetPosition);
+            zc.AddVector3(data.Velocity);
+            //zc.AddVector3(acceleration);
+            zc.AddZeros(12);
+            zc.AddNormQuat(rotation);
+            //zc.AddVector3(angularvelocity);
+            zc.AddZeros(12);
+
+            SceneObjectPart parentPart = data.ParentPart;
+            if (parentPart != null)
+                zc.AddUInt(parentPart.ParentGroup.LocalId);
+            else
+                zc.AddZeros(4);
+
+            zc.AddZeros(4); //update flags
+
+            //pbs
+            zc.AddByte(16);
+            zc.AddByte(1);
+            //Utils.UInt16ToBytes(0, dest, pos); pos += 2;
+            //Utils.UInt16ToBytes(0, dest, pos); pos += 2;
+            zc.AddZeros(4);
+
+            zc.AddByte(100);
+            zc.AddByte(100);
+
+            // rest of pbs is 0 (15), texture entry (2) and texture anim (1)
+            const int pbszeros = 15 + 2 + 1;
+            zc.AddZeros(pbszeros);
+
+            //NameValue
+            byte[] nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
+                data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
+            int len = nv.Length;
+            zc.AddByte((byte)len);
+            zc.AddByte((byte)(len >> 8));
+            zc.AddBytes(nv, len);
+
+            // data(2), text(1), text color(4), media url(1), PBblock(1), ExtramParams(1),
+            // sound id(16), sound owner(16) gain (4), flags (1), radius (4)
+            //  jointtype(1) joint pivot(12) joint offset(12)
+            const int lastzeros = 2 + 1 + 4 + 1 + 1 + 1 + 16 + 16 + 4 + 1 + 4 + 1 + 12 + 12;
+            zc.AddZeros(lastzeros);
+        }
+
+
         //        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart data, UUID recipientID)
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart part, ScenePresence sp)
         {
@@ -6008,32 +6074,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointPivot = Vector3.Zero;
             //update.JointType = 0;
             update.Material = part.Material;
-/*
-            if (data.ParentGroup.IsAttachment)
-            {
-                update.NameValue
-                    = Util.StringToBytes256(
-                        string.Format("AttachItemID STRING RW SV {0}", data.ParentGroup.FromItemID));
-
-                update.State = (byte)((data.ParentGroup.AttachmentPoint % 16) * 16 + (data.ParentGroup.AttachmentPoint / 16));
-
-//                m_log.DebugFormat(
-//                    "[LLCLIENTVIEW]: Sending NameValue {0} for {1} {2} to {3}",
-//                    Util.UTF8.GetString(update.NameValue), data.Name, data.LocalId, Name);
-//
-//                m_log.DebugFormat(
-//                    "[LLCLIENTVIEW]: Sending state {0} for {1} {2} to {3}",
-//                    update.State, data.Name, data.LocalId, Name);
-            }
-            else
-            {
-                update.NameValue = Utils.EmptyBytes;
-
-                // The root part state is the canonical state for all parts of the object.  The other part states in the
-                // case for attachments may contain conflicting values that can end up crashing the viewer.
-                update.State = data.ParentGroup.RootPart.Shape.State;
-            }
-*/
 
             if (part.ParentGroup.IsAttachment)
             {
