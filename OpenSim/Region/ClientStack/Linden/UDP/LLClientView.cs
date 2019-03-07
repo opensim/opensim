@@ -6266,7 +6266,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(pcode == PCode.Grass || pcode == PCode.Tree ||  pcode == PCode.NewTree)
             {
                 zc.AddUInt(part.LocalId);
-                zc.AddByte(state); // state
+                if(pcode == PCode.Grass)
+                    zc.AddByte(state); // state
+                else
+                    zc.AddZeros(1);
                 zc.AddUUID(part.UUID);
                 zc.AddZeros(4); // crc unused
                 zc.AddByte((byte)pcode);
@@ -6278,14 +6281,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // objectdata block
                 zc.AddByte(60); // fixed object block size
                 zc.AddVector3(part.RelativePosition);
-                zc.AddZeros(24);
-                Quaternion rot = part.RotationOffset;
-                rot.Normalize();
-                zc.AddNormQuat(rot);
-                zc.AddZeros(12);
+                if (pcode == PCode.Grass)
+                    zc.AddZeros(48);
+                else
+                {
+                    zc.AddZeros(24);
+                    Quaternion rot = part.RotationOffset;
+                    rot.Normalize();
+                    zc.AddNormQuat(rot);
+                    zc.AddZeros(12);
+                }
 
                 zc.AddUInt(part.ParentID);
                 zc.AddUInt((uint)primflags); //update flags
+
+                if (pcode == PCode.Grass)
+                {
+                    //pbs volume data 23
+                    //texture entry 2
+                    //texture anim 1
+                    //name value 2
+                    // data 1
+                    // text 5
+                    // media url 1
+                    // particle system 1
+                    // Extraparams 1
+                    // sound id 16
+                    // ownwer 16
+                    // sound gain 4
+                    // sound flags 1
+                    // sound radius 4
+                    // jointtype 1
+                    // joint pivot 12
+                    // joint offset 12
+                    zc.AddZeros(23 + 2 + 1 + 2 + 1 + 5 + 1 + 1 + 1 + 16 + 16 + 4 + 1 + 4 + 1 + 12 + 12);
+                    return;
+                }
 
                 //pbs volume data 23
                 //texture entry 2
@@ -6293,7 +6324,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //name value 2
                 zc.AddZeros(23 + 2 + 1 + 2);
 
-                //data
+                //data: the tree type
                 zc.AddByte(1);
                 zc.AddZeros(1);
                 zc.AddByte(state);
