@@ -6266,10 +6266,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(pcode == PCode.Grass || pcode == PCode.Tree ||  pcode == PCode.NewTree)
             {
                 zc.AddUInt(part.LocalId);
-                if(pcode == PCode.Grass)
-                    zc.AddByte(state); // state
-                else
-                    zc.AddZeros(1);
+                zc.AddByte(state); // state
                 zc.AddUUID(part.UUID);
                 zc.AddZeros(4); // crc unused
                 zc.AddByte((byte)pcode);
@@ -6295,6 +6292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddUInt(part.ParentID);
                 zc.AddUInt((uint)primflags); //update flags
 
+                /*
                 if (pcode == PCode.Grass)
                 {
                     //pbs volume data 23
@@ -6317,6 +6315,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zc.AddZeros(23 + 2 + 1 + 2 + 1 + 5 + 1 + 1 + 1 + 16 + 16 + 4 + 1 + 4 + 1 + 12 + 12);
                     return;
                 }
+                */
 
                 //pbs volume data 23
                 //texture entry 2
