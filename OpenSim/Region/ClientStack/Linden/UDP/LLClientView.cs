@@ -4102,7 +4102,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (mysp == null)
                 return;
 
-            List<ObjectUpdatePacket.ObjectDataBlock> objectUpdateBlocks = null;
             // List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
             List<EntityUpdate> objectUpdates = null;
             // List<EntityUpdate> compressedUpdates = null;
@@ -4349,22 +4348,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    ObjectUpdatePacket.ObjectDataBlock ablock;
                     if (update.Entity is ScenePresence)
-                    {
-                        ablock = CreateAvatarUpdateBlock((ScenePresence)update.Entity);
-                    }
+                        maxUpdatesBytes -= 150; // crude estimation
                     else
-                        ablock = CreatePrimUpdateBlock((SceneObjectPart)update.Entity, mysp);
-                    if(objectUpdateBlocks == null)
+                        maxUpdatesBytes -= 300;
+
+                    if(objectUpdates == null)
                     {
-                        objectUpdateBlocks = new List<ObjectUpdatePacket.ObjectDataBlock>();
                         objectUpdates = new List<EntityUpdate>();
                         maxUpdatesBytes -= 18;
                     }
-                    objectUpdateBlocks.Add(ablock);
                     objectUpdates.Add(update);
-                    maxUpdatesBytes -= ablock.Length;
                 }
 
                 #endregion Block Construction
@@ -4379,16 +4373,86 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
 
-            if (objectUpdateBlocks != null)
+            if(objectUpdates != null)
             {
-                ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = objectUpdateBlocks.ToArray();
-                objectUpdateBlocks.Clear();
+                int blocks = objectUpdates.Count;
+                List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates, oPacket); });
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                Buffer.BlockCopy(objectUpdateHeader, 0, buf.Data, 0, 7);
+
+                LLUDPZeroEncoder zc = new LLUDPZeroEncoder(buf.Data);
+                zc.Position = 7;
+
+                zc.AddUInt64(m_scene.RegionInfo.RegionHandle);
+                zc.AddUInt16(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f));
+
+                zc.AddByte(1); // tmp block count
+
+                int countposition = zc.Position - 1;
+
+                int lastpos = 0;
+                int lastzc = 0;
+
+                int count = 0;
+                foreach (EntityUpdate eu in objectUpdates)
+                {
+                    lastpos = zc.Position;
+                    lastzc = zc.ZeroCount;
+                    if (eu.Entity is ScenePresence)
+                        CreateAvatarUpdateBlock((ScenePresence)eu.Entity, zc);
+                    else
+                        CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
+                    if (zc.Position < LLUDPServer.MTU - 5)
+                    {
+                        tau.Add(eu);
+                        ++count;
+                        --blocks;
+                    }
+                    else if (blocks > 0)
+                    {
+                        // we need more packets
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
+
+                        buf.Data[countposition] = (byte)count;
+                        // get pending zeros at cut point
+                        if(lastzc > 0)
+                        {
+                            buf.Data[lastpos++] = 0;
+                            buf.Data[lastpos++] = (byte)lastzc;
+                        }
+                        buf.DataLength = lastpos;
+
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+
+                        buf = newbuf;
+                        zc.Data = buf.Data;
+                        zc.ZeroCount = 0;
+                        zc.Position = countposition + 1;
+                        // im lazy now, just do last again
+                        if (eu.Entity is ScenePresence)
+                            CreateAvatarUpdateBlock((ScenePresence)eu.Entity, zc);
+                        else
+                            CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
+
+                        tau = new List<EntityUpdate>(30);
+                        tau.Add(eu);
+                        count = 1;
+                        --blocks;
+                    }
+                }
+
+                if (count > 0)
+                {
+                    buf.Data[countposition] = (byte)count;
+                    buf.DataLength = zc.Finish();
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+                }
             }
+
 /*
             if (compressedUpdateBlocks != null)
             {
@@ -6289,7 +6353,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 int len = tentry.Length;
-                zc.AddUInt((ushort)len);
+                zc.AddByte((byte)len);
+                zc.AddByte((byte)(len >> 8));
                 zc.AddBytes(tentry, len);
             }
 
@@ -6327,7 +6392,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //text
-            if (part.Text.Length == 0)
+            if (part.Text == null || part.Text.Length == 0)
                 zc.AddZeros(5);
             else
             {
@@ -6342,7 +6407,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //media url
-            if (part.MediaUrl.Length == 0)
+            if (part.MediaUrl == null || part.MediaUrl.Length == 0)
                 zc.AddZeros(1);
             else
             {
@@ -6355,19 +6420,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool hasps = false;
             //particle system
             byte[] ps = part.ParticleSystem;
-            if (ps == null)
+            if (ps == null || ps.Length < 1)
                 zc.AddZeros(1);
             else
             {
                 int len = ps.Length;
                 zc.AddByte((byte)len);
                 zc.AddBytes(ps, len);
-                hasps = len > 1;
+                hasps = true;
             }
 
             //Extraparams
             byte[] ep = part.Shape.ExtraParams;
-            if (ep == null)
+            if (ep == null || ep.Length < 2)
                 zc.AddZeros(1);
             else
             {
