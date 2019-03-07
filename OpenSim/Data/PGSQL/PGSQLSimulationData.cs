@@ -1742,7 +1742,10 @@ namespace OpenSim.Data.PGSQL
 
             prim.Sound = new UUID((Guid)primRow["LoopedSound"]);
             prim.SoundGain = Convert.ToSingle(primRow["LoopedSoundGain"]);
-            prim.SoundFlags = 1; // If it's persisted at all, it's looped
+            if (prim.Sound != UUID.Zero)
+                prim.SoundFlags = 1; // If it's persisted at all, it's looped
+            else
+                prim.SoundFlags = 0;
 
             if (!(primRow["TextureAnimation"] is DBNull))
                 prim.TextureAnimation = (Byte[])primRow["TextureAnimation"];

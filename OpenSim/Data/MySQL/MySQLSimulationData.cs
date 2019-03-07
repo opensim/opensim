@@ -1403,7 +1403,10 @@ namespace OpenSim.Data.MySQL
 
             prim.Sound = DBGuid.FromDB(row["LoopedSound"].ToString());
             prim.SoundGain = (float)(double)row["LoopedSoundGain"];
-            prim.SoundFlags = 1; // If it's persisted at all, it's looped
+            if (prim.Sound != UUID.Zero)
+                prim.SoundFlags = 1; // If it's persisted at all, it's looped
+            else
+                prim.SoundFlags = 0;
 
             if (!(row["TextureAnimation"] is DBNull))
                 prim.TextureAnimation = (byte[])row["TextureAnimation"];
