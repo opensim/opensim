@@ -6008,18 +6008,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             zc.AddZeros(4); //update flags
 
-            //pbs
-            zc.AddByte(16);
-            zc.AddByte(1);
-            //Utils.UInt16ToBytes(0, dest, pos); pos += 2;
-            //Utils.UInt16ToBytes(0, dest, pos); pos += 2;
-            zc.AddZeros(4);
-
-            zc.AddByte(100);
-            zc.AddByte(100);
-
-            // rest of pbs is 0 (15), texture entry (2) and texture anim (1)
-            const int pbszeros = 15 + 2 + 1;
+            //pbs volume data 23
+            //texture entry 2
+            //texture anim (1)
+            const int pbszeros = 23 + 2 + 1;
             zc.AddZeros(pbszeros);
 
             //NameValue
@@ -6154,14 +6146,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion PrimFlags
 
-            if (part.Sound != UUID.Zero || part.SoundFlags != 0)
+            bool hassound = part.Sound != UUID.Zero || part.SoundFlags != 0;
+            if (hassound)
             {
                 update.Sound = part.Sound;
-                update.OwnerID = part.OwnerID;
                 update.Gain = (float)part.SoundGain;
                 update.Radius = (float)part.SoundRadius;
                 update.Flags = part.SoundFlags;
             }
+
+            if(hassound || update.PSBlock.Length > 1)
+                update.OwnerID = part.OwnerID;
 
             switch ((PCode)part.Shape.PCode)
             {
@@ -6333,18 +6328,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //text
             if (part.Text.Length == 0)
-                zc.AddZeros(1);
+                zc.AddZeros(5);
             else
             {
-                byte[] tbuf = Util.StringToBytes(part.Text, 255);
+                byte[] tbuf = Util.StringToBytes(part.Text, 254);
                 int len = tbuf.Length;
                 zc.AddByte((byte)len);
                 zc.AddBytes(tbuf, len);
-            }
 
-            //textcolor
-            byte[] tc = part.GetTextColor().GetBytes(false);
-            zc.AddBytes(tc, 4);
+                //textcolor
+                byte[] tc = part.GetTextColor().GetBytes(false);
+                zc.AddBytes(tc, 4);
+            }
 
             //media url
             if (part.MediaUrl.Length == 0)
@@ -6357,6 +6352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddBytes(tbuf, len);
             }
 
+            bool hasps = false;
             //particle system
             byte[] ps = part.ParticleSystem;
             if (ps == null)
@@ -6366,6 +6362,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int len = ps.Length;
                 zc.AddByte((byte)len);
                 zc.AddBytes(ps, len);
+                hasps = len > 1;
             }
 
             //Extraparams
@@ -6379,11 +6376,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddBytes(ep, len);
             }
 
-            zc.AddUUID(part.Sound);
-            zc.AddUUID(part.OwnerID);
-            zc.AddFloat((float)part.SoundGain);
-            zc.AddByte(part.SoundFlags);
-            zc.AddFloat((float)part.SoundRadius);
+            bool hassound = part.Sound != UUID.Zero || part.SoundFlags != 0;
+            if (hassound)
+                zc.AddUUID(part.Sound);
+            else
+                zc.AddZeros(16);
+
+            if (hassound || hasps)
+                zc.AddUUID(part.OwnerID);
+            else
+                zc.AddZeros(16);
+
+            if (hassound)
+            {
+                zc.AddFloat((float)part.SoundGain);
+                zc.AddByte(part.SoundFlags);
+                zc.AddFloat((float)part.SoundRadius);
+            }
+            else
+                zc.AddZeros(9);
 
             //  jointtype(1) joint pivot(12) joint offset(12)
             const int lastzeros = 1 + 12 + 12;
