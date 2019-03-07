@@ -323,7 +323,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
 
             if(facechanged)
-                part.Shape.TextureEntry = te.GetBytes();
+                part.Shape.TextureEntry = te.GetBytes(9);
 
             if(facechanged || partchanged)
             {
@@ -632,7 +632,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                             faceEntry.MaterialID = id;
                                             //m_log.DebugFormat("[Materials]: in \"{0}\" {1}, setting material ID for face {2} to {3}", sop.Name, sop.UUID, face, id);
                                             // We can't use sop.UpdateTextureEntry(te) because it filters, so do it manually
-                                            sop.Shape.TextureEntry = te.GetBytes();
+                                            sop.Shape.TextureEntry = te.GetBytes(9);
                                         }
 
                                         if(oldid != UUID.Zero)
