@@ -3833,24 +3833,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             AvatarAnimationPacket ani = (AvatarAnimationPacket)PacketPool.Instance.GetPacket(PacketType.AvatarAnimation);
             // TODO: don't create new blocks if recycling an old packet
-            ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[animations.Length];
             ani.Sender = new AvatarAnimationPacket.SenderBlock();
             ani.Sender.ID = sourceAgentId;
             ani.AnimationList = new AvatarAnimationPacket.AnimationListBlock[animations.Length];
             ani.PhysicalAvatarEventList = new AvatarAnimationPacket.PhysicalAvatarEventListBlock[0];
 
-            for (int i = 0; i < animations.Length; ++i)
+            //self animations
+            if (sourceAgentId == AgentId)
             {
-                ani.AnimationList[i] = new AvatarAnimationPacket.AnimationListBlock();
-                ani.AnimationList[i].AnimID = animations[i];
-                ani.AnimationList[i].AnimSequenceID = seqs[i];
+                List<int> withobjects = new List<int>(animations.Length);
+                List<int> noobjects = new List<int>(animations.Length);
+                for(int i = 0; i < animations.Length; ++i)
+                {
+                    if(objectIDs[i] == sourceAgentId || objectIDs[i] == UUID.Zero)
+                        noobjects.Add(i);
+                    else
+                        withobjects.Add(i);
+                }
 
-                ani.AnimationSourceList[i] = new AvatarAnimationPacket.AnimationSourceListBlock();
-                if (objectIDs[i].Equals(sourceAgentId))
-                    ani.AnimationSourceList[i].ObjectID = UUID.Zero;
-                else
-                    ani.AnimationSourceList[i].ObjectID = objectIDs[i];
+                ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[withobjects.Count];
+                int k = 0;
+                foreach (int i in withobjects)
+                {
+                    ani.AnimationList[k] = new AvatarAnimationPacket.AnimationListBlock();
+                    ani.AnimationList[k].AnimID = animations[i];
+                    ani.AnimationList[k].AnimSequenceID = seqs[i];
+                    ani.AnimationSourceList[k] = new AvatarAnimationPacket.AnimationSourceListBlock();
+                    ani.AnimationSourceList[k].ObjectID = objectIDs[i];
+                    k++;
+                }
+                foreach (int i in noobjects)
+                {
+                    ani.AnimationList[k] = new AvatarAnimationPacket.AnimationListBlock();
+                    ani.AnimationList[k].AnimID = animations[i];
+                    ani.AnimationList[k].AnimSequenceID = seqs[i];
+                    k++;
+                }
             }
+            else
+            {
+                ani.AnimationSourceList = new AvatarAnimationPacket.AnimationSourceListBlock[0];
+                for (int i = 0; i < animations.Length; ++i)
+                {
+                    ani.AnimationList[i] = new AvatarAnimationPacket.AnimationListBlock();
+                    ani.AnimationList[i].AnimID = animations[i];
+                    ani.AnimationList[i].AnimSequenceID = seqs[i];
+                }
+            }
+
             OutPacket(ani, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
