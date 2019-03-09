@@ -4285,7 +4285,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     if (grp.IsAttachment)
-                    {   // Someone else's HUD, why are we getting these?
+                    {
+                        // animated attachments are nasty if not supported by viewer
+                        if(!m_SupportObjectAnimations && grp.RootPart.Shape.MeshFlagEntry)
+                            continue;
+
+                        // Someone else's HUD, why are we getting these?
                         if (grp.OwnerID != AgentId && grp.HasPrivateAttachmentPoint)
                             continue;
 
