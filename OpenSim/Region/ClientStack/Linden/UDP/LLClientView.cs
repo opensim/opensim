@@ -1257,6 +1257,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SendLayerTopRight(x1 + 1, y1, x2, y2 - 1);
         }
 
+        static private readonly byte[] TerrainPacketHeader = new byte[] {
+                Helpers.MSG_RELIABLE, // zero code is not as spec
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                11, // ID (high frequency)
+                };
+
+        private const int END_OF_PATCHES = 97;
+        private const int STRIDE = 264;
+
         public void SendLayerData(int[] map)
         {
             if(map == null)
@@ -1264,9 +1274,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                List<LayerDataPacket> packets = OpenSimTerrainCompressor.CreateLayerDataPackets(m_scene.Heightmap.GetTerrainData(), map);
-                foreach (LayerDataPacket pkt in packets)
-                    OutPacket(pkt, ThrottleOutPacketType.Land);
+                TerrainData terrData = m_scene.Heightmap.GetTerrainData();
+                byte landPacketType = (terrData.SizeX > Constants.RegionSize || terrData.SizeY > Constants.RegionSize) ?
+                        (byte)TerrainPatch.LayerType.LandExtended : (byte)TerrainPatch.LayerType.Land;
+
+                int numberPatchs = map.Length / 2;
+
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                byte[] data = buf.Data;
+
+                Buffer.BlockCopy(TerrainPacketHeader, 0, data, 0, 7);
+
+                data[7] = landPacketType;
+                //data[8]  and data[9] == datablock size to fill later
+
+                data[10] = 0; // BitPack needs this on reused packets
+
+                // start data
+                BitPack bitpack = new BitPack(data, 10);
+                bitpack.PackBits(STRIDE, 16);
+                bitpack.PackBitsFromByte(16);
+                bitpack.PackBitsFromByte(landPacketType);
+
+                int s;
+                int datasize = 0;
+                for (int i = 0; i < numberPatchs; i++)
+                {
+                    s = 2 * i;
+                    OpenSimTerrainCompressor.CreatePatchFromTerrainData(bitpack, terrData, map[s], map[s + 1]);
+                    if (bitpack.BytePos > 950 && i != numberPatchs - 1)
+                    {
+                        //finish this packet
+                        bitpack.PackBitsFromByte(END_OF_PATCHES);
+
+                        // fix the datablock lenght
+                        datasize = bitpack.BytePos - 9;
+                        data[8] = (byte)datasize;
+                        data[9] = (byte)(datasize >> 8);
+
+                        buf.DataLength = bitpack.BytePos + 1;
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+
+                        // start another
+                        buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        data = buf.Data;
+
+                        Buffer.BlockCopy(TerrainPacketHeader, 0, data, 0, 7);
+
+                        data[7] = landPacketType;
+                        //data[8]  and data[9] == datablock size to fill later
+
+                        data[10] = 0; // BitPack needs this
+                                      // start data
+                        bitpack = new BitPack(data, 10);
+
+                        bitpack.PackBits(STRIDE, 16);
+                        bitpack.PackBitsFromByte(16);
+                        bitpack.PackBitsFromByte(landPacketType);
+                    }
+                }
+
+                bitpack.PackBitsFromByte(END_OF_PATCHES);
+
+                datasize = bitpack.BytePos - 9;
+                data[8] = (byte)datasize;
+                data[9] = (byte)(datasize >> 8);
+
+                buf.DataLength = bitpack.BytePos + 1;
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+
             }
             catch (Exception e)
             {
@@ -4512,7 +4588,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         CreateAvatarUpdateBlock((ScenePresence)eu.Entity, zc);
                     else
                         CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
-                    if (zc.Position < LLUDPServer.MTU - 5)
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD)
                     {
                         tau.Add(eu);
                         ++count;
@@ -4593,7 +4669,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     lastpos = pos;
                     CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos,  (eu.Flags & PrimUpdateFlags.Textures) != 0);
-                    if (pos < LLUDPServer.MTU)
+                    if (pos < LLUDPServer.MAXPAYLOAD)
                     {
                         tau.Add(eu);
                         ++count;
