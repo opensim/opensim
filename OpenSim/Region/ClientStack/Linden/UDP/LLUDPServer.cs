@@ -256,6 +256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
+        public const int MAXPAYLOAD = 1250;
 
         /// <summary>Number of forced client logouts due to no receipt of packets before timeout.</summary>
         public int ClientLogoutsDueToNoReceives { get; protected set; }
@@ -1150,7 +1151,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // no more ACKs to append
                 int ackCount = 0;
                 uint ack;
-                while (dataLength + 5 < buffer.Data.Length && ackCount < 256 && udpClient.PendingAcks.Dequeue(out ack))
+                while (dataLength + 5 < MTU && ackCount < 256 && udpClient.PendingAcks.Dequeue(out ack))
                 {
                     Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
                     dataLength += 4;
