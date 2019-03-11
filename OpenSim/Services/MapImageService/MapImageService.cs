@@ -239,7 +239,7 @@ namespace OpenSim.Services.MapImageService
 
         public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
         {
-//            m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
+            //m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
 
             format = ".jpg";
             string fullName = Path.Combine(m_TilesStoragePath, scopeID.ToString());
@@ -256,7 +256,7 @@ namespace OpenSim.Services.MapImageService
             }
             else
             {
-                m_log.DebugFormat("[MAP IMAGE SERVICE]: unable to get file {0}", fileName);
+                //m_log.DebugFormat("[MAP IMAGE SERVICE]: unable to get file {0}", fileName);
                 return new byte[0];
             }
         }
