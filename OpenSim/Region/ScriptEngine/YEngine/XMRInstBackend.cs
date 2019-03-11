@@ -422,9 +422,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 object[] saveEHArgs = this.ehArgs;
                 ScriptEventCode saveEventCode = this.eventCode;
 
-                this.m_DetectParams = evt.DetectParams;
-                this.ehArgs = evt.Params;
-                this.eventCode = evc;
+                m_DetectParams = evt.DetectParams;
+                ehArgs = evt.Params;
+                eventCode = evc;
 
                 try
                 {
@@ -432,9 +432,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
                 finally
                 {
-                    this.m_DetectParams = saveDetParams;
-                    this.ehArgs = saveEHArgs;
-                    this.eventCode = saveEventCode;
+                    m_DetectParams = saveDetParams;
+                    ehArgs = saveEHArgs;
+                    eventCode = saveEventCode;
                 }
 
                  // Keep waiting until we find a returnable event or timeout.

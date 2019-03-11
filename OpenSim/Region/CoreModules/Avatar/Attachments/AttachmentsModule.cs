@@ -953,13 +953,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return;
             }
 
-            // Saving attachments for NPCs messes them up for the real owner!
-            INPCModule module = m_scene.RequestModuleInterface<INPCModule>();
-            if (module != null)
-            {
-                if (module.IsNPC(sp.UUID, m_scene))
-                    return;
-            }
+            if(sp.IsNPC)
+                return;
 
             if (grp.HasGroupChanged)
             {

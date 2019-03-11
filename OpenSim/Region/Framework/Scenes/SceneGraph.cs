@@ -1913,9 +1913,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (parentGroup.OwnerID == child.OwnerID)
                     {
-                        parentGroup.LinkToGroup(child);
-
                         child.DetachFromBackup();
+                        parentGroup.LinkToGroup(child);
 
                         // this is here so physics gets updated!
                         // Don't remove!  Bad juju!  Stay away! or fix physics!
@@ -1943,7 +1942,6 @@ namespace OpenSim.Region.Framework.Scenes
 */
                 parentGroup.AdjustChildPrimPermissions(false);
                 parentGroup.HasGroupChanged = true;
-                parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullAnimUpdate();
                 Monitor.Exit(m_linkLock);
             }

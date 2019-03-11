@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 m_EstateConnector.SendEstateMessage(estateID, FromID, FromName, Message);
         }
 
-        private void OnEstateTeleportOneUserHomeRequest(IClientAPI client, UUID invoice, UUID senderID, UUID prey)
+        private void OnEstateTeleportOneUserHomeRequest(IClientAPI client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
             if (prey == UUID.Zero)
                 return;
@@ -227,8 +227,20 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 ScenePresence p = scene.GetScenePresence(prey);
                 if (p != null && !p.IsChildAgent && !p.IsDeleted && !p.IsInTransit)
                 {
-                    p.ControllingClient.SendTeleportStart(16);
-                    scene.TeleportClientHome(prey, client);
+                    if (kick)
+                    {
+                        p.ControllingClient.Kick("You have been kicked out");
+                        s.CloseAgent(p.UUID, false);
+                    }
+                    else
+                    {
+                        p.ControllingClient.SendTeleportStart(16);
+                        if (!s.TeleportClientHome(prey, client))
+                        {
+                            p.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed");
+                            s.CloseAgent(p.UUID, false);
+                        }
+                    }
                     return;
                 }
             }
@@ -259,6 +271,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         {
                             p.ControllingClient.SendTeleportStart(16);
                             scene.TeleportClientHome(p.ControllingClient.AgentId, client);
+                            if (!s.TeleportClientHome(p.ControllingClient.AgentId, client))
+                            {
+                                p.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
+                                s.CloseAgent(p.UUID, false);
+                            }
                         }
                     });
             }

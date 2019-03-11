@@ -1204,28 +1204,33 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
-        private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
+        private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
+            if (prey == UUID.Zero)
+                return;
+
              EstateTeleportOneUserHomeRequest evOverride = OnEstateTeleportOneUserHomeRequest;
              if(evOverride != null)
              {
-                evOverride(remover_client, invoice, senderID, prey);
+                evOverride(remover_client, invoice, senderID, prey, kick);
                 return;
              }
 
             if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 
-            if (prey != UUID.Zero)
+            ScenePresence s = Scene.GetScenePresence(prey);
+            if (s != null && !s.IsDeleted && !s.IsInTransit)
             {
-                ScenePresence s = Scene.GetScenePresence(prey);
-                if (s != null && !s.IsDeleted && !s.IsInTransit)
+                if (kick)
                 {
-                    if (!Scene.TeleportClientHome(prey, s.ControllingClient))
-                    {
-                        s.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
-                        Scene.CloseAgent(s.UUID, false);
-                    }
+                    s.ControllingClient.Kick("You have been kicked");
+                    Scene.CloseAgent(s.UUID, false);
+                }
+                else if (!Scene.TeleportClientHome(prey, s.ControllingClient))
+                {
+                    s.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed ");
+                    Scene.CloseAgent(s.UUID, false);
                 }
             }
         }

@@ -539,7 +539,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see cref="SceneObjectPart.TriggerScriptChangedEvent"/>
         /// </remarks>
         public event ScriptChangedEvent OnScriptChangedEvent;
-        public delegate void ScriptChangedEvent(uint localID, uint change);
+        public delegate void ScriptChangedEvent(uint localID, uint change, object data);
 
         public delegate void ScriptControlEvent(UUID item, UUID avatarID, uint held, uint changed);
 
@@ -1185,7 +1185,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnScriptChangedEvent(uint localID, uint change)
+        public void TriggerOnScriptChangedEvent(uint localID, uint change, object parameter = null)
         {
             ScriptChangedEvent handlerScriptChangedEvent = OnScriptChangedEvent;
             if (handlerScriptChangedEvent != null)
@@ -1194,7 +1194,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(localID, change);
+                        d(localID, change, parameter);
                     }
                     catch (Exception e)
                     {

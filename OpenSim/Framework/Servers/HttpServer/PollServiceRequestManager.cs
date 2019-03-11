@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -230,25 +230,25 @@ namespace OpenSim.Framework.Servers.HttpServer
             PollServiceHttpRequest req;
             while (m_running)
             {
-                req = null;
-                if(!m_requests.TryTake(out req, 4500) || req == null)
-                {
-                    Watchdog.UpdateThread();
-                    continue;
-                }
-
-                Watchdog.UpdateThread();
-
                 try
                 {
-                    if(!req.HttpContext.CanSend())
+                    req = null;
+                    if (!m_requests.TryTake(out req, 4500) || req == null)
+                    {
+                        Watchdog.UpdateThread();
+                        continue;
+                    }
+
+                    Watchdog.UpdateThread();
+
+                    if (!req.HttpContext.CanSend())
                     {
                         req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
                         byContextDequeue(req);
                         continue;
                     }
 
-                    if(req.HttpContext.IsSending())
+                    if (req.HttpContext.IsSending())
                     {
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
@@ -256,7 +256,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             byContextDequeue(req);
                         }
                         else
-                          ReQueueEvent(req);
+                            ReQueueEvent(req);
                         continue;
                     }
 
@@ -290,7 +290,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 {
                                     nreq.DoHTTPGruntWork(nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
                                 }
-                                catch (ObjectDisposedException) {}
+                                catch (ObjectDisposedException) { }
                                 finally
                                 {
                                     byContextDequeue(nreq);
@@ -304,6 +304,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                             ReQueueEvent(req);
                         }
                     }
+                }
+                catch (ThreadAbortException)
+                {
+                    Thread.ResetAbort();
+                    // Shouldn't set this to 'false', the normal shutdown should cause things to exit
+                    // m_running = false;
                 }
                 catch (Exception e)
                 {

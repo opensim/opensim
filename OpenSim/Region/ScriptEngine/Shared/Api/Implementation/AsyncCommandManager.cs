@@ -221,7 +221,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         private static void CmdHandlerThreadLoop()
         {
-            while (true)
+            bool running = true;
+            while (running)
             {
                 try
                 {
@@ -230,7 +231,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     DoOneCmdHandlerPass();
                     Watchdog.UpdateThread();
                 }
-                catch ( System.Threading.ThreadAbortException) { }
+                catch ( System.Threading.ThreadAbortException)
+                {
+                    Thread.ResetAbort();
+                    running = false;
+                }
                 catch (Exception e)
                 {
                     m_log.Error("[ASYNC COMMAND MANAGER]: Exception in command handler pass: ", e);

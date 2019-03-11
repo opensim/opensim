@@ -115,6 +115,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 m_RunOnePhase = "GetExecutionState D";
                 CheckRunLockInvariants(true);
 
+                if (m_minEventDelay != 0.0)
+                {
+                    XmlElement minEventDelayN = doc.CreateElement("", "mEvtDly", "");
+                    minEventDelayN.AppendChild(doc.CreateTextNode(m_minEventDelay.ToString()));
+                    scriptStateN.AppendChild(minEventDelayN);
+                    m_RunOnePhase = "GetExecutionState D";
+                    CheckRunLockInvariants(true);
+                }
+
                 // More misc data.
                 XmlNode permissionsN = doc.CreateElement("", "Permissions", "");
                 scriptStateN.AppendChild(permissionsN);

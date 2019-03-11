@@ -965,9 +965,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetSimulatorMemoryKB();
         }
 
-        public void osKickAvatar(string FirstName,string SurName,string alert)
+        public void osKickAvatar(string FirstName, string SurName, string alert)
         {
             m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
+        }
+
+        public void osKickAvatar(LSL_Key agentId, string alert)
+        {
+            m_OSSL_Functions.osKickAvatar(agentId, alert);
         }
 
         public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
@@ -980,32 +985,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetOwnerSpeed(SpeedModifier);
         }
 
-        public LSL_Float osGetHealth(string avatar)
+        public LSL_Float osGetHealth(key avatar)
         {
             return m_OSSL_Functions.osGetHealth(avatar);
         }
 
-        public void osCauseDamage(string avatar, double damage)
+        public void osCauseDamage(key avatar, LSL_Float damage)
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);
         }
 
-        public void osCauseHealing(string avatar, double healing)
+        public void osCauseHealing(key avatar, LSL_Float healing)
         {
             m_OSSL_Functions.osCauseHealing(avatar, healing);
         }
 
-        public void osSetHealth(string avatar, double health)
+        public void osSetHealth(key avatar, LSL_Float health)
         {
             m_OSSL_Functions.osSetHealth(avatar, health);
         }
 
-        public void osSetHealRate(string avatar, double health)
+        public void osSetHealRate(key avatar, LSL_Float health)
         {
             m_OSSL_Functions.osSetHealRate(avatar, health);
         }
 
-        public LSL_Float osGetHealRate(string avatar)
+        public LSL_Float osGetHealRate(key avatar)
         {
             return m_OSSL_Functions.osGetHealRate(avatar);
         }
@@ -1053,11 +1058,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String osUnixTimeToTimestamp(LSL_Integer time)
         {
             return m_OSSL_Functions.osUnixTimeToTimestamp(time);
-        }
-
-        public LSL_String osGetInventoryDesc(string item)
-        {
-            return m_OSSL_Functions.osGetInventoryDesc(item);
         }
 
         public LSL_Integer osInviteToGroup(LSL_Key agentId)
@@ -1360,6 +1360,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer osApproxEquals(rotation ra, rotation rb, LSL_Float margin)
         {
             return m_OSSL_Functions.osApproxEquals(ra, rb, margin);
+        }
+
+        public LSL_Key osGetInventoryLastOwner(LSL_String itemNameOrId)
+        {
+            return m_OSSL_Functions.osGetInventoryLastOwner(itemNameOrId);
+        }
+
+        public LSL_String osGetInventoryName(LSL_Key itemId)
+        {
+            return m_OSSL_Functions.osGetInventoryName(itemId);
+        }
+
+        public LSL_String osGetInventoryDesc(LSL_String itemNameOrId)
+        {
+            return m_OSSL_Functions.osGetInventoryDesc(itemNameOrId);
+        }
+
+        public LSL_Key osGetLastChangedEventKey()
+        {
+            return m_OSSL_Functions.osGetLastChangedEventKey();
         }
     }
 }

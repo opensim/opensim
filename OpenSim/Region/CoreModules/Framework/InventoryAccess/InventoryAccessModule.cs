@@ -526,16 +526,23 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             item.AssetType = (int)AssetType.Object;
             item.AssetID = asset.FullID;
 
-            if (DeRezAction.SaveToExistingUserInventoryItem == action)
+            if (action == DeRezAction.SaveToExistingUserInventoryItem)
             {
                 m_Scene.InventoryService.UpdateItem(item);
             }
             else
             {
-                AddPermissions(item, objlist[0], objlist, remoteClient);
+                bool isowner = remoteClient != null && item.Owner == remoteClient.AgentId;
+                if(action == DeRezAction.Return)
+                    AddPermissions(item, objlist[0], objlist, null);
+                else if(action == DeRezAction.Delete && !isowner)
+                    AddPermissions(item, objlist[0], objlist, null);
+                else
+                   AddPermissions(item, objlist[0], objlist, remoteClient);
+
                 m_Scene.AddInventoryItem(item);
 
-                if (remoteClient != null && item.Owner == remoteClient.AgentId)
+                if (isowner)
                 {
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 }
@@ -1010,7 +1017,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
                     rootPart.ParentGroup.ResumeScripts();
 
-                    group.ScheduleGroupForFullUpdate();
+                    group.ScheduleGroupForFullAnimUpdate();
                 }
                 else
                     m_Scene.AddNewSceneObject(group, true, false);

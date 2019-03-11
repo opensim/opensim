@@ -215,12 +215,25 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     det));
         }
 
-        public void changed(uint localID, uint change)
+        public void changed(uint localID, uint change, object parameter)
         {
             // Add to queue for all scripts in localID, Object pass change.
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "changed",new object[] { new LSL_Types.LSLInteger(change) },
+            if(parameter == null)
+            {
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "changed", new object[] { new LSL_Types.LSLInteger(change) },
                     new DetectParams[0]));
+                return;
+            }
+            if (parameter is UUID)
+            {
+                DetectParams det = new DetectParams();
+                det.Key = (UUID)parameter;
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                    "changed", new object[] { new LSL_Types.LSLInteger(change) },
+                    new DetectParams[] { det }));
+                return;
+            }
         }
 
         // state_entry: not processed here

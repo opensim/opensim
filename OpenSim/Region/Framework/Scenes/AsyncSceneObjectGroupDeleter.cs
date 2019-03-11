@@ -94,19 +94,15 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inventoryDeletes.Enqueue(dtis);
             }
 
-            if (Enabled)
-                lock (m_inventoryTicker)
-                    m_inventoryTicker.Start();
-
-            // Visually remove it, even if it isnt really gone yet.  This means that if we crash before the object
-            // has gone to inventory, it will reappear in the region again on restart instead of being lost.
-            // This is not ideal since the object will still be available for manipulation when it should be, but it's
-            // better than losing the object for now.
             if (permissionToDelete)
             {
                 foreach (SceneObjectGroup g in objectGroups)
                     g.DeleteGroupFromScene(false);
             }
+
+            if (Enabled)
+                lock (m_inventoryTicker)
+                    m_inventoryTicker.Start();
         }
 
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)

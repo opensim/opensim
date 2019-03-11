@@ -47,9 +47,9 @@ public class BSActorAvatarMove : BSActor
     // The amount the step up is applying. Used to smooth stair walking.
     float m_lastStepUp;
 
-    // There are times the velocity is set but we don't want to inforce stationary until the
-    //    real velocity drops.
-    bool m_waitingForLowVelocityForStationary = false;
+    // There are times the velocity or force is set but we don't want to inforce
+    //    stationary until some tick in the future and the real velocity drops.
+    int m_waitingForLowVelocityForStationary = 0;
 
     public BSActorAvatarMove(BSScene physicsScene, BSPhysObject pObj, string actorName)
         : base(physicsScene, pObj, actorName)
@@ -114,14 +114,18 @@ public class BSActorAvatarMove : BSActor
                 m_velocityMotor.Enabled = true;
                 m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,SetVelocityAndTarget,vel={1}, targ={2}",
                             m_controllingPrim.LocalID, vel, targ);
-                m_waitingForLowVelocityForStationary = false;
+                m_waitingForLowVelocityForStationary = 0;
             }
         });
     }
 
     public void SuppressStationayCheckUntilLowVelocity()
     {
-        m_waitingForLowVelocityForStationary = true;
+        m_waitingForLowVelocityForStationary = 1;
+    }
+    public void SuppressStationayCheckUntilLowVelocity(int waitTicks)
+    {
+        m_waitingForLowVelocityForStationary = waitTicks;
     }
 
     // If a movement motor has not been created, create one and start the movement
@@ -143,7 +147,7 @@ public class BSActorAvatarMove : BSActor
             m_controllingPrim.OnPreUpdateProperty += Process_OnPreUpdateProperty;
 
             m_walkingUpStairs = 0;
-            m_waitingForLowVelocityForStationary = false;
+            m_waitingForLowVelocityForStationary = 0;
         }
     }
 
@@ -194,15 +198,17 @@ public class BSActorAvatarMove : BSActor
                 // if colliding with something stationary and we're not doing volume detect .
                 if (!m_controllingPrim.ColliderIsMoving && !m_controllingPrim.ColliderIsVolumeDetect)
                 {
-                    if (m_waitingForLowVelocityForStationary)
+                    if (m_waitingForLowVelocityForStationary-- <= 0)
                     {
                         // if waiting for velocity to drop and it has finally dropped, we can be stationary
+                        // m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,waitingForLowVelocity {1}",
+                        //             m_controllingPrim.LocalID, m_waitingForLowVelocityForStationary);
                         if (m_controllingPrim.RawVelocity.LengthSquared() < BSParam.AvatarStopZeroThresholdSquared)
                         {
-                            m_waitingForLowVelocityForStationary = false;
+                            m_waitingForLowVelocityForStationary = 0;
                         }
                     }
-                    if (!m_waitingForLowVelocityForStationary)
+                    if (m_waitingForLowVelocityForStationary <= 0)
                     {
                         m_physicsScene.DetailLog("{0},BSCharacter.MoveMotor,collidingWithStationary,zeroingMotion", m_controllingPrim.LocalID);
                         m_controllingPrim.IsStationary = true;

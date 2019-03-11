@@ -77,7 +77,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             }
 
             scene.EventManager.OnAvatarKilled += KillAvatar;
-            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
         }
 
         public void RemoveRegion(Scene scene)
@@ -86,7 +85,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                 m_scenel.Remove(scene.RegionInfo.RegionHandle);
 
             scene.EventManager.OnAvatarKilled -= KillAvatar;
-            scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
         }
 
         public void RegionLoaded(Scene scene)
@@ -176,32 +174,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 
             deadAvatar.setHealthWithUpdate(100.0f);
             deadAvatar.Scene.TeleportClientHome(deadAvatar.UUID, deadAvatar.ControllingClient);
-        }
-
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {
-            try
-            {
-                ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                if (obj == null)
-                    return;
-                if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0
-                    || avatar.Scene.RegionInfo.RegionSettings.AllowDamage)
-                {
-                    avatar.Invulnerable = false;
-                }
-                else
-                {
-                    avatar.Invulnerable = true;
-                    if (avatar.Health < 100.0f)
-                    {
-                        avatar.setHealthWithUpdate(100.0f);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
         }
     }
 }

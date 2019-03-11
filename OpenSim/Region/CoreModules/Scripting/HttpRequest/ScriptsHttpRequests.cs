@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -94,18 +95,31 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private object HttpListLock = new object();
-        private int httpTimeout = 30000;
+        private object m_httpListLock = new object();
+        private int m_httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
         private OutboundUrlFilter m_outboundUrlFilter;
         private string m_proxyurl = "";
         private string m_proxyexcepts = "";
 
+        private float m_primPerSec = 1.0f;
+        private float m_primBurst = 3.0f;
+        private float m_primOwnerPerSec = 25.0f;
+        private float m_primOwnerBurst = 5.0f;
+
+        private struct ThrottleData
+        {
+            public double lastTime;
+            public float count;
+        }
+
         // <request id, HttpRequestClass>
         private Dictionary<UUID, HttpRequestClass> m_pendingRequests;
-        private Scene m_scene;
-        // private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
+        private ConcurrentQueue<HttpRequestClass> m_CompletedRequests;
+        private ConcurrentDictionary<uint, ThrottleData> m_RequestsThrottle;
+        private ConcurrentDictionary<UUID, ThrottleData> m_OwnerRequestsThrottle;
+
         public static SmartThreadPool ThreadPool = null;
 
         public HttpRequestModule()
@@ -119,10 +133,77 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             return UUID.Zero;
         }
 
+        public bool CheckThrottle(uint localID, UUID ownerID)
+        {
+            ThrottleData th;
+            double now = Util.GetTimeStamp();
+            bool ret;
+
+            if (m_RequestsThrottle.TryGetValue(localID, out th))
+            {
+                double delta = now - th.lastTime;
+                th.lastTime = now;
+
+                float add = (float)(m_primPerSec * delta);
+                th.count += add;
+                if (th.count > m_primBurst)
+                    th.count = m_primBurst;
+
+                ret = th.count > 0;
+                if (ret)
+                    th.count--;
+            }
+            else
+            {
+                th = new ThrottleData()
+                {
+                    lastTime = now,
+                    count = m_primBurst - 1
+                };
+                ret = true;
+            }
+            m_RequestsThrottle[localID] = th;
+
+            if(!ret)
+                return false;
+
+            if (m_OwnerRequestsThrottle.TryGetValue(ownerID, out th))
+            {
+                double delta = now - th.lastTime;
+                th.lastTime = now;
+
+                float add = (float)(m_primOwnerPerSec * delta);
+                th.count += add;
+                if (th.count > m_primOwnerBurst)
+                    th.count = m_primOwnerBurst;
+
+                ret = th.count > 0;
+                if (ret)
+                    th.count--;
+            }
+            else
+            {
+                th = new ThrottleData()
+                {
+                    lastTime = now,
+                    count = m_primOwnerBurst - 1
+                };
+            }
+            m_OwnerRequestsThrottle[ownerID] = th;
+
+            return ret;
+        }
+
         public UUID StartHttpRequest(
             uint localID, UUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body,
             out HttpInitialRequestStatus status)
         {
+            if (!CheckAllowed(new Uri(url)))
+            {
+                status = HttpInitialRequestStatus.DISALLOWED_BY_FILTER;
+                return UUID.Zero;
+            }
+
             UUID reqID = UUID.Random();
             HttpRequestClass htc = new HttpRequestClass();
 
@@ -207,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             htc.ItemID = itemID;
             htc.Url = url;
             htc.ReqID = reqID;
-            htc.HttpTimeout = httpTimeout;
+            htc.HttpTimeout = m_httpTimeout;
             htc.OutboundBody = body;
             htc.ResponseHeaders = headers;
             htc.proxyurl = m_proxyurl;
@@ -216,16 +297,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             // Same number as default HttpWebRequest.MaximumAutomaticRedirections
             htc.MaxRedirects = 50;
 
-            if (StartHttpRequest(htc))
-            {
-                status = HttpInitialRequestStatus.OK;
-                return htc.ReqID;
-            }
-            else
-            {
-                status = HttpInitialRequestStatus.DISALLOWED_BY_FILTER;
-                return UUID.Zero;
-            }
+            lock (m_httpListLock)
+                m_pendingRequests.Add(reqID, htc);
+
+            htc.Process();
+            status = HttpInitialRequestStatus.OK;
+            return reqID;
         }
 
         /// <summary>
@@ -237,34 +314,21 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             return m_outboundUrlFilter.CheckAllowed(url);
         }
 
-        public bool StartHttpRequest(HttpRequestClass req)
-        {
-            if (!CheckAllowed(new Uri(req.Url)))
-                return false;
-
-            lock (HttpListLock)
-            {
-                m_pendingRequests.Add(req.ReqID, req);
-            }
-
-            req.Process();
-
-            return true;
-        }
-
         public void StopHttpRequest(uint m_localID, UUID m_itemID)
         {
-            if (m_pendingRequests != null)
+            List<UUID> toremove = new List<UUID>();
+            lock (m_httpListLock)
             {
-                lock (HttpListLock)
+                foreach (HttpRequestClass tmpReq in m_pendingRequests.Values)
                 {
-                    HttpRequestClass tmpReq;
-                    if (m_pendingRequests.TryGetValue(m_itemID, out tmpReq))
+                    if(tmpReq.ItemID == m_itemID)
                     {
                         tmpReq.Stop();
-                        m_pendingRequests.Remove(m_itemID);
+                        toremove.Add(tmpReq.ReqID);
                     }
                 }
+                foreach(UUID id in toremove)
+                    m_pendingRequests.Remove(id);
             }
         }
 
@@ -276,37 +340,35 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         * finished.  I thought about setting up a queue for this, but
         * it will need some refactoring and this works 'enough' right now
         */
+        public void GotCompletedRequest(HttpRequestClass req)
+        {
+            lock (m_httpListLock)
+            {
+                if (req.Removed)
+                    return;
+                m_pendingRequests.Remove(req.ReqID);
+                m_CompletedRequests.Enqueue(req);
+            }
+        }
 
         public IServiceRequest GetNextCompletedRequest()
         {
-            lock (HttpListLock)
-            {
-                foreach (UUID luid in m_pendingRequests.Keys)
-                {
-                    HttpRequestClass tmpReq;
+            HttpRequestClass req;
+            if(m_CompletedRequests.TryDequeue(out req))
+                return req;
 
-                    if (m_pendingRequests.TryGetValue(luid, out tmpReq))
-                    {
-                        if (tmpReq.Finished)
-                        {
-                            return tmpReq;
-                        }
-                    }
-                }
-            }
             return null;
         }
 
-        public void RemoveCompletedRequest(UUID id)
+        public void RemoveCompletedRequest(UUID reqId)
         {
-            lock (HttpListLock)
+            lock (m_httpListLock)
             {
                 HttpRequestClass tmpReq;
-                if (m_pendingRequests.TryGetValue(id, out tmpReq))
+                if (m_pendingRequests.TryGetValue(reqId, out tmpReq))
                 {
                     tmpReq.Stop();
-                    tmpReq = null;
-                    m_pendingRequests.Remove(id);
+                    m_pendingRequests.Remove(reqId);
                 }
             }
         }
@@ -322,17 +384,28 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
             HttpRequestClass.HttpBodyMaxLenMAX = config.Configs["Network"].GetInt("HttpBodyMaxLenMAX", 16384);
 
-
             m_outboundUrlFilter = new OutboundUrlFilter("Script HTTP request module", config);
-            int maxThreads = 15;
 
-            IConfig httpConfig = config.Configs["HttpRequestModule"];
+            int maxThreads = 8;
+            IConfig httpConfig = config.Configs["ScriptsHttpRequestModule"];
             if (httpConfig != null)
             {
                 maxThreads = httpConfig.GetInt("MaxPoolThreads", maxThreads);
+                m_primBurst = httpConfig.GetFloat("PrimRequestsBurst", m_primBurst);
+                m_primPerSec = httpConfig.GetFloat("PrimRequestsPerSec", m_primPerSec);
+                m_primOwnerBurst = httpConfig.GetFloat("PrimOwnerRequestsBurst", m_primOwnerBurst);
+                m_primOwnerPerSec = httpConfig.GetFloat("PrimOwnerRequestsPerSec", m_primOwnerPerSec);
+                m_httpTimeout = httpConfig.GetInt("RequestsTimeOut", m_httpTimeout);
+                if(m_httpTimeout > 60000)
+                    m_httpTimeout = 60000;
+                else if(m_httpTimeout < 200)
+                    m_httpTimeout = 200;
             }
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
+            m_CompletedRequests = new ConcurrentQueue<HttpRequestClass>();
+            m_RequestsThrottle = new ConcurrentDictionary<uint, ThrottleData>();
+            m_OwnerRequestsThrottle = new ConcurrentDictionary<UUID, ThrottleData>();
 
             // First instance sets this up for all sims
             if (ThreadPool == null)
@@ -352,16 +425,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
-
-            m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
+            scene.RegisterModuleInterface<IHttpRequestModule>(this);
         }
 
         public void RemoveRegion(Scene scene)
         {
             scene.UnregisterModuleInterface<IHttpRequestModule>(this);
-            if (scene == m_scene)
-                m_scene = null;
         }
 
         public void PostInitialise()
@@ -406,11 +475,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         /// </summary>
         public HttpRequestModule RequestModule { get; set; }
 
-        private bool _finished;
-        public bool Finished
-        {
-            get { return _finished; }
-        }
+        public bool Finished { get; private set;}
+        public bool Removed{ get; set;}
 
         public static int HttpBodyMaxLenMAX = 16384;
 
@@ -427,19 +493,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public bool HttpPragmaNoCache = true;
 
         // Request info
-        private UUID _itemID;
-        public UUID ItemID
-        {
-            get { return _itemID; }
-            set { _itemID = value; }
-        }
-        private uint _localID;
-        public uint LocalID
-        {
-            get { return _localID; }
-            set { _localID = value; }
-        }
-        public DateTime Next;
+        public UUID ReqID { get; set; }
+        public UUID ItemID {  get; set;}
+        public uint LocalID { get; set;}
+
         public string proxyurl;
         public string proxyexcepts;
 
@@ -454,12 +511,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public int MaxRedirects { get; set; }
 
         public string OutboundBody;
-        private UUID _reqID;
-        public UUID ReqID
-        {
-            get { return _reqID; }
-            set { _reqID = value; }
-        }
+
         public HttpWebRequest Request;
         public string ResponseBody;
         public List<string> ResponseMetadata;
@@ -469,10 +521,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void Process()
         {
-            _finished = false;
-
-            lock (HttpRequestModule.ThreadPool)
-                WorkItem = HttpRequestModule.ThreadPool.QueueWorkItem(new WorkItemCallback(StpSendWrapper), null);
+            WorkItem = HttpRequestModule.ThreadPool.QueueWorkItem(new WorkItemCallback(StpSendWrapper), null);
         }
 
         private object StpSendWrapper(object o)
@@ -521,6 +570,9 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void SendRequest()
         {
+            if(Removed)
+                 return;
+
             HttpWebResponse response = null;
             Stream resStream = null;
             byte[] buf = new byte[HttpBodyMaxLenMAX + 16];
@@ -534,6 +586,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 Request.AllowAutoRedirect = false;
                 Request.KeepAlive = false;
+                Request.Timeout = HttpTimeout;
 
                 //This works around some buggy HTTP Servers like Lighttpd
                 Request.ServicePoint.Expect100Continue = false;
@@ -593,7 +646,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         bstream.Write(data, 0, data.Length);
                 }
 
-                Request.Timeout = HttpTimeout;
                 try
                 {
                     // execute the request
@@ -672,7 +724,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 if (response != null)
                     response.Close();
 
-
                 // We need to resubmit
                 if (
                     (Status == (int)HttpStatusCode.MovedPermanently
@@ -684,7 +735,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     {
                         Status = (int)OSHttpStatusCode.ClientErrorJoker;
                         ResponseBody = "Number of redirects exceeded max redirects";
-                        _finished = true;
+                        WorkItem = null;
+                        RequestModule.GotCompletedRequest(this);
                     }
                     else
                     {
@@ -694,13 +746,15 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         {
                             Status = (int)OSHttpStatusCode.ClientErrorJoker;
                             ResponseBody = "HTTP redirect code but no location header";
-                            _finished = true;
+                            WorkItem = null;
+                            RequestModule.GotCompletedRequest(this);
                         }
                         else if (!RequestModule.CheckAllowed(new Uri(location)))
                         {
                             Status = (int)OSHttpStatusCode.ClientErrorJoker;
                             ResponseBody = "URL from HTTP redirect blocked: " + location;
-                            _finished = true;
+                            WorkItem = null;
+                            RequestModule.GotCompletedRequest(this);
                         }
                         else
                         {
@@ -717,9 +771,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 }
                 else
                 {
-                    _finished = true;
+                    WorkItem = null;
                     if (ResponseBody == null)
                         ResponseBody = String.Empty;
+                    RequestModule.GotCompletedRequest(this);
                 }
             }
         }
@@ -728,10 +783,12 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             try
             {
+                Removed = true;
+                if(WorkItem == null)
+                    return;
+
                 if (!WorkItem.Cancel())
-                {
                     WorkItem.Cancel(true);
-                }
             }
             catch (Exception)
             {

@@ -154,7 +154,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // We're adding this to a prim we don't own. Force
                 // owner change
                 taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-
+                taskItem.LastOwnerID = item.Owner;
             }
             else
             {

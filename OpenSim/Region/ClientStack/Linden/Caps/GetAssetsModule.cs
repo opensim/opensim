@@ -59,7 +59,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GetTextureURL;
         private string m_GetMeshURL;
         private string m_GetMesh2URL;
-//        private string m_GetAssetURL;
+        private string m_GetAssetURL;
 
         class APollRequest
         {
@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Dictionary<UUID, string> m_capsDictTexture = new Dictionary<UUID, string>();
         private Dictionary<UUID, string> m_capsDictGetMesh = new Dictionary<UUID, string>();
         private Dictionary<UUID, string> m_capsDictGetMesh2 = new Dictionary<UUID, string>();
-        //private Dictionary<UUID, string> m_capsDictGetAsset = new Dictionary<UUID, string>();
+        private Dictionary<UUID, string> m_capsDictGetAsset = new Dictionary<UUID, string>();
 
         #region Region Module interfaceBase Members
 
@@ -113,11 +113,11 @@ namespace OpenSim.Region.ClientStack.Linden
             m_GetMesh2URL = config.GetString("Cap_GetMesh2", string.Empty);
             if (m_GetMesh2URL != string.Empty)
                 m_Enabled = true;
-/*
+
             m_GetAssetURL = config.GetString("Cap_GetAsset", string.Empty);
             if (m_GetAssetURL != string.Empty)
                 m_Enabled = true;
-*/
+
         }
 
         public void AddRegion(Scene pScene)
@@ -204,19 +204,26 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoAssetRequests()
         {
-            while (m_NumberScenes > 0)
+            try
             {
-                APollRequest poolreq;
-                if(m_queue.TryTake(out poolreq, 4500))
+                while (m_NumberScenes > 0)
                 {
-                    if (m_NumberScenes <= 0)
-                        break;
+                    APollRequest poolreq;
+                    if (m_queue.TryTake(out poolreq, 4500))
+                    {
+                        if (m_NumberScenes <= 0)
+                            break;
+                        Watchdog.UpdateThread();
+                        if (poolreq.reqID != UUID.Zero)
+                            poolreq.thepoll.Process(poolreq);
+                        poolreq = null;
+                    }
                     Watchdog.UpdateThread();
-                    if (poolreq.reqID != UUID.Zero)
-                        poolreq.thepoll.Process(poolreq);
-                    poolreq = null;
                 }
-                Watchdog.UpdateThread();
+            }
+            catch (ThreadAbortException)
+            {
+                Thread.ResetAbort();
             }
         }
 
@@ -441,7 +448,6 @@ namespace OpenSim.Region.ClientStack.Linden
             else if (m_GetMesh2URL != string.Empty)
                 caps.RegisterHandler("GetMesh2", m_GetMesh2URL);
 
-/* we can't support this cap. Current viewers connect to the wrong regions.
             //ViewerAsset
             if (m_GetAssetURL == "localhost")
             {
@@ -459,7 +465,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else if (m_GetAssetURL != string.Empty)
                 caps.RegisterHandler("ViewerAsset", m_GetMesh2URL);
-*/
+
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
@@ -480,13 +486,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 MainServer.Instance.RemovePollServiceHTTPHandler("", capUrl);
                 m_capsDictGetMesh2.Remove(agentID);
             }
-/*
+
             if (m_capsDictGetAsset.TryGetValue(agentID, out capUrl))
             {
                 MainServer.Instance.RemovePollServiceHTTPHandler("", capUrl);
                 m_capsDictGetAsset.Remove(agentID);
             }
-*/
         }
     }
 }

@@ -1936,45 +1936,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            Primitive.TextureEntry tex = part.Shape.Textures;
-            int nsides = GetNumberOfSides(part);
-            Color4 texcolor;
-
-            if (face >= 0 && face < nsides)
-            {
-                texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTextureEntry(tex);
-                return;
-            }
-            else if (face == ScriptBaseClass.ALL_SIDES)
-            {              
-                for (uint i = 0; i < nsides; i++)
-                {
-                    if (tex.FaceTextures[i] != null)
-                    {
-                        texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.FaceTextures[i].RGBA = texcolor;
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                }
-                part.UpdateTextureEntry(tex);
-                return;
-            }
-
-            if (face == ScriptBaseClass.ALL_SIDES)
-                face = SceneObjectPart.ALL_SIDES;
-
             m_host.SetFaceColorAlpha(face, color, null);
         }
 
@@ -3577,7 +3538,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void doObjectRez(string inventory, LSL_Vector pos, LSL_Vector vel, LSL_Rotation rot, int param, bool atRoot)
         {
             m_host.AddScriptLPS(1);
-            if (Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
+            if (string.IsNullOrEmpty(inventory) || Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                 return;
 
             float dist = (float)llVecDist(llGetPos(), pos);
@@ -10653,7 +10614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return false;
 
             texface.MaterialID = id;
-            part.Shape.TextureEntry = tex.GetBytes();
+            part.Shape.TextureEntry = tex.GetBytes(9);
             m_materialsModule.RemoveMaterial(oldid);
             return true;
         }
@@ -10710,7 +10671,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return false;
 
             texface.MaterialID = id;
-            part.Shape.TextureEntry = tex.GetBytes();
+            part.Shape.TextureEntry = tex.GetBytes(9);
             m_materialsModule.RemoveMaterial(oldid);
             return true;
         }
@@ -10777,7 +10738,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return false;
 
             texface.MaterialID = id;
-            part.Shape.TextureEntry = tex.GetBytes();
+            part.Shape.TextureEntry = tex.GetBytes(9);
             m_materialsModule.RemoveMaterial(oldid);
             return true;
         }
@@ -13945,14 +13906,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
         {
-            // Partial implementation: support for parameter flags needed
-            //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
-            // parameter flags support are implemented in ScriptsHttpRequests.cs
-            //   in StartHttpRequest
-
             m_host.AddScriptLPS(1);
-            IHttpRequestModule httpScriptMod =
-                m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            IHttpRequestModule httpScriptMod = m_ScriptEngine.World.RequestModuleInterface<IHttpRequestModule>();
+            if(httpScriptMod == null)
+                return "";
+
+            if(!httpScriptMod.CheckThrottle(m_host.LocalId, m_host.OwnerID))
+                return UUID.Zero.ToString();
+
             List<string> param = new List<string>();
             bool  ok;
             Int32 flag;
@@ -14123,8 +14084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             HttpInitialRequestStatus status;
-            UUID reqID
-                = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body, out status);
+            UUID reqID = httpScriptMod.StartHttpRequest(m_host.LocalId, m_item.ItemID, url, param, httpHeaders, body, out status);
 
             if (status == HttpInitialRequestStatus.DISALLOWED_BY_FILTER)
                 Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
@@ -14132,7 +14092,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (reqID != UUID.Zero)
                 return reqID.ToString();
             else
-                return null;
+                return "";
         }
 
 

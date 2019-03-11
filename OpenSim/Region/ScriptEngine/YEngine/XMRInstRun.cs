@@ -63,8 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PostEvent(EventParams evt)
         {
-            ScriptEventCode evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                 evt.EventName);
+            ScriptEventCode evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
 
              // Put event on end of event queue.
             bool startIt = false;
@@ -85,6 +84,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // But queue if still constructing because m_Running is not yet valid.
                 if(!m_Running && !construct)
                     return;
+
+                if(m_minEventDelay != 0)
+                {
+                    switch (evc)
+                    {
+                        // ignore some events by time set by llMinEventDelay
+                        case ScriptEventCode.collision:
+                        case ScriptEventCode.land_collision:
+                        case ScriptEventCode.listen:
+                        case ScriptEventCode.not_at_target:
+                        case ScriptEventCode.not_at_rot_target:
+                        case ScriptEventCode.no_sensor:
+                        case ScriptEventCode.sensor:
+                        case ScriptEventCode.timer:
+                        case ScriptEventCode.touch:
+                        {
+                            double now = Util.GetTimeStamp();
+                            if (now < m_nextEventTime)
+                                return;
+                            m_nextEventTime = now + m_minEventDelay;
+                            break;
+                        }
+                        case ScriptEventCode.changed:
+                        {
+                            const int canignore = ~(CHANGED_SCALE | CHANGED_POSITION);
+                            int change = (int)evt.Params[0];
+                            if(change == 0) // what?
+                                return;
+                            if((change & canignore) == 0)
+                            {
+                                double now = Util.GetTimeStamp();
+                                if (now < m_nextEventTime)
+                                    return;
+                                m_nextEventTime = now + m_minEventDelay;
+                            }
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
 
                  // Only so many of each event type allowed to queue.
                 if((uint)evc < (uint)m_EventCounts.Length)
@@ -124,10 +164,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
                             {
                                 EventParams evt2 = lln2.Value;
-                                ScriptEventCode evc2 = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                         evt2.EventName);
-                                if((evc2 != ScriptEventCode.state_entry) &&
-                                        (evc2 != ScriptEventCode.attach))
+                                ScriptEventCode evc2 = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt2.EventName);
+                                if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
                                     break;
                             }
                             if(lln2 == null)

@@ -395,17 +395,26 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static void DoInventoryRequests()
         {
-            while (true)
+            bool running = true;
+            while (running)
             {
-                APollRequest poolreq;
-                if (m_queue.TryTake(out poolreq, 4500))
+                try
                 {
+                    APollRequest poolreq;
+                    if (m_queue.TryTake(out poolreq, 4500))
+                    {
+                        Watchdog.UpdateThread();
+                        if (poolreq.thepoll != null)
+                            poolreq.thepoll.Process(poolreq);
+                        poolreq = null;
+                    }
                     Watchdog.UpdateThread();
-                    if (poolreq.thepoll != null)
-                        poolreq.thepoll.Process(poolreq);
-                    poolreq = null;
                 }
-                Watchdog.UpdateThread();
+                catch (ThreadAbortException)
+                {
+                    Thread.ResetAbort();
+                    running = false;
+                }
             }
         }
     }

@@ -215,5 +215,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // It's born ready, but will be reset when the detach is posted.
         // It will then be set again on suspend/completion
         private ManualResetEvent m_DetachReady = new ManualResetEvent(true);
+
+        // llmineventdelay support
+        double m_minEventDelay = 0.0;
+        double m_nextEventTime = 0.0;
     }
 }

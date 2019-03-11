@@ -777,41 +777,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_udpServer.StopOutbound();
         }
 
-        private void HandlePoolCommand(string module, string[] args)
-        {
-            if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
-                return;
-
-            if (args.Length != 4)
-            {
-                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
-                return;
-            }
-
-            string enabled = args[3];
-
-            if (enabled == "on")
-            {
-                if (m_udpServer.EnablePools())
-                {
-                    m_udpServer.EnablePoolStats();
-                    MainConsole.Instance.OutputFormat("Packet pools enabled on {0}", m_udpServer.Scene.Name);
-                }
-            }
-            else if (enabled == "off")
-            {
-                if (m_udpServer.DisablePools())
-                {
-                    m_udpServer.DisablePoolStats();
-                    MainConsole.Instance.OutputFormat("Packet pools disabled on {0}", m_udpServer.Scene.Name);
-                }
-            }
-            else
-            {
-                MainConsole.Instance.Output("Usage: debug lludp pool <on|off>");
-            }
-        }
-
         private void HandleAgentUpdateCommand(string module, string[] args)
         {
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
@@ -833,8 +798,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             MainConsole.Instance.OutputFormat(
                 "OUT LLUDP packet processing for {0} is {1}", m_udpServer.Scene.Name, m_udpServer.IsRunningOutbound ? "enabled" : "disabled");
-
-            MainConsole.Instance.OutputFormat("LLUDP pools in {0} are {1}", m_udpServer.Scene.Name, m_udpServer.UsePools ? "on" : "off");
 
             MainConsole.Instance.OutputFormat(
                 "Packet debug level for new clients is {0}", m_udpServer.DefaultClientPacketDebugLevel);
