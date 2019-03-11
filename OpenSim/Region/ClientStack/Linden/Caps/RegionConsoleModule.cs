@@ -104,8 +104,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID) && !m_scene.Permissions.IsGod(agentID))
-                return;
+//            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID) && !m_scene.Permissions.IsGod(agentID))
+//                return;
 
             UUID capID = UUID.Random();
 
@@ -190,6 +190,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 message = reader.ReadToEnd();
 
             OSD osd = OSDParser.DeserializeLLSDXml(message);
+
+            if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_agentID) && !m_isGod)
+            {
+                m_consoleModule.SendConsoleOutput(m_agentID, "No access");
+                return new byte[0];
+            }
 
             string cmd = osd.AsString();
             if (cmd == "set console on")
