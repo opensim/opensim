@@ -98,11 +98,20 @@ namespace OpenSim.Server.Handlers.MapImage
 //            UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
             UUID scopeID = UUID.Zero;
 
+            // This will be map/tilefile.ext, but on multitenancy it will be
+            // map/scope/teilefile.ext
             string[] bits = path.Trim('/').Split(new char[] {'/'});
-            if (bits.Length > 1)
+            if (bits.Length > 2)
             {
-                scopeID = new UUID(bits[0]);
-                path = bits[1];
+                try
+                {
+                    scopeID = new UUID(bits[1]);
+                }
+                catch
+                {
+                    return new byte[9];
+                }
+                path = bits[2];
             }
             result = m_MapService.GetMapTile(path.Trim('/'), scopeID, out format);
             if (result.Length > 0)
