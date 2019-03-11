@@ -761,7 +761,7 @@ namespace OpenSim.Services.LLLoginService
                             //find a exact match
                             foreach(GridRegion r in regions)
                             {
-                                if(string.Equals(regionName, r.RegionName, StringComparison.CurrentCultureIgnoreCase))
+                                if(string.Equals(regionName, r.RegionName, StringComparison.InvariantCultureIgnoreCase))
                                     return r;
                             }
                             // else, whatever
