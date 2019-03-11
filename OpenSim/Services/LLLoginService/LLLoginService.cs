@@ -757,6 +757,14 @@ namespace OpenSim.Services.LLLoginService
                                     }
                                 }
                             }
+
+                            //find a exact match
+                            foreach(GridRegion r in regions)
+                            {
+                                if(string.Equals(regionName, r.RegionName, StringComparison.CurrentCultureIgnoreCase))
+                                    return r;
+                            }
+                            // else, whatever
                             return regions[0];
                         }
                         else
