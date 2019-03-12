@@ -250,6 +250,8 @@ namespace OpenSim.Server.Base
                 }
             }
 
+            MainServer.Stop();
+
             MemoryWatchdog.Enabled = false;
             Watchdog.Enabled = false;
             WorkManager.Stop();
