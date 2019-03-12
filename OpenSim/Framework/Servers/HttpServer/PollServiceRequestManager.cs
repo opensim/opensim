@@ -309,7 +309,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     Thread.ResetAbort();
                     // Shouldn't set this to 'false', the normal shutdown should cause things to exit
-                    // m_running = false;
+                    // but robust is still not normal neither is mono
+                    m_running = false;
                 }
                 catch (Exception e)
                 {
