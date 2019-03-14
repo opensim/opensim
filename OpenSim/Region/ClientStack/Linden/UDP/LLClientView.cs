@@ -5121,14 +5121,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
         }
 
+        static private readonly byte[] ObjectPropertyUpdateHeader = new byte[] {
+                Helpers.MSG_RELIABLE | Helpers.MSG_ZEROCODED,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 9 // ID (medium frequency)
+                };
+
+        static private readonly byte[] ObjectFamilyUpdateHeader = new byte[] {
+                Helpers.MSG_RELIABLE | Helpers.MSG_ZEROCODED,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 10 // ID (medium frequency)
+                };
+
         private void ProcessEntityPropertyRequests(int maxUpdateBytes)
         {
-            List<ObjectPropertiesFamilyPacket.ObjectDataBlock> objectFamilyBlocks = null;
-            List<ObjectPropertiesPacket.ObjectDataBlock> objectPropertiesBlocks = null;
+            List<ObjectPropertyUpdate> objectPropertiesUpdates = null;
+            List<ObjectPropertyUpdate> objectPropertiesFamilyUpdates = null;
             List<SceneObjectPart> needPhysics = null;
 
-            bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
-
+            // bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
+            bool orderedDequeue = false; // for now
             EntityUpdate iupdate;
 
             while (maxUpdateBytes > 0)
@@ -5153,11 +5167,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
-                        ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
-                        if(objectFamilyBlocks == null)
-                            objectFamilyBlocks = new List<ObjectPropertiesFamilyPacket.ObjectDataBlock>();
-                        objectFamilyBlocks.Add(objPropDB);
-                        maxUpdateBytes -= objPropDB.Length;
+                        if(objectPropertiesFamilyUpdates == null)
+                            objectPropertiesFamilyUpdates = new List<ObjectPropertyUpdate>();
+                        objectPropertiesFamilyUpdates.Add(update);
+                        maxUpdateBytes -= 100;
                     }
                 }
 
@@ -5169,58 +5182,107 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if(needPhysics == null)
                             needPhysics = new List<SceneObjectPart>();
                         needPhysics.Add(sop);
-                        ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
-                        if(objectPropertiesBlocks == null)
-                            objectPropertiesBlocks = new List<ObjectPropertiesPacket.ObjectDataBlock>();
-                        objectPropertiesBlocks.Add(objPropDB);
-                        maxUpdateBytes -= objPropDB.Length;
+                        if(objectPropertiesUpdates == null)
+                            objectPropertiesUpdates = new List<ObjectPropertyUpdate>();
+                        objectPropertiesUpdates.Add(update);
+                        maxUpdateBytes -= 200; // aprox
                     }
                 }
             }
 
-            if (objectPropertiesBlocks != null)
+            if (objectPropertiesUpdates != null)
             {
-                ObjectPropertiesPacket packet = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
-                packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[objectPropertiesBlocks.Count];
-                for (int i = 0; i < objectPropertiesBlocks.Count; i++)
-                    packet.ObjectData[i] = objectPropertiesBlocks[i];
+                int blocks = objectPropertiesUpdates.Count;
+                //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                // Pass in the delegate so that if this packet needs to be resent, we send the current properties
-                // of the object rather than the properties when the packet was created
-                // HACK : Remove intelligent resending until it's fixed in core
-                //OutPacket(packet, ThrottleOutPacketType.Task, true,
-                //          delegate(OutgoingPacket oPacket)
-                //          {
-                //              ResendPropertyUpdates(propertyUpdates.Value, oPacket);
-                //          });
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
-            }
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                Buffer.BlockCopy(ObjectPropertyUpdateHeader, 0, buf.Data, 0, 8);
 
-            if (objectFamilyBlocks != null)
-            {
-                // one packet per object block... uggh...
-                for (int i = 0; i < objectFamilyBlocks.Count; i++)
+                LLUDPZeroEncoder zc = new LLUDPZeroEncoder(buf.Data);
+                zc.Position = 8;
+
+                zc.AddByte(1); // tmp block count
+
+                int countposition = zc.Position - 1;
+
+                int lastpos = 0;
+                int lastzc = 0;
+
+                int count = 0;
+                foreach (EntityUpdate eu in objectPropertiesUpdates)
                 {
-                    ObjectPropertiesFamilyPacket packet =
-                        (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
+                    lastpos = zc.Position;
+                    lastzc = zc.ZeroCount;
+                    CreateObjectPropertiesBlock((SceneObjectPart)eu.Entity, zc);
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD)
+                    {
+                        //tau.Add(eu);
+                        ++count;
+                        --blocks;
+                    }
+                    else if (blocks > 0)
+                    {
+                        // we need more packets
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
 
-                    packet.ObjectData = objectFamilyBlocks[i];
+                        buf.Data[countposition] = (byte)count;
+                        // get pending zeros at cut point
+                        if (lastzc > 0)
+                        {
+                            buf.Data[lastpos++] = 0;
+                            buf.Data[lastpos++] = (byte)lastzc;
+                        }
+                        buf.DataLength = lastpos;
 
-                    // Pass in the delegate so that if this packet needs to be resent, we send the current properties
-                    // of the object rather than the properties when the packet was created
-//                    List<ObjectPropertyUpdate> updates = new List<ObjectPropertyUpdate>();
-//                    updates.Add(familyUpdates.Value[i]);
-                    // HACK : Remove intelligent resending until it's fixed in core
-                    //OutPacket(packet, ThrottleOutPacketType.Task, true,
-                    //          delegate(OutgoingPacket oPacket)
-                    //          {
-                    //              ResendPropertyUpdates(updates, oPacket);
-                    //          });
-                    OutPacket(packet, ThrottleOutPacketType.Task, true);
+                        //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                        //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+                        buf = newbuf;
+                        zc.Data = buf.Data;
+                        zc.ZeroCount = 0;
+                        zc.Position = countposition + 1;
+                        // im lazy now, just do last again
+                        CreateObjectPropertiesBlock((SceneObjectPart)eu.Entity, zc);
+
+                        //tau = new List<EntityUpdate>(30);
+                        //tau.Add(eu);
+                        count = 1;
+                        --blocks;
+                    }
+                }
+
+                if (count > 0)
+                {
+                    buf.Data[countposition] = (byte)count;
+                    buf.DataLength = zc.Finish();
+                    //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                    //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
                 }
             }
 
-            if(needPhysics != null)
+            if (objectPropertiesFamilyUpdates != null)
+            {
+                foreach (EntityUpdate eu in objectPropertiesFamilyUpdates)
+                {
+                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    Buffer.BlockCopy(ObjectFamilyUpdateHeader, 0, buf.Data, 0, 8);
+
+                    LLUDPZeroEncoder zc = new LLUDPZeroEncoder(buf.Data);
+                    zc.Position = 8;
+
+                    CreateObjectPropertiesFamilyBlock((SceneObjectPart)eu.Entity, eu.Flags, zc);
+                    buf.DataLength = zc.Finish();
+                    //List<EntityUpdate> tau = new List<EntityUpdate>(1);
+                    //tau.Add(new ObjectPropertyUpdate((ISceneEntity) eu, (uint)eu.Flags, true, false));
+                    //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                    //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+                }
+            }
+
+            if (needPhysics != null)
             {
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if(eq != null)
@@ -5245,101 +5307,110 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, PrimUpdateFlags requestFlags)
+        private void CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, PrimUpdateFlags requestFlags, LLUDPZeroEncoder zc)
         {
-            ObjectPropertiesFamilyPacket.ObjectDataBlock block = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
-
-            block.RequestFlags = (uint)requestFlags;
-            block.ObjectID = sop.UUID;
-            if (sop.OwnerID == sop.GroupID)
-                block.OwnerID = UUID.Zero;
-            else
-                block.OwnerID = sop.OwnerID;
-            block.GroupID = sop.GroupID;
-            block.BaseMask = sop.BaseMask;
-            block.OwnerMask = sop.OwnerMask;
-            block.GroupMask = sop.GroupMask;
-            block.EveryoneMask = sop.EveryoneMask;
-            block.NextOwnerMask = sop.NextOwnerMask;
-
-            // TODO: More properties are needed in SceneObjectPart!
-            block.OwnershipCost = sop.OwnershipCost;
-            block.SaleType = sop.ObjectSaleType;
-            block.SalePrice = sop.SalePrice;
-            block.Category = sop.Category;
-            block.LastOwnerID = sop.LastOwnerID;
-            block.Name = Util.StringToBytes256(sop.Name);
-            block.Description = Util.StringToBytes256(sop.Description);
-
-            return block;
-        }
-
-        private ObjectPropertiesPacket.ObjectDataBlock CreateObjectPropertiesBlock(SceneObjectPart sop)
-        {
-            //ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
-            // TODO: don't create new blocks if recycling an old packet
-
-            ObjectPropertiesPacket.ObjectDataBlock block =
-                    new ObjectPropertiesPacket.ObjectDataBlock();
-
-            block.ObjectID = sop.UUID;
-            block.Name = Util.StringToBytes256(sop.Name);
-            block.Description = Util.StringToBytes256(sop.Description);
-
-            block.CreationDate = (ulong)sop.CreationDate * 1000000; // viewer wants date in microseconds
-            block.CreatorID = sop.CreatorID;
-            block.GroupID = sop.GroupID;
-            block.LastOwnerID = sop.LastOwnerID;
-            if (sop.OwnerID == sop.GroupID)
-                block.OwnerID = UUID.Zero;
-            else
-                block.OwnerID = sop.OwnerID;
-
-            block.ItemID = sop.FromUserInventoryItemID;
-            block.FolderID = UUID.Zero; // sog.FromFolderID ??
-            block.FromTaskID = UUID.Zero; // ???
-            block.InventorySerial = (short)sop.InventorySerial;
-
             SceneObjectPart root = sop.ParentGroup.RootPart;
 
-            block.TouchName = Util.StringToBytes256(root.TouchName);
+            zc.AddUInt((uint)requestFlags);
+            zc.AddUUID(sop.UUID);
+            if (sop.OwnerID == sop.GroupID)
+                zc.AddZeros(16);
+            else
+                zc.AddUUID(sop.OwnerID);
+            zc.AddUUID(sop.GroupID);
 
-            // SL 3.3.4, at least, appears to read this information as a concatenated byte[] stream of UUIDs but
-            // it's not yet clear whether this is actually used.  If this is done in the future then a pre-cached
-            // copy is really needed since it's less efficient to be constantly recreating this byte array.
-//            using (MemoryStream memStream = new MemoryStream())
-//            {
-//                using (BinaryWriter binWriter = new BinaryWriter(memStream))
-//                {
-//                    for (int i = 0; i < sop.GetNumberOfSides(); i++)
-//                    {
-//                        Primitive.TextureEntryFace teFace = sop.Shape.Textures.FaceTextures[i];
-//
-//                        UUID textureID;
-//
-//                        if (teFace != null)
-//                            textureID = teFace.TextureID;
-//                        else
-//                            textureID = sop.Shape.Textures.DefaultTexture.TextureID;
-//
-//                        binWriter.Write(textureID.GetBytes());
-//                    }
-//
-//                    block.TextureID = memStream.ToArray();
-//                }
-//            }
+            zc.AddUInt(root.BaseMask);
+            zc.AddUInt(root.OwnerMask);
+            zc.AddUInt(root.GroupMask);
+            zc.AddUInt(root.EveryoneMask);
+            zc.AddUInt(root.NextOwnerMask);
 
-            block.TextureID = new byte[0]; // TextureID ???
-            block.SitName = Util.StringToBytes256(root.SitName);
-            block.OwnerMask = root.OwnerMask;
-            block.NextOwnerMask = root.NextOwnerMask;
-            block.GroupMask = root.GroupMask;
-            block.EveryoneMask = root.EveryoneMask;
-            block.BaseMask = root.BaseMask;
-            block.SaleType = root.ObjectSaleType;
-            block.SalePrice = root.SalePrice;
+            zc.AddZeros(4); // int ownership cost
 
-            return block;
+            //sale info block
+            zc.AddByte(root.ObjectSaleType);
+            zc.AddInt(root.SalePrice);
+
+            zc.AddUInt(sop.Category); //Category
+
+            zc.AddUUID(sop.LastOwnerID);
+
+            //name
+            byte[] tmpbytes = Util.StringToBytes256(sop.Name);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+
+            //Description
+            tmpbytes = Util.StringToBytes256(sop.Description);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+        }
+
+        private void CreateObjectPropertiesBlock(SceneObjectPart sop, LLUDPZeroEncoder zc)
+        {
+            SceneObjectPart root = sop.ParentGroup.RootPart;
+
+            zc.AddUUID(sop.UUID);
+            zc.AddUUID(sop.CreatorID);
+            if (sop.OwnerID == sop.GroupID)
+                zc.AddZeros(16);
+            else
+                zc.AddUUID(sop.OwnerID);
+            zc.AddUUID(sop.GroupID);
+
+            zc.AddUInt64((ulong)sop.CreationDate * 1000000UL);
+
+            zc.AddUInt(root.BaseMask);
+            zc.AddUInt(root.OwnerMask);
+            zc.AddUInt(root.GroupMask);
+            zc.AddUInt(root.EveryoneMask);
+            zc.AddUInt(root.NextOwnerMask);
+
+            zc.AddZeros(4); // int ownership cost
+
+            //sale info block
+            zc.AddByte(root.ObjectSaleType);
+            zc.AddInt(root.SalePrice);
+
+            //aggregated perms we may will need to fix this
+            zc.AddByte(0); //AggregatePerms
+            zc.AddByte(0); //AggregatePermTextures;
+            zc.AddByte(0); //AggregatePermTexturesOwner
+
+            //inventory info
+            zc.AddUInt(sop.Category); //Category
+            zc.AddInt16((short)sop.InventorySerial);
+            zc.AddUUID(sop.FromUserInventoryItemID);
+            zc.AddUUID(UUID.Zero); //FolderID
+            zc.AddUUID(UUID.Zero); //FromTaskID
+
+            zc.AddUUID(sop.LastOwnerID);
+
+            //name
+            byte[] tmpbytes = Util.StringToBytes256(sop.Name);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+
+            //Description
+            tmpbytes = Util.StringToBytes256(sop.Description);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+
+            // touch name
+            tmpbytes = Util.StringToBytes256(root.TouchName);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+
+            // sit name
+            tmpbytes = Util.StringToBytes256(root.SitName);
+            zc.AddByte((byte)tmpbytes.Length);
+            zc.AddBytes(tmpbytes, tmpbytes.Length);
+
+            //texture ids block
+            // still not sending, not clear the impact on viewers, if any.
+            // does seem redundant
+            // to send we will need proper list of face texture ids without having to unpack texture entry all the time
+            zc.AddZeros(1);
         }
 
         #region Estate Data Sending Methods
