@@ -7991,13 +7991,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetTouchText(string text)
         {
             m_host.AddScriptLPS(1);
-            m_host.TouchName = text;
+            if(text.Length <= 9)
+                m_host.TouchName = text;
+            else
+                m_host.TouchName = text.Substring(0, 9);
         }
 
         public void llSetSitText(string text)
         {
             m_host.AddScriptLPS(1);
-            m_host.SitName = text;
+            if (text.Length <= 9)
+                m_host.SitName = text;
+            else
+                m_host.SitName = text.Substring(0, 9);
         }
 
         public void llSetCameraEyeOffset(LSL_Vector offset)
