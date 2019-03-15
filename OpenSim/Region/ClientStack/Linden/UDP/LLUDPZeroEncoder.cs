@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Text;
 using OpenSim.Framework;
 using Nini.Config;
 using OpenMetaverse;
@@ -275,5 +276,86 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             v.ToBytes(m_tmp, 0);
             AddBytes(m_tmp, 16);
         }
+
+        // maxlen <= 255 and includes null termination byte
+        public void AddShortString(string str, int maxlen)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                AddZeros(1);
+                return;
+            }
+
+            --maxlen; // account for null term
+            bool NullTerm = str.EndsWith("\0");
+
+            byte[] data = Util.UTF8.GetBytes(str);
+            int len = data.Length;
+            if(NullTerm)
+                --len;
+
+            if(len <= maxlen)
+            {
+                AddByte((byte)(len + 1));
+                AddBytes(data, len);
+                AddZeros(1);
+                return;
+            }
+
+            if ((data[maxlen] & 0x80) != 0)
+            {
+                while (maxlen > 0 && (data[maxlen] & 0xc0) != 0xc0)
+                    maxlen--;
+            }
+            AddByte((byte)(maxlen + 1));
+            AddBytes(data, maxlen);
+            AddZeros(1);
+        }
+        // maxlen <= 255 and includes null termination byte, maxchars == max len of utf8 source
+        public void AddShortString(string str, int maxchars, int maxlen)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                AddZeros(1);
+                return;
+            }
+
+            --maxlen; // account for null term
+            bool NullTerm = false;
+            byte[] data;
+
+            if (str.Length > maxchars)
+            {
+                data = Util.UTF8.GetBytes(str.Substring(0,maxchars));
+            }
+            else
+            {
+                NullTerm = str.EndsWith("\0");
+                data = Util.UTF8.GetBytes(str);
+            }
+
+            int len = data.Length;
+            if (NullTerm)
+                --len;
+
+            if (len <= maxlen)
+            {
+                AddByte((byte)(len + 1));
+                AddBytes(data, len);
+                AddZeros(1);
+                return;
+            }
+
+            if ((data[maxlen] & 0x80) != 0)
+            {
+                while (maxlen > 0 && (data[maxlen] & 0xc0) != 0xc0)
+                    maxlen--;
+            }
+
+            AddByte((byte)(maxlen + 1));
+            AddBytes(data, maxlen);
+            AddZeros(1);
+        }
+
     }
 }

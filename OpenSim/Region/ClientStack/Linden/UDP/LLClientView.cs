@@ -5336,14 +5336,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddUUID(sop.LastOwnerID);
 
             //name
-            byte[] tmpbytes = Util.StringToBytes256(sop.Name);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(sop.Name, 64);
 
             //Description
-            tmpbytes = Util.StringToBytes256(sop.Description);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(sop.Description, 128);
         }
 
         private void CreateObjectPropertiesBlock(SceneObjectPart sop, LLUDPZeroEncoder zc)
@@ -5387,24 +5383,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddUUID(sop.LastOwnerID);
 
             //name
-            byte[] tmpbytes = Util.StringToBytes256(sop.Name);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(sop.Name, 64);
 
             //Description
-            tmpbytes = Util.StringToBytes256(sop.Description);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(sop.Description, 128);
 
             // touch name
-            tmpbytes = Util.StringToBytes256(root.TouchName);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(root.TouchName, 9, 37);
 
             // sit name
-            tmpbytes = Util.StringToBytes256(root.SitName);
-            zc.AddByte((byte)tmpbytes.Length);
-            zc.AddBytes(tmpbytes, tmpbytes.Length);
+            zc.AddShortString(root.SitName, 9, 37);
 
             //texture ids block
             // still not sending, not clear the impact on viewers, if any.
@@ -6349,150 +6337,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddZeros(lastzeros);
         }
 
-        protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SceneObjectPart part, ScenePresence sp)
-        {
-            byte[] objectData = new byte[60];
-            part.RelativePosition.ToBytes(objectData, 0);
-            part.Velocity.ToBytes(objectData, 12);
-            part.Acceleration.ToBytes(objectData, 24);
-
-            Quaternion rotation = part.RotationOffset;
-            rotation.Normalize();
-            rotation.ToBytes(objectData, 36);
-            part.AngularVelocity.ToBytes(objectData, 48);
-
-            ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
-            update.ClickAction = (byte)part.ClickAction;
-            update.CRC = 0;
-            update.ExtraParams = part.Shape.ExtraParams ?? Utils.EmptyBytes;
-            update.FullID = part.UUID;
-            update.ID = part.LocalId;
-            //update.JointAxisOrAnchor = Vector3.Zero; // These are deprecated
-            //update.JointPivot = Vector3.Zero;
-            //update.JointType = 0;
-            update.Material = part.Material;
-
-            if (part.ParentGroup.IsAttachment)
-            {
-                if (part.IsRoot)
-                {
-                    update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
-                }
-                else
-                    update.NameValue = Utils.EmptyBytes;
-
-                int st = (int)part.ParentGroup.AttachmentPoint;
-                update.State = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
-            }
-            else
-            {
-                update.NameValue = Utils.EmptyBytes;
-                update.State = part.Shape.State; // not sure about this
-            }
-
-            update.ObjectData = objectData;
-            update.ParentID = part.ParentID;
-            update.PathBegin = part.Shape.PathBegin;
-            update.PathCurve = part.Shape.PathCurve;
-            update.PathEnd = part.Shape.PathEnd;
-            update.PathRadiusOffset = part.Shape.PathRadiusOffset;
-            update.PathRevolutions = part.Shape.PathRevolutions;
-            update.PathScaleX = part.Shape.PathScaleX;
-            update.PathScaleY = part.Shape.PathScaleY;
-            update.PathShearX = part.Shape.PathShearX;
-            update.PathShearY = part.Shape.PathShearY;
-            update.PathSkew = part.Shape.PathSkew;
-            update.PathTaperX = part.Shape.PathTaperX;
-            update.PathTaperY = part.Shape.PathTaperY;
-            update.PathTwist = part.Shape.PathTwist;
-            update.PathTwistBegin = part.Shape.PathTwistBegin;
-            update.PCode = part.Shape.PCode;
-            update.ProfileBegin = part.Shape.ProfileBegin;
-            update.ProfileCurve = part.Shape.ProfileCurve;
-
-            ushort profileBegin = part.Shape.ProfileBegin;
-            ushort profileHollow = part.Shape.ProfileHollow;
-
-            if(part.Shape.SculptType == (byte)SculptType.Mesh) // filter out hack
-            {
-                update.ProfileCurve = (byte)(part.Shape.ProfileCurve & 0x0f);
-                // fix old values that confused viewers
-                if(profileBegin == 1)
-                    profileBegin = 9375;
-                if(profileHollow == 1)
-                    profileHollow = 27500;
-                // fix torus hole size Y that also confuse some viewers
-                if(update.ProfileCurve == (byte)ProfileShape.Circle && update.PathScaleY < 150)
-                       update.PathScaleY = 150;                    
-            }
-            else
-            {
-                update.ProfileCurve = part.Shape.ProfileCurve;
-            }
-
-            update.ProfileHollow = profileHollow;
-            update.ProfileBegin = profileBegin;
-            update.ProfileEnd = part.Shape.ProfileEnd;
-            update.PSBlock = part.ParticleSystem ?? Utils.EmptyBytes;
-            update.TextColor = part.GetTextColor().GetBytes(false);
-            update.TextureAnim = part.TextureAnimation ?? Utils.EmptyBytes;
-            update.TextureEntry = part.Shape.TextureEntry ?? Utils.EmptyBytes;
-            update.Scale = part.Shape.Scale;
-            update.Text = Util.StringToBytes(part.Text, 255);
-            update.MediaURL = Util.StringToBytes(part.MediaUrl, 255);
-
-            #region PrimFlags
-
-            PrimFlags flags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(part, sp);
-
-            // Don't send the CreateSelected flag to everyone
-            flags &= ~PrimFlags.CreateSelected;
-
-            if (sp.UUID == part.OwnerID)
-            {
-                if (part.CreateSelected)
-                {
-                    // Only send this flag once, then unset it
-                    flags |= PrimFlags.CreateSelected;
-                    part.CreateSelected = false;
-                }
-            }
-
-//            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Constructing client update for part {0} {1} with flags {2}, localId {3}",
-//                data.Name, update.FullID, flags, update.ID);
-
-            update.UpdateFlags = (uint)flags;
-
-            #endregion PrimFlags
-
-            bool hassound = part.Sound != UUID.Zero || part.SoundFlags != 0;
-            if (hassound)
-            {
-                update.Sound = part.Sound;
-                update.Gain = (float)part.SoundGain;
-                update.Radius = (float)part.SoundRadius;
-                update.Flags = part.SoundFlags;
-            }
-
-            if(hassound || update.PSBlock.Length > 1)
-                update.OwnerID = part.OwnerID;
-
-            switch ((PCode)part.Shape.PCode)
-            {
-                case PCode.Grass:
-                case PCode.Tree:
-                case PCode.NewTree:
-                    update.Data = new byte[] { part.Shape.State };
-                    break;
-                default:
-                    update.Data = Utils.EmptyBytes;
-                    break;
-            }
-
-            return update;
-        }
-
         protected void CreatePrimUpdateBlock(SceneObjectPart part, ScenePresence sp, LLUDPZeroEncoder zc)
         {
             // prepare data
@@ -6725,10 +6569,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddZeros(5);
             else
             {
-                byte[] tbuf = Util.StringToBytes(part.Text, 254);
-                int len = tbuf.Length;
-                zc.AddByte((byte)len);
-                zc.AddBytes(tbuf, len);
+                zc.AddShortString(part.Text, 255);
 
                 //textcolor
                 byte[] tc = part.GetTextColor().GetBytes(false);
@@ -6739,12 +6580,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (part.MediaUrl == null || part.MediaUrl.Length == 0)
                 zc.AddZeros(1);
             else
-            {
-                byte[] tbuf = Util.StringToBytes(part.MediaUrl, 255);
-                int len = tbuf.Length;
-                zc.AddByte((byte)len);
-                zc.AddBytes(tbuf, len);
-            }
+                zc.AddShortString(part.MediaUrl, 255);
 
             bool hasps = false;
             //particle system
