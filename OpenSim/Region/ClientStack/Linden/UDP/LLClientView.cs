@@ -1815,14 +1815,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // An inventory descendents packet consists of a single agent section and an inventory details
             // section for each inventory item.  The size of each inventory item is approximately 550 bytes.
-            // In theory, UDP has a maximum packet size of 64k, so it should be possible to send descendent
-            // packets containing metadata for in excess of 100 items.  But in practice, there may be other
-            // factors (e.g. firewalls) restraining the maximum UDP packet size.  See,
-            //
-            // http://opensimulator.org/mantis/view.php?id=226
-            //
-            // for one example of this kind of thing.  In fact, the Linden servers appear to only send about
-            // 6 to 7 items at a time, so let's stick with 6
+            // limit to what may fit on MTU
             int MAX_ITEMS_PER_PACKET = 5;
             int MAX_FOLDERS_PER_PACKET = 6;
 

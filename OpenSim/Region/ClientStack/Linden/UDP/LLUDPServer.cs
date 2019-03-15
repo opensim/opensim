@@ -279,11 +279,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// OnQueueEmpty event is triggered for textures</summary>
         public readonly int TextureSendLimit;
 
-        /// <summary>Handlers for incoming packets</summary>
-        //PacketEventDictionary packetEvents = new PacketEventDictionary();
-        /// <summary>Incoming packets that are awaiting handling</summary>
-        //protected OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
-
         protected BlockingCollection<IncomingPacket> packetInbox = new BlockingCollection<IncomingPacket>();
 
         /// <summary>Bandwidth throttle for this UDP server</summary>
@@ -373,12 +368,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Record how many inbound packets could not be associated with a simulator circuit.
         /// </summary>
         public int IncomingOrphanedPacketCount { get; protected set; }
-
-        /// <summary>
-        /// Queue some low priority but potentially high volume async requests so that they don't overwhelm available
-        /// threadpool threads.
-        /// </summary>
-//        public JobEngine IpahEngine { get; protected set; }
 
         /// <summary>
         /// Run queue empty processing within a single persistent thread.
@@ -557,12 +546,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Scene = (Scene)scene;
             m_location = new Location(Scene.RegionInfo.RegionHandle);
-/*
-            IpahEngine
-                = new JobEngine(
-                    string.Format("Incoming Packet Async Handling Engine ({0})", Scene.Name),
-                    "INCOMING PACKET ASYNC HANDLING ENGINE");
-*/
+
             OqrEngine = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
                     "OUTGOING QUEUE REFILL ENGINE");
@@ -844,13 +828,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool doZerocode = (data[0] & Helpers.MSG_ZEROCODED) != 0;
             bool doCopy = true;
 
-            // Frequency analysis of outgoing packet sizes shows a large clump of packets at each end of the spectrum.
-            // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
-            // there are a decent number of packets in the 1000-1140 byte range. We allocate one of two sizes of data here
-            // to accomodate for both common scenarios and provide ample room for ACK appending in both
-            //int bufferSize = (dataLength > 180) ? LLUDPServer.MTU : 200;
-
-            //UDPPacketBuffer buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
             UDPPacketBuffer buffer = GetNewUDPBuffer(udpClient.RemoteEndPoint);
 
             // Zerocode if needed
