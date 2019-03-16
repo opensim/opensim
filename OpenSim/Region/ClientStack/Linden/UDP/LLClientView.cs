@@ -1561,17 +1561,97 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(newSimPack, ThrottleOutPacketType.Unknown);
         }
 
+        static private readonly byte[] MapBlockItemHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 1, 155 // ID 411 (low frequency bigendian)
+                };
+
+        public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
+        {
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header and agentinfo block
+            Buffer.BlockCopy(MapBlockItemHeader, 0, data, 0, 10);
+            AgentId.ToBytes(data, 10); // 26
+            Utils.UIntToBytesSafepos(flags, data, 26); // 30
+
+            //RequestData block
+            Utils.UIntToBytesSafepos(mapitemtype, data, 30); // 34
+
+            int countpos = 34;
+            int pos = 35;
+            int lastpos = 0;
+
+            int capacity = LLUDPServer.MAXPAYLOAD - pos;
+
+            int count = 0;
+
+            mapItemReply mr;
+            for (int k = 0; k < replies.Length; ++k)
+            {
+                lastpos = pos;
+                mr = replies[k];
+
+                Utils.UIntToBytesSafepos(mr.x, data, pos); pos += 4;
+                Utils.UIntToBytesSafepos(mr.y, data, pos); pos += 4;
+                mr.id.ToBytes(data, pos); pos += 16;
+                Utils.IntToBytesSafepos(mr.Extra, data, pos); pos += 4;
+                Utils.IntToBytesSafepos(mr.Extra2, data, pos); pos += 4;
+                byte[] itemName = Util.StringToBytes256(mr.name);
+                data[pos++] = (byte)itemName.Length;
+                if (itemName.Length > 0)
+                    Buffer.BlockCopy(itemName, 0, data, pos, itemName.Length); pos += itemName.Length;
+
+                if (pos < capacity)
+                    ++count;
+                else
+                {
+                    // prepare next packet
+                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    Buffer.BlockCopy(data, 0, newbuf.Data, 0, 34);
+
+                    // copy the block we already did
+                    int alreadyDone = pos - lastpos;
+                    Buffer.BlockCopy(data, lastpos, newbuf.Data, 35, alreadyDone); // 34 is datablock size
+
+                    // finish current
+                    data[countpos] = (byte)count;
+
+                    buf.DataLength = lastpos;
+                    // send it
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+
+                    buf = newbuf;
+                    data = buf.Data;
+                    pos = alreadyDone + 35;
+                    capacity = LLUDPServer.MAXPAYLOAD - pos;
+
+                    count = 1;
+                }
+            }
+
+            if (count > 0)
+            {
+                data[countpos] = (byte)count;
+
+                buf.DataLength = pos;
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+            }
+        }
+
         static private readonly byte[] MapBlockReplyHeader = new byte[] {
                 Helpers.MSG_RELIABLE,
                 0, 0, 0, 0, // sequence number
                 0, // extra
-                0xff, 0xff, 1, 153 // ID 409 (bigendian low frequency)
+                0xff, 0xff, 1, 153 // ID 409 (low frequency bigendian)
                 };
 
         public void SendMapBlock(List<MapBlockData> mapBlocks, uint flags)
         {
-            int blocks = mapBlocks.Count;
-            ushort[] sizes =  new ushort[2 * blocks];
+            ushort[] sizes =  new ushort[2 * mapBlocks.Count];
             bool needSizes = false;
             int sizesptr = 0;
 
@@ -1606,7 +1686,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int capacity = LLUDPServer.MAXPAYLOAD - pos;
 
             count = 0;
-            byte[] regionName = null;
 
             foreach (MapBlockData md in mapBlocks)
             {
@@ -1614,7 +1693,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 Utils.UInt16ToBytes(md.X, data, pos); pos += 2;
                 Utils.UInt16ToBytes(md.Y, data, pos); pos += 2;
-                regionName = Util.StringToBytes256(md.Name);
+                byte[] regionName = Util.StringToBytes256(md.Name);
                 data[pos++] = (byte)regionName.Length;
                 if(regionName.Length > 0)
                     Buffer.BlockCopy(regionName, 0, data, pos, regionName.Length); pos += regionName.Length;
@@ -1628,15 +1707,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     capacity -= 4; // 2 shorts per entry
 
                 if(pos < capacity)
-                {
                     ++count;
-                    --blocks;
-                }
                 else
                 {
                     // prepare next packet
                     UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                    Buffer.BlockCopy(MapBlockReplyHeader, 0, newbuf.Data, 0, 30);
+                    Buffer.BlockCopy(data, 0, newbuf.Data, 0, 30);
 
                     // copy the block we already did
                     int alreadyDone = pos - lastpos;
@@ -1668,10 +1744,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         capacity -= 4; // 2 shorts per entry
 
                     count = 1;
-                    --blocks;
                 }
             }
-            regionName = null;
 
             if (count > 0)
             {
@@ -3475,28 +3549,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.EventData.EventFlags = data.eventFlags;
 
             OutPacket(packet, ThrottleOutPacketType.Task);
-        }
-
-        public void SendMapItemReply(mapItemReply[] replies, uint mapitemtype, uint flags)
-        {
-            MapItemReplyPacket mirplk = new MapItemReplyPacket();
-            mirplk.AgentData.AgentID = AgentId;
-            mirplk.RequestData.ItemType = mapitemtype;
-            mirplk.Data = new MapItemReplyPacket.DataBlock[replies.Length];
-            for (int i = 0; i < replies.Length; i++)
-            {
-                MapItemReplyPacket.DataBlock mrdata = new MapItemReplyPacket.DataBlock();
-                mrdata.X = replies[i].x;
-                mrdata.Y = replies[i].y;
-                mrdata.ID = replies[i].id;
-                mrdata.Extra = replies[i].Extra;
-                mrdata.Extra2 = replies[i].Extra2;
-                mrdata.Name = Utils.StringToBytes(replies[i].name);
-                mirplk.Data[i] = mrdata;
-            }
-            //m_log.Debug(mirplk.ToString());
-            OutPacket(mirplk, ThrottleOutPacketType.Task);
-
         }
 
         public void SendOfferCallingCard(UUID srcID, UUID transactionID)
