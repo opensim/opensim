@@ -4180,46 +4180,61 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
         }
 
+        static private readonly byte[] CoarseLocationUpdateHeader = new byte[] {
+                0, // no acks plz
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 6 // ID 6 (medium frequency)
+                };
+
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
             // We don't need to update inactive clients.
             if (!IsActive)
                 return;
 
-            CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
-            loc.Header.Reliable = false;
-
-            // Each packet can only hold around 60 avatar positions and the client clears the mini-map each time
-            // a CoarseLocationUpdate packet is received. Oh well.
-            int total = Math.Min(CoarseLocations.Count, 60);
-
-            CoarseLocationUpdatePacket.IndexBlock ib = new CoarseLocationUpdatePacket.IndexBlock();
-
-            loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
-            loc.AgentData = new CoarseLocationUpdatePacket.AgentDataBlock[total];
+            int totalLocations = Math.Min(CoarseLocations.Count, 60);
+            int totalAgents = Math.Min(users.Count, 60);
+            if(totalAgents > totalLocations)
+                totalAgents = totalLocations;
 
             int selfindex = -1;
-            for (int i = 0; i < total; i++)
+            int preyindex = -1;
+
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            Buffer.BlockCopy(CoarseLocationUpdateHeader, 0, buf.Data, 0, 8);
+            byte[] data = buf.Data;
+
+            data[8] = (byte)totalLocations;
+            int pos = 9;
+
+            for (int i = 0; i < totalLocations; ++i)
             {
-                CoarseLocationUpdatePacket.LocationBlock lb =
-                    new CoarseLocationUpdatePacket.LocationBlock();
-
-                lb.X = (byte)CoarseLocations[i].X;
-                lb.Y = (byte)CoarseLocations[i].Y;
-
-                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25f);
-                loc.Location[i] = lb;
-                loc.AgentData[i] = new CoarseLocationUpdatePacket.AgentDataBlock();
-                loc.AgentData[i].AgentID = users[i];
-                if (users[i] == AgentId)
-                    selfindex = i;
+                data[pos++] = (byte)CoarseLocations[i].X;
+                data[pos++] = (byte)CoarseLocations[i].Y;
+                data[pos++] = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25f);
+                
+                if (i < totalAgents)
+                {
+                    if (users[i] == AgentId)
+                        selfindex = i;
+                    //if (users[i] == PreyId)
+                    //    preyindex = -1;
+                }
             }
 
-            ib.You = (short)selfindex;
-            ib.Prey = -1;
-            loc.Index = ib;
+            Utils.Int16ToBytes((short)selfindex, data, pos); pos += 2;
+            Utils.Int16ToBytes((short)preyindex, data, pos); pos += 2;
 
-            OutPacket(loc, ThrottleOutPacketType.Task);
+            data[pos++] = (byte)totalAgents;
+            for (int i = 0; i < totalAgents; ++i)
+            {
+                users[i].ToBytes(data, pos);
+                pos += 16;
+            }
+
+            buf.DataLength = pos;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
         }
 
         #endregion Avatar Packet/Data Sending Methods
