@@ -1561,56 +1561,135 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(newSimPack, ThrottleOutPacketType.Unknown);
         }
 
-        internal void SendMapBlockSplit(List<MapBlockData> mapBlocks, uint flag)
+        static private readonly byte[] MapBlockReplyHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 1, 153 // ID 409 (bigendian low frequency)
+                };
+
+        public void SendMapBlock(List<MapBlockData> mapBlocks, uint flags)
         {
-            MapBlockReplyPacket mapReply = (MapBlockReplyPacket)PacketPool.Instance.GetPacket(PacketType.MapBlockReply);
-            // TODO: don't create new blocks if recycling an old packet
+            int blocks = mapBlocks.Count;
+            ushort[] sizes =  new ushort[2 * blocks];
+            bool needSizes = false;
+            int sizesptr = 0;
 
-            MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
-
-            mapReply.AgentData.AgentID = AgentId;
-            mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks2.Length];
-            mapReply.Size = new MapBlockReplyPacket.SizeBlock[mapBlocks2.Length];
-            mapReply.AgentData.Flags = flag;
-
-            for (int i = 0; i < mapBlocks2.Length; i++)
+            // check if we will need sizes block and get them aside
+            int count = 0;
+            ushort ut;
+            foreach (MapBlockData md in mapBlocks)
             {
-                mapReply.Data[i] = new MapBlockReplyPacket.DataBlock();
-                mapReply.Data[i].MapImageID = mapBlocks2[i].MapImageId;
-                //m_log.Warn(mapBlocks2[i].MapImageId.ToString());
-                mapReply.Data[i].X = mapBlocks2[i].X;
-                mapReply.Data[i].Y = mapBlocks2[i].Y;
-                mapReply.Data[i].WaterHeight = mapBlocks2[i].WaterHeight;
-                mapReply.Data[i].Name = Utils.StringToBytes(mapBlocks2[i].Name);
-                mapReply.Data[i].RegionFlags = mapBlocks2[i].RegionFlags;
-                mapReply.Data[i].Access = mapBlocks2[i].Access;
-                mapReply.Data[i].Agents = mapBlocks2[i].Agents;
+                ut = md.SizeX;
+                sizes[count++] = ut;
+                if (ut > 256)
+                    needSizes = true;
 
-                mapReply.Size[i] = new MapBlockReplyPacket.SizeBlock();
-                mapReply.Size[i].SizeX = mapBlocks2[i].SizeX;
-                mapReply.Size[i].SizeY = mapBlocks2[i].SizeY;
+                ut = md.SizeY;
+                sizes[count++] = ut;
+                if (ut > 256)
+                    needSizes = true;
             }
-            OutPacket(mapReply, ThrottleOutPacketType.Land);
-        }
 
-        public void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
-        {
-            MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
-            int maxsend = 10;
+            //setup header and agentinfo block
+            Buffer.BlockCopy(MapBlockReplyHeader, 0, data, 0, 10);
+            AgentId.ToBytes(data, 10); // 26
+            Utils.UIntToBytesSafepos(flags, data, 26); // 30
 
-            //int packets = Math.Ceiling(mapBlocks2.Length / maxsend);
+            int countpos = 30;
+            int pos = 31;
+            int lastpos = 0;
 
-            List<MapBlockData> sendingBlocks = new List<MapBlockData>();
+            int capacity = LLUDPServer.MAXPAYLOAD - pos;
 
-            for (int i = 0; i < mapBlocks2.Length; i++)
+            count = 0;
+            byte[] regionName = null;
+
+            foreach (MapBlockData md in mapBlocks)
             {
-                sendingBlocks.Add(mapBlocks2[i]);
-                if (((i + 1) == mapBlocks2.Length) || (((i + 1) % maxsend) == 0))
+                lastpos = pos;
+
+                Utils.UInt16ToBytes(md.X, data, pos); pos += 2;
+                Utils.UInt16ToBytes(md.Y, data, pos); pos += 2;
+                regionName = Util.StringToBytes256(md.Name);
+                data[pos++] = (byte)regionName.Length;
+                if(regionName.Length > 0)
+                    Buffer.BlockCopy(regionName, 0, data, pos, regionName.Length); pos += regionName.Length;
+                data[pos++] = md.Access;
+                Utils.UIntToBytesSafepos(md.RegionFlags, data, pos); pos += 4;
+                data[pos++] = md.WaterHeight;
+                data[pos++] = md.Agents;
+                md.MapImageId.ToBytes(data, pos); pos += 16;
+
+                if(needSizes)
+                    capacity -= 4; // 2 shorts per entry
+
+                if(pos < capacity)
                 {
-                    SendMapBlockSplit(sendingBlocks, flag);
-                    sendingBlocks = new List<MapBlockData>();
+                    ++count;
+                    --blocks;
                 }
+                else
+                {
+                    // prepare next packet
+                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    Buffer.BlockCopy(MapBlockReplyHeader, 0, newbuf.Data, 0, 30);
+
+                    // copy the block we already did
+                    int alreadyDone = pos - lastpos;
+                    Buffer.BlockCopy(data, lastpos, newbuf.Data, 31, alreadyDone); // 30 is datablock size
+
+                    // finish current
+                    data[countpos] = (byte)count;
+                    if (needSizes)
+                    {
+                        data[lastpos++] = (byte)count;
+                        while (--count >= 0)
+                        {
+                            Utils.UInt16ToBytes(sizes[sizesptr++], data, lastpos); lastpos += 2;
+                            Utils.UInt16ToBytes(sizes[sizesptr++], data, lastpos); lastpos += 2;
+                        }
+                    }
+                    else
+                        data[lastpos++] = 0;
+
+                    buf.DataLength = lastpos;
+                    // send it
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+
+                    buf = newbuf;
+                    data = buf.Data;
+                    pos = alreadyDone + 31;
+                    capacity = LLUDPServer.MAXPAYLOAD - pos;
+                    if (needSizes)
+                        capacity -= 4; // 2 shorts per entry
+
+                    count = 1;
+                    --blocks;
+                }
+            }
+            regionName = null;
+
+            if (count > 0)
+            {
+                data[countpos] = (byte)count;
+                if (needSizes)
+                {
+                    data[pos++] = (byte)count;
+                    while (--count >= 0)
+                    {
+                        Utils.UInt16ToBytes(sizes[sizesptr++], data, pos); pos += 2;
+                        Utils.UInt16ToBytes(sizes[sizesptr++], data, pos); pos += 2;
+                    }
+                }
+                else
+                    data[pos++] = 0;
+
+                buf.DataLength = pos;
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
             }
         }
 
