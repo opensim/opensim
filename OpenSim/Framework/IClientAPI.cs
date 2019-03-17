@@ -1097,8 +1097,6 @@ namespace OpenSim.Framework
 
         void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures);
 
-        void SendStartPingCheck(byte seq);
-
         /// <summary>
         /// Tell the client that an object has been deleted
         /// </summary>

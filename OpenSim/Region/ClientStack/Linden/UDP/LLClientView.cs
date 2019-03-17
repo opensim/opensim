@@ -1891,19 +1891,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(payPriceReply, ThrottleOutPacketType.Task);
         }
 
-        public void SendStartPingCheck(byte seq)
-        {
-            StartPingCheckPacket pc = (StartPingCheckPacket)PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
-            pc.Header.Reliable = false;
-
-            pc.PingID.PingID = seq;
-            // We *could* get OldestUnacked, but it would hurt performance and not provide any benefit
-            pc.PingID.OldestUnacked = 0;
-
-            OutPacket(pc, ThrottleOutPacketType.Unknown);
-            UDPClient.m_lastStartpingTimeMS = Util.EnvironmentTickCount();
-        }
-
         public void SendKillObject(List<uint> localIDs)
         {
             // foreach (uint id in localIDs)
@@ -8236,7 +8223,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool HandleAgentResume(IClientAPI sender, Packet Pack)
         {
             m_udpClient.IsPaused = false;
-            SendStartPingCheck(m_udpClient.CurrentPingSequence++);
+            m_udpServer.SendPing(m_udpClient);
             return true;
         }
 

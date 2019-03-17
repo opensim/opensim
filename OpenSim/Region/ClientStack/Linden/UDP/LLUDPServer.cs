@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             buf.DataLength = 12;
             SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
 
-            udpClient.m_lastStartpingTimeMS = Util.EnvironmentTickCount();
+            udpClient.m_lastStartpingTimeMS = Util.GetTimeStampMS();
         }
 
         static private readonly byte[] CompletePingCheckHeader = new byte[] {
@@ -1506,11 +1506,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else if (packet.Type == PacketType.CompletePingCheck)
             {
-                int t = Util.EnvironmentTickCountSubtract(udpClient.m_lastStartpingTimeMS);
-                int c = udpClient.m_pingMS;
+                double t = Util.GetTimeStampMS() - udpClient.m_lastStartpingTimeMS;
+                double c = udpClient.m_pingMS;
                 c = 800 * c + 200 * t;
                 c /= 1000;
-                udpClient.m_pingMS = c;
+                udpClient.m_pingMS = (int)c;
                 return;
             }
 

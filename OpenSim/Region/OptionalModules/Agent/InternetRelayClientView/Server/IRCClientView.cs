@@ -967,11 +967,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendStartPingCheck(byte seq)
-        {
-
-        }
-
         public void SendKillObject(List<uint> localID)
         {
 

@@ -195,7 +195,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private float m_burstTime;
 
-        public int m_lastStartpingTimeMS;
+        public double m_lastStartpingTimeMS;
         public int m_pingMS;
 
         public int PingTimeMS
