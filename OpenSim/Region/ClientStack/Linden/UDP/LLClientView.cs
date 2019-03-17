@@ -3995,36 +3995,53 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(aw, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
-        public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
+        static private readonly byte[] AvatarAppearanceHeader = new byte[] {
+                Helpers.MSG_RELIABLE | Helpers.MSG_ZEROCODED,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 158 // ID 158 (low frequency bigendian) not zeroencoded
+                //0xff, 0xff, 0, 1, 158 // ID 158 (low frequency bigendian) zeroencoded
+                };
+
+        public void SendAppearance(UUID targetID, byte[] visualParams, byte[] textureEntry)
         {
-//            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Sending avatar appearance for {0} with {1} bytes to {2} {3}",
-//                agentID, textureEntry.Length, Name, AgentId);
+            // doing post zero encode, because odds of beeing bad are not that low
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            Buffer.BlockCopy(AvatarAppearanceHeader, 0, buf.Data, 0, 10);
+            byte[] data = buf.Data;
+            int pos = 10;
 
-            AvatarAppearancePacket avp = (AvatarAppearancePacket)PacketPool.Instance.GetPacket(PacketType.AvatarAppearance);
-            // TODO: don't create new blocks if recycling an old packet
-            avp.VisualParam = new AvatarAppearancePacket.VisualParamBlock[visualParams.Length];
-            avp.ObjectData.TextureEntry = textureEntry;
+            //sender block
+            targetID.ToBytes(data, pos); pos += 16;
+            data[pos++] = 0;// is trial = false
 
-            AvatarAppearancePacket.VisualParamBlock avblock = null;
-            for (int i = 0; i < visualParams.Length; i++)
+            // objectdata block ie texture
+            int len = textureEntry.Length;
+            if (len == 0)
             {
-                avblock = new AvatarAppearancePacket.VisualParamBlock();
-                avblock.ParamValue = visualParams[i];
-                avp.VisualParam[i] = avblock;
+                data[pos++] = 0;
+                data[pos++] = 0;
+            }
+            else
+            {
+                data[pos++] = (byte)len;
+                data[pos++] = (byte)(len >> 8);
+                Buffer.BlockCopy(textureEntry, 0, data, pos, len); pos += len;
             }
 
-            avp.Sender.IsTrial = false;
-            avp.Sender.ID = agentID;
-            avp.AppearanceData = new AvatarAppearancePacket.AppearanceDataBlock[0];
-            avp.AppearanceHover = new AvatarAppearancePacket.AppearanceHoverBlock[0];
+            // visual parameters
+            len = visualParams.Length;
+            data[pos++] = (byte)len;
+            if(len > 0)
+                Buffer.BlockCopy(visualParams, 0, data, pos, len); pos += len;
 
-// this need be use in future ?
-//           avp.AppearanceData[0].AppearanceVersion = 0;
-//           avp.AppearanceData[0].CofVersion = 0;
+            // no AppearanceData
+            data[pos++] = 0;
+            // no AppearanceHover
+            data[pos++] = 0;
 
-            //m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
-            OutPacket(avp, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
+            buf.DataLength = pos;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority, null, false, true);
         }
 
         static private readonly byte[] AvatarAnimationHeader = new byte[] {
