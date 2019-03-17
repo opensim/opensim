@@ -4184,6 +4184,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
         }
 
+        //UUID m_courseLocationPrey = UUID.Zero;
+        bool m_couseLocationLastEmpty = false;
+
         static private readonly byte[] CoarseLocationUpdateHeader = new byte[] {
                 0, // no acks plz
                 0, 0, 0, 0, // sequence number
@@ -4198,12 +4201,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             int totalLocations = Math.Min(CoarseLocations.Count, 60);
+            if(totalLocations == 0)
+            {
+                if(m_couseLocationLastEmpty)
+                    return;
+                m_couseLocationLastEmpty = true;
+            }
+            else
+                m_couseLocationLastEmpty = false;
+
             int totalAgents = Math.Min(users.Count, 60);
             if(totalAgents > totalLocations)
                 totalAgents = totalLocations;
 
             int selfindex = -1;
             int preyindex = -1;
+
+            //bool doprey = m_courseLocationPrey != UUID.Zero;
 
             UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             Buffer.BlockCopy(CoarseLocationUpdateHeader, 0, buf.Data, 0, 8);
@@ -4222,8 +4236,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (users[i] == AgentId)
                         selfindex = i;
-                    //if (users[i] == PreyId)
-                    //    preyindex = -1;
+                    //if (doprey && users[i] == m_courseLocationPrey)
+                    //    preyindex = i;
                 }
             }
 
@@ -7534,15 +7548,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TrackAgentPacket TrackAgent =
                 (TrackAgentPacket)Packet;
 
+            if(TrackAgent.AgentData.AgentID != AgentId || TrackAgent.AgentData.SessionID != SessionId)
+                return false;
+
             TrackAgentUpdate TrackAgentHandler = OnTrackAgent;
             if (TrackAgentHandler != null)
             {
                 TrackAgentHandler(this,
                                   TrackAgent.AgentData.AgentID,
                                   TrackAgent.TargetData.PreyID);
-                return true;
             }
-            return false;
+//            else
+//                m_courseLocationPrey = TrackAgent.TargetData.PreyID;
+            return true;
         }
 
         private bool HandlerRezObject(IClientAPI sender, Packet Pack)
