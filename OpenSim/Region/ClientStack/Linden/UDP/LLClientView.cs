@@ -1109,8 +1109,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[pos++] = 0;
                 buf.DataLength = pos;
-                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 return;
             }
 
@@ -1148,8 +1148,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[countpos] = (byte)count;
                 buf.DataLength = pos;
-                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
             }
         }
 
@@ -1181,8 +1181,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[pos++] = 0;
                 buf.DataLength = pos;
-                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 return;
             }
 
@@ -1221,8 +1221,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[countpos] = (byte)count;
                 buf.DataLength = pos;
-                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
             }
         }
 
