@@ -913,24 +913,60 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             buf.DataLength = 80 + len;
-            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendChatMessage(
-            string message, byte type, Vector3 fromPos, string fromName,
-            UUID fromAgentID, UUID ownerID, byte source, byte audible)
-        {
-            ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
-            reply.ChatData.Audible = audible;
-            reply.ChatData.Message = Util.StringToBytes1024(message);
-            reply.ChatData.ChatType = type;
-            reply.ChatData.SourceType = source;
-            reply.ChatData.Position = fromPos;
-            reply.ChatData.FromName = Util.StringToBytes256(fromName);
-            reply.ChatData.OwnerID = ownerID;
-            reply.ChatData.SourceID = fromAgentID;
+        static private readonly byte[] ChatFromSimulatorHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 139 // ID 139 (low frequency bigendian)
+                };
 
-            OutPacket(reply, ThrottleOutPacketType.Unknown);
+        public void SendChatMessage(string message, byte chattype, Vector3 fromPos, string fromName,
+            UUID sourceID, UUID ownerID, byte sourcetype, byte audible)
+        {
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header
+            Buffer.BlockCopy(ChatFromSimulatorHeader, 0, data, 0, 10);
+
+            byte[] fname = Util.StringToBytes256(fromName);
+            int len = fname.Length;
+            int pos = 11;
+            if (len == 0)
+                data[10] = 0;
+            else
+            {
+                data[10] = (byte)len;
+                Buffer.BlockCopy(fname, 0, data, 11, len);
+                pos += len;
+            }
+
+            sourceID.ToBytes(data, pos); pos += 16;
+            ownerID.ToBytes(data, pos); pos += 16;
+            data[pos++] = sourcetype;
+            data[pos++] = chattype;
+            data[pos++] = audible;
+            fromPos.ToBytes(data, pos); pos += 12;
+
+            byte[] msg = Util.StringToBytes1024(message);
+            len = msg.Length;
+            if (len == 0)
+            {
+                data[pos++] = 0;
+                data[pos++] = 0;
+            }
+            else
+            {
+                data[pos++] = (byte)len;
+                data[pos++] = (byte)(len >> 8);
+                Buffer.BlockCopy(msg, 0, data, pos, len); pos += len;
+            }
+
+            buf.DataLength = pos;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
         /// <summary>
@@ -1336,7 +1372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         data[9] = (byte)(datasize >> 8);
 
                         buf.DataLength = bitpack.BytePos + 1;
-                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
 
                         // start another
                         buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
@@ -1364,7 +1400,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 data[9] = (byte)(datasize >> 8);
 
                 buf.DataLength = bitpack.BytePos + 1;
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
 
             }
             catch (Exception e)
@@ -1645,7 +1681,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     buf.DataLength = lastpos;
                     // send it
-                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
 
                     buf = newbuf;
                     data = buf.Data;
@@ -1661,7 +1697,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 data[countpos] = (byte)count;
 
                 buf.DataLength = pos;
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
             }
         }
 
@@ -1757,7 +1793,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     buf.DataLength = lastpos;
                     // send it
-                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
 
                     buf = newbuf;
                     data = buf.Data;
@@ -1786,7 +1822,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     data[pos++] = 0;
 
                 buf.DataLength = pos;
-                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land, null, false, false);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Land);
             }
         }
 
@@ -4122,8 +4158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[pos++] = 0; // no physical avatar events
 
             buf.DataLength = pos;
-            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority,
-                       null, false, false);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task | ThrottleOutPacketType.HighPriority);
         }
 
         public void SendObjectAnimations(UUID[] animations, int[] seqs, UUID senderId)
@@ -4180,7 +4215,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 CreatePrimUpdateBlock(ent as SceneObjectPart, (ScenePresence)SceneAgent, zc);
 
             buf.DataLength = zc.Finish();
-            m_udpServer.SendUDPPacket(m_udpClient, buf, ptype , null, false, false);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ptype);
         }
 
         public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
@@ -4275,7 +4310,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             buf.DataLength = pos;
-            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
         #endregion Avatar Packet/Data Sending Methods
@@ -5332,7 +5367,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                         //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
-                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                         buf = newbuf;
                         zc.Data = buf.Data;
                         zc.ZeroCount = 0;
@@ -5353,7 +5388,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     buf.DataLength = zc.Finish();
                     //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                     //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
-                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 }
             }
 
@@ -5373,7 +5408,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //tau.Add(new ObjectPropertyUpdate((ISceneEntity) eu, (uint)eu.Flags, true, false));
                     //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                     //    delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
-                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, false);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 }
             }
 

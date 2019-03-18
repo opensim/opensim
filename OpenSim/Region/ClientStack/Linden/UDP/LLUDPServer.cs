@@ -970,7 +970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             bool highPriority = false;
 
-            if(zerocode)
+            if (zerocode)
                 buffer = ZeroEncode(buffer);
 
             if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
@@ -986,6 +986,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outgoingPacket.UnackedMethod = ((method == null) ? delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, forcequeue, highPriority))
+                SendPacketFinal(outgoingPacket);
+        }
+
+        public void SendUDPPacket(LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category)
+        {
+            bool highPriority = false;
+
+            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
+            {
+                category = (ThrottleOutPacketType)((int)category & 127);
+                highPriority = true;
+            }
+
+            OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
+
+            // If we were not provided a method for handling unacked, use the UDPServer default method
+            if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
+                outgoingPacket.UnackedMethod = delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); };
+
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false, highPriority))
                 SendPacketFinal(outgoingPacket);
         }
 
@@ -1018,7 +1038,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     data[10] = 255;
                     buf.DataLength = pos;
-                    SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
+                    SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown);
 
                     buf = GetNewUDPBuffer(udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(PacketAckHeader, 0, buf.Data, 0, 10);
@@ -1031,7 +1051,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[10] = (byte)count;
                 buf.DataLength = pos;
-                SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
+                SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown);
             }
         }
 
@@ -1057,7 +1077,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[11] = 0;
 
             buf.DataLength = 12;
-            SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
+            SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown);
 
             udpClient.m_lastStartpingTimeMS = Util.GetTimeStampMS();
         }
@@ -1078,7 +1098,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[7] = pingID;
 
             buf.DataLength = 8;
-            SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
+            SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
         public void HandleUnacked(LLClientView client)
