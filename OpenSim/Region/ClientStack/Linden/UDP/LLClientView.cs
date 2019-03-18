@@ -1074,44 +1074,154 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
+        static private readonly byte[] GenericMessageHeader = new byte[] {
+                Helpers.MSG_RELIABLE, //| Helpers.MSG_ZEROCODED, not doing spec zeroencode on this
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 1, 5 // ID 261 (low frequency bigendian)
+                };
+
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
         {
-            GenericMessagePacket gmp = new GenericMessagePacket();
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
-            gmp.AgentData.AgentID = AgentId;
-            gmp.AgentData.SessionID = m_sessionId;
-            gmp.AgentData.TransactionID = invoice;
+            //setup header
+            Buffer.BlockCopy(GenericMessageHeader, 0, data, 0, 10);
 
-            gmp.MethodData.Method = Util.StringToBytes256(method);
-            gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
-            int i = 0;
-            foreach (string val in message)
+            //agentdata block
+            m_agentId.ToBytes(data, 10); // 26
+            m_sessionId.ToBytes(data, 26); // 42  sessionID  zero?? TO check
+            UUID.Zero.ToBytes(data, 42); // 58
+
+            int pos = 58;
+
+            //method block
+            byte[] tmp = Util.StringToBytes256(method);
+            int len = tmp.Length;
+            data[pos++] = (byte)len;
+            if (len > 0)
+                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+            invoice.ToBytes(data, pos); pos += 16;
+
+            //ParamList block
+            if (message.Count == 0)
             {
-                gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
-                gmp.ParamList[i++].Parameter = Util.StringToBytes256(val);
+                data[pos++] = 0;
+                buf.DataLength = pos;
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                return;
             }
 
-            OutPacket(gmp, ThrottleOutPacketType.Task);
+            int countpos = pos;
+            ++pos;
+
+            int count = 0;
+            foreach (string val in message)
+            {
+                tmp = Util.StringToBytes256(val);
+                len = tmp.Length;
+
+                if (pos + len >= LLUDPServer.MAXPAYLOAD)
+                {
+                    data[countpos] = (byte)count;
+                    buf.DataLength = pos;
+                    //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
+
+                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
+                    pos = countpos + 1;
+                    data = buf.Data;
+                    count = 1;
+                }
+                else
+                    ++count;
+
+                data[pos++] = (byte)len;
+                if (len > 0)
+                    Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+            }
+            if (count > 0)
+            {
+                data[countpos] = (byte)count;
+                buf.DataLength = pos;
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+            }
         }
 
         public void SendGenericMessage(string method, UUID invoice, List<byte[]> message)
         {
-            GenericMessagePacket gmp = new GenericMessagePacket();
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
-            gmp.AgentData.AgentID = AgentId;
-            gmp.AgentData.SessionID = m_sessionId;
-            gmp.AgentData.TransactionID = invoice;
+            //setup header
+            Buffer.BlockCopy(GenericMessageHeader, 0, data, 0, 10);
 
-            gmp.MethodData.Method = Util.StringToBytes256(method);
-            gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
-            int i = 0;
-            foreach (byte[] val in message)
+            //agentdata block
+            m_agentId.ToBytes(data, 10); // 26
+            m_sessionId.ToBytes(data, 26); // 42  sessionID  zero?? TO check
+            UUID.Zero.ToBytes(data, 42); // 58
+
+            int pos = 58;
+
+            //method block
+            byte[] tmp = Util.StringToBytes256(method);
+            int len = tmp.Length;
+            data[pos++] = (byte)len;
+            if (len > 0)
+                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+            invoice.ToBytes(data, pos); pos += 16;
+
+            //ParamList block
+            if (message.Count == 0)
             {
-                gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
-                gmp.ParamList[i++].Parameter = val;
+                data[pos++] = 0;
+                buf.DataLength = pos;
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+                return;
             }
 
-            OutPacket(gmp, ThrottleOutPacketType.Task);
+            int countpos = pos;
+            ++pos;
+
+            int count = 0;
+            foreach (byte[] val in message)
+            {
+                len = val.Length;
+                if(len > 255)
+                    len = 255;
+
+                if (pos + len >= LLUDPServer.MAXPAYLOAD)
+                {
+                    data[countpos] = (byte)count;
+                    buf.DataLength = pos;
+                    //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
+
+                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
+                    pos = countpos + 1;
+                    data = buf.Data;
+                    count = 1;
+                }
+                else
+                    ++count;
+
+                data[pos++] = (byte)len;
+                if (len > 0)
+                    Buffer.BlockCopy(val, 0, data, pos, len); pos += len;
+            }
+            if (count > 0)
+            {
+                data[countpos] = (byte)count;
+                buf.DataLength = pos;
+                //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
+            }
         }
 
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
