@@ -1132,8 +1132,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
-                    pos = countpos + 1;
+                    buf = newbuf;
                     data = buf.Data;
+                    pos = countpos + 1;
                     count = 1;
                 }
                 else
@@ -1204,8 +1205,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                     Buffer.BlockCopy(data, 0, newbuf.Data, 0, countpos);
-                    pos = countpos + 1;
+                    buf = newbuf;
                     data = buf.Data;
+                    pos = countpos + 1;
                     count = 1;
                 }
                 else
