@@ -2724,34 +2724,89 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(scriptcontrol, ThrottleOutPacketType.Task);
         }
 
+        static private readonly byte[] ReplyTaskInventoryHeader = new byte[] {
+                Helpers.MSG_RELIABLE, //| Helpers.MSG_ZEROCODED, not doing spec zeroencode on this
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 1, 34 // ID 90 (low frequency bigendian)
+                };
+
         public void SendTaskInventory(UUID taskID, short serial, byte[] fileName)
         {
-            ReplyTaskInventoryPacket replytask = (ReplyTaskInventoryPacket)PacketPool.Instance.GetPacket(PacketType.ReplyTaskInventory);
-            replytask.InventoryData.TaskID = taskID;
-            replytask.InventoryData.Serial = serial;
-            replytask.InventoryData.Filename = fileName;
-//            OutPacket(replytask, ThrottleOutPacketType.Task);
-            OutPacket(replytask, ThrottleOutPacketType.Asset);
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header
+            Buffer.BlockCopy(ReplyTaskInventoryHeader, 0, data, 0, 10);
+
+            taskID.ToBytes(data, 10); // 26
+            Utils.Int16ToBytes(serial, data, 26); // 28
+            data[28] = (byte)fileName.Length;
+            if(data[28] > 0)
+                Buffer.BlockCopy(fileName, 0, data, 29, data[28]);
+
+            buf.DataLength = 29 + data[28];
+            //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false, true);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
+
+        static private readonly byte[] SendXferPacketHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                18 // ID (high frequency bigendian)
+                };
+
+        public void SendXferPacket(ulong xferID, uint packet, byte[] payload, bool isTaskInventory)
         {
-            ThrottleOutPacketType type = ThrottleOutPacketType.Asset;
-//            if (isTaskInventory)
-//                type = ThrottleOutPacketType.Task;
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
-            SendXferPacketPacket sendXfer = (SendXferPacketPacket)PacketPool.Instance.GetPacket(PacketType.SendXferPacket);
-            sendXfer.XferID.ID = xferID;
-            sendXfer.XferID.Packet = packet;
-            sendXfer.DataPacket.Data = data;
-            OutPacket(sendXfer, type);
+            //setup header
+            Buffer.BlockCopy(SendXferPacketHeader, 0, data, 0, 7);
+
+            Utils.UInt64ToBytesSafepos(xferID, data, 7); // 15
+            Utils.UIntToBytesSafepos(packet, data, 15); // 19
+            int len = payload.Length;
+            if (len > LLUDPServer.MAXPAYLOAD) // should never happen
+                len = LLUDPServer.MAXPAYLOAD;
+            if (len == 0)
+            {
+                data[19] = 0;
+                data[20] = 0;
+            }
+            else
+            {
+                data[19] = (byte)len;
+                data[20] = (byte)(len >> 8);
+                Buffer.BlockCopy(payload, 0, data, 21, len);
+            }
+
+            buf.DataLength = 21 + len;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, isTaskInventory ? ThrottleOutPacketType.Task : ThrottleOutPacketType.Asset);
         }
+
+        static private readonly byte[] AbortXferHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 157 // ID 157 (low frequency bigendian)
+                };
 
         public void SendAbortXferPacket(ulong xferID)
         {
-            AbortXferPacket xferItem = (AbortXferPacket)PacketPool.Instance.GetPacket(PacketType.AbortXfer);
-            xferItem.XferID.ID = xferID;
-            OutPacket(xferItem, ThrottleOutPacketType.Asset);
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header
+            Buffer.BlockCopy(AbortXferHeader, 0, data, 0, 10);
+
+            Utils.UInt64ToBytesSafepos(xferID, data, 10); // 18
+            Utils.IntToBytesSafepos(0, data, 18); // 22  reason TODO
+
+            buf.DataLength = 22;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Asset);
         }
 
         public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
