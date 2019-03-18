@@ -973,34 +973,105 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Send an instant message to this client
         /// </summary>
         //
+
+        static private readonly byte[] ImprovedInstantMessageHeader = new byte[] {
+                Helpers.MSG_RELIABLE, //| Helpers.MSG_ZEROCODED, not doing spec zeroencode on this
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 254 // ID 139 (low frequency bigendian)
+                };
+
         public void SendInstantMessage(GridInstantMessage im)
         {
-            if (((Scene)(m_scene)).Permissions.CanInstantMessage(new UUID(im.fromAgentID), new UUID(im.toAgentID)))
+            UUID fromAgentID = new UUID(im.fromAgentID);
+            UUID toAgentID = new UUID(im.toAgentID);
+
+            if (!m_scene.Permissions.CanInstantMessage(fromAgentID, toAgentID))
+                return;
+
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header
+            Buffer.BlockCopy(ImprovedInstantMessageHeader, 0, data, 0, 10);
+
+            //agentdata block
+            fromAgentID.ToBytes(data, 10); // 26
+            UUID.Zero.ToBytes(data, 26); // 42  sessionID  zero?? TO check
+
+            int pos = 42;
+
+            //MessageBlock
+            data[pos++] = (byte)((im.fromGroup) ? 1 : 0);
+            toAgentID.ToBytes(data, pos); pos += 16;
+            Utils.UIntToBytesSafepos(im.ParentEstateID, data, pos); pos += 4;
+            (new UUID(im.RegionID)).ToBytes(data, pos); pos += 16;
+            (im.Position).ToBytes(data, pos); pos += 12;
+            data[pos++] = im.offline;
+            data[pos++] = im.dialog;
+
+            // this is odd
+            if (im.imSessionID == UUID.Zero.Guid)
+                (fromAgentID ^ toAgentID).ToBytes(data, pos);
+            else
+                (new UUID(im.imSessionID)).ToBytes(data, pos);
+
+            pos += 16;
+
+            Utils.UIntToBytesSafepos(im.timestamp, data, pos); pos += 4;
+
+            byte[] tmp = Util.StringToBytes256(im.fromAgentName);
+            int len = tmp.Length;
+            data[pos++] = (byte)len;
+            if(len > 0)
+                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+
+            tmp = Util.StringToBytes1024(im.message);
+            len = tmp.Length;
+            if (len == 0)
             {
-                ImprovedInstantMessagePacket msg
-                    = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
-
-                msg.AgentData.AgentID = new UUID(im.fromAgentID);
-                msg.AgentData.SessionID = UUID.Zero;
-                msg.MessageBlock.FromAgentName = Util.StringToBytes256(im.fromAgentName);
-                msg.MessageBlock.Dialog = im.dialog;
-                msg.MessageBlock.FromGroup = im.fromGroup;
-                // this is odd
-                if (im.imSessionID == UUID.Zero.Guid)
-                    msg.MessageBlock.ID = new UUID(im.fromAgentID) ^ new UUID(im.toAgentID);
-                else
-                    msg.MessageBlock.ID = new UUID(im.imSessionID);
-                msg.MessageBlock.Offline = im.offline;
-                msg.MessageBlock.ParentEstateID = im.ParentEstateID;
-                msg.MessageBlock.Position = im.Position;
-                msg.MessageBlock.RegionID = new UUID(im.RegionID);
-                msg.MessageBlock.Timestamp = im.timestamp;
-                msg.MessageBlock.ToAgentID = new UUID(im.toAgentID);
-                msg.MessageBlock.Message = Util.StringToBytes1024(im.message);
-                msg.MessageBlock.BinaryBucket = im.binaryBucket;
-
-                OutPacket(msg, ThrottleOutPacketType.Task);
+                data[pos++] = 0;
+                data[pos++] = 0;
             }
+            else
+            {
+                data[pos++] = (byte)len;
+                data[pos++] = (byte)(len >> 8);
+                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+            }
+
+            tmp = im.binaryBucket;
+            if(tmp == null)
+            {
+                data[pos++] = 0;
+                data[pos++] = 0;
+            }
+            else
+            {
+                len = tmp.Length;
+                if (len == 0)
+                {
+                    data[pos++] = 0;
+                    data[pos++] = 0;
+                }
+                else
+                {
+                    data[pos++] = (byte)len;
+                    data[pos++] = (byte)(len >> 8);
+                    Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+                }
+            }
+
+            //EstateBlock does not seem in use TODO
+            //Utils.UIntToBytesSafepos(m_scene.RegionInfo.EstateSettings.EstateID, data, pos); pos += 4;
+            data[pos++] = 0;
+            data[pos++] = 0;
+            data[pos++] = 0;
+            data[pos++] = 0;
+
+            buf.DataLength = pos;
+            //m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, true);
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
         public void SendGenericMessage(string method, UUID invoice, List<string> message)
