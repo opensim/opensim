@@ -332,7 +332,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly UUID m_secureSessionId;
         protected readonly UUID m_agentId;
         private readonly uint m_circuitCode;
-        private readonly byte[] m_channelVersion = Utils.EmptyBytes;
+        private readonly byte[] m_regionChannelVersion = Utils.EmptyBytes;
         private readonly IGroupsModule m_GroupsModule;
 
 //        private int m_cachedTextureSerial;
@@ -531,7 +531,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
             ImageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
-            m_channelVersion = Util.StringToBytes256(scene.GetSimulatorVersion());
+            m_regionChannelVersion = Util.StringToBytes1024(scene.GetSimulatorVersion());
             m_agentId = agentId;
             m_sessionId = sessionId;
             m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
@@ -865,32 +865,55 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(handshake, ThrottleOutPacketType.Unknown);
         }
 
+        static private readonly byte[] AgentMovementCompleteHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 250 // ID 250 (low frequency bigendian)
+                };
 
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
+            // reset agent update args
             m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
             m_thisAgentUpdateArgs.lastUpdateTS = 0;
             m_thisAgentUpdateArgs.ControlFlags = 0;
 
-            AgentMovementCompletePacket mov = (AgentMovementCompletePacket)PacketPool.Instance.GetPacket(PacketType.AgentMovementComplete);
-            mov.SimData.ChannelVersion = m_channelVersion;
-            mov.AgentData.SessionID = m_sessionId;
-            mov.AgentData.AgentID = AgentId;
-            mov.Data.RegionHandle = regInfo.RegionHandle;
-            mov.Data.Timestamp = (uint)Util.UnixTimeSinceEpoch();
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
+            //setup header
+            Buffer.BlockCopy(AgentMovementCompleteHeader, 0, data, 0, 10);
+
+            //AgentData block
+            AgentId.ToBytes(data, 10); // 26
+            SessionId.ToBytes(data, 26); // 42
+
+            //Data block
             if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
+                m_startpos.ToBytes(data, 42); //54
+            else
+                pos.ToBytes(data, 42); //54
+            look.ToBytes(data, 54); // 66
+            Utils.UInt64ToBytesSafepos(regInfo.RegionHandle, data, 66); // 74
+            Utils.UIntToBytesSafepos((uint)Util.UnixTimeSinceEpoch(), data, 74); //78
+
+            //SimData
+            int len = m_regionChannelVersion.Length;
+            if(len == 0)
             {
-                mov.Data.Position = m_startpos;
+                data[78] = 0;
+                data[79] = 0;
             }
             else
             {
-                mov.Data.Position = pos;
+                data[78] = (byte)len;
+                data[79] = (byte)(len >> 8);
+                Buffer.BlockCopy(m_regionChannelVersion, 0, data, 80, len);
             }
-            mov.Data.LookAt = look;
 
-            // Hack to get this out immediately and skip the throttles
-            OutPacket(mov, ThrottleOutPacketType.Unknown);
+            buf.DataLength = 80 + len;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown, null, false, false);
         }
 
         public void SendChatMessage(
@@ -4265,20 +4288,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendEntityUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-/*
-            if (entity.UUID == m_agentId && !updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
-            {
-                ImprovedTerseObjectUpdatePacket packet
-                    = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = Utils.FloatToUInt16(1, 0.0f, 1.0f);
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-                packet.ObjectData[0] = CreateImprovedTerseBlock(entity, false);
-                OutPacket(packet, ThrottleOutPacketType.Unknown, true);
-                return;
-            }
-*/
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart p = (SceneObjectPart)entity;
@@ -4297,7 +4306,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            //double priority = m_prioritizer.GetUpdatePriority(this, entity);
             uint priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
