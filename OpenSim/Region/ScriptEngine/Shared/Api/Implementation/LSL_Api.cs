@@ -2403,6 +2403,62 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(m_sleepMsOnSetLinkTexture);
         }
 
+        protected void SetTextureParams(SceneObjectPart part, string texture, double scaleU, double ScaleV,
+                    double offsetU, double offsetV, double rotation, int face)
+        {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
+            UUID textureID = new UUID();
+
+            textureID = ScriptUtils.GetAssetIdFromItemName(m_host, texture, (int)AssetType.Texture);
+            if (textureID == UUID.Zero)
+            {
+                if (!UUID.TryParse(texture, out textureID))
+                    return;
+            }
+
+            Primitive.TextureEntry tex = part.Shape.Textures;
+            int nsides = GetNumberOfSides(part);
+
+            if (face >= 0 && face < nsides)
+            {
+                Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
+                texface.TextureID = textureID;
+                texface.RepeatU = (float)scaleU;
+                texface.RepeatV = (float)ScaleV;
+                texface.OffsetU = (float)offsetU;
+                texface.OffsetV = (float)offsetV;
+                texface.Rotation = (float)rotation;
+                tex.FaceTextures[face] = texface;
+                part.UpdateTextureEntry(tex);
+                return;
+            }
+            else if (face == ScriptBaseClass.ALL_SIDES)
+            {
+                for (uint i = 0; i < nsides; i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        tex.FaceTextures[i].TextureID = textureID;
+                        tex.FaceTextures[i].RepeatU = (float)scaleU;
+                        tex.FaceTextures[i].RepeatV = (float)ScaleV;
+                        tex.FaceTextures[i].OffsetU = (float)offsetU;
+                        tex.FaceTextures[i].OffsetV = (float)offsetV;
+                        tex.FaceTextures[i].Rotation = (float)rotation;
+                    }
+                }
+                tex.DefaultTexture.TextureID = textureID;
+                tex.DefaultTexture.RepeatU = (float)scaleU;
+                tex.DefaultTexture.RepeatV = (float)ScaleV;
+                tex.DefaultTexture.OffsetU = (float)offsetU;
+                tex.DefaultTexture.OffsetV = (float)offsetV;
+                tex.DefaultTexture.Rotation = (float)rotation;
+                part.UpdateTextureEntry(tex);
+                return;
+            }
+        }
+
         protected void SetTexture(SceneObjectPart part, string texture, int face)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
@@ -9728,11 +9784,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            SetTexture(part, tex, face);
-                            ScaleTexture(part, repeats.x, repeats.y, face);
-                            OffsetTexture(part, offsets.x, offsets.y, face);
-                            RotateTexture(part, rotation, face);
-
+                            SetTextureParams(part, tex, repeats.x, repeats.y, offsets.x, offsets.y, rotation, face);
                             break;
 
                         case ScriptBaseClass.PRIM_COLOR:

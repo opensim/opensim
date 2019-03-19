@@ -2338,10 +2338,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 ParentGroup.Scene.RemovePhysicalPrim(1);
 
-                                Velocity = new Vector3(0, 0, 0);
-                                Acceleration = new Vector3(0, 0, 0);
-                                AngularVelocity = new Vector3(0, 0, 0);
-                                APIDActive = false;
+                                Stop();
 
                                 if (pa.Phantom && !VolumeDetectActive)
                                 {
@@ -4730,14 +4727,13 @@ namespace OpenSim.Region.Framework.Scenes
             if ((SetPhantom && !UsePhysics && !SetVD) ||  ParentGroup.IsAttachment || PhysicsShapeType == (byte)PhysShapeType.none
                 || (Shape.PathCurve == (byte)Extrusion.Flexible))
             {
+                Stop();
                 if (pa != null)
                 {
                     if(wasUsingPhysics)
                         ParentGroup.Scene.RemovePhysicalPrim(1);
                     RemoveFromPhysics();
                 }
-
-                Stop();
             }
 
             else
