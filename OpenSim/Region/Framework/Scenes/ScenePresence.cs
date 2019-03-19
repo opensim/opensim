@@ -4040,7 +4040,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ILandChannel landch = m_scene.LandChannel;
                     if (landch != null)
                     {
-                        landch.sendClientInitialLandInfo(ControllingClient);
+                        landch.sendClientInitialLandInfo(ControllingClient, true);
                     }
                 }
 

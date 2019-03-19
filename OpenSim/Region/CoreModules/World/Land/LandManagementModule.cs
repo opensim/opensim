@@ -491,7 +491,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             return;
         }
 
-        public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay = true)
+        public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay)
         {
             ScenePresence avatar;
 
