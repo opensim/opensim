@@ -1038,8 +1038,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_text.Length > 256) // yes > 254
-                    return m_text.Substring(0, 256);
+                if (m_text.Length > 254)
+                    return m_text.Substring(0, 254);
                 return m_text;
             }
             set { m_text = value; }
@@ -4004,9 +4004,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="text"></param>
         public void SetText(string text)
         {
-            Text = text;
+            string oldtext = m_text;
+            m_text = text;
 
-            if (ParentGroup != null)
+            if (ParentGroup != null && oldtext != text)
             {
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
@@ -4021,11 +4022,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="alpha"></param>
         public void SetText(string text, Vector3 color, double alpha)
         {
+            Color oldcolor = Color;
+            string oldtext = m_text;
             Color = Color.FromArgb((int) (alpha*0xff),
                                    (int) (color.X*0xff),
                                    (int) (color.Y*0xff),
                                    (int) (color.Z*0xff));
-            SetText(text);
+            m_text = text;
+            if(ParentGroup != null && (oldcolor != Color || oldtext != m_text))
+            {
+                ParentGroup.HasGroupChanged = true;
+                ScheduleFullUpdate();
+            }
         }
 
         public void StoreUndoState(ObjectChangeType change)
