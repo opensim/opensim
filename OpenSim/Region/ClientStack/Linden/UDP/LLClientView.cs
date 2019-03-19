@@ -5414,6 +5414,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendSimStats(SimStats stats)
         {
+            stats.StatsBlock[15].StatValue /= 1024; // UnAckedBytes are in KB
             SimStatsPacket pack = new SimStatsPacket();
             pack.Region = new SimStatsPacket.RegionBlock();
             pack.Region.RegionX = stats.RegionX;
