@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 PhysicsActor actor = PhysActor;
-                if (actor != null)
+                if (actor != null && actor.IsPhysical)
                 {
                     m_acceleration = actor.Acceleration;
                 }
