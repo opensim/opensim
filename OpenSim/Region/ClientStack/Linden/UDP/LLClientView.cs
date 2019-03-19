@@ -5412,21 +5412,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(PacketPool.Instance.GetPacket(PacketType.DisableSimulator), ThrottleOutPacketType.Unknown);
         }
 
+        static private readonly byte[] SimStatsHeader = new byte[] {
+                0,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 140 // ID 140 (low frequency bigendian)
+                };
+
         public void SendSimStats(SimStats stats)
         {
-            stats.StatsBlock[15].StatValue /= 1024; // UnAckedBytes are in KB
-            SimStatsPacket pack = new SimStatsPacket();
-            pack.Region = new SimStatsPacket.RegionBlock();
-            pack.Region.RegionX = stats.RegionX;
-            pack.Region.RegionY = stats.RegionY;
-            pack.Region.RegionFlags = stats.RegionFlags;
-            pack.Region.ObjectCapacity = stats.ObjectCapacity;
-            //pack.Region = //stats.RegionBlock;
-            pack.Stat = stats.StatsBlock;
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
 
-            pack.Header.Reliable = false;
-            pack.RegionInfo = new SimStatsPacket.RegionInfoBlock[0];
-            OutPacket(pack, ThrottleOutPacketType.Task);
+            //setup header
+            Buffer.BlockCopy(SimStatsHeader, 0, data, 0, 10);
+
+            // Region Block
+            Utils.UIntToBytesSafepos(stats.RegionX, data, 10);
+            Utils.UIntToBytesSafepos(stats.RegionY, data, 14);
+            Utils.UIntToBytesSafepos(stats.RegionFlags, data, 18);
+            Utils.UIntToBytesSafepos(stats.ObjectCapacity, data, 22); // 26
+
+            // stats
+            data[26] = (byte)stats.StatsBlock.Length;
+            int pos = 27;
+
+            for(int i = 0; i< stats.StatsBlock.Length; ++i)
+            {
+                Utils.UIntToBytesSafepos(stats.StatsBlock[i].StatID, data, pos); pos += 4;
+                Utils.FloatToBytesSafepos(stats.StatsBlock[i].StatValue, data, pos); pos += 4;
+            }
+
+            //no PID
+            Utils.IntToBytesSafepos(0, data, pos); pos += 4;
+
+            // no regioninfo (extended flags)
+            data[pos++] = 0; // = 1;
+            //Utils.UInt64ToBytesSafepos(RegionFlagsExtended, data, pos); pos += 8;
+
+            buf.DataLength = pos;
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
         private class ObjectPropertyUpdate : EntityUpdate
