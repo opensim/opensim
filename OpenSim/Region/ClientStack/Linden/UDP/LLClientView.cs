@@ -4641,6 +4641,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 15 // ID (high frequency)
                 };
 
+        static private readonly byte[] ObjectAnimationHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                30 // ID (high frequency)
+                };
+
         private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
             if (!IsActive)
@@ -5084,6 +5091,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (sop.Animations == null)
                         continue;
+
                     SceneObjectGroup sog = sop.ParentGroup;
                     if (sog == null || sog.IsDeleted)
                         continue;
@@ -5096,18 +5104,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int[] seqs = null;
                     int count = sop.GetAnimations(out ids, out seqs);
 
-                    ObjectAnimationPacket ani = (ObjectAnimationPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAnimation);
-                    ani.Sender = new ObjectAnimationPacket.SenderBlock();
-                    ani.Sender.ID = sop.UUID;
-                    ani.AnimationList = new ObjectAnimationPacket.AnimationListBlock[count];
+                    UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                    byte[] data = buf.Data;
 
-                    for(int i = 0; i< count; i++)
+                    //setup header
+                    Buffer.BlockCopy(ObjectAnimationHeader, 0, data , 0, 7);
+
+                    // sender block
+                    sop.UUID.ToBytes(data, 7); // 23
+
+                    //animations block
+                    if (count > 255)
+                        count = 255;
+
+                    data[23] = (byte)count;
+
+                    int pos = 24;
+                    for(int i = 0; i < count; i++)
                     {
-                        ani.AnimationList[i] = new ObjectAnimationPacket.AnimationListBlock();
-                        ani.AnimationList[i].AnimID = ids[i];
-                        ani.AnimationList[i].AnimSequenceID = seqs[i];
+                        ids[i].ToBytes(data, pos); pos += 16;
+                        Utils.IntToBytesSafepos(seqs[i], data, pos); pos += 4;
                     }
-                    OutPacket(ani, ThrottleOutPacketType.Task, true);
+
+                    buf.DataLength = pos;
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
                 }
             }
 
