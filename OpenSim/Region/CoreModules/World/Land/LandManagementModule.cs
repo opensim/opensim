@@ -998,6 +998,39 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public ILandObject GetLandObjectinLandUnits(int x, int y)
+        {
+            if (m_landList.Count == 0 || m_landIDList == null)
+                return null;
+
+            lock (m_landIDList)
+            {
+                try
+                {
+                    return m_landList[m_landIDList[x, y]];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return null;
+                }
+            }
+        }
+
+        public int GetLandObjectIDinLandUnits(int x, int y)
+        {
+            lock (m_landIDList)
+            {
+                try
+                {
+                    return m_landIDList[x, y];
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return -1;
+                }
+            }
+        }
+
         // Create a 'parcel is here' bitmap for the parcel identified by the passed landID
         private bool[,] CreateBitmapForID(int landID)
         {
@@ -1282,18 +1315,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         #region Parcel Updating
 
         /// <summary>
-        /// Send the parcel overlay blocks to the client. We send the overlay packets
-        /// around a location and limited by the 'parcelLayerViewDistance'. This number
-        /// is usually 128 and the code is arranged so it sends all the parcel overlay
-        /// information for a whole region if the region is legacy sized (256x256). If
-        /// the region is larger, only the parcel layer information is sent around
-        /// the point specified. This reduces the problem of parcel layer information
-        /// blocks increasing exponentially as region size increases.
+        /// Send the parcel overlay blocks to the client. 
         /// </summary>
         /// <param name="remote_client">The object representing the client</param>
-        /// <param name="xPlace">X position in the region to send surrounding parcel layer info</param>
-        /// <param name="yPlace">y position in the region to send surrounding parcel layer info</param>
-        /// <param name="layerViewDistance">Distance from x,y position to send parcel layer info</param>
         public void SendParcelOverlay(IClientAPI remote_client)
         {
             if (remote_client.SceneAgent.PresenceType == PresenceType.Npc)
@@ -1301,99 +1325,133 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             const int LAND_BLOCKS_PER_PACKET = 1024;
 
+            int curID;
+            int southID;
+
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];
             int byteArrayCount = 0;
             int sequenceID = 0;
 
+            int sx = (int)m_scene.RegionInfo.RegionSizeX / LandUnit;
+            byte curByte;
+            byte tmpByte;
+
             // Layer data is in LandUnit (4m) chunks
-            for (int y = 0; y < m_scene.RegionInfo.RegionSizeY; y += LandUnit)
+            for (int y = 0; y < m_scene.RegionInfo.RegionSizeY / LandUnit; ++y)
             {
-                for (int x = 0; x < m_scene.RegionInfo.RegionSizeX; x += LandUnit)
+                for (int x = 0; x < sx;)
                 {
-                    byte tempByte = 0; //This represents the byte for the current 4x4
+                    curID = GetLandObjectIDinLandUnits(x,y);
+                    if(curID < 0)
+                        continue;
 
-                    ILandObject currentParcelBlock = GetLandObject(x, y);
+                    ILandObject currentParcel = GetLandObject(curID);
+                    if (currentParcel == null)
+                        continue;
 
-                    if (currentParcelBlock != null)
+                    // types
+                    if (currentParcel.LandData.OwnerID == remote_client.AgentId)
                     {
-                        // types
-                        if (currentParcelBlock.LandData.OwnerID == remote_client.AgentId)
-                        {
-                            //Owner Flag
-                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
-                        }
-                        else if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
-                        {
-                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_GROUP;
-                        }
-                        else if (currentParcelBlock.LandData.SalePrice > 0 &&
-                                 (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
-                                  currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
-                        {
-                            //Sale type
-                            tempByte = (byte)LandChannel.LAND_TYPE_IS_FOR_SALE;
-                        }
-                        else if (currentParcelBlock.LandData.OwnerID == UUID.Zero)
-                        {
-                            //Public type
-                            tempByte = (byte)LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
-                        }
-                        // LAND_TYPE_IS_BEING_AUCTIONED still unsuported
-                        else
-                        {
-                            //Other Flag
-                            tempByte = (byte)LandChannel.LAND_TYPE_OWNED_BY_OTHER;
-                        }
+                        //Owner Flag
+                        curByte = LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
+                    }
+                    else if (currentParcel.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcel.LandData.GroupID))
+                    {
+                        curByte = LandChannel.LAND_TYPE_OWNED_BY_GROUP;
+                    }
+                    else if (currentParcel.LandData.SalePrice > 0 &&
+                                (currentParcel.LandData.AuthBuyerID == UUID.Zero ||
+                                currentParcel.LandData.AuthBuyerID == remote_client.AgentId))
+                    {
+                        //Sale type
+                        curByte = LandChannel.LAND_TYPE_IS_FOR_SALE;
+                    }
+                    else if (currentParcel.LandData.OwnerID == UUID.Zero)
+                    {
+                        //Public type
+                        curByte = LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
+                    }
+                    // LAND_TYPE_IS_BEING_AUCTIONED still unsuported
+                    else
+                    {
+                        //Other 
+                        curByte = LandChannel.LAND_TYPE_OWNED_BY_OTHER;
+                    }
 
-                        // now flags
-                        // border control
+                    // now flags
+                    // local sound
+                    if ((currentParcel.LandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
+                        curByte |= (byte)LandChannel.LAND_FLAG_LOCALSOUND;
 
-                        ILandObject westParcel = null;
-                        ILandObject southParcel = null;
-                        if (x > 0)
+                    // hide avatars
+                    if (!currentParcel.LandData.SeeAVs)
+                        curByte |= (byte)LandChannel.LAND_FLAG_HIDEAVATARS;
+
+                    // border flags for current
+                    if (y == 0)
+                    {
+                        curByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
+                        tmpByte = curByte;
+                    }
+                    else
+                    {
+                        tmpByte = curByte;
+                        southID = GetLandObjectIDinLandUnits(x, (y - 1));
+                        if (southID > 0 && southID != curID)
+                            tmpByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
+                    }
+
+                    tmpByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
+                    byteArray[byteArrayCount] = tmpByte;
+                    byteArrayCount++;
+
+                    if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                    {
+                        remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+                        byteArrayCount = 0;
+                        sequenceID++;
+                        byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                    }
+                    // keep adding while on same parcel, checking south border
+                    if (y == 0)
+                    {
+                        // all have south border and that is already on curByte
+                        while (++x < sx && GetLandObjectIDinLandUnits(x, y) == curID)
                         {
-                            westParcel = GetLandObject((x - 1), y);
+                            byteArray[byteArrayCount] = curByte;
+                            byteArrayCount++;
+                            if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                            {
+                                remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+                                byteArrayCount = 0;
+                                sequenceID++;
+                                byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                            }
                         }
-                        if (y > 0)
+                    }
+                    else
+                    {
+                        while (++x < sx && GetLandObjectIDinLandUnits(x, y) == curID)
                         {
-                            southParcel = GetLandObject(x, (y - 1));
-                        }
+                            // need to check south one by one
+                            southID = GetLandObjectIDinLandUnits(x, (y - 1));
+                            if (southID > 0 && southID != curID)
+                            {
+                                tmpByte = curByte;
+                                tmpByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
+                                byteArray[byteArrayCount] = tmpByte;
+                            }
+                            else
+                                byteArray[byteArrayCount] = curByte;
 
-                        if (x == 0)
-                        {
-                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
-                        }
-                        else if (westParcel != null && westParcel != currentParcelBlock)
-                        {
-                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_WEST;
-                        }
-
-                        if (y == 0)
-                        {
-                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
-                        }
-                        else if (southParcel != null && southParcel != currentParcelBlock)
-                        {
-                            tempByte |= (byte)LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
-                        }
-
-                        // local sound
-                        if ((currentParcelBlock.LandData.Flags & (uint)ParcelFlags.SoundLocal) != 0)
-                            tempByte |= (byte)LandChannel.LAND_FLAG_LOCALSOUND;
-
-                        // hide avatars
-                        if (!currentParcelBlock.LandData.SeeAVs)
-                            tempByte |= (byte)LandChannel.LAND_FLAG_HIDEAVATARS;
-
-
-                        byteArray[byteArrayCount] = tempByte;
-                        byteArrayCount++;
-                        if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
-                        {
-                            remote_client.SendLandParcelOverlay(byteArray, sequenceID);
-                            byteArrayCount = 0;
-                            sequenceID++;
-                            byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                            byteArrayCount++;
+                            if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                            {
+                                remote_client.SendLandParcelOverlay(byteArray, sequenceID);
+                                byteArrayCount = 0;
+                                sequenceID++;
+                                byteArray = new byte[LAND_BLOCKS_PER_PACKET];
+                            }
                         }
                     }
                 }
