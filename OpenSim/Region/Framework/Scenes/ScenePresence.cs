@@ -2180,6 +2180,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
                 //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
+                // recheck to reduce timing issues
+                ControllingClient.CheckViewerCaps();
+
                 bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
 
                 int delayctnr = Util.EnvironmentTickCount();
@@ -4039,6 +4042,9 @@ namespace OpenSim.Region.Framework.Scenes
                         landch.sendClientInitialLandInfo(ControllingClient);
                     }
                 }
+
+                // recheck to reduce timing issues
+                ControllingClient.CheckViewerCaps();
 
                 SendOtherAgentsAvatarFullToMe();
 

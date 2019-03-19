@@ -1710,8 +1710,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_pendingCache.Remove(endPoint);
                     }
 
-                    client.CheckViewerCaps();
-
                     m_log.DebugFormat("[LLUDPSERVER]: Client created, processing pending queue, {0} entries", queue.Count);
                     // Reinject queued packets
                     while (queue.Count > 0)
@@ -1726,6 +1724,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
                     // circuit code to the existing child agent.  This is not particularly obvious.
                     SendAckImmediate(endPoint, uccp.Header.Sequence);
+
+                    client.CheckViewerCaps();
 
                     // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
