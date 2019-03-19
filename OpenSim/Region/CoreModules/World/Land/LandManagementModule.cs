@@ -1397,7 +1397,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         tmpByte = curByte;
                         southID = GetLandObjectIDinLandUnits(x, (y - 1));
-                        if (southID > 0 && southID != curID)
+                        if (southID >= 0 && southID != curID)
                             tmpByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
                     }
 
@@ -1435,7 +1435,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             // need to check south one by one
                             southID = GetLandObjectIDinLandUnits(x, (y - 1));
-                            if (southID > 0 && southID != curID)
+                            if (southID >= 0 && southID != curID)
                             {
                                 tmpByte = curByte;
                                 tmpByte |= LandChannel.LAND_FLAG_PROPERTY_BORDER_SOUTH;
