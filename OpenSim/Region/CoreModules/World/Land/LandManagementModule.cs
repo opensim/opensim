@@ -491,7 +491,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             return;
         }
 
-        public void sendClientInitialLandInfo(IClientAPI remoteClient)
+        public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay = true)
         {
             ScenePresence avatar;
 
@@ -507,7 +507,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 avatar.currentParcelUUID = over.LandData.GlobalID;
                 over.SendLandUpdateToClient(avatar.ControllingClient);
             }
-            SendParcelOverlay(remoteClient);
+            if(overlay)
+                SendParcelOverlay(remoteClient);
         }
 
         public void SendLandUpdate(ScenePresence avatar, ILandObject over)

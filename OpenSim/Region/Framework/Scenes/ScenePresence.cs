@@ -2244,11 +2244,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // start sending terrain patchs
                     if (!gotCrossUpdate)
                         Scene.SendLayerData(ControllingClient);
+
+                    // send initial land overlay and parcel
+                    ILandChannel landch = m_scene.LandChannel;
+                    if (landch != null)
+                        landch.sendClientInitialLandInfo(client, !gotCrossUpdate);
                 }
-                // send initial land overlay and parcel
-                ILandChannel landch = m_scene.LandChannel;
-                if (landch != null)
-                    landch.sendClientInitialLandInfo(client);
 
                 if (!IsChildAgent)
                 {
