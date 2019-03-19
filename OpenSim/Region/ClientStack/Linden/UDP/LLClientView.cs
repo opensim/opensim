@@ -5457,7 +5457,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[26] = (byte)stats.StatsBlock.Length;
             int pos = 27;
 
-            for(int i = 0; i< stats.StatsBlock.Length; ++i)
+            stats.StatsBlock[15].StatValue /= 1024; // unack is in KB
+            for (int i = 0; i< stats.StatsBlock.Length; ++i)
             {
                 Utils.UIntToBytesSafepos(stats.StatsBlock[i].StatID, data, pos); pos += 4;
                 Utils.FloatToBytesSafepos(stats.StatsBlock[i].StatValue, data, pos); pos += 4;
