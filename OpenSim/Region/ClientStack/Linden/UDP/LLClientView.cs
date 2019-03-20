@@ -817,52 +817,173 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Scene/Avatar to Client
 
-        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        // temporary here ( from estatemanagermodule)
+        private uint GetRegionFlags()
         {
-            RegionHandshakePacket handshake = (RegionHandshakePacket)PacketPool.Instance.GetPacket(PacketType.RegionHandshake);
-            handshake.RegionInfo = new RegionHandshakePacket.RegionInfoBlock();
-            handshake.RegionInfo.BillableFactor = args.billableFactor;
-            handshake.RegionInfo.IsEstateManager = args.isEstateManager;
-            handshake.RegionInfo.TerrainHeightRange00 = args.terrainHeightRange0;
-            handshake.RegionInfo.TerrainHeightRange01 = args.terrainHeightRange1;
-            handshake.RegionInfo.TerrainHeightRange10 = args.terrainHeightRange2;
-            handshake.RegionInfo.TerrainHeightRange11 = args.terrainHeightRange3;
-            handshake.RegionInfo.TerrainStartHeight00 = args.terrainStartHeight0;
-            handshake.RegionInfo.TerrainStartHeight01 = args.terrainStartHeight1;
-            handshake.RegionInfo.TerrainStartHeight10 = args.terrainStartHeight2;
-            handshake.RegionInfo.TerrainStartHeight11 = args.terrainStartHeight3;
-            handshake.RegionInfo.SimAccess = args.simAccess;
-            handshake.RegionInfo.WaterHeight = args.waterHeight;
+            RegionFlags flags = RegionFlags.None;
 
-            handshake.RegionInfo.RegionFlags = args.regionFlags;
-            handshake.RegionInfo.SimName = Util.StringToBytes256(args.regionName);
-            handshake.RegionInfo.SimOwner = args.SimOwner;
-            handshake.RegionInfo.TerrainBase0 = args.terrainBase0;
-            handshake.RegionInfo.TerrainBase1 = args.terrainBase1;
-            handshake.RegionInfo.TerrainBase2 = args.terrainBase2;
-            handshake.RegionInfo.TerrainBase3 = args.terrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = args.terrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = args.terrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = args.terrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = args.terrainDetail3;
-            handshake.RegionInfo.CacheID = UUID.Random(); //I guess this is for the client to remember an old setting?
-            handshake.RegionInfo2 = new RegionHandshakePacket.RegionInfo2Block();
-            handshake.RegionInfo2.RegionID = regionInfo.RegionID;
+            if (Scene.RegionInfo.RegionSettings.AllowDamage)
+                flags |= RegionFlags.AllowDamage;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+                flags |= RegionFlags.ResetHomeOnTeleport;
+            if (Scene.RegionInfo.RegionSettings.FixedSun)
+                flags |= RegionFlags.SunFixed;
+            // allow access override (was taxfree)
+            if (Scene.RegionInfo.RegionSettings.BlockTerraform)
+                flags |= RegionFlags.BlockTerraform;
+            if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
+                flags |= RegionFlags.BlockLandResell;
+            if (Scene.RegionInfo.RegionSettings.Sandbox)
+                flags |= RegionFlags.Sandbox;
+            // nulllayer not used
+            if (Scene.RegionInfo.RegionSettings.Casino)
+                flags |= RegionFlags.SkipAgentAction; // redefined
+            if (Scene.RegionInfo.RegionSettings.GodBlockSearch)
+                flags |= RegionFlags.SkipUpdateInterestList; // redefined
+            if (Scene.RegionInfo.RegionSettings.DisableCollisions)
+                flags |= RegionFlags.SkipCollisions;
+            if (Scene.RegionInfo.RegionSettings.DisableScripts)
+                flags |= RegionFlags.SkipScripts;
+            if (Scene.RegionInfo.RegionSettings.DisablePhysics)
+                flags |= RegionFlags.SkipPhysics;
+            if (Scene.RegionInfo.EstateSettings.PublicAccess)
+                flags |= RegionFlags.ExternallyVisible; // ???? need revision
+            //MainlandVisible -> allow return enc object
+            //PublicAllowed -> allow return enc estate object
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
+                flags |= RegionFlags.BlockDwell;
+            if (Scene.RegionInfo.RegionSettings.BlockFly)
+                flags |= RegionFlags.NoFly;
+            if (Scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                flags |= RegionFlags.AllowDirectTeleport;
+            if (Scene.RegionInfo.EstateSettings.EstateSkipScripts)
+                flags |= RegionFlags.EstateSkipScripts;
+            if (Scene.RegionInfo.RegionSettings.RestrictPushing)
+                flags |= RegionFlags.RestrictPushObject;
+            if (Scene.RegionInfo.EstateSettings.DenyAnonymous)
+                flags |= RegionFlags.DenyAnonymous;
+            //DenyIdentified  unused
+            //DenyTransacted  unused
+            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                flags |= RegionFlags.AllowParcelChanges;
+            //AbuseEmailToEstateOwner -> block flyover
+            if (Scene.RegionInfo.EstateSettings.AllowVoice)
+                flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
+                flags |= RegionFlags.BlockParcelSearch;
+            if (Scene.RegionInfo.EstateSettings.DenyMinors)
+                flags |= RegionFlags.DenyAgeUnverified;
 
-            handshake.RegionInfo3 = new RegionHandshakePacket.RegionInfo3Block();
-            handshake.RegionInfo3.CPUClassID = 9;
-            handshake.RegionInfo3.CPURatio = 1;
+            return (uint)flags;
+        }
 
-            handshake.RegionInfo3.ColoName = Utils.EmptyBytes;
-            handshake.RegionInfo3.ProductName = Util.StringToBytes256(regionInfo.RegionType);
-            handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
+        // Region handshake may need a more detailed look
+        static private readonly byte[] RegionHandshakeHeader = new byte[] {
+                Helpers.MSG_RELIABLE | Helpers.MSG_ZEROCODED,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                //0xff, 0xff, 0, 148 // ID 148 (low frequency bigendian)
+                0xff, 0xff, 0, 1, 148 // ID 148 (low frequency bigendian) zero encoded
+                };
 
-            handshake.RegionInfo4 = new RegionHandshakePacket.RegionInfo4Block[1];
-            handshake.RegionInfo4[0] = new RegionHandshakePacket.RegionInfo4Block();
-            handshake.RegionInfo4[0].RegionFlagsExtended = args.regionFlags;
-            handshake.RegionInfo4[0].RegionProtocols = 0; // 1 here would indicate that SSB is supported
+        public void SendRegionHandshake(RegionInfo _regionInfo, RegionHandshakeArgs args)
+        {
+            RegionInfo regionInfo = m_scene.RegionInfo;
+            RegionSettings regionSettings = regionInfo.RegionSettings;
+            EstateSettings es = regionInfo.EstateSettings;
 
-            OutPacket(handshake, ThrottleOutPacketType.Unknown);
+            bool isEstateManager = m_scene.Permissions.IsEstateManager(AgentId); // go by oficial path
+            uint regionFlags = GetRegionFlags();
+
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            Buffer.BlockCopy(RegionHandshakeHeader, 0, buf.Data, 0, 11);
+
+            // inline zeroencode
+            LLUDPZeroEncoder zc = new LLUDPZeroEncoder(buf.Data);
+            zc.Position = 11;
+
+            //RegionInfo Block
+            //RegionFlags U32
+            zc.AddUInt(regionFlags);
+            //SimAccess U8
+            zc.AddByte(regionInfo.AccessLevel);
+            //SimName
+            zc.AddShortString(regionInfo.RegionName, 255);
+            //SimOwner
+            zc.AddUUID(es.EstateOwner);
+            //IsEstateManager
+            zc.AddByte((byte)(isEstateManager ? 1 : 0));
+            //WaterHeight
+            zc.AddFloat((float)regionSettings.WaterHeight); // why is this a double ??
+            //BillableFactor
+            zc.AddFloat(es.BillableFactor);
+            //CacheID
+            zc.AddUUID(regionInfo.RegionID); // needs review when we actuall support cache
+            //TerrainBase0
+            //TerrainBase1
+            //TerrainBase2
+            //TerrainBase3
+            // this seem not obsolete, sending zero uuids
+            // we should send the basic low resolution default ?
+            zc.AddZeros(16 * 4);
+            //TerrainDetail0
+            zc.AddUUID(regionSettings.TerrainTexture1);
+            //TerrainDetail1
+            zc.AddUUID(regionSettings.TerrainTexture2);
+            //TerrainDetail2
+            zc.AddUUID(regionSettings.TerrainTexture3);
+            //TerrainDetail3
+            zc.AddUUID(regionSettings.TerrainTexture4);
+            //TerrainStartHeight00
+            zc.AddFloat((float)regionSettings.Elevation1SW);
+            //TerrainStartHeight01
+            zc.AddFloat((float)regionSettings.Elevation1NW);
+            //TerrainStartHeight10
+            zc.AddFloat((float)regionSettings.Elevation1SE);
+            //TerrainStartHeight11
+            zc.AddFloat((float)regionSettings.Elevation1NE);
+            //TerrainHeightRange00
+            zc.AddFloat((float)regionSettings.Elevation2SW);
+            //TerrainHeightRange01
+            zc.AddFloat((float)regionSettings.Elevation2NW);
+            //TerrainHeightRange10
+            zc.AddFloat((float)regionSettings.Elevation2SE);
+            //TerrainHeightRange11
+            zc.AddFloat((float)regionSettings.Elevation2NE);
+
+            //RegionInfo2 block
+
+            //region ID
+            zc.AddUUID(regionInfo.RegionID);
+
+            //RegionInfo3 block
+
+            //CPUClassID
+            zc.AddInt(9);
+            //CPURatio
+            zc.AddInt(1);
+            // ColoName (string)
+            // ProductSKU (string)
+            // both empty strings
+            zc.AddZeros(2);
+            //ProductName
+            zc.AddShortString(regionInfo.RegionType, 255);
+
+            //RegionInfo4 block
+
+            //RegionFlagsExtended
+            zc.AddZeros(1); // we dont have this
+                //zc.AddByte(1); 
+                //zc.AddUInt64(regionFlags); // we have nothing other base flags
+                //RegionProtocols
+                //zc.AddUInt64(0); // bit 0 signals server side texture baking"
+
+            buf.DataLength = zc.Finish();
+            m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
         static private readonly byte[] AgentMovementCompleteHeader = new byte[] {
@@ -6416,73 +6537,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 pos += len;
             }
             // total size 63 or 47 + (texture size + 4)
-        }
-
-        protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(ScenePresence data)
-        {
-            Quaternion rotation = data.Rotation;
-             // tpvs can only see rotations around Z in some cases
-            if(!data.Flying && !data.IsSatOnObject)
-            {
-                rotation.X = 0f;
-                rotation.Y = 0f;
-            }
-            rotation.Normalize();
-
-//            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Sending full update to {0} with pos {1}, vel {2} in {3}", Name, data.OffsetPosition, data.Velocity, m_scene.Name);
-
-            byte[] objectData = new byte[76];
-
-            //Vector3 velocity = Vector3.Zero;
-            Vector3 acceleration = Vector3.Zero;
-            Vector3 angularvelocity = Vector3.Zero;
-
-            data.CollisionPlane.ToBytes(objectData, 0);
-            data.OffsetPosition.ToBytes(objectData, 16);
-            data.Velocity.ToBytes(objectData, 28);
-            acceleration.ToBytes(objectData, 40);
-            rotation.ToBytes(objectData, 52);
-            angularvelocity.ToBytes(objectData, 64);
-
-            ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
-
-            update.Data = Utils.EmptyBytes;
-            update.ExtraParams = Utils.EmptyBytes;
-            update.FullID = data.UUID;
-            update.ID = data.LocalId;
-            update.Material = (byte)Material.Flesh;
-            update.MediaURL = Utils.EmptyBytes;
-            update.NameValue = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
-                data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
-            update.ObjectData = objectData;
-
-            SceneObjectPart parentPart = data.ParentPart;
-            if (parentPart != null)
-                update.ParentID = parentPart.ParentGroup.LocalId;
-            else
-                update.ParentID = 0;
-
-            update.PathCurve = 16;
-            update.PathScaleX = 100;
-            update.PathScaleY = 100;
-            update.PCode = (byte)PCode.Avatar;
-            update.ProfileCurve = 1;
-            update.PSBlock = Utils.EmptyBytes;
-            update.Scale = data.Appearance.AvatarSize;
-//            update.Scale.Z -= 0.2f;
-
-            update.Text = Utils.EmptyBytes;
-            update.TextColor = new byte[4];
-
-            // Don't send texture anim for avatars - this has no meaning for them.
-            update.TextureAnim = Utils.EmptyBytes;
-
-            // Don't send texture entry for avatars here - this is accomplished via the AvatarAppearance packet
-            update.TextureEntry = Utils.EmptyBytes;
-            update.UpdateFlags = 0;
-
-            return update;
         }
 
         protected void CreateAvatarUpdateBlock(ScenePresence data, byte[] dest, ref int pos)
