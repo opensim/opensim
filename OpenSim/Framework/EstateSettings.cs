@@ -153,7 +153,7 @@ namespace OpenSim.Framework
         private bool m_DenyAnonymous = false;
         public bool DenyAnonymous
         {
-            get { return m_DenyAnonymous; }
+            get { return (DoDenyAnonymous && m_DenyAnonymous); }
             set { m_DenyAnonymous = value; }
         }
 
@@ -233,7 +233,7 @@ namespace OpenSim.Framework
         private bool m_DenyMinors = false;
         public bool DenyMinors
         {
-            get { return m_DenyMinors; }
+            get { return (DoDenyMinors && m_DenyMinors); }
             set { m_DenyMinors = value; }
         }
 
@@ -379,14 +379,14 @@ namespace OpenSim.Framework
 
                 if (!HasAccess(avatarID))
                 {
-                    if (DoDenyMinors && DenyMinors)
+                    if (DenyMinors)
                     {
                         if ((userFlags & 32) == 0)
                         {
                             return true;
                         }
                     }
-                    if (DoDenyAnonymous && DenyAnonymous)
+                    if (DenyAnonymous)
                     {
                         if ((userFlags & 4) == 0)
                         {

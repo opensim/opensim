@@ -932,7 +932,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone(),appearance.AvatarSize, new WearableCacheItem[0]);
         }
 
-        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        public void SendRegionHandshake()
         {
             m_log.Info("[IRCd ClientStack] Completing Handshake to Region");
 

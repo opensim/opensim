@@ -1725,11 +1725,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // circuit code to the existing child agent.  This is not particularly obvious.
                     SendAckImmediate(endPoint, uccp.Header.Sequence);
 
-                    client.CheckViewerCaps();
-
-                    // We only want to send initial data to new clients, not ones which are being converted from child to root.
                     if (client != null)
                     {
+                        client.SendRegionHandshake();
+
+                        client.CheckViewerCaps();
+
+                        // We only want to send initial data to new clients, not ones which are being converted from child to root.
                         bool tp = (aCircuit.teleportFlags > 0);
                         // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
                         if (!tp)

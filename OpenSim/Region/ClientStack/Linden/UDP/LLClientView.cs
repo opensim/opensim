@@ -890,7 +890,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 0xff, 0xff, 0, 1, 148 // ID 148 (low frequency bigendian) zero encoded
                 };
 
-        public void SendRegionHandshake(RegionInfo _regionInfo, RegionHandshakeArgs args)
+
+        public void SendRegionHandshake()
         {
             RegionInfo regionInfo = m_scene.RegionInfo;
             RegionSettings regionSettings = regionInfo.RegionSettings;
