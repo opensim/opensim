@@ -2478,7 +2478,10 @@ namespace OpenSim.Region.Framework.Scenes
 //            if (m_parentGroup == null || m_parentGroup.RootPart == this)
 //                f &= ~(PrimFlags.Touch | PrimFlags.Money);
 
-            return (uint)Flags | (uint)LocalFlags;
+            uint eff = (uint)Flags | (uint)LocalFlags;
+            if(m_inventory == null || m_inventory.Count == 0)
+                eff = (uint)PrimFlags.InventoryEmpty;
+            return eff;
         }
 
         // some of this lines need be moved to other place later
