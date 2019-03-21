@@ -2480,7 +2480,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             uint eff = (uint)Flags | (uint)LocalFlags;
             if(m_inventory == null || m_inventory.Count == 0)
-                eff = (uint)PrimFlags.InventoryEmpty;
+                eff |= (uint)PrimFlags.InventoryEmpty;
             return eff;
         }
 
