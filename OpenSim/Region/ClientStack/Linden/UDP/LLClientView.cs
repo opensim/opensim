@@ -4770,6 +4770,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 30 // ID (high frequency)
                 };
 
+        static private readonly byte[] CompressedObjectHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                13 // ID (high frequency)
+                };
+
         private void ProcessEntityUpdates(int maxUpdatesBytes)
         {
             if (!IsActive)
@@ -4779,9 +4786,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (mysp == null)
                 return;
 
-            // List<ObjectUpdateCompressedPacket.ObjectDataBlock> compressedUpdateBlocks = null;
             List<EntityUpdate> objectUpdates = null;
-            // List<EntityUpdate> compressedUpdates = null;
+            //List<EntityUpdate> compressedUpdates = null;
             List<EntityUpdate> terseUpdates = null;
             List<SceneObjectPart> ObjectAnimationUpdates = null;
 
@@ -4970,17 +4976,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if(updateFlags == PrimUpdateFlags.None)
                     continue;
 
-                /*
-                const PrimUpdateFlags canNotUseCompressedMask =
-                    PrimUpdateFlags.Velocity | PrimUpdateFlags.Acceleration |
-                    PrimUpdateFlags.CollisionPlane | PrimUpdateFlags.Joint;
-
-                if ((updateFlags & canNotUseCompressedMask) != 0)
-                {
-                    canUseCompressed = false;
-                }
-                */
-
                 const PrimUpdateFlags canNotUseImprovedMask = ~(
                         PrimUpdateFlags.AttachmentPoint |
                         PrimUpdateFlags.Position |
@@ -4995,19 +4990,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 #endregion UpdateFlags to packet type conversion
 
                 #region Block Construction
-
-                // TODO: Remove this once we can build compressed updates
-                /*
-                if (canUseCompressed)
-                {
-                    ObjectUpdateCompressedPacket.ObjectDataBlock ablock =
-                    CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags);
-                    compressedUpdateBlocks.Add(ablock);
-                    compressedUpdates.Value.Add(update);
-                    maxUpdatesBytes -= ablock.Length;
-                }
-                else if (canUseImproved)
-                */
 
                 if ((updateFlags & canNotUseImprovedMask) == 0)
                 {
@@ -5031,16 +5013,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     if (update.Entity is ScenePresence)
-                        maxUpdatesBytes -= 150; // crude estimation
-                    else
-                        maxUpdatesBytes -= 300;
-
-                    if(objectUpdates == null)
                     {
-                        objectUpdates = new List<EntityUpdate>();
-                        maxUpdatesBytes -= 18;
+                        maxUpdatesBytes -= 150; // crude estimation
+
+                        if (objectUpdates == null)
+                        {
+                            objectUpdates = new List<EntityUpdate>();
+                            maxUpdatesBytes -= 18;
+                        }
+                        objectUpdates.Add(update);
                     }
-                    objectUpdates.Add(update);
+                    else
+                    {
+                        SceneObjectPart part = (SceneObjectPart)update.Entity;
+                        SceneObjectGroup grp = part.ParentGroup;
+                        // minimal compress conditions, not enough ?
+                        //if (grp.UsesPhysics || part.Velocity.LengthSquared() > 1e-8f || part.Acceleration.LengthSquared() > 1e-6f)
+                        {
+                            maxUpdatesBytes -= 150; // crude estimation
+
+                            if (objectUpdates == null)
+                            {
+                                objectUpdates = new List<EntityUpdate>();
+                                maxUpdatesBytes -= 18;
+                            }
+                            objectUpdates.Add(update);
+                        }
+                        //compress still disabled
+                        /*
+                        else
+                        {
+                            maxUpdatesBytes -= 150; // crude estimation
+
+                            if (compressedUpdates == null)
+                            {
+                                compressedUpdates = new List<EntityUpdate>();
+                                maxUpdatesBytes -= 18;
+                            }
+                            compressedUpdates.Add(update);
+                        }
+                        */
+                    }
                 }
 
                 #endregion Block Construction
@@ -5067,7 +5080,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.Position = 7;
 
                 zc.AddUInt64(m_scene.RegionInfo.RegionHandle);
-                zc.AddUInt16(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f));
+                zc.AddUInt16(timeDilation);
 
                 zc.AddByte(1); // tmp block count
 
@@ -5134,19 +5147,67 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
                 }
             }
-
-/*
-            if (compressedUpdateBlocks != null)
+            /*
+            if(compressedUpdates != null)
             {
-                ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = compressedUpdateBlocks.ToArray();
-                compressedUpdateBlocks.Clear();
+                List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
-                OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates, oPacket); });
+                UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                byte[] data = buf.Data;
+
+                Buffer.BlockCopy(CompressedObjectHeader, 0, data , 0, 7);
+
+                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, data, 7); // 15
+                Utils.UInt16ToBytes(timeDilation, data, 15); // 17
+
+                int countposition = 17; // blocks count position
+                int pos = 18;
+
+                int lastpos = 0;
+
+                int count = 0;
+                foreach (EntityUpdate eu in compressedUpdates)
+                {
+                    lastpos = pos;
+                    CreateCompressedUpdateBlock((SceneObjectPart)eu.Entity, mysp, data, ref pos);
+                    if (pos < LLUDPServer.MAXPAYLOAD)
+                    {
+                        tau.Add(eu);
+                        ++count;
+                    }
+                    else
+                    {
+                        // we need more packets
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
+
+                        buf.Data[countposition] = (byte)count;
+
+                        buf.DataLength = lastpos;
+                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+
+                        buf = newbuf;
+                        data = buf.Data;
+
+                        pos = 18;
+                        // im lazy now, just do last again
+                        CreateCompressedUpdateBlock((SceneObjectPart)eu.Entity, mysp, data, ref pos);
+                        tau = new List<EntityUpdate>(30);
+                        tau.Add(eu);
+                        count = 1;
+                    }
+                }
+
+                if (count > 0)
+                {
+                    buf.Data[countposition] = (byte)count;
+                    buf.DataLength = pos;
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, false);
+                }
             }
-*/
+            */
             if (terseUpdates != null)
             {
                 int blocks = terseUpdates.Count;
@@ -5305,7 +5366,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //
         }
 */
-        public void ReprioritizeUpdates()
+                        public void ReprioritizeUpdates()
         {
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Reprioritize(UpdatePriorityHandler);
@@ -6986,10 +7047,262 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddZeros(lastzeros);
         }
 
-        protected ObjectUpdateCompressedPacket.ObjectDataBlock CreateCompressedUpdateBlock(SceneObjectPart part, PrimUpdateFlags updateFlags)
+        [Flags]
+        private enum CompressedFlags : uint
         {
-            // TODO: Implement this
-            return null;
+            None = 0x00,
+            /// <summary>Unknown</summary>
+            ScratchPad = 0x01,
+            /// <summary>Whether the object has a TreeSpecies</summary>
+            Tree = 0x02,
+            /// <summary>Whether the object has floating text ala llSetText</summary>
+            HasText = 0x04,
+            /// <summary>Whether the object has an active particle system</summary>
+            HasParticles = 0x08,
+            /// <summary>Whether the object has sound attached to it</summary>
+            HasSound = 0x10,
+            /// <summary>Whether the object is attached to a root object or not</summary>
+            HasParent = 0x20,
+            /// <summary>Whether the object has texture animation settings</summary>
+            TextureAnimation = 0x40,
+            /// <summary>Whether the object has an angular velocity</summary>
+            HasAngularVelocity = 0x80,
+            /// <summary>Whether the object has a name value pairs string</summary>
+            HasNameValues = 0x100,
+            /// <summary>Whether the object has a Media URL set</summary>
+            MediaURL = 0x200
+        }
+
+        ///**** temp hack
+        private static Random rnd = new Random();
+
+        protected void CreateCompressedUpdateBlock(SceneObjectPart part, ScenePresence sp, byte[] dest, ref int pos)
+        {
+            // prepare data
+            CompressedFlags cflags = CompressedFlags.None;
+
+            // prim/update flags
+
+            PrimFlags primflags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(part, sp);
+            // Don't send the CreateSelected flag to everyone
+            primflags &= ~PrimFlags.CreateSelected;
+            if (sp.UUID == part.OwnerID)
+            {
+                if (part.CreateSelected)
+                {
+                    // Only send this flag once, then unset it
+                    primflags |= PrimFlags.CreateSelected;
+                    part.CreateSelected = false;
+                }
+            }
+
+            // first is primFlags
+            Utils.UIntToBytesSafepos((uint)primflags, dest, pos); pos += 4;
+
+            // datablock len to fill later
+            int lenpos = pos;
+            pos += 2;
+
+            byte state = part.Shape.State;
+            PCode pcode = (PCode)part.Shape.PCode;
+
+            bool hastree = false;
+            if (pcode == PCode.Grass || pcode == PCode.Tree || pcode == PCode.NewTree)
+            {
+                cflags |= CompressedFlags.Tree;
+                hastree = true;
+            }
+
+            //NameValue and state
+            byte[] nv = null;
+            if (part.ParentGroup.IsAttachment)
+            {
+                if (part.IsRoot)
+                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
+
+                int st = (int)part.ParentGroup.AttachmentPoint;
+                state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
+            }
+
+            bool hastext = part.Text != null && part.Text.Length > 0;
+            bool hassound = part.Sound != UUID.Zero || part.SoundFlags != 0;
+            bool hasps = part.ParticleSystem != null && part.ParticleSystem.Length > 1;
+            bool hastexanim = part.TextureAnimation != null && part.TextureAnimation.Length > 0;
+            bool hasangvel = part.AngularVelocity.LengthSquared() > 1e-8f;
+            bool hasmediaurl = part.MediaUrl != null && part.MediaUrl.Length > 1;
+
+            if (hastext)
+                cflags |= CompressedFlags.HasText;
+            if (hasps)
+                cflags |= CompressedFlags.HasParticles;
+            if (hassound)
+                cflags |= CompressedFlags.HasSound;
+            if (part.ParentID != 0)
+                cflags |= CompressedFlags.HasParent;
+            if (hastexanim)
+                cflags |= CompressedFlags.TextureAnimation;
+            if (hasangvel)
+                cflags |= CompressedFlags.HasAngularVelocity;
+            if (hasmediaurl)
+                cflags |= CompressedFlags.MediaURL;
+            if (nv != null)
+                cflags |= CompressedFlags.HasNameValues;
+
+            // filter out mesh faces hack
+            ushort profileBegin = part.Shape.ProfileBegin;
+            ushort profileHollow = part.Shape.ProfileHollow;
+            byte profileCurve = part.Shape.ProfileCurve;
+            byte pathScaleY = part.Shape.PathScaleY;
+
+            if (part.Shape.SculptType == (byte)SculptType.Mesh) // filter out hack
+            {
+                profileCurve = (byte)(part.Shape.ProfileCurve & 0x0f);
+                // fix old values that confused viewers
+                if (profileBegin == 1)
+                    profileBegin = 9375;
+                if (profileHollow == 1)
+                    profileHollow = 27500;
+                // fix torus hole size Y that also confuse some viewers
+                if (profileCurve == (byte)ProfileShape.Circle && pathScaleY < 150)
+                    pathScaleY = 150;
+            }
+
+            part.UUID.ToBytes(dest, pos); pos += 16;
+            Utils.UIntToBytesSafepos(part.LocalId, dest, pos); pos += 4;
+            dest[pos++] = (byte)pcode;
+            dest[pos++] = state;
+
+            ///**** temp hack 
+            Utils.UIntToBytesSafepos((uint)rnd.Next(), dest, pos); pos += 4; //CRC needs fix or things will get crazy for now avoid caching
+            dest[pos++] = part.Material;
+            dest[pos++] = part.ClickAction;
+            part.Shape.Scale.ToBytes(dest, pos); pos += 12;
+            part.RelativePosition.ToBytes(dest, pos); pos += 12;
+            if(pcode == PCode.Grass)
+                Vector3.Zero.ToBytes(dest, pos);
+            else
+            {
+                Quaternion rotation = part.RotationOffset;
+                rotation.Normalize();
+                rotation.ToBytes(dest, pos);
+            }
+            pos += 12;
+
+            Utils.UIntToBytesSafepos((uint)cflags, dest, pos); pos += 4;
+
+            if (hasps || hassound)
+                part.OwnerID.ToBytes(dest, pos);
+            else
+                UUID.Zero.ToBytes(dest, pos);
+            pos += 16;
+
+            if (hasangvel)
+            {
+                part.AngularVelocity.ToBytes(dest, pos); pos += 12;
+            }
+            if (part.ParentID != 0)
+            {
+                Utils.UIntToBytesSafepos(part.ParentID, dest, pos); pos += 4;
+            }
+            if (hastree)
+                dest[pos++] = state;
+            if (hastext)
+            {
+                byte[] text = Util.StringToBytes256(part.Text); // must be null term
+                Buffer.BlockCopy(text, 0, dest, pos, text.Length); pos += text.Length;
+                byte[] tc = part.GetTextColor().GetBytes(false);
+                Buffer.BlockCopy(tc, 0, dest, pos, tc.Length); pos += tc.Length;
+            }
+            if (hasmediaurl)
+            {
+                byte[] mu = Util.StringToBytes256(part.MediaUrl); // must be null term
+                Buffer.BlockCopy(mu, 0, dest, pos, mu.Length); pos += mu.Length;
+            }
+            if (hasps)
+            {
+                byte[] ps = part.ParticleSystem;
+                Buffer.BlockCopy(ps, 0, dest, pos, ps.Length); pos += ps.Length;
+            }
+            byte[] ex = part.Shape.ExtraParams;
+            if (ex == null || ex.Length < 2)
+                dest[pos++] = 0;
+            else
+            {
+                Buffer.BlockCopy(ex, 0, dest, pos, ex.Length); pos += ex.Length;
+            }
+            if (hassound)
+            {
+                part.Sound.ToBytes(dest, pos); pos += 16;
+                Utils.FloatToBytesSafepos((float)part.SoundGain, dest, pos); pos += 4;
+                dest[pos++] = part.SoundFlags;
+                Utils.FloatToBytesSafepos((float)part.SoundRadius, dest, pos); pos += 4;
+            }
+            if (nv != null)
+            {
+                Buffer.BlockCopy(nv, 0, dest, pos, nv.Length); pos += nv.Length;
+            }
+
+            dest[pos++] = part.Shape.PathCurve;
+            Utils.UInt16ToBytes(part.Shape.PathBegin, dest, pos); pos += 2;
+            Utils.UInt16ToBytes(part.Shape.PathEnd, dest, pos); pos += 2;
+            dest[pos++] = part.Shape.PathScaleX;
+            dest[pos++] = pathScaleY;
+            dest[pos++] = part.Shape.PathShearX;
+            dest[pos++] = part.Shape.PathShearY;
+            dest[pos++] = (byte)part.Shape.PathTwist;
+            dest[pos++] = (byte)part.Shape.PathTwistBegin;
+            dest[pos++] = (byte)part.Shape.PathRadiusOffset;
+            dest[pos++] = (byte)part.Shape.PathTaperX;
+            dest[pos++] = (byte)part.Shape.PathTaperY;
+            dest[pos++] = part.Shape.PathRevolutions;
+            dest[pos++] = (byte)part.Shape.PathSkew;
+            dest[pos++] = profileCurve;
+            Utils.UInt16ToBytes(profileBegin, dest, pos); pos += 2;
+            Utils.UInt16ToBytes(part.Shape.ProfileEnd, dest, pos); pos += 2;
+            Utils.UInt16ToBytes(profileHollow, dest, pos); pos += 2;
+
+            byte[] te = part.Shape.TextureEntry;
+            if (te == null)
+            {
+                dest[pos++] = 0;
+                dest[pos++] = 0;
+                dest[pos++] = 0;
+                dest[pos++] = 0;
+            }
+            else
+            {
+                int len = te.Length & 0x7fff;
+                dest[pos++] = (byte)len;
+                dest[pos++] = (byte)(len >> 8);
+                dest[pos++] = 0;
+                dest[pos++] = 0;
+                Buffer.BlockCopy(te, 0, dest, pos, len);
+                pos += len;
+            }
+            if (hastexanim)
+            {
+                byte[] ta = part.TextureAnimation;
+                if (ta == null)
+                {
+                    dest[pos++] = 0;
+                    dest[pos++] = 0;
+                    dest[pos++] = 0;
+                    dest[pos++] = 0;
+                }
+                else
+                {
+                    int len = ta.Length & 0x7fff;
+                    dest[pos++] = (byte)len;
+                    dest[pos++] = (byte)(len >> 8);
+                    dest[pos++] = 0;
+                    dest[pos++] = 0;
+                    Buffer.BlockCopy(ta, 0, dest, pos, len);
+                    pos += len;
+                }
+            }
+            int totlen = pos - lenpos - 2;
+            dest[lenpos++] = (byte)totlen;
+            dest[lenpos++] = (byte)(totlen >> 8);
         }
 
         public void SendNameReply(UUID profileId, string firstname, string lastname)

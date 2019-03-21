@@ -466,8 +466,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps * 10e-3f);
             ThrottleRates = new ThrottleRates(configSource);
 
-            Random rnd = new Random(Util.EnvironmentTickCount());
-
 //            if (usePools)
 //                EnablePools();
         }
@@ -1359,11 +1357,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (packet.Type == PacketType.UseCircuitCode)
                 {
                     // And if there is a UseCircuitCode pending, also drop it
+
                     lock (m_pendingCache)
                     {
                         if (m_pendingCache.Contains(endPoint))
                         {
                             FreeUDPBuffer(buffer);
+                            SendAckImmediate(endPoint, packet.Header.Sequence); // i hear you shutup
                             return;
                         }
 
@@ -1372,6 +1372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     Util.FireAndForget(HandleUseCircuitCode, new object[] { endPoint, packet });
                     FreeUDPBuffer(buffer);
+                    SendAckImmediate(endPoint, packet.Header.Sequence);
                     return;
                 }
             }
@@ -1719,11 +1720,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     queue = null;
-
-                    // Send ack straight away to let the viewer know that the connection is active.
-                    // The client will be null if it already exists (e.g. if on a region crossing the client sends a use
-                    // circuit code to the existing child agent.  This is not particularly obvious.
-                    SendAckImmediate(endPoint, uccp.Header.Sequence);
 
                     if (client != null)
                     {
