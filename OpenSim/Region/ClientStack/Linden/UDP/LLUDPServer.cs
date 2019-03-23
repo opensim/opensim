@@ -369,6 +369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public int IncomingOrphanedPacketCount { get; protected set; }
 
+        public bool SupportViewerObjectsCache = false;
         /// <summary>
         /// Run queue empty processing within a single persistent thread.
         /// </summary>
@@ -433,6 +434,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_disableFacelights = config.GetBoolean("DisableFacelights", false);
                 m_ackTimeout = 1000 * config.GetInt("AckTimeout", 60);
                 m_pausedAckTimeout = 1000 * config.GetInt("PausedAckTimeout", 300);
+                SupportViewerObjectsCache = config.GetBoolean("SupportViewerObjectsCache", SupportViewerObjectsCache);
             }
             else
             {
@@ -1724,14 +1726,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (client != null)
                     {
                         client.SendRegionHandshake();
-
                         client.CheckViewerCaps();
-
-                        // We only want to send initial data to new clients, not ones which are being converted from child to root.
-                        bool tp = (aCircuit.teleportFlags > 0);
-                        // Let's delay this for TP agents, otherwise the viewer doesn't know where to get resources from
-                        if (!tp)
-                            client.SceneAgent.SendInitialDataToMe();
                     }
                 }
                 else

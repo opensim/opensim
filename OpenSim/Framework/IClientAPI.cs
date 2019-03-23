@@ -602,16 +602,26 @@ namespace OpenSim.Framework
         {
             // we are on the new one
             if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
-                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            {
+                if (m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            }
         }
 
         public virtual void Update(EntityUpdate oldupdate)
         {
             // we are on the new one
             PrimUpdateFlags updateFlags = oldupdate.Flags;
+            if (updateFlags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                updateFlags &= ~PrimUpdateFlags.UpdateProbe;
             if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
             {
-                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+                if(m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
             }
             else
                 m_flags |= updateFlags;
@@ -679,6 +689,7 @@ namespace OpenSim.Framework
 
         FullUpdatewithAnim = FullUpdate | Animations,
 
+        UpdateProbe   = 0x10000000, // 1 << 28
         SendInTransit = 0x20000000, // 1 << 29
         CancelKill =    0x40000000, // 1 << 30 
         Kill =          0x80000000 // 1 << 31
@@ -805,7 +816,7 @@ namespace OpenSim.Framework
         event TeleportCancel OnTeleportCancel;
         event DeRezObject OnDeRezObject;
         event RezRestoreToWorld OnRezRestoreToWorld;
-        event Action<IClientAPI> OnRegionHandShakeReply;
+        event Action<IClientAPI, uint> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
 

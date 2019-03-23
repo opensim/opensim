@@ -1212,7 +1212,9 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTargetHandle;
             ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
-//            ControllingClient.OnAgentFOV += HandleAgentFOV;
+            ControllingClient.OnRegionHandShakeReply += RegionHandShakeReply;
+
+            //            ControllingClient.OnAgentFOV += HandleAgentFOV;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1232,7 +1234,9 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo -= MoveToTargetHandle;
             ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
-//            ControllingClient.OnAgentFOV += HandleAgentFOV;
+            ControllingClient.OnRegionHandShakeReply -= RegionHandShakeReply;
+
+            // ControllingClient.OnAgentFOV += HandleAgentFOV;
         }
 
         private void SetDirectionVectors()
@@ -2126,56 +2130,54 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-
+                if(IsChildAgent)
+                {
+                    return; // how?
+                }
                 //m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if(!haveGroupInformation && !IsChildAgent && !IsNPC)
+                if (!IsNPC)
                 {
-                    IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
-                    if (gm != null)
-                        Grouptitle = gm.GetGroupTitle(m_uuid);
+                    if (!haveGroupInformation && !IsNPC)
+                    {
+                        IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
+                        if (gm != null)
+                            Grouptitle = gm.GetGroupTitle(m_uuid);
 
-                    //m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                        //m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                    InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
-                    if (cof == null)
-                        COF = UUID.Zero;
-                    else
-                        COF = cof.ID;
+                        InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
+                        if (cof == null)
+                            COF = UUID.Zero;
+                        else
+                            COF = cof.ID;
 
-                    m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
+                        m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
+                    }
+
+                    if (!string.IsNullOrEmpty(m_callbackURI))
+                    {
+                        // We cannot sleep here since this would hold up the inbound packet processing thread, as
+                        // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
+                        // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
+                        // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
+                        // region as the current region, meaning that a close sent before then will fail the teleport.
+                        //                System.Threading.Thread.Sleep(2000);
+
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
+                            client.Name, client.AgentId, m_callbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                        m_callbackURI = null;
+                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    }
                 }
-
-                if (!string.IsNullOrEmpty(m_callbackURI))
-                {
-                    // We cannot sleep here since this would hold up the inbound packet processing thread, as
-                    // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
-                    // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
-                    // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
-                    // region as the current region, meaning that a close sent before then will fail the teleport.
-                    //                System.Threading.Thread.Sleep(2000);
-
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                        client.Name, client.AgentId, m_callbackURI);
-
-                    UUID originID;
-
-                    lock (m_originRegionIDAccessLock)
-                        originID = m_originRegionID;
-
-                    Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
-                    m_callbackURI = null;
-                    //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                }
-//            else
-//            {
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE]: No callback provided on CompleteMovement of {0} {1} to {2}",
-//                    client.Name, client.AgentId, m_scene.RegionInfo.RegionName);
-//            }
-
-
                 // Tell the client that we're totally ready
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
                 //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
@@ -2187,32 +2189,29 @@ namespace OpenSim.Region.Framework.Scenes
 
                 int delayctnr = Util.EnvironmentTickCount();
 
-                if (!IsChildAgent)
+                if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
                 {
-                    if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
-                    {
-                        ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
-                    }
-
-                    // verify baked textures and cache
-                    bool cachedbaked = false;
-
-                    if (IsNPC)
-                        cachedbaked = true;
-                    else
-                    {
-                        if (m_scene.AvatarFactory != null && !isHGTP)
-                            cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
-
-                        // not sure we need this
-                        if (!cachedbaked)
-                        {
-                            if (m_scene.AvatarFactory != null)
-                                m_scene.AvatarFactory.QueueAppearanceSave(UUID);
-                        }
-                    }
-                    //m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
                 }
+
+                // verify baked textures and cache
+                bool cachedbaked = false;
+
+                if (IsNPC)
+                    cachedbaked = true;
+                else
+                {
+                    if (m_scene.AvatarFactory != null && !isHGTP)
+                        cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
+
+                    // not sure we need this
+                    if (!cachedbaked)
+                    {
+                        if (m_scene.AvatarFactory != null)
+                            m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+                    }
+                }
+                //m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if(m_teleportFlags > 0)
                 {
@@ -2251,104 +2250,103 @@ namespace OpenSim.Region.Framework.Scenes
                         landch.sendClientInitialLandInfo(client, !gotCrossUpdate);
                 }
 
-                if (!IsChildAgent)
+                List<ScenePresence> allpresences = m_scene.GetScenePresences();
+
+                // send avatar object to all presences including us, so they cross it into region
+                // then hide if necessary
+
+                SendInitialAvatarDataToAllAgents(allpresences);
+
+                // send this look
+                SendAppearanceToAgent(this);
+
+                // send this animations
+
+                UUID[] animIDs = null;
+                int[] animseqs = null;
+                UUID[] animsobjs = null;
+
+                if (Animator != null)
+                    Animator.GetArrays(out animIDs, out animseqs, out animsobjs);
+
+                bool haveAnims = (animIDs != null && animseqs != null && animsobjs != null);
+
+                if (haveAnims)
+                    SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
+
+                // we should be able to receive updates, etc
+                // so release them
+                m_inTransit = false;
+
+                // send look and animations to others
+                // if not cached we send greys
+                // uncomented if will wait till avatar does baking
+                //if (cachedbaked)
                 {
-                    List<ScenePresence> allpresences = m_scene.GetScenePresences();
-
-                    // send avatar object to all presences including us, so they cross it into region
-                    // then hide if necessary
-
-                    SendInitialAvatarDataToAllAgents(allpresences);
-
-                    // send this look
-                    SendAppearanceToAgent(this);
-
-                    // send this animations
-
-                    UUID[] animIDs = null;
-                    int[] animseqs = null;
-                    UUID[] animsobjs = null;
-
-                    if (Animator != null)
-                        Animator.GetArrays(out animIDs, out animseqs, out animsobjs);
-
-                    bool haveAnims = (animIDs != null && animseqs != null && animsobjs != null);
-
-                    if (haveAnims)
-                        SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
-
-                    // we should be able to receive updates, etc
-                    // so release them
-                    m_inTransit = false;
-
-                    // send look and animations to others
-                    // if not cached we send greys
-                    // uncomented if will wait till avatar does baking
-                    //if (cachedbaked)
+                    foreach (ScenePresence p in allpresences)
                     {
+                        if (p == this)
+                            continue;
+
+                        if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
+                            continue;
+
+                        SendAppearanceToAgentNF(p);
+                        if (haveAnims)
+                            SendAnimPackToAgentNF(p, animIDs, animseqs, animsobjs);
+                    }
+                } // greys if
+
+                //m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                // attachments
+                if (IsNPC || IsRealLogin(m_teleportFlags))
+                {
+                    if (Scene.AttachmentsModule != null)
+                        // Util.FireAndForget(
+                        //      o =>
+                        //      {
+
+                        if (!IsNPC)
+                            Scene.AttachmentsModule.RezAttachments(this);
+                        else
+                            Util.FireAndForget(x =>
+                            {
+                                Scene.AttachmentsModule.RezAttachments(this);
+                            });
+
+                    // });
+                }
+                else
+                {
+                    if (m_attachments.Count > 0)
+                    {
+//                            m_log.DebugFormat(
+//                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
+
+                        foreach (SceneObjectGroup sog in m_attachments)
+                        {
+                            sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                            sog.ResumeScripts();
+                        }
+
                         foreach (ScenePresence p in allpresences)
                         {
                             if (p == this)
+                            {
+                                SendAttachmentsToAgentNF(this);
                                 continue;
+                            }
 
                             if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                                 continue;
 
-                            SendAppearanceToAgentNF(p);
-                            if (haveAnims)
-                                SendAnimPackToAgentNF(p, animIDs, animseqs, animsobjs);
-                        }
-                    } // greys if
-
-                    //m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
-                    // attachments
-                    if (IsNPC || IsRealLogin(m_teleportFlags))
-                    {
-                        if (Scene.AttachmentsModule != null)
-                            // Util.FireAndForget(
-                            //      o =>
-                            //      {
-
-                            if (!IsNPC)
-                                Scene.AttachmentsModule.RezAttachments(this);
-                            else
-                                Util.FireAndForget(x =>
-                                {
-                                    Scene.AttachmentsModule.RezAttachments(this);
-                                });
-
-                        // });
-                    }
-                    else
-                    {
-                        if (m_attachments.Count > 0)
-                        {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-
-                            foreach (SceneObjectGroup sog in m_attachments)
-                            {
-                                sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
-                                sog.ResumeScripts();
-                            }
-
-                            foreach (ScenePresence p in allpresences)
-                            {
-                                if (p == this)
-                                {
-                                    SendAttachmentsToAgentNF(this);
-                                    continue;
-                                }
-
-                                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
-                                    continue;
-
-                                SendAttachmentsToAgentNF(p);
-                            }
+                            SendAttachmentsToAgentNF(p);
                         }
                     }
-
+                }
+                if(!IsNPC)
+                {
                     //m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
                     if (openChildAgents)
                     {
@@ -2366,34 +2364,33 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_childUpdatesBusy = false; // allow them
-                }
 
-                //m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                // send the rest of the world
-                if (m_teleportFlags > 0 && !IsNPC || m_currentParcelHide)
-                    SendInitialDataToMe();
+                    // send the rest of the world
+                    if (m_teleportFlags > 0 | m_currentParcelHide)
+                        SendInitialDataToMe();
 
-                // priority uses avatar position only
-//                m_reprioritizationLastPosition = AbsolutePosition;
-//                m_reprioritizationLastDrawDistance = DrawDistance;
-//                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
-//                m_reprioritizationBusy = false;
+                    // priority uses avatar position only
+                    // m_reprioritizationLastPosition = AbsolutePosition;
+                    // m_reprioritizationLastDrawDistance = DrawDistance;
+                    // m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+                    // m_reprioritizationBusy = false;
 
-                //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                if (!IsChildAgent && openChildAgents)
-                {
-                    IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-                    if (friendsModule != null)
+                    if (openChildAgents)
                     {
-                        if(gotCrossUpdate)
-                            friendsModule.IsNowRoot(this);
-                        else
-                            friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+                        IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                        if (friendsModule != null)
+                        {
+                            if(gotCrossUpdate)
+                                friendsModule.IsNowRoot(this);
+                            else
+                                friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
+                        }
+                        //m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
                     }
-                    //m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
-
                 }
             }
             finally
@@ -4024,10 +4021,100 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
+
+        public void RegionHandShakeReply (IClientAPI client, uint flags)
+        {
+            if(IsNPC)
+                return;
+
+            bool selfappearance = (flags & 4) != 0;
+            bool cacheCulling = (flags & 1) != 0;
+            bool cacheEmpty;
+            if(cacheCulling)
+                cacheEmpty = (flags & 2) != 0;
+            else
+                cacheEmpty = true;
+
+            if (m_teleportFlags > 0) // only doing for child for now
+                return;
+
+            lock (m_completeMovementLock)
+            {
+                if (SentInitialData)
+                    return;
+                SentInitialData = true;
+            }
+
+            Util.FireAndForget(delegate
+            {
+                Scene.SendLayerData(ControllingClient);
+
+                ILandChannel landch = m_scene.LandChannel;
+                if (landch != null)
+                    landch.sendClientInitialLandInfo(ControllingClient, true);
+
+                // recheck to reduce timing issues
+                ControllingClient.CheckViewerCaps();
+
+                SendOtherAgentsAvatarFullToMe();
+                /*
+                if (m_scene.ObjectsCullingByDistance && cacheCulling)
+                {
+                    m_reprioritizationBusy = true;
+                    m_reprioritizationLastPosition = AbsolutePosition;
+                    m_reprioritizationLastDrawDistance = DrawDistance;
+
+                    ControllingClient.ReprioritizeUpdates();
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount();
+                    m_reprioritizationBusy = false;
+                    return;
+                }
+                */
+
+                EntityBase[] entities = Scene.Entities.GetEntities();
+                if(cacheEmpty)
+                {
+                    foreach (EntityBase e in entities)
+                    {
+                        if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                            ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
+                    }
+                }
+                else
+                {
+                    foreach (EntityBase e in entities)
+                    {
+                        if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                        {
+                            SceneObjectGroup grp = e as SceneObjectGroup;
+                            if(grp.IsViewerCachable)
+                                grp.SendUpdateProbes(ControllingClient);
+                            else
+                               grp.SendFullAnimUpdateToClient(ControllingClient);
+                        }
+                    }
+                }
+
+                m_reprioritizationLastPosition = AbsolutePosition;
+                m_reprioritizationLastDrawDistance = DrawDistance;
+                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+
+                m_reprioritizationBusy = false;
+
+            });
+
+        }
+
         public void SendInitialDataToMe()
         {
             // Send all scene object to the new client
-            SentInitialData = true;
+            lock (m_completeMovementLock)
+            {
+                if (SentInitialData)
+                    return;
+                SentInitialData = true;
+            }
+
             Util.FireAndForget(delegate
             {
                 // we created a new ScenePresence (a new child agent) in a fresh region.
@@ -4280,7 +4367,13 @@ namespace OpenSim.Region.Framework.Scenes
             if(IsDeleted || !ControllingClient.IsActive)
                 return;
 
-            if(!SentInitialData)
+            bool needsendinitial = false;
+            lock(m_completeMovementLock)
+            {
+                needsendinitial = SentInitialData;
+            }
+
+            if(!needsendinitial)
             {
                 SendInitialDataToMe();
                 return;

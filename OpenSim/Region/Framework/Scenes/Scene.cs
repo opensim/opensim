@@ -170,8 +170,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_scripts_enabled;
 
-        public SynchronizeSceneHandler SynchronizeScene;
-
         public bool ClampNegativeZ
         {
             get { return m_clampNegativeZ; }
@@ -1006,11 +1004,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
-                m_dontPersistBefore =
-                    startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                m_dontPersistBefore = startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;
-                m_persistAfter =
-                    startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                m_persistAfter = startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
@@ -1695,9 +1691,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (PhysicsEnabled)
                             physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
-
-                        if (SynchronizeScene != null)
-                            SynchronizeScene(this);
                     }
 
                     tmpMS2 = Util.GetTimeStampMS();
@@ -1775,30 +1768,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // Region ready should always be set
                             Ready = true;
-
-
-                            IConfig restartConfig = m_config.Configs["RestartModule"];
-                            if (restartConfig != null)
-                            {
-                                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
-
-                                if (markerPath != String.Empty)
-                                {
-                                    string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".ready");
-                                    try
-                                    {
-                                        string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
-                                        FileStream fs = File.Create(path);
-                                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                                        Byte[] buf = enc.GetBytes(pidstring);
-                                        fs.Write(buf, 0, buf.Length);
-                                        fs.Close();
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-                                }
-                            }
                         }
                         else
                         {

@@ -1179,9 +1179,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             set
             {
+                string old = m_mediaUrl;
                 m_mediaUrl = value;
 
-                if (ParentGroup != null)
+                if (ParentGroup != null && old != m_mediaUrl)
                     ParentGroup.HasGroupChanged = true;
             }
         }
@@ -1383,13 +1384,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat("[SOP]: Setting flags for {0} {1} to {2}", UUID, Name, value);
                 _flags = value;
             }
-        }
-
-        [XmlIgnore]
-        public bool IsOccupied				// KF If an av is sittingon this prim
-        {
-            get { return m_occupied; }
-            set { m_occupied = value; }
         }
 
         /// <summary>
@@ -2472,12 +2466,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GetEffectiveObjectFlags()
         {
-            // Commenting this section of code out since it doesn't actually do anything, as enums are handled by
-            // value rather than reference
-//            PrimFlags f = _flags;
-//            if (m_parentGroup == null || m_parentGroup.RootPart == this)
-//                f &= ~(PrimFlags.Touch | PrimFlags.Money);
-
             uint eff = (uint)Flags | (uint)LocalFlags;
             if(m_inventory == null || m_inventory.Count == 0)
                 eff |= (uint)PrimFlags.InventoryEmpty;
