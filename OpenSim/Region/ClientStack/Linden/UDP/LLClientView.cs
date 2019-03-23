@@ -7145,7 +7145,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             /// <summary>Whether the object has floating text ala llSetText</summary>
             HasText = 0x04,
             /// <summary>Whether the object has an active particle system</summary>
-            HasParticles = 0x08,
+            HasParticlesLegacy = 0x08,
             /// <summary>Whether the object has sound attached to it</summary>
             HasSound = 0x10,
             /// <summary>Whether the object is attached to a root object or not</summary>
@@ -7157,7 +7157,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             /// <summary>Whether the object has a name value pairs string</summary>
             HasNameValues = 0x100,
             /// <summary>Whether the object has a Media URL set</summary>
-            MediaURL = 0x200
+            MediaURL = 0x200,
+            HasParticlesNew = 0x400
         }
 
         ///**** temp hack
@@ -7218,10 +7219,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool hasangvel = part.AngularVelocity.LengthSquared() > 1e-8f;
             bool hasmediaurl = part.MediaUrl != null && part.MediaUrl.Length > 1;
 
+            bool haspsnew = false;
             if (hastext)
                 cflags |= CompressedFlags.HasText;
             if (hasps)
-                cflags |= CompressedFlags.HasParticles;
+            {
+                if(part.ParticleSystem.Length > 86)
+                {
+                    hasps= false;
+                    cflags |= CompressedFlags.HasParticlesNew;
+                    haspsnew = true;
+                }
+                else
+                    cflags |= CompressedFlags.HasParticlesLegacy;
+            }
             if (hassound)
                 cflags |= CompressedFlags.HasSound;
             if (part.ParentID != 0)
@@ -7277,7 +7288,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Utils.UIntToBytesSafepos((uint)cflags, dest, pos); pos += 4;
 
-            if (hasps || hassound)
+            if (hasps || haspsnew || hassound)
                 part.OwnerID.ToBytes(dest, pos);
             else
                 UUID.Zero.ToBytes(dest, pos);
@@ -7387,6 +7398,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     pos += len;
                 }
             }
+
+            if (haspsnew)
+            {
+                byte[] ps = part.ParticleSystem;
+                Buffer.BlockCopy(ps, 0, dest, pos, ps.Length); pos += ps.Length;
+            }
+
             int totlen = pos - lenpos - 2;
             dest[lenpos++] = (byte)totlen;
             dest[lenpos++] = (byte)(totlen >> 8);
