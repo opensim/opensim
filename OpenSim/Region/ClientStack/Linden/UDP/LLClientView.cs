@@ -4811,7 +4811,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             EntityUpdate update;
 
-            bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0 && mysp.IsChildAgent; // only on child agents
+            bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0;// && mysp.IsChildAgent; // only on child agents
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             Vector3 mypos = Vector3.Zero;
@@ -5449,7 +5449,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //
         }
 */
-                        public void ReprioritizeUpdates()
+        public void ReprioritizeUpdates()
         {
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Reprioritize(UpdatePriorityHandler);
@@ -5544,7 +5544,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(GroupsNeedFullUpdate.Count > 0)
             {
-                bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0 && mysp.IsChildAgent;
+                bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0;// && mysp.IsChildAgent;
                 foreach (SceneObjectGroup grp in GroupsNeedFullUpdate)
                 {
                     PrimUpdateFlags flags = PrimUpdateFlags.CancelKill;

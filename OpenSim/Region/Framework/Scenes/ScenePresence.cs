@@ -2368,8 +2368,9 @@ namespace OpenSim.Region.Framework.Scenes
                     //m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                     // send the rest of the world
-                    if (m_teleportFlags > 0 | m_currentParcelHide)
-                        SendInitialDataToMe();
+                    if (m_teleportFlags > 0 || m_currentParcelHide)
+                        //SendInitialDataToMe();
+                        SendOtherAgentsAvatarFullToMe();
 
                     // priority uses avatar position only
                     // m_reprioritizationLastPosition = AbsolutePosition;
@@ -4035,8 +4036,8 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 cacheEmpty = true;
 
-            if (m_teleportFlags > 0) // only doing for child for now
-                return;
+//            if (m_teleportFlags > 0) // only doing for child for now
+//                return;
 
             lock (m_completeMovementLock)
             {
@@ -4047,18 +4048,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             Util.FireAndForget(delegate
             {
-                Scene.SendLayerData(ControllingClient);
+                if (m_teleportFlags <= 0)
+                {
+                    Scene.SendLayerData(ControllingClient);
 
-                ILandChannel landch = m_scene.LandChannel;
-                if (landch != null)
-                    landch.sendClientInitialLandInfo(ControllingClient, true);
+                    ILandChannel landch = m_scene.LandChannel;
+                    if (landch != null)
+                        landch.sendClientInitialLandInfo(ControllingClient, true);
+
+                    SendOtherAgentsAvatarFullToMe();
+                }
 
                 // recheck to reduce timing issues
                 ControllingClient.CheckViewerCaps();
 
-                SendOtherAgentsAvatarFullToMe();
-                /*
-                if (m_scene.ObjectsCullingByDistance && cacheCulling)
+                if (m_scene.ObjectsCullingByDistance)
                 {
                     m_reprioritizationBusy = true;
                     m_reprioritizationLastPosition = AbsolutePosition;
@@ -4069,7 +4073,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_reprioritizationBusy = false;
                     return;
                 }
-                */
 
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 if(cacheEmpty)
@@ -4367,18 +4370,19 @@ namespace OpenSim.Region.Framework.Scenes
             if(IsDeleted || !ControllingClient.IsActive)
                 return;
 
+/*
             bool needsendinitial = false;
             lock(m_completeMovementLock)
             {
                 needsendinitial = SentInitialData;
             }
 
-            if(!needsendinitial)
+            if(needsendinitial)
             {
                 SendInitialDataToMe();
                 return;
             }
-
+*/
             if(m_reprioritizationBusy)
                 return;
 
