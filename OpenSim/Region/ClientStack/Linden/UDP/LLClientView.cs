@@ -5544,17 +5544,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(GroupsNeedFullUpdate.Count > 0)
             {
-                bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0;// && mysp.IsChildAgent;
-                foreach (SceneObjectGroup grp in GroupsNeedFullUpdate)
+                bool sendProbes = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0 && (m_viewerHandShakeFlags & 2) == 0;
+
+                if(sendProbes)
                 {
+                    foreach (SceneObjectGroup grp in GroupsNeedFullUpdate)
+                    {
+                        PrimUpdateFlags flags = PrimUpdateFlags.CancelKill;
+                        if (grp.IsViewerCachable)
+                            flags |= PrimUpdateFlags.UpdateProbe;
+                        foreach (SceneObjectPart p in grp.Parts)
+                            SendEntityUpdate(p, flags);
+                    }
+                }
+                else
+                {
+                    m_viewerHandShakeFlags &= ~2U; // nexttime send probes
                     PrimUpdateFlags flags = PrimUpdateFlags.CancelKill;
-                    if (viewerCache && grp.IsViewerCachable)
-                        flags |= PrimUpdateFlags.UpdateProbe;
-                    foreach (SceneObjectPart p in grp.Parts)
-                        SendEntityUpdate(p, flags);
+                    foreach (SceneObjectGroup grp in GroupsNeedFullUpdate)
+                    {
+                        foreach (SceneObjectPart p in grp.Parts)
+                            SendEntityUpdate(p, flags);
+                    }
                 }
             }
-
             CheckGroupsInViewBusy = false;
         }
 

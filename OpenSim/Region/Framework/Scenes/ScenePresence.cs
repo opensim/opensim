@@ -1214,7 +1214,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
             ControllingClient.OnRegionHandShakeReply += RegionHandShakeReply;
 
-            //            ControllingClient.OnAgentFOV += HandleAgentFOV;
+            // ControllingClient.OnAgentFOV += HandleAgentFOV;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -4022,11 +4022,17 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
-
         public void RegionHandShakeReply (IClientAPI client, uint flags)
         {
             if(IsNPC)
                 return;
+
+            lock (m_completeMovementLock)
+            {
+                if (SentInitialData)
+                    return;
+                SentInitialData = true;
+            }
 
             bool selfappearance = (flags & 4) != 0;
             bool cacheCulling = (flags & 1) != 0;
@@ -4035,16 +4041,6 @@ namespace OpenSim.Region.Framework.Scenes
                 cacheEmpty = (flags & 2) != 0;
             else
                 cacheEmpty = true;
-
-//            if (m_teleportFlags > 0) // only doing for child for now
-//                return;
-
-            lock (m_completeMovementLock)
-            {
-                if (SentInitialData)
-                    return;
-                SentInitialData = true;
-            }
 
             Util.FireAndForget(delegate
             {
@@ -4106,65 +4102,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             });
 
-        }
-
-        public void SendInitialDataToMe()
-        {
-            // Send all scene object to the new client
-            lock (m_completeMovementLock)
-            {
-                if (SentInitialData)
-                    return;
-                SentInitialData = true;
-            }
-
-            Util.FireAndForget(delegate
-            {
-                // we created a new ScenePresence (a new child agent) in a fresh region.
-                // Request info about all the (root) agents in this region
-                // Note: This won't send data *to* other clients in that region (children don't send)
-                if (m_teleportFlags <= 0)
-                {
-                    Scene.SendLayerData(ControllingClient);
-
-                    ILandChannel landch = m_scene.LandChannel;
-                    if (landch != null)
-                    {
-                        landch.sendClientInitialLandInfo(ControllingClient, true);
-                    }
-                }
-
-                // recheck to reduce timing issues
-                ControllingClient.CheckViewerCaps();
-
-                SendOtherAgentsAvatarFullToMe();
-
-                if(m_scene.ObjectsCullingByDistance)
-                {
-                    m_reprioritizationBusy = true;
-                    m_reprioritizationLastPosition = AbsolutePosition;
-                    m_reprioritizationLastDrawDistance = DrawDistance;
-
-                    ControllingClient.ReprioritizeUpdates();
-                    m_reprioritizationLastTime = Util.EnvironmentTickCount();
-                    m_reprioritizationBusy = false;
-                    return;
-                }
-
-                EntityBase[] entities = Scene.Entities.GetEntities();
-                foreach (EntityBase e in entities)
-                {
-                    if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
-                        ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
-                }
-
-                m_reprioritizationLastPosition = AbsolutePosition;
-                m_reprioritizationLastDrawDistance = DrawDistance;
-                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
-
-                m_reprioritizationBusy = false;
-
-            });
         }
 
         /// <summary>
