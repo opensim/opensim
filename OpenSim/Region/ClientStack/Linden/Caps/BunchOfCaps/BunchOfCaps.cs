@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.Linden
         string assetName, string description, UUID assetID, UUID inventoryItem, UUID parentFolder,
         byte[] data, string inventoryType, string assetType,
         int cost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-        bool IsAtestUpload, ref string error, ref int nextOwnerMask, ref int groupMask, ref int everyoneMask);
+        bool IsAtestUpload, ref string error, ref int nextOwnerMask, ref int groupMask, ref int everyoneMask, int[] meshesSides);
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
@@ -529,6 +529,7 @@ namespace OpenSim.Region.ClientStack.Linden
             int nreqmeshs= 0;
             int nreqinstances = 0;
             bool IsAtestUpload = false;
+            int[] meshesSides = null;
 
             string assetName = llsdRequest.name;
 
@@ -578,9 +579,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         string error;
                         int modelcost;
 
-
                         if (!m_ModelCost.MeshModelCost(llsdRequest.asset_resources, baseCost, out modelcost,
-                            meshcostdata, out error, ref warning))
+                            meshcostdata, out error, ref warning, out meshesSides))
                         {
                             LLSDAssetUploadError resperror = new LLSDAssetUploadError();
                             resperror.message = error;
@@ -668,7 +668,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                         llsdRequest.asset_type, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile, cost,
                         texturesFolder, nreqtextures, nreqmeshs, nreqinstances, IsAtestUpload,
-                        llsdRequest.next_owner_mask, llsdRequest.group_mask, llsdRequest.everyone_mask);
+                        llsdRequest.next_owner_mask, llsdRequest.group_mask, llsdRequest.everyone_mask, meshesSides);
 
             m_HostCapsObj.HttpListener.AddStreamHandler(
                 new BinaryStreamHandler(
@@ -713,7 +713,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                           string assetType, int cost,
                                           UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
                                           bool IsAtestUpload, ref string error,
-                                          ref int nextOwnerMask, ref int groupMask, ref int everyoneMask)
+                                          ref int nextOwnerMask, ref int groupMask, ref int everyoneMask, int[] meshesSides)
         {
             lock (m_ModelCost)
                 m_FileAgentInventoryState = FileAgentInventoryState.processUpload;
@@ -967,7 +967,12 @@ namespace OpenSim.Region.ClientStack.Linden
                         {
                             int meshindx = inner_instance_list["mesh"].AsInteger();
                             if (meshAssets.Count > meshindx)
-                                pbs = PrimitiveBaseShape.CreateMesh(face_list.Count, meshAssets[meshindx]);
+                            {
+                                if(meshesSides != null && meshesSides.Length > meshindx)
+                                    pbs = PrimitiveBaseShape.CreateMesh(meshesSides[i], meshAssets[meshindx]);
+                                else
+                                    pbs = PrimitiveBaseShape.CreateMesh(face_list.Count, meshAssets[meshindx]);
+                            }
                         }
                         if(pbs == null) // fallback
                             pbs = PrimitiveBaseShape.CreateBox();
@@ -1025,12 +1030,12 @@ namespace OpenSim.Region.ClientStack.Linden
                         Vector3 position = inner_instance_list["position"].AsVector3();
                         Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
 
-                        // for now viwers do send fixed defaults
-                        // but this may change
-//                        int physicsShapeType = inner_instance_list["physics_shape_type"].AsInteger();
                         byte physicsShapeType = (byte)PhysShapeType.convex; // default is simple convex
-//                        int material = inner_instance_list["material"].AsInteger();
+                        if (inner_instance_list.ContainsKey("physics_shape_type"))
+                            physicsShapeType = (byte)inner_instance_list["physics_shape_type"].AsInteger();
                         byte material = (byte)Material.Wood;
+                        if (inner_instance_list.ContainsKey("material"))
+                            material = (byte)inner_instance_list["material"].AsInteger();
 
                         SceneObjectPart prim
                             = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
@@ -2014,13 +2019,13 @@ namespace OpenSim.Region.ClientStack.Linden
         private int m_nextOwnerMask;
         private int m_groupMask;
         private int m_everyoneMask;
-
+        private int[] m_meshesSides;
 
         public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
                                 UUID parentFolderID, string invType, string assetType, string path,
                                 IHttpServer httpServer, bool dumpAssetsToFile,
                                 int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                bool IsAtestUpload, int nextOwnerMask, int groupMask, int everyoneMask)
+                                bool IsAtestUpload, int nextOwnerMask, int groupMask, int everyoneMask, int[] meshesSides)
         {
             m_assetName = assetName;
             m_assetDes = description;
@@ -2048,6 +2053,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_nextOwnerMask = nextOwnerMask;
             m_groupMask = groupMask;
             m_everyoneMask = everyoneMask;
+
+            m_meshesSides = meshesSides;
         }
 
         /// <summary>
@@ -2088,7 +2095,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
                     m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
-                    ref m_error, ref m_nextOwnerMask, ref m_groupMask, ref m_everyoneMask);
+                    ref m_error, ref m_nextOwnerMask, ref m_groupMask, ref m_everyoneMask, m_meshesSides);
             }
 
             uploadComplete.new_next_owner_mask = m_nextOwnerMask;

@@ -145,11 +145,11 @@ namespace OpenSim.Region.ClientStack.Linden
         // avatarSkeleton if mesh includes a avatar skeleton
         // useAvatarCollider if we should use physics mesh for avatar
         public bool MeshModelCost(LLSDAssetResource resources, int basicCost, out int totalcost,
-            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning)
+            LLSDAssetUploadResponseData meshcostdata, out string error, ref string warning, out int[] meshesSides)
         {
             totalcost = 0;
             error = string.Empty;
-
+            meshesSides = null;
             bool avatarSkeleton = false;
 
             if (resources == null ||
@@ -204,6 +204,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (resources.mesh_list != null && resources.mesh_list.Array.Count > 0)
             {
                 numberMeshs = resources.mesh_list.Array.Count;
+                meshesSides = new int[numberMeshs];
 
                 for (int i = 0; i < numberMeshs; i++)
                 {
@@ -226,6 +227,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                     meshsCosts.Add(curCost);
                     meshsfee += curCost.costFee;
+                    meshesSides[i] = curCost.highLODsides;
                 }
                 haveMeshs = true;
             }
@@ -260,11 +262,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     error = "Model contains parts with sides larger than " + NonPhysicalPrimScaleMax.ToString() + "m. Please ajust scale";
                     return false;
                 }
-                int nfaces = 0;
-                if(inst.Contains("face_list"))
-                {
-                     nfaces = ((ArrayList)inst["face_list"]).Count;
-                }
 
                 if (haveMeshs && inst.ContainsKey("mesh"))
                 {
@@ -281,8 +278,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     float sqdiam = scale.LengthSquared();
 
                     ameshCostParam curCost = meshsCosts[mesh];
-                    if(nfaces != curCost.highLODsides)
-                        warning +="Warning: Uploaded number of faces ( "+ nfaces.ToString() +" ) does not match highlod number of faces ( "+ curCost.highLODsides.ToString() +" )\n";
 
                     float mesh_streaming = streamingCost(curCost, sqdiam);
 
