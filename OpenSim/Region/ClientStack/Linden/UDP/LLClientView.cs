@@ -12700,6 +12700,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleUseCircuitCode(IClientAPI sender, Packet Pack)
         {
+            UseCircuitCodePacket uccp = (UseCircuitCodePacket)Pack;
+            if(uccp.CircuitCode.ID == m_agentId &&
+                uccp.CircuitCode.SessionID == m_sessionId &&
+                uccp.CircuitCode.Code == m_circuitCode &&
+                SceneAgent != null &&
+               !((ScenePresence)SceneAgent).IsDeleted
+            )
+                SendRegionHandshake(); // possible someone returning
+
             return true;
         }
 
