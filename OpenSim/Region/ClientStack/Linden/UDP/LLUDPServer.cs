@@ -1725,7 +1725,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (client != null)
                     {
-                        client.SendRegionHandshake();
+                        if(aCircuit.teleportFlags <= 0)
+                            client.SendRegionHandshake();
                         client.CheckViewerCaps();
                     }
                 }

@@ -2179,6 +2179,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 // Tell the client that we're totally ready
+                ControllingClient.SendRegionHandshake();
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
                 //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
