@@ -6797,7 +6797,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                GodController.HasMovedAway();
+                lock (m_completeMovementLock)
+                {
+                    GodController.HasMovedAway();
+                    SentInitialData = false;
+                }
+
                 List<ScenePresence> allpresences = m_scene.GetScenePresences();
                 foreach (ScenePresence p in allpresences)
                 {

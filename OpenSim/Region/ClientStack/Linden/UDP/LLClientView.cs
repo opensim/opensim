@@ -8931,9 +8931,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(rsrpkt.AgentData.AgentID != m_agentId || rsrpkt.AgentData.SessionID != m_sessionId)
                 return false;
 
-            // regionHandSHake is a protocol message, but it is also seems to be the only way to update terrain textures
-            // in last case this should be ignored.
-            OnRegionHandShakeReply = null;
             if(m_supportViewerCache)
                 m_viewerHandShakeFlags = rsrpkt.RegionInfo.Flags;
             else
