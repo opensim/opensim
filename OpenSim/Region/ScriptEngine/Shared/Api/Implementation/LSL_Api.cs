@@ -3886,6 +3886,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_item.PermsGranter != m_host.OwnerID)
                 return;
 
+            SceneObjectGroup grp = m_host.ParentGroup;
+            if (grp == null || grp.IsDeleted || grp.IsAttachment)
+                return;
+
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
                 AttachToAvatar(attachmentPoint);
         }
