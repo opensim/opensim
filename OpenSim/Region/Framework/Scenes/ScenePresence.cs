@@ -457,9 +457,10 @@ namespace OpenSim.Region.Framework.Scenes
         #region For teleports and crossings callbacks
 
         /// <summary>
-        /// In the V1 teleport protocol, the destination simulator sends ReleaseAgent to this address.
+        /// the destination simulator sends ReleaseAgent to this address, for very long range tps, HG.
         /// </summary>
-        private string m_callbackURI;
+        private string m_callbackURI; // to remove with v1 support
+        private string m_newCallbackURI;
 
         /// <summary>
         /// Records the region from which this presence originated, if not from login.
@@ -2155,28 +2156,6 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                     }
 
-                    if (!string.IsNullOrEmpty(m_callbackURI))
-                    {
-                        // We cannot sleep here since this would hold up the inbound packet processing thread, as
-                        // CompleteMovement() is executed synchronously.  However, it might be better to delay the release
-                        // here until we know for sure that the agent is active in this region.  Sending AgentMovementComplete
-                        // is not enough for Imprudence clients - there appears to be a small delay (<200ms, <500ms) until they regard this
-                        // region as the current region, meaning that a close sent before then will fail the teleport.
-                        //                System.Threading.Thread.Sleep(2000);
-
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                            client.Name, client.AgentId, m_callbackURI);
-
-                        UUID originID;
-
-                        lock (m_originRegionIDAccessLock)
-                            originID = m_originRegionID;
-
-                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
-                        m_callbackURI = null;
-                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
                 }
                 // Tell the client that we're totally ready
                 ControllingClient.SendRegionHandshake();
@@ -2380,6 +2359,37 @@ namespace OpenSim.Region.Framework.Scenes
                     // m_reprioritizationBusy = false;
 
                     //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
+                    if (!string.IsNullOrEmpty(m_callbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Releasing {0} {1} with old callback to {2}",
+                            client.Name, client.AgentId, m_callbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                        m_callbackURI = null;
+                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    }
+                    else if (!string.IsNullOrEmpty(m_newCallbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
+                            client.Name, client.AgentId, m_newCallbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
+                        m_newCallbackURI = null;
+                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    }
 
                     if (openChildAgents)
                     {
@@ -4589,12 +4599,15 @@ namespace OpenSim.Region.Framework.Scenes
                     byebyeRegions.Add(handle);
                 else if(handle == curRegionHandle)
                 {
+                    continue;
+                    /*
                     RegionInfo curreg = m_scene.RegionInfo;
                     if (Util.IsOutsideView(255, curreg.RegionLocX, newRegionX, curreg.RegionLocY, newRegionY,
                             (int)curreg.RegionSizeX, (int)curreg.RegionSizeX, newRegionSizeX, newRegionSizeY))
                     {
                         byebyeRegions.Add(handle);
                     }
+                    */
                 }
                 else    
                 {
@@ -4774,6 +4787,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyTo(AgentData cAgent, bool isCrossUpdate)
         {
             cAgent.CallbackURI = m_callbackURI;
+            cAgent.NewCallbackURI = m_newCallbackURI;
 
             cAgent.AgentID = UUID;
             cAgent.RegionID = Scene.RegionInfo.RegionID;
@@ -4860,9 +4874,10 @@ namespace OpenSim.Region.Framework.Scenes
         private void CopyFrom(AgentData cAgent)
         {
             m_callbackURI = cAgent.CallbackURI;
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
-//                Name, m_scene.RegionInfo.RegionName, m_callbackURI);
+            m_newCallbackURI = cAgent.NewCallbackURI;
+            //            m_log.DebugFormat(
+            //                "[SCENE PRESENCE]: Set callback for {0} in {1} to {2} in CopyFrom()",
+            //                Name, m_scene.RegionInfo.RegionName, m_callbackURI);
 
             GodController.SetState(cAgent.GodData);
 

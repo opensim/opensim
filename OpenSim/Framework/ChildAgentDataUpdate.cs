@@ -398,7 +398,8 @@ namespace OpenSim.Framework
         // Scripted
         public ControllerData[] Controllers;
 
-        public string CallbackURI;
+        public string CallbackURI; // to remove
+        public string NewCallbackURI;
 
         // These two must have the same Count
         public List<ISceneObject> AttachmentObjects;
@@ -527,6 +528,9 @@ namespace OpenSim.Framework
 
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
+
+            if ((NewCallbackURI != null) && (!NewCallbackURI.Equals("")))
+                args["cb_uri"] = OSD.FromString(NewCallbackURI);
 
             // Attachment objects for fatpack messages
             if (AttachmentObjects != null)
@@ -811,12 +815,7 @@ namespace OpenSim.Framework
                 }
                 // end of code to remove
             }
-/* moved above
-            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
-                Appearance = new AvatarAppearance((OSDMap)args["packed_appearance"]);
-            else
-                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance");
-*/
+
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {
                 OSDArray controls = (OSDArray)(args["controllers"]);
@@ -833,6 +832,9 @@ namespace OpenSim.Framework
 
             if (args["callback_uri"] != null)
                 CallbackURI = args["callback_uri"].AsString();
+
+            if (args["cb_uri"] != null)
+                NewCallbackURI = args["cb_uri"].AsString();
 
             // Attachment objects
             if (args["attach_objects"] != null && args["attach_objects"].Type == OSDType.Array)

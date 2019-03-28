@@ -54,13 +54,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[ENTITY TRANSFER MODULE]";
 
-        public const int DefaultMaxTransferDistance = 4095;
         public const bool WaitForAgentArrivedAtDestinationDefault = true;
-
-        /// <summary>
-        /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
-        /// </summary>
-        public int MaxTransferDistance { get; set; }
 
         /// <summary>
         /// If true then on a teleport, the source region waits for a callback from the destination region.  If
@@ -227,11 +221,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 WaitForAgentArrivedAtDestination
                     = transferConfig.GetBoolean("wait_for_callback", WaitForAgentArrivedAtDestinationDefault);
 
-                MaxTransferDistance = transferConfig.GetInt("max_distance", DefaultMaxTransferDistance);
-            }
-            else
-            {
-                MaxTransferDistance = DefaultMaxTransferDistance;
             }
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
@@ -640,29 +629,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         /// <summary>
-        /// Determines whether this instance is within the max transfer distance.
-        /// </summary>
-        /// <param name="sourceRegion"></param>
-        /// <param name="destRegion"></param>
-        /// <returns>
-        /// <c>true</c> if this instance is within max transfer distance; otherwise, <c>false</c>.
-        /// </returns>
-        private bool IsWithinMaxTeleportDistance(RegionInfo sourceRegion, GridRegion destRegion)
-        {
-            if(MaxTransferDistance == 0)
-                return true;
-
-//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
-//
-//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
-//                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
-
-            // Insanely, RegionLoc on RegionInfo is the 256m map co-ord whilst GridRegion.RegionLoc is the raw meters position.
-            return Math.Abs(sourceRegion.RegionLocX - destRegion.RegionCoordX) <= MaxTransferDistance
-                && Math.Abs(sourceRegion.RegionLocY - destRegion.RegionCoordY) <= MaxTransferDistance;
-        }
-
-        /// <summary>
         /// Wraps DoTeleportInternal() and manages the transfer state.
         /// </summary>
         public void DoTeleport(
@@ -721,18 +687,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
 
             RegionInfo sourceRegion = sp.Scene.RegionInfo;
-
-            if (!IsWithinMaxTeleportDistance(sourceRegion, finalDestination))
-            {
-                sp.ControllingClient.SendTeleportFailed(
-                    string.Format(
-                      "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
-                      finalDestination.RegionName, finalDestination.RegionCoordX, finalDestination.RegionCoordY,
-                      sourceRegion.RegionName, sourceRegion.RegionLocX, sourceRegion.RegionLocY,
-                      MaxTransferDistance));
-
-                return;
-            }
 
             ulong destinationHandle = finalDestination.RegionHandle;
 
@@ -1175,7 +1129,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.SenderWantsToWaitForRoot = true;
 
-            //SetCallbackURL(agent, sp.Scene.RegionInfo);
+            if(!sp.IsInLocalTransit)
+                SetNewCallbackURL(agent, sp.Scene.RegionInfo);
 
             // Reset the do not close flag.  This must be done before the destination opens child connections (here
             // triggered by UpdateAgent) to avoid race conditions.  However, we also want to reset it as late as possible
@@ -1224,25 +1179,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.closeAllChildAgents();
                 else
                     sp.CloseChildAgents(childRegionsToClose);
+            }
 
-                // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-                // goes by HG hook
-                if (NeedsClosing(reg, OutSideViewRange))
+            // if far jump we do need to close anyways
+            if (NeedsClosing(reg, OutSideViewRange))
+            {
+                int count = 60;
+                do
                 {
-                    if (!sp.Scene.IncomingPreCloseClient(sp))
-                    {
-                        sp.IsInTransit = false;
+                    Thread.Sleep(250);
+                    if(sp.IsDeleted)
                         return;
-                    }
+                } while (--count > 0);
 
-                // viewers and target region take extra time to process the tp
-                    Thread.Sleep(15000);
+                if (!sp.IsDeleted)
+                {
                     m_log.DebugFormat(
-                            "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport", sp.Name, Scene.Name);
+                        "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport timeout", sp.Name, Scene.Name);
                     sp.Scene.CloseAgent(sp.UUID, false);
                 }
-                sp.IsInTransit = false;
+                return;
             }
+            // otherwise keep child
+            sp.IsInTransit = false;
         }
 
         /// <summary>
@@ -1312,6 +1271,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
         {
             agent.CallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
+
+            //m_log.DebugFormat(
+            //    "[ENTITY TRANSFER MODULE]: Set release callback URL to {0} in {1}",
+            //    agent.CallbackURI, region.RegionName);
+        }
+
+        protected virtual void SetNewCallbackURL(AgentData agent, RegionInfo region)
+        {
+            agent.NewCallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Set release callback URL to {0} in {1}",
@@ -2488,7 +2456,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public void AgentArrivedAtDestination(UUID id)
         {
-            m_entityTransferStateMachine.SetAgentArrivedAtDestination(id);
+            ScenePresence sp = Scene.GetScenePresence(id);
+            if(sp == null || sp.IsDeleted || !sp.IsInTransit)
+                return;
+
+            Scene.CloseAgent(sp.UUID, false);
+            m_entityTransferStateMachine.ResetFromTransit(id); // this needs cleanup
+            //m_entityTransferStateMachine.SetAgentArrivedAtDestination(id);
         }
 
         #endregion
