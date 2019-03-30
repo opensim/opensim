@@ -1400,7 +1400,7 @@ namespace OpenSim.Tests.Common
 
         public uint GetViewerCaps()
         {
-            return 0;
+            return 0x1000;
         }
 
     }
