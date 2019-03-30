@@ -99,6 +99,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsViewerUIGod { get; set; }
         public bool IsGod { get; set; }
 
+        private bool m_gotRegionHandShake = false;
+
         private PresenceType m_presenceType;
         public PresenceType PresenceType
         {
@@ -288,7 +290,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
         private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
-        private bool SentInitialData = false;
+        private bool NeedInitialData = false;
 
         private int m_userFlags;
         public int UserFlags
@@ -881,7 +883,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public bool IsChildAgent { get; set; }
-        public bool IsLoggingIn { get; set; }
 
         /// <summary>
         /// If the avatar is sitting, the local ID of the prim that it's sitting on.  If not sitting then zero.
@@ -1074,7 +1075,6 @@ namespace OpenSim.Region.Framework.Scenes
             AttachmentsSyncLock = new Object();
             AllowMovement = true;
             IsChildAgent = true;
-            IsLoggingIn = false;
             m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
             Animator = new ScenePresenceAnimator(this);
             Overrides = new MovementAnimationOverrides();
@@ -1307,7 +1307,6 @@ namespace OpenSim.Region.Framework.Scenes
                         ParentPart = null;
                         PrevSitOffset = Vector3.Zero;
                         HandleForceReleaseControls(ControllingClient, UUID); // needs testing
-                        IsLoggingIn = false;
                     }
                     else
                     {
@@ -1330,10 +1329,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                     ParentUUID = UUID.Zero;
-                }
-                else
-                {
-                    IsLoggingIn = false;
                 }
 
                 IsChildAgent = false;
@@ -2163,7 +2158,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 // recheck to reduce timing issues
-                ControllingClient.CheckViewerCaps();
+                ControllingClient.GetViewerCaps();
 
                 bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
 
@@ -2325,9 +2320,40 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-                if(!IsNPC)
+                //m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                if (!IsNPC)
                 {
-                    //m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    if (!string.IsNullOrEmpty(m_callbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Releasing {0} {1} with old callback to {2}",
+                            client.Name, client.AgentId, m_callbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                        m_callbackURI = null;
+                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    }
+                    else if (!string.IsNullOrEmpty(m_newCallbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
+                            client.Name, client.AgentId, m_newCallbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
+                        m_newCallbackURI = null;
+                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+                    }
+
                     if (openChildAgents)
                     {
                         // Create child agents in neighbouring regions
@@ -2360,36 +2386,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                    if (!string.IsNullOrEmpty(m_callbackURI))
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Releasing {0} {1} with old callback to {2}",
-                            client.Name, client.AgentId, m_callbackURI);
-
-                        UUID originID;
-
-                        lock (m_originRegionIDAccessLock)
-                            originID = m_originRegionID;
-
-                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
-                        m_callbackURI = null;
-                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
-                    else if (!string.IsNullOrEmpty(m_newCallbackURI))
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                            client.Name, client.AgentId, m_newCallbackURI);
-
-                        UUID originID;
-
-                        lock (m_originRegionIDAccessLock)
-                            originID = m_originRegionID;
-
-                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
-                        m_newCallbackURI = null;
-                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
 
                     if (openChildAgents)
                     {
@@ -3850,15 +3846,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {
-            if(IsChildAgent || IsDeleted)
+            if (IsDeleted)
+                return;
+
+            if (NeedInitialData)
+            {
+                SendInitialData();
+                return;
+            }
+
+            if (IsChildAgent || IsInTransit)
                 return;
 
             CheckForBorderCrossing();
 
-            if (IsInTransit || IsLoggingIn)
-                return;
-
-            if(m_movingToTarget)
+            if (m_movingToTarget)
             {
                 m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
@@ -4033,25 +4035,28 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
         }
 
-        public void RegionHandShakeReply (IClientAPI client, uint flags)
+        public void RegionHandShakeReply (IClientAPI client)
         {
             if(IsNPC)
                 return;
 
             lock (m_completeMovementLock)
             {
-                if (SentInitialData)
+                if(m_gotRegionHandShake)
                     return;
-                SentInitialData = true;
+                NeedInitialData = true;
             }
+        }
+
+        private void SendInitialData()
+        {
+            uint flags = ControllingClient.GetViewerCaps();
+            if((flags & 0x1000) == 0) // wait for seeds sending
+                return;
+
+            NeedInitialData = false;
 
             bool selfappearance = (flags & 4) != 0;
-            bool cacheCulling = (flags & 1) != 0;
-            bool cacheEmpty;
-            if(cacheCulling)
-                cacheEmpty = (flags & 2) != 0;
-            else
-                cacheEmpty = true;
 
             Util.FireAndForget(delegate
             {
@@ -4066,9 +4071,6 @@ namespace OpenSim.Region.Framework.Scenes
                     SendOtherAgentsAvatarFullToMe();
                 }
 
-                // recheck to reduce timing issues
-                ControllingClient.CheckViewerCaps();
-
                 if (m_scene.ObjectsCullingByDistance)
                 {
                     m_reprioritizationBusy = true;
@@ -4080,6 +4082,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_reprioritizationBusy = false;
                     return;
                 }
+
+                bool cacheCulling = (flags & 1) != 0;
+                bool cacheEmpty;
+                if (cacheCulling)
+                    cacheEmpty = (flags & 2) != 0;
+                else
+                    cacheEmpty = true;
 
                 EntityBase[] entities = Scene.Entities.GetEntities();
                 if(cacheEmpty)
@@ -6816,7 +6825,8 @@ namespace OpenSim.Region.Framework.Scenes
                 lock (m_completeMovementLock)
                 {
                     GodController.HasMovedAway();
-                    SentInitialData = false;
+                    NeedInitialData = false;
+                    m_gotRegionHandShake = false;
                 }
 
                 List<ScenePresence> allpresences = m_scene.GetScenePresences();

@@ -80,7 +80,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DeRezObject OnDeRezObject;
         public event RezRestoreToWorld OnRezRestoreToWorld;
         public event ModifyTerrain OnModifyTerrain;
-        public event Action<IClientAPI, uint> OnRegionHandShakeReply;
+        public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
@@ -8923,7 +8923,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandlerRegionHandshakeReply(IClientAPI sender, Packet Pack)
         {
-            Action<IClientAPI, uint> handlerRegionHandShakeReply = OnRegionHandShakeReply;
+            Action<IClientAPI> handlerRegionHandShakeReply = OnRegionHandShakeReply;
             if (handlerRegionHandShakeReply == null)
                 return true; // silence the warning
 
@@ -8936,7 +8936,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 m_viewerHandShakeFlags = 0;
 
-            handlerRegionHandShakeReply(this, m_viewerHandShakeFlags);
+            handlerRegionHandShakeReply(this);
 
             return true;
         }
@@ -15364,15 +15364,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return new HashSet<string>(m_inPacketsToDrop);
         }
 
-        public void CheckViewerCaps()
+        public uint GetViewerCaps()
         {
             m_SupportObjectAnimations = false;
+            uint ret;
+            if(m_supportViewerCache)
+                ret = m_viewerHandShakeFlags;
+            else
+                ret = m_viewerHandShakeFlags & 4;
+
             if (m_scene.CapsModule != null)
             {
                 Caps cap = m_scene.CapsModule.GetCapsForUser(CircuitCode);
-                if (cap != null && (cap.Flags & Caps.CapsFlags.ObjectAnim) != 0)
-                    m_SupportObjectAnimations = true;
+                if(cap != null)
+                {
+                    if((cap.Flags & Caps.CapsFlags.SentSeeds) != 0)
+                        ret |= 0x1000;
+                    if ((cap.Flags & Caps.CapsFlags.ObjectAnim) != 0)
+                    {
+                        m_SupportObjectAnimations = true;
+                       ret |= 0x2000;
+                    }
+                }
             }
+            return ret; // ???
         }
     }
 }

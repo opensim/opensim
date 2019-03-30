@@ -319,7 +319,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public event DeRezObject OnDeRezObject;
         public event RezRestoreToWorld OnRezRestoreToWorld;
-        public event Action<IClientAPI, uint> OnRegionHandShakeReply;
+        public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
         public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
@@ -928,7 +928,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
             if (OnRegionHandShakeReply != null)
             {
-                OnRegionHandShakeReply(this, 0);
+                OnRegionHandShakeReply(this);
             }
         }
 
@@ -1384,7 +1384,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return 0;
         }
 
-        public void CheckViewerCaps() { }
+        public uint GetViewerCaps()
+        {
+            return 0;
+        }
 
     }
 }

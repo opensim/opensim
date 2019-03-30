@@ -816,7 +816,7 @@ namespace OpenSim.Framework
         event TeleportCancel OnTeleportCancel;
         event DeRezObject OnDeRezObject;
         event RezRestoreToWorld OnRezRestoreToWorld;
-        event Action<IClientAPI, uint> OnRegionHandShakeReply;
+        event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
         event Action<IClientAPI, bool> OnCompleteMovementToRegion;
 
@@ -1511,6 +1511,6 @@ namespace OpenSim.Framework
         void SendAgentTerseUpdate(ISceneEntity presence);
 
         void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data);
-        void CheckViewerCaps();
+        uint GetViewerCaps();
     }
 }
