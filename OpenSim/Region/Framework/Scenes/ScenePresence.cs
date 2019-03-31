@@ -3994,6 +3994,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(m_gotRegionHandShake)
                     return;
+                m_gotRegionHandShake = true;
                 NeedInitialData = true;
             }
         }
