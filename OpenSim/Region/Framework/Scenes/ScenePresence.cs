@@ -4004,7 +4004,7 @@ namespace OpenSim.Region.Framework.Scenes
             if((flags & 0x1000) == 0) // wait for seeds sending
                 return;
 
-            lock (m_completeMovementLock)
+//            lock (m_completeMovementLock)
             {
                 if(!NeedInitialData)
                     return;
