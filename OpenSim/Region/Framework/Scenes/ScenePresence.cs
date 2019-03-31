@@ -2130,11 +2130,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     return; // how?
                 }
+
                 //m_log.DebugFormat("[CompleteMovement] MakeRootAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
                 if (!IsNPC)
                 {
-                    if (!haveGroupInformation && !IsNPC)
+                    if (!haveGroupInformation)
                     {
                         IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
                         if (gm != null)
@@ -2150,53 +2151,45 @@ namespace OpenSim.Region.Framework.Scenes
 
                         m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
                     }
-
                 }
-                // Tell the client that we're totally ready
-                ControllingClient.SendRegionHandshake();
-                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
-                //m_log.DebugFormat("[CompleteMovement] MoveAgentIntoRegion: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                // recheck to reduce timing issues
-                ControllingClient.GetViewerCaps();
+                if (m_teleportFlags > 0)
+                    gotCrossUpdate = false; // sanity check
+
+                if (!gotCrossUpdate)
+                    RotateToLookAt(look);
+
+                m_previusParcelHide = false;
+                m_previusParcelUUID = UUID.Zero;
+                m_currentParcelHide = false;
+                m_currentParcelUUID = UUID.Zero;
+                ParcelDwellTickMS = Util.GetTimeStampMS();
+
+                m_inTransit = false;
+
+                // Tell the client that we're ready to send rest
+                ControllingClient.SendRegionHandshake();
+
+                ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
                 bool isHGTP = (m_teleportFlags & TeleportFlags.ViaHGLogin) != 0;
 
-                int delayctnr = Util.EnvironmentTickCount();
-
-                if( ParentPart != null && !IsNPC && (crossingFlags & 0x08) != 0)
+                if(!IsNPC)
                 {
-                    ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
-                }
-
-                // verify baked textures and cache
-                bool cachedbaked = false;
-
-                if (IsNPC)
-                    cachedbaked = true;
-                else
-                {
-                    if (m_scene.AvatarFactory != null && !isHGTP)
-                        cachedbaked = m_scene.AvatarFactory.ValidateBakedTextureCache(this);
-
-                    // not sure we need this
-                    if (!cachedbaked)
+                    if( ParentPart != null && (crossingFlags & 0x08) != 0)
                     {
-                        if (m_scene.AvatarFactory != null)
+                        ParentPart.ParentGroup.SendFullAnimUpdateToClient(ControllingClient);
+                    }
+
+                    // verify baked textures and cache
+                    if (m_scene.AvatarFactory != null && !isHGTP)
+                    {
+                        if (!m_scene.AvatarFactory.ValidateBakedTextureCache(this))
                             m_scene.AvatarFactory.QueueAppearanceSave(UUID);
                     }
                 }
+
                 //m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
-                if(m_teleportFlags > 0)
-                {
-                    gotCrossUpdate = false; // sanity check
-                    if(Util.EnvironmentTickCountSubtract(delayctnr)< 500)
-                        Thread.Sleep(500);  // let viewers catch us
-                }
-
-                if(!gotCrossUpdate)
-                    RotateToLookAt(look);
 
                 // HG
                 if(isHGTP)
@@ -2205,16 +2198,10 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat("[CompleteMovement] HG");
                 }
 
-                m_previusParcelHide = false;
-                m_previusParcelUUID = UUID.Zero;
-                m_currentParcelHide = false;
-                m_currentParcelUUID = UUID.Zero;
-                ParcelDwellTickMS = Util.GetTimeStampMS();
-
-                if(!IsNPC)
+                if (!IsNPC)
                 {
                     GodController.SyncViewerState();
-                    
+
                     // start sending terrain patchs
                     if (!gotCrossUpdate)
                         Scene.SendLayerData(ControllingClient);
@@ -2229,11 +2216,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // send avatar object to all presences including us, so they cross it into region
                 // then hide if necessary
-
                 SendInitialAvatarDataToAllAgents(allpresences);
 
                 // send this look
-                SendAppearanceToAgent(this);
+                if (!IsNPC)
+                    SendAppearanceToAgent(this);
 
                 // send this animations
 
@@ -2246,12 +2233,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool haveAnims = (animIDs != null && animseqs != null && animsobjs != null);
 
-                if (haveAnims)
+                if (!IsNPC && haveAnims)
                     SendAnimPackToAgent(this, animIDs, animseqs, animsobjs);
-
-                // we should be able to receive updates, etc
-                // so release them
-                m_inTransit = false;
 
                 // send look and animations to others
                 // if not cached we send greys
@@ -2272,33 +2255,16 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 } // greys if
 
-                //m_log.DebugFormat("[CompleteMovement] ValidateAndSendAppearanceAndAgentData: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
                 // attachments
                 if (IsNPC || IsRealLogin(m_teleportFlags))
                 {
                     if (Scene.AttachmentsModule != null)
-                        // Util.FireAndForget(
-                        //      o =>
-                        //      {
-
-                        if (!IsNPC)
-                            Scene.AttachmentsModule.RezAttachments(this);
-                        else
-                            Util.FireAndForget(x =>
-                            {
-                                Scene.AttachmentsModule.RezAttachments(this);
-                            });
-
-                    // });
+                        Scene.AttachmentsModule.RezAttachments(this);
                 }
                 else
                 {
                     if (m_attachments.Count > 0)
                     {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Restarting scripts in attachments for {0} in {1}", Name, Scene.Name);
-
                         foreach (SceneObjectGroup sog in m_attachments)
                         {
                             sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
@@ -2320,7 +2286,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-                //m_log.DebugFormat("[CompleteMovement] attachments: {0}ms", Util.EnvironmentTickCountSubtract(ts));
+
                 if (!IsNPC)
                 {
                     if (!string.IsNullOrEmpty(m_callbackURI))
@@ -2371,8 +2337,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_childUpdatesBusy = false; // allow them
 
-                    //m_log.DebugFormat("[CompleteMovement] openChildAgents: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
                     // send the rest of the world
                     if (m_teleportFlags > 0 || m_currentParcelHide)
                         //SendInitialDataToMe();
@@ -2383,9 +2347,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // m_reprioritizationLastDrawDistance = DrawDistance;
                     // m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
                     // m_reprioritizationBusy = false;
-
-                    //m_log.DebugFormat("[CompleteMovement] SendInitialDataToMe: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
 
                     if (openChildAgents)
                     {
@@ -3718,10 +3679,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-//            m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick..
             sitAnimation = "SIT_GROUND_CONSTRAINED";
-//            Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-//            TriggerScenePresenceUpdated();
             SitGround = true;
             RemoveFromPhysicalScene();
 
@@ -3822,14 +3780,6 @@ namespace OpenSim.Region.Framework.Scenes
                     direc.Z = 0;
             }
 
-            //            m_log.DebugFormat("[SCENE PRESENCE]: Setting force to apply to {0} for {1}", direc, Name);
-/*
-            lock(m_forceToApplyLock)
-            {
-                m_forceToApply = direc;
-                m_forceToApplyValid = true;
-            }
-*/
             TargetVelocity = direc;
             Animator.UpdateMovementAnimations();
         }
@@ -4054,7 +4004,12 @@ namespace OpenSim.Region.Framework.Scenes
             if((flags & 0x1000) == 0) // wait for seeds sending
                 return;
 
-            NeedInitialData = false;
+            lock (m_completeMovementLock)
+            {
+                if(!NeedInitialData)
+                    return;
+                NeedInitialData = false;
+            }
 
             bool selfappearance = (flags & 4) != 0;
 
@@ -4327,19 +4282,6 @@ namespace OpenSim.Region.Framework.Scenes
             if(IsDeleted || !ControllingClient.IsActive)
                 return;
 
-/*
-            bool needsendinitial = false;
-            lock(m_completeMovementLock)
-            {
-                needsendinitial = SentInitialData;
-            }
-
-            if(needsendinitial)
-            {
-                SendInitialDataToMe();
-                return;
-            }
-*/
             if(m_reprioritizationBusy)
                 return;
 
