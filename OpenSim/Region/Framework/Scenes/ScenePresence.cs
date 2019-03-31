@@ -2259,7 +2259,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (IsNPC || IsRealLogin(m_teleportFlags))
                 {
                     if (Scene.AttachmentsModule != null)
-                        Scene.AttachmentsModule.RezAttachments(this);
+                     {
+                        if(IsNPC)
+                        {
+                            Util.FireAndForget(x =>
+                                {
+                                    Scene.AttachmentsModule.RezAttachments(this);
+                                });
+                        }
+                        else
+                            Scene.AttachmentsModule.RezAttachments(this);
+                    }
                 }
                 else
                 {
