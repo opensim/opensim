@@ -938,6 +938,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 m_Suspended = false;
                 m_DetachQuantum = 0;
+                m_DetachReady.Set();
                 if ((m_EventQueue != null) &&
                     (m_EventQueue.First != null) &&
                     (m_IState == XMRInstState.IDLE))
