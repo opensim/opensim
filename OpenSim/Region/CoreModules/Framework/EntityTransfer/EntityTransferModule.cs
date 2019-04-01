@@ -1190,12 +1190,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     Thread.Sleep(250);
                     if(sp.IsDeleted)
                         return;
+                    if(!sp.IsInTransit)
+                        break;
                 } while (--count > 0);
 
                 if (!sp.IsDeleted)
                 {
                     m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport timeout", sp.Name, Scene.Name);
+                        "[ENTITY TRANSFER MODULE]: Closing agent {0} in {1} after teleport {2}", sp.Name, Scene.Name, sp.IsInTransit?"timeout":"");
                     sp.Scene.CloseAgent(sp.UUID, false);
                 }
                 return;
@@ -2460,7 +2462,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if(sp == null || sp.IsDeleted || !sp.IsInTransit)
                 return;
 
-            Scene.CloseAgent(sp.UUID, false);
+            //Scene.CloseAgent(sp.UUID, false);
+            sp.IsInTransit = false;
             m_entityTransferStateMachine.ResetFromTransit(id); // this needs cleanup
             //m_entityTransferStateMachine.SetAgentArrivedAtDestination(id);
         }
