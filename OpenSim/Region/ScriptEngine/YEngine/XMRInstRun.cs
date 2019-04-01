@@ -80,10 +80,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         !m_HaveEventHandlers[(int)evc])  // don't bother if we don't have such a handler in any state
                     return;
 
-                 // Not running means we ignore any incoming events.
-                 // But queue if still constructing because m_Running is not yet valid.
+                // Not running means we ignore any incoming events.
+                // But queue if still constructing because m_Running is not yet valid.
+
                 if(!m_Running && !construct)
+                {
+                    if(m_IState == XMRInstState.SUSPENDED)
+                    {
+                        if(evc == ScriptEventCode.state_entry && m_EventQueue.Count == 0)
+                        {
+                            LinkedListNode<EventParams> llns = new LinkedListNode<EventParams>(evt);
+                            m_EventQueue.AddFirst(llns);
+                        }
+                    }
                     return;
+                }
 
                 if(m_minEventDelay != 0)
                 {
@@ -250,13 +261,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return XMRInstState.SUSPENDED;
             }
 
-             // Make sure we aren't being migrated in or out and prevent that 
-             // whilst we are in here.  If migration has it locked, don't call
-             // back right away, delay a bit so we don't get in infinite loop.
+            // Make sure we aren't being migrated in or out and prevent that 
+            // whilst we are in here.  If migration has it locked, don't call
+            // back right away, delay a bit so we don't get in infinite loop.
             m_RunOnePhase = "lock m_RunLock";
             if(!Monitor.TryEnter(m_RunLock))
             {
-                m_SleepUntil = now.AddMilliseconds(3);
+                m_SleepUntil = now.AddMilliseconds(15);
                 m_RunOnePhase = "return was locked";
                 return XMRInstState.ONSLEEPQ;
             }
@@ -271,6 +282,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     m_RunOnePhase = "runone saw it disposed";
                     return XMRInstState.DISPOSED;
+                }
+
+                if(!m_Running)
+                {
+                    m_RunOnePhase = "return is not running";
+                    return XMRInstState.SUSPENDED;
                 }
 
                  // Do some more of the last event if it didn't finish.
@@ -325,10 +342,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(m_EventQueue.First != null)
                         {
                             evt = m_EventQueue.First.Value;
-                            if(m_DetachQuantum > 0)
+                            evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+                            if (m_DetachQuantum > 0)
                             {
-                                evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                               evt.EventName);
                                 if(evc != ScriptEventCode.attach)
                                 {
                                      // This is the case where the attach event
@@ -343,8 +359,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 }
                             }
                             m_EventQueue.RemoveFirst();
-                            evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                               evt.EventName);
                             if((int)evc >= 0)
                                 m_EventCounts[(int)evc]--;
                         }
@@ -730,10 +744,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 case XMRInstState.DISPOSED:
                     return;
 
-                 // Some other thread is already resetting it, let it finish.
+                // Some other thread is already resetting it, let it finish.
 
                 case XMRInstState.RESETTING:
                     return;
+
+                case XMRInstState.SUSPENDED:
+                    break;
 
                 default:
                     throw new Exception("bad state");
@@ -744,16 +761,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 CheckRunLockInvariants(true);
 
-                 // No other thread should have transitioned it from RESETTING.
-                if(m_IState != XMRInstState.RESETTING)
-                    throw new Exception("bad state");
+                // No other thread should have transitioned it from RESETTING.
+                if (m_IState != XMRInstState.SUSPENDED)
+                {
+                    if (m_IState != XMRInstState.RESETTING)
+                        throw new Exception("bad state");
 
-                 // Mark it idle now so it can get queued to process new stuff.
-                m_IState = XMRInstState.IDLE;
+                    m_IState = XMRInstState.IDLE;
+                }
 
-                 // Reset everything and queue up default's start_entry() event.
+                // Reset everything and queue up default's start_entry() event.
                 ClearQueue();
                 ResetLocked("external Reset");
+
+                // Mark it idle now so it can get queued to process new stuff.
 
                 CheckRunLockInvariants(true);
             }

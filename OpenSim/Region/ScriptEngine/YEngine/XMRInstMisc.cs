@@ -363,8 +363,33 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 lock(m_QueueLock)
                 {
                     m_Running = value;
-                    if(!value)
+                    if(value)
                     {
+                        if (m_IState == XMRInstState.SUSPENDED && m_SuspendCount == 0)
+                        {
+                            if(eventCode != ScriptEventCode.None)
+                            {
+                                m_IState = XMRInstState.ONYIELDQ;
+                                m_Engine.QueueToYield(this);
+                            }
+                            else if ((m_EventQueue != null) && (m_EventQueue.First != null))
+                            {
+                                m_IState = XMRInstState.ONSTARTQ;
+                                m_Engine.QueueToStart(this);
+                            }
+                            else
+                                m_IState = XMRInstState.IDLE;
+                        }
+                        else if(m_SuspendCount != 0)
+                            m_IState = XMRInstState.IDLE;
+                    }
+                    else
+                    {
+                        if(m_IState == XMRInstState.ONSLEEPQ)
+                        {
+                            m_Engine.RemoveFromSleep(this);
+                            m_IState = XMRInstState.SUSPENDED;
+                        }
                         EmptyEventQueues();
                     }
                 }

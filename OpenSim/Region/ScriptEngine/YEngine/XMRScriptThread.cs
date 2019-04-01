@@ -166,7 +166,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                         if(inst == null)
                             break;
-                        if(inst.m_IState != XMRInstState.ONSTARTQ)
+                        if (inst.m_IState == XMRInstState.SUSPENDED)
+                            continue;
+                        if (inst.m_IState != XMRInstState.ONSTARTQ)
                             throw new Exception("bad state");
                         RunInstance(inst, tid);
                         if(m_SuspendScriptThreadFlag || m_Exiting)
@@ -187,7 +189,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                     if(inst != null)
                     {
-                        if(inst.m_IState != XMRInstState.ONYIELDQ)
+                        if (inst.m_IState == XMRInstState.SUSPENDED)
+                            continue;
+                        if (inst.m_IState != XMRInstState.ONYIELDQ)
                             throw new Exception("bad state");
                         RunInstance(inst, tid);
                         continue;
