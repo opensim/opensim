@@ -1283,7 +1283,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             m_log.DebugFormat(
                 "[ENTITY TRANSFER MODULE]: Set release callback URL to {0} in {1}",
-                agent.CallbackURI, region.RegionName);
+                agent.NewCallbackURI, region.RegionName);
         }
 
         /// <summary>
