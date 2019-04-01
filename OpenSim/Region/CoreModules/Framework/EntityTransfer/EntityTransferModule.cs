@@ -1163,7 +1163,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
+            //shut this up for now
+            m_entityTransferStateMachine.ResetFromTransit(sp.UUID);
+
+            //m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
 
             sp.HasMovedAway(!(OutSideViewRange || logout));
 
@@ -1181,6 +1184,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.CloseChildAgents(childRegionsToClose);
             }
 
+
             // if far jump we do need to close anyways
             if (NeedsClosing(reg, OutSideViewRange))
             {
@@ -1193,6 +1197,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     if(!sp.IsInTransit)
                         break;
                 } while (--count > 0);
+
 
                 if (!sp.IsDeleted)
                 {
@@ -2464,7 +2469,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             //Scene.CloseAgent(sp.UUID, false);
             sp.IsInTransit = false;
-            m_entityTransferStateMachine.ResetFromTransit(id); // this needs cleanup
             //m_entityTransferStateMachine.SetAgentArrivedAtDestination(id);
         }
 
