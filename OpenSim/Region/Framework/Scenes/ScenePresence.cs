@@ -290,7 +290,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
         private Vector3 m_lastSize = new Vector3(0.45f,0.6f,1.9f);
-        private bool NeedInitialData = false;
+        private int NeedInitialData = -1;
 
         private int m_userFlags;
         public int UserFlags
@@ -3809,7 +3809,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsDeleted)
                 return;
 
-            if (NeedInitialData)
+            if (NeedInitialData > 0)
             {
                 SendInitialData();
                 return;
@@ -4005,7 +4005,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_gotRegionHandShake)
                     return;
                 m_gotRegionHandShake = true;
-                NeedInitialData = true;
+                NeedInitialData = 1;
             }
         }
 
@@ -4017,15 +4017,21 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            lock (m_completeMovementLock)
             {
-                if(!NeedInitialData)
+                if(NeedInitialData < 0)
                     return;
-                NeedInitialData = false;
+
+                // give some extra time to make sure viewers did process seeds
+                if(++NeedInitialData < 4) // needs fix if update rate changes on heartbeat
+                    return;
             }
+
+            NeedInitialData = -1;
 
             bool selfappearance = (flags & 4) != 0;
 
             Util.FireAndForget(delegate
             {
+                m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", Scene.RegionInfo.RegionName, UUID);
                 if (m_teleportFlags <= 0)
                 {
                     Scene.SendLayerData(ControllingClient);
@@ -6778,7 +6784,7 @@ namespace OpenSim.Region.Framework.Scenes
                 lock (m_completeMovementLock)
                 {
                     GodController.HasMovedAway();
-                    NeedInitialData = false;
+                    NeedInitialData = -1;
                     m_gotRegionHandShake = false;
                 }
 
