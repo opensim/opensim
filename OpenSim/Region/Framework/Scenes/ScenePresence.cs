@@ -2168,6 +2168,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = false;
 
                 // Tell the client that we're ready to send rest
+                m_gotRegionHandShake = false; // allow it
                 ControllingClient.SendRegionHandshake();
 
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
@@ -2299,54 +2300,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsNPC)
                 {
-                    if (!string.IsNullOrEmpty(m_callbackURI))
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Releasing {0} {1} with old callback to {2}",
-                            client.Name, client.AgentId, m_callbackURI);
-
-                        UUID originID;
-
-                        lock (m_originRegionIDAccessLock)
-                            originID = m_originRegionID;
-
-                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
-                        m_callbackURI = null;
-                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
-                    else if (!string.IsNullOrEmpty(m_newCallbackURI))
-                    {
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Releasing {0} {1} with callback to {2}",
-                            client.Name, client.AgentId, m_newCallbackURI);
-
-                        UUID originID;
-
-                        lock (m_originRegionIDAccessLock)
-                            originID = m_originRegionID;
-
-                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
-                        m_newCallbackURI = null;
-                        //m_log.DebugFormat("[CompleteMovement] ReleaseAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-                    }
-
-                    if (openChildAgents)
-                    {
-                        // Create child agents in neighbouring regions
-                        IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                        if (m_agentTransfer != null)
-                        {
-                            m_agentTransfer.EnableChildAgents(this);
-                        }
-                    }
-
-                    m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
-                    m_lastChildAgentUpdatePosition = AbsolutePosition;
-                    m_lastChildAgentUpdateDrawDistance = DrawDistance;
-
-                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
-                    m_childUpdatesBusy = false; // allow them
-
                     // send the rest of the world
                     if (m_teleportFlags > 0 || m_currentParcelHide)
                         //SendInitialDataToMe();
@@ -4029,8 +3982,61 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool selfappearance = (flags & 4) != 0;
 
+            // this should enqueued on the client processing job to save threads
             Util.FireAndForget(delegate
             {
+                if(!IsChildAgent)
+                {
+                    // close v1 sender region obsolete
+                    if (!string.IsNullOrEmpty(m_callbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE({0})]: Releasing {1} {2} with old callback to {3}",
+                            Scene.RegionInfo.RegionName, Name, UUID, m_callbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
+                        m_callbackURI = null;
+                        NeedInitialData = 4;
+                        return;
+                    }
+                    // v0.7 close HG sender region
+                    if (!string.IsNullOrEmpty(m_newCallbackURI))
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE({0})]: Releasing {1} {2} with callback to {3}",
+                            Scene.RegionInfo.RegionName, Name, UUID, m_newCallbackURI);
+
+                        UUID originID;
+
+                        lock (m_originRegionIDAccessLock)
+                            originID = m_originRegionID;
+
+                        Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
+                        m_newCallbackURI = null;
+                        NeedInitialData = 4;
+                        return;
+                    }
+
+                    // Create child agents in neighbouring regions
+                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                    if (m_agentTransfer != null)
+                    {
+                        m_agentTransfer.EnableChildAgents(this);
+                    }
+
+                    m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
+                    m_lastChildAgentUpdatePosition = AbsolutePosition;
+                    m_lastChildAgentUpdateDrawDistance = DrawDistance;
+
+                    m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
+                    m_childUpdatesBusy = false; // allow them
+                }
+
                 m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", Scene.RegionInfo.RegionName, UUID);
                 if (m_teleportFlags <= 0)
                 {
@@ -4052,46 +4058,46 @@ namespace OpenSim.Region.Framework.Scenes
                     ControllingClient.ReprioritizeUpdates();
                     m_reprioritizationLastTime = Util.EnvironmentTickCount();
                     m_reprioritizationBusy = false;
-                    return;
-                }
-
-                bool cacheCulling = (flags & 1) != 0;
-                bool cacheEmpty;
-                if (cacheCulling)
-                    cacheEmpty = (flags & 2) != 0;
-                else
-                    cacheEmpty = true;
-
-                EntityBase[] entities = Scene.Entities.GetEntities();
-                if(cacheEmpty)
-                {
-                    foreach (EntityBase e in entities)
-                    {
-                        if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
-                            ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
-                    }
                 }
                 else
                 {
-                    foreach (EntityBase e in entities)
+                    bool cacheCulling = (flags & 1) != 0;
+                    bool cacheEmpty;
+                    if (cacheCulling)
+                        cacheEmpty = (flags & 2) != 0;
+                    else
+                        cacheEmpty = true;
+
+                    EntityBase[] entities = Scene.Entities.GetEntities();
+                    if(cacheEmpty)
                     {
-                        if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                        foreach (EntityBase e in entities)
                         {
-                            SceneObjectGroup grp = e as SceneObjectGroup;
-                            if(grp.IsViewerCachable)
-                                grp.SendUpdateProbes(ControllingClient);
-                            else
-                               grp.SendFullAnimUpdateToClient(ControllingClient);
+                            if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                                ((SceneObjectGroup)e).SendFullAnimUpdateToClient(ControllingClient);
                         }
                     }
+                    else
+                    {
+                        foreach (EntityBase e in entities)
+                        {
+                            if (e != null && e is SceneObjectGroup && !((SceneObjectGroup)e).IsAttachment)
+                            {
+                                SceneObjectGroup grp = e as SceneObjectGroup;
+                                if(grp.IsViewerCachable)
+                                    grp.SendUpdateProbes(ControllingClient);
+                                else
+                                   grp.SendFullAnimUpdateToClient(ControllingClient);
+                            }
+                        }
+                    }
+
+                    m_reprioritizationLastPosition = AbsolutePosition;
+                    m_reprioritizationLastDrawDistance = DrawDistance;
+                    m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
+
+                    m_reprioritizationBusy = false;
                 }
-
-                m_reprioritizationLastPosition = AbsolutePosition;
-                m_reprioritizationLastDrawDistance = DrawDistance;
-                m_reprioritizationLastTime = Util.EnvironmentTickCount() + 15000; // delay it
-
-                m_reprioritizationBusy = false;
-
             });
 
         }
