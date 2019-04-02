@@ -212,6 +212,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = new Vector3(30, 31, 32);
 
+            sceneA.Update(4);
+            sceneB.Update(4);
+
             List<TestClient> destinationTestClients = new List<TestClient>();
             EntityTransferHelpers.SetupSendRegionTeleportTriggersDestinationClientCreateAndCompleteMovement(
                 (TestClient)sp.ControllingClient, destinationTestClients);
@@ -224,11 +227,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 (uint)TeleportFlags.ViaLocation);
 
             // Assert.That(sceneA.GetScenePresence(userId), Is.Null);
+            sceneA.Update(4);
+            sceneB.Update(4);
 
             ScenePresence sceneBSp = sceneB.GetScenePresence(userId);
             Assert.That(sceneBSp, Is.Not.Null);
             Assert.That(sceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
-            Assert.That(sceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+            Assert.That(sceneBSp.AbsolutePosition.X, Is.EqualTo(teleportPosition.X));
+            Assert.That(sceneBSp.AbsolutePosition.Y, Is.EqualTo(teleportPosition.Y));
 
             //Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(0));
             //Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
@@ -239,7 +245,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Lookat is sent to the client only - sp.Lookat does not yield the same thing (calculation from camera
             // position instead).
-//            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
+            //            Assert.That(sp.Lookat, Is.EqualTo(teleportLookAt));
         }
 
         /// <summary>
@@ -310,7 +316,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sceneASp = sceneA.GetScenePresence(userId);
             Assert.That(sceneASp, Is.Not.Null);
             Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
-            Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+            Assert.That(sceneASp.AbsolutePosition.X, Is.EqualTo(preTeleportPosition.X));
+            Assert.That(sceneASp.AbsolutePosition.Y, Is.EqualTo(preTeleportPosition.Y));
 
             Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
             Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
@@ -369,6 +376,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = preTeleportPosition;
 
+            sceneA.Update(4);
+            sceneB.Update(4);
+
             // Make sceneB refuse CreateAgent
             sceneB.LoginsEnabled = false;
 
@@ -379,14 +389,18 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
-//            ((TestClient)sp.ControllingClient).CompleteTeleportClientSide();
+            //            ((TestClient)sp.ControllingClient).CompleteTeleportClientSide();
+
+            sceneA.Update(4);
+            sceneB.Update(4);
 
             Assert.That(sceneB.GetScenePresence(userId), Is.Null);
 
             ScenePresence sceneASp = sceneA.GetScenePresence(userId);
             Assert.That(sceneASp, Is.Not.Null);
             Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
-            Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+            Assert.That(sceneASp.AbsolutePosition.X, Is.EqualTo(preTeleportPosition.X));
+            Assert.That(sceneASp.AbsolutePosition.Y, Is.EqualTo(preTeleportPosition.Y));
 
             Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
             Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
@@ -458,6 +472,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence sp = SceneHelpers.AddScenePresence(sceneA, userId);
             sp.AbsolutePosition = preTeleportPosition;
 
+            sceneA.Update(4);
+            sceneB.Update(4);
+
             sceneA.RequestTeleportLocation(
                 sp.ControllingClient,
                 sceneB.RegionInfo.RegionHandle,
@@ -468,13 +485,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // FIXME: Not setting up InformClientOfNeighbour on the TestClient means that it does not initiate
             // communication with the destination region.  But this is a very non-obvious way of doing it - really we
             // should be forced to expicitly set this up.
+            sceneA.Update(4);
+            sceneB.Update(4);
 
             Assert.That(sceneB.GetScenePresence(userId), Is.Null);
 
             ScenePresence sceneASp = sceneA.GetScenePresence(userId);
             Assert.That(sceneASp, Is.Not.Null);
             Assert.That(sceneASp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneA.RegionInfo.RegionName));
-            Assert.That(sceneASp.AbsolutePosition, Is.EqualTo(preTeleportPosition));
+            Assert.That(sceneASp.AbsolutePosition.X, Is.EqualTo(preTeleportPosition.X));
+            Assert.That(sceneASp.AbsolutePosition.Y, Is.EqualTo(preTeleportPosition.Y));
 
             Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
             Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
@@ -614,6 +634,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ScenePresence beforeSceneASp = SceneHelpers.AddScenePresence(sceneA, tc, acd);
             beforeSceneASp.AbsolutePosition = new Vector3(30, 31, 32);
 
+            sceneA.Update(4);
+            sceneB.Update(4);
+
             Assert.That(beforeSceneASp, Is.Not.Null);
             Assert.That(beforeSceneASp.IsChildAgent, Is.False);
 
@@ -638,6 +661,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 teleportLookAt,
                 (uint)TeleportFlags.ViaLocation);
 
+            sceneA.Update(4);
+            sceneB.Update(4);
+
             ScenePresence afterSceneASp = sceneA.GetScenePresence(userId);
             Assert.That(afterSceneASp, Is.Not.Null);
             Assert.That(afterSceneASp.IsChildAgent, Is.True);
@@ -646,7 +672,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(afterSceneBSp, Is.Not.Null);
             Assert.That(afterSceneBSp.IsChildAgent, Is.False);
             Assert.That(afterSceneBSp.Scene.RegionInfo.RegionName, Is.EqualTo(sceneB.RegionInfo.RegionName));
-            Assert.That(afterSceneBSp.AbsolutePosition, Is.EqualTo(teleportPosition));
+            Assert.That(afterSceneBSp.AbsolutePosition.X, Is.EqualTo(teleportPosition.X));
+            Assert.That(afterSceneBSp.AbsolutePosition.Y, Is.EqualTo(teleportPosition.Y));
 
             Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(0));
             Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(1));
