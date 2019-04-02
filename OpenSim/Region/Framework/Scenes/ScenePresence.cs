@@ -2193,9 +2193,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                //m_log.DebugFormat("[CompleteMovement] Baked check: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
-                // HG
                 if(isHGTP)
                 {
 //                    ControllingClient.SendNameReply(m_uuid, Firstname, Lastname);
@@ -2244,6 +2241,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // if not cached we send greys
                 // uncomented if will wait till avatar does baking
                 //if (cachedbaked)
+
                 {
                     foreach (ScenePresence p in allpresences)
                     {
@@ -2257,7 +2255,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (haveAnims)
                             SendAnimPackToAgentNF(p, animIDs, animseqs, animsobjs);
                     }
-                } // greys if
+                }
 
                 // attachments
                 if (IsNPC || IsRealLogin(m_teleportFlags))
@@ -2305,6 +2303,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if(gotCrossUpdate)
                     {
+                        SendOtherAgentsAvatarFullToMe();
+
                         // Create child agents in neighbouring regions
                         IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                         if (m_agentTransfer != null)
@@ -2318,11 +2318,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                         m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                         m_childUpdatesBusy = false; // allow them
+
                     }
+
                     // send the rest of the world
-                    if (m_teleportFlags > 0 || m_currentParcelHide)
+                    //if (m_teleportFlags > 0 || m_currentParcelHide)
                         //SendInitialDataToMe();
-                        SendOtherAgentsAvatarFullToMe();
+                        //SendOtherAgentsAvatarFullToMe();
 
                     // priority uses avatar position only
                     // m_reprioritizationLastPosition = AbsolutePosition;
@@ -4064,9 +4066,9 @@ namespace OpenSim.Region.Framework.Scenes
                     ILandChannel landch = m_scene.LandChannel;
                     if (landch != null)
                         landch.sendClientInitialLandInfo(ControllingClient, true);
-
-                    SendOtherAgentsAvatarFullToMe();
                 }
+
+                SendOtherAgentsAvatarFullToMe();
 
                 if (m_scene.ObjectsCullingByDistance)
                 {
