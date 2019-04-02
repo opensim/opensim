@@ -2168,8 +2168,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inTransit = false;
 
                 // Tell the client that we're ready to send rest
-                m_gotRegionHandShake = false; // allow it
-                ControllingClient.SendRegionHandshake();
+                if (!gotCrossUpdate)
+                {
+                    m_gotRegionHandShake = false; // allow it if not a crossing
+                    ControllingClient.SendRegionHandshake();
+                }
 
                 ControllingClient.MoveAgentIntoRegion(m_scene.RegionInfo, AbsolutePosition, look);
 
@@ -2300,6 +2303,22 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!IsNPC)
                 {
+                    if(gotCrossUpdate)
+                    {
+                        // Create child agents in neighbouring regions
+                        IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
+                        if (m_agentTransfer != null)
+                        {
+                            m_agentTransfer.EnableChildAgents(this);
+                        }
+
+                        m_lastChildUpdatesTime = Util.EnvironmentTickCount() + 10000;
+                        m_lastChildAgentUpdatePosition = AbsolutePosition;
+                        m_lastChildAgentUpdateDrawDistance = DrawDistance;
+
+                        m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
+                        m_childUpdatesBusy = false; // allow them
+                    }
                     // send the rest of the world
                     if (m_teleportFlags > 0 || m_currentParcelHide)
                         //SendInitialDataToMe();
@@ -4001,8 +4020,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                         m_callbackURI = null;
-                        NeedInitialData = 4;
-                        return;
+                        //NeedInitialData = 4;
+                        //return;
                     }
                     // v0.7 close HG sender region
                     if (!string.IsNullOrEmpty(m_newCallbackURI))
@@ -4018,8 +4037,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
                         m_newCallbackURI = null;
-                        NeedInitialData = 4;
-                        return;
+                        //NeedInitialData = 4;
+                        //return;
                     }
 
                     // Create child agents in neighbouring regions
