@@ -425,31 +425,24 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     return false; // no mesh data in asset
 
                 OSD decodedMeshOsd = new OSD();
-                byte[] meshBytes = new byte[physSize];
-                System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
-
                 try
                 {
-                    using (MemoryStream inMs = new MemoryStream(meshBytes))
+                    using (MemoryStream outMs = new MemoryStream(4 * physSize))
                     {
-                        using (MemoryStream outMs = new MemoryStream())
+                        using (MemoryStream inMs = new MemoryStream(primShape.SculptData, physOffset, physSize))
                         {
                             using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
                             {
-                                byte[] readBuffer = new byte[2048];
+                                byte[] readBuffer = new byte[8192];
                                 inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
                                 int readLen = 0;
 
                                 while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
                                     outMs.Write(readBuffer, 0, readLen);
-
-                                outMs.Seek(0, SeekOrigin.Begin);
-
-                                byte[] decompressedBuf = outMs.GetBuffer();
-
-                                decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
                             }
                         }
+                        outMs.Seek(0, SeekOrigin.Begin);
+                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);
                     }
                 }
                 catch (Exception e)

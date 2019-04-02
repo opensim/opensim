@@ -563,13 +563,11 @@ namespace OpenSim.Region.ClientStack.Linden
             nsides = 0;
 
             OSD decodedMeshOsd = new OSD();
-            byte[] meshBytes = new byte[size];
-            System.Buffer.BlockCopy(data, offset, meshBytes, 0, size);
             try
             {
-                using (MemoryStream inMs = new MemoryStream(meshBytes))
+                using (MemoryStream outMs = new MemoryStream())
                 {
-                    using (MemoryStream outMs = new MemoryStream())
+                    using (MemoryStream inMs = new MemoryStream(data, offset, size))
                     {
                         using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
                         {
@@ -579,13 +577,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
                             while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
                                 outMs.Write(readBuffer, 0, readLen);
-
-                            outMs.Seek(0, SeekOrigin.Begin);
-
-                            byte[] decompressedBuf = outMs.GetBuffer();
-                            decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
                         }
                     }
+                    outMs.Seek(0, SeekOrigin.Begin);
+                    decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);
                 }
             }
             catch
@@ -630,29 +625,24 @@ namespace OpenSim.Region.ClientStack.Linden
             nhulls = 1;
 
             OSD decodedMeshOsd = new OSD();
-            byte[] meshBytes = new byte[size];
-            System.Buffer.BlockCopy(data, offset, meshBytes, 0, size);
             try
             {
-                using (MemoryStream inMs = new MemoryStream(meshBytes))
+                using (MemoryStream outMs = new MemoryStream(4 * size))
                 {
-                    using (MemoryStream outMs = new MemoryStream())
+                    using (MemoryStream inMs = new MemoryStream(data, offset, size))
                     {
                         using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
                         {
-                            byte[] readBuffer = new byte[2048];
+                            byte[] readBuffer = new byte[8192];
                             inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
                             int readLen = 0;
 
                             while ((readLen = decompressionStream.Read(readBuffer, 0, readBuffer.Length)) > 0)
                                 outMs.Write(readBuffer, 0, readLen);
-
-                            outMs.Seek(0, SeekOrigin.Begin);
-
-                            byte[] decompressedBuf = outMs.GetBuffer();
-                            decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
                         }
                     }
+                    outMs.Seek(0, SeekOrigin.Begin);
+                    decodedMeshOsd = OSDParser.DeserializeLLSDBinary(outMs);
                 }
             }
             catch
