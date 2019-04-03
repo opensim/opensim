@@ -562,6 +562,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public virtual UUID AgentId
         {
             get { return m_uuid; }

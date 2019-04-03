@@ -369,6 +369,8 @@ namespace OpenSim.Tests.Common
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public virtual UUID AgentId
         {
             get { return m_agentId; }

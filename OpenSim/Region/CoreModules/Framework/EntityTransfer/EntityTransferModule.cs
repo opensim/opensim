@@ -1946,6 +1946,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = sp.AbsolutePosition + CalculateOffset(sp, region);
+            agent.startfar = sp.DrawDistance;
             agent.child = true;
             agent.Appearance = new AvatarAppearance();
             agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
@@ -2105,7 +2106,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.child = true;
                 agent.Appearance = new AvatarAppearance();
                 agent.Appearance.AvatarHeight = sp.Appearance.AvatarHeight;
-
+                agent.startfar = sp.DrawDistance;
                 if (currentAgentCircuit != null)
                 {
                     agent.ServiceURLs = currentAgentCircuit.ServiceURLs;

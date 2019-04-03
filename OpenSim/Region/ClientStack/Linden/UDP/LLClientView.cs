@@ -408,6 +408,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_startpos; }
             set { m_startpos = value; }
         }
+        public float StartFar { get; set; }
+
         public bool DeliverPackets
         {
             get { return m_deliverPackets; }
@@ -540,6 +542,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_firstName = sessionInfo.LoginInfo.First;
             m_lastName = sessionInfo.LoginInfo.Last;
             m_startpos = sessionInfo.LoginInfo.StartPos;
+            StartFar = sessionInfo.LoginInfo.StartFar;
 
             m_udpServer = udpServer;
             m_udpClient = udpClient;

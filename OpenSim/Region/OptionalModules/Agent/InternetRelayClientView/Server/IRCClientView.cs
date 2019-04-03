@@ -524,6 +524,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public bool TryGet<T>(out T iface)
         {
             iface = default(T);

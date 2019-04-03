@@ -707,6 +707,7 @@ namespace OpenSim.Framework
     public interface IClientAPI
     {
         Vector3 StartPos { get; set; }
+        float StartFar { get; set; }
 
         UUID AgentId { get; }
 
