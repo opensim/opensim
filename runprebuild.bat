@@ -5,21 +5,26 @@ bin\Prebuild.exe /target vs2015
 setlocal ENABLEEXTENSIONS
 set VALUE_NAME=MSBuildToolsPath
 
+rem Try to find VS2019
+for %%e in (Enterprise Professional Community) do (
+    if exist "%PROGRAMS%\Microsoft Visual Studio\2019\%%e\MSBuild\Current\Bin\MSBuild.exe" (
+
+        set ValueValue="%PROGRAMS%\Microsoft Visual Studio\2019\%%e\MSBuild\Current\Bin\"
+		goto :found
+    )
+)
 
 rem try find vs2017
 if "%PROCESSOR_ARCHITECTURE%"=="x86" set PROGRAMS=%ProgramFiles%
 if defined ProgramFiles(x86) set PROGRAMS=%ProgramFiles(x86)%
 
 for %%e in (Enterprise Professional Community) do (
-
     if exist "%PROGRAMS%\Microsoft Visual Studio\2017\%%e\MSBuild\15.0\Bin\MSBuild.exe" (
 
         set ValueValue="%PROGRAMS%\Microsoft Visual Studio\2017\%%e\MSBuild\15.0\Bin\"
 		goto :found
     )
-
 )
-
 
 rem We have to use grep or find to locate the correct line, because reg query spits
 rem out 4 lines before Windows 7 but 2 lines after Windows 7.
