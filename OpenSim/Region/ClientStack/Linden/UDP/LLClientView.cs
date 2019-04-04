@@ -929,7 +929,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //BillableFactor
             zc.AddFloat(es.BillableFactor);
             //CacheID
-            zc.AddUUID(regionInfo.RegionID); // needs review when we actuall support cache
+            zc.AddUUID(regionInfo.CacheID); // needs review when we actuall support cache
             //TerrainBase0
             //TerrainBase1
             //TerrainBase2
