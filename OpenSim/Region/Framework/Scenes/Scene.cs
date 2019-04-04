@@ -1286,7 +1286,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-
                 if (isNeighborRegion(otherRegion))
                 {
                     // Let the grid service module know, so this can be cached
@@ -1296,9 +1295,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
                         {
-                            //agent.ControllingClient.new
-                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-
                             List<ulong> old = new List<ulong>();
                             old.Add(otherRegion.RegionHandle);
                             agent.DropOldNeighbours(old);
@@ -1324,7 +1320,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool isNeighborRegion(GridRegion otherRegion)
         {
-            int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX; ;
+            int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX;
 
             if (tmp < -otherRegion.RegionSizeX && tmp > RegionInfo.RegionSizeX)
                 return false;
