@@ -4415,10 +4415,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (tdiff < CHILDUPDATES_TIME)
                 return;
 
+            bool viewchanged = Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f;
+
             IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-            float dx = pos.X - m_lastChildAgentCheckPosition.Y;
+            float dx = pos.X - m_lastChildAgentCheckPosition.X;
             float dy = pos.Y - m_lastChildAgentCheckPosition.Y;
-            if ((m_agentTransfer != null) && ((dx * dx + dy *dy) > CHILDAGENTSCHECK_MOVEMENT))
+            if ((m_agentTransfer != null) && (viewchanged || ((dx * dx + dy * dy) > CHILDAGENTSCHECK_MOVEMENT)))
             {
                 m_childUpdatesBusy = true;
                 m_lastChildAgentCheckPosition = pos;
@@ -4445,7 +4447,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_lastChildAgentUpdateGodLevel != GodController.ViwerUIGodLevel)
                         doUpdate = true;
 
-                    bool viewchanged = Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f;
                     if (!viewchanged)
                         doUpdate = true;
 

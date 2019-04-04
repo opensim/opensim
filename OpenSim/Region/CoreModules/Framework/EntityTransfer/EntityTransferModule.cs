@@ -1785,11 +1785,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 cAgent.Position = pos;
                 cAgent.ChildrenCapSeeds = agent.KnownRegions;
 
-                childRegionsToClose = agent.GetChildAgentsToClose(neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
-                if(cAgent.ChildrenCapSeeds != null)
+                if(ctx.OutboundVersion < 0.7f)
                 {
-                    foreach(ulong regh in childRegionsToClose)
-                        cAgent.ChildrenCapSeeds.Remove(regh);
+                    childRegionsToClose = agent.GetChildAgentsToClose(neighbourRegion.RegionHandle, neighbourRegion.RegionSizeX, neighbourRegion.RegionSizeY);
+                    if(cAgent.ChildrenCapSeeds != null)
+                    {
+                        foreach(ulong regh in childRegionsToClose)
+                            cAgent.ChildrenCapSeeds.Remove(regh);
+                    }
                 }
 
                 if (isFlying)
