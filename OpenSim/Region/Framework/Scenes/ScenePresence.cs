@@ -342,6 +342,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastChildUpdatesTime;
         private int m_lastChildAgentUpdateGodLevel;
         private float m_lastChildAgentUpdateDrawDistance;
+        private float m_lastRegionsDrawDistance;
         private Vector3 m_lastChildAgentUpdatePosition;
         private Vector3 m_lastChildAgentCheckPosition;
         //        private Vector3 m_lastChildAgentUpdateCamPosition;
@@ -2325,6 +2326,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_lastChildAgentUpdatePosition = AbsolutePosition;
                         m_lastChildAgentCheckPosition = m_lastChildAgentUpdatePosition;
                         m_lastChildAgentUpdateDrawDistance = DrawDistance;
+                        m_lastRegionsDrawDistance = RegionViewDistance;
 
                         m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                         m_childUpdatesBusy = false; // allow them
@@ -4138,6 +4140,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastChildAgentUpdatePosition = AbsolutePosition;
                     m_lastChildAgentCheckPosition = m_lastChildAgentUpdatePosition;
                     m_lastChildAgentUpdateDrawDistance = DrawDistance;
+                    m_lastRegionsDrawDistance = RegionViewDistance;
 
                     m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                     m_childUpdatesBusy = false; // allow them
@@ -4422,7 +4425,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (tdiff < CHILDUPDATES_TIME)
                 return;
 
-            bool viewchanged = Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f;
+            bool viewchanged = Math.Abs(RegionViewDistance - m_lastRegionsDrawDistance) > 32.0f;
 
             IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
             float dx = pos.X - m_lastChildAgentCheckPosition.X;
@@ -4434,6 +4437,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_lastChildAgentUpdatePosition = pos;
                 m_lastChildAgentUpdateGodLevel = GodController.ViwerUIGodLevel;
                 m_lastChildAgentUpdateDrawDistance = DrawDistance;
+                m_lastRegionsDrawDistance = RegionViewDistance;
                 // m_lastChildAgentUpdateCamPosition = CameraPosition;
 
                 Util.FireAndForget(
@@ -4454,7 +4458,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_lastChildAgentUpdateGodLevel != GodController.ViwerUIGodLevel)
                         doUpdate = true;
 
-                    if (!viewchanged)
+                    if (Math.Abs(DrawDistance - m_lastChildAgentUpdateDrawDistance) > 32.0f)
                         doUpdate = true;
 
                     if(!doUpdate)
