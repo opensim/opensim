@@ -4210,8 +4210,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_lastSize = Appearance.AvatarSize;
             int count = 0;
+            SceneObjectPart sitroot = null;
+            if (ParentID != 0 && ParentPart != null) //  we need to send the sitting root prim
+            {
+                sitroot = ParentPart.ParentGroup.RootPart;
+            }
             foreach (ScenePresence p in presences)
             {
+                if (sitroot != null) //  we need to send the sitting root prim
+                {
+                    p.ControllingClient.SendEntityFullUpdateImmediate(ParentPart.ParentGroup.RootPart);
+                }
                 p.ControllingClient.SendEntityFullUpdateImmediate(this);
                 if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
@@ -4225,6 +4234,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendInitialAvatarDataToAgent(ScenePresence p)
         {
+            if(ParentID != 0 && ParentPart != null) //  we need to send the sitting root prim
+            {
+                p.ControllingClient.SendEntityFullUpdateImmediate(ParentPart.ParentGroup.RootPart);
+            }
             p.ControllingClient.SendEntityFullUpdateImmediate(this);
             if (p != this && ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     // either just kill the object
