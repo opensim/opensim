@@ -3072,10 +3072,14 @@ namespace OpenSim.Region.Framework.Scenes
             Vector2 regionSize;
             regionSize = new Vector2(m_scene.RegionInfo.RegionSizeX, m_scene.RegionInfo.RegionSizeY);
 
-            if (pos.X < 0 || pos.X >= regionSize.X
-                || pos.Y < 0 || pos.Y >= regionSize.Y
-                || pos.Z < 0)
-                return;
+            if (pos.X < 0.5f)
+                pos.X = 0.5f;
+            else if (pos.X > regionSize.X - 0.5f)
+                pos.X = regionSize.X - 0.5f;
+            if (pos.Y < 0.5f)
+                pos.Y = 0.5f;
+            else if (pos.Y > regionSize.Y - 0.5f)
+                pos.Y = regionSize.Y - 0.5f;
 
             float terrainHeight;
             Scene targetScene = m_scene;
@@ -4404,6 +4408,9 @@ namespace OpenSim.Region.Framework.Scenes
                 posLastSignificantMove = pos;
                 m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
+
+            if(IsNPC)
+                return;
 
             // updates priority recalc
             checkRePrioritization();
@@ -6720,7 +6727,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
 
-                            // only those on previus parcel need receive kills
+                            // only those on previous parcel need receive kills
                             if (previusParcelID == p.currentParcelUUID)
                             {
                                 if(!p.IsViewerUIGod)

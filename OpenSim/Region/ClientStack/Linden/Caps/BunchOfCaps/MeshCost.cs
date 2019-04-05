@@ -724,7 +724,7 @@ namespace OpenSim.Region.ClientStack.Linden
             int m = curCost.medLODSize - 384;
             int h = curCost.highLODSize - 384;
 
-            // use previus higher LOD size on missing ones
+            // use previous higher LOD size on missing ones
             if (m <= 0)
                 m = h;
             if (l <= 0)

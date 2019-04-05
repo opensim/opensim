@@ -1603,7 +1603,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                Vector3 a = _velocity; // previus velocity
+                Vector3 a = _velocity; // previous velocity
                 SetSmooth(ref _velocity,ref vel,2);
                 a = (_velocity - a) * invtimeStep;
                 SetSmooth(ref _acceleration,ref a,2);

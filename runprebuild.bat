@@ -54,6 +54,8 @@ goto :done
 :found
     @echo Found msbuild at %ValueValue%
     @echo Creating compile.bat
+rem To compile in debug mode
     @echo %ValueValue% opensim.sln > compile.bat
-
+rem To compile in release mode comment line (add rem to start) above and uncomment next (remove rem)
+rem @echo %ValueValue% /P:Config=Release opensim.sln > compile.bat
 :done

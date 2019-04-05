@@ -505,7 +505,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     case FileAgentInventoryState.processRequest:
                     case FileAgentInventoryState.processUpload:
                         LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                        resperror.message = "Uploader busy processing previus request";
+                        resperror.message = "Uploader busy processing previous request";
                         resperror.identifier = UUID.Zero;
 
                         LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
