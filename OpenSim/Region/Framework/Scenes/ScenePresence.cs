@@ -1651,8 +1651,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_previusParcelUUID = UUID.Zero;
             m_currentParcelHide = false;
             m_currentParcelUUID = UUID.Zero;
-            // FIXME: Set RegionHandle to the region handle of the scene this agent is moving into
-
+ 
             CollisionPlane = Vector4.UnitW;
 
             // we need to kill this on agents that do not see the new region
@@ -4439,7 +4438,7 @@ namespace OpenSim.Region.Framework.Scenes
             // updates priority recalc
             checkRePrioritization();
 
-            if(m_childUpdatesBusy)
+            if(m_childUpdatesBusy || RegionViewDistance == 0)
                 return;
 
             int tdiff = Util.EnvironmentTickCountSubtract(m_lastChildUpdatesTime);

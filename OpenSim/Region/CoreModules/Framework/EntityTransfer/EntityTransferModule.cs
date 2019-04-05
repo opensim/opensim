@@ -1057,6 +1057,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                 }
             }
+            else
+            {
+                if(!sp.IsInLocalTransit || sp.RegionViewDistance == 0)
+                {
+                    // this will be closed by callback
+                    if (agentCircuit.ChildrenCapSeeds != null)
+                        agentCircuit.ChildrenCapSeeds.Remove(sp.RegionHandle);
+                }
+            }
 
             string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);;
 
@@ -1129,7 +1138,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.SenderWantsToWaitForRoot = true;
 
-            if(!sp.IsInLocalTransit)
+            if(!sp.IsInLocalTransit || sp.RegionViewDistance == 0)
                 SetNewCallbackURL(agent, sp.Scene.RegionInfo);
 
             // Reset the do not close flag.  This must be done before the destination opens child connections (here
@@ -1565,6 +1574,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public ScenePresence CrossAsync(ScenePresence agent, bool isFlying)
         {
+            if(agent.RegionViewDistance == 0)
+                return agent;
+
             Vector3 newpos;
             EntityTransferContext ctx = new EntityTransferContext();
             string failureReason;
@@ -1994,7 +2006,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         List<GridRegion> RegionsInView(Vector3 pos, RegionInfo curregion, List<GridRegion> fullneighbours, float viewrange)
         {
             List<GridRegion> ret = new List<GridRegion>();
-            if(fullneighbours.Count == 0)
+            if(fullneighbours.Count == 0 || viewrange == 0)
                 return ret;
 
             int curX = (int)Util.RegionToWorldLoc(curregion.RegionLocX) + (int)pos.X;
@@ -2036,7 +2048,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="sp"></param>
         public void EnableChildAgents(ScenePresence sp)
         {
-            // assumes that out of view range regions are disconnected by the previus region
+            // assumes that out of view range regions are disconnected by the previous region
 
             Scene spScene = sp.Scene;
             RegionInfo regionInfo = spScene.RegionInfo;
@@ -2046,8 +2058,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
 
-            List<GridRegion> fullneighbours = GetNeighbors(sp);
-            List<GridRegion> neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            List<GridRegion> neighbours;
+            if (sp.RegionViewDistance > 0)
+            {
+                List<GridRegion> fullneighbours = GetNeighbors(sp);
+                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            }
+            else
+                neighbours = new List<GridRegion>();
 
             LinkedList<ulong> previousRegionNeighbourHandles;
             Dictionary<ulong, string> seeds;
@@ -2212,7 +2230,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public void CheckChildAgents(ScenePresence sp)
         {
-            // assumes that out of view range regions are disconnected by the previus region
+            // assumes that out of view range regions are disconnected by the previous region
 
             Scene spScene = sp.Scene;
             RegionInfo regionInfo = spScene.RegionInfo;
@@ -2222,8 +2240,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
 
-            List<GridRegion> fullneighbours = GetNeighbors(sp);
-            List<GridRegion> neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            List<GridRegion> neighbours;
+            if (sp.RegionViewDistance > 0)
+            {
+                List<GridRegion> fullneighbours = GetNeighbors(sp);
+                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            }
+            else
+                neighbours = new List<GridRegion>();
 
             LinkedList<ulong> previousRegionNeighbourHandles = new LinkedList<ulong>(sp.KnownRegions.Keys);
 
@@ -2342,8 +2366,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
 
-            List<GridRegion> fullneighbours = GetNeighbors(sp);
-            List<GridRegion> neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            List<GridRegion> neighbours;
+            if (sp.RegionViewDistance > 0)
+            {
+                List<GridRegion> fullneighbours = GetNeighbors(sp);
+                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+            }
+            else
+                neighbours = new List<GridRegion>();
 
             LinkedList<ulong> previousRegionNeighbourHandles;
             Dictionary<ulong, string> seeds;
