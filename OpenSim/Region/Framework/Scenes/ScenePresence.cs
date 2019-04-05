@@ -1655,6 +1655,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             CollisionPlane = Vector4.UnitW;
 
+            // we need to kill this on agents that do not see the new region
+            m_scene.ForEachRootScenePresence(delegate(ScenePresence p)
+                {
+                    if (!p.knowsNeighbourRegion(newRegionHandle))
+                    {
+                        SendKillTo(p);
+                    }
+                });
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
         }
 
