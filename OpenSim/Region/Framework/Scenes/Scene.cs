@@ -275,6 +275,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_maxRegionViewDistance; }
         }
 
+        protected float m_minRegionViewDistance = 96f;
+        public float MinRegionViewDistance
+        {
+            get { return m_minRegionViewDistance; }
+        }
+
         private List<string> m_AllowedViewers = new List<string>();
         private List<string> m_BannedViewers = new List<string>();
 
@@ -920,6 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
                 m_maxDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
                 m_maxRegionViewDistance = startupConfig.GetFloat("MaxRegionsViewDistance", m_maxRegionViewDistance);
+                m_minRegionViewDistance = startupConfig.GetFloat("MinRegionsViewDistance", m_maxRegionViewDistance);
 
                 // old versions compatibility
                 LegacySitOffsets = startupConfig.GetBoolean("LegacySitOffsets", LegacySitOffsets);
@@ -929,6 +936,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_maxRegionViewDistance > m_maxDrawDistance)
                     m_maxRegionViewDistance = m_maxDrawDistance;
+
+                if(m_minRegionViewDistance < 96f)
+                    m_minRegionViewDistance = 96f;
+                if(m_minRegionViewDistance > m_maxRegionViewDistance)
+                    m_minRegionViewDistance = m_maxRegionViewDistance;
 
                 UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
                 if (!UseBackup)
