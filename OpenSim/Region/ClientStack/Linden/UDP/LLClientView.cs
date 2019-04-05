@@ -5588,27 +5588,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (e != null && e is SceneObjectGroup)
                 {
                     SceneObjectGroup grp = (SceneObjectGroup)e;
-                    if(grp.IsDeleted || grp.IsAttachment)
+                    if(grp.IsDeleted || grp.IsAttachment )
                         continue;
 
                     bool inviewgroups;
                     lock (GroupsInView)
                         inviewgroups = GroupsInView.Contains(grp);
 
-                    Vector3 grppos = grp.getCenterOffset();
-                    float dpos = (grppos - mypos).LengthSquared();
-
-                    float maxview = grp.GetBoundsRadius() + cullingrange;
-                    if (dpos > maxview * maxview)
+                    //temp handling of sits
+                    if(grp.GetSittingAvatarsCount() > 0)
                     {
-                        if(inviewgroups)
-                            kills.Add(grp);
+                        if (!inviewgroups)
+                            GroupsNeedFullUpdate.Add(grp);
+                        NewGroupsInView.Add(grp);
                     }
                     else
                     {
-                        if(!inviewgroups)
-                            GroupsNeedFullUpdate.Add(grp);
-                        NewGroupsInView.Add(grp);
+                        Vector3 grppos = grp.getCenterOffset();
+                        float dpos = (grppos - mypos).LengthSquared();
+
+                        float maxview = grp.GetBoundsRadius() + cullingrange;
+                        if (dpos > maxview * maxview)
+                        {
+                            if(inviewgroups)
+                                kills.Add(grp);
+                        }
+                        else
+                        {
+                            if (!inviewgroups)
+                                GroupsNeedFullUpdate.Add(grp);
+                            NewGroupsInView.Add(grp);
+                        }
                     }
                 }
             }
