@@ -369,7 +369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public int IncomingOrphanedPacketCount { get; protected set; }
 
-        public bool SupportViewerObjectsCache = false;
+        public bool SupportViewerObjectsCache = true;
         /// <summary>
         /// Run queue empty processing within a single persistent thread.
         /// </summary>

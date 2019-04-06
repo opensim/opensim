@@ -4045,11 +4045,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Scene.SimulationService.ReleaseAgent(originID, UUID, m_callbackURI);
                         m_callbackURI = null;
-                        //NeedInitialData = 4;
-                        //return;
                     }
                     // v0.7 close HG sender region
-                    if (!string.IsNullOrEmpty(m_newCallbackURI))
+                    else if (!string.IsNullOrEmpty(m_newCallbackURI))
                     {
                         m_log.DebugFormat(
                             "[SCENE PRESENCE({0})]: Releasing {1} {2} with callback to {3}",
@@ -4062,8 +4060,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         Scene.SimulationService.ReleaseAgent(originID, UUID, m_newCallbackURI);
                         m_newCallbackURI = null;
-                        //NeedInitialData = 4;
-                        //return;
                     }
                     IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
@@ -4096,12 +4092,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    bool cacheCulling = (flags & 1) != 0;
-                    bool cacheEmpty;
-                    if (cacheCulling)
-                        cacheEmpty = (flags & 2) != 0;
-                    else
-                        cacheEmpty = true;
+                    //bool cacheCulling = (flags & 1) != 0;
+                    bool cacheEmpty = (flags & 2) != 0;;
 
                     EntityBase[] entities = Scene.Entities.GetEntities();
                     if(cacheEmpty)

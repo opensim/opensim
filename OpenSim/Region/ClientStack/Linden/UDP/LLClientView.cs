@@ -4814,7 +4814,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             EntityUpdate update;
 
-            bool viewerCache = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0;// && mysp.IsChildAgent; // only on child agents
+            bool viewerCache = m_supportViewerCache;// && mysp.IsChildAgent; // only on child agents
             bool doCulling = m_scene.ObjectsCullingByDistance;
             float cullingrange = 64.0f;
             Vector3 mypos = Vector3.Zero;
@@ -5650,7 +5650,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(GroupsNeedFullUpdate.Count > 0)
             {
-                bool sendProbes = m_supportViewerCache && (m_viewerHandShakeFlags & 1) != 0 && (m_viewerHandShakeFlags & 2) == 0;
+                bool sendProbes = m_supportViewerCache && (m_viewerHandShakeFlags & 2) == 0;
 
                 if(sendProbes)
                 {
