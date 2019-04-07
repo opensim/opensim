@@ -495,6 +495,8 @@
     ;;
     ;; To turn off basic dos protection, set the DOSMaxRequestsInTimeFrame to 0.
 
+     ;; Allow banning via hashed MAC
+    ;DeniedMacs = "YOURLONGMACTRSING ANOTHERMAC"
 
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
