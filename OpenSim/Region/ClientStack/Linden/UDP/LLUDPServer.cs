@@ -229,11 +229,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatVerbosity.Debug));
         }
 
-        public virtual bool HandlesRegion(Location x)
-        {
-            return m_udpServer.HandlesRegion(x);
-        }
-
         public virtual void Start()
         {
             m_udpServer.Start();
@@ -256,7 +251,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
         public const int MTU = 1400;
-        public const int MAXPAYLOAD = 1250;
+        public const int MAXPAYLOAD = 1200;
 
         /// <summary>Number of forced client logouts due to no receipt of packets before timeout.</summary>
         public int ClientLogoutsDueToNoReceives { get; protected set; }
@@ -297,9 +292,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Reference to the scene this UDP server is attached to</summary>
         public Scene Scene { get; protected set; }
-
-        /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
-        protected Location m_location;
 
         /// <summary>The size of the receive buffer for the UDP socket. This value
         /// is passed up to the operating system and used in the system networking
@@ -545,7 +537,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             Scene = (Scene)scene;
-            m_location = new Location(Scene.RegionInfo.RegionHandle);
 
             OqrEngine = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
@@ -671,11 +662,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LLUDPServerCommands commands = new LLUDPServerCommands(MainConsole.Instance, this);
             commands.Register();
-        }
-
-        public bool HandlesRegion(Location x)
-        {
-            return x == m_location;
         }
 
         public int GetTotalQueuedOutgoingPackets()
