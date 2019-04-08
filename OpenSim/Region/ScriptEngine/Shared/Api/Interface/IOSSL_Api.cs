@@ -549,5 +549,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osGetInventoryName(LSL_Key itemId);
         LSL_String osGetInventoryDesc(LSL_String itemNameOrId);
         LSL_Key osGetLastChangedEventKey();
+        LSL_Float osGetPSTWallclock();
     }
 }

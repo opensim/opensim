@@ -145,6 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
         internal IConfig m_osslconfig;
+        internal TimeZoneInfo PSTTimeZone = null;
 
         public void Initialize(
             IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
@@ -201,7 +202,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             default:
                 break;
             }
-         }
+
+            try
+            {
+                PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            }
+            catch
+            {
+                PSTTimeZone = null;
+            }
+        }
 
         public override Object InitializeLifetimeService()
         {
@@ -5440,6 +5450,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Key.ToString();
+        }
+
+        // returns PST or PDT wall clock
+        public LSL_Float osGetPSTWallclock()
+        {
+            m_host.AddScriptLPS(1);
+            if(PSTTimeZone == null)
+                return DateTime.Now.TimeOfDay.TotalSeconds;
+
+            DateTime time = TimeZoneInfo.ConvertTime(DateTime.UtcNow, PSTTimeZone);
+            return time.TimeOfDay.TotalSeconds;
         }
     }
 }

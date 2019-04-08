@@ -1381,5 +1381,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetLastChangedEventKey();
         }
+
+        public LSL_Float osGetPSTWallclock()
+        {
+            return m_OSSL_Functions.osGetPSTWallclock();
+        }
+
     }
 }
