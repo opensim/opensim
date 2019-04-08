@@ -211,6 +211,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 PSTTimeZone = null;
             }
+            if(PSTTimeZone == null)
+            {
+                try
+                {
+                    PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                }
+                catch
+                {
+                    PSTTimeZone = null;
+                }
+            }
         }
 
         public override Object InitializeLifetimeService()
