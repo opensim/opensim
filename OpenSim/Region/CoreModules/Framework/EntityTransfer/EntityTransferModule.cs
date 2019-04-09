@@ -1147,11 +1147,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // in no close.
             sp.DoNotCloseAfterTeleport = false;
 
+            // we still need to flag this as child here
+            // a close from receiving region seems possible to happen before we reach sp.MakeChildAgent below
+            // causing the agent to be loggout out from grid incorrectly
+            sp.IsChildAgent = true;
             // Send the Update. If this returns true, we know the client has contacted the destination
             // via CompleteMovementIntoRegion, so we can let go.
             // If it returns false, something went wrong, and we need to abort.
             if (!UpdateAgent(reg, finalDestination, agent, sp, ctx))
             {
+                sp.IsChildAgent = false;
                 if (m_entityTransferStateMachine.GetAgentTransferState(sp.UUID) == AgentTransferState.Aborting)
                 {
                     m_interRegionTeleportAborts.Value++;
