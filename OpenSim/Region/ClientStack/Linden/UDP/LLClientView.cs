@@ -4967,15 +4967,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
                     }
 
-                    if (m_SupportObjectAnimations && updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    if (updateFlags == PrimUpdateFlags.Animations)
                     {
-                        if (part.Animations != null)
+                        if (m_SupportObjectAnimations && part.Animations != null)
                         {
                             if (ObjectAnimationUpdates == null)
                                 ObjectAnimationUpdates = new List<SceneObjectPart>();
                             ObjectAnimationUpdates.Add(part);
                             maxUpdatesBytes -= 20 * part.Animations.Count + 24;
                         }
+                        continue;
                     }
 
                     if(viewerCache)
@@ -5126,7 +5127,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (eu.Entity is ScenePresence)
                         CreateAvatarUpdateBlock((ScenePresence)eu.Entity, zc);
                     else
-                        CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
+                    {
+                        SceneObjectPart part = (SceneObjectPart)eu.Entity;
+                        if (eu.Flags.HasFlag(PrimUpdateFlags.Animations))
+                        {
+                            if (m_SupportObjectAnimations && part.Animations != null)
+                            {
+                                if (ObjectAnimationUpdates == null)
+                                    ObjectAnimationUpdates = new List<SceneObjectPart>();
+                                ObjectAnimationUpdates.Add(part);
+                            }
+                            eu.Flags &= ~PrimUpdateFlags.Animations;
+                        }
+                        CreatePrimUpdateBlock(part, mysp, zc);
+                    }
                     if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
                     {
                         tau.Add(eu);
@@ -5273,6 +5287,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     SceneObjectPart sop = (SceneObjectPart)eu.Entity;
                     if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
                         continue;
+
+                    if (eu.Flags.HasFlag(PrimUpdateFlags.Animations))
+                    {
+                        if (m_SupportObjectAnimations && sop.Animations != null)
+                        {
+                            if (ObjectAnimationUpdates == null)
+                                ObjectAnimationUpdates = new List<SceneObjectPart>();
+                            ObjectAnimationUpdates.Add(sop);
+                        }
+                        eu.Flags &= ~PrimUpdateFlags.Animations;
+                    }
+
                     lastpos = zc.Position;
                     lastzc = zc.ZeroCount;
 
@@ -6996,7 +7022,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddUInt(part.LocalId);
                 zc.AddByte(state); // state
                 zc.AddUUID(part.UUID);
-                zc.AddZeros(4); // crc unused
+                zc.AddUInt((uint)part.ParentGroup.PseudoCRC);
                 zc.AddByte((byte)pcode);
                 // material 1
                 // clickaction 1
@@ -7108,7 +7134,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddUInt(part.LocalId);
             zc.AddByte(state); // state
             zc.AddUUID(part.UUID);
-            zc.AddZeros(4); // crc unused
+            zc.AddUInt((uint)part.ParentGroup.PseudoCRC);
             zc.AddByte((byte)pcode);
             zc.AddByte(part.Material);
             zc.AddByte(part.ClickAction); // clickaction
