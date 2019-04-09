@@ -596,6 +596,7 @@ namespace OpenSim.Framework
         public PrimUpdateFlags Flags
         {
             get { return m_flags; }
+            set { m_flags = value; }
         }
 
         public virtual void Update()
