@@ -5127,7 +5127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         CreateAvatarUpdateBlock((ScenePresence)eu.Entity, zc);
                     else
                         CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
-                    if (zc.Position < LLUDPServer.MAXPAYLOAD)
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
                     {
                         tau.Add(eu);
                         ++count;
