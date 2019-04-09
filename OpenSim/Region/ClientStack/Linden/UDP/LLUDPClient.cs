@@ -728,6 +728,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// acknowledgement</param>
         public void UpdateRoundTrip(float r)
         {
+            return;
+            /*
             const float ALPHA = 0.125f;
             const float BETA = 0.25f;
             const float K = 4.0f;
@@ -755,6 +757,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //if (RTO != rto)
        //          m_log.Debug("[LLUDPCLIENT]: Setting RTO to " + RTO + "ms from " + rto + "ms with an RTTVAR of " +
                        //RTTVAR + " based on new RTT of " + r + "ms");
+            */
         }
 
         /// <summary>
@@ -763,13 +766,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void BackoffRTO()
         {
+            return;
             // Reset SRTT and RTTVAR, we assume they are bogus since things
             // didn't work out and we're backing off the timeout
+            /*
             SRTT = 0.0f;
             RTTVAR = 0.0f;
 
             // Double the retransmission timeout
             RTO = Math.Min(RTO * 2, m_maxRTO);
+            */
         }
 
         const double MIN_CALLBACK_MS = 20.0;

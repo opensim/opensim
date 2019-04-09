@@ -1214,7 +1214,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
             PacketsSentCount++;
-
             SyncSend(buffer);
 
             // Keep track of when this packet was sent out (right now)

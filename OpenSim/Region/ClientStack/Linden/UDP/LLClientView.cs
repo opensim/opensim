@@ -5429,7 +5429,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         buf.DataLength = lastpos;
                         // zero encode is not as spec
                         m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
-                            delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, true);
+                            //delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, true);
+                            null, false, true);
 
                         tau = new List<EntityUpdate>(30);
                         tau.Add(eu);
@@ -5444,7 +5445,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     buf.Data[17] = (byte)count;
                     buf.DataLength = pos;
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
-                        delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, true);
+                        //delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, false, true);
+                        null, false, true);
                 }
             }
 
