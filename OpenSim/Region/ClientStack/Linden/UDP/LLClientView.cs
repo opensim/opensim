@@ -5059,7 +5059,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (istree)
                                 maxUpdatesBytes -= 64;
                             else
-                                maxUpdatesBytes -= 100; // crude estimation
+                                maxUpdatesBytes -= 120; // crude estimation
 
                             if (compressedUpdates == null)
                             {
@@ -5277,9 +5277,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lastzc = zc.ZeroCount;
 
                     CreateCompressedUpdateBlockZC(sop, mysp, zc);
-                    if (zc.Position < LLUDPServer.MAXPAYLOAD)
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
                     {
-                        tau.Add(eu);
+                        //tau.Add(eu);
                         ++count;
                     }
                     else
@@ -5312,7 +5312,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // im lazy now, just do last again
                         CreateCompressedUpdateBlockZC(sop, mysp, zc);
                         tau = new List<EntityUpdate>(30);
-                        tau.Add(eu);
+                        //tau.Add(eu);
                         count = 1;
                     }
                 }
