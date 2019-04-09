@@ -1120,13 +1120,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Get a list of all of the packets that have been sitting unacked longer than udpClient.RTO
-            List<OutgoingPacket> expiredPackets = udpClient.NeedAcks.GetExpiredPackets(udpClient.RTO);
+            List<OutgoingPacket> expiredPackets = udpClient.NeedAcks.GetExpiredPackets(udpClient.m_RTO);
 
             if (expiredPackets != null)
             {
-                //m_log.Debug("[LLUDPSERVER]: Handling " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
-                // Exponential backoff of the retransmission timeout
-                udpClient.BackoffRTO();
                 for (int i = 0; i < expiredPackets.Count; ++i)
                     expiredPackets[i].UnackedMethod(expiredPackets[i]);
             }
@@ -1515,10 +1512,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else if (packet.Type == PacketType.CompletePingCheck)
             {
                 double t = Util.GetTimeStampMS() - udpClient.m_lastStartpingTimeMS;
-                double c = udpClient.m_pingMS;
-                c = 800 * c + 200 * t;
-                c /= 1000;
-                udpClient.m_pingMS = (int)c;
+                double c = 0.8 * udpClient.m_pingMS;
+                c += 0.2 * t;
+                int p = (int)c;
+                udpClient.m_pingMS = p;
+                udpClient.UpdateRoundTrip(p);
                 return;
             }
 

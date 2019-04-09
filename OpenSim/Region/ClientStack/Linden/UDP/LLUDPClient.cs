@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// milliseconds or longer will be resent</summary>
         /// <remarks>Calculated from <seealso cref="SRTT"/> and <seealso cref="RTTVAR"/> using the
         /// guidelines in RFC 2988</remarks>
-        public int RTO;
+        public int m_RTO;
         /// <summary>Number of bytes received since the last acknowledgement was sent out. This is used
         /// to loosely follow the TCP delayed ACK algorithm in RFC 1122 (4.2.3.2)</summary>
         public int BytesSinceLastACK;
@@ -190,7 +190,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private byte[] m_packedThrottles;
 
         private int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
-        private int m_maxRTO = 60000;
+        private int m_maxRTO = 10000;
         public bool m_deliverPackets = true;
 
         private float m_burstTime;
@@ -264,7 +264,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Default the retransmission timeout to one second
-            RTO = m_defaultRTO;
+            m_RTO = m_defaultRTO;
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
@@ -719,63 +719,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Called when an ACK packet is received and a round-trip time for a
-        /// packet is calculated. This is used to calculate the smoothed
-        /// round-trip time, round trip time variance, and finally the
-        /// retransmission timeout
+        /// Called when we get a ping update
         /// </summary>
-        /// <param name="r">Round-trip time of a single packet and its
+        /// <param name="r"> ping time in ms
         /// acknowledgement</param>
-        public void UpdateRoundTrip(float r)
+        public void UpdateRoundTrip(int p)
         {
-            return;
-            /*
-            const float ALPHA = 0.125f;
-            const float BETA = 0.25f;
-            const float K = 4.0f;
+            p *= 5;
+            if( p> m_maxRTO)
+                p = m_maxRTO;
+            else if(p < m_defaultRTO)
+                p = m_defaultRTO;
 
-            if (RTTVAR == 0.0f)
-            {
-                // First RTT measurement
-                SRTT = r;
-                RTTVAR = r * 0.5f;
-            }
-            else
-            {
-                // Subsequence RTT measurement
-                RTTVAR = (1.0f - BETA) * RTTVAR + BETA * Math.Abs(SRTT - r);
-                SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
-            }
-
-            int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
-
-            // Clamp the retransmission timeout to manageable values
-            rto = Utils.Clamp(rto, m_defaultRTO, m_maxRTO);
-
-            RTO = rto;
-
-            //if (RTO != rto)
-       //          m_log.Debug("[LLUDPCLIENT]: Setting RTO to " + RTO + "ms from " + rto + "ms with an RTTVAR of " +
-                       //RTTVAR + " based on new RTT of " + r + "ms");
-            */
-        }
-
-        /// <summary>
-        /// Exponential backoff of the retransmission timeout, per section 5.5
-        /// of RFC 2988
-        /// </summary>
-        public void BackoffRTO()
-        {
-            return;
-            // Reset SRTT and RTTVAR, we assume they are bogus since things
-            // didn't work out and we're backing off the timeout
-            /*
-            SRTT = 0.0f;
-            RTTVAR = 0.0f;
-
-            // Double the retransmission timeout
-            RTO = Math.Min(RTO * 2, m_maxRTO);
-            */
+            m_RTO = p;
         }
 
         const double MIN_CALLBACK_MS = 20.0;
