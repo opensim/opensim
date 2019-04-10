@@ -1672,7 +1672,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     s = 2 * i;
                     OpenSimTerrainCompressor.CreatePatchFromTerrainData(bitpack, terrData, map[s], map[s + 1]);
-                    if (bitpack.BytePos > 950 && i != numberPatchs - 1)
+                    if (bitpack.BytePos > 900 && i != numberPatchs - 1)
                     {
                         //finish this packet
                         bitpack.PackBitsFromByte(END_OF_PATCHES);
@@ -5100,7 +5100,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(objectUpdates != null)
             {
-                int blocks = objectUpdates.Count;
                 List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
@@ -5141,13 +5140,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         CreatePrimUpdateBlock(part, mysp, zc);
                     }
-                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 300)
                     {
                         tau.Add(eu);
                         ++count;
-                        --blocks;
                     }
-                    else if (blocks > 0)
+                    else
                     {
                         // we need more packets
                         UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
@@ -5179,7 +5177,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         tau = new List<EntityUpdate>(30);
                         tau.Add(eu);
                         count = 1;
-                        --blocks;
                     }
                 }
 
