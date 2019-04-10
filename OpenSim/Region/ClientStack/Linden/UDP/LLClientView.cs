@@ -15413,7 +15413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(m_supportViewerCache)
                 ret = m_viewerHandShakeFlags;
             else
-                ret = m_viewerHandShakeFlags & 4;
+                ret = (m_viewerHandShakeFlags & 4) | 2; // disable probes
 
             if (m_scene.CapsModule != null)
             {
