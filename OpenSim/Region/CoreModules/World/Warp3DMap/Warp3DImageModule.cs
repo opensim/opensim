@@ -790,7 +790,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 try
                 {
                     using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset))
-                        ret = new warp_Texture(img);
+                        ret = new warp_Texture(img, 8); // reduce textures size to 256x256
                 }
                 catch (Exception e)
                 {
