@@ -841,6 +841,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_SleepUntil = DateTime.MinValue;     // not doing llSleep()
             m_ResetCount++;                        // has been reset once more
 
+            heapUsed = 0;
+            glblVars.Clear();
+
              // Tell next call to 'default state_entry()' to reset all global
              // vars to their initial values.
             doGblInit = true;
@@ -848,7 +851,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Throw away all its stack frames. 
             // If the script is resetting itself, there shouldn't be any stack frames. 
             // If the script is being reset by something else, we throw them away cuz we want to start from the beginning of an event handler. 
-             stackFrames = null;
+            stackFrames = null;
 
              // Set script to 'default' state and queue call to its 
              // 'state_entry()' event handler.

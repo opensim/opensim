@@ -2611,10 +2611,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // everything required by any blocks it can branch to.
             do
             {
-                this.resolvedSomething = false;
-                this.resolveSequence++;
-                this.ResolveBlock((GraphNodeBlock)firstLin);
-            } while(this.resolvedSomething);
+                resolvedSomething = false;
+                resolveSequence++;
+                ResolveBlock((GraphNodeBlock)firstLin);
+            } while(resolvedSomething);
 
             // Repeat the cutting loops as long as we keep finding stuff.
             bool didSomething;
@@ -2939,7 +2939,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
 
             // So we don't recurse forever on a backward branch.
-            currentBlock.hasBeenResolved = this.resolveSequence;
+            currentBlock.hasBeenResolved = resolveSequence;
 
             // Assume we haven't written any locals yet.
             List<ScriptMyLocal> localsWrittenSoFar = new List<ScriptMyLocal>();
@@ -2975,7 +2975,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 !currentBlock.localsReadBeforeWritten.Contains(readByNextBlock))
                             {
                                 currentBlock.localsReadBeforeWritten.Add(readByNextBlock);
-                                this.resolvedSomething = true;
+                                resolvedSomething = true;
                             }
                         }
                     }

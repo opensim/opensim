@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Save new value in array, replacing one of same key if there.
              // null means remove the value, ie, script did array[key] = undef.
-            if(value != null)
+            if (value != null)
             {
                 dnary[key] = value;
             }
@@ -285,10 +285,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void RecvArrayObj(RecvArrayObjDelegate recvObj)
         {
             heapUse = inst.UpdateHeapUse(heapUse, EMPTYHEAP);
-
-             // Cause any enumeration to refill the array from the sorted dictionary.
-             // Since it is a sorted dictionary, any enumerations will be in the same 
-             // order as on the sending side.
+            // Cause any enumeration to refill the array from the sorted dictionary.
+            // Since it is a sorted dictionary, any enumerations will be in the same 
+            // order as on the sending side.
             arrayValid = 0;
             enumrValid = false;
 

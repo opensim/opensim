@@ -236,6 +236,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return GetScriptFileName(m_ScriptBasePath, filename);
         }
 
+        public string GetScriptILFileName(string filename)
+        {
+            string path = Path.Combine(m_ScriptBasePath, "DebugIL");
+            Directory.CreateDirectory(path);
+            return Path.Combine(path, filename);
+        }
+
         public static string GetScriptFileName(string scriptBasePath, string filename)
         {
              // Get old path, ie, all files lumped in a single huge directory.

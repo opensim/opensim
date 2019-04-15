@@ -58,11 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(inst == null)
                 throw new ArgumentNullException("inst");
             instance = inst;
-        }
-
-        ~HeapTrackerBase()
-        {
-            usage = instance.UpdateHeapUse(usage, 0);
+            usage = 0;
         }
     }
 
@@ -73,22 +69,31 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         private static FieldInfo listValueField = typeof(HeapTrackerList).GetField("value");
         private static MethodInfo listSaveMethod = typeof(HeapTrackerList).GetMethod("Save");
+        private static MethodInfo listRestoreMethod = typeof(HeapTrackerList).GetMethod("Restore");
+        private static MethodInfo listFreeMethod = typeof(HeapTrackerList).GetMethod("Free");
 
         public LSL_List value;
 
-        public HeapTrackerList(XMRInstAbstract inst) : base(inst) { }
+        public HeapTrackerList(XMRInstAbstract inst) : base(inst) {}
 
-        // generate CIL code to pop the value from the CIL stack
+        // generate CIL code to pop the value ie store in value
         //  input:
         //   'this' pointer already pushed on CIL stack
-        //   new value pushed on CIL stack
+        //   new value
         //  output:
-        //   'this' pointer popped from stack
-        //   new value popped from CIL stack
-        //   heap usage updated
         public static void GenPop(Token errorAt, ScriptMyILGen ilGen)
         {
             ilGen.Emit(errorAt, OpCodes.Call, listSaveMethod);
+        }
+
+        public static void GenRestore(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, listRestoreMethod);
+        }
+
+        public static void GenFree(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, listFreeMethod);
         }
 
         // generate CIL code to push the value on the CIL stack
@@ -106,23 +111,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void Save(LSL_List lis)
         {
-            int newuse = Size(lis);
-            usage = instance.UpdateHeapUse(usage, newuse);
+            if (lis == null)
+                usage = instance.UpdateHeapUse(usage, 0);
+            else
+                usage = instance.UpdateHeapUse(usage, Size(lis));
             value = lis;
+        }
+
+        public void Restore(LSL_List lis)
+        {
+            value = lis;
+            if (lis != null)
+                usage = Size(lis);
+            else
+                usage = 0;
+        }
+
+        public void Free()
+        {
+            usage = instance.UpdateHeapUse(usage, 0);
+            value = null;
+            instance = null;
         }
 
         //private static int counter = 5;
         public static int Size(LSL_List lis)
         {
-            // VS2017 in debug mode seems to have a problem running this statement quickly:
-            //SLOW: return (!typeof(LSL_List).IsValueType && (lis == null)) ? 0 : lis.Size;
-
-            //FAST: return 33;
-            //SLOW: return (lis == null) ? 0 : 99;
-            //FAST: return ++ counter;
-
-            // VS2017 in debug mode seems content to run this quickly though:
-
             try
             {
                 return lis.Size;
@@ -141,6 +155,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         private static FieldInfo objectValueField = typeof(HeapTrackerObject).GetField("value");
         private static MethodInfo objectSaveMethod = typeof(HeapTrackerObject).GetMethod("Save");
+        private static MethodInfo objectRestoreMethod = typeof(HeapTrackerObject).GetMethod("Restore");
+        private static MethodInfo objectFreeMethod = typeof(HeapTrackerObject).GetMethod("Free");
 
         public const int HT_CHAR = 2;
         public const int HT_DELE = 8;
@@ -168,6 +184,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(errorAt, OpCodes.Call, objectSaveMethod);
         }
 
+        public static void GenRestore(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, objectRestoreMethod);
+        }
+
+        public static void GenFree(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, objectFreeMethod);
+        }
+
         // generate CIL code to push the value on the CIL stack
         //  input:
         //   'this' pointer already pushed on CIL stack
@@ -188,6 +214,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             value = obj;
         }
 
+        public void Restore(object obj)
+        {
+            value = obj;
+            usage = Size(obj);
+        }
+
+        public void Free()
+        {
+            usage = instance.UpdateHeapUse(usage, 0);
+            value = null;
+            instance = null;
+        }
+
         // public so it can be used by XMRArray
         public static int Size(object obj)
         {
@@ -204,8 +243,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return HT_SING;
             if(obj is int)
                 return HT_INT;
-            if(obj is LSL_Float)
-                return HT_SFLT;
+            if(obj is LSL_Float) // lsl floats are stupid doubles
+                return HT_DOUB;
             if(obj is LSL_Integer)
                 return HT_INT;
             if(obj is LSL_List)
@@ -252,7 +291,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class HeapTrackerString: HeapTrackerBase
     {
         private static FieldInfo stringValueField = typeof(HeapTrackerString).GetField("value");
+        private static MethodInfo stringRestoreMethod = typeof(HeapTrackerString).GetMethod("Restore");
         private static MethodInfo stringSaveMethod = typeof(HeapTrackerString).GetMethod("Save");
+        private static MethodInfo stringFreeMethod = typeof(HeapTrackerString).GetMethod("Free");
 
         public string value;
 
@@ -269,6 +310,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static void GenPop(Token errorAt, ScriptMyILGen ilGen)
         {
             ilGen.Emit(errorAt, OpCodes.Call, stringSaveMethod);
+        }
+
+        public static void GenRestore(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, stringRestoreMethod);
+        }
+        
+        public static void GenFree(Token errorAt, ScriptMyILGen ilGen)
+        {
+            ilGen.Emit(errorAt, OpCodes.Call, stringFreeMethod);
         }
 
         // generate CIL code to push the value on the CIL stack
@@ -289,6 +340,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int newuse = Size(str);
             usage = instance.UpdateHeapUse(usage, newuse);
             value = str;
+        }
+
+        public void Restore(string str)
+        {
+            value = str;
+            usage = Size(str);
+        }
+
+        public void Free()
+        {
+            usage = instance.UpdateHeapUse(usage, 0);
+            value = null;
+            instance = null;
         }
 
         public static int Size(string str)

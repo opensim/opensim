@@ -84,17 +84,36 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             heapUse = instance.UpdateHeapUse(heapUse, 0);
         }
 
+        public void Clear()
+        {
+            heapUse = 0;
+            if(iarArrays != null)
+            {
+                foreach(XMR_Array xa in iarArrays)
+                    xa.__pub_clear();
+            }
+            if(iarChars != null)
+                iarChars = new char[iarChars.Length];
+            if (iarLists != null)
+                iarLists = new LSL_List[iarLists.Length];
+            if (iarObjects != null)
+                iarObjects = new object[iarObjects.Length];
+            if(iarStrings != null)
+                iarStrings = new string[iarStrings.Length];
+        }
+
         public void AllocVarArrays(XMRInstArSizes ars)
         {
             ClearOldArrays();
+            int newuse = heapUse +
+               ars.iasChars* HeapTrackerObject.HT_CHAR +
+               ars.iasFloats * HeapTrackerObject.HT_SFLT +
+               ars.iasIntegers * HeapTrackerObject.HT_INT +
+               ars.iasRotations * HeapTrackerObject.HT_ROT +
+               ars.iasVectors * HeapTrackerObject.HT_VEC +
+               ars.iasSDTIntfObjs * HeapTrackerObject.HT_DELE;
 
-            heapUse = instance.UpdateHeapUse(heapUse,
-                ars.iasChars * HeapTrackerObject.HT_CHAR +
-                ars.iasFloats * HeapTrackerObject.HT_SFLT +
-                ars.iasIntegers * HeapTrackerObject.HT_INT +
-                ars.iasRotations * HeapTrackerObject.HT_ROT +
-                ars.iasVectors * HeapTrackerObject.HT_VEC +
-                ars.iasSDTIntfObjs * HeapTrackerObject.HT_DELE);
+            heapUse = instance.UpdateHeapUse(heapUse, newuse);
 
             iarArrays = (ars.iasArrays > 0) ? new XMR_Array[ars.iasArrays] : noArrays;
             iarChars = (ars.iasChars > 0) ? new char[ars.iasChars] : noChars;
@@ -424,31 +443,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         \**************************************************/
 
         protected int heapLimit;
-        private int heapUsed;
+        protected int heapUsed;
 
         public virtual int UpdateHeapUse(int olduse, int newuse)
         {
-            if(newuse <= olduse)
-                Interlocked.Add(ref heapUsed, newuse - olduse);
-            else
-            {
-                int newtotal, oldtotal;
-                do
-                {
-                    oldtotal = Interlocked.Add(ref heapUsed, 0);
-                    newtotal = oldtotal + newuse - olduse;
-                    if(newtotal > heapLimit)
-                    {
-                        //                        System.GC.Collect ();
-                        //                        System.GC.WaitForPendingFinalizers ();
-                        oldtotal = Interlocked.Add(ref heapUsed, 0);
-                        newtotal = oldtotal + newuse - olduse;
-                        if(newtotal > heapLimit)
-                            throw new OutOfHeapException(oldtotal, newtotal, heapLimit);
-                    }
-                } while(Interlocked.CompareExchange(ref heapUsed, newtotal, oldtotal) != oldtotal);
-            }
-
+            int newtotal = Interlocked.Add(ref heapUsed, newuse - olduse);
+            if(newtotal > heapLimit)
+                    throw new OutOfHeapException(newtotal + olduse - newuse, newtotal, heapLimit);
             return newuse;
         }
 

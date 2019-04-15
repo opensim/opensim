@@ -197,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public CallLabel openCallLabel = null;  // only one call label can be open at a time
                                                 // - the call label is open from the time of CallPre() until corresponding CallPost()
                                                 // - so no non-trivial pushes/pops etc allowed between a CallPre() and a CallPost()
-
+        public List<ScriptMyLocal> HeapLocals = new List<ScriptMyLocal>();
         private ScriptMyILGen _ilGen;
         public ScriptMyILGen ilGen
         {
@@ -1258,6 +1258,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // resume at the correct spot.
             actCallLabels.Clear();
             allCallLabels.Clear();
+            HeapLocals.Clear();
             openCallLabel = null;
 
              // Alloc stack space for local vars.
@@ -1398,19 +1399,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             _ilGen = collector.WriteOutAll();
             collector = null;
 
-             // Output code to restore stack frame from stream.
-             // It jumps back to the call labels within the function body.
             List<ScriptMyLocal> activeTemps = null;
-            if(!isTrivial)
+            if (!isTrivial)
             {
-                 // Build list of locals and temps active at all the call labels.
+                // Build list of locals and temps active at all the call labels.
                 activeTemps = new List<ScriptMyLocal>();
-                foreach(CallLabel cl in allCallLabels)
-                {
-                    foreach(ScriptMyLocal lcl in cl.callLabel.whereAmI.localsReadBeforeWritten)
+                foreach (CallLabel cl in allCallLabels)
                     {
-                        if(!activeTemps.Contains(lcl))
+                        foreach(ScriptMyLocal lcl in cl.callLabel.whereAmI.localsReadBeforeWritten)
                         {
+                            if(!activeTemps.Contains(lcl))
+                            {
                             activeTemps.Add(lcl);
                         }
                     }
@@ -1452,11 +1451,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Output the 'real' return opcode.
+             // push return value
             ilGen.MarkLabel(retLabel);
-            if(!(curDeclFunc.retType is TokenTypeVoid))
+            if (!(curDeclFunc.retType is TokenTypeVoid))
             {
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, retValue);
             }
+
+            // pseudo free memory usage
+            foreach (ScriptMyLocal sml in HeapLocals)
+            {
+                Type t = sml.type;
+                if (t == typeof(HeapTrackerList))
+                {
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
+                    HeapTrackerList.GenFree(curDeclFunc, ilGen);
+                }
+                else if (t == typeof(HeapTrackerString))
+                {
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
+                    HeapTrackerString.GenFree(curDeclFunc, ilGen);
+                }
+                else if (t == typeof(HeapTrackerObject))
+                {
+                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
+                    HeapTrackerObject.GenFree(curDeclFunc, ilGen);
+                }
+            }
+
             ilGen.Emit(curDeclFunc, OpCodes.Ret);
             retLabel = null;
             retValue = null;
@@ -1675,11 +1697,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(u != t)
                 {
                     if(t == typeof(HeapTrackerList))
-                        HeapTrackerList.GenPop(curDeclFunc, ilGen);
+                        HeapTrackerList.GenRestore(curDeclFunc, ilGen);
                     if(t == typeof(HeapTrackerObject))
-                        HeapTrackerObject.GenPop(curDeclFunc, ilGen);
+                        HeapTrackerObject.GenRestore(curDeclFunc, ilGen);
                     if(t == typeof(HeapTrackerString))
-                        HeapTrackerString.GenPop(curDeclFunc, ilGen);
+                        HeapTrackerString.GenRestore(curDeclFunc, ilGen);
                 }
                 else
                 {
