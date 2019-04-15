@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void Clear()
         {
-            heapUse = 0;
+            int newheapUse = 0;
             if(iarArrays != null)
             {
                 foreach(XMR_Array xa in iarArrays)
@@ -100,9 +100,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarObjects = new object[iarObjects.Length];
             if(iarStrings != null)
                 iarStrings = new string[iarStrings.Length];
+            if (iarFloats != null)
+                newheapUse += iarFloats.Length * HeapTrackerObject.HT_DOUB;
+            if (iarIntegers != null)
+                newheapUse += iarIntegers.Length * HeapTrackerObject.HT_INT;
+            if (iarRotations != null)
+                newheapUse += iarRotations.Length * HeapTrackerObject.HT_ROT;
+            if (iarVectors != null)
+                newheapUse += iarVectors.Length * HeapTrackerObject.HT_VEC;
+
+            heapUse = instance.UpdateHeapUse(0, newheapUse);
         }
 
-        public void AllocVarArrays(XMRInstArSizes ars)
+    public void AllocVarArrays(XMRInstArSizes ars)
         {
             ClearOldArrays();
             int newuse = heapUse +
@@ -204,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // value types simply are the size of the value * number of values
             newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
-            newheapuse += flts.Length * HeapTrackerObject.HT_SFLT;
+            newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
             newheapuse += ints.Length * HeapTrackerObject.HT_INT;
             newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
             newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
