@@ -233,7 +233,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                 {
                     m_log.WarnFormat(
-                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} in region {2}",
+                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} in region {1}",
                             avatarID,  m_scene.Name);
                 }
             }
