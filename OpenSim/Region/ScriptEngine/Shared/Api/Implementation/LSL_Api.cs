@@ -2410,12 +2410,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID textureID = new UUID();
-
-            textureID = ScriptUtils.GetAssetIdFromItemName(m_host, texture, (int)AssetType.Texture);
-            if (textureID == UUID.Zero)
+            bool dotexture = true;
+            if(String.IsNullOrEmpty(texture))
+                dotexture = false;
+            else
             {
-                if (!UUID.TryParse(texture, out textureID))
-                    return;
+                textureID = ScriptUtils.GetAssetIdFromItemName(m_host, texture, (int)AssetType.Texture);
+                if (textureID == UUID.Zero)
+                {
+                    if (!UUID.TryParse(texture, out textureID))
+                        return;
+                }
             }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
@@ -2424,7 +2429,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face >= 0 && face < nsides)
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
-                texface.TextureID = textureID;
+                if (dotexture)
+                    texface.TextureID = textureID;
                 texface.RepeatU = (float)scaleU;
                 texface.RepeatV = (float)ScaleV;
                 texface.OffsetU = (float)offsetU;
@@ -2440,7 +2446,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (tex.FaceTextures[i] != null)
                     {
-                        tex.FaceTextures[i].TextureID = textureID;
+                        if (dotexture)
+                            tex.FaceTextures[i].TextureID = textureID;
                         tex.FaceTextures[i].RepeatU = (float)scaleU;
                         tex.FaceTextures[i].RepeatV = (float)ScaleV;
                         tex.FaceTextures[i].OffsetU = (float)offsetU;
@@ -2448,7 +2455,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         tex.FaceTextures[i].Rotation = (float)rotation;
                     }
                 }
-                tex.DefaultTexture.TextureID = textureID;
+                if (dotexture)
+                    tex.DefaultTexture.TextureID = textureID;
                 tex.DefaultTexture.RepeatU = (float)scaleU;
                 tex.DefaultTexture.RepeatV = (float)ScaleV;
                 tex.DefaultTexture.OffsetU = (float)offsetU;
@@ -10422,17 +10430,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
 
                             string mapname = rules.Data[idx++].ToString();
-
-                            UUID mapID = ScriptUtils.GetAssetIdFromItemName(m_host, mapname, (int)AssetType.Texture);
-                            if (mapID == UUID.Zero)
+                            UUID mapID = UUID.Zero;
+                            if (!string.IsNullOrEmpty(mapname))
                             {
-                                if (!UUID.TryParse(mapname, out mapID))
+                                mapID = ScriptUtils.GetAssetIdFromItemName(m_host, mapname, (int)AssetType.Texture);
+                                if (mapID == UUID.Zero)
                                 {
-                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
-                                    return new LSL_List();
+                                    if (!UUID.TryParse(mapname, out mapID))
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_NORMAL: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                        return new LSL_List();
+                                    }
                                 }
                             }
-
                             LSL_Vector mnrepeat;
                             try
                             {
@@ -10489,17 +10499,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
 
                             string smapname = rules.Data[idx++].ToString();
-
-                            UUID smapID = ScriptUtils.GetAssetIdFromItemName(m_host, smapname, (int)AssetType.Texture);
-                            if (smapID == UUID.Zero)
+                            UUID smapID = UUID.Zero;
+                            if(!string.IsNullOrEmpty(smapname))
                             {
-                                if (!UUID.TryParse(smapname, out smapID))
+                                smapID = ScriptUtils.GetAssetIdFromItemName(m_host, smapname, (int)AssetType.Texture);
+                                if (smapID == UUID.Zero)
                                 {
-                                    Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
-                                    return new LSL_List();
+                                    if (!UUID.TryParse(smapname, out smapID))
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_SPECULAR: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                        return new LSL_List();
+                                    }
                                 }
                             }
-
                             LSL_Vector msrepeat;
                             try
                             {
@@ -10715,24 +10727,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             FaceMaterial mat = null;
             UUID oldid = texface.MaterialID;
 
-            if(oldid != UUID.Zero)
-                mat = m_materialsModule.GetMaterialCopy(oldid);
+            if(mapID != UUID.Zero)
+            {
+                if(oldid != UUID.Zero)
+                    mat = m_materialsModule.GetMaterialCopy(oldid);
 
-            if(mat == null)
-                mat = new FaceMaterial();
+                if(mat == null)
+                    mat = new FaceMaterial();
 
-            mat.NormalMapID = mapID;
-            mat.NormalOffsetX = offsetX;
-            mat.NormalOffsetY = offsetY;
-            mat.NormalRepeatX = repeatX;
-            mat.NormalRepeatY = repeatY;
-            mat.NormalRotation = rot;
+                mat.NormalMapID = mapID;
+                mat.NormalOffsetX = offsetX;
+                mat.NormalOffsetY = offsetY;
+                mat.NormalRepeatX = repeatX;
+                mat.NormalRepeatY = repeatY;
+                mat.NormalRotation = rot;
 
-            UUID id = m_materialsModule.AddNewMaterial(mat);
-            if(oldid == id)
+                mapID = m_materialsModule.AddNewMaterial(mat);
+            }
+            if(oldid == mapID)
                 return false;
 
-            texface.MaterialID = id;
+            texface.MaterialID = mapID;
             part.Shape.TextureEntry = tex.GetBytes(9);
             m_materialsModule.RemoveMaterial(oldid);
             return true;
@@ -10777,29 +10792,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             FaceMaterial mat = null;
             UUID oldid = texface.MaterialID;
 
-            if(oldid != UUID.Zero)
-                mat = m_materialsModule.GetMaterialCopy(oldid);
+            if (mapID != UUID.Zero)
+            {
+                if (oldid != UUID.Zero)
+                    mat = m_materialsModule.GetMaterialCopy(oldid);
 
-            if(mat == null)
-                mat = new FaceMaterial();
+                if (mat == null)
+                    mat = new FaceMaterial();
 
-            mat.SpecularMapID = mapID;
-            mat.SpecularOffsetX = offsetX;
-            mat.SpecularOffsetY = offsetY;
-            mat.SpecularRepeatX = repeatX;
-            mat.SpecularRepeatY = repeatY;
-            mat.SpecularRotation = rot;
-            mat.SpecularLightColorR = colorR;
-            mat.SpecularLightColorG = colorG;
-            mat.SpecularLightColorB = colorB;
-            mat.SpecularLightExponent = gloss;
-            mat.EnvironmentIntensity = env;
+                mat.SpecularMapID = mapID;
+                mat.SpecularOffsetX = offsetX;
+                mat.SpecularOffsetY = offsetY;
+                mat.SpecularRepeatX = repeatX;
+                mat.SpecularRepeatY = repeatY;
+                mat.SpecularRotation = rot;
+                mat.SpecularLightColorR = colorR;
+                mat.SpecularLightColorG = colorG;
+                mat.SpecularLightColorB = colorB;
+                mat.SpecularLightExponent = gloss;
+                mat.EnvironmentIntensity = env;
 
-            UUID id = m_materialsModule.AddNewMaterial(mat);
-            if(oldid == id)
+                mapID = m_materialsModule.AddNewMaterial(mat);
+            }
+
+            if(oldid == mapID)
                 return false;
 
-            texface.MaterialID = id;
+            texface.MaterialID = mapID;
             part.Shape.TextureEntry = tex.GetBytes(9);
             m_materialsModule.RemoveMaterial(oldid);
             return true;
