@@ -3818,15 +3818,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// Set parameters for light projection in host prim
         /// </summary>
-        public void osSetProjectionParams(bool projection, LSL_Key texture, double fov, double focus, double amb)
+        public void osSetProjectionParams(LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            osSetProjectionParams(UUID.Zero.ToString(), projection, texture, fov, focus, amb);
+            SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+        }
+
+        /// <summary>
+        /// Set parameters for light projection of a linkset prim
+        /// </summary>
+        public void osSetProjectionParams(LSL_Integer linknum, LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
+        {
+            if (linknum == ScriptBaseClass.LINK_THIS || linknum == m_host.LinkNum)
+            {
+                SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+                return;
+            }
+
+            if (linknum < 0 || linknum > m_host.ParentGroup.PrimCount)
+                return;
+
+            if(linknum < 2 && m_host.LinkNum < 2)
+            {
+                SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+                return;
+            }
+
+            SceneObjectPart obj = m_host.ParentGroup.GetLinkNumPart(linknum);
+            if(obj != null)
+                SetProjectionParams(obj, projection, texture, fov, focus, amb);
         }
 
         /// <summary>
         /// Set parameters for light projection with uuid of target prim
         /// </summary>
-        public void osSetProjectionParams(LSL_Key prim, bool projection, LSL_Key texture, double fov, double focus, double amb)
+        public void osSetProjectionParams(LSL_Key prim, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
             CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
 
@@ -3841,7 +3866,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (obj == null)
                     return;
             }
+            SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+        }
 
+        private void SetProjectionParams(SceneObjectPart obj, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
+        {
+            bool projection = llprojection != 0;
             obj.Shape.ProjectionEntry = projection;
             obj.Shape.ProjectionTextureUUID = new UUID(texture);
             obj.Shape.ProjectionFOV = (float)fov;
