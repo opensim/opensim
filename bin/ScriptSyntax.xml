@@ -1,4 +1,4 @@
-e796a21f-5a66-e4ec-833f-c4896b8e87e4
+5b85f255-466f-238d-90ed-5726eaa2e67b
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -6754,15 +6754,15 @@ e796a21f-5a66-e4ec-833f-c4896b8e87e4
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
+   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -7351,6 +7351,7 @@ e796a21f-5a66-e4ec-833f-c4896b8e87e4
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7361,7 +7362,17 @@ e796a21f-5a66-e4ec-833f-c4896b8e87e4
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
-   <map><key>prim</key><map><key>type</key><string>key</string></map></map>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7595,7 +7606,8 @@ e796a21f-5a66-e4ec-833f-c4896b8e87e4
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7603,8 +7615,7 @@ e796a21f-5a66-e4ec-833f-c4896b8e87e4
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

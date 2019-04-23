@@ -67,7 +67,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Int64 MinimumAdaptiveThrottleRate;
 
         public int ClientMaxRate;
-        public float BrustTime;
+        public float BurstTime;
 
         /// <summary>
         /// Default constructor
@@ -94,8 +94,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (ClientMaxRate > 1000000)
                     ClientMaxRate = 1000000; // no more than 8Mbps
 
-                BrustTime = (float)throttleConfig.GetInt("client_throttle_burtsTimeMS", 10);
-                BrustTime *= 1e-3f;
+                BurstTime = (float)throttleConfig.GetInt("client_throttle_burtsTimeMS", 10);
+                BurstTime *= 1e-3f;
 
                 // Adaptive is broken
 //                AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);

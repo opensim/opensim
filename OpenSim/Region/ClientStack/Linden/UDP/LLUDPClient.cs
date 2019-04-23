@@ -242,7 +242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
 
-            m_burstTime = rates.BrustTime;
+            m_burstTime = rates.BurstTime;
             float m_burst = rates.ClientMaxRate * m_burstTime;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
@@ -251,7 +251,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
-            m_burst = rates.Total * rates.BrustTime;
+            m_burst = rates.Total * rates.BurstTime;
 
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
@@ -262,7 +262,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Initialize the token buckets that control the throttling for each category
                 //m_throttleCategories[i] = new TokenBucket(m_throttleClient, rates.GetRate(type), m_burst);
                 float rate = rates.GetRate(type);
-                float burst = rate * rates.BrustTime;
+                float burst = rate * rates.BurstTime;
                 m_throttleCategories[i] = new TokenBucket(m_throttleClient, rate , burst);
             }
 
