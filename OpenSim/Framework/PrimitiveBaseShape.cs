@@ -1039,6 +1039,7 @@ namespace OpenSim.Framework
             const byte LightEP = 0x20;
             const byte SculptEP = 0x30;
             const byte ProjectionEP = 0x40;
+            //const byte MeshEP = 0x60;
             const byte MeshFlagsEP = 0x70;
 
             int TotalBytesLength = 1; // ExtraParamsNum
@@ -1121,7 +1122,10 @@ namespace OpenSim.Framework
 
             if (_sculptEntry)
             {
-                returnBytes[i] = SculptEP;
+                //if(_sculptType == 5)
+                //    returnBytes[i] = MeshEP;
+                //else
+                    returnBytes[i] = SculptEP;
                 i += 2;
                 returnBytes[i] = 17;
                 i += 4;
@@ -1164,6 +1168,7 @@ namespace OpenSim.Framework
             const ushort LightEP = 0x20;
             const ushort SculptEP = 0x30;
             const ushort ProjectionEP = 0x40;
+            const ushort MeshEP = 0x60;
             const ushort MeshFlagsEP = 0x70;
 
             switch (type)
@@ -1186,6 +1191,7 @@ namespace OpenSim.Framework
                     ReadLightData(data, 0);
                     break;
 
+                case MeshEP:
                 case SculptEP:
                     if (!inUse)
                     {
@@ -1231,6 +1237,7 @@ namespace OpenSim.Framework
             const byte LightEP = 0x20;
             const byte SculptEP = 0x30;
             const byte ProjectionEP = 0x40;
+            const byte MeshEP = 0x60;
             const byte MeshFlagsEP = 0x70;
 
             byte extraParamCount = data[0];
@@ -1252,6 +1259,7 @@ namespace OpenSim.Framework
                         i += 16;
                         break;
 
+                    case MeshEP:
                     case SculptEP:
                         ReadSculptData(data, i);
                         i += 17;
