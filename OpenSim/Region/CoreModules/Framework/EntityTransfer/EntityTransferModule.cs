@@ -1874,7 +1874,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
             Vector3 vel2 = Vector3.Zero;
-            if((agent.crossingFlags & 2) != 0)
+            if((agent.m_crossingFlags & 2) != 0)
                 vel2 = new Vector3(agent.Velocity.X, agent.Velocity.Y, 0);
 
             if (m_eqModule != null)
@@ -1900,10 +1900,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if(childRegionsToClose != null)
                 agent.CloseChildAgents(childRegionsToClose);
 
-            if((agent.crossingFlags & 8) == 0)
+            if((agent.m_crossingFlags & 8) == 0)
                 agent.ClearControls(); // don't let attachments delete (called in HasMovedAway) disturb taken controls on viewers
 
-            agent.HasMovedAway((agent.crossingFlags & 8) == 0);
+            agent.HasMovedAway((agent.m_crossingFlags & 8) == 0);
 
             agent.MakeChildAgent(neighbourRegion.RegionHandle);
 

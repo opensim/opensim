@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
             sp.ControllingClient.OnConnectionClosed += OnConnectionClose;
 
-            if (sp.gotCrossUpdate)
+            if (sp.m_gotCrossUpdate)
             {
                 Util.FireAndForget(delegate
                 {

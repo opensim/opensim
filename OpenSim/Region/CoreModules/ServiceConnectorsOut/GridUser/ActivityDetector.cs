@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             if (sp.IsNPC)
                 return;
 
-            if(sp.gotCrossUpdate)
+            if(sp.m_gotCrossUpdate)
             {
                 Util.FireAndForget(delegate
                 {
