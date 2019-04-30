@@ -770,9 +770,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 if(av.IsNPC)
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 else
-                    av.crossingFlags = cflags;
+                    av.m_crossingFlags = cflags;
 
                 av.PrevSitOffset = av.OffsetPosition;
                 av.ParentID = 0;
@@ -821,7 +821,7 @@ namespace OpenSim.Region.Framework.Scenes
                    if(entityTransfer.CrossAgentCreateFarChild(av,destination, newpos, ctx))
                        crossedfar = true;
                    else
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 }
 
                 if(crossedfar)
@@ -834,7 +834,7 @@ namespace OpenSim.Region.Framework.Scenes
                     av.IsInTransit = true;
                     m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
 
-                    if(av.crossingFlags > 0)
+                    if(av.m_crossingFlags > 0)
                         entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, false, ctx);
 
                     if (av.IsChildAgent)
@@ -849,7 +849,7 @@ namespace OpenSim.Region.Framework.Scenes
                         av.ParentPart = null;
                         // In any case
                         av.IsInTransit = false;
-                        av.crossingFlags = 0;
+                        av.m_crossingFlags = 0;
                         m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", av.Firstname, av.Lastname);
                     }
                     else
@@ -865,7 +865,7 @@ namespace OpenSim.Region.Framework.Scenes
                         oldp.X = Util.Clamp<float>(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
                         oldp.Y = Util.Clamp<float>(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
                         av.AbsolutePosition = oldp;
-                        av.crossingFlags = 0;
+                        av.m_crossingFlags = 0;
                         av.sitAnimation = "SIT";
                         av.IsInTransit = false;
                         if(av.Animator!= null)
@@ -926,7 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence av = avinfo.av;
                     av.ParentUUID = UUID.Zero;
                     av.ParentID = avinfo.ParentID;
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 }
             }
             avsToCross.Clear();
