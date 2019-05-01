@@ -1734,24 +1734,72 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void LocalTeleport(Vector3 newpos, Vector3 newvel, Vector3 newlookat, int flags)
         {
-            if(!CheckLocalTPLandingPoint(ref newpos))
-                return;
-
-            AbsolutePosition = newpos;
-
-            if ((flags & 1) != 0)
+            if (newpos.X <= 0)
             {
-                if (PhysicsActor != null)
-                    PhysicsActor.SetMomentum(newvel);
-                m_velocity = newvel;
+                newpos.X = 0.1f;
+                if (newvel.X < 0)
+                    newvel.X = 0;
             }
+            else if (newpos.X >= Scene.RegionInfo.RegionSizeX)
+            {
+                newpos.X = Scene.RegionInfo.RegionSizeX - 0.1f;
+                if (newvel.X > 0)
+                    newvel.X = 0;
+            }
+
+            if (newpos.Y <= 0)
+            {
+                newpos.Y = 0.1f;
+                if (newvel.Y < 0)
+                    newvel.Y = 0;
+            }
+            else if (newpos.Y >= Scene.RegionInfo.RegionSizeY)
+            {
+                newpos.Y = Scene.RegionInfo.RegionSizeY - 0.1f;
+                if (newvel.Y > 0)
+                    newvel.Y = 0;
+            }
+
+            string reason;
+            if (!m_scene.TestLandRestrictions(UUID, out reason, ref newpos.X, ref newpos.Y))
+                return ;
+
+            if (IsSatOnObject)
+                StandUp();
+
+            float localHalfAVHeight = 0.8f;
+            if (Appearance != null)
+                localHalfAVHeight = Appearance.AvatarHeight / 2;
+
+            float posZLimit = 22;
+
+            // TODO: Check other Scene HeightField
+            posZLimit = (float)Scene.Heightmap[(int)newpos.X, (int)newpos.Y];
+
+            posZLimit += localHalfAVHeight + 0.1f;
+
+            if ((newpos.Z < posZLimit) && !(Single.IsInfinity(posZLimit) || Single.IsNaN(posZLimit)))
+            {
+                newpos.Z = posZLimit;
+            }
+
+            if ((flags & 8) != 0)
+                Flying = true;
+            else if ((flags & 16) != 0)
+                Flying = false;
+
+            uint tpflags = (uint)TeleportFlags.ViaLocation;
+            if(Flying)
+                tpflags |= (uint)TeleportFlags.IsFlying;
+
+            Vector3 lookat = Lookat;
 
             if ((flags & 2) != 0)
             {
                 newlookat.Z = 0;
                 newlookat.Normalize();
                 if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
-                    ControllingClient.SendLocalTeleport(newpos, newlookat, (uint)TeleportFlags.ViaLocation);
+                    lookat = newlookat;
             }
             else if((flags & 4) != 0)
             {
@@ -1762,8 +1810,19 @@ namespace OpenSim.Region.Framework.Scenes
                 newlookat.Z = 0;
                 newlookat.Normalize();
                 if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
-                    ControllingClient.SendLocalTeleport(newpos, newlookat, (uint)TeleportFlags.ViaLocation);
+                    lookat = newlookat;
             }
+
+            AbsolutePosition = newpos;
+            ControllingClient.SendLocalTeleport(newpos, lookat, tpflags);
+
+            if ((flags & 1) != 0)
+            {
+                if (PhysicsActor != null)
+                    PhysicsActor.SetMomentum(newvel);
+                m_velocity = newvel;
+            }
+
             SendTerseUpdateToAllClients();
         }
 

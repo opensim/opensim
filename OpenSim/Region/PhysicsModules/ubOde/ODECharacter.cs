@@ -1921,6 +1921,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _position = newPos;
             m_freemove = false;
+            _zeroFlag = false;
             m_pidControllerActive = true;
         }
 
