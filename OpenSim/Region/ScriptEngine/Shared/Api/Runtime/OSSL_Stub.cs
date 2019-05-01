@@ -247,6 +247,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         // Teleport Functions
 
+        public void osLocalTeleportAgent(LSL_Key agent, vector position, vector velocity, vector lookat, LSL_Integer flags)
+        {
+            m_OSSL_Functions.osLocalTeleportAgent(agent, position, velocity, lookat, flags);
+        }
+
         public void osTeleportAgent(string agent, string regionName, vector position, vector lookat)
         {
             m_OSSL_Functions.osTeleportAgent(agent, regionName, position, lookat);

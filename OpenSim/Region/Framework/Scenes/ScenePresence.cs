@@ -1688,10 +1688,6 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
         }
 
-        /// <summary>
-        /// Do not call this directly.  Call Scene.RequestTeleportLocation() instead.
-        /// </summary>
-        /// <param name="pos"></param>
         public void Teleport(Vector3 pos)
         {
             TeleportWithMomentum(pos, Vector3.Zero);
@@ -1736,36 +1732,37 @@ namespace OpenSim.Region.Framework.Scenes
             SendTerseUpdateToAllClients();
         }
 
-        public void avnLocalTeleport(Vector3 newpos, Vector3? newvel, bool rotateToVelXY)
+        public void LocalTeleport(Vector3 newpos, Vector3 newvel, Vector3 newlookat, int flags)
         {
             if(!CheckLocalTPLandingPoint(ref newpos))
                 return;
 
             AbsolutePosition = newpos;
 
-            if (newvel.HasValue)
+            if ((flags & 1) != 0)
             {
-                if ((Vector3)newvel == Vector3.Zero)
-                {
-                    if (PhysicsActor != null)
-                        PhysicsActor.SetMomentum(Vector3.Zero);
-                    m_velocity = Vector3.Zero;
-                }
-                else
-                {
-                    if (PhysicsActor != null)
-                        PhysicsActor.SetMomentum((Vector3)newvel);
-                    m_velocity = (Vector3)newvel;
+                if (PhysicsActor != null)
+                    PhysicsActor.SetMomentum(newvel);
+                m_velocity = newvel;
+            }
 
-                    if (rotateToVelXY)
-                    {
-                        Vector3 lookAt = (Vector3)newvel;
-                        lookAt.Z = 0;
-                        lookAt.Normalize();
-                        ControllingClient.SendLocalTeleport(newpos, lookAt, (uint)TeleportFlags.ViaLocation);
-                        return;
-                    }
-                }
+            if ((flags & 2) != 0)
+            {
+                newlookat.Z = 0;
+                newlookat.Normalize();
+                if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
+                    ControllingClient.SendLocalTeleport(newpos, newlookat, (uint)TeleportFlags.ViaLocation);
+            }
+            else if((flags & 4) != 0)
+            {
+                if((flags & 1) != 0)
+                    newlookat = newvel;
+                else
+                    newlookat = m_velocity;
+                newlookat.Z = 0;
+                newlookat.Normalize();
+                if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
+                    ControllingClient.SendLocalTeleport(newpos, newlookat, (uint)TeleportFlags.ViaLocation);
             }
             SendTerseUpdateToAllClients();
         }

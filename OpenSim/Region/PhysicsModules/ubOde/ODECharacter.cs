@@ -1976,8 +1976,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changeTargetVelocity(Vector3 newVel)
         {
-            m_pidControllerActive = true;
-            m_freemove = false;
+            //m_pidControllerActive = true;
+            //m_freemove = false;
             _target_velocity = newVel;
             if (Body != IntPtr.Zero)
                 SafeNativeMethods.BodyEnable(Body);

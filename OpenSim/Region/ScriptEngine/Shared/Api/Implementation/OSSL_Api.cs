@@ -924,6 +924,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Teleport functions
+        public void osLocalTeleportAgent(LSL_Key agent, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Vector3 lookat, LSL_Integer flags)
+        {
+            UUID agentId;
+            if (!UUID.TryParse(agent, out agentId))
+                return;
+
+            ScenePresence presence = World.GetScenePresence(agentId);
+            if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                return;
+
+            Vector3 pos = presence.AbsolutePosition;
+            if (!checkAllowAgentTPbyLandOwner(agentId, pos))
+                    return;
+
+            World.RequestLocalTeleport(presence, position, velocity, lookat, flags);
+        }
+
         public void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             // High because there is no security check. High griefer potential
