@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
-        public static readonly LSLInteger OS_APIVERSION = 3;
+        public static readonly LSLInteger OS_APIVERSION = 4;
 
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
@@ -897,6 +897,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OSTPOBJ_STOPONFAIL     = 0x2;
         //ApiDesc osTeleportObject flag: the rotation is the final rotation, otherwise is a added rotation
         public const int OSTPOBJ_SETROT         = 0x4;
+
+        //ApiDesc osLocalTeleportAgent no flags
+        public const int OS_LTPAG_NONE          = 0x0;
+        //ApiDesc osLocalTeleportAgent use velocity
+        public const int OS_LTPAG_USEVEL        = 0x1;
+        //ApiDesc osLocalTeleportAgent use lookat
+        public const int OS_LTPAG_USELOOKAT     = 0x2;
+        //ApiDesc osLocalTeleportAgent align lookat to velocity
+        public const int OS_LTPAG_ALGNLV        = 0x4;
+        //ApiDesc osLocalTeleportAgent force fly
+        public const int OS_LTPAG_FORCEFLY      = 0x8;
+        //ApiDesc osLocalTeleportAgent force no fly
+        public const int OS_LTPAG_FORCENOFLY    = 0x16;
 
         // Constants for Windlight
         public const int WL_WATER_COLOR = 0;

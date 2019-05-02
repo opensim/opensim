@@ -1769,19 +1769,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             float localHalfAVHeight = 0.8f;
             if (Appearance != null)
-                localHalfAVHeight = Appearance.AvatarHeight / 2;
+                localHalfAVHeight = Appearance.AvatarHeight * 0.5f;
 
-            float posZLimit = 22;
-
-            // TODO: Check other Scene HeightField
-            posZLimit = (float)Scene.Heightmap[(int)newpos.X, (int)newpos.Y];
-
+            float posZLimit = (float)Scene.Heightmap[(int)newpos.X, (int)newpos.Y];
             posZLimit += localHalfAVHeight + 0.1f;
-
-            if ((newpos.Z < posZLimit) && !(Single.IsInfinity(posZLimit) || Single.IsNaN(posZLimit)))
-            {
+            if (newpos.Z < posZLimit)
                 newpos.Z = posZLimit;
-            }
 
             if ((flags & 8) != 0)
                 Flying = true;

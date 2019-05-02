@@ -936,7 +936,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 pos = presence.AbsolutePosition;
             if (!checkAllowAgentTPbyLandOwner(agentId, pos))
-                    return;
+                return;
 
             World.RequestLocalTeleport(presence, position, velocity, lookat, flags);
         }
