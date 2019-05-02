@@ -1776,38 +1776,43 @@ namespace OpenSim.Region.Framework.Scenes
             if (newpos.Z < posZLimit)
                 newpos.Z = posZLimit;
 
-            if ((flags & 8) != 0)
-                Flying = true;
-            else if ((flags & 16) != 0)
-                Flying = false;
-
-            uint tpflags = (uint)TeleportFlags.ViaLocation;
-            if(Flying)
-                tpflags |= (uint)TeleportFlags.IsFlying;
-
-            Vector3 lookat = Lookat;
-
-            if ((flags & 2) != 0)
+            if((flags & 0x1e) != 0)
             {
-                newlookat.Z = 0;
-                newlookat.Normalize();
-                if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
-                    lookat = newlookat;
-            }
-            else if((flags & 4) != 0)
-            {
-                if((flags & 1) != 0)
-                    newlookat = newvel;
-                else
-                    newlookat = m_velocity;
-                newlookat.Z = 0;
-                newlookat.Normalize();
-                if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
-                    lookat = newlookat;
-            }
+                if ((flags & 8) != 0)
+                    Flying = true;
+                else if ((flags & 16) != 0)
+                    Flying = false;
 
-            AbsolutePosition = newpos;
-            ControllingClient.SendLocalTeleport(newpos, lookat, tpflags);
+                uint tpflags = (uint)TeleportFlags.ViaLocation;
+                if(Flying)
+                    tpflags |= (uint)TeleportFlags.IsFlying;
+
+                Vector3 lookat = Lookat;
+
+                if ((flags & 2) != 0)
+                {
+                    newlookat.Z = 0;
+                    newlookat.Normalize();
+                    if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
+                        lookat = newlookat;
+                }
+                else if((flags & 4) != 0)
+                {
+                    if((flags & 1) != 0)
+                        newlookat = newvel;
+                    else
+                        newlookat = m_velocity;
+                    newlookat.Z = 0;
+                    newlookat.Normalize();
+                    if (Math.Abs(newlookat.X) > 0.001 || Math.Abs(newlookat.Y) > 0.001)
+                        lookat = newlookat;
+                }
+
+                AbsolutePosition = newpos;
+                ControllingClient.SendLocalTeleport(newpos, lookat, tpflags);
+            }
+            else
+                AbsolutePosition = newpos;
 
             if ((flags & 1) != 0)
             {
