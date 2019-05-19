@@ -927,14 +927,10 @@
 
 [YEngine]
     ;; experimental engine
-    ;; ONLY SUPORTS ONE REGION PER INSTANCE at this point
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
-    ;; compiles LSL directly to IL, so only suports LSL scripting (no C# etc) 
-    ;; shares the Xengine APIs like LSL, OSSL, etc.
-    ;; DANGER, do not use with HG, don't leave regions running alone with it.
-    ;; TPs or crossings to/from Xengine will full recompile scripts losing state.
-    ;; attachment scripts may misbehave, cars will stop on crossings, etc.
+    ;; warning: scripts state is lost on TP or cross to Xengine regions (cars stop, etc)
+	;; ignore its extensions (subset of original XMRengine), those are still undefined.
     Enabled = false
     ScriptStackSize = 256
     ScriptHeapSize = 256
