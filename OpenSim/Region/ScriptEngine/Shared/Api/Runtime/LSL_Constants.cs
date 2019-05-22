@@ -189,6 +189,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int VEHICLE_RANGE_BLOCK = 45;
         public const int VEHICLE_ROLL_FRAME = 46;
         public const int VEHICLE_FLAG_NO_DEFLECTION_UP = 1;
+        public const int VEHICLE_FLAG_NO_FLY_UP = 1;  //legacy
         public const int VEHICLE_FLAG_LIMIT_ROLL_ONLY = 2;
         public const int VEHICLE_FLAG_HOVER_WATER_ONLY = 4;
         public const int VEHICLE_FLAG_HOVER_TERRAIN_ONLY = 8;
