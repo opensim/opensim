@@ -77,6 +77,9 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             {
                 RegisterCaps(agentID, caps);
             };
+            ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+            if(simFeatures != null)
+                simFeatures.AddFeature("AvatarHoverHeightEnabled",OSD.FromBoolean(true));
         }
 
         public void PostInitialise() {}
