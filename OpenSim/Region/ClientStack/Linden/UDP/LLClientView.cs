@@ -2886,7 +2886,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 18 // ID (high frequency bigendian)
                 };
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] payload, bool isTaskInventory)
+        public void SendXferPacket(ulong xferID, uint packet,
+                byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory)
         {
             UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
             byte[] data = buf.Data;
@@ -2896,7 +2897,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Utils.UInt64ToBytesSafepos(xferID, data, 7); // 15
             Utils.UIntToBytesSafepos(packet, data, 15); // 19
-            int len = payload.Length;
+
+            int len = XferDatapktLen;
+            if (XferDataOffset == 0) // first packet needs to send the total xfer data len
+                len += 4;
+
             if (len > LLUDPServer.MAXPAYLOAD) // should never happen
                 len = LLUDPServer.MAXPAYLOAD;
             if (len == 0)
@@ -2908,7 +2913,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[19] = (byte)len;
                 data[20] = (byte)(len >> 8);
-                Buffer.BlockCopy(payload, 0, data, 21, len);
+                if(XferDataOffset == 0)
+                {
+                    // need to send total xfer data len
+                    Utils.IntToBytesSafepos(XferData.Length, data, 21);
+                    if (XferDatapktLen > 0)
+                        Buffer.BlockCopy(XferData, XferDataOffset, data, 25, XferDatapktLen);
+                }
+                else
+                    Buffer.BlockCopy(XferData, XferDataOffset, data, 21, XferDatapktLen);
             }
 
             buf.DataLength = 21 + len;

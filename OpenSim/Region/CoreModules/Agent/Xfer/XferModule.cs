@@ -272,9 +272,9 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         if (!Transfers.ContainsKey(xferID))
                         {
                             byte[] fileData = NewFiles[fileName].Data;
-                            int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Asset) >> 11;
-                            if(Transfers.Count > 1)
-                                burstSize /= Transfers.Count;
+                            int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Task) >> 10;
+                            burstSize = burstSize * (remoteClient.PingTimeMS + 50);
+                            burstSize >>= 9; //  ping is ms, 2 round trips
                             XferDownLoad transaction =
                                 new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             private int lastBytes;
             private int lastSentPacket;
             private int lastAckPacket;
-            private int burstSize;
+            private int burstSize; // additional packets, so can be zero
             private int retries = 0;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client, int burstsz)
@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             {
                 if(!isDeleted)
                 {
-                    Data = new byte[0];
+                    Data = null;
                     isDeleted = true;
                 }
             }
@@ -381,7 +381,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             lastBytes = 1024;
                             LastPacket--;
                         }
-
                     }
 
                     lastAckPacket = -1;
@@ -422,20 +421,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     pktid = (uint)pkt;
                 }
 
-                byte[] transferData;
-                if(pkt == 0)
-                {
-                    transferData = new byte[pktsize + 4];
-                    Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
-                    Array.Copy(Data, 0, transferData, 4, pktsize);
-                }
-                else
-                {
-                    transferData = new byte[pktsize];
-                    Array.Copy(Data, pkt << 10, transferData, 0, pktsize);
-                }
-
-                Client.SendXferPacket(XferID, pktid, transferData, false);
+                Client.SendXferPacket(XferID, pktid, Data, pkt << 10, pktsize, true);
 
                 lastSentPacket = pkt;
                 lastsendTimeMS = now;
