@@ -274,7 +274,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             byte[] fileData = NewFiles[fileName].Data;
                             int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Task) >> 10;
                             burstSize = burstSize * (remoteClient.PingTimeMS + 50);
-                            burstSize >>= 9; //  ping is ms, 2 round trips
+                            burstSize /= 1000; //  ping is ms
                             XferDownLoad transaction =
                                 new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
@@ -333,7 +333,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             private int lastSentPacket;
             private int lastAckPacket;
             private int burstSize; // additional packets, so can be zero
-            private int retries = 0;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client, int burstsz)
             {
@@ -461,11 +460,11 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     if(!isDeleted)
                     {
                         double timeMS = now - lastsendTimeMS;
-                        if(timeMS > 60000.0)
+                        if(timeMS > 90000.0)
                             done();
-                        else if(timeMS > 3500.0 && retries++ < 3)
+                        else if(timeMS > 3500.0)
                         {
-                            burstSize >>= 1;
+                            burstSize = 0; // cancel burst mode
                             SendBurst(now);
                         }
                     }
