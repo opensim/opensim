@@ -2880,7 +2880,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
         static private readonly byte[] SendXferPacketHeader = new byte[] {
-                Helpers.MSG_RELIABLE,
+                0, //Helpers.MSG_RELIABLE, Xfer control must provide reliabialty
                 0, 0, 0, 0, // sequence number
                 0, // extra
                 18 // ID (high frequency bigendian)

@@ -273,8 +273,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         {
                             byte[] fileData = NewFiles[fileName].Data;
                             int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Task) >> 10;
-                            burstSize = burstSize * (remoteClient.PingTimeMS + 50);
-                            burstSize /= 1000; //  ping is ms
+                            burstSize *= remoteClient.PingTimeMS;
+                            burstSize >>= 9; //  ping is ms, 2 round trips
                             XferDownLoad transaction =
                                 new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
@@ -327,12 +327,14 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public bool isDeleted = false;
 
             private object myLock = new object();
-            private double lastsendTimeMS;
+            private double lastACKTimeMS;
             private int LastPacket;
             private int lastBytes;
             private int lastSentPacket;
             private int lastAckPacket;
             private int burstSize; // additional packets, so can be zero
+            private int retries;
+            private bool inBurst;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client, int burstsz)
             {
@@ -394,12 +396,15 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
             private void SendBurst(double now)
             {
+                inBurst = true;
+                lastACKTimeMS = now; // reset timeout
                 int start = lastAckPacket + 1;
                 int end = start + burstSize;
                 if (end > LastPacket)
                     end = LastPacket;
-                while(start <= end)
+                while (start <= end)
                     SendPacket(start++ , now);
+                inBurst = false;
             }
 
             private void SendPacket(int pkt, double now)
@@ -422,8 +427,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
                 Client.SendXferPacket(XferID, pktid, Data, pkt << 10, pktsize, true);
 
+                retries = 0;
                 lastSentPacket = pkt;
-                lastsendTimeMS = now;
             }
 
             /// <summary>
@@ -447,30 +452,37 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         done();
                         return true;
                     }
+
                     double now = Util.GetTimeStampMS();
-                    SendPacket(lastSentPacket + 1, now);
+                    lastACKTimeMS = now;
+                    retries = 0;
+                    if (!inBurst)
+                        SendPacket(lastSentPacket + 1, now);
                     return false;
                 }
             }
 
             public bool checkTime(double now)
             {
-                if(Monitor.TryEnter(myLock))
+                if (Monitor.TryEnter(myLock))
                 {
-                    if(!isDeleted)
+                    if (!isDeleted && !inBurst)
                     {
-                        double timeMS = now - lastsendTimeMS;
-                        if(timeMS > 90000.0)
+                        if (++retries >= 4)
                             done();
-                        else if(timeMS > 3500.0)
+                        else
                         {
-                            burstSize = 0; // cancel burst mode
-                            SendBurst(now);
+                            double timeMS = now - lastACKTimeMS;
+                            if(timeMS > 3000.0)
+                            {
+                                burstSize >>= 2;
+                                SendBurst(now);
+                            }
                         }
                     }
-
+                    bool isdel = isDeleted;
                     Monitor.Exit(myLock);
-                    return isDeleted;
+                    return isdel;
                 }
                 return false;
             }
