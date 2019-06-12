@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 if(!inTimeTick)
                 {
                     double now = Util.GetTimeStampMS();
-                    if(now - lastTimeTick > 500.0)
+                    if(now - lastTimeTick > 750.0)
                     {
 
                         if(Transfers.Count == 0 && NewFiles.Count == 0)
@@ -334,7 +334,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             private int lastAckPacket;
             private int burstSize; // additional packets, so can be zero
             private int retries;
-            private bool inBurst;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client, int burstsz)
             {
@@ -397,15 +396,16 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
             private void SendBurst(double now)
             {
-                inBurst = true;
-                lastACKTimeMS = (int)now; // reset timeout
-                int start = lastAckPacket + 1;
-                int end = start + burstSize;
-                if (end > LastPacket)
-                    end = LastPacket;
-                while (start <= end)
-                    SendPacket(start++ , now);
-                inBurst = false;
+                lock(myLock)
+                {
+                    lastACKTimeMS = (int)now; // reset timeout
+                    int start = lastAckPacket + 1;
+                    int end = start + burstSize;
+                    if (end > LastPacket)
+                        end = LastPacket;
+                    while (start <= end)
+                        SendPacket(start++ , now);
+                }
             }
 
             private void SendPacket(int pkt, double now)
@@ -458,8 +458,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     double now = Util.GetTimeStampMS();
                     lastACKTimeMS = (int)now;
                     retries = 0;
-                    if (!inBurst)
-                        SendPacket(lastSentPacket + 1, now);
+                    SendPacket(lastSentPacket + 1, now);
                     return false;
                 }
             }
@@ -468,15 +467,15 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             {
                 if (Monitor.TryEnter(myLock))
                 {
-                    if (!isDeleted && !inBurst)
+                    if (!isDeleted)
                     {
                         double timeMS = now - lastACKTimeMS;
 
                         double tout = 5 * remoteClient.PingTimeMS;
                         if(tout > 10000)
                             tout = 10000;
-                        else if (tout < 500)
-                            tout = 500;
+                        else if (tout < 1000)
+                            tout = 1000;
                         if (timeMS > tout)
                         {
                             if (++retries >= 4)
