@@ -50,8 +50,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private object  timeTickLock = new object();
-        private double  lastTimeTick = 0.0;
-        private double  lastFilesExpire = 0.0;
+        private int  lastTimeTick = 0;
+        private int  lastFilesExpire = 0;
         private bool    inTimeTick = false;
 
         public struct XferRequest
@@ -66,15 +66,15 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             public byte[] Data;
             public int refsCount;
-            public double timeStampMS;
+            public int timeStampMS;
         }
 
         #region INonSharedRegionModule Members
 
         public void Initialise(IConfigSource config)
         {
-            lastTimeTick = Util.GetTimeStampMS() + 30000.0;
-            lastFilesExpire = lastTimeTick + 180000.0;
+            lastTimeTick = (int)Util.GetTimeStampMS() + 30000;
+            lastFilesExpire = lastTimeTick + 180000;
         }
 
         public void AddRegion(Scene scene)
@@ -121,10 +121,9 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             {
                 if(!inTimeTick)
                 {
-                    double now = Util.GetTimeStampMS();
-                    if(now - lastTimeTick > 750.0)
+                    int now = (int)Util.GetTimeStampMS();
+                    if(now - lastTimeTick > 750)
                     {
-
                         if(Transfers.Count == 0 && NewFiles.Count == 0)
                             lastTimeTick = now;
                         else
@@ -163,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             lock (NewFiles)
             {
-                double now = Util.GetTimeStampMS();
+                int now = (int)Util.GetTimeStampMS();
                 if (NewFiles.ContainsKey(fileName))
                 {
                     NewFiles[fileName].refsCount++;
@@ -183,18 +182,18 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         }
 
         #endregion
-        public void expireFiles(double now)
+        public void expireFiles(int now)
         {
             lock (NewFiles)
             {
                 // hopefully we will not have many files so nasty code will do it
-                if(now - lastFilesExpire > 120000.0)
+                if(now - lastFilesExpire > 120000)
                 {
                     lastFilesExpire = now;
                     List<string> expires = new List<string>();
                     foreach(string fname in NewFiles.Keys)
                     {
-                        if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 120000.0)
+                        if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 120000)
                             expires.Add(fname);
                     }
                     foreach(string fname in expires)
@@ -230,7 +229,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             }
         }
 
-        public void transfersTimeTick(double now)
+        public void transfersTimeTick(int now)
         {
             XferDownLoad[] xfrs;
             lock(Transfers)
@@ -241,6 +240,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 xfrs = new XferDownLoad[Transfers.Count];
                 Transfers.Values.CopyTo(xfrs,0);
             }
+            
             foreach(XferDownLoad xfr in xfrs)
             {
                 if(xfr.checkTime(now))
@@ -274,12 +274,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             byte[] fileData = NewFiles[fileName].Data;
                             int burstSize = remoteClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Task) >> 10;
                             burstSize *= remoteClient.PingTimeMS;
-                            burstSize >>= 10; //  ping is ms, 1 round trips
+                            burstSize >>= 10; //  ping is ms, 1 round trip
+                            if(burstSize > 32)
+                                burstSize = 32;
                             XferDownLoad transaction =
                                 new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
 
                             Transfers.Add(xferID, transaction);
-
                             transaction.StartSend();
 
                             // The transaction for this file is on its way
@@ -327,7 +328,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public bool isDeleted = false;
 
             private object myLock = new object();
-            private double lastACKTimeMS;
+            private int lastACKTimeMS;
             private int LastPacket;
             private int lastBytes;
             private int lastSentPacket;
@@ -385,30 +386,25 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 
                     lastAckPacket = -1;
                     lastSentPacket = -1;
-
-                    double now = Util.GetTimeStampMS();
                     retries = 0;
 
-                    SendBurst(now);
+                    SendBurst();
                     return;
                 }
             }
 
-            private void SendBurst(double now)
+            private void SendBurst()
             {
-                lock(myLock)
-                {
-                    lastACKTimeMS = (int)now; // reset timeout
-                    int start = lastAckPacket + 1;
-                    int end = start + burstSize;
-                    if (end > LastPacket)
-                        end = LastPacket;
-                    while (start <= end)
-                        SendPacket(start++ , now);
-                }
+                int start = lastAckPacket + 1;
+                int end = start + burstSize;
+                if (end > LastPacket)
+                    end = LastPacket;
+                while (start <= end)
+                    SendPacket(start++);
+                lastACKTimeMS = (int)Util.GetTimeStampMS(); // reset timeout
             }
 
-            private void SendPacket(int pkt, double now)
+            private void SendPacket(int pkt)
             {
                 if(pkt > LastPacket)
                     return;
@@ -443,45 +439,43 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     if(isDeleted)
                         return true;
 
-                    packet &=  0x7fffffff;
-                    if(lastAckPacket < packet)
+                    packet &= 0x7fffffff;
+                    if (lastAckPacket < packet)
                         lastAckPacket = (int)packet;
-
-                    if(lastAckPacket == LastPacket)
+                    else if (lastAckPacket == LastPacket)
                     {
                         done();
                         return true;
                     }
 
-                    double now = Util.GetTimeStampMS();
-                    lastACKTimeMS = (int)now;
+                    lastACKTimeMS = (int)Util.GetTimeStampMS();
                     retries = 0;
-                    SendPacket(lastSentPacket + 1, now);
+                    SendPacket(lastSentPacket + 1);
                     return false;
                 }
             }
 
-            public bool checkTime(double now)
+            public bool checkTime(int now)
             {
                 if (Monitor.TryEnter(myLock))
                 {
                     if (!isDeleted)
                     {
-                        double timeMS = now - lastACKTimeMS;
-
-                        double tout = 5 * remoteClient.PingTimeMS;
+                        int timeMS = now - lastACKTimeMS;
+                        int tout = 5 * remoteClient.PingTimeMS;
                         if(tout > 10000)
                             tout = 10000;
                         else if (tout < 1000)
                             tout = 1000;
+
                         if (timeMS > tout)
                         {
-                            if (++retries >= 4)
+                            if (++retries > 4)
                                 done();
                             else
                             {
-                                burstSize >>= 2;
-                                SendBurst(now);
+                                burstSize = lastSentPacket - lastAckPacket - 1;
+                                SendBurst();
                             }
                         }
                     }
