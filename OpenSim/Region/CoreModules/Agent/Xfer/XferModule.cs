@@ -444,10 +444,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         return true;
 
                     packet &=  0x7fffffff;
-                    if(lastAckPacket >= packet)
-                        return false;
-
-                    lastAckPacket = (int)packet;
+                    if(lastAckPacket < packet)
+                        lastAckPacket = (int)packet;
 
                     if(lastAckPacket == LastPacket)
                     {
