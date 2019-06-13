@@ -463,10 +463,10 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     {
                         int timeMS = now - lastACKTimeMS;
                         int tout = 5 * remoteClient.PingTimeMS;
-                        if(tout > 10000)
-                            tout = 10000;
-                        else if (tout < 1000)
+                        if (tout < 1000)
                             tout = 1000;
+                        else if(tout > 10000)
+                            tout = 10000;
 
                         if (timeMS > tout)
                         {
