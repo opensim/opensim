@@ -133,7 +133,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 if(m_changed.Count == 0)
                     return;
 
-                if(forcedBackup)
+                if (forcedBackup)
                 {
                     toStore = new List<FaceMaterial>(m_changed.Keys);
                     m_changed.Clear();
@@ -154,16 +154,29 @@ namespace OpenSim.Region.OptionalModules.Materials
                         m_changed.Remove(fm);
                     }
                 }
+            }
 
             if(toStore.Count > 0)
-                Util.FireAndForget(delegate
+            {
+                if (forcedBackup)
                 {
-                    foreach(FaceMaterial fm in toStore)
+                    foreach (FaceMaterial fm in toStore)
                     {
                         AssetBase a = MakeAsset(fm, false);
                         m_scene.AssetService.Store(a);
                     }
-                });
+                }
+                else
+                {
+                    Util.FireAndForget(delegate
+                    {
+                        foreach (FaceMaterial fm in toStore)
+                        {
+                            AssetBase a = MakeAsset(fm, false);
+                            m_scene.AssetService.Store(a);
+                        }
+                    });
+                }
             }
         }
 
