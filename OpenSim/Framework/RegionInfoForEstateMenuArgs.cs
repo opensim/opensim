@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     {
         public float billableFactor;
         public uint estateID;
-        public byte maxAgents;
+        public int maxAgents;
         public float objectBonusFactor;
         public uint parentEstateID;
         public int pricePerMeter;
@@ -48,5 +48,7 @@ namespace OpenSim.Framework
         public float waterHeight;
         public string simName;
         public string regionType;
+        public int AgentCapacity;
+        public int ObjectsCapacity;
     }
 }

@@ -1404,7 +1404,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
            args.billableFactor = Scene.RegionInfo.EstateSettings.BillableFactor;
            args.estateID = Scene.RegionInfo.EstateSettings.EstateID;
-           args.maxAgents = (byte)Scene.RegionInfo.RegionSettings.AgentLimit;
+           args.maxAgents = Scene.RegionInfo.RegionSettings.AgentLimit;
            args.objectBonusFactor = (float)Scene.RegionInfo.RegionSettings.ObjectBonus;
            args.parentEstateID = Scene.RegionInfo.EstateSettings.ParentEstateID;
            args.pricePerMeter = Scene.RegionInfo.EstateSettings.PricePerMeter;
@@ -1419,6 +1419,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
            args.waterHeight = (float)Scene.RegionInfo.RegionSettings.WaterHeight;
            args.simName = Scene.RegionInfo.RegionName;
            args.regionType = Scene.RegionInfo.RegionType;
+           args.AgentCapacity = Scene.RegionInfo.AgentCapacity;
+           args.ObjectsCapacity = Scene.RegionInfo.ObjectCapacity;
 
            remote_client.SendRegionInfoToEstateMenu(args);
         }
