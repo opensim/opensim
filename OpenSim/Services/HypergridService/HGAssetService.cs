@@ -39,6 +39,7 @@ using OpenSim.Framework.Serialization.External;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.AssetService;
+using OpenSim.Services.Base;
 
 namespace OpenSim.Services.HypergridService
 {
@@ -47,7 +48,7 @@ namespace OpenSim.Services.HypergridService
     /// but implements it in ways that are appropriate for inter-grid
     /// asset exchanges.
     /// </summary>
-    public class HGAssetService : OpenSim.Services.AssetService.AssetService, IAssetService
+    public class HGAssetService : ServiceBase, IAssetService
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(
@@ -60,7 +61,9 @@ namespace OpenSim.Services.HypergridService
 
         private AssetPermissions m_AssetPerms;
 
-        public HGAssetService(IConfigSource config, string configName) : base(config, configName)
+        IAssetService m_assetService = null;
+
+        public HGAssetService(IConfigSource config, string configName) : base(config)
         {
             m_log.Debug("[HGAsset Service]: Starting");
             IConfig assetConfig = config.Configs[configName];
@@ -86,12 +89,30 @@ namespace OpenSim.Services.HypergridService
             // Permissions
             m_AssetPerms = new AssetPermissions(assetConfig);
 
+            string str = assetConfig.GetString("BackingService", "OpenSim.Services.AssetService.dll:AssetService");
+
+            if (str != string.Empty)
+            {
+                args = new object[] { config };
+                m_assetService = LoadPlugin<IAssetService>(str, args);
+                if (m_assetService != null)
+                {
+                    m_log.InfoFormat("[HGASSETS]: Backing service loaded: {0}", str);
+                }
+                else
+                {
+                    m_log.ErrorFormat("[HGASSETS]: Failed to load backing service {0}", str);
+                }
+            }
+
+
+
         }
 
-        #region IAssetService overrides
-        public override AssetBase Get(string id)
+        #region IAssetService
+        public  AssetBase Get(string id)
         {
-            AssetBase asset = base.Get(id);
+            AssetBase asset = m_assetService.Get(id);
 
             if (asset == null)
                 return null;
@@ -107,9 +128,9 @@ namespace OpenSim.Services.HypergridService
             return asset;
         }
 
-        public override AssetMetadata GetMetadata(string id)
+        public AssetMetadata GetMetadata(string id)
         {
-            AssetMetadata meta = base.GetMetadata(id);
+            AssetMetadata meta = m_assetService.GetMetadata(id);
 
             if (meta == null)
                 return null;
@@ -119,7 +140,7 @@ namespace OpenSim.Services.HypergridService
             return meta;
         }
 
-        public override byte[] GetData(string id)
+        public byte[] GetData(string id)
         {
             AssetBase asset = Get(id);
 
@@ -142,7 +163,7 @@ namespace OpenSim.Services.HypergridService
 
         //public virtual bool Get(string id, Object sender, AssetRetrieved handler)
 
-        public override string Store(AssetBase asset)
+        public string Store(AssetBase asset)
         {
             if (!m_AssetPerms.AllowedImport(asset.Type))
                 return string.Empty;
@@ -155,12 +176,50 @@ namespace OpenSim.Services.HypergridService
                 asset.Data = Utils.StringToBytes(xml);
             }
 
-            return base.Store(asset);
+            return m_assetService.Store(asset);
         }
 
-        public override bool Delete(string id)
+        public bool Delete(string id)
         {
             // NOGO
+            return false;
+        }
+
+        public AssetBase GetCached(string id)
+        {
+            AssetBase asset = m_assetService.GetCached(id);
+
+            if (asset == null)
+                return null;
+
+            if (!m_AssetPerms.AllowedExport(asset.Type))
+                return null;
+
+            if (asset.Metadata.Type == (sbyte)AssetType.Object)
+                asset.Data = AdjustIdentifiers(asset.Data);
+
+            AdjustIdentifiers(asset.Metadata);
+
+            return asset;
+        }
+
+        public bool Get(string id, object sender, AssetRetrieved handler)
+        {
+            AssetBase asset = Get(id);
+
+            handler?.Invoke(id, sender, asset);
+
+            return true;
+        }
+
+        public bool[] AssetsExist(string[] ids)
+        {
+            return m_assetService.AssetsExist(ids);
+        }
+
+        public bool UpdateContent(string id, byte[] data)
+        {
+            // NO WAY
             return false;
         }
 
@@ -187,7 +246,5 @@ namespace OpenSim.Services.HypergridService
 
             return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, "HGAssetService", m_HomeURL, m_Cache, UUID.Zero));
         }
-
     }
-
 }
