@@ -31,7 +31,7 @@
 		         rootNamespace="Prebuild"
 		         startupObject="Prebuild.Prebuild"
 		         version="2.0.7"
-		         frameworkVersion="v4_0"
+		         frameworkVersion="v4_6"
 		>
 			<Author>Matthew Holmes (matthew@wildfiregames.com)</Author>
 			<Author>Dan Moorehead (dan05a@gmail.com)</Author>
