@@ -14192,15 +14192,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID && land.ParcelAccessList.Count > 0)
             {
+                var todelete = new List<LandAccessEntry>();
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
                 {
                     if (entry.Flags == AccessList.Ban)
-                    {
-                        land.ParcelAccessList.Remove(entry);
-                    }
+                        todelete.Add(entry);
                 }
+                foreach (LandAccessEntry entry in todelete)
+                    land.ParcelAccessList.Remove(entry);
             }
             ScriptSleep(m_sleepMsOnResetLandBanList);
         }
@@ -14209,15 +14210,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            if (land.OwnerID == m_host.OwnerID && land.ParcelAccessList.Count > 0)
             {
+                var todelete = new List<LandAccessEntry>();
                 foreach (LandAccessEntry entry in land.ParcelAccessList)
                 {
                     if (entry.Flags == AccessList.Access)
-                    {
-                        land.ParcelAccessList.Remove(entry);
-                    }
+                        todelete.Add(entry);
                 }
+                foreach (LandAccessEntry entry in todelete)
+                    land.ParcelAccessList.Remove(entry);
             }
             ScriptSleep(m_sleepMsOnResetLandPassList);
         }
