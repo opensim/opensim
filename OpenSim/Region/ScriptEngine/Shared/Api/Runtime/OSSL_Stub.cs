@@ -116,6 +116,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetWindParam(plugin, param);
         }
 
+        public int osGetParcelDwell(vector pos)
+        {
+            return m_OSSL_Functions.osGetParcelDwell(pos);
+        }
+
         public void osParcelJoin(vector pos1, vector pos2)
         {
             m_OSSL_Functions.osParcelJoin(pos1,pos2);

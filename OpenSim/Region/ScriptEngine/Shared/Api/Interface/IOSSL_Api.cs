@@ -260,6 +260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Float osGetWindParam(string plugin, string param);
 
         // Parcel commands
+        int osGetParcelDwell(vector pos);
         void osParcelJoin(vector pos1, vector pos2);
         void osParcelSubdivide(vector pos1, vector pos2);
         void osSetParcelDetails(vector pos, LSL_List rules);
