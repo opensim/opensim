@@ -14343,6 +14343,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case "5":
                         ret.Add(new LSL_Key(land.GlobalID.ToString()));
                         break;
+                    case "20":
+                        ret.Add(new LSL_Integer(land.Dwell));
+                        break;
                     default:
                         ret.Add(new LSL_Integer(0));
                         break;

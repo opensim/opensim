@@ -721,6 +721,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         // constants for llGetParcelDetails
         public const int PARCEL_DETAILS_NAME = 0;
         public const int PARCEL_DETAILS_DESC = 1;
+        public const int PARCEL_DETAILS_DWELL = 20;
         public const int PARCEL_DETAILS_OWNER = 2;
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
