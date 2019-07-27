@@ -66,17 +66,23 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_log.Info("[GODNAMES]: Enabled");
             m_enabled = true;
             string conf_str = moduleConfig.GetString("FullNames", String.Empty);
-            foreach (string strl in conf_str.Split(',')) {
-                string strlan = strl.Trim(" \t".ToCharArray());
-                m_log.DebugFormat("[GODNAMES]: Adding {0} as a God name", strlan);
-                m_fullNames.Add(strlan);
+            if (conf_str != String.Empty)
+            {
+                foreach (string strl in conf_str.Split(',')) {
+                    string strlan = strl.Trim(" \t".ToCharArray());
+                    m_log.DebugFormat("[GODNAMES]: Adding {0} as a God name", strlan);
+                    m_fullNames.Add(strlan);
+                }
             }
 
             conf_str = moduleConfig.GetString("Surnames", String.Empty);
-            foreach (string strl in conf_str.Split(',')) {
-                string strlan = strl.Trim(" \t".ToCharArray());
-                m_log.DebugFormat("[GODNAMES]: Adding {0} as a God last name", strlan);
-                m_lastNames.Add(strlan);
+            if (conf_str != String.Empty)
+            {
+                foreach (string strl in conf_str.Split(',')) {
+                    string strlan = strl.Trim(" \t".ToCharArray());
+                    m_log.DebugFormat("[GODNAMES]: Adding {0} as a God last name", strlan);
+                    m_lastNames.Add(strlan);
+                }
             }
         }
 
