@@ -153,10 +153,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            SceneObjectGroup sog = GetGroupByPrim(primLocalID);
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
+            if (part != null)
+            {
+                SceneObjectGroup sog = part.ParentGroup;
+                if(!sog.IsDeleted)
+                {
+                    PrimUpdateFlags update = PrimUpdateFlags.FullUpdate;
+                    if (sog.RootPart.Shape.MeshFlagEntry)
+                        update = PrimUpdateFlags.FullUpdatewithAnim;
+                    part.SendUpdate(remoteClient, update);
+                }
+            }
 
-            if (sog != null)
-                sog.SendFullAnimUpdateToClient(remoteClient);
+            //SceneObjectGroup sog = GetGroupByPrim(primLocalID);
+
+            //if (sog != null)
+            //sog.SendFullAnimUpdateToClient(remoteClient);
         }
 
         /// <summary>

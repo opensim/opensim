@@ -256,7 +256,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
        private void OnMakeRootAgent(ScenePresence sp)
         {
-            if(sp.gotCrossUpdate)
+            if(sp.m_gotCrossUpdate)
                 return;
 
             RecacheFriends(sp.ControllingClient);

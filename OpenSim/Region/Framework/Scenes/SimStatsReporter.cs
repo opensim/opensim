@@ -556,7 +556,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[27].StatID = (uint)Stats.PhysicsLodTasks;
                 sb[27].StatValue = 0;
 
-                sb[28].StatID = (uint)Stats.ScriptEps; // we actuall have this, but not messing array order AGAIN
+                sb[28].StatID = (uint)Stats.ScriptEps; // we actually have this, but not messing array order AGAIN
                 sb[28].StatValue = (float)Math.Round(m_scriptEventsPerSecond * updateTimeFactor);
 
                 sb[29].StatID = (uint)Stats.SimAIStepTimeMS;

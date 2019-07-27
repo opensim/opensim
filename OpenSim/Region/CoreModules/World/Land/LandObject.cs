@@ -1841,7 +1841,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     UUID lgid = LandData.GlobalID;
                     m_scene.ForEachRootScenePresence(delegate(ScenePresence sp)
                     {
-                        if(sp.IsNPC || sp.IsLoggingIn || sp.IsDeleted || sp.currentParcelUUID != lgid)
+                        if(sp.IsNPC || sp.IsDeleted || sp.currentParcelUUID != lgid)
                             return;
                         cur += (now - sp.ParcelDwellTickMS);
                         sp.ParcelDwellTickMS = now;

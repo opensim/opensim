@@ -524,6 +524,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public bool TryGet<T>(out T iface)
         {
             iface = default(T);
@@ -932,7 +934,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone(),appearance.AvatarSize, new WearableCacheItem[0]);
         }
 
-        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        public void SendRegionHandshake()
         {
             m_log.Info("[IRCd ClientStack] Completing Handshake to Region");
 
@@ -943,7 +945,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             if (OnCompleteMovementToRegion != null)
             {
-                OnCompleteMovementToRegion(this, true);
+                OnCompleteMovementToRegion(this, false);
             }
         }
 
@@ -963,11 +965,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
 
         public void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures)
-        {
-
-        }
-
-        public void SendStartPingCheck(byte seq)
         {
 
         }
@@ -1160,7 +1157,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
+        public void SendXferPacket(ulong xferID, uint packet, 
+                byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory)
         {
 
         }
@@ -1778,7 +1776,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             return 0;
         }
 
-        public void CheckViewerCaps() { }
+        public uint GetViewerCaps()
+        {
+            return 0;
+        }
 
     }
 }

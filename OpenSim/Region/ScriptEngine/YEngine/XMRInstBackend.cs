@@ -218,7 +218,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // do not do llResetScript on entry
             if(eventCode == ScriptEventCode.state_entry && stateCode == 0)
                 return;
-            ClearQueueExceptLinkMessages();
+            // do clear the events queue on reset
+            ClearQueue();
+            //ClearQueueExceptLinkMessages();
             throw new ScriptResetException();
         }
 
@@ -583,6 +585,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * Tell outer layers to cancel any event triggers, like llListen(),
          * then tell outer layers which events the new state has handlers for.
          * We also clear the event queue as per http://wiki.secondlife.com/wiki/State
+         * old scripts may want linked messages, but that is not as SL does now
          */
         public override void StateChange()
         {
@@ -595,7 +598,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Tell whoever cares which event handlers the new state has.
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(stateCode));
 
-             // Clear out any old events from the queue.
+            // keep link messages
+            //ClearQueueExceptLinkMessages();
+            // or Clear out all old events from the queue.
             lock(m_QueueLock)
             {
                 m_EventQueue.Clear();

@@ -1603,7 +1603,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else
             {
-                Vector3 a = _velocity; // previus velocity
+                Vector3 a = _velocity; // previous velocity
                 SetSmooth(ref _velocity,ref vel,2);
                 a = (_velocity - a) * invtimeStep;
                 SetSmooth(ref _acceleration,ref a,2);
@@ -1921,6 +1921,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             _position = newPos;
             m_freemove = false;
+            _zeroFlag = false;
             m_pidControllerActive = true;
         }
 
@@ -1976,8 +1977,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private void changeTargetVelocity(Vector3 newVel)
         {
-            m_pidControllerActive = true;
-            m_freemove = false;
+            //m_pidControllerActive = true;
+            //m_freemove = false;
             _target_velocity = newVel;
             if (Body != IntPtr.Zero)
                 SafeNativeMethods.BodyEnable(Body);

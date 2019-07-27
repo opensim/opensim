@@ -79,6 +79,7 @@ namespace OpenSim.Framework
                 user.LoginInfo.InventoryFolder = validcircuit.InventoryFolder;
                 user.LoginInfo.BaseFolder = validcircuit.BaseFolder;
                 user.LoginInfo.StartPos = validcircuit.startpos;
+                user.LoginInfo.StartFar = (float)validcircuit.startfar;
             }
             else
             {
@@ -175,7 +176,8 @@ namespace OpenSim.Framework
                 {
                     m_agentCircuits[(uint) agentData.circuitcode].firstname = agentData.firstname;
                     m_agentCircuits[(uint) agentData.circuitcode].lastname = agentData.lastname;
-                    m_agentCircuits[(uint) agentData.circuitcode].startpos = agentData.startpos;
+                    m_agentCircuits[(uint)agentData.circuitcode].startpos = agentData.startpos;
+                    m_agentCircuits[(uint)agentData.circuitcode].startfar = agentData.startfar;
 
                     // Updated for when we don't know them before calling Scene.NewUserConnection
                     m_agentCircuits[(uint) agentData.circuitcode].SecureSessionID = agentData.SecureSessionID;

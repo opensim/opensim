@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public Delegate[][] iarSDTIntfObjs;
 
         private XMRInstAbstract instance;
-        private int heapUse;
+        private int arraysHeapUse;
 
         private static readonly XMR_Array[] noArrays = new XMR_Array[0];
         private static readonly char[] noChars = new char[0];
@@ -81,20 +81,49 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         ~XMRInstArrays()
         {
-            heapUse = instance.UpdateHeapUse(heapUse, 0);
+            arraysHeapUse = instance.UpdateHeapUse(arraysHeapUse, 0);
         }
 
-        public void AllocVarArrays(XMRInstArSizes ars)
+        public void Clear()
+        {
+            int newheapUse = 0;
+            if(iarArrays != null)
+            {
+                foreach(XMR_Array xa in iarArrays)
+                    xa.__pub_clear();
+            }
+            if(iarChars != null)
+                iarChars = new char[iarChars.Length];
+            if (iarLists != null)
+                iarLists = new LSL_List[iarLists.Length];
+            if (iarObjects != null)
+                iarObjects = new object[iarObjects.Length];
+            if(iarStrings != null)
+                iarStrings = new string[iarStrings.Length];
+            if (iarFloats != null)
+                newheapUse += iarFloats.Length * HeapTrackerObject.HT_DOUB;
+            if (iarIntegers != null)
+                newheapUse += iarIntegers.Length * HeapTrackerObject.HT_INT;
+            if (iarRotations != null)
+                newheapUse += iarRotations.Length * HeapTrackerObject.HT_ROT;
+            if (iarVectors != null)
+                newheapUse += iarVectors.Length * HeapTrackerObject.HT_VEC;
+
+            arraysHeapUse = instance.UpdateHeapUse(0, newheapUse);
+        }
+
+    public void AllocVarArrays(XMRInstArSizes ars)
         {
             ClearOldArrays();
+            int newuse = arraysHeapUse +
+               ars.iasChars* HeapTrackerObject.HT_CHAR +
+               ars.iasFloats * HeapTrackerObject.HT_SFLT +
+               ars.iasIntegers * HeapTrackerObject.HT_INT +
+               ars.iasRotations * HeapTrackerObject.HT_ROT +
+               ars.iasVectors * HeapTrackerObject.HT_VEC +
+               ars.iasSDTIntfObjs * HeapTrackerObject.HT_DELE;
 
-            heapUse = instance.UpdateHeapUse(heapUse,
-                ars.iasChars * HeapTrackerObject.HT_CHAR +
-                ars.iasFloats * HeapTrackerObject.HT_SFLT +
-                ars.iasIntegers * HeapTrackerObject.HT_INT +
-                ars.iasRotations * HeapTrackerObject.HT_ROT +
-                ars.iasVectors * HeapTrackerObject.HT_VEC +
-                ars.iasSDTIntfObjs * HeapTrackerObject.HT_DELE);
+            arraysHeapUse = instance.UpdateHeapUse(arraysHeapUse, newuse);
 
             iarArrays = (ars.iasArrays > 0) ? new XMR_Array[ars.iasArrays] : noArrays;
             iarChars = (ars.iasChars > 0) ? new char[ars.iasChars] : noChars;
@@ -114,9 +143,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PopList(int index, LSL_List lis)
         {
-            LSL_List old = iarLists[index];
-            int newheapuse = heapUse + HeapTrackerList.Size(lis) - HeapTrackerList.Size(old);
-            heapUse = instance.UpdateHeapUse(heapUse, newheapuse);
+            int delta = HeapTrackerObject.Size(lis) - HeapTrackerObject.Size(iarLists[index]);
+            instance.UpdateHeapUse(0, delta);
+            Interlocked.Add(ref arraysHeapUse, delta);
             iarLists[index] = lis;
         }
 
@@ -125,9 +154,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PopObject(int index, object obj)
         {
-            object old = iarObjects[index];
-            int newheapuse = heapUse + HeapTrackerObject.Size(obj) - HeapTrackerObject.Size(old);
-            heapUse = instance.UpdateHeapUse(heapUse, newheapuse);
+            int delta = HeapTrackerObject.Size(obj) - HeapTrackerObject.Size(iarObjects[index]);
+            instance.UpdateHeapUse(0, delta);
+            Interlocked.Add(ref arraysHeapUse, delta);
             iarObjects[index] = obj;
         }
 
@@ -136,9 +165,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PopString(int index, string str)
         {
-            string old = iarStrings[index];
-            int newheapuse = heapUse + HeapTrackerString.Size(str) - HeapTrackerString.Size(old);
-            heapUse = instance.UpdateHeapUse(heapUse, newheapuse);
+            int delta = HeapTrackerString.Size(str) - HeapTrackerString.Size(iarStrings[index]);
+            instance.UpdateHeapUse(0, delta);
+            Interlocked.Add(ref arraysHeapUse, delta);
             iarStrings[index] = str;
         }
 
@@ -181,11 +210,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             iarSDTClObjs = (XMRSDTypeClObj[])recver();
             Delegate[][] dels = (Delegate[][])recver();
 
-            int newheapuse = heapUse;
+            int newheapuse = arraysHeapUse;
 
             // value types simply are the size of the value * number of values
             newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
-            newheapuse += flts.Length * HeapTrackerObject.HT_SFLT;
+            newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
             newheapuse += ints.Length * HeapTrackerObject.HT_INT;
             newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
             newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
@@ -204,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // others (XMR_Array, XMRSDTypeClObj) keep track of their own heap usage
 
             // update script heap usage, throwing an exception before finalizing changes
-            heapUse = instance.UpdateHeapUse(heapUse, newheapuse);
+            arraysHeapUse = instance.UpdateHeapUse(arraysHeapUse, newheapuse);
 
             iarChars = chrs;
             iarFloats = flts;
@@ -219,7 +248,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private void ClearOldArrays()
         {
-            int newheapuse = heapUse;
+            int newheapuse = arraysHeapUse;
 
             iarArrays = null;
             if(iarChars != null)
@@ -272,7 +301,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 iarSDTIntfObjs = null;
             }
 
-            heapUse = instance.UpdateHeapUse(heapUse, newheapuse);
+            arraysHeapUse = instance.UpdateHeapUse(arraysHeapUse, newheapuse);
         }
     }
 
@@ -424,31 +453,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         \**************************************************/
 
         protected int heapLimit;
-        private int heapUsed;
+        protected int heapUsed;
 
         public virtual int UpdateHeapUse(int olduse, int newuse)
         {
-            if(newuse <= olduse)
-                Interlocked.Add(ref heapUsed, newuse - olduse);
-            else
-            {
-                int newtotal, oldtotal;
-                do
-                {
-                    oldtotal = Interlocked.Add(ref heapUsed, 0);
-                    newtotal = oldtotal + newuse - olduse;
-                    if(newtotal > heapLimit)
-                    {
-                        //                        System.GC.Collect ();
-                        //                        System.GC.WaitForPendingFinalizers ();
-                        oldtotal = Interlocked.Add(ref heapUsed, 0);
-                        newtotal = oldtotal + newuse - olduse;
-                        if(newtotal > heapLimit)
-                            throw new OutOfHeapException(oldtotal, newtotal, heapLimit);
-                    }
-                } while(Interlocked.CompareExchange(ref heapUsed, newtotal, oldtotal) != oldtotal);
-            }
-
+            int newtotal = Interlocked.Add(ref heapUsed, newuse - olduse);
+            if(newtotal > heapLimit)
+                    throw new OutOfHeapException(newtotal + olduse - newuse, newtotal, heapLimit);
             return newuse;
         }
 

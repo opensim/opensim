@@ -173,6 +173,7 @@ namespace OpenSim.Framework
         /// Position the Agent's Avatar starts in the region
         /// </summary>
         public Vector3 startpos;
+        public float startfar = -1.0f;
 
         public Dictionary<string, object> ServiceURLs;
 
@@ -219,6 +220,8 @@ namespace OpenSim.Framework
             args["channel"] = OSD.FromString(Channel);
             args["mac"] = OSD.FromString(Mac);
             args["id0"] = OSD.FromString(Id0);
+            if(startfar > 0)
+                args["far"] = OSD.FromReal(startfar);
 
             if (Appearance != null)
             {
@@ -326,6 +329,9 @@ namespace OpenSim.Framework
 
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
+
+            if(args["far"] != null)
+                startfar = (float)args["far"].AsReal();
 
             //m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
 

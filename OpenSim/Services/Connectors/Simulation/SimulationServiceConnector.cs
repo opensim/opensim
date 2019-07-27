@@ -100,14 +100,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string reason)
         {
-            string tmp = String.Empty;
-            return CreateAgent(source, destination, aCircuit, flags, ctx, out tmp, out reason);
-        }
-
-        public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string myipaddress, out string reason)
-        {
             reason = String.Empty;
-            myipaddress = String.Empty;
 
             if (destination == null)
             {
@@ -134,7 +127,6 @@ namespace OpenSim.Services.Connectors.Simulation
 
                     reason = data["reason"].AsString();
                     success = data["success"].AsBoolean();
-                    myipaddress = data["your_ip"].AsString();
                     return success;
                 }
 
@@ -149,7 +141,6 @@ namespace OpenSim.Services.Connectors.Simulation
 
                         reason = data["reason"].AsString();
                         success = data["success"].AsBoolean();
-                        myipaddress = data["your_ip"].AsString();
                         m_log.WarnFormat(
                             "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
                         return success;

@@ -562,6 +562,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public virtual UUID AgentId
         {
             get { return m_uuid; }
@@ -665,10 +667,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         public virtual void Kick(string message)
-        {
-        }
-
-        public virtual void SendStartPingCheck(byte seq)
         {
         }
 
@@ -870,9 +868,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
+        public virtual void SendXferPacket(ulong xferID, uint packet,
+                byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory)
         {
         }
+
         public virtual void SendAbortXferPacket(ulong xferID)
         {
 
@@ -928,7 +928,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        public virtual void SendRegionHandshake()
         {
             if (OnRegionHandShakeReply != null)
             {
@@ -1388,7 +1388,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return 0;
         }
 
-        public void CheckViewerCaps() { }
+        public uint GetViewerCaps()
+        {
+            return 0;
+        }
 
     }
 }

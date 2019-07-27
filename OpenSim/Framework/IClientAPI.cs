@@ -596,22 +596,33 @@ namespace OpenSim.Framework
         public PrimUpdateFlags Flags
         {
             get { return m_flags; }
+            set { m_flags = value; }
         }
 
         public virtual void Update()
         {
             // we are on the new one
             if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
-                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            {
+                if (m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            }
         }
 
         public virtual void Update(EntityUpdate oldupdate)
         {
             // we are on the new one
             PrimUpdateFlags updateFlags = oldupdate.Flags;
+            if (updateFlags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                updateFlags &= ~PrimUpdateFlags.UpdateProbe;
             if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
             {
-                m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+                if(m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
             }
             else
                 m_flags |= updateFlags;
@@ -679,6 +690,7 @@ namespace OpenSim.Framework
 
         FullUpdatewithAnim = FullUpdate | Animations,
 
+        UpdateProbe   = 0x10000000, // 1 << 28
         SendInTransit = 0x20000000, // 1 << 29
         CancelKill =    0x40000000, // 1 << 30 
         Kill =          0x80000000 // 1 << 31
@@ -696,6 +708,7 @@ namespace OpenSim.Framework
     public interface IClientAPI
     {
         Vector3 StartPos { get; set; }
+        float StartFar { get; set; }
 
         UUID AgentId { get; }
 
@@ -1097,8 +1110,6 @@ namespace OpenSim.Framework
 
         void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures);
 
-        void SendStartPingCheck(byte seq);
-
         /// <summary>
         /// Tell the client that an object has been deleted
         /// </summary>
@@ -1108,7 +1119,7 @@ namespace OpenSim.Framework
 //        void SendPartFullUpdate(ISceneEntity ent, uint? parentID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);
-        void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
+        void SendRegionHandshake();
 
         /// <summary>
         /// Send chat to the viewer.
@@ -1224,7 +1235,8 @@ namespace OpenSim.Framework
         /// <param name="node"></param>
         void SendBulkUpdateInventory(InventoryNodeBase node);
 
-        void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory);
+        void SendXferPacket(ulong xferID, uint packet,
+                byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory);
 
         void SendAbortXferPacket(ulong xferID);
 
@@ -1502,6 +1514,6 @@ namespace OpenSim.Framework
         void SendAgentTerseUpdate(ISceneEntity presence);
 
         void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data);
-        void CheckViewerCaps();
+        uint GetViewerCaps();
     }
 }

@@ -45,22 +45,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static Int32 m_counter = 0;
 
-//        private Int32 m_identifier;
-
         protected const float m_timeScale = 1e-3f;
 
         /// <summary>
-        /// This is the number of m_minimumDripRate bytes
-        /// allowed in a burst
-        /// roughtly, with this settings, the maximum time system will take
-        /// to recheck a bucket in ms
-        ///
+        /// minimum recovery rate, ie bandwith
         /// </summary>
-        protected const float m_quantumsPerBurst = 5;
+        protected const float MINDRIPRATE = 500;
 
-        /// <summary>
-        /// </summary>
-        protected const float m_minimumDripRate = 1500;
+        // minimum and maximim burst size, ie max number of bytes token can have
+        protected const float MINBURST = 1500; // can't be less than one MTU or it will block
+        protected const float MAXBURST = 7500;
 
         /// <summary>Time of the last drip</summary>
         protected double m_lastDrip;
@@ -109,10 +103,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_burst; }
             set {
                 float rate = (value < 0 ? 0 : value);
-                if (rate < 1.5f * m_minimumDripRate)
-                    rate = 1.5f * m_minimumDripRate;
-                else if (rate > m_minimumDripRate * m_quantumsPerBurst)
-                    rate = m_minimumDripRate * m_quantumsPerBurst;
+                if (rate < MINBURST)
+                    rate = MINBURST;
+                else if (rate > MAXBURST)
+                    rate = MAXBURST;
 
                 m_burst = rate;
                 }
@@ -122,8 +116,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get {
                 float rate = RequestedBurst * BurstModifier();
-                if (rate < m_minimumDripRate)
-                    rate = m_minimumDripRate;
+                if (rate < MINBURST)
+                    rate = MINBURST;
                 return (float)rate;
             }
         }
@@ -159,8 +153,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return rate;
 
                 rate *= m_parent.DripRateModifier();
-                if (rate < m_minimumDripRate)
-                    rate = m_minimumDripRate;
+                if (rate < MINDRIPRATE)
+                    rate = MINDRIPRATE;
 
                 return (float)rate;
             }

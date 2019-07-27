@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// milliseconds or longer will be resent</summary>
         /// <remarks>Calculated from <seealso cref="SRTT"/> and <seealso cref="RTTVAR"/> using the
         /// guidelines in RFC 2988</remarks>
-        public int RTO;
+        public int m_RTO;
         /// <summary>Number of bytes received since the last acknowledgement was sent out. This is used
         /// to loosely follow the TCP delayed ACK algorithm in RFC 1122 (4.2.3.2)</summary>
         public int BytesSinceLastACK;
@@ -190,12 +190,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private byte[] m_packedThrottles;
 
         private int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
-        private int m_maxRTO = 60000;
+        private int m_maxRTO = 10000;
         public bool m_deliverPackets = true;
 
         private float m_burstTime;
 
-        public int m_lastStartpingTimeMS;
+        public double m_lastStartpingTimeMS;
         public int m_pingMS;
 
         public int PingTimeMS
@@ -242,7 +242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxRTO != 0)
                 m_maxRTO = maxRTO;
 
-            m_burstTime = rates.BrustTime;
+            m_burstTime = rates.BurstTime;
             float m_burst = rates.ClientMaxRate * m_burstTime;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
@@ -251,7 +251,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
-            m_burst = rates.Total * rates.BrustTime;
+            m_burst = rates.Total * rates.BurstTime;
 
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
@@ -260,11 +260,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Initialize the packet outboxes, where packets sit while they are waiting for tokens
                 m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
                 // Initialize the token buckets that control the throttling for each category
-                m_throttleCategories[i] = new TokenBucket(m_throttleClient, rates.GetRate(type), m_burst);
+                //m_throttleCategories[i] = new TokenBucket(m_throttleClient, rates.GetRate(type), m_burst);
+                float rate = rates.GetRate(type);
+                float burst = rate * rates.BurstTime;
+                m_throttleCategories[i] = new TokenBucket(m_throttleClient, rate , burst);
             }
 
             // Default the retransmission timeout to one second
-            RTO = m_defaultRTO;
+            m_RTO = m_defaultRTO;
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
@@ -443,7 +446,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int total = resend + land + wind + cloud + task + texture + asset;
 
-            float m_burst = total * m_burstTime;
+            //float m_burst = total * m_burstTime;
 
             if (ThrottleDebugLevel > 0)
             {
@@ -453,7 +456,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             TokenBucket bucket;
-
+            /*
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
             bucket.RequestedDripRate = resend;
             bucket.RequestedBurst = m_burst;
@@ -481,6 +484,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
             bucket.RequestedDripRate = texture;
             bucket.RequestedBurst = m_burst;
+            */
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
+            bucket.RequestedDripRate = resend;
+            bucket.RequestedBurst = resend * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
+            bucket.RequestedDripRate = land;
+            bucket.RequestedBurst = land * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
+            bucket.RequestedDripRate = wind;
+            bucket.RequestedBurst = wind * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
+            bucket.RequestedDripRate = cloud;
+            bucket.RequestedBurst = cloud * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
+            bucket.RequestedDripRate = asset;
+            bucket.RequestedBurst = asset * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
+            bucket.RequestedDripRate = task;
+            bucket.RequestedBurst = task * m_burstTime;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
+            bucket.RequestedDripRate = texture;
+            bucket.RequestedBurst = texture * m_burstTime;
 
             // Reset the packed throttles cached data
             m_packedThrottles = null;
@@ -719,57 +750,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// Called when an ACK packet is received and a round-trip time for a
-        /// packet is calculated. This is used to calculate the smoothed
-        /// round-trip time, round trip time variance, and finally the
-        /// retransmission timeout
+        /// Called when we get a ping update
         /// </summary>
-        /// <param name="r">Round-trip time of a single packet and its
+        /// <param name="r"> ping time in ms
         /// acknowledgement</param>
-        public void UpdateRoundTrip(float r)
+        public void UpdateRoundTrip(int p)
         {
-            const float ALPHA = 0.125f;
-            const float BETA = 0.25f;
-            const float K = 4.0f;
+            p *= 5;
+            if( p> m_maxRTO)
+                p = m_maxRTO;
+            else if(p < m_defaultRTO)
+                p = m_defaultRTO;
 
-            if (RTTVAR == 0.0f)
-            {
-                // First RTT measurement
-                SRTT = r;
-                RTTVAR = r * 0.5f;
-            }
-            else
-            {
-                // Subsequence RTT measurement
-                RTTVAR = (1.0f - BETA) * RTTVAR + BETA * Math.Abs(SRTT - r);
-                SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
-            }
-
-            int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
-
-            // Clamp the retransmission timeout to manageable values
-            rto = Utils.Clamp(rto, m_defaultRTO, m_maxRTO);
-
-            RTO = rto;
-
-            //if (RTO != rto)
-       //          m_log.Debug("[LLUDPCLIENT]: Setting RTO to " + RTO + "ms from " + rto + "ms with an RTTVAR of " +
-                       //RTTVAR + " based on new RTT of " + r + "ms");
-        }
-
-        /// <summary>
-        /// Exponential backoff of the retransmission timeout, per section 5.5
-        /// of RFC 2988
-        /// </summary>
-        public void BackoffRTO()
-        {
-            // Reset SRTT and RTTVAR, we assume they are bogus since things
-            // didn't work out and we're backing off the timeout
-            SRTT = 0.0f;
-            RTTVAR = 0.0f;
-
-            // Double the retransmission timeout
-            RTO = Math.Min(RTO * 2, m_maxRTO);
+            m_RTO = p;
         }
 
         const double MIN_CALLBACK_MS = 20.0;

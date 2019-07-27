@@ -170,8 +170,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         private bool m_scripts_enabled;
 
-        public SynchronizeSceneHandler SynchronizeScene;
-
         public bool ClampNegativeZ
         {
             get { return m_clampNegativeZ; }
@@ -275,6 +273,12 @@ namespace OpenSim.Region.Framework.Scenes
         public float MaxRegionViewDistance
         {
             get { return m_maxRegionViewDistance; }
+        }
+
+        protected float m_minRegionViewDistance = 96f;
+        public float MinRegionViewDistance
+        {
+            get { return m_minRegionViewDistance; }
         }
 
         private List<string> m_AllowedViewers = new List<string>();
@@ -922,6 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance", m_defaultDrawDistance);
                 m_maxDrawDistance = startupConfig.GetFloat("MaxDrawDistance", m_maxDrawDistance);
                 m_maxRegionViewDistance = startupConfig.GetFloat("MaxRegionsViewDistance", m_maxRegionViewDistance);
+                m_minRegionViewDistance = startupConfig.GetFloat("MinRegionsViewDistance", m_minRegionViewDistance);
 
                 // old versions compatibility
                 LegacySitOffsets = startupConfig.GetBoolean("LegacySitOffsets", LegacySitOffsets);
@@ -931,6 +936,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_maxRegionViewDistance > m_maxDrawDistance)
                     m_maxRegionViewDistance = m_maxDrawDistance;
+
+                if(m_minRegionViewDistance < 96f)
+                    m_minRegionViewDistance = 96f;
+                if(m_minRegionViewDistance > m_maxRegionViewDistance)
+                    m_minRegionViewDistance = m_maxRegionViewDistance;
 
                 UseBackup = startupConfig.GetBoolean("UseSceneBackup", UseBackup);
                 if (!UseBackup)
@@ -1006,11 +1016,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_useTrashOnDelete = startupConfig.GetBoolean("UseTrashOnDelete",m_useTrashOnDelete);
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);
-                m_dontPersistBefore =
-                    startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
+                m_dontPersistBefore = startupConfig.GetLong("MinimumTimeBeforePersistenceConsidered", DEFAULT_MIN_TIME_FOR_PERSISTENCE);
                 m_dontPersistBefore *= 10000000;
-                m_persistAfter =
-                    startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
+                m_persistAfter = startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
@@ -1290,7 +1298,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-
                 if (isNeighborRegion(otherRegion))
                 {
                     // Let the grid service module know, so this can be cached
@@ -1300,9 +1307,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         ForEachRootScenePresence(delegate(ScenePresence agent)
                         {
-                            //agent.ControllingClient.new
-                            //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-
                             List<ulong> old = new List<ulong>();
                             old.Add(otherRegion.RegionHandle);
                             agent.DropOldNeighbours(old);
@@ -1328,7 +1332,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool isNeighborRegion(GridRegion otherRegion)
         {
-            int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX; ;
+            int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX;
 
             if (tmp < -otherRegion.RegionSizeX && tmp > RegionInfo.RegionSizeX)
                 return false;
@@ -1695,9 +1699,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (PhysicsEnabled)
                             physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
-
-                        if (SynchronizeScene != null)
-                            SynchronizeScene(this);
                     }
 
                     tmpMS2 = Util.GetTimeStampMS();
@@ -1775,30 +1776,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                             // Region ready should always be set
                             Ready = true;
-
-
-                            IConfig restartConfig = m_config.Configs["RestartModule"];
-                            if (restartConfig != null)
-                            {
-                                string markerPath = restartConfig.GetString("MarkerPath", String.Empty);
-
-                                if (markerPath != String.Empty)
-                                {
-                                    string path = Path.Combine(markerPath, RegionInfo.RegionID.ToString() + ".ready");
-                                    try
-                                    {
-                                        string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
-                                        FileStream fs = File.Create(path);
-                                        System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                                        Byte[] buf = enc.GetBytes(pidstring);
-                                        fs.Write(buf, 0, buf.Length);
-                                        fs.Close();
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
-                                }
-                            }
                         }
                         else
                         {
@@ -4816,6 +4793,20 @@ Label_GroupsDone:
             }
 
             return true;
+        }
+
+
+        /// <summary>
+        /// Tries to teleport agent within region.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="teleportFlags"></param>
+        public void RequestLocalTeleport(ScenePresence sp, Vector3 position, Vector3 vel,
+                                            Vector3 lookat, int flags)
+        {
+            sp.LocalTeleport(position, vel, lookat, flags);
         }
 
         /// <summary>

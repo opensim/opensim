@@ -119,6 +119,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
+        public bool IsViewerCachable
+        {
+            get
+            {
+                // needs more exclusion ?
+                return(Backup && !IsTemporary && !inTransit && !IsSelected && !UsesPhysics && !IsAttachmentCheckFull() &&
+                !RootPart.Shape.MeshFlagEntry && // animations are not sent correctly for now
+                RootPart.KeyframeMotion == null &&
+                (DateTime.UtcNow.Ticks - timeLastChanged > 36000000000) && //36000000000 is one hour
+                RootPart.Velocity.LengthSquared() < 1e8f && // should not be needed
+                RootPart.Acceleration.LengthSquared() < 1e4f // should not be needed
+                );
+            }
+        }
+
         /// <summary>
         /// Signal whether the non-inventory attributes of any prims in the group have changed
         /// since the group's last persistent backup
@@ -128,7 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
         private long timeLastChanged = 0;
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
-//        private Random m_rand;
+
+        public int PseudoCRC;
 
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
@@ -145,40 +161,26 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (value)
                 {
-
                     if (Backup)
-                    {
                         m_scene.SceneGraph.FireChangeBackup(this);
-                    }
+
+                    PseudoCRC = (int)(DateTime.UtcNow.Ticks); ;
                     timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
-                        timeFirstChanged = DateTime.UtcNow.Ticks;
+                        timeFirstChanged = timeLastChanged;
                     if (m_rootPart != null && m_scene != null)
                     {
-/*
-                        if (m_rand == null)
-                        {
-                            byte[] val = new byte[16];
-                            m_rootPart.UUID.ToBytes(val, 0);
-                            m_rand = new Random(BitConverter.ToInt32(val, 0));
-                        }
- */
                         if (m_scene.GetRootAgentCount() == 0)
                         {
                             //If the region is empty, this change has been made by an automated process
                             //and thus we delay the persist time by a random amount between 1.5 and 2.5.
 
-//                            float factor = 1.5f + (float)(m_rand.NextDouble());
                             float factor = 2.0f;
-                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * factor);
-                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * factor);
+                            m_maxPersistTime = (long)(m_scene.m_persistAfter * factor);
+                            m_minPersistTime = (long)(m_scene.m_dontPersistBefore * factor);
                         }
                         else
                         {
-                            //If the region is not empty, we want to obey the minimum and maximum persist times
-                            //but add a random factor so we stagger the object persistance a little
-//                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * (1.0d - (m_rand.NextDouble() / 5.0d))); //Multiply by 1.0-1.5
-//                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * (1.0d + (m_rand.NextDouble() / 2.0d))); //Multiply by 0.8-1.0
                             m_maxPersistTime = m_scene.m_persistAfter;
                             m_minPersistTime = m_scene.m_dontPersistBefore;
                         }
@@ -768,9 +770,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 if(av.IsNPC)
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 else
-                    av.crossingFlags = cflags;
+                    av.m_crossingFlags = cflags;
 
                 av.PrevSitOffset = av.OffsetPosition;
                 av.ParentID = 0;
@@ -819,7 +821,7 @@ namespace OpenSim.Region.Framework.Scenes
                    if(entityTransfer.CrossAgentCreateFarChild(av,destination, newpos, ctx))
                        crossedfar = true;
                    else
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 }
 
                 if(crossedfar)
@@ -832,7 +834,7 @@ namespace OpenSim.Region.Framework.Scenes
                     av.IsInTransit = true;
                     m_log.DebugFormat("[SCENE OBJECT]: Crossing avatar {0} to {1}", av.Name, val);
 
-                    if(av.crossingFlags > 0)
+                    if(av.m_crossingFlags > 0)
                         entityTransfer.CrossAgentToNewRegionAsync(av, newpos, destination, false, ctx);
 
                     if (av.IsChildAgent)
@@ -847,7 +849,7 @@ namespace OpenSim.Region.Framework.Scenes
                         av.ParentPart = null;
                         // In any case
                         av.IsInTransit = false;
-                        av.crossingFlags = 0;
+                        av.m_crossingFlags = 0;
                         m_log.DebugFormat("[SCENE OBJECT]: Crossing agent {0} {1} completed.", av.Firstname, av.Lastname);
                     }
                     else
@@ -863,7 +865,7 @@ namespace OpenSim.Region.Framework.Scenes
                         oldp.X = Util.Clamp<float>(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
                         oldp.Y = Util.Clamp<float>(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
                         av.AbsolutePosition = oldp;
-                        av.crossingFlags = 0;
+                        av.m_crossingFlags = 0;
                         av.sitAnimation = "SIT";
                         av.IsInTransit = false;
                         if(av.Animator!= null)
@@ -924,7 +926,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence av = avinfo.av;
                     av.ParentUUID = UUID.Zero;
                     av.ParentID = avinfo.ParentID;
-                    av.crossingFlags = 0;
+                    av.m_crossingFlags = 0;
                 }
             }
             avsToCross.Clear();
@@ -1330,6 +1332,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup()
         {
             m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
+            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
         }
 
         /// <summary>
@@ -2441,6 +2444,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void SendUpdateProbes(IClientAPI remoteClient)
+        {
+            PrimUpdateFlags update = PrimUpdateFlags.UpdateProbe;
+
+            RootPart.SendUpdate(remoteClient, update);
+
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart part = parts[i];
+                if (part != RootPart)
+                    part.SendUpdate(remoteClient, update);
+            }
+        }
+
         #region Copying
 
         /// <summary>
@@ -2516,6 +2534,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             dupe.InvalidatePartsLinkMaps();
+            dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             m_dupeInProgress = false;
             return dupe;
         }
@@ -2769,6 +2788,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             rpart.ScheduleFullUpdate();
         }
 
@@ -2808,6 +2828,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ResetIDs(part.LinkNum); // Don't change link nums
                     m_parts.Add(part.UUID, part);
                 }
+                PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             }
         }
 
@@ -3117,7 +3138,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-
             // 'linkPart' == the root of the group being linked into this group
             SceneObjectPart linkPart = objectGroup.m_rootPart;
 
@@ -3160,7 +3180,6 @@ namespace OpenSim.Region.Framework.Scenes
             axPos *= Quaternion.Conjugate(parentRot);
             linkPart.OffsetPosition = axPos;
 
-
             // If there is only one SOP in a SOG, the LinkNum is zero. I.e., not a linkset.
             // Now that we know this SOG has at least two SOPs in it, the new root
             //    SOP becomes the first in the linkset.
@@ -3193,8 +3212,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 linkPart.CreateSelected = true;
 
-                // let physics know preserve part volume dtc messy since UpdatePrimFlags doesn't look to parent changes for now
-                linkPart.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (linkPart.Flags & PrimFlags.Phantom) != 0), linkPart.VolumeDetectActive, true);
+                linkPart.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (linkPart.Flags & PrimFlags.Phantom) != 0), linkPart.VolumeDetectActive || RootPart.VolumeDetectActive, true);
 
                 // If the added SOP is physical, also tell the physics engine about the link relationship.
                 if (linkPart.PhysActor != null && m_rootPart.PhysActor != null && m_rootPart.PhysActor.IsPhysical)

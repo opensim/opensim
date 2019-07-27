@@ -369,6 +369,8 @@ namespace OpenSim.Tests.Common
             set { }
         }
 
+        public float StartFar { get; set; }
+
         public virtual UUID AgentId
         {
             get { return m_agentId; }
@@ -573,10 +575,6 @@ namespace OpenSim.Tests.Common
         }
 
         public virtual void Kick(string message)
-        {
-        }
-
-        public virtual void SendStartPingCheck(byte seq)
         {
         }
 
@@ -821,7 +819,8 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendXferPacket(ulong xferID, uint packet, byte[] data, bool isTaskInventory)
+        public virtual void SendXferPacket(ulong xferID, uint packet,
+                byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory)
         {
         }
 
@@ -880,7 +879,7 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
+        public virtual void SendRegionHandshake()
         {
             if (OnRegionHandShakeReply != null)
             {
@@ -1402,7 +1401,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public void CheckViewerCaps() { }
+        public uint GetViewerCaps()
+        {
+            return 0x1000;
+        }
 
     }
 }

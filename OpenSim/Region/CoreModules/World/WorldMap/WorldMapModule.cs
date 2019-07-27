@@ -406,16 +406,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             WorkManager.StartThread(
                 process,
-                string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName),
-                ThreadPriority.BelowNormal,
-                true,
-                false);
+                string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName));
             WorkManager.StartThread(
                 MapBlockSendThread,
-                string.Format("MapBlockSendThread ({0})", m_scene.RegionInfo.RegionName),
-                ThreadPriority.BelowNormal,
-                true,
-                false);
+                string.Format("MapBlockSendThread ({0})", m_scene.RegionInfo.RegionName));
         }
 
         /// <summary>
@@ -482,7 +476,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // viewers only ask for green dots to each region now
             // except at login with regionhandle 0
             // possible on some other rare ocasions
-            // use previus hack of sending all items with the green dots
+            // use previous hack of sending all items with the green dots
 
             bool adultRegion;
             if (regionhandle == 0)
@@ -1189,6 +1183,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             return;
 
                         GetAndSendBlocksInternal(req.client, req.minX, req.minY, req.maxX, req.maxY, req.flags);
+                        Watchdog.UpdateThread();
                     }
 
                     thisRunData.Clear();

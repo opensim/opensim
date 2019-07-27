@@ -145,6 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
         internal IConfig m_osslconfig;
+        internal TimeZoneInfo PSTTimeZone = null;
 
         public void Initialize(
             IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
@@ -201,7 +202,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             default:
                 break;
             }
-         }
+
+            try
+            {
+                PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            }
+            catch
+            {
+                PSTTimeZone = null;
+            }
+            if(PSTTimeZone == null)
+            {
+                try
+                {
+                    PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                }
+                catch
+                {
+                    PSTTimeZone = null;
+                }
+            }
+        }
 
         public override Object InitializeLifetimeService()
         {
@@ -903,6 +924,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Teleport functions
+        public void osLocalTeleportAgent(LSL_Key agent, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Vector3 lookat, LSL_Integer flags)
+        {
+            UUID agentId;
+            if (!UUID.TryParse(agent, out agentId))
+                return;
+
+            ScenePresence presence = World.GetScenePresence(agentId);
+            if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                return;
+
+            Vector3 pos = presence.AbsolutePosition;
+            if (!checkAllowAgentTPbyLandOwner(agentId, pos))
+                return;
+
+            World.RequestLocalTeleport(presence, position, velocity, lookat, flags);
+        }
+
         public void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             // High because there is no security check. High griefer potential
@@ -3780,7 +3818,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
+            CheckThreatLevel();
 
             InitLSL();
             return m_LSL_Api.GetPrimitiveParamsEx(prim, rules);
@@ -3788,7 +3826,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osSetPrimitiveParams");
+            CheckThreatLevel();
 
             InitLSL();
             m_LSL_Api.SetPrimitiveParamsEx(prim, rules, "osSetPrimitiveParams");
@@ -3797,15 +3835,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <summary>
         /// Set parameters for light projection in host prim
         /// </summary>
-        public void osSetProjectionParams(bool projection, LSL_Key texture, double fov, double focus, double amb)
+        public void osSetProjectionParams(LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            osSetProjectionParams(UUID.Zero.ToString(), projection, texture, fov, focus, amb);
+            SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+        }
+
+        /// <summary>
+        /// Set parameters for light projection of a linkset prim
+        /// </summary>
+        public void osSetProjectionParams(LSL_Integer linknum, LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
+        {
+            if (linknum == ScriptBaseClass.LINK_THIS || linknum == m_host.LinkNum)
+            {
+                SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+                return;
+            }
+
+            if (linknum < 0 || linknum > m_host.ParentGroup.PrimCount)
+                return;
+
+            if(linknum < 2 && m_host.LinkNum < 2)
+            {
+                SetProjectionParams(m_host, projection, texture, fov, focus, amb);
+                return;
+            }
+
+            SceneObjectPart obj = m_host.ParentGroup.GetLinkNumPart(linknum);
+            if(obj != null)
+                SetProjectionParams(obj, projection, texture, fov, focus, amb);
         }
 
         /// <summary>
         /// Set parameters for light projection with uuid of target prim
         /// </summary>
-        public void osSetProjectionParams(LSL_Key prim, bool projection, LSL_Key texture, double fov, double focus, double amb)
+        public void osSetProjectionParams(LSL_Key prim, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
             CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
 
@@ -3820,7 +3883,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (obj == null)
                     return;
             }
+            SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+        }
 
+        private void SetProjectionParams(SceneObjectPart obj, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
+        {
+            bool projection = llprojection != 0;
             obj.Shape.ProjectionEntry = projection;
             obj.Shape.ProjectionTextureUUID = new UUID(texture);
             obj.Shape.ProjectionFOV = (float)fov;
@@ -5440,6 +5508,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (detectedParams == null)
                 return String.Empty;
             return detectedParams.Key.ToString();
+        }
+
+        // returns PST or PDT wall clock
+        public LSL_Float osGetPSTWallclock()
+        {
+            m_host.AddScriptLPS(1);
+            if(PSTTimeZone == null)
+                return DateTime.Now.TimeOfDay.TotalSeconds;
+
+            DateTime time = TimeZoneInfo.ConvertTime(DateTime.UtcNow, PSTTimeZone);
+            return time.TimeOfDay.TotalSeconds;
         }
     }
 }

@@ -215,14 +215,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // As with other network applications, assume that an acknowledged packet is an
                         // indication that the network can handle a little more load, speed up the transmission
                         ackedPacket.Client.FlowThrottle.AcknowledgePackets(1);
-
-                        if (!pendingAcknowledgement.FromResend)
-                        {
-                            // Calculate the round-trip time for this packet and its ACK
-                            int rtt = pendingAcknowledgement.RemoveTime - ackedPacket.TickCount;
-                            if (rtt > 0)
-                                ackedPacket.Client.UpdateRoundTrip(rtt);
-                        }
                     }
                     else
                     {

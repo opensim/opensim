@@ -130,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Since we just wrote the .xmrobj file, maybe save disassembly.
                 if (m_Engine.m_ScriptDebugSaveIL)
                 {
-                    string asmFileName = GetScriptFileName (m_ScriptObjCodeKey + ".yasm");
+                    string asmFileName = GetScriptILFileName(m_ScriptObjCodeKey + ".yasm");
 //                    m_log.Debug ("[YEngine]: MMRScriptCompileSaveILGen: saving to " + asmFileName);
                     asmFileWriter = File.CreateText (asmFileName);
                 }

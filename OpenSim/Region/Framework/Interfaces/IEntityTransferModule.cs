@@ -90,6 +90,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void AgentArrivedAtDestination(UUID agent);
 
         void EnableChildAgents(ScenePresence agent);
+        void CheckChildAgents(ScenePresence agent);
+        void CloseOldChildAgents(ScenePresence agent);
 
         void EnableChildAgent(ScenePresence agent, GridRegion region);
 

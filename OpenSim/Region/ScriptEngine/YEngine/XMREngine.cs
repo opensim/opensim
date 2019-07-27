@@ -1535,13 +1535,36 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void QueueToStart(XMRInstance inst)
         {
-            if(inst.m_IState != XMRInstState.ONSTARTQ)
+            if (inst.m_IState != XMRInstState.ONSTARTQ)
                 throw new Exception("bad state");
 
-            lock(m_StartQueue)
+            lock (m_StartQueue)
                 m_StartQueue.InsertTail(inst);
 
             WakeUpOne();
+        }
+
+        public void QueueToYield(XMRInstance inst)
+        {
+            if (inst.m_IState != XMRInstState.ONYIELDQ)
+                throw new Exception("bad state");
+
+            lock (m_YieldQueue)
+                m_YieldQueue.InsertTail(inst);
+
+            WakeUpOne();
+        }
+
+        public void RemoveFromSleep(XMRInstance inst)
+        {
+            lock (m_SleepQueue)
+            {
+                if (inst.m_IState != XMRInstState.ONSLEEPQ)
+                    return;
+
+                m_SleepQueue.Remove(inst);
+                inst.m_IState = XMRInstState.REMDFROMSLPQ;
+            }
         }
 
         /**

@@ -219,9 +219,13 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 lock (media)
                     me = media[face];
 
-                // TODO: Really need a proper copy constructor down in libopenmetaverse
                 if (me != null)
-                    me = MediaEntry.FromOSD(me.GetOSD());
+                {
+                    Primitive.TextureEntry te = part.Shape.Textures;
+                    Primitive.TextureEntryFace teFace = te.GetFace((uint)face);
+                    if (teFace != null && teFace.MediaFlags)
+                        me = MediaEntry.FromOSD(me.GetOSD());
+                }
             }
 
 //            m_log.DebugFormat("[MOAP]: GetMediaEntry for {0} face {1} found {2}", part.Name, face, me);
@@ -336,15 +340,40 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 return string.Empty;
             }
 
-            if (null == part.Shape.Media)
+            if (part.Shape.Media == null)
                 return string.Empty;
 
-            ObjectMediaResponse resp = new ObjectMediaResponse();
+            MediaEntry[] currentML = part.Shape.Media.ToArray();
 
+            int nentries = currentML.Length;
+            int nsides = part.GetNumberOfSides();
+            if(nentries > nsides)
+                nentries = nsides;
+
+            Primitive.TextureEntry te = part.Shape.Textures;
+            bool isnull = true;
+
+            for(int face = 0; face < nentries; ++face)
+            {
+                Primitive.TextureEntryFace teFace = te.GetFace((uint)face);
+                if(!teFace.MediaFlags)
+                    currentML[face] = null;
+                else
+                    isnull = false;
+            }
+
+            if(isnull)
+            {
+                //remove the damm thing
+                part.Shape.Media = null;
+                part.MediaUrl = null;
+                return string.Empty;
+            }
+
+            ObjectMediaResponse resp = new ObjectMediaResponse();
             resp.PrimID = primId;
 
-            lock (part.Shape.Media)
-                resp.FaceMedia = part.Shape.Media.ToArray();
+            resp.FaceMedia = currentML;
 
             resp.Version = part.MediaUrl;
 
