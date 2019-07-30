@@ -114,6 +114,7 @@ namespace OpenSim.Tests
             IConfigSource argvSource = new IniConfigSource();
             EnvConfigSource envConfigSource = new EnvConfigSource();
             argvSource.AddConfig("Startup").Set("inifile", mainIniFile);
+            argvSource.AddConfig("Network");
             ConfigSettings configSettings;
             NetworkServersInfo networkInfo;
 
