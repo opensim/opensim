@@ -58,13 +58,13 @@ namespace OpenSim.Framework
         public void Unpack(OSD data)
         {
             OSDMap map = (OSDMap)data;
-
-            if (map.ContainsKey("InboundVersion"))
-                InboundVersion = (float)map["InboundVersion"].AsReal();
-            if (map.ContainsKey("OutboundVersion"))
-                OutboundVersion = (float)map["OutboundVersion"].AsReal();
-            if (map.ContainsKey("WearablesCount"))
-                WearablesCount = map["WearablesCount"].AsInteger();
+            OSD tmpOSD;
+            if (map.TryGetValue("InboundVersion", out tmpOSD))
+                InboundVersion = (float)tmpOSD.AsReal();
+            if (map.TryGetValue("OutboundVersion", out tmpOSD))
+                OutboundVersion = (float)tmpOSD.AsReal();
+            if (map.TryGetValue("WearablesCount", out tmpOSD))
+                WearablesCount = tmpOSD.AsInteger();
         }
     }
 }

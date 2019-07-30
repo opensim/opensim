@@ -267,16 +267,17 @@ namespace OpenSim.Framework
         /// <param name="args"></param>
         public void UnpackAgentCircuitData(OSDMap args)
         {
-            if (args["agent_id"] != null)
-                AgentID = args["agent_id"].AsUUID();
-            if (args["base_folder"] != null)
-                BaseFolder = args["base_folder"].AsUUID();
-            if (args["caps_path"] != null)
-                CapsPath = args["caps_path"].AsString();
+            OSD tmpOSD;
+            if (args.TryGetValue("agent_id", out tmpOSD))
+                AgentID = tmpOSD.AsUUID();
+            if (args.TryGetValue("base_folder", out tmpOSD))
+                BaseFolder =tmpOSD.AsUUID();
+            if (args.TryGetValue("caps_path", out tmpOSD))
+                CapsPath = tmpOSD.AsString();
 
-            if ((args["children_seeds"] != null) && (args["children_seeds"].Type == OSDType.Array))
+            if ((args.TryGetValue("children_seeds", out tmpOSD) && tmpOSD is OSDArray))
             {
-                OSDArray childrenSeeds = (OSDArray)(args["children_seeds"]);
+                OSDArray childrenSeeds = (OSDArray)tmpOSD;
                 ChildrenCapSeeds = new Dictionary<ulong, string>();
                 foreach (OSD o in childrenSeeds)
                 {
@@ -285,53 +286,59 @@ namespace OpenSim.Framework
                         ulong handle = 0;
                         string seed = "";
                         OSDMap pair = (OSDMap)o;
-                        if (pair["handle"] != null)
-                            if (!UInt64.TryParse(pair["handle"].AsString(), out handle))
+                        if (pair.TryGetValue("handle", out tmpOSD))
+                        {
+                            if (!UInt64.TryParse(tmpOSD.AsString(), out handle))
                                 continue;
-                        if (pair["seed"] != null)
-                            seed = pair["seed"].AsString();
+                        }
                         if (!ChildrenCapSeeds.ContainsKey(handle))
-                            ChildrenCapSeeds.Add(handle, seed);
+                        {
+                            if (pair.TryGetValue("seed", out tmpOSD))
+                            {
+                                seed = tmpOSD.AsString();
+                                ChildrenCapSeeds.Add(handle, seed);
+                            }
+                        }
                     }
                 }
             }
             else
                 ChildrenCapSeeds = new Dictionary<ulong, string>();
 
-            if (args["child"] != null)
-                child = args["child"].AsBoolean();
-            if (args["circuit_code"] != null)
-                UInt32.TryParse(args["circuit_code"].AsString(), out circuitcode);
-            if (args["first_name"] != null)
-                firstname = args["first_name"].AsString();
-            if (args["last_name"] != null)
-                lastname = args["last_name"].AsString();
-            if (args["inventory_folder"] != null)
-                InventoryFolder = args["inventory_folder"].AsUUID();
-            if (args["secure_session_id"] != null)
-                SecureSessionID = args["secure_session_id"].AsUUID();
-            if (args["session_id"] != null)
-                SessionID = args["session_id"].AsUUID();
-            if (args["service_session_id"] != null)
-                ServiceSessionID = args["service_session_id"].AsString();
-            if (args["client_ip"] != null)
-                IPAddress = args["client_ip"].AsString();
-            if (args["viewer"] != null)
-                Viewer = args["viewer"].AsString();
-            if (args["channel"] != null)
-                Channel = args["channel"].AsString();
-            if (args["mac"] != null)
-                Mac = args["mac"].AsString();
-            if (args["id0"] != null)
-                Id0 = args["id0"].AsString();
-            if (args["teleport_flags"] != null)
-                teleportFlags = args["teleport_flags"].AsUInteger();
+            if (args.TryGetValue("child", out tmpOSD))
+                child = tmpOSD.AsBoolean();
+            if (args.TryGetValue("circuit_code", out tmpOSD))
+                UInt32.TryParse(tmpOSD.AsString(), out circuitcode);
+            if (args.TryGetValue("first_name", out tmpOSD))
+                firstname = tmpOSD.AsString();
+            if (args.TryGetValue("last_name", out tmpOSD))
+                lastname = tmpOSD.AsString();
+            if (args.TryGetValue("inventory_folder", out tmpOSD))
+                InventoryFolder = tmpOSD.AsUUID();
+            if (args.TryGetValue("secure_session_id", out tmpOSD))
+                SecureSessionID = tmpOSD.AsUUID();
+            if (args.TryGetValue("session_id", out tmpOSD))
+                SessionID = tmpOSD.AsUUID();
+            if (args.TryGetValue("service_session_id", out tmpOSD))
+                ServiceSessionID = tmpOSD.AsString();
+            if (args.TryGetValue("client_ip", out tmpOSD))
+                IPAddress = tmpOSD.AsString();
+            if (args.TryGetValue("viewer", out tmpOSD))
+                Viewer = tmpOSD.AsString();
+            if (args.TryGetValue("channel", out tmpOSD))
+                Channel = tmpOSD.AsString();
+            if (args.TryGetValue("mac", out tmpOSD))
+                Mac = tmpOSD.AsString();
+            if (args.TryGetValue("id0", out tmpOSD))
+                Id0 = tmpOSD.AsString();
+            if (args.TryGetValue("teleport_flags", out tmpOSD))
+                teleportFlags = tmpOSD.AsUInteger();
 
-            if (args["start_pos"] != null)
-                Vector3.TryParse(args["start_pos"].AsString(), out startpos);
+            if (args.TryGetValue("start_pos", out tmpOSD))
+                Vector3.TryParse(tmpOSD.AsString(), out startpos);
 
-            if(args["far"] != null)
-                startfar = (float)args["far"].AsReal();
+            if(args.TryGetValue("far", out tmpOSD))
+                startfar = (float)tmpOSD.AsReal();
 
             //m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
 
@@ -342,12 +349,12 @@ namespace OpenSim.Framework
 
                 // Eventually this code should be deprecated, use full appearance
                 // packing in packed_appearance
-                if (args["appearance_serial"] != null)
-                    Appearance.Serial = args["appearance_serial"].AsInteger();
+                if (args.TryGetValue("appearance_serial", out tmpOSD))
+                    Appearance.Serial = tmpOSD.AsInteger();
 
-                if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
+                if (args.TryGetValue("packed_appearance", out tmpOSD) && (tmpOSD is OSDMap))
                 {
-                    Appearance.Unpack((OSDMap)args["packed_appearance"]);
+                    Appearance.Unpack((OSDMap)tmpOSD);
 //                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
                 }
                 else
@@ -362,31 +369,31 @@ namespace OpenSim.Framework
 
             ServiceURLs = new Dictionary<string, object>();
             // Try parse the new way, OSDMap
-            if (args.ContainsKey("serviceurls") && args["serviceurls"] != null && (args["serviceurls"]).Type == OSDType.Map)
+            if (args.TryGetValue("serviceurls", out tmpOSD) && (tmpOSD is OSDMap))
             {
-                OSDMap urls = (OSDMap)(args["serviceurls"]);
+                OSDMap urls = (OSDMap)tmpOSD;
                 foreach (KeyValuePair<String, OSD> kvp in urls)
                 {
-                    ServiceURLs[kvp.Key] = kvp.Value.AsString();
+                    tmpOSD = kvp.Value;
+                    ServiceURLs[kvp.Key] = tmpOSD.AsString();
                     //System.Console.WriteLine("XXX " + kvp.Key + "=" + ServiceURLs[kvp.Key]);
-
                 }
             }
             // else try the old way, OSDArray
             // OBSOLETE -- soon to be deleted
-            else if (args.ContainsKey("service_urls") && args["service_urls"] != null && (args["service_urls"]).Type == OSDType.Array)
+            else if (args.TryGetValue("service_urls", out tmpOSD) && (tmpOSD is OSDArray))
             {
-                OSDArray urls = (OSDArray)(args["service_urls"]);
-                for (int i = 0; i < urls.Count / 2; i++)
+                OSDArray urls = (OSDArray)tmpOSD;
+                OSD tmpOSDb;
+                for (int i = 0; i < urls.Count - 1; i += 2)
                 {
-                    ServiceURLs[urls[i * 2].AsString()] = urls[(i * 2) + 1].AsString();
+                    tmpOSD = urls[i];
+                    tmpOSDb = urls[i + 1];
+                    ServiceURLs[tmpOSD.AsString()] = tmpOSDb.AsString();
                     //System.Console.WriteLine("XXX " + urls[i * 2].AsString() + "=" + urls[(i * 2) + 1].AsString());
-
                 }
             }
         }
 
     }
-
-
 }

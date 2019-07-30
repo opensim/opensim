@@ -796,25 +796,33 @@ namespace OpenSim.Framework
         /// </summary>
         public void Unpack(OSDMap data)
         {
-            if ((data != null) && (data["serial"] != null))
-                m_serial = data["serial"].AsInteger();
-            if ((data != null) && (data["height"] != null))
+            SetDefaultWearables();
+            SetDefaultTexture();
+            SetDefaultParams();
+            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+
+            if(data == null)
+            {
+                m_log.Warn("[AVATAR APPEARANCE]: data to unpack is null");
+                return;
+            }
+
+            OSD tmpOSD;
+            if (data.TryGetValue("serial", out tmpOSD))
+                m_serial = tmpOSD.AsInteger();
+            if (data.TryGetValue("height", out tmpOSD))
 //                m_avatarHeight = (float)data["height"].AsReal();
-                SetSize(new Vector3(0.45f,0.6f, (float)data["height"].AsReal()));
+                SetSize(new Vector3(0.45f,0.6f, (float)tmpOSD.AsReal()));
 
             try
             {
                 // Wearables
-                SetDefaultWearables();
-                if ((data != null) && (data["wearables"] != null) && (data["wearables"]).Type == OSDType.Array)
+                if (data.TryGetValue("wearables", out tmpOSD) && (tmpOSD is OSDArray))
                 {
-                    OSDArray wears = (OSDArray)(data["wearables"]);
+                    OSDArray wears = (OSDArray)tmpOSD;
+                    m_wearables = new AvatarWearable[wears.Count];
 
-                    int count = wears.Count;
-
-                    m_wearables = new AvatarWearable[count];
-
-                    for (int i = 0; i < count; i++)
+                    for (int i = 0; i < wears.Count; i++)
                         m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
                 }
                 else
@@ -823,15 +831,15 @@ namespace OpenSim.Framework
                 }
 
                 // Avatar Textures
-                SetDefaultTexture();
-                if ((data != null) && (data["textures"] != null) && (data["textures"]).Type == OSDType.Array)
+                if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray))
                 {
-                    OSDArray textures = (OSDArray)(data["textures"]);
+                    OSDArray textures = (OSDArray)tmpOSD;
                     for (int i = 0; i < AvatarAppearance.TEXTURE_COUNT && i < textures.Count; i++)
                     {
                         UUID textureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
-                        if (textures[i] != null)
-                            textureID = textures[i].AsUUID();
+                        tmpOSD = textures[i];
+                        if (tmpOSD != null)
+                            textureID = tmpOSD.AsUUID();
                         m_texture.CreateFace((uint)i).TextureID = new UUID(textureID);
                     }
                 }
@@ -840,18 +848,17 @@ namespace OpenSim.Framework
                     m_log.Warn("[AVATAR APPEARANCE]: failed to unpack textures");
                 }
 
-                if ((data != null) && (data["bakedcache"] != null) && (data["bakedcache"]).Type == OSDType.Array)
+                if (data.TryGetValue("bakedcache", out tmpOSD) && (tmpOSD is OSDArray))
                 {
-                    OSDArray bakedOSDArray = (OSDArray)(data["bakedcache"]);
+                    OSDArray bakedOSDArray = (OSDArray)tmpOSD;
                     m_cacheitems = WearableCacheItem.BakedFromOSD(bakedOSDArray);
                 }
 
                 // Visual Parameters
-                SetDefaultParams();
-                if ((data != null) && (data["visualparams"] != null))
+                if (data.TryGetValue("visualparams", out tmpOSD))
                 {
-                    if ((data["visualparams"].Type == OSDType.Binary) || (data["visualparams"].Type == OSDType.Array))
-                        m_visualparams = data["visualparams"].AsBinary();
+                    if (tmpOSD is OSDBinary || tmpOSD is OSDArray)
+                        m_visualparams = tmpOSD.AsBinary();
                 }
                 else
                 {
@@ -859,10 +866,9 @@ namespace OpenSim.Framework
                 }
 
                 // Attachments
-                m_attachments = new Dictionary<int, List<AvatarAttachment>>();
-                if ((data != null) && (data["attachments"] != null) && (data["attachments"]).Type == OSDType.Array)
+                if (data.TryGetValue("attachments", out tmpOSD) && tmpOSD is OSDArray)
                 {
-                    OSDArray attachs = (OSDArray)(data["attachments"]);
+                    OSDArray attachs = (OSDArray)tmpOSD;
                     for (int i = 0; i < attachs.Count; i++)
                     {
                         AvatarAttachment att = new AvatarAttachment((OSDMap)attachs[i]);
