@@ -441,6 +441,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 startHeights[0], startHeights[2],
                 startHeights[1], startHeights[3],
                 pctX, pctY);
+            if (float.IsNaN(startHeight))
+                return 0;
+
             startHeight = Utils.Clamp(startHeight, 0f, 255f);
 
             float heightRange = ImageUtils.Bilinear(
@@ -448,7 +451,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 heightRanges[1], heightRanges[3],
                 pctX, pctY);
             heightRange = Utils.Clamp(heightRange, 0f, 255f);
-            if(heightRange == 0f)
+            if(heightRange == 0f || float.IsNaN(heightRange))
                 return 0;
 
             // Generate two frequencies of perlin noise based on our global position
