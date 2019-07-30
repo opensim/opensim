@@ -3369,6 +3369,15 @@ namespace OpenSim.Framework
             if (length > 2000)
                 xml = xml.Substring(0, 2000) + "...";
 
+            for (int i = 0 ; i < xml.Length ; i++)
+            {
+                if (xml[i] < 0x20)
+                {
+                    xml = "Unprintable binary data";
+                    break;
+                }
+            }
+
             m_log.ErrorFormat("{0} Failed XML ({1} bytes) = {2}", message, length, xml);
         }
 
