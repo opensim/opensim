@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
-        public static readonly LSLInteger OS_APIVERSION = 4;
+        public static readonly LSLInteger OS_APIVERSION = 5;
 
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
@@ -721,7 +721,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         // constants for llGetParcelDetails
         public const int PARCEL_DETAILS_NAME = 0;
         public const int PARCEL_DETAILS_DESC = 1;
-        public const int PARCEL_DETAILS_DWELL = 20;
         public const int PARCEL_DETAILS_OWNER = 2;
         public const int PARCEL_DETAILS_GROUP = 3;
         public const int PARCEL_DETAILS_AREA = 4;
@@ -729,6 +728,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PARCEL_DETAILS_SEE_AVATARS = 6;
         public const int PARCEL_DETAILS_ANY_AVATAR_SOUNDS = 7;
         public const int PARCEL_DETAILS_GROUP_SOUNDS = 8;
+        // constants for llGetParcelDetails os specific
+        public const int PARCEL_DETAILS_DWELL = 64;
 
         //osSetParcelDetails
         public const int PARCEL_DETAILS_CLAIMDATE = 10;

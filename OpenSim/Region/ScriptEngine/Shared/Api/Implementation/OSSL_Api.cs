@@ -1600,7 +1600,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0.0f;
         }
 
-        public int osGetParcelDwell(LSL_Vector pos)
+        public LSL_Integer osGetParcelDwell(LSL_Vector pos)
         {
             LandData land = World.GetLandData(pos);
             if (land != null)
