@@ -65,32 +65,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         //
         // Script functions
         //
-        public LSL_Integer llAbs(int i)
+        public LSL_Integer llAbs(LSL_Integer i)
         {
             return m_LSL_Functions.llAbs(i);
         }
 
-        public LSL_Float llAcos(double val)
+        public LSL_Float llAcos(LSL_Float val)
         {
             return m_LSL_Functions.llAcos(val);
         }
 
-        public void llAddToLandBanList(string avatar, double hours)
+        public void llAddToLandBanList(LSL_Key avatar, LSL_Float hours)
         {
             m_LSL_Functions.llAddToLandBanList(avatar, hours);
         }
 
-        public void llAddToLandPassList(string avatar, double hours)
+        public void llAddToLandPassList(LSL_Key avatar, LSL_Float hours)
         {
             m_LSL_Functions.llAddToLandPassList(avatar, hours);
         }
 
-        public void llAdjustSoundVolume(double volume)
+        public void llAdjustSoundVolume(LSL_Float volume)
         {
             m_LSL_Functions.llAdjustSoundVolume(volume);
         }
 
-        public void llAllowInventoryDrop(int add)
+        public void llAllowInventoryDrop(LSL_Integer add)
         {
             m_LSL_Functions.llAllowInventoryDrop(add);
         }
@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llAngleBetween(a, b);
         }
 
-        public void llApplyImpulse(LSL_Vector force, int local)
+        public void llApplyImpulse(LSL_Vector force, LSL_Integer local)
         {
             m_LSL_Functions.llApplyImpulse(force, local);
         }
@@ -110,12 +110,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llApplyRotationalImpulse(force, local);
         }
 
-        public LSL_Float llAsin(double val)
+        public LSL_Float llAsin(LSL_Float val)
         {
             return m_LSL_Functions.llAsin(val);
         }
 
-        public LSL_Float llAtan2(double x, double y)
+        public LSL_Float llAtan2(LSL_Float x, LSL_Float y)
         {
             return m_LSL_Functions.llAtan2(x, y);
         }
@@ -190,17 +190,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llCloud(offset);
         }
 
-        public void llCollisionFilter(string name, string id, int accept)
+        public void llCollisionFilter(LSL_String name, LSL_Key id, LSL_Integer accept)
         {
             m_LSL_Functions.llCollisionFilter(name, id, accept);
         }
 
-        public void llCollisionSound(string impact_sound, double impact_volume)
+        public void llCollisionSound(LSL_String impact_sound, LSL_Float impact_volume)
         {
             m_LSL_Functions.llCollisionSound(impact_sound, impact_volume);
         }
 
-        public void llCollisionSprite(string impact_sprite)
+        public void llCollisionSprite(LSL_String impact_sprite)
         {
             m_LSL_Functions.llCollisionSprite(impact_sprite);
         }
@@ -210,7 +210,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llCos(f);
         }
 
-        public void llCreateLink(LSL_String target, LSL_Integer parent)
+        public void llCreateLink(LSL_Key target, LSL_Integer parent)
         {
             m_LSL_Functions.llCreateLink(target, parent);
         }
@@ -386,12 +386,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAccel();
         }
 
-        public LSL_Integer llGetAgentInfo(string id)
+        public LSL_Integer llGetAgentInfo(LSL_Key id)
         {
             return m_LSL_Functions.llGetAgentInfo(id);
         }
 
-        public LSL_String llGetAgentLanguage(string id)
+        public LSL_String llGetAgentLanguage(LSL_Key id)
         {
             return m_LSL_Functions.llGetAgentLanguage(id);
         }
@@ -401,7 +401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAgentList(scope, options);
         }
 
-        public LSL_Vector llGetAgentSize(string id)
+        public LSL_Vector llGetAgentSize(LSL_Key id)
         {
             return m_LSL_Functions.llGetAgentSize(id);
         }
@@ -416,12 +416,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAndResetTime();
         }
 
-        public LSL_String llGetAnimation(string id)
+        public LSL_String llGetAnimation(LSL_Key id)
         {
             return m_LSL_Functions.llGetAnimation(id);
         }
 
-        public LSL_List llGetAnimationList(string id)
+        public LSL_List llGetAnimationList(LSL_Key id)
         {
             return m_LSL_Functions.llGetAnimationList(id);
         }
@@ -431,7 +431,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetAttached();
         }
 
-        public LSL_List llGetAttachedList(string id)
+        public LSL_List llGetAttachedList(LSL_Key id)
         {
             return m_LSL_Functions.llGetAttachedList(id);
         }
@@ -881,27 +881,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetWallclock();
         }
 
-        public void llGiveInventory(string destination, string inventory)
+        public void llGiveInventory(LSL_Key destination, LSL_String inventory)
         {
             m_LSL_Functions.llGiveInventory(destination, inventory);
         }
 
-        public void llGiveInventoryList(string destination, string category, LSL_List inventory)
+        public void llGiveInventoryList(LSL_Key destination, LSL_String category, LSL_List inventory)
         {
             m_LSL_Functions.llGiveInventoryList(destination, category, inventory);
         }
 
-        public LSL_Integer llGiveMoney(string destination, int amount)
+        public LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount)
         {
             return m_LSL_Functions.llGiveMoney(destination, amount);
         }
 
-        public LSL_Key llTransferLindenDollars(string destination, int amount)
+        public LSL_Key llTransferLindenDollars(LSL_Key destination, LSL_Integer amount)
         {
             return m_LSL_Functions.llTransferLindenDollars(destination, amount);
         }
 
-        public void llGodLikeRezObject(string inventory, LSL_Vector pos)
+        public void llGodLikeRezObject(LSL_String inventory, LSL_Vector pos)
         {
             m_LSL_Functions.llGodLikeRezObject(inventory, pos);
         }
@@ -931,22 +931,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGroundSlope(offset);
         }
 
-        public LSL_Key llHTTPRequest(string url, LSL_List parameters, string body)
+        public LSL_Key llHTTPRequest(LSL_String url, LSL_List parameters, LSL_String body)
         {
             return m_LSL_Functions.llHTTPRequest(url, parameters, body);
         }
 
-        public void llHTTPResponse(LSL_Key id, int status, string body)
+        public void llHTTPResponse(LSL_Key id, int status, LSL_String body)
         {
             m_LSL_Functions.llHTTPResponse(id, status, body);
         }
 
-        public LSL_String llInsertString(string dst, int position, string src)
+        public LSL_String llInsertString(LSL_String dst, int position, LSL_String src)
         {
             return m_LSL_Functions.llInsertString(dst, position, src);
         }
 
-        public void llInstantMessage(string user, string message)
+        public void llInstantMessage(LSL_String user, LSL_String message)
         {
             m_LSL_Functions.llInstantMessage(user, message);
         }
@@ -956,12 +956,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llIntegerToBase64(number);
         }
 
-        public LSL_String llKey2Name(string id)
+        public LSL_String llKey2Name(LSL_Key id)
         {
             return m_LSL_Functions.llKey2Name(id);
         }
 
-        public LSL_String llGetUsername(string id)
+        public LSL_String llGetUsername(LSL_Key id)
         {
             return m_LSL_Functions.llGetUsername(id);
         }

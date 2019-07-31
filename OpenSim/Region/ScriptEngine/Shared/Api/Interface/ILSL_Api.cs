@@ -41,20 +41,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     {
         void state(string newState);
 
-       LSL_Integer llAbs(int val);
-         LSL_Float llAcos(double val);
+       LSL_Integer llAbs(LSL_Integer val);
+         LSL_Float llAcos(LSL_Float val);
                    //ApiDesc Sleep 0.1
-              void llAddToLandBanList(LSL_Key avatarId, double hours);
+              void llAddToLandBanList(LSL_Key avatarId, LSL_Float hours);
                     //ApiDesc Sleep 0.1
-              void llAddToLandPassList(LSL_Key avatarId, double hours);
+              void llAddToLandPassList(LSL_Key avatarId, LSL_Float hours);
                    //ApiDesc Sleep 0.1
-              void llAdjustSoundVolume(double volume);
-              void llAllowInventoryDrop(int add);
+              void llAdjustSoundVolume(LSL_Float volume);
+              void llAllowInventoryDrop(LSL_Integer add);
          LSL_Float llAngleBetween(LSL_Rotation a, LSL_Rotation b);
-              void llApplyImpulse(LSL_Vector force, int local);
+              void llApplyImpulse(LSL_Vector force, LSL_Integer local);
               void llApplyRotationalImpulse(LSL_Vector force, int local);
-         LSL_Float llAsin(double val);
-         LSL_Float llAtan2(double x, double y);
+         LSL_Float llAsin(LSL_Float val);
+         LSL_Float llAtan2(LSL_Float x, LSL_Float y);
               void llAttachToAvatar(LSL_Integer attachment);
               void llAttachToAvatarTemp(LSL_Integer attachmentPoint);
            LSL_Key llAvatarOnSitTarget();
@@ -74,13 +74,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
                    //ApiDesc Sleep 1.0
               void llCloseRemoteDataChannel(string channel);
          LSL_Float llCloud(LSL_Vector offset);
-              void llCollisionFilter(string name, string id, int accept);
-              void llCollisionSound(string impact_sound, double impact_volume);
+              void llCollisionFilter(LSL_String name, LSL_Key id, LSL_Integer accept);
+              void llCollisionSound(LSL_String impact_sound, LSL_Float impact_volume);
                    //ApiDesc Not Supported - does nothing
-              void llCollisionSprite(string impact_sprite);
+              void llCollisionSprite(LSL_String impact_sprite);
          LSL_Float llCos(double f);
                    //ApiDesc Sleep 1.0
-              void llCreateLink(LSL_String targetId, LSL_Integer parent);
+              void llCreateLink(LSL_Key targetId, LSL_Integer parent);
           LSL_List llCSV2List(string src);
           LSL_List llDeleteSubList(LSL_List src, int start, int end);
         LSL_String llDeleteSubString(string src, int start, int end);
@@ -116,16 +116,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llFrand(double mag);
            LSL_Key llGenerateKey();
         LSL_Vector llGetAccel();
-       LSL_Integer llGetAgentInfo(string id);
-        LSL_String llGetAgentLanguage(string id);
+       LSL_Integer llGetAgentInfo(LSL_Key id);
+        LSL_String llGetAgentLanguage(LSL_Key id);
           LSL_List llGetAgentList(LSL_Integer scope, LSL_List options);
-        LSL_Vector llGetAgentSize(string id);
+        LSL_Vector llGetAgentSize(LSL_Key id);
          LSL_Float llGetAlpha(int face);
          LSL_Float llGetAndResetTime();
-        LSL_String llGetAnimation(string id);
-          LSL_List llGetAnimationList(string id);
+        LSL_String llGetAnimation(LSL_Key id);
+          LSL_List llGetAnimationList(LSL_Key id);
        LSL_Integer llGetAttached();
-          LSL_List llGetAttachedList(string id);
+          LSL_List llGetAttachedList(LSL_Key id);
           LSL_List llGetBoundingBox(string obj);
         LSL_Vector llGetCameraPos();
       LSL_Rotation llGetCameraRot();
@@ -217,10 +217,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetUnixTime();
         LSL_Vector llGetVel();
          LSL_Float llGetWallclock();
-              void llGiveInventory(string destination, string inventory);
-              void llGiveInventoryList(string destination, string category, LSL_List inventory);
-       LSL_Integer llGiveMoney(string destination, int amount);
-           LSL_Key llTransferLindenDollars(string destination, int amount);
+              void llGiveInventory(LSL_Key destination, LSL_String inventory);
+              void llGiveInventoryList(LSL_Key destination, LSL_String category, LSL_List inventory);
+       LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount);
+           LSL_Key llTransferLindenDollars(LSL_Key destination, LSL_Integer amount);
               void llGodLikeRezObject(string inventory, LSL_Vector pos);
          LSL_Float llGround(LSL_Vector offset);
         LSL_Vector llGroundContour(LSL_Vector offset);
@@ -232,8 +232,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llInsertString(string dst, int position, string src);
               void llInstantMessage(string user, string message);
         LSL_String llIntegerToBase64(int number);
-        LSL_String llKey2Name(string id);
-        LSL_String llGetUsername(string id);
+        LSL_String llKey2Name(LSL_Key id);
+        LSL_String llGetUsername(LSL_Key id);
            LSL_Key llRequestUsername(string id);
         LSL_String llGetDisplayName(string id);
            LSL_Key llRequestDisplayName(string id);
