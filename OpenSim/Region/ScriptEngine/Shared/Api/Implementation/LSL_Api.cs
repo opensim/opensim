@@ -6387,75 +6387,64 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetEnv(LSL_String name)
         {
             m_host.AddScriptLPS(1);
-            if (name == "agent_limit")
+            switch(name)
             {
-                return World.RegionInfo.RegionSettings.AgentLimit.ToString();
-            }
-            else if (name == "dynamic_pathfinding")
-            {
-                return "0";
-            }
-            else if (name == "estate_id")
-            {
-                return World.RegionInfo.EstateSettings.EstateID.ToString();
-            }
-            else if (name == "estate_name")
-            {
-                return World.RegionInfo.EstateSettings.EstateName;
-            }
-            else if (name == "frame_number")
-            {
-                return World.Frame.ToString();
-            }
-            else if (name == "region_cpu_ratio")
-            {
-                return "1";
-            }
-            else if (name == "region_idle")
-            {
-                return "0";
-            }
-            else if (name == "region_product_name")
-            {
-                if (World.RegionInfo.RegionType != String.Empty)
-                    return World.RegionInfo.RegionType;
-                else
+                case "agent_limit":
+                    return World.RegionInfo.RegionSettings.AgentLimit.ToString();
+
+                case "dynamic_pathfinding":
+                    return "0";
+
+                case "estate_id":
+                    return World.RegionInfo.EstateSettings.EstateID.ToString();
+
+                case "estate_name":
+                    return World.RegionInfo.EstateSettings.EstateName;
+
+                case "frame_number":
+                    return World.Frame.ToString();
+
+                case "region_cpu_ratio":
+                    return "1";
+
+                case "region_idle":
+                    return "0";
+
+                case "region_product_name":
+                    if (World.RegionInfo.RegionType != String.Empty)
+                        return World.RegionInfo.RegionType;
+                    else
+                        return "";
+
+                case "region_product_sku":
+                    return "OpenSim";
+
+                case "region_start_time":
+                    return World.UnixStartTime.ToString();
+
+                case "region_up_time":
+                    int time = Util.UnixTimeSinceEpoch() - World.UnixStartTime;
+                    return time.ToString();
+
+                case "sim_channel":
+                    return "OpenSim";
+
+                case "sim_version":
+                    return World.GetSimulatorVersion();
+
+                case "simulator_hostname":
+                    IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
+                    return UrlModule.ExternalHostNameForLSL;
+
+                case "region_max_prims":
+                    return World.RegionInfo.ObjectCapacity.ToString();
+
+                case "region_object_bonus":
+                    return World.RegionInfo.RegionSettings.ObjectBonus.ToString();
+
+                default:
                     return "";
             }
-            else if (name == "region_product_sku")
-            {
-                return "OpenSim";
-            }
-            else if (name == "region_start_time")
-            {
-                return World.UnixStartTime.ToString();
-            }
-            else if (name == "sim_channel")
-            {
-                return "OpenSim";
-            }
-            else if (name == "sim_version")
-            {
-                return World.GetSimulatorVersion();
-            }
-            else if (name == "simulator_hostname")
-            {
-                IUrlModule UrlModule = World.RequestModuleInterface<IUrlModule>();
-                return UrlModule.ExternalHostNameForLSL;
-            }
-            else if (name == "region_max_prims")
-            {
-                return World.RegionInfo.ObjectCapacity.ToString();
-            }
-            else if (name == "region_object_bonus")
-            {
-                return World.RegionInfo.RegionSettings.ObjectBonus.ToString();
-            }
-            else
-            {
-                return "";
-            }
-
         }
 
         /// <summary>
