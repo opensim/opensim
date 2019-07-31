@@ -533,8 +533,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static Quaternion operator /(Quaternion a, Quaternion b)
             {
-                // assuming normalized
-                b.s = -b.s;
+                // assume normalized
+                // if not, sl seems to not normalize either
+                b.x = -b.x;
+                b.y = -b.y;
+                b.z = -b.z;
+
                 return a * b;
             }
 
