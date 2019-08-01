@@ -3023,11 +3023,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_scriptEvents.ContainsKey(scriptid))
                 {
-                    scriptEvents oldparts = scriptEvents.None;
-                    oldparts = (scriptEvents) m_scriptEvents[scriptid];
-
-                    // remove values from aggregated script events
-                    AggregateScriptEvents &= ~oldparts;
                     m_scriptEvents.Remove(scriptid);
                     aggregateScriptEvents();
                 }
