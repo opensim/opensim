@@ -341,7 +341,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(group == null || group.IsDeleted)
                 return;
 
-            if (Permissions.CanMoveObject(group, remoteClient))// && PermissionsMngr.)
+            if (Permissions.CanMoveObject(group, remoteClient))
             {
                 group.GrabMovement(objectID, offset, pos, remoteClient);
             }
@@ -359,16 +359,13 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 grabOffset = pos - part.AbsolutePosition;
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch) != 0)
-//                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
                 EventManager.TriggerObjectGrabbing(part.LocalId, 0, grabOffset, remoteClient, surfaceArg);
+
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
                 (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
-            {
-//                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
                 EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
-            }
         }
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
