@@ -490,6 +490,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             ReleaseControls();
             AsyncCommandManager.RemoveScript(Engine, LocalID, ItemID);
+            SceneObjectPart part = Engine.World.GetSceneObjectPart(LocalID);
+            if (part != null)
+                part.RemoveScriptEvents(ItemID);
         }
 
         public void RemoveState()

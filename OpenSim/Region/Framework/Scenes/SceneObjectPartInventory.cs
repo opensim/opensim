@@ -1112,10 +1112,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_part.RemFlag(PrimFlags.Scripted);
                 }
 
-                if (type == (int)InventoryType.LSL)
-                    m_part.aggregateScriptEvents(); // this also does full update
-                else
-                    m_part.ScheduleFullUpdate();
+                m_part.ScheduleFullUpdate();
 
                 m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
                 return type;
