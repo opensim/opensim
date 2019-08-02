@@ -267,24 +267,24 @@ namespace OpenSim.Region.OptionalModules.Materials
             if (matsArr == null)
                 return partchanged;
             
-            OSD tmpOSD;
             foreach (OSD elemOsd in matsArr)
             {
                 if (elemOsd != null && elemOsd is OSDMap)
                 {
                     OSDMap matMap = elemOsd as OSDMap;
-                    if (matMap.ContainsKey("ID") && matMap.ContainsKey("Material"))
+                    OSD OSDID;
+                    OSD OSDMaterial;
+                    if (matMap.TryGetValue("ID", out OSDID) && matMap.TryGetValue("Material", out OSDMaterial) && OSDMaterial is OSDMap)
                     {
                         try
                         {
                             lock (materialslock)
                             {
-                                tmpOSD = matMap["ID"];
-                                UUID id = tmpOSD.AsUUID();
+                                UUID id = OSDID.AsUUID();
                                 if(m_Materials.ContainsKey(id))
                                     continue;
 
-                                OSDMap theMatMap = (OSDMap)matMap["Material"];
+                                OSDMap theMatMap = (OSDMap)OSDMaterial;
                                 FaceMaterial fmat = new FaceMaterial(theMatMap);
 
                                 if(fmat == null ||
@@ -292,7 +292,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         && fmat.NormalMapID == UUID.Zero
                                         && fmat.SpecularMapID == UUID.Zero))
                                     continue;
-                               
+
                                 fmat.ID = id; 
                                 m_Materials[id] = fmat;
                                 m_MaterialsRefCount[id] = 0;
@@ -560,8 +560,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     uint primLocalID = 0;
                                     try
                                     {
-                                        tmpOSD = matsMap["ID"];
-                                        primLocalID = tmpOSD.AsUInteger();
+                                        primLocalID = matsMap["ID"].AsUInteger();
                                     }
                                     catch (Exception e)
                                     {

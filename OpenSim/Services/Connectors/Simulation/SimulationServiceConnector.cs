@@ -120,36 +120,26 @@ namespace OpenSim.Services.Connectors.Simulation
                 PackData(args, source, aCircuit, destination, flags);
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
-                tmpOSD = result["success"];
-                bool success = tmpOSD.AsBoolean();
+                bool success = result["success"].AsBoolean();
                 if (success && result.TryGetValue("_Result", out tmpOSD) && tmpOSD is OSDMap)
                 {
                     OSDMap data = (OSDMap)tmpOSD;
-
-                    tmpOSD = data["reason"];
-                    reason = tmpOSD.AsString();
-
-                    tmpOSD = data["success"];
-                    success = tmpOSD.AsBoolean();
+                    reason = data["reason"].AsString();
+                    success = data["success"].AsBoolean();
                     return success;
                 }
 
                 // Try the old version, uncompressed
                 result = WebUtil.PostToService(uri, args, 30000, false);
 
-                tmpOSD = result["success"];
-                success = tmpOSD.AsBoolean();
+                success = result["success"].AsBoolean();
                 if (success)
                 {
                     if (result.TryGetValue("_Result", out tmpOSD) && tmpOSD is OSDMap)
                     {
                         OSDMap data = (OSDMap)tmpOSD;
-
-                        tmpOSD = data["reason"];
-                        reason = tmpOSD.AsString();
-
-                        tmpOSD = data["success"];
-                        success = tmpOSD.AsBoolean();
+                        reason = data["reason"].AsString();
+                        success = data["success"].AsBoolean();
 
                         m_log.WarnFormat(
                             "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
@@ -327,8 +317,7 @@ namespace OpenSim.Services.Connectors.Simulation
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 30000, false, false, true);
 
-                tmpOSD = result["success"];
-                bool success = tmpOSD.AsBoolean();
+                bool success = result["success"].AsBoolean();
 
                 bool has_Result = false;
                 if (result.TryGetValue("_Result", out tmpOSD))
@@ -339,18 +328,14 @@ namespace OpenSim.Services.Connectors.Simulation
                     // FIXME: If there is a _Result map then it's the success key here that indicates the true success
                     // or failure, not the sibling result node.
                     //nte4.8 crap
-                    tmpOSD = data["success"];
-                    success = tmpOSD.AsBoolean();
-
-                    tmpOSD = data["reason"];
-                    reason = tmpOSD.AsString();
+                    success = data["success"].AsBoolean();
+                    reason = data["reason"].AsString();
                     // We will need to plumb this and start sing the outbound version as well
                     // TODO: lay the pipe for version plumbing
                     if (data.TryGetValue("negotiated_inbound_version", out tmpOSD) && tmpOSD != null)
                     {
                         ctx.InboundVersion = (float)tmpOSD.AsReal();
-                        tmpOSD = data["negotiated_outbound_version"];
-                        ctx.OutboundVersion = (float)tmpOSD.AsReal();
+                        ctx.OutboundVersion = (float)data["negotiated_outbound_version"].AsReal();
                     }
                     else if (data.TryGetValue("version", out tmpOSD) && tmpOSD != null)
                     {
