@@ -1949,7 +1949,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
-            m_log.DebugFormat("[DISPLAYNAMES]: Request for {0} names", ids.Length);
 
             Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids, m_scopeID);
             StringBuilder lsl = LLSDxmlEncode.Start(names.Count * 256 + 256);
@@ -1995,7 +1994,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         
             LLSDxmlEncode.AddEndMap(lsl);
-            m_log.DebugFormat("[DISPLAYNAMES]: Returned {0} names", ct);
             return LLSDxmlEncode.End(lsl);;
         }
     }

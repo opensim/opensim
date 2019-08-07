@@ -164,7 +164,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public override List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            m_log.DebugFormat("[REMOTE USER ACCOUNTS]: Request for {0} records", IDs.Count);
             List<UserAccount> accs = new List<UserAccount>();
             List<string> missing = new List<string>();
 
@@ -178,14 +177,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 {
                     account = m_Cache.Get(uuid, out inCache);
                     if (inCache)
-                    {
                         accs.Add(account);
-                        m_log.DebugFormat("[REMOTE USER ACCOUNTS]: Found in cache: {0}, is null {1}", uuid, account == null);
-                    }
                     else
-                    {
                         missing.Add(id);
-                    }
                 }
             }
 
@@ -204,7 +198,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                     }
                 }
             }
-            m_log.DebugFormat("[REMOTE USER ACCOUNTS]: returned {0} records", accs.Count);
             return accs;
         }
 
