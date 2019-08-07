@@ -51,7 +51,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Scene m_scene;
         private bool m_Enabled = false;
         private string m_capUrl;
-        IEstateModule m_EstateModule;
+        //IEstateModule m_EstateModule;
 
         #region INonSharedRegionModule Members
 
