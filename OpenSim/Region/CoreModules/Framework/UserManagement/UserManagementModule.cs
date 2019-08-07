@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     // instead drop the request entirely.
                     if(!client.IsActive)
                         return;
-                    if (GetUser(uuid, out user))
+                    if (GetUser(uuid, client.ScopeId, out user))
                     {
                         if(client.IsActive)
                             client.SendNameReply(uuid, user.FirstName, user.LastName);
@@ -716,7 +716,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         #region Cache Management
         public virtual bool GetUser(UUID uuid, out UserData userdata)
         {
-            if(m_Scenes.Count <= 0)
+            return GetUser(uuid, m_Scenes[0].RegionInfo.ScopeID, out userdata);
+        }
+
+        public virtual bool GetUser(UUID uuid, UUID scopeID, out UserData userdata)
+        {
+            if (m_Scenes.Count <= 0)
             {
                 userdata = new UserData();
                 return false;
@@ -749,7 +754,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (!userdata.HasGridUserTried)
             {
                 /* rewrite here */
-                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
+                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(scopeID, uuid);
                 if (account != null)
                 {
                     userdata.FirstName = account.FirstName;

@@ -453,6 +453,11 @@ namespace OpenSim.Tests.Common
             get { return m_scene; }
         }
 
+        public UUID ScopeId
+        {
+            get { return UUID.Zero; }
+        }
+
         public bool SendLogoutPacketWhenClosing
         {
             set { }

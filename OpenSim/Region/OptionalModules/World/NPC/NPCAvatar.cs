@@ -67,6 +67,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Vector3 m_startPos;
         private UUID m_uuid = UUID.Random();
         private readonly Scene m_scene;
+        private readonly UUID m_scopeID;
         private readonly UUID m_ownerID;
         private UUID m_hostGroupID;
         private string m_profileAbout = "";
@@ -82,6 +83,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_startPos = position;
             m_uuid = UUID.Random();
             m_scene = scene;
+            m_scopeID = scene.RegionInfo.ScopeID;
             m_ownerID = ownerID;
             SenseAsAgent = senseAsAgent;
             m_hostGroupID = UUID.Zero;
@@ -121,6 +123,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public IScene Scene
         {
             get { return m_scene; }
+        }
+
+        public UUID ScopeId
+        {
+            get { return m_scopeID; }
         }
 
         public int PingTimeMS { get { return 0; } }

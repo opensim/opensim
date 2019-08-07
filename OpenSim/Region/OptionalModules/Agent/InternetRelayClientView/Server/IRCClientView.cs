@@ -542,6 +542,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             get { return m_agentID; }
         }
 
+        public UUID ScopeId { get { return UUID.Zero; } }
+
         public void Disconnect(string reason)
         {
             IRC_SendChannelPrivmsg("System", "You have been eaten by a grue. (" + reason + ")");

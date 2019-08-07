@@ -331,6 +331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly UUID m_sessionId;
         private readonly UUID m_secureSessionId;
         protected readonly UUID m_agentId;
+        protected readonly UUID m_scopeId;
         private readonly uint m_circuitCode;
         private readonly byte[] m_regionChannelVersion = Utils.EmptyBytes;
         private readonly IGroupsModule m_GroupsModule;
@@ -419,6 +420,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
         public UUID AgentId { get { return m_agentId; } }
+        public UUID ScopeId { get { return m_scopeId; } }
         public ISceneAgent SceneAgent { get; set; }
         public UUID ActiveGroupId { get { return m_activeGroupID; } set { m_activeGroupID = value; } }
         public string ActiveGroupName { get { return m_activeGroupName; } set { m_activeGroupName = value; } }
@@ -551,6 +553,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient.OnPacketStats += PopulateStats;
 
             m_prioritizer = new Prioritizer(m_scene);
+
+            // Pick up agent scope which, for gods, can be different from the region scope
+            IUserAccountService userAccountService = m_scene.RequestModuleInterface<IUserAccountService>();
+            var myself = userAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_agentId);
 
             RegisterLocalPacketHandlers();
             string name = string.Format("AsyncInUDP-{0}",m_agentId.ToString());
