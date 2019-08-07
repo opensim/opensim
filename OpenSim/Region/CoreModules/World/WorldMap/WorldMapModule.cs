@@ -95,6 +95,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private bool m_exportPrintScale = false; // prints the scale of map in meters on exported map
         private bool m_exportPrintRegionName = false; // prints the region name exported map
+        private bool m_showNPCs = true;
 
         #region INonSharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
@@ -111,6 +112,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddScale", configSections, m_exportPrintScale);
             m_exportPrintRegionName =
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
+            m_showNPCs =
+                Util.GetConfigVarFromSections<bool>(config, "ShowNPCs", configSections, m_showNPCs);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -501,9 +504,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         {
                             m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
                             {
-                            // Don't send a green dot for yourself
-                            if (sp.UUID != remoteClient.AgentId)
+                                // Don't send a green dot for yourself
+                                if (sp.UUID != remoteClient.AgentId)
                                 {
+                                    if (sp.PresenceType == PresenceType.NPC && !m_showNPCs)
+                                        return;
+
                                     mapitem = new mapItemReply(
                                         xstart + (uint)sp.AbsolutePosition.X,
                                         ystart + (uint)sp.AbsolutePosition.Y,
