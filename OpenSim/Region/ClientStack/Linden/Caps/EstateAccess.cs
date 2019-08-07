@@ -140,18 +140,16 @@ namespace OpenSim.Region.ClientStack.Linden
         public Hashtable ProcessRequest(Hashtable request, UUID AgentId, Caps cap)
         {
             Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 400; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = "Request wasn't what was expected";
-            ScenePresence avatar;
-
-            if (!m_scene.TryGetScenePresence(AgentId, out avatar))
-                return responsedata;
-
             responsedata["int_response_code"] = 200; //501; //410; //404;
             responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = true;
+
+            ScenePresence avatar;
+            if (!m_scene.TryGetScenePresence(AgentId, out avatar))
+            {
+                responsedata["str_response_string"] = "<llsd><array /></llsd>"; ;
+                responsedata["keepalive"] = false;
+                return responsedata;
+            }
 
             if (m_scene.RegionInfo == null 
                 || m_scene.RegionInfo.EstateSettings == null
