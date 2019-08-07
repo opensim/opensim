@@ -93,6 +93,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_Scene;
         private UUID m_AgentID;
+        private UUID m_scopeID;
         private Caps m_HostCapsObj;
         private ModelCost m_ModelCost;
 
@@ -128,6 +129,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_AllowCapHomeLocation = true;
         private bool m_AllowCapGroupMemberData = true;
         private  IUserManagement m_UserManager;
+        private IUserAccountService m_userAccountService;
 
 
         private enum FileAgentInventoryState : int
@@ -201,8 +203,12 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetService = m_Scene.AssetService;
             m_regionName = m_Scene.RegionInfo.RegionName;
             m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+            m_userAccountService = m_Scene.RequestModuleInterface<IUserAccountService>();
             if (m_UserManager == null)
                 m_log.Error("[CAPS]: GetDisplayNames disabled because user management component not found");
+
+            UserAccount account = m_userAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, m_AgentID);
+            m_scopeID = account.ScopeID;
 
             RegisterHandlers();
 
@@ -1943,11 +1949,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string[] ids = query.GetValues("ids");
+            m_log.DebugFormat("[DISPLAYNAMES]: Request for {0} names", ids.Length);
 
-            Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids);
-
+            Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids, m_scopeID);
             StringBuilder lsl = LLSDxmlEncode.Start(names.Count * 256 + 256);
             LLSDxmlEncode.AddMap(lsl);
+            int ct = 0;
             if(names.Count == 0)
                 LLSDxmlEncode.AddEmptyArray("agents", lsl);
             else
@@ -1956,12 +1963,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 foreach (KeyValuePair<UUID,string> kvp in names)
                 {
+                    string[] parts = kvp.Value.Split(new char[] {' '});
+                    string fullname = kvp.Value;
+
                     if (string.IsNullOrEmpty(kvp.Value))
-                        continue;
+                    {
+                        parts = new string[] {"(hippos)", ""};
+                        fullname = "(hippos)";
+                    }
+
                     if(kvp.Key == UUID.Zero)
                         continue;
-
-                    string[] parts = kvp.Value.Split(new char[] {' '});
 
                 // dont tell about unknown users, we can't send them back on Bad either
                     if(parts[0] == "Unknown")
@@ -1970,18 +1982,20 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDxmlEncode.AddMap(lsl);
                     LLSDxmlEncode.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
                     LLSDxmlEncode.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
-                    LLSDxmlEncode.AddElem("display_name", kvp.Value, lsl);
+                    LLSDxmlEncode.AddElem("display_name", fullname, lsl);
                     LLSDxmlEncode.AddElem("legacy_first_name", parts[0], lsl);
                     LLSDxmlEncode.AddElem("legacy_last_name", parts[1], lsl);
-                    LLSDxmlEncode.AddElem("username", kvp.Value, lsl);
+                    LLSDxmlEncode.AddElem("username", fullname, lsl);
                     LLSDxmlEncode.AddElem("id", kvp.Key, lsl);
                     LLSDxmlEncode.AddElem("is_display_name_default", true, lsl);
                     LLSDxmlEncode.AddEndMap(lsl);
+                    ct++;
                 }
                 LLSDxmlEncode.AddEndArray(lsl);
             }
         
             LLSDxmlEncode.AddEndMap(lsl);
+            m_log.DebugFormat("[DISPLAYNAMES]: Returned {0} names", ct);
             return LLSDxmlEncode.End(lsl);;
         }
     }

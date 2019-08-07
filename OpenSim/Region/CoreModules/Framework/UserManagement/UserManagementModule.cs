@@ -485,7 +485,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return user.FirstName + " " + user.LastName;
         }
 
-        public virtual Dictionary<UUID,string> GetUsersNames(string[] ids)
+        public virtual Dictionary<UUID,string> GetUsersNames(string[] ids, UUID scopeID)
         {
             Dictionary<UUID,string> ret = new Dictionary<UUID,string>();
             if(m_Scenes.Count <= 0)
@@ -528,7 +528,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             // try user account service
             List<UserAccount> accounts = m_Scenes[0].UserAccountService.GetUserAccounts(
-                                    m_Scenes[0].RegionInfo.ScopeID, missing);
+                                    scopeID, missing);
 
             if(accounts.Count != 0)
             {

@@ -42,7 +42,7 @@ namespace OpenSim.Services.Interfaces
         string GetUserUUI(UUID uuid);
         bool GetUserUUI(UUID userID, out string uui);
         string GetUserServerURL(UUID uuid, string serverType);
-        Dictionary<UUID,string> GetUsersNames(string[] ids);
+        Dictionary<UUID,string> GetUsersNames(string[] ids, UUID scopeID);
 
         /// <summary>
         /// Get user ID by the given name.

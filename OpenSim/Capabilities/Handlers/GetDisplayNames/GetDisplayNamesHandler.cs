@@ -70,7 +70,7 @@ namespace OpenSim.Capabilities.Handlers
                 return new byte[0];
             }
 
-            Dictionary<UUID,string> names = m_UserManagement.GetUsersNames(ids);
+            Dictionary<UUID,string> names = m_UserManagement.GetUsersNames(ids, UUID.Zero);
 
             OSDMap osdReply = new OSDMap();
             OSDArray agents = new OSDArray();

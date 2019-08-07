@@ -608,6 +608,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             size += 8;
                         else if (o is double)
                             size += 16;
+                        else if (o is list)
+                            size += ((list)o).Size;
                         else
                             throw new Exception("Unknown type in List.Size: " + o.GetType().ToString());
                     }
