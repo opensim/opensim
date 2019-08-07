@@ -1593,6 +1593,44 @@ namespace OpenSim.Region.CoreModules.World.Estate
             sendDetailedEstateData(remoteClient, invoice);
         }
 
+        public bool handleEstateChangeInfoCap(string estateName, UUID invoice,
+            int sunHour, bool sunFixed,
+            bool externallyVisible,
+            bool allowDirectTeleport,
+            bool denyAnonymous, bool denyAgeUnverified,
+            bool alloVoiceChat, bool overridePublicAccess)
+        {
+            if (sunHour == 0)
+            {
+                Scene.RegionInfo.EstateSettings.UseGlobalTime = true;
+                Scene.RegionInfo.EstateSettings.SunPosition = 0.0;
+            }
+            else
+            {
+                Scene.RegionInfo.EstateSettings.UseGlobalTime = false;
+                Scene.RegionInfo.EstateSettings.SunPosition = (sunHour - 0x1800) / 1024.0;
+                // Warning: FixedSun should be set to True, otherwise this sun position won't be used.
+            }
+
+            Scene.RegionInfo.EstateSettings.PublicAccess = externallyVisible;
+            Scene.RegionInfo.EstateSettings.FixedSun = sunFixed;
+            Scene.RegionInfo.EstateSettings.AllowDirectTeleport = allowDirectTeleport;
+
+            Scene.RegionInfo.EstateSettings.DenyAnonymous = denyAnonymous;
+            Scene.RegionInfo.EstateSettings.AllowVoice = alloVoiceChat;
+
+            // taxfree is now AllowAccessOverride
+            Scene.RegionInfo.EstateSettings.TaxFree = overridePublicAccess;
+            Scene.RegionInfo.EstateSettings.DenyMinors = denyAgeUnverified;
+
+            Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
+            TriggerEstateInfoChange();
+
+            Scene.TriggerEstateSunUpdate();
+
+            return true;
+        }
+
         #endregion
 
         #region Other Functions
