@@ -1,4 +1,4 @@
-24121ec8-c0a3-099d-8d83-64feaa32418c
+d2556181-baf5-e5b9-c8ec-99eda597b9f6
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1513,7 +1513,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>4</string>
+  <key>value</key><string>5</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -1664,6 +1664,10 @@
  <key>PARCEL_DETAILS_DESC</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
+ </map>
+ <key>PARCEL_DETAILS_DWELL</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>64</string>
  </map>
  <key>PARCEL_DETAILS_GROUP</key><map>
   <key>type</key><string>integer</string>
@@ -3014,6 +3018,10 @@
   <key>value</key><string>16392</string>
  </map>
  <key>VEHICLE_FLAG_NO_DEFLECTION_UP</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>VEHICLE_FLAG_NO_FLY_UP</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
  </map>
@@ -6665,6 +6673,13 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osGetParcelDwell</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>pos</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
  <key>osGetPhysicsEngineName</key>
  <map>
   <key>return</key><string>string</string>
@@ -7581,7 +7596,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osStringSubString</key>
@@ -7590,6 +7604,7 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>length</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osSunGetParam</key>
@@ -7619,6 +7634,8 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7627,8 +7644,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

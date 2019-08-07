@@ -112,7 +112,7 @@ namespace OpenSim.Services.Connectors.Simulation
             m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Creating agent at {0}", destination.ServerURI);
 
             string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
-
+            OSD tmpOSD;
             try
             {
                 OSDMap args = aCircuit.PackAgentCircuitData(ctx);
@@ -121,10 +121,9 @@ namespace OpenSim.Services.Connectors.Simulation
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
                 bool success = result["success"].AsBoolean();
-                if (success && result.ContainsKey("_Result"))
+                if (success && result.TryGetValue("_Result", out tmpOSD) && tmpOSD is OSDMap)
                 {
-                    OSDMap data = (OSDMap)result["_Result"];
-
+                    OSDMap data = (OSDMap)tmpOSD;
                     reason = data["reason"].AsString();
                     success = data["success"].AsBoolean();
                     return success;
@@ -133,14 +132,15 @@ namespace OpenSim.Services.Connectors.Simulation
                 // Try the old version, uncompressed
                 result = WebUtil.PostToService(uri, args, 30000, false);
 
-                if (result["Success"].AsBoolean())
+                success = result["success"].AsBoolean();
+                if (success)
                 {
-                    if (result.ContainsKey("_Result"))
+                    if (result.TryGetValue("_Result", out tmpOSD) && tmpOSD is OSDMap)
                     {
-                        OSDMap data = (OSDMap)result["_Result"];
-
+                        OSDMap data = (OSDMap)tmpOSD;
                         reason = data["reason"].AsString();
                         success = data["success"].AsBoolean();
+
                         m_log.WarnFormat(
                             "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
                         return success;
@@ -312,34 +312,42 @@ namespace OpenSim.Services.Connectors.Simulation
             if (agentHomeURI != null)
                 request.Add("agent_home_uri", OSD.FromString(agentHomeURI));
 
+            OSD tmpOSD;
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 30000, false, false, true);
+
                 bool success = result["success"].AsBoolean();
-                if (result.ContainsKey("_Result"))
+
+                bool has_Result = false;
+                if (result.TryGetValue("_Result", out tmpOSD))
                 {
-                    OSDMap data = (OSDMap)result["_Result"];
+                    has_Result = true;
+                    OSDMap data = (OSDMap)tmpOSD;
 
                     // FIXME: If there is a _Result map then it's the success key here that indicates the true success
                     // or failure, not the sibling result node.
+                    //nte4.8 crap
                     success = data["success"].AsBoolean();
-
                     reason = data["reason"].AsString();
                     // We will need to plumb this and start sing the outbound version as well
                     // TODO: lay the pipe for version plumbing
-                    if (data.ContainsKey("negotiated_inbound_version") && data["negotiated_inbound_version"] != null)
+                    if (data.TryGetValue("negotiated_inbound_version", out tmpOSD) && tmpOSD != null)
                     {
-                        ctx.InboundVersion = (float)data["negotiated_inbound_version"].AsReal();
+                        ctx.InboundVersion = (float)tmpOSD.AsReal();
                         ctx.OutboundVersion = (float)data["negotiated_outbound_version"].AsReal();
                     }
-                    else if (data["version"] != null && data["version"].AsString() != string.Empty)
+                    else if (data.TryGetValue("version", out tmpOSD) && tmpOSD != null)
                     {
-                        string versionString = data["version"].AsString();
-                        String[] parts = versionString.Split(new char[] {'/'});
-                        if (parts.Length > 1)
+                        string versionString = tmpOSD.AsString();
+                        if(versionString != string.Empty)
                         {
-                            ctx.InboundVersion = float.Parse(parts[1], Culture.FormatProvider);
-                            ctx.OutboundVersion = float.Parse(parts[1], Culture.FormatProvider);
+                            String[] parts = versionString.Split(new char[] {'/'});
+                            if (parts.Length > 1)
+                            {
+                                ctx.InboundVersion = float.Parse(parts[1], Culture.FormatProvider);
+                                ctx.OutboundVersion = float.Parse(parts[1], Culture.FormatProvider);
+                            }
                         }
                     }
 
@@ -352,11 +360,11 @@ namespace OpenSim.Services.Connectors.Simulation
                 {
                     // If we don't check this then OpenSimulator 0.7.3.1 and some period before will never see the
                     // actual failure message
-                    if (!result.ContainsKey("_Result"))
+                    if (!has_Result)
                     {
-                        if (result.ContainsKey("Message"))
+                        if (result.TryGetValue("Message", out tmpOSD))
                         {
-                            string message = result["Message"].AsString();
+                            string message = tmpOSD.AsString();
                             if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
                             {
                                 m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
@@ -376,9 +384,9 @@ namespace OpenSim.Services.Connectors.Simulation
 
                 featuresAvailable.Clear();
 
-                if (result.ContainsKey("features"))
+                if (result.TryGetValue("features", out tmpOSD) && tmpOSD is OSDArray)
                 {
-                    OSDArray array = (OSDArray)result["features"];
+                    OSDArray array = (OSDArray)tmpOSD;
 
                     foreach (OSD o in array)
                         featuresAvailable.Add(new UUID(o.AsString()));

@@ -68,11 +68,18 @@ namespace OpenSim.Framework
 
         public void Unpack(OSDMap args)
         {
-            if (args["point"] != null)
-                AttachPoint = args["point"].AsInteger();
+            OSD tmpOSD;
+            if (args.TryGetValue("point", out tmpOSD))
+                AttachPoint = tmpOSD.AsInteger();
+            if (args.TryGetValue("item", out tmpOSD))
+                ItemID = tmpOSD.AsUUID();
+            else
+                ItemID = UUID.Zero;
 
-            ItemID = (args["item"] != null) ? args["item"].AsUUID() : UUID.Zero;
-            AssetID = (args["asset"] != null) ? args["asset"].AsUUID() : UUID.Zero;
+            if (args.TryGetValue("asset", out tmpOSD))
+                AssetID = tmpOSD.AsUUID();
+            else
+                AssetID = UUID.Zero;
         }
     }
 }

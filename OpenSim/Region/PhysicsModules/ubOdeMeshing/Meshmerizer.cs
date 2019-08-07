@@ -294,7 +294,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             if(numCoords < 3 || (!needsConvexProcessing && numFaces < 1))
             {
-                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim {0} ignored", primName);
+                m_log.ErrorFormat("[ubODEMesh]: invalid degenerated mesh for prim {0} ignored", primName);
                 return null;
             }
 
@@ -331,7 +331,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
             if(mesh.numberVertices() < 3 || mesh.numberTriangles() < 1)
             {
-                m_log.ErrorFormat("[MESH]: invalid degenerated mesh for prim {0} ignored", primName);
+                m_log.ErrorFormat("[ubODEMesh]: invalid degenerated mesh for prim {0} ignored", primName);
                 return null;
             }
 

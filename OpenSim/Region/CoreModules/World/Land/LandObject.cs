@@ -994,7 +994,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                         else
                         {
-                            // keeping previus odd average
+                            // keeping previous odd average
                             avgx = (avgx * tempArea + x) / (tempArea + 1);
                             avgy = (avgy * tempArea + y) / (tempArea + 1);
                         }

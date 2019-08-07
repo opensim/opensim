@@ -132,10 +132,12 @@ namespace OpenSim.Framework
         public void Unpack(OSDArray args)
         {
             Clear();
-
+            OSD tmpOSDA, tmpOSDB;
             foreach (OSDMap weardata in args)
             {
-                Add(weardata["item"].AsUUID(), weardata["asset"].AsUUID());
+                tmpOSDA = weardata["item"];
+                tmpOSDB = weardata["asset"];
+                Add(tmpOSDA.AsUUID(), tmpOSDB.AsUUID());
             }
         }
 

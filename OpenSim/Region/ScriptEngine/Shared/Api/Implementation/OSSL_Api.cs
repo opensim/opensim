@@ -1600,6 +1600,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 0.0f;
         }
 
+        public LSL_Integer osGetParcelDwell(LSL_Vector pos)
+        {
+            LandData land = World.GetLandData(pos);
+            if (land != null)
+            {
+                return (int)land.Dwell;
+            }
+            return 0;
+        }
+
         // Routines for creating and managing parcels programmatically
         public void osParcelJoin(LSL_Vector pos1, LSL_Vector pos2)
         {

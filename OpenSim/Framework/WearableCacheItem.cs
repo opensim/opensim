@@ -161,13 +161,12 @@ namespace OpenSim.Framework
         public static WearableCacheItem[] BakedFromOSD(OSD pInput)
         {
             WearableCacheItem[] pcache = WearableCacheItem.GetDefaultCacheItem();
-
             if (pInput.Type == OSDType.Array)
             {
                 OSDArray itemarray = (OSDArray)pInput;
                 foreach (OSDMap item in itemarray)
                 {
-                    int idx = (int)item["textureindex"].AsUInteger();
+                    int idx = item["textureindex"].AsInteger();
                     if (idx < 0 || idx > pcache.Length)
                         continue;
                     pcache[idx].CacheId = item["cacheid"].AsUUID();
@@ -217,6 +216,4 @@ namespace OpenSim.Framework
             return null;
         }
     }
-
-
 }

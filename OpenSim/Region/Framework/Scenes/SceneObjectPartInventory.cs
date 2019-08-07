@@ -1091,7 +1091,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_part.ParentGroup.InvalidateDeepEffectivePerms();
 
                 m_inventorySerial++;
-                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
 
                 HasInventoryChanged = true;
                 m_part.ParentGroup.HasGroupChanged = true;
@@ -1115,6 +1114,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_part.ScheduleFullUpdate();
 
+                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
                 return type;
             }
             else
