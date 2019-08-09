@@ -208,7 +208,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.Error("[CAPS]: GetDisplayNames disabled because user management component not found");
 
             UserAccount account = m_userAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, m_AgentID);
-            m_scopeID = account.ScopeID;
+            if (account == null) // Hypergrid?
+                m_scopeID = m_Scene.RegionInfo.ScopeID;
+            else
+                m_scopeID = account.ScopeID;
 
             RegisterHandlers();
 
