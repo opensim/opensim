@@ -37,6 +37,7 @@ using System.Runtime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
+using System.Net;
 using log4net;
 using NDesk.Options;
 using Nini.Config;
@@ -119,6 +120,9 @@ namespace OpenSim
                 stpMinThreads = startupConfig.GetInt("MinPoolThreads", 2 );
                 stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 25);
                 m_consolePrompt = startupConfig.GetString("ConsolePrompt", @"Region (\R) ");
+
+                int dnsTimeout = startupConfig.GetInt("DnsTimeout", 30000);
+                try { ServicePointManager.DnsRefreshTimeout = dnsTimeout; } catch { }
             }
 
             if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)

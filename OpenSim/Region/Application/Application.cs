@@ -84,7 +84,7 @@ namespace OpenSim
                 ServicePointManager.DefaultConnectionLimit = 12;
             }
 
-            try { ServicePointManager.DnsRefreshTimeout = 300000; } catch { }
+            try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 

@@ -85,8 +85,6 @@ namespace OpenSim.Server
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 
-            try { ServicePointManager.DnsRefreshTimeout = 300000; } catch { }
-
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
 
             string registryLocation;
@@ -97,6 +95,9 @@ namespace OpenSim.Server
                 System.Console.WriteLine("Startup config section missing in .ini file");
                 throw new Exception("Configuration error");
             }
+
+            int dnsTimeout = serverConfig.GetInt("DnsTimeout", 30000);
+            try { ServicePointManager.DnsRefreshTimeout = dnsTimeout; } catch { }
 
             m_NoVerifyCertChain = serverConfig.GetBoolean("NoVerifyCertChain", m_NoVerifyCertChain);
             m_NoVerifyCertHostname = serverConfig.GetBoolean("NoVerifyCertHostname", m_NoVerifyCertHostname);
