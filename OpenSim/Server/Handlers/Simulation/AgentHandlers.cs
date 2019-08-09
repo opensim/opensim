@@ -456,12 +456,9 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 source = new GridRegion();
                 source.RegionID = UUID.Parse(tmpOSD.AsString());
-                tmpOSD = args["source_x"];
-                source.RegionLocX = Int32.Parse(tmpOSD.AsString());
-                tmpOSD = args["source_y"];
-                source.RegionLocY = Int32.Parse(tmpOSD.AsString());
-                tmpOSD = args["source_name"];
-                source.RegionName = tmpOSD.AsString();
+                source.RegionLocX = Int32.Parse(args["source_x"].AsString());
+                source.RegionLocY = Int32.Parse(args["source_y"].AsString());
+                source.RegionName = args["source_name"].AsString();
 
                 if (args.TryGetValue("source_server_uri", out tmpOSD))
                     source.RawServerURI = tmpOSD.AsString();

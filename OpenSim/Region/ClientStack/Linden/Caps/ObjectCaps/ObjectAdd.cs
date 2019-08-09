@@ -161,34 +161,34 @@ namespace OpenSim.Region.ClientStack.Linden
             int lastattach = 0;
 
             OSDMap rm = (OSDMap)r;
-
-            if (rm.ContainsKey("ObjectData")) //v2
+            OSD tmpOSD;
+            if (rm.TryGetValue("ObjectData", out tmpOSD)) //v2
             {
-                if (rm["ObjectData"].Type != OSDType.Map)
+                if (tmpOSD.Type != OSDType.Map)
                 {
                     responsedata["str_response_string"] = "Has ObjectData key, but data not in expected format";
                     return responsedata;
                 }
 
-                OSDMap ObjMap = (OSDMap)rm["ObjectData"];
+                OSDMap ObjMap = (OSDMap)tmpOSD;
 
                 bypass_raycast = ObjMap["BypassRaycast"].AsBoolean();
-                everyone_mask = readuintval(ObjMap["EveryoneMask"]);
-                flags = readuintval(ObjMap["Flags"]);
-                group_mask = readuintval(ObjMap["GroupMask"]);
+                everyone_mask = ReadUIntVal(ObjMap["EveryoneMask"]);
+                flags = ReadUIntVal(ObjMap["Flags"]);
+                group_mask = ReadUIntVal(ObjMap["GroupMask"]);
                 material = ObjMap["Material"].AsInteger();
-                next_owner_mask = readuintval(ObjMap["NextOwnerMask"]);
+                next_owner_mask = ReadUIntVal(ObjMap["NextOwnerMask"]);
                 p_code = ObjMap["PCode"].AsInteger();
 
-                if (ObjMap.ContainsKey("Path"))
+                if (ObjMap.TryGetValue("Path", out tmpOSD))
                 {
-                    if (ObjMap["Path"].Type != OSDType.Map)
+                    if (tmpOSD.Type != OSDType.Map)
                     {
                         responsedata["str_response_string"] = "Has Path key, but data not in expected format";
                         return responsedata;
                     }
 
-                    OSDMap PathMap = (OSDMap)ObjMap["Path"];
+                    OSDMap PathMap = (OSDMap)tmpOSD;
                     path_begin = PathMap["Begin"].AsInteger();
                     path_curve = PathMap["Curve"].AsInteger();
                     path_end = PathMap["End"].AsInteger();
@@ -203,18 +203,17 @@ namespace OpenSim.Region.ClientStack.Linden
                     path_taper_y = PathMap["TaperY"].AsInteger();
                     path_twist = PathMap["Twist"].AsInteger();
                     path_twist_begin = PathMap["TwistBegin"].AsInteger();
-
                 }
 
-                if (ObjMap.ContainsKey("Profile"))
+                if (ObjMap.TryGetValue("Profile", out tmpOSD))
                 {
-                    if (ObjMap["Profile"].Type != OSDType.Map)
+                    if (tmpOSD.Type != OSDType.Map)
                     {
                         responsedata["str_response_string"] = "Has Profile key, but data not in expected format";
                         return responsedata;
                     }
 
-                    OSDMap ProfileMap = (OSDMap)ObjMap["Profile"];
+                    OSDMap ProfileMap = (OSDMap)tmpOSD;
 
                     profile_begin = ProfileMap["Begin"].AsInteger();
                     profile_curve = ProfileMap["Curve"].AsInteger();
@@ -239,15 +238,15 @@ namespace OpenSim.Region.ClientStack.Linden
                     return responsedata;
                 }
 
-                if (rm.ContainsKey("AgentData"))
+                if (rm.TryGetValue("AgentData", out tmpOSD))
                 {
-                    if (rm["AgentData"].Type != OSDType.Map)
+                    if (tmpOSD.Type != OSDType.Map)
                     {
                         responsedata["str_response_string"] = "Has AgentData key, but data not in expected format";
                         return responsedata;
                     }
 
-                    OSDMap AgentDataMap = (OSDMap)rm["AgentData"];
+                    OSDMap AgentDataMap = (OSDMap)tmpOSD;
 
                     //session_id = AgentDataMap["SessionId"].AsUUID();
                     group_id = AgentDataMap["GroupId"].AsUUID();
@@ -258,13 +257,13 @@ namespace OpenSim.Region.ClientStack.Linden
             { //v1
                 bypass_raycast = rm["bypass_raycast"].AsBoolean();
 
-                everyone_mask = readuintval(rm["everyone_mask"]);
-                flags = readuintval(rm["flags"]);
+                everyone_mask = ReadUIntVal(rm["everyone_mask"]);
+                flags = ReadUIntVal(rm["flags"]);
                 group_id = rm["group_id"].AsUUID();
-                group_mask = readuintval(rm["group_mask"]);
+                group_mask = ReadUIntVal(rm["group_mask"]);
                 hollow = rm["hollow"].AsInteger();
                 material = rm["material"].AsInteger();
-                next_owner_mask = readuintval(rm["next_owner_mask"]);
+                next_owner_mask = ReadUIntVal(rm["next_owner_mask"]);
                 hollow = rm["hollow"].AsInteger();
                 p_code = rm["p_code"].AsInteger();
                 path_begin = rm["path_begin"].AsInteger();
@@ -344,7 +343,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 obj = m_scene.AddNewPrim(avatar.UUID, group_id, pos, rotation, pbs);
             }
 
-
             if (obj == null)
                 return responsedata;
 
@@ -369,7 +367,7 @@ namespace OpenSim.Region.ClientStack.Linden
             return responsedata;
         }
 
-        private uint readuintval(OSD obj)
+        private uint ReadUIntVal(OSD obj)
         {
             byte[] tmp = obj.AsBinary();
             if (BitConverter.IsLittleEndian)
