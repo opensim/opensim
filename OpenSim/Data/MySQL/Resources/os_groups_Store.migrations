@@ -113,3 +113,11 @@ DROP TABLE `diva_groups_principals`;
 DELETE FROM `migrations` WHERE name='diva_im_Store';
 
 COMMIT;
+
+:VERSION 3         # -------------------------- 
+
+ALTER TABLE `os_groups_invites`
+
+MODIFY `TMStamp` timestamp NOT NULL, default CURRENT_TIMESTAMP;
+
+COMMIT;
