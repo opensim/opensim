@@ -634,6 +634,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         // Don't send a green dot for yourself
                         if (sp.UUID != remoteClient.AgentId)
                         {
+                            if (!m_showNPCs && sp.PresenceType == PresenceType.Npc)
+                                return;
+
                             mapitem = new mapItemReply(
                                 xstart + (uint)sp.AbsolutePosition.X,
                                 ystart + (uint)sp.AbsolutePosition.Y,
