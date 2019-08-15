@@ -58,8 +58,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         public override void Initialise(IConfigSource source)
         {
+            string[] configSections = new string[] { "Map", "Startup" };
             if (Util.GetConfigVarFromSections<string>(
-                source, "WorldMapModule", new string[] { "Map", "Startup" }, "WorldMap") == "HGWorldMap")
+                source, "WorldMapModule", configSections, "WorldMap") == "HGWorldMap")
             {
                 m_Enabled = true;
 
@@ -72,7 +73,14 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         m_MapImageServerURL = m_MapImageServerURL + "/";
                 }
 
+                expireBlackListTime = (double)Util.GetConfigVarFromSections<int>(source, "BlacklistTimeout", configSections, 10 * 60);
 
+                m_exportPrintScale =
+                    Util.GetConfigVarFromSections<bool>(source, "ExportMapAddScale", configSections, m_exportPrintScale);
+                m_exportPrintRegionName =
+                    Util.GetConfigVarFromSections<bool>(source, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
+                m_showNPCs =
+                    Util.GetConfigVarFromSections<bool>(source, "ShowNPCs", configSections, m_showNPCs);
             }
         }
 
