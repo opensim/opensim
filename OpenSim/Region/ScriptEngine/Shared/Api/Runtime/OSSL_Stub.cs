@@ -1382,6 +1382,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetInventoryLastOwner(itemNameOrId);
         }
 
+        public LSL_Key osGetInventoryItemKey(LSL_String name)
+        {
+            return m_OSSL_Functions.osGetInventoryItemKey(name);
+        }
+
         public LSL_String osGetInventoryName(LSL_Key itemId)
         {
             return m_OSSL_Functions.osGetInventoryName(itemId);

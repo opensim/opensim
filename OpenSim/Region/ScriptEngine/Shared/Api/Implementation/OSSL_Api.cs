@@ -5479,6 +5479,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return id.ToString();
         }
 
+        public LSL_Key osGetInventoryItemKey(LSL_String name)
+        {
+            m_host.AddScriptLPS(1);
+
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(name);
+
+            if (item == null)
+                return UUID.Zero.ToString();
+
+            if ((item.CurrentPermissions
+                 & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+            {
+                return item.ItemID.ToString();
+            }
+
+            return UUID.Zero.ToString();
+        }
+
         public LSL_String osGetInventoryName(LSL_Key itemId)
         {
             m_host.AddScriptLPS(1);
