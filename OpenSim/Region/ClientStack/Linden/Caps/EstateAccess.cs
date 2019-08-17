@@ -203,6 +203,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (id == UUID.Zero)
                         continue;
                     LLSDxmlEncode.AddElem("id", id, sb);
+                    LLSDxmlEncode.AddElem("last_login_date", "0000-00-00 00:00:00", sb); // We will not have this
+                    LLSDxmlEncode.AddElem("ban_date", "0000-00-00 00:00:00", sb); // We will have this
+                    LLSDxmlEncode.AddElem("banning_id", UUID.Zero, sb); // we will have this one day
                 }
                 LLSDxmlEncode.AddEndMap(sb);
             }
