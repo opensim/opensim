@@ -315,13 +315,9 @@ namespace OpenSim.Framework
         public static void AddRawElem(string e, StringBuilder sb)
         {
             if(String.IsNullOrEmpty(e))
-                sb.Append("<string />");
-            else
-            {
-                sb.Append("<string>");
-                sb.Append(e);     
-                sb.Append("</string>");
-            }
+                return;
+
+            sb.Append(e);     
         }
 
         public static void AddElem(Uri e, StringBuilder sb)
@@ -652,18 +648,13 @@ namespace OpenSim.Framework
 
         public static void AddRawElem(string name, string e, StringBuilder sb)
         {
+            if (String.IsNullOrEmpty(e))
+                return;
+
             sb.Append("<key>");
             sb.Append(name);
             sb.Append("</key>");
-
-            if(String.IsNullOrEmpty(e))
-                sb.Append("<string />");
-            else
-            {
-                sb.Append("<string>");
-                sb.Append(e);
-                sb.Append("</string>");
-            }
+            sb.Append(e);
         }
 
         public static void AddElem(string name, Uri e, StringBuilder sb)
@@ -720,6 +711,14 @@ namespace OpenSim.Framework
 
         public static void AddLLSD(string e, StringBuilder sb)
         {
+            sb.Append(e);
+        }
+
+        public static void AddLLSD(string name, string e, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key>");
             sb.Append(e);
         }
 

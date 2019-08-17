@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 using log4net;
@@ -166,59 +167,73 @@ namespace OpenSim.Region.ClientStack.Linden
             EstateBan[] EstateBans = regionSettings.EstateBans;
 
             StringBuilder sb = LLSDxmlEncode.Start();
-            LLSDxmlEncode.AddArray(sb);
+            LLSDxmlEncode.AddMap(sb);
 
             if (allowed != null && allowed.Length > 0)
             {
-                LLSDxmlEncode.AddMap("AllowedAgents", sb);
+                LLSDxmlEncode.AddArray("AllowedAgents", sb);
                 for (int i = 0; i < allowed.Length; ++i)
                 {
                     UUID id = allowed[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddElem("id", id, sb);
+                    LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("id", id, sb);
+                    LLSDxmlEncode.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
             if (groups != null && groups.Length > 0)
             {
-                LLSDxmlEncode.AddMap("AllowedGroups", sb);
+                LLSDxmlEncode.AddArray("AllowedGroups", sb);
                 for (int i = 0; i < groups.Length; ++i)
                 {
                     UUID id = groups[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddElem("id", id, sb);
+                    LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("id", id, sb);
+                    LLSDxmlEncode.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
             if (EstateBans != null && EstateBans.Length > 0)
             {
-                LLSDxmlEncode.AddMap("BannedAgents", sb);
+                LLSDxmlEncode.AddArray("BannedAgents", sb);
                 for (int i = 0; i < EstateBans.Length; ++i)
                 {
-                    UUID id = EstateBans[i].BannedUserID;
+                    EstateBan ban = EstateBans[i];
+                    UUID id = ban.BannedUserID;
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddElem("id", id, sb);
-                    LLSDxmlEncode.AddElem("last_login_date", "0000-00-00 00:00:00", sb); // We will not have this
-                    LLSDxmlEncode.AddElem("ban_date", "0000-00-00 00:00:00", sb); // We will have this
-                    LLSDxmlEncode.AddElem("banning_id", UUID.Zero, sb); // we will have this one day
+                    LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("id", id, sb);
+                        LLSDxmlEncode.AddElem("banning_id", ban.BanningUserID, sb);
+                        LLSDxmlEncode.AddElem("last_login_date", "na", sb); // We will not have this. This information is far at grid
+                        if (ban.BanTime == 0)
+                            LLSDxmlEncode.AddElem("ban_date", "0000-00-00 00:00", sb);
+                        else
+                            LLSDxmlEncode.AddElem("ban_date", (Util.ToDateTime(ban.BanTime)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), sb);
+                    LLSDxmlEncode.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
             if (managers != null && managers.Length > 0)
             {
-                LLSDxmlEncode.AddMap("Managers", sb);
+                LLSDxmlEncode.AddArray("Managers", sb);
                 for (int i = 0; i < managers.Length; ++i)
-                    LLSDxmlEncode.AddElem("id", managers[i], sb);
-                LLSDxmlEncode.AddEndMap(sb);
+                {
+                    LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("id", managers[i], sb);
+                    LLSDxmlEncode.AddEndMap(sb);
+                }
+                LLSDxmlEncode.AddEndArray(sb);
             }
 
-            LLSDxmlEncode.AddEndArray(sb);
+            LLSDxmlEncode.AddEndMap(sb);
             responsedata["str_response_string"] = LLSDxmlEncode.End(sb);
 
             return responsedata;

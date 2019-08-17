@@ -969,11 +969,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                         continue;
 
                                     EstateBan bitem = new EstateBan();
-
                                     bitem.BannedUserID = user;
                                     bitem.EstateID = estateSettings.EstateID;
                                     bitem.BannedHostAddress = "0.0.0.0";
                                     bitem.BannedHostIPMask = "0.0.0.0";
+                                    bitem.BanningUserID = remote_client.AgentId;
+                                    bitem.BanTime = Util.UnixTimeSinceEpoch();
 
                                     estateSettings.AddBan(bitem);
                                     estateSettings.RemoveEstateUser(user);
@@ -982,11 +983,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             }
 
                             EstateBan item = new EstateBan();
-
                             item.BannedUserID = user;
                             item.EstateID = Scene.RegionInfo.EstateSettings.EstateID;
                             item.BannedHostAddress = "0.0.0.0";
                             item.BannedHostIPMask = "0.0.0.0";
+                            item.BanningUserID = remote_client.AgentId;
+                            item.BanTime = Util.UnixTimeSinceEpoch();
 
                             thisSettings.AddBan(item);
                             thisSettings.RemoveEstateUser(user);

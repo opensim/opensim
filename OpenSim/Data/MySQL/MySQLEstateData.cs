@@ -285,7 +285,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "select bannedUUID from estateban where EstateID = ?EstateID";
+                    cmd.CommandText = "select *  from estateban where EstateID = ?EstateID";
                     cmd.Parameters.AddWithValue("?EstateID", es.EstateID);
 
                     using (IDataReader r = cmd.ExecuteReader())
@@ -293,13 +293,11 @@ namespace OpenSim.Data.MySQL
                         while (r.Read())
                         {
                             EstateBan eb = new EstateBan();
-
-                            UUID uuid = new UUID();
-                            UUID.TryParse(r["bannedUUID"].ToString(), out uuid);
-
-                            eb.BannedUserID = uuid;
+                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]); ;
                             eb.BannedHostAddress = "0.0.0.0";
                             eb.BannedHostIPMask = "0.0.0.0";
+                            eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
+                            eb.BanTime = Convert.ToInt32(r["banTime"]);
                             es.AddBan(eb);
                         }
                     }
@@ -323,12 +321,14 @@ namespace OpenSim.Data.MySQL
 
                     cmd.Parameters.Clear();
 
-                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask) values ( ?EstateID, ?bannedUUID, '', '', '' )";
+                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID, bannedIp, bannedIpHostMask, bannedNameMask, banningUUID, banTime) values ( ?EstateID, ?bannedUUID, '', '', '', ?banningUUID, ?banTime)";
 
                     foreach (EstateBan b in es.EstateBans)
                     {
                         cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
                         cmd.Parameters.AddWithValue("?bannedUUID", b.BannedUserID.ToString());
+                        cmd.Parameters.AddWithValue("?banningUUID", b.BanningUserID.ToString());
+                        cmd.Parameters.AddWithValue("?banTime", b.BanTime);
 
                         cmd.ExecuteNonQuery();
                         cmd.Parameters.Clear();

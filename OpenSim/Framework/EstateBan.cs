@@ -67,6 +67,9 @@ namespace OpenSim.Framework
             }
         }
 
+        public UUID BanningUserID { get; set; }
+        public int BanTime;
+        
         private string m_bannedHostAddress = string.Empty;
         /// <summary>
         /// IP address or domain name of the banned client.
@@ -143,6 +146,8 @@ namespace OpenSim.Framework
                     p.SetValue(this, Boolean.Parse((string)map[p.Name]), null);
                 else if (value is UUID)
                     p.SetValue(this, UUID.Parse((string)map[p.Name]), null);
+                else if (value is DateTime)
+                    p.SetValue(this, DateTime.Parse((string)map[p.Name]), null);
             }
         }
 
