@@ -286,7 +286,7 @@ namespace OpenSim.Data.PGSQL
         {
             es.ClearBans();
 
-            string sql = "select \"bannedUUID\" from estateban where \"EstateID\" = :EstateID";
+            string sql = "select * from estateban where \"EstateID\" = :EstateID";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -302,6 +302,8 @@ namespace OpenSim.Data.PGSQL
                         EstateBan eb = new EstateBan();
 
                         eb.BannedUserID = new UUID((Guid)reader["bannedUUID"]); //uuid;
+                        eb.BanningUserID = new UUID((Guid)reader["banningUUID"]); //uuid;
+                        eb.BanTime = Convert.ToInt32(reader["banTime"]);
                         eb.BannedHostAddress = "0.0.0.0";
                         eb.BannedHostIPMask = "0.0.0.0";
                         es.AddBan(eb);
@@ -346,11 +348,15 @@ namespace OpenSim.Data.PGSQL
                     cmd.ExecuteNonQuery();
 
                     //Insert after
-                    cmd.CommandText = "insert into estateban (\"EstateID\", \"bannedUUID\",\"bannedIp\", \"bannedIpHostMask\", \"bannedNameMask\") values ( :EstateID, :bannedUUID, '','','' )";
+                    cmd.CommandText = "insert into estateban (\"EstateID\", \"bannedUUID\",\"bannedIp\", \"bannedIpHostMask\", \"bannedNameMask\", \"banningUUID\",\"banTime\" ) values ( :EstateID, :bannedUUID, '','','', :banningUUID, :banTime )";
                     cmd.Parameters.AddWithValue("bannedUUID", Guid.Empty);
                     foreach (EstateBan b in es.EstateBans)
                     {
+                        cmd.Parameters["EstateID"].Value = b.EstateID;
                         cmd.Parameters["bannedUUID"].Value = b.BannedUserID.Guid;
+                        cmd.Parameters["banningUUID"].Value = b.BanningUserID.Guid;
+                        cmd.Parameters["banTime"].Value = b.BanTime;
+
                         cmd.ExecuteNonQuery();
                     }
                 }
