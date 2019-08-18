@@ -227,7 +227,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (int i = 0; i < managers.Length; ++i)
                 {
                     LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", managers[i], sb);
+                        LLSDxmlEncode.AddElem("agent_id", managers[i], sb);
                     LLSDxmlEncode.AddEndMap(sb);
                 }
                 LLSDxmlEncode.AddEndArray(sb);
