@@ -63,7 +63,16 @@ CREATE TABLE IF NOT EXISTS estateban (
   bannedIpHostMask varchar(16) NOT NULL,
   bannedNameMask varchar(64) default NULL
 );
+
 CREATE INDEX estate_ban_estate_id on estateban(EstateID);
 
 COMMIT;
+
+:VERSION 11
+BEGIN;
+ALTER TABLE `estateban`
+    ADD COLUMN `banningUUID` varchar(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
+    ADD COLUMN `banTime` integer NOT NULL DEFAULT 0;
+COMMIT;
+
 
