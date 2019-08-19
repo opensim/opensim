@@ -129,7 +129,7 @@ COMMIT;
 :VERSION 14
 BEGIN TRANSACTION;
 
-ALTER TABLE `estateban`
-    ADD COLUMN `banningUUID` uuid NOT NULL,
-    ADD COLUMN `banTime` int NOT NULL DEFAULT 0;
+ALTER TABLE "public"."estateban"
+    ADD COLUMN "banningUUID" uuid NOT NULL,
+    ADD COLUMN "banTime" int4 NOT NULL DEFAULT 0;
 COMMIT;
