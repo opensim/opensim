@@ -192,35 +192,35 @@ namespace OpenSim.Framework.Servers
 
                 if (!int.TryParse(rawNewDebug, out newDebug))
                 {
-                    MainConsole.Instance.OutputFormat("{0} is not a valid debug level", rawNewDebug);
+                    MainConsole.Instance.Output("{0} is not a valid debug level", null, rawNewDebug);
                     return;
                 }
 
                 if (newDebug < 0 || newDebug > 6)
                 {
-                    MainConsole.Instance.OutputFormat("{0} is outside the valid debug level range of 0..6", newDebug);
+                    MainConsole.Instance.Output("{0} is outside the valid debug level range of 0..6", null, newDebug);
                     return;
                 }
 
                 if (allReqs || inReqs)
                 {
                     MainServer.DebugLevel = newDebug;
-                    MainConsole.Instance.OutputFormat("IN debug level set to {0}", newDebug);
+                    MainConsole.Instance.Output("IN debug level set to {0}", null, newDebug);
                 }
 
                 if (allReqs || outReqs)
                 {
                     WebUtil.DebugLevel = newDebug;
-                    MainConsole.Instance.OutputFormat("OUT debug level set to {0}", newDebug);
+                    MainConsole.Instance.Output("OUT debug level set to {0}", null, newDebug);
                 }
             }
             else
             {
                 if (allReqs || inReqs)
-                    MainConsole.Instance.OutputFormat("Current IN debug level is {0}", MainServer.DebugLevel);
+                    MainConsole.Instance.Output("Current IN debug level is {0}", null, DebugLevel);
 
                 if (allReqs || outReqs)
-                    MainConsole.Instance.OutputFormat("Current OUT debug level is {0}", WebUtil.DebugLevel);
+                    MainConsole.Instance.Output("Current OUT debug level is {0}", null, WebUtil.DebugLevel);
             }
         }
 

@@ -492,18 +492,18 @@ namespace OpenSim.Framework.Servers
 
             if (!int.TryParse(rawLevel, out newLevel))
             {
-                MainConsole.Instance.OutputFormat("{0} is not a valid debug level", rawLevel);
+                MainConsole.Instance.Output("{0} is not a valid debug level", null, rawLevel);
                 return;
             }
 
             if (newLevel < 0 || newLevel > Util.MAX_THREADPOOL_LEVEL)
             {
-                MainConsole.Instance.OutputFormat("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, newLevel);
+                MainConsole.Instance.Output("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, null, newLevel);
                 return;
             }
 
             Util.LogThreadPool = newLevel;
-            MainConsole.Instance.OutputFormat("LogThreadPool set to {0}", newLevel);
+            MainConsole.Instance.Output("LogThreadPool set to {0}", null, newLevel);
         }
 
         private void HandleForceGc(string module, string[] args)
@@ -991,9 +991,9 @@ namespace OpenSim.Framework.Servers
             }
 
             if (Watchdog.AbortThread(threadId))
-                MainConsole.Instance.OutputFormat("Aborted thread with id {0}", threadId);
+                MainConsole.Instance.Output("Aborted thread with id {0}", null, threadId);
             else
-                MainConsole.Instance.OutputFormat("ERROR - Thread with id {0} not found in managed threads", threadId);
+                MainConsole.Instance.Output("ERROR - Thread with id {0} not found in managed threads", null, threadId);
         }
 
         /// <summary>
@@ -1020,7 +1020,7 @@ namespace OpenSim.Framework.Servers
         protected void Notice(string format, params object[] components)
         {
             if (m_console != null)
-                m_console.OutputFormat(format, components);
+                m_console.Output(format, null, components);
         }
 
         public virtual void Shutdown()

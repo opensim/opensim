@@ -127,7 +127,7 @@ namespace OpenSim.Groups
 
             m_debugEnabled = verbose;
 
-            MainConsole.Instance.OutputFormat("{0} verbose logging set to {1}", Name, m_debugEnabled);
+            MainConsole.Instance.Output("{0} verbose logging set to {1}", null, Name, m_debugEnabled);
         }
 
         public void RegionLoaded(Scene scene)

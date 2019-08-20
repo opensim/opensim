@@ -264,8 +264,8 @@ namespace OpenSim.Region.CoreModules
                     }
                     else
                     {
-                        MainConsole.Instance.OutputFormat(
-                            "Invalid value {0} specified for {1}", cmdparams[3], cmdparams[2]);
+                        MainConsole.Instance.Output(
+                            "Invalid value {0} specified for {1}", null, cmdparams[3], cmdparams[2]);
 
                         return;
                     }
@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules
 
                     if (desiredPlugin.Equals(m_activeWindPlugin.Name))
                     {
-                        MainConsole.Instance.OutputFormat("Wind model plugin {0} is already active", cmdparams[3]);
+                        MainConsole.Instance.Output("Wind model plugin {0} is already active", null, cmdparams[3]);
 
                         return;
                     }
@@ -285,11 +285,11 @@ namespace OpenSim.Region.CoreModules
                     {
                         m_activeWindPlugin = m_availableWindPlugins[cmdparams[3]];
 
-                        MainConsole.Instance.OutputFormat("{0} wind model plugin now active", m_activeWindPlugin.Name);
+                        MainConsole.Instance.Output("{0} wind model plugin now active", null, m_activeWindPlugin.Name);
                     }
                     else
                     {
-                        MainConsole.Instance.OutputFormat("Could not find wind model plugin {0}", desiredPlugin);
+                        MainConsole.Instance.Output("Could not find wind model plugin {0}", null, desiredPlugin);
                     }
                     break;
             }
@@ -317,17 +317,17 @@ namespace OpenSim.Region.CoreModules
             {
                 if (!float.TryParse(cmdparams[3], out value))
                 {
-                    MainConsole.Instance.OutputFormat("Invalid value {0}", cmdparams[3]);
+                    MainConsole.Instance.Output("Invalid value {0}", null, cmdparams[3]);
                 }
 
                 try
                 {
                     WindParamSet(plugin, param, value);
-                    MainConsole.Instance.OutputFormat("{0} set to {1}", param, value);
+                    MainConsole.Instance.Output("{0} set to {1}", null, param, value);
                 }
                 catch (Exception e)
                 {
-                    MainConsole.Instance.OutputFormat("{0}", e.Message);
+                    MainConsole.Instance.Output("{0}", null, e.Message);
                 }
             }
             else
@@ -335,11 +335,11 @@ namespace OpenSim.Region.CoreModules
                 try
                 {
                     value = WindParamGet(plugin, param);
-                    MainConsole.Instance.OutputFormat("{0} : {1}", param, value);
+                    MainConsole.Instance.Output("{0} : {1}", null, param, value);
                 }
                 catch (Exception e)
                 {
-                    MainConsole.Instance.OutputFormat("{0}", e.Message);
+                    MainConsole.Instance.Output("{0}", null, e.Message);
                 }
             }
 

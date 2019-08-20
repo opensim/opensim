@@ -1370,7 +1370,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         rawTextureID += " (uploaded)";
                 }
 
-                outputAction(BAKED_TEXTURES_REPORT_FORMAT, bt, rawTextureID);
+                outputAction(BAKED_TEXTURES_REPORT_FORMAT, null, bt, rawTextureID);
             }
 
             bool bakedTextureValid = m_scene.AvatarFactory.ValidateBakedTextureCache(sp);

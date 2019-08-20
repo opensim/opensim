@@ -271,13 +271,13 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
             if (args.Length != 2)
             {
-                MainConsole.Instance.OutputFormat ("Usage: dooarbackup <regionname>");
+                MainConsole.Instance.Output("Usage: dooarbackup <regionname>");
                 return;
             }
 
             if(m_busy)
             {
-                MainConsole.Instance.OutputFormat ("Already doing a backup, please try later");
+                MainConsole.Instance.Output("Already doing a backup, please try later");
                 return;
             }
 
@@ -327,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 m_busy = false;
             }               
             if (!found)
-                    MainConsole.Instance.OutputFormat ("No such region {0}. Nothing to backup", name);
+                    MainConsole.Instance.Output("No such region {0}. Nothing to backup", null, name);
         }
 
         private void ParseDefaultConfig(IConfig config)

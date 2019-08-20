@@ -1075,14 +1075,14 @@ namespace OpenSim.Region.CoreModules.Asset
                 {
                     case "status":
                         if (m_MemoryCacheEnabled)
-                            con.OutputFormat("Memory Cache: {0} assets", m_MemoryCache.Count);
+                            con.Output("Memory Cache: {0} assets", null, m_MemoryCache.Count);
                         else
-                            con.OutputFormat("Memory cache disabled");
+                            con.Output("Memory cache disabled");
 
                         if (m_FileCacheEnabled)
                         {
                             int fileCount = GetFileCacheCount(m_CacheDirectory);
-                            con.OutputFormat("File Cache: {0} assets", fileCount);
+                            con.Output("File Cache: {0} assets", null, fileCount);
                         }
                         else
                         {
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.Asset
                             {
                                 string RegionID = s.Remove(0,s.IndexOf("_")).Replace(".fac","");
                                 DateTime RegionDeepScanTMStamp = File.GetLastWriteTime(s);
-                                con.OutputFormat("Region: {0}, {1}", RegionID, RegionDeepScanTMStamp.ToString("MM/dd/yyyy hh:mm:ss"));
+                                con.Output("Region: {0}, {1}", null, RegionID, RegionDeepScanTMStamp.ToString("MM/dd/yyyy hh:mm:ss"));
                             }
                         }
 
@@ -1160,7 +1160,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             if(m_cleanupRunning)
                             {
-                                con.OutputFormat("Flotsam assets check already running");
+                                con.Output("Flotsam assets check already running");
                                 return;
                             }
                             m_cleanupRunning = true;
@@ -1192,7 +1192,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 }
                                 m_cleanupRunning = false;
                             }
-                            con.OutputFormat("Completed check with {0} assets.", assetReferenceTotal);
+                            con.Output("Completed check with {0} assets.", null, assetReferenceTotal);
                         }, null, "TouchAllSceneAssets", false);
 
                         break;
@@ -1200,7 +1200,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     case "expire":
                         if (cmdparams.Length < 3)
                         {
-                            con.OutputFormat("Invalid parameters for Expire, please specify a valid date & time", cmd);
+                            con.Output("Invalid parameters for Expire, please specify a valid date & time");
                             break;
                         }
 
@@ -1218,18 +1218,18 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         if (!DateTime.TryParse(s_expirationDate, out expirationDate))
                         {
-                            con.OutputFormat("{0} is not a valid date & time", cmd);
+                            con.Output("{0} is not a valid date & time", null, cmd);
                             break;
                         }
 
                         if (m_FileCacheEnabled)
                             CleanExpiredFiles(m_CacheDirectory, expirationDate);
                         else
-                            con.OutputFormat("File cache not active, not clearing.");
+                            con.Output("File cache not active, not clearing.");
 
                         break;
                     default:
-                        con.OutputFormat("Unknown command {0}", cmd);
+                        con.Output("Unknown command {0}", null, cmd);
                         break;
                 }
             }

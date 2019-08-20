@@ -791,8 +791,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             if (offsetX < 0 || offsetX >= fileWidth || offsetY < 0 || offsetY >= fileHeight)
             {
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "ERROR: file width + minimum X tile and file height + minimum Y tile must incorporate the current region at ({0},{1}).  File width {2} from {3} and file height {4} from {5} does not.",
+                    null,
                     m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY, fileWidth, fileStartX, fileHeight, fileStartY);
 
                 return;
@@ -810,8 +811,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                               (int)m_scene.RegionInfo.RegionSizeX,
                                               (int)m_scene.RegionInfo.RegionSizeY);
 
-                        MainConsole.Instance.OutputFormat(
+                        MainConsole.Instance.Output(
                             "Saved terrain from ({0},{1}) to ({2},{3}) from {4} to {5}",
+                            null,
                             fileStartX, fileStartY, fileStartX + fileWidth - 1, fileStartY + fileHeight - 1,
                             m_scene.RegionInfo.RegionName, filename);
                     }
@@ -820,8 +822,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 }
             }
 
-            MainConsole.Instance.OutputFormat(
+            MainConsole.Instance.Output(
                 "ERROR: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
+                null,
                 m_scene.RegionInfo.RegionName, filename, m_supportFileExtensionsForTileSave);
         }
 
@@ -1538,7 +1541,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             else
             {
-                MainConsole.Instance.OutputFormat("ERROR: Unrecognised direction {0} - need x or y", direction);
+                MainConsole.Instance.Output("ERROR: Unrecognised direction {0} - need x or y", null, direction);
             }
         }
 
@@ -1703,8 +1706,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             double avg = sum / (m_channel.Height * m_channel.Width);
 
-            MainConsole.Instance.OutputFormat("Channel {0}x{1}", m_channel.Width, m_channel.Height);
-            MainConsole.Instance.OutputFormat("max/min/avg/sum: {0}/{1}/{2}/{3}", max, min, avg, sum);
+            MainConsole.Instance.Output("Channel {0}x{1}", null, m_channel.Width, m_channel.Height);
+            MainConsole.Instance.Output("max/min/avg/sum: {0}/{1}/{2}/{3}", null, max, min, avg, sum);
         }
 
         private void InterfaceEnableExperimentalBrushes(Object[] args)

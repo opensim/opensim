@@ -772,7 +772,7 @@ namespace OpenSim.Services.GridService
 
                 if (!UUID.TryParse(rawRegionUuid, out regionUuid))
                 {
-                    MainConsole.Instance.OutputFormat("{0} is not a valid region uuid", rawRegionUuid);
+                    MainConsole.Instance.Output("{0} is not a valid region uuid", null, rawRegionUuid);
                     return;
                 }
 
@@ -780,18 +780,18 @@ namespace OpenSim.Services.GridService
 
                 if (region == null)
                 {
-                    MainConsole.Instance.OutputFormat("No region with UUID {0}", regionUuid);
+                    MainConsole.Instance.Output("No region with UUID {0}", null, regionUuid);
                     return;
                 }
 
                 if (DeregisterRegion(regionUuid))
                 {
-                    MainConsole.Instance.OutputFormat("Deregistered {0} {1}", region.RegionName, regionUuid);
+                    MainConsole.Instance.Output("Deregistered {0} {1}", null, region.RegionName, regionUuid);
                 }
                 else
                 {
                     // I don't think this can ever occur if we know that the region exists.
-                    MainConsole.Instance.OutputFormat("Error deregistering {0} {1}", region.RegionName, regionUuid);
+                    MainConsole.Instance.Output("Error deregistering {0} {1}", null, region.RegionName, regionUuid);
                 }
             }
         }
@@ -828,7 +828,7 @@ namespace OpenSim.Services.GridService
             MainConsole.Instance.Output("it will count regions that are inactive but were not deregistered from the grid service");
             MainConsole.Instance.Output("(e.g. simulator crashed rather than shutting down cleanly).\n");
 
-            MainConsole.Instance.OutputFormat("Grid size: {0} km squared.", size / 1000000);
+            MainConsole.Instance.Output("Grid size: {0} km squared.", null, size / 1000000);
         }
 
         private void HandleShowRegion(string module, string[] cmd)
@@ -877,7 +877,7 @@ namespace OpenSim.Services.GridService
 
             if (region == null)
             {
-                MainConsole.Instance.OutputFormat("No region found at {0},{1}", x, y);
+                MainConsole.Instance.Output("No region found at {0},{1}", null, x, y);
                 return;
             }
 

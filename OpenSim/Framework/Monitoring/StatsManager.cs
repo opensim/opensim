@@ -117,14 +117,14 @@ namespace OpenSim.Framework.Monitoring
                     {
                         con.Output("Statistic categories available are:");
                         foreach (string category in RegisteredStats.Keys)
-                            con.OutputFormat("  {0}", category);
+                            con.Output("  {0}", null, category);
                     }
                     else
                     {
                         SortedDictionary<string, SortedDictionary<string, Stat>> category;
                         if (!RegisteredStats.TryGetValue(categoryName, out category))
                         {
-                            con.OutputFormat("No such category as {0}", categoryName);
+                            con.Output("No such category as {0}", null, categoryName);
                         }
                         else
                         {
@@ -150,14 +150,14 @@ namespace OpenSim.Framework.Monitoring
                                         }
                                         else
                                         {
-                                            con.OutputFormat(
-                                                "No such stat {0} in {1}.{2}", statName, categoryName, containerName);
+                                            con.Output(
+                                                "No such stat {0} in {1}.{2}", null, statName, categoryName, containerName);
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    con.OutputFormat("No such container {0} in category {1}", containerName, categoryName);
+                                    con.Output("No such container {0} in category {1}", null, containerName, categoryName);
                                 }
                             }
                         }

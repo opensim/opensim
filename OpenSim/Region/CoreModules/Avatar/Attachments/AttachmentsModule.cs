@@ -159,27 +159,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (!(args.Length == 4 && int.TryParse(args[3], out debugLevel)))
             {
-                MainConsole.Instance.OutputFormat("Usage: debug attachments log [0|1]");
+                MainConsole.Instance.Output("Usage: debug attachments log [0|1]");
             }
             else
             {
                 DebugLevel = debugLevel;
-                MainConsole.Instance.OutputFormat(
-                    "Set attachments debug level to {0} in {1}", DebugLevel, m_scene.Name);
+                MainConsole.Instance.Output(
+                    "Set attachments debug level to {0} in {1}", null, DebugLevel, m_scene.Name);
             }
         }
 
         private void HandleDebugAttachmentsStatus(string module, string[] args)
         {
-            MainConsole.Instance.OutputFormat("Settings for {0}", m_scene.Name);
-            MainConsole.Instance.OutputFormat("Debug logging level: {0}", DebugLevel);
+            MainConsole.Instance.Output("Settings for {0}", null, m_scene.Name);
+            MainConsole.Instance.Output("Debug logging level: {0}", null, DebugLevel);
         }
 
         protected void HandleShowAttachmentsCommand(string module, string[] cmd)
         {
             if (cmd.Length != 2 && cmd.Length < 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: attachments show [<first-name> <last-name>]");
+                MainConsole.Instance.Output("Usage: attachments show [<first-name> <last-name>]");
                 return;
             }
 

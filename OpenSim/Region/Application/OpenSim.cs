@@ -782,8 +782,8 @@ namespace OpenSim
             Scene existingScene;
             if (SceneManager.TryGetScene(regInfo.RegionID, out existingScene))
             {
-                MainConsole.Instance.OutputFormat(
-                    "ERROR: Cannot create region {0} with ID {1}, this ID is already assigned to region {2}",
+                MainConsole.Instance.Output(
+                    "ERROR: Cannot create region {0} with ID {1}, this ID is already assigned to region {2}", null,
                     regInfo.RegionName, regInfo.RegionID, existingScene.RegionInfo.RegionName);
 
                 return;
@@ -980,7 +980,7 @@ namespace OpenSim
                     SceneManager.ForEachSelectedScene(
                         scene =>
                         {
-                            MainConsole.Instance.OutputFormat("Loaded region modules in {0} are:", scene.Name);
+                            MainConsole.Instance.Output("Loaded region modules in {0} are:", null, scene.Name);
 
                             List<IRegionModuleBase> sharedModules = new List<IRegionModuleBase>();
                             List<IRegionModuleBase> nonSharedModules = new List<IRegionModuleBase>();
@@ -994,10 +994,10 @@ namespace OpenSim
                             }
 
                             foreach (IRegionModuleBase module in sharedModules.OrderBy(m => m.Name))
-                                MainConsole.Instance.OutputFormat("New Region Module (Shared): {0}", module.Name);
+                                MainConsole.Instance.Output("New Region Module (Shared): {0}", null, module.Name);
 
                             foreach (IRegionModuleBase module in nonSharedModules.OrderBy(m => m.Name))
-                                MainConsole.Instance.OutputFormat("New Region Module (Non-Shared): {0}", module.Name);
+                                MainConsole.Instance.Output("New Region Module (Non-Shared): {0}", null, module.Name);
                         }
                     );
 

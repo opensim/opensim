@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Monitoring
                         con.Output("check categories available are:");
 
                         foreach (string category in RegisteredChecks.Keys)
-                            con.OutputFormat("  {0}", category);
+                            con.Output("  {0}", null, category);
                     }
 //                    else
 //                    {

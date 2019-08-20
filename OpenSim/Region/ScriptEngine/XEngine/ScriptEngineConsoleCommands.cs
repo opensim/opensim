@@ -89,7 +89,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             MainConsole.Instance.Output(cdt.ToString());
-            MainConsole.Instance.OutputFormat("Total: {0}", sensorInfo.Count);
+            MainConsole.Instance.Output("Total: {0}", null, sensorInfo.Count);
         }
 
         private void HandleShowTimers(string module, string[] cmdparams)
@@ -120,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             MainConsole.Instance.Output(cdt.ToString());
-            MainConsole.Instance.OutputFormat("Total: {0}", timersInfo.Count);
+            MainConsole.Instance.Output("Total: {0}", null, timersInfo.Count);
         }
     }
 }

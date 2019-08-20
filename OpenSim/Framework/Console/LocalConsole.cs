@@ -359,7 +359,7 @@ namespace OpenSim.Framework.Console
         {
             string outText = text;
 
-            if (level != LOGLEVEL_NONE)
+            if (level != null)
             {
                 MatchCollection matches = m_categoryRegex.Matches(text);
 
@@ -389,20 +389,15 @@ namespace OpenSim.Framework.Console
             System.Console.WriteLine();
         }
 
-        public override void Output(string text)
+        public override void Output(string format, string level = null, params object[] components)
         {
-            Output(text, LOGLEVEL_NONE);
-        }
-
-        public override void Output(string text, string level)
-        {
-            FireOnOutput(text);
+            FireOnOutput(format);
 
             lock (m_commandLine)
             {
                 if (m_cursorYPosition == -1)
                 {
-                    WriteLocalText(text, level);
+                    WriteLocalText(format, level);
 
                     return;
                 }
@@ -418,7 +413,7 @@ namespace OpenSim.Framework.Console
                 m_cursorYPosition = SetCursorTop(m_cursorYPosition);
                 SetCursorLeft(0);
 
-                WriteLocalText(text, level);
+                WriteLocalText(format, level);
 
                 m_cursorYPosition = System.Console.CursorTop;
 

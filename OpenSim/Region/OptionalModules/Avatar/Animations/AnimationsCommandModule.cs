@@ -109,7 +109,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
         {
             if (cmd.Length != 2 && cmd.Length < 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: show animations [<first-name> <last-name>]");
+                MainConsole.Instance.Output("Usage: show animations [<first-name> <last-name>]");
                 return;
             }
 

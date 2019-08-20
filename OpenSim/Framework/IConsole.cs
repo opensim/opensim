@@ -32,22 +32,13 @@ namespace OpenSim.Framework
 {
     public interface IConsole
     {
-        object ConsoleScene { get; set; }
+        IScene ConsoleScene { get; set; }
 
-        void Output(string text, string level);
-        void Output(string text);
-        void OutputFormat(string format, params object[] components);
+        void Output(string format, string level = null, params object[] components);
 
-        string CmdPrompt(string p);
-        string CmdPrompt(string p, string def);
-        string CmdPrompt(string p, List<char> excludedCharacters);
-        string CmdPrompt(string p, string def, List<char> excludedCharacters);
+        string Prompt(string p, string def = null, List<char> excludedCharacters = null, bool echo = true);
 
         // Displays a command prompt and returns a default value, user may only enter 1 of 2 options
-        string CmdPrompt(string prompt, string defaultresponse, List<string> options);
-
-        // Displays a prompt and waits for the user to enter a string, then returns that string
-        // (Done with no echo and suitable for passwords)
-        string PasswdPrompt(string p);
+        string Prompt(string prompt, string defaultresponse, List<string> options);
     }
 }

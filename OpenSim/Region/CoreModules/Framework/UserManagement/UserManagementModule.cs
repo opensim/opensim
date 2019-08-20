@@ -1028,7 +1028,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             if (cmd.Length < 3)
             {
-                MainConsole.Instance.OutputFormat("Usage: show name <uuid>");
+                MainConsole.Instance.Output("Usage: show name <uuid>");
                 return;
             }
 
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(!GetUser(userId, out ud))
             {
-                MainConsole.Instance.OutputFormat("No name known for user with id {0}", userId);
+                MainConsole.Instance.Output("No name known for user with id {0}", null, userId);
                 return;
             }
 

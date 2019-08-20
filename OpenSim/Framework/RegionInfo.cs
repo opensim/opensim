@@ -528,7 +528,7 @@ namespace OpenSim.Framework
                 {
                     while (name.Trim() == string.Empty)
                     {
-                        name = MainConsole.Instance.CmdPrompt("New region name", name);
+                        name = MainConsole.Instance.Prompt("New region name", name);
                         if (name.Trim() == string.Empty)
                         {
                             MainConsole.Instance.Output("Cannot interactively create region with no name");
@@ -570,7 +570,7 @@ namespace OpenSim.Framework
                 UUID newID = UUID.Random();
                 while (RegionID == UUID.Zero)
                 {
-                    regionUUID = MainConsole.Instance.CmdPrompt("RegionUUID", newID.ToString());
+                    regionUUID = MainConsole.Instance.Prompt("RegionUUID", newID.ToString());
                     if (!UUID.TryParse(regionUUID.Trim(), out RegionID))
                     {
                         MainConsole.Instance.Output("RegionUUID must be a valid UUID");
@@ -587,7 +587,7 @@ namespace OpenSim.Framework
             string location = config.GetString("Location", String.Empty);
             if (location == String.Empty)
             {
-                location = MainConsole.Instance.CmdPrompt("Region Location", "1000,1000");
+                location = MainConsole.Instance.Prompt("Region Location", "1000,1000");
                 config.Set("Location", location);
             }
 
@@ -623,7 +623,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                address = IPAddress.Parse(MainConsole.Instance.CmdPrompt("Internal IP address", "0.0.0.0"));
+                address = IPAddress.Parse(MainConsole.Instance.Prompt("Internal IP address", "0.0.0.0"));
                 config.Set("InternalAddress", address.ToString());
             }
 
@@ -637,7 +637,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                port = Convert.ToInt32(MainConsole.Instance.CmdPrompt("Internal port", "9000"));
+                port = Convert.ToInt32(MainConsole.Instance.Prompt("Internal port", "9000"));
                 config.Set("InternalPort", port);
             }
             m_internalEndPoint = new IPEndPoint(address, port);
@@ -652,7 +652,7 @@ namespace OpenSim.Framework
             else
             {
                 if (creatingNew)
-                    m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.CmdPrompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
+                    m_resolveAddress = Convert.ToBoolean(MainConsole.Instance.Prompt("Resolve hostname to IP on start (for running inside Docker)", "False"));
 
                 config.Set("ResolveAddress", m_resolveAddress.ToString());
             }
@@ -667,7 +667,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                externalName = MainConsole.Instance.CmdPrompt("External host name", "SYSTEMIP");
+                externalName = MainConsole.Instance.Prompt("External host name", "SYSTEMIP");
                 config.Set("ExternalHostName", externalName);
             }
             if (externalName == "SYSTEMIP")

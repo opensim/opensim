@@ -142,8 +142,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
 
                 if (sitPart != null)
                 {
-                    MainConsole.Instance.OutputFormat(
+                    MainConsole.Instance.Output(
                         "Sitting {0} on {1} {2} in {3}",
+                        null,
                         sp.Name, sitPart.ParentGroup.Name, sitPart.ParentGroup.UUID, m_scene.Name);
 
                     sp.HandleAgentRequestSit(sp.ControllingClient, sp.UUID, sitPart.UUID, Vector3.Zero);
@@ -151,8 +152,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
                 }
                 else
                 {
-                    MainConsole.Instance.OutputFormat(
+                    MainConsole.Instance.Output(
                         "Could not find any unoccupied set seat on which to sit {0} in {1}.  Aborting",
+                        null,
                         sp.Name, m_scene.Name);
 
                     break;
@@ -177,7 +179,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
             {
                 if (sp.SitGround || sp.IsSatOnObject)
                 {
-                    MainConsole.Instance.OutputFormat("Standing {0} in {1}", sp.Name, m_scene.Name);
+                    MainConsole.Instance.Output("Standing {0} in {1}", null, sp.Name, m_scene.Name);
                     sp.StandUp();
                 }
             }

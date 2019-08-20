@@ -235,7 +235,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             sb.AppendFormat("{0} object(s) found in {1}\n", sceneObjects.Count, m_scene.Name);
 
-            m_console.OutputFormat(sb.ToString());
+            m_console.Output(sb.ToString());
         }
 
         private void OutputSopsToConsole(Predicate<SceneObjectPart> searchPredicate, bool showFull)
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             sb.AppendFormat("{0} parts found in {1}\n", parts.Count, m_scene.Name);
 
-            m_console.OutputFormat(sb.ToString());
+            m_console.Output(sb.ToString());
         }
 
         private void HandleShowObjectById(string module, string[] cmdparams)
@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show object uuid <uuid>");
+                m_console.Output("Usage: show object uuid <uuid>");
                 return;
             }
 
@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             StringBuilder sb = new StringBuilder();
             AddSceneObjectReport(sb, so, showFull);
 
-            m_console.OutputFormat(sb.ToString());
+            m_console.Output(sb.ToString());
         }
 
         private void HandleShowObjectByName(string module, string[] cmdparams)
@@ -313,7 +313,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show object name [--full] [--regex] <name>");
+                m_console.Output("Usage: show object name [--full] [--regex] <name>");
                 return;
             }
 
@@ -346,7 +346,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show object owner <OwnerID>");
+                m_console.Output("Usage: show object owner <OwnerID>");
                 return;
             }
 
@@ -372,7 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 5)
             {
-                m_console.OutputFormat("Usage: show object pos [--full] <start-coord> to <end-coord>");
+                m_console.Output("Usage: show object pos [--full] <start-coord> to <end-coord>");
                 return;
             }
 
@@ -401,7 +401,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (mainParams.Count < 4)
             {
                 //m_console.OutputFormat("Usage: show part id [--full] <UUID-or-localID>");
-                m_console.OutputFormat("Usage: show part id <UUID-or-localID>");
+                m_console.Output("Usage: show part id <UUID-or-localID>");
                 return;
             }
 
@@ -425,7 +425,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             StringBuilder sb = new StringBuilder();
             AddScenePartReport(sb, sop, true);
 
-            m_console.OutputFormat(sb.ToString());
+            m_console.Output(sb.ToString());
         }
 
         private void HandleShowPartByPos(string module, string[] cmdparams)
@@ -442,7 +442,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (mainParams.Count < 5)
             {
                 //m_console.OutputFormat("Usage: show part pos <start-coord> to <end-coord>");
-                m_console.OutputFormat("Usage: show part pos [--full] <start-coord> to <end-coord>");
+                m_console.Output("Usage: show part pos [--full] <start-coord> to <end-coord>");
                 return;
             }
 
@@ -451,7 +451,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.OutputFormat("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
+                m_console.Output("Error: Start vector '{0}' does not have a valid format", null, rawConsoleStartVector);
                 return;
             }
 
@@ -460,7 +460,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.OutputFormat("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
+                m_console.Output("Error: End vector '{0}' does not have a valid format", null, rawConsoleEndVector);
                 return;
             }
 
@@ -482,7 +482,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: show part name [--regex] <name>");
+                m_console.Output("Usage: show part name [--regex] <name>");
                 //m_console.OutputFormat("Usage: show part name [--full] [--regex] <name>");
                 return;
             }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (cmdparams.Length < 4)
             {
-                m_console.OutputFormat("Usage: dump object id <UUID-or-localID>");
+                m_console.Output("Usage: dump object id <UUID-or-localID>");
                 return;
             }
 
@@ -546,7 +546,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 SceneObjectSerializer.ToOriginalXmlFormat(so, xtw, true);
             }
 
-            m_console.OutputFormat("Object dumped to file {0}", fileName);
+            m_console.Output("Object dumped to file {0}", fileName);
         }
 
         /// <summary>
@@ -809,7 +809,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         if(so.IsAttachment)
                         {
                             requireConfirmation = true;
-                            m_console.OutputFormat("Warning: object with uuid {0} is a attachment", uuid);
+                            m_console.Output("Warning: object with uuid {0} is a attachment", null, uuid);
                         }
                     }
                     break;
@@ -844,7 +844,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     });
 
                     if (deletes.Count == 0)
-                        m_console.OutputFormat("No objects were found outside region bounds");
+                        m_console.Output("No objects were found outside region bounds");
 
                     break;
 
@@ -853,7 +853,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     break;
 
                 default:
-                    m_console.OutputFormat("Unrecognized mode {0}", mode);
+                    m_console.Output("Unrecognized mode {0}", null, mode);
                     return;
             }
 
@@ -862,7 +862,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (requireConfirmation)
             {
-                string response = MainConsole.Instance.CmdPrompt(
+                string response = MainConsole.Instance.Prompt(
                     string.Format(
                         "Are you sure that you want to delete {0} objects from {1}",
                         deletes.Count, m_scene.RegionInfo.RegionName),
@@ -870,18 +870,18 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
                 if (response.ToLower() != "y")
                 {
-                    MainConsole.Instance.OutputFormat(
-                        "Aborting delete of {0} objects from {1}", deletes.Count, m_scene.RegionInfo.RegionName);
+                    MainConsole.Instance.Output(
+                        "Aborting delete of {0} objects from {1}", null, deletes.Count, m_scene.RegionInfo.RegionName);
 
                     return;
                 }
             }
 
-            m_console.OutputFormat("Deleting {0} objects in {1}", deletes.Count, m_scene.RegionInfo.RegionName);
+            m_console.Output("Deleting {0} objects in {1}", null, deletes.Count, m_scene.RegionInfo.RegionName);
 
             foreach (SceneObjectGroup g in deletes)
             {
-                m_console.OutputFormat("Deleting object {0} {1}", g.UUID, g.Name);
+                m_console.Output("Deleting object {0} {1}", null, g.UUID, g.Name);
                 m_scene.DeleteSceneObject(g, false);
             }
         }
@@ -895,7 +895,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (mainParams.Count < 4)
             {
-                m_console.OutputFormat("Usage: delete object name [--regex] <name>");
+                m_console.Output("Usage: delete object name [--regex] <name>");
                 return null;
             }
 
@@ -917,7 +917,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_scene.ForEachSOG(searchAction);
 
             if (sceneObjects.Count == 0)
-                m_console.OutputFormat("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
+                m_console.Output("No objects with name {0} found in {1}", null, name, m_scene.RegionInfo.RegionName);
 
             return sceneObjects;
         }
@@ -933,7 +933,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         {
             if (cmdparams.Length < 5)
             {
-                m_console.OutputFormat("Usage: delete object pos <start-coord> to <end-coord>");
+                m_console.Output("Usage: delete object pos <start-coord> to <end-coord>");
                 return null;
             }
 
@@ -952,7 +952,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.OutputFormat("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
+                m_console.Output("Error: Start vector '{0}' does not have a valid format", null, rawConsoleStartVector);
                 endVector = Vector3.Zero;
 
                 return false;
@@ -962,7 +962,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.OutputFormat("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
+                m_console.Output("Error: End vector '{0}' does not have a valid format", null, rawConsoleEndVector);
                 return false;
             }
 

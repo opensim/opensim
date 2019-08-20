@@ -215,23 +215,23 @@ namespace OpenSim.Framework.Monitoring
             if (subCommand == "stop")
             {
                 JobEngine.Stop();
-                MainConsole.Instance.OutputFormat("Stopped job engine.");
+                MainConsole.Instance.Output("Stopped job engine.");
             }
             else if (subCommand == "start")
             {
                 JobEngine.Start();
-                MainConsole.Instance.OutputFormat("Started job engine.");
+                MainConsole.Instance.Output("Started job engine.");
             }
             else if (subCommand == "status")
             {
-                MainConsole.Instance.OutputFormat("Job engine running: {0}", JobEngine.IsRunning);
+                MainConsole.Instance.Output("Job engine running: {0}", null, JobEngine.IsRunning);
 
                 JobEngine.Job job = JobEngine.CurrentJob;
-                MainConsole.Instance.OutputFormat("Current job {0}", job != null ? job.Name : "none");
+                MainConsole.Instance.Output("Current job {0}", null, job != null ? job.Name : "none");
 
-                MainConsole.Instance.OutputFormat(
-                    "Jobs waiting: {0}", JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
-                MainConsole.Instance.OutputFormat("Log Level: {0}", JobEngine.LogLevel);
+                MainConsole.Instance.Output(
+                    "Jobs waiting: {0}", null, JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
+                MainConsole.Instance.Output("Log Level: {0}", null, JobEngine.LogLevel);
             }
             else if (subCommand == "log")
             {
@@ -246,12 +246,12 @@ namespace OpenSim.Framework.Monitoring
                 //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
                 //                {
                 JobEngine.LogLevel = logLevel;
-                MainConsole.Instance.OutputFormat("Set debug log level to {0}", JobEngine.LogLevel);
+                MainConsole.Instance.Output("Set debug log level to {0}", null, JobEngine.LogLevel);
                 //                }
             }
             else
             {
-                MainConsole.Instance.OutputFormat("Unrecognized job engine subcommand {0}", subCommand);
+                MainConsole.Instance.Output("Unrecognized job engine subcommand {0}", null, subCommand);
             }
         }
     }

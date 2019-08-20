@@ -352,7 +352,7 @@ namespace pCampBot
                 }
                 else
                 {
-                    MainConsole.Instance.OutputFormat("No behaviour with abbreviated name {0} found", abName);
+                    MainConsole.Instance.Output("No behaviour with abbreviated name {0} found", null, abName);
                 }
             }
 
@@ -365,8 +365,8 @@ namespace pCampBot
             {
                 if (BotConnectingState != BotManagerBotConnectingState.Ready)
                 {
-                    MainConsole.Instance.OutputFormat(
-                        "Bot connecting status is {0}.  Please wait for previous process to complete.", BotConnectingState);
+                    MainConsole.Instance.Output(
+                        "Bot connecting status is {0}.  Please wait for previous process to complete.", null, BotConnectingState);
                     return;
                 }
 
@@ -486,8 +486,9 @@ namespace pCampBot
              BotManager bm, List<IBehaviour> behaviours,
              string firstName, string lastName, string password, string loginUri, string startLocation, string wearSetting)
         {
-            MainConsole.Instance.OutputFormat(
+            MainConsole.Instance.Output(
                 "[BOT MANAGER]: Creating bot {0} {1}, behaviours are {2}",
+                null,
                 firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
             Bot pb = new Bot(bm, behaviours, firstName, lastName, password, startLocation, loginUri);
@@ -552,7 +553,7 @@ namespace pCampBot
                     botsToConnect = Math.Min(botsToConnect, disconnectedBots);
                 }
 
-                MainConsole.Instance.OutputFormat("Connecting {0} bots", botsToConnect);
+                MainConsole.Instance.Output("Connecting {0} bots", null, botsToConnect);
 
                 ConnectBots(botsToConnect);
             }
@@ -562,7 +563,7 @@ namespace pCampBot
         {
             if (cmd.Length < 3 || cmd.Length > 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: add behaviour <abbreviated-behaviour> [<bot-number>]");
+                MainConsole.Instance.Output("Usage: add behaviour <abbreviated-behaviour> [<bot-number>]");
                 return;
             }
 
@@ -585,7 +586,7 @@ namespace pCampBot
 
                 if (bot == null)
                 {
-                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    MainConsole.Instance.Output("Error: No bot found with number {0}", null, botNumber);
                     return;
                 }
 
@@ -606,8 +607,9 @@ namespace pCampBot
                         behavioursAdded.Add(behaviour);
                 }
 
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Added behaviours {0} to bot {1}",
+                    null,
                     string.Join(", ", behavioursAdded.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
             }
         }
@@ -616,7 +618,7 @@ namespace pCampBot
         {
             if (cmd.Length < 3 || cmd.Length > 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: remove behaviour <abbreviated-behaviour> [<bot-number>]");
+                MainConsole.Instance.Output("Usage: remove behaviour <abbreviated-behaviour> [<bot-number>]");
                 return;
             }
 
@@ -639,7 +641,7 @@ namespace pCampBot
 
                 if (bot == null)
                 {
-                    MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                    MainConsole.Instance.Output("Error: No bot found with number {0}", null, botNumber);
                     return;
                 }
 
@@ -664,8 +666,9 @@ namespace pCampBot
                     }
                 }
 
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Removed behaviours {0} from bot {1}",
+                    null,
                     string.Join(", ", behavioursRemoved.ConvertAll<string>(b => b.Name).ToArray()), bot.Name);
             }
         }
@@ -701,7 +704,7 @@ namespace pCampBot
 
         private void DisconnectBotsInternal(List<Bot> connectedBots, int disconnectCount)
         {
-            MainConsole.Instance.OutputFormat("Disconnecting {0} bots", disconnectCount);
+            MainConsole.Instance.Output("Disconnecting {0} bots", null, disconnectCount);
 
             int disconnectedBots = 0;
 
@@ -731,7 +734,7 @@ namespace pCampBot
                 {
                     if (bot.ConnectionState == ConnectionState.Connected)
                     {
-                        MainConsole.Instance.OutputFormat("Sitting bot {0} on ground.", bot.Name);
+                        MainConsole.Instance.Output("Sitting bot {0} on ground.", null, bot.Name);
                         bot.SitOnGround();
                     }
                 }
@@ -746,7 +749,7 @@ namespace pCampBot
                 {
                     if (bot.ConnectionState == ConnectionState.Connected)
                     {
-                        MainConsole.Instance.OutputFormat("Standing bot {0} from ground.", bot.Name);
+                        MainConsole.Instance.Output("Standing bot {0} from ground.", null, bot.Name);
                         bot.Stand();
                     }
                 }
@@ -761,7 +764,7 @@ namespace pCampBot
 
                 if (connectedBots > 0)
                 {
-                    MainConsole.Instance.OutputFormat("Please disconnect {0} connected bots first", connectedBots);
+                    MainConsole.Instance.Output("Please disconnect {0} connected bots first", null, connectedBots);
                     return;
                 }
             }
@@ -785,8 +788,8 @@ namespace pCampBot
                 if (!ConsoleUtil.TryParseConsoleBool(MainConsole.Instance, rawValue, out newSendAgentUpdatesSetting))
                     return;
 
-                MainConsole.Instance.OutputFormat(
-                    "Setting SEND_AGENT_UPDATES to {0} for all bots", newSendAgentUpdatesSetting);
+                MainConsole.Instance.Output("Setting SEND_AGENT_UPDATES to {0} for all bots",
+                    null, newSendAgentUpdatesSetting);
 
                 lock (m_bots)
                     m_bots.ForEach(b => b.Client.Settings.SEND_AGENT_UPDATES = newSendAgentUpdatesSetting);
@@ -801,7 +804,7 @@ namespace pCampBot
         {
             if (args.Length != 6)
             {
-                MainConsole.Instance.OutputFormat("Usage: debug lludp packet <level> <bot-first-name> <bot-last-name>");
+                MainConsole.Instance.Output("Usage: debug lludp packet <level> <bot-first-name> <bot-last-name>");
                 return;
             }
 
@@ -820,26 +823,26 @@ namespace pCampBot
 
             if (bot == null)
             {
-                MainConsole.Instance.OutputFormat("No bot named {0} {1}", botFirstName, botLastName);
+                MainConsole.Instance.Output("No bot named {0} {1}", null, botFirstName, botLastName);
                 return;
             }
 
             bot.PacketDebugLevel = level;
 
-            MainConsole.Instance.OutputFormat("Set debug level of {0} to {1}", bot.Name, bot.PacketDebugLevel);
+            MainConsole.Instance.Output("Set debug level of {0} to {1}", null, bot.Name, bot.PacketDebugLevel);
         }
 
         private void HandleShowRegions(string module, string[] cmd)
         {
             string outputFormat = "{0,-30}  {1, -20}  {2, -5}  {3, -5}";
-            MainConsole.Instance.OutputFormat(outputFormat, "Name", "Handle", "X", "Y");
+            MainConsole.Instance.Output(outputFormat, null, "Name", "Handle", "X", "Y");
 
             lock (RegionsKnown)
             {
                 foreach (GridRegion region in RegionsKnown.Values)
                 {
-                    MainConsole.Instance.OutputFormat(
-                        outputFormat, region.Name, region.RegionHandle, region.X, region.Y);
+                    MainConsole.Instance.Output(
+                        outputFormat, null, region.Name, region.RegionHandle, region.X, region.Y);
                 }
             }
         }
@@ -908,7 +911,7 @@ namespace pCampBot
 
             if (bot == null)
             {
-                MainConsole.Instance.OutputFormat("Error: No bot found with number {0}", botNumber);
+                MainConsole.Instance.Output("Error: No bot found with number {0}", null, botNumber);
                 return;
             }
 

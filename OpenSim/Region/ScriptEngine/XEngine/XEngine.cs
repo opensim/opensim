@@ -456,7 +456,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             si.DebugLevel = newLevel;
-            MainConsole.Instance.OutputFormat("Set debug level of {0} {1} to {2}", si.ScriptName, si.ItemID, newLevel);
+            MainConsole.Instance.Output("Set debug level of {0} {1} to {2}", null, si.ScriptName, si.ItemID, newLevel);
         }
 
         /// <summary>
@@ -472,12 +472,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (ConsoleUtil.TryParseConsoleNaturalInt(MainConsole.Instance, args[3], out newDebug))
                 {
                     DebugLevel = newDebug;
-                    MainConsole.Instance.OutputFormat("Debug level set to {0} in XEngine for region {1}", newDebug, m_Scene.Name);
+                    MainConsole.Instance.Output("Debug level set to {0} in XEngine for region {1}", null, newDebug, m_Scene.Name);
                 }
             }
             else if (args.Length == 3)
             {
-                MainConsole.Instance.OutputFormat("Current debug level is {0}", DebugLevel);
+                MainConsole.Instance.Output("Current debug level is {0}", null, DebugLevel);
             }
             else
             {
@@ -532,7 +532,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     if (!UUID.TryParse(rawItemId, out itemId))
                     {
-                        MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid UUID", rawItemId);
+                        MainConsole.Instance.Output("ERROR: {0} is not a valid UUID", null, rawItemId);
                         continue;
                     }
 
@@ -617,8 +617,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 lock (m_Scripts)
                 {
-                    MainConsole.Instance.OutputFormat(
-                        "Showing {0} scripts in {1}", m_Scripts.Count, m_Scene.RegionInfo.RegionName);
+                    MainConsole.Instance.Output(
+                        "Showing {0} scripts in {1}", null, m_Scripts.Count, m_Scene.RegionInfo.RegionName);
                 }
             }
 
@@ -669,8 +669,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Suspend();
 
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Suspended {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                    null,
                     instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
             }
         }
@@ -682,8 +683,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Resume();
 
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Resumed {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                    null,
                     instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
             }
         }
@@ -695,8 +697,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Start();
 
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Started {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                    null,
                     instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
             }
         }
@@ -710,8 +713,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.Stop(0);
 
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(instance.ObjectID);
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Stopped {0}.{1}, item UUID {2}, prim UUID {3} @ {4}",
+                    null,
                     instance.PrimName, instance.ScriptName, instance.ItemID, instance.ObjectID, sop.AbsolutePosition);
             }
         }

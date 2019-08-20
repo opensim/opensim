@@ -129,7 +129,7 @@ namespace OpenSim.Framework
             }
 
             Addin addin = addins[ndx];
-            MainConsole.Instance.OutputFormat("Uninstalling plugin {0}", addin.Id);
+            MainConsole.Instance.Output("Uninstalling plugin {0}", null, addin.Id);
             AddinManager.Registry.DisableAddin(addin.Id);
             addin.Enabled = false;
             IProgressStatus ps = new ConsoleProgressStatus(false);
@@ -487,7 +487,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                MainConsole.Instance.OutputFormat("Not Enabled in this domain {0}", addin.Name);
+                MainConsole.Instance.Output("Not Enabled in this domain {0}", null, addin.Name);
             }
             return;
         }
@@ -503,7 +503,7 @@ namespace OpenSim.Framework
 
             foreach (Addin addin in addins)
             {
-                MainConsole.Instance.OutputFormat("Addin {0}", addin.Name);
+                MainConsole.Instance.Output("Addin {0}", null, addin.Name);
             }
         }
 

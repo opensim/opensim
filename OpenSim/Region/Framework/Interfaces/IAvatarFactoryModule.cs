@@ -31,7 +31,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public delegate void ReportOutputAction(string format, params object[] args);
+    public delegate void ReportOutputAction(string format, string level, params object[] args);
 
     public interface IAvatarFactoryModule
     {

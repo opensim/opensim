@@ -593,14 +593,14 @@ namespace OpenSim
                 estateOwnerPassword = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerPassword", null);
             }
 
-            MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
+            MainConsole.Instance.Output("Estate {0} has no owner set.", null, regionInfo.EstateSettings.EstateName);
             List<char> excluded = new List<char>(new char[1]{' '});
 
 
             if (estateOwnerFirstName == null || estateOwnerLastName == null)
             {
-                estateOwnerFirstName = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
-                estateOwnerLastName = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
+                estateOwnerFirstName = MainConsole.Instance.Prompt("Estate owner first name", "Test", excluded);
+                estateOwnerLastName = MainConsole.Instance.Prompt("Estate owner last name", "User", excluded);
             }
 
             UserAccount account
@@ -624,13 +624,13 @@ namespace OpenSim
                 if (scene.UserAccountService is UserAccountService)
                 {
                     if (estateOwnerPassword == null)
-                        estateOwnerPassword = MainConsole.Instance.PasswdPrompt("Password");
+                        estateOwnerPassword = MainConsole.Instance.Prompt("Password", null, null, false);
 
                     if (estateOwnerEMail == null)
-                        estateOwnerEMail = MainConsole.Instance.CmdPrompt("Email");
+                        estateOwnerEMail = MainConsole.Instance.Prompt("Email");
 
                     if (rawEstateOwnerUuid == null)
-                        rawEstateOwnerUuid = MainConsole.Instance.CmdPrompt("User ID", UUID.Random().ToString());
+                        rawEstateOwnerUuid = MainConsole.Instance.Prompt("User ID", UUID.Random().ToString());
 
                     UUID estateOwnerUuid = UUID.Zero;
                     if (!UUID.TryParse(rawEstateOwnerUuid, out estateOwnerUuid))
@@ -999,11 +999,11 @@ namespace OpenSim
             if (!string.IsNullOrEmpty(estateName))
                 newName = estateName;
             else
-                newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+                newName = MainConsole.Instance.Prompt("New estate name", regInfo.EstateSettings.EstateName);
 
             if (estatesByName.ContainsKey(newName))
             {
-                MainConsole.Instance.OutputFormat("An estate named {0} already exists.  Please try again.", newName);
+                MainConsole.Instance.Output("An estate named {0} already exists.  Please try again.", null, newName);
                 return false;
             }
 
@@ -1086,7 +1086,7 @@ namespace OpenSim
                 else
                 {
                     string response
-                        = MainConsole.Instance.CmdPrompt(
+                        = MainConsole.Instance.Prompt(
                             string.Format(
                                 "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName),
                                 "yes",
@@ -1103,7 +1103,7 @@ namespace OpenSim
                     {
                         string[] estateNames = estatesByName.Keys.ToArray();
                         response
-                            = MainConsole.Instance.CmdPrompt(
+                            = MainConsole.Instance.Prompt(
                                 string.Format(
                                     "Name of estate to join.  Existing estate names are ({0})",
                                     string.Join(", ", estateNames)),

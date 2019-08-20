@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (args.Length != 4)
             {
-                MainConsole.Instance.OutputFormat("Usage: region set <param> <value>");
+                MainConsole.Instance.Output("Usage: region set <param> <value>");
                 return;
             }
 
@@ -224,16 +224,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
                 if (newValue > ri.AgentCapacity)
                 {
-                    MainConsole.Instance.OutputFormat(
+                    MainConsole.Instance.Output(
                         "Cannot set {0} to {1} in {2} as max-agent-limit is {3}", "agent-limit",
+                        null,
                         newValue, m_scene.Name, ri.AgentCapacity);
                 }
                 else
                 {
                     rs.AgentLimit = newValue;
 
-                    MainConsole.Instance.OutputFormat(
-                        "{0} set to {1} in {2}", "agent-limit", newValue, m_scene.Name);
+                    MainConsole.Instance.Output(
+                        "{0} set to {1} in {2}", "agent-limit", null, newValue, m_scene.Name);
                 }
 
                 rs.Save();
@@ -247,15 +248,15 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
                 ri.AgentCapacity = newValue;
 
-                MainConsole.Instance.OutputFormat(
-                    "{0} set to {1} in {2}", "max-agent-limit", newValue, m_scene.Name);
+                MainConsole.Instance.Output(
+                    "{0} set to {1} in {2}", "max-agent-limit", null, newValue, m_scene.Name);
 
                 if (ri.AgentCapacity < rs.AgentLimit)
                 {
                     rs.AgentLimit = ri.AgentCapacity;
 
-                    MainConsole.Instance.OutputFormat(
-                        "Reducing {0} to {1} in {2}", "agent-limit", rs.AgentLimit, m_scene.Name);
+                    MainConsole.Instance.Output(
+                        "Reducing {0} to {1} in {2}", null, "agent-limit", rs.AgentLimit, m_scene.Name);
                 }
 
                 rs.Save();

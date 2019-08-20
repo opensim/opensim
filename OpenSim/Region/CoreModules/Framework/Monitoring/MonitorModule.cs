@@ -316,15 +316,17 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         {
             foreach (IMonitor monitor in m_staticMonitors)
             {
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    null,
                     m_scene.RegionInfo.RegionName, monitor.GetFriendlyName(), monitor.GetFriendlyValue());
             }
 
             foreach (KeyValuePair<string, float> tuple in m_scene.StatsReporter.GetExtraSimStats())
             {
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "[MONITOR MODULE]: {0} reports {1} = {2}",
+                    null,
                     m_scene.RegionInfo.RegionName, tuple.Key, tuple.Value);
             }
         }

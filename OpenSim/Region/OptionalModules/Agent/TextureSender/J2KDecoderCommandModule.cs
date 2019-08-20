@@ -114,27 +114,27 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
 
             if (!UUID.TryParse(rawAssetId, out assetId))
             {
-                MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
+                MainConsole.Instance.Output("ERROR: {0} is not a valid ID format", null, rawAssetId);
                 return;
             }
 
             AssetBase asset = m_scene.AssetService.Get(assetId.ToString());
             if (asset == null)
             {
-                MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
+                MainConsole.Instance.Output("ERROR: No asset found with ID {0}", null, assetId);
                 return;
             }
 
             if (asset.Type != (sbyte)AssetType.Texture)
             {
-                MainConsole.Instance.OutputFormat("ERROR: Asset {0} is not a texture type", assetId);
+                MainConsole.Instance.Output("ERROR: Asset {0} is not a texture type", null, assetId);
                 return;
             }
 
             IJ2KDecoder decoder = m_scene.RequestModuleInterface<IJ2KDecoder>();
             if (decoder == null)
             {
-                MainConsole.Instance.OutputFormat("ERROR: No IJ2KDecoder module available");
+                MainConsole.Instance.Output("ERROR: No IJ2KDecoder module available");
                 return;
             }
 
@@ -142,13 +142,14 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
             int components;
             if (decoder.Decode(assetId, asset.Data, out layers, out components))
             {
-                MainConsole.Instance.OutputFormat(
+                MainConsole.Instance.Output(
                     "Successfully decoded asset {0} with {1} layers and {2} components",
+                    null,
                     assetId, layers.Length, components);
             }
             else
             {
-                MainConsole.Instance.OutputFormat("Decode of asset {0} failed", assetId);
+                MainConsole.Instance.Output("Decode of asset {0} failed", null, assetId);
             }
         }
     }
