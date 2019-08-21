@@ -199,13 +199,14 @@ namespace OpenSim
                     break;
                 case "rest":
                     m_console = new RemoteConsole("Region");
-                    ((RemoteConsole)m_console).ReadConfig(Config);
                     break;
                 default:
                     m_console = new LocalConsole("Region", Config.Configs["Startup"]);
                     break;
                 }
             }
+
+            m_console.ReadConfig(Config);
 
             MainConsole.Instance = m_console;
 

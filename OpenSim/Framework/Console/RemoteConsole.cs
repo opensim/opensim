@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Console
             m_expireTimer.Start();
         }
 
-        public void ReadConfig(IConfigSource config)
+        public override void ReadConfig(IConfigSource config)
         {
             m_Config = config;
 

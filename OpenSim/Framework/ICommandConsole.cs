@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Nini.Config;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -102,5 +103,7 @@ namespace OpenSim.Framework
         void RunCommand(string cmd);
 
         string ReadLine(string p, bool isCommand, bool e);
+
+        void ReadConfig(IConfigSource configSource);
     }
 }

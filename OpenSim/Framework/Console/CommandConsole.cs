@@ -36,6 +36,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using OpenSim.Framework;
+using Nini.Config;
 
 namespace OpenSim.Framework.Console
 {
@@ -788,6 +789,10 @@ namespace OpenSim.Framework.Console
                 }
             }
             return cmdinput;
+        }
+
+        public virtual void ReadConfig(IConfigSource configSource)
+        {
         }
     }
 }

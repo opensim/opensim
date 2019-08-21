@@ -30,6 +30,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using Nini.Config;
 
 namespace OpenSim.Framework.Console
 {
@@ -69,6 +70,8 @@ namespace OpenSim.Framework.Console
         public string Prompt(string prompt, string defaultresponse, List<string> options) { return ""; }
 
         public string PasswdPrompt(string p) { return ""; }
+
+        public void ReadConfig(IConfigSource configSource) { }
     }
 
     public class MockCommands : ICommands
