@@ -49,6 +49,7 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim
 {
@@ -228,16 +229,14 @@ namespace OpenSim
                 m_log.InfoFormat("[OPENSIM] Enabling remote managed stats fetch. URL = {0}", urlBase);
             }
 
-            if (m_console is RemoteConsole)
+            MethodInfo mi = m_console.GetType().GetMethod("SetServer", BindingFlags.Public | BindingFlags.Instance, null, new Type[] { typeof(BaseHttpServer) }, null);
+
+            if (mi != null)
             {
                 if (m_consolePort == 0)
-                {
-                    ((RemoteConsole)m_console).SetServer(m_httpServer);
-                }
+                    mi.Invoke(m_console, new object[] { m_httpServer });
                 else
-                {
-                    ((RemoteConsole)m_console).SetServer(MainServer.GetHttpServer(m_consolePort));
-                }
+                    mi.Invoke(m_console, new object[] { MainServer.GetHttpServer(m_consolePort) });
             }
 
             // Hook up to the watchdog timer

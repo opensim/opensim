@@ -46,6 +46,8 @@ namespace OpenSim.Framework.Console
     //
     public class RemoteConsole : CommandConsole
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // Connection specific data, indexed by a session ID
         // we create when a client connects.
         protected class ConsoleConnection

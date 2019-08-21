@@ -38,7 +38,7 @@ namespace OpenSim.Framework
 
         string Prompt(string p, string def = null, List<char> excludedCharacters = null, bool echo = true);
 
-        // Displays a command prompt and returns a default value, user may only enter 1 of 2 options
+        // Displays a prompt and returns a default value, user may only enter 1 of 2 options
         string Prompt(string prompt, string defaultresponse, List<string> options);
     }
 }
