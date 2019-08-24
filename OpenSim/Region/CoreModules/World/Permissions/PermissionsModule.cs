@@ -583,7 +583,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if(!client.IsGroupMember(groupID))
                 return false;
             
-            powers =  client.GetGroupPowers(groupID);          
+            powers =  client.GetGroupPowers(groupID);
             return true;
         }
 
