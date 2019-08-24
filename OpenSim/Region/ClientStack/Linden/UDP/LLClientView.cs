@@ -5319,8 +5319,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lastzc = zc.ZeroCount;
 
                     CreateCompressedUpdateBlockZC(sop, mysp, zc);
-                    //if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
-                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 400)
+                    if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
                     {
                         //tau.Add(eu);
                         ++count;
@@ -5404,10 +5403,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     Utils.UIntToBytes((uint)sop.ParentGroup.PseudoCRC, data, pos); pos += 4; //WRONG
                     Utils.UIntToBytes(primflags, data, pos); pos += 4;
 
-                    //if (pos < (LLUDPServer.MAXPAYLOAD - 12))
-                    if (pos < (LLUDPServer.MAXPAYLOAD - 200))
-                        ++count;
-                    else
+                    ++count;
+                    if (pos > (LLUDPServer.MAXPAYLOAD - 13))
                     {
                         // we need more packets
                         UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
@@ -5420,6 +5417,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         buf = newbuf;
                         data = buf.Data;
                         pos = 18;
+
                         count = 0;
                     }
                 }
