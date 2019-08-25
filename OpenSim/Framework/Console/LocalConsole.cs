@@ -391,13 +391,15 @@ namespace OpenSim.Framework.Console
 
         public override void Output(string format, string level = null, params object[] components)
         {
-            FireOnOutput(format);
+            string text = String.Format(format, components);
+
+            FireOnOutput(text);
 
             lock (m_commandLine)
             {
                 if (m_cursorYPosition == -1)
                 {
-                    WriteLocalText(format, level);
+                    WriteLocalText(text, level);
 
                     return;
                 }
@@ -413,7 +415,7 @@ namespace OpenSim.Framework.Console
                 m_cursorYPosition = SetCursorTop(m_cursorYPosition);
                 SetCursorLeft(0);
 
-                WriteLocalText(format, level);
+                WriteLocalText(text, level);
 
                 m_cursorYPosition = System.Console.CursorTop;
 
