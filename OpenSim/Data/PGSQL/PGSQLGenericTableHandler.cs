@@ -180,7 +180,54 @@ namespace OpenSim.Data.PGSQL
 
         public virtual T[] Get(string field, string key)
         {
-            return Get(new string[] { field }, new string[] { key });
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            {
+                if ( m_FieldTypes.ContainsKey(field) )
+                    cmd.Parameters.Add(m_database.CreateParameter(field, key, m_FieldTypes[field]));
+                else
+                    cmd.Parameters.Add(m_database.CreateParameter(field, key));
+
+                string query = String.Format("SELECT * FROM {0} WHERE \"{1}\" = :{1}", m_Realm, field, field);
+
+                cmd.Connection = conn;
+                cmd.CommandText = query;
+                conn.Open();
+                return DoQuery(cmd);
+            }
+        }
+
+        public virtual T[] Get(string field, string[] keys)
+        {
+
+            int flen = keys.Length;
+            if(flen == 0)
+                return new T[0];
+
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("select * from {0} where {1} IN ('", m_Realm, field);
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            {
+
+                for (int i = 0 ; i < flen ; i++)
+                {
+                    sb.Append(keys[i]);
+                    if(i < flast)
+                        sb.Append("','");
+                    else
+                        sb.Append("')");
+                }
+
+                string query = sb.ToString();
+
+                cmd.Connection = conn;
+                cmd.CommandText = query;
+                conn.Open();
+                return DoQuery(cmd);
+            }
         }
 
         public virtual T[] Get(string[] fields, string[] keys)

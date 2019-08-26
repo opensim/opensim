@@ -116,8 +116,40 @@ namespace OpenSim.Data.MySQL
         }
 
         public virtual T[] Get(string field, string key)
+        {   
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                cmd.Parameters.AddWithValue(field, key);
+                cmd.CommandText = string.Format("select * from {0} where `{1}` = ?{1}", m_Realm, field);
+                return DoQuery(cmd);
+            }
+        }
+
+        public virtual T[] Get(string field, string[] keys)
         {
-            return Get(new string[] { field }, new string[] { key });
+            int flen = keys.Length;
+            if(flen == 0)
+                return new T[0];
+
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("select * from {0} where {1} IN (?", m_Realm, field);
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+                for (int i = 0 ; i < flen ; i++)
+                {
+                    string fname = field + i.ToString();
+                    cmd.Parameters.AddWithValue(fname, keys[i]);
+
+                    sb.Append(fname);
+                    if(i < flast)
+                        sb.Append(",?");
+                    else
+                        sb.Append(")");
+                }
+                cmd.CommandText = sb.ToString();
+                return DoQuery(cmd);
+            }
         }
 
         public virtual T[] Get(string[] fields, string[] keys)
@@ -140,7 +172,7 @@ namespace OpenSim.Data.MySQL
                 for (int i = 0 ; i < flen ; i++)
                 {
                     cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    if(i< flast)
+                    if(i < flast)
                         sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
                     else
                         sb.AppendFormat("`{0}` = ?{0} ", fields[i]);
@@ -323,25 +355,26 @@ namespace OpenSim.Data.MySQL
 //                "[MYSQL GENERIC TABLE HANDLER]: Delete(string[] fields, string[] keys) invoked with {0}:{1}",
 //                string.Join(",", fields), string.Join(",", keys));
 
-            if (fields.Length != keys.Length)
+            int flen = fields.Length;
+            if (flen == 0 || flen != keys.Length)
                 return false;
 
-            List<string> terms = new List<string>();
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("delete from {0} where ", m_Realm);
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                for (int i = 0 ; i < fields.Length ; i++)
+                for (int i = 0 ; i < flen ; i++)
                 {
                     cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                    if(i < flast)
+                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
+                    else
+                        sb.AppendFormat("`{0}` = ?{0}", fields[i]);
                 }
 
-                string where = String.Join(" and ", terms.ToArray());
-
-                string query = String.Format("delete from {0} where {1}", m_Realm, where);
-
-                cmd.CommandText = query;
-
+                cmd.CommandText = sb.ToString();
                 return ExecuteNonQuery(cmd) > 0;
             }
         }
@@ -353,27 +386,27 @@ namespace OpenSim.Data.MySQL
 
         public long GetCount(string[] fields, string[] keys)
         {
-            if (fields.Length != keys.Length)
+            int flen = fields.Length;
+            if (flen == 0 || flen != keys.Length)
                 return 0;
 
-            List<string> terms = new List<string>();
+            int flast = flen - 1;
+            StringBuilder sb = new StringBuilder(1024);
+            sb.AppendFormat("select count(*) from {0} where ", m_Realm);
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                for (int i = 0; i < fields.Length; i++)
+                for (int i = 0 ; i < flen ; i++)
                 {
                     cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                    if(i < flast)
+                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
+                    else
+                        sb.AppendFormat("`{0}` = ?{0}", fields[i]);
                 }
 
-                string where = String.Join(" and ", terms.ToArray());
-
-                string query = String.Format("select count(*) from {0} where {1}",
-                                             m_Realm, where);
-
-                cmd.CommandText = query;
-
-                Object result = DoQueryScalar(cmd);
+                cmd.CommandText = sb.ToString();
+                object result = DoQueryScalar(cmd);
 
                 return Convert.ToInt64(result);
             }
@@ -403,7 +436,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     cmd.Connection = dbcon;
 
-                    Object ret = cmd.ExecuteScalar();
+                    object ret = cmd.ExecuteScalar();
                     cmd.Connection = null;
                     dbcon.Close();
                     return ret;
