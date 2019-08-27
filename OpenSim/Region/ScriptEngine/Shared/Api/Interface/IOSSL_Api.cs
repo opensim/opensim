@@ -375,7 +375,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         key osGetGender(LSL_Key rawAvatarId);
         key osGetMapTexture();
-        key osGetRegionMapTexture(string regionName);
+        key osGetRegionMapTexture(string regionNameOrID);
         LSL_List osGetRegionStats();
         vector osGetRegionSize();
 

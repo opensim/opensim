@@ -3563,7 +3563,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="regionName"></param>
         /// <returns></returns>
-        public LSL_Key osGetRegionMapTexture(string regionName)
+        public LSL_Key osGetRegionMapTexture(string regionNameOrID)
         {
             CheckThreatLevel(ThreatLevel.High, "osGetRegionMapTexture");
 
@@ -3571,11 +3571,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID key = UUID.Zero;
             GridRegion region;
 
+            if(string.IsNullOrWhiteSpace(regionNameOrID))
+            {
+                return scene.RegionInfo.RegionSettings.TerrainImageID.ToString();
+            }
+
             //If string is a key, use it. Otherwise, try to locate region by name.
-            if (UUID.TryParse(regionName, out key))
+            if (UUID.TryParse(regionNameOrID, out key))
                 region = scene.GridService.GetRegionByUUID(UUID.Zero, key);
             else
-                region = scene.GridService.GetRegionByName(UUID.Zero, regionName);
+                region = scene.GridService.GetRegionByName(UUID.Zero, regionNameOrID);
 
             // If region was found, return the regions map texture key.
             if (region != null)
