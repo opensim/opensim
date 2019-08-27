@@ -55,8 +55,15 @@
     ;# {BaseURL} {} {BaseURL} {"http://${Const|BaseHostname}} "http://${Const|BaseHostname}"
     BaseURL = http://${Const|BaseHostname}
 
+    ; If you run a grid, several services should not be availble to world, access to them should be blocked on firewall
+    ; PrivatePort should closed at the firewall.
+
     ;# {PublicPort} {} {PublicPort} {8002 9000} "8002"
     PublicPort = "8002"
+
+    ; you can also have them on a diferent url / IP
+    ;# {PrivURL} {} {PrivURL} {"http://${Const|BaseURL}} "${Const|BaseURL}"
+    PrivURL = ${Const|BaseURL}
 
     ;grid default private port 8003, not used in standalone
     ;# {PrivatePort} {} {PrivatePort} {8003} "8003"

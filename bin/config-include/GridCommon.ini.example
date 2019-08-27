@@ -76,13 +76,13 @@
     ;
     ; Change this to your grid-wide asset server.  Do not add a slash to the end of any of these addresses.
     ;
-    AssetServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    AssetServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [InventoryService]
     ;
     ; Change this to your grid-wide inventory server
     ;
-    InventoryServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    InventoryServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
     ;MaxRetries = 0
 
 [GridInfo]
@@ -95,7 +95,7 @@
     ;
     ; Change this to your grid-wide grid server
     ;
-    GridServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    GridServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
     ;AllowHypergridMapSearch = true
 
     ;; Directory for map tile images of linked regions
@@ -115,7 +115,7 @@
     ;LocalServiceModule = "OpenSim.Services.Connectors.dll:EstateDataRemoteConnector"
 
 [EstateService]
-    EstateServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    EstateServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [Messaging]
     ; === HG ONLY ===
@@ -128,43 +128,43 @@
     ;
     ; Change this to your grid-wide grid server
     ;
-    AvatarServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    AvatarServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [AgentPreferencesService]
     ;
     ; Change this to your grid-wide avatar prefs server
     ;
-    AgentPreferencesServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    AgentPreferencesServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [PresenceService]
     ;
     ; Change this to your grid-wide presence server
     ;
-    PresenceServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    PresenceServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [UserAccountService]
     ;
     ; Change this to your grid-wide user accounts server
     ;
-    UserAccountServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    UserAccountServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [GridUserService]
     ;
     ; Change this to your grid-wide user accounts server
     ;
-    GridUserServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    GridUserServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [AuthenticationService]
     ;
     ; Change this to your grid-wide authentication server
     ;
-    AuthenticationServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    AuthenticationServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [FriendsService]
     ;
     ; Change this to your grid-wide friends server
     ;
-    FriendsServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    FriendsServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [HGInventoryAccessModule]
     ;
@@ -223,7 +223,7 @@
     UserAgentServerURI = "${Const|BaseURL}:${Const|PublicPort}"
 
 [MapImageService]
-    MapImageServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    MapImageServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
 [AuthorizationService]
   ; If you have regions with access restrictions
@@ -244,4 +244,4 @@
     ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
 
 [MuteListService]
-    MuteListServerURI = "${Const|BaseURL}:${Const|PrivatePort}"
+    MuteListServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
