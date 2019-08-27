@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_mapGenerationTimer.Interval = maptileRefresh * 1000;
                         m_mapGenerationTimer.Elapsed += RegenerateMaptileAndReregister;
-                        m_mapGenerationTimer.AutoReset = true;
+                        m_mapGenerationTimer.AutoReset = false;
                         m_mapGenerationTimer.Start();
                     }
                 }
@@ -6026,7 +6026,9 @@ Environment.Exit(1);
             // so that all simulators can retrieve it
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, new GridRegion(RegionInfo));
             if (error != string.Empty)
-            throw new Exception(error);
+                throw new Exception(error);
+            if(m_generateMaptiles)
+                m_mapGenerationTimer.Start();
         }
 
         /// <summary>

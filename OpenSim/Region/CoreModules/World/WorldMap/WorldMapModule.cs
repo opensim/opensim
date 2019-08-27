@@ -1545,7 +1545,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (consoleScene != null && consoleScene != m_scene)
                 return;
 
-            GenerateMaptile();
+            m_scene.RegenerateMaptileAndReregister(this, null);
         }
 
         public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
