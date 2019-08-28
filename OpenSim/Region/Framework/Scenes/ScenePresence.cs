@@ -4358,8 +4358,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAppearanceToAgentNF(ScenePresence avatar)
         {
-            avatar.ControllingClient.SendAppearance(
-                UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+            if(avatar.UUID == UUID)
+            {
+                avatar.ControllingClient.SendAppearance(
+                    UUID, Appearance.VisualParams, Appearance.Texture.GetBytes());
+            }
+            else
+            {
+                avatar.ControllingClient.SendAppearance(
+                    UUID, Appearance.VisualParams, Appearance.Texture.GetAvatarPublicBytes());
+            }
         }
 
         public void SendAnimPackToAgent(ScenePresence p)
