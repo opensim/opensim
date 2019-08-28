@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
-        public static readonly LSLInteger OS_APIVERSION = 6;
+        public static readonly LSLInteger OS_APIVERSION = 7;
 
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
@@ -952,5 +952,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int WL_CLOUD_SCROLL_X_LOCK = 34;
         public const int WL_DRAW_CLASSIC_CLOUDS = 35;
         public const int WL_SUN_MOON_POSITION = 36;
+
+        public const string IMG_USE_BAKED_HEAD    = "5a9f4a74-30f2-821c-b88d-70499d3e7183";
+        public const string IMG_USE_BAKED_UPPER   = "ae2de45c-d252-50b8-5c6e-19f39ce79317";
+        public const string IMG_USE_BAKED_LOWER   = "24daea5f-0539-cfcf-047f-fbc40b2786ba";
+        public const string IMG_USE_BAKED_EYES    = "52cc6bb6-2ee5-e632-d3ad-50197b1dcb8a";
+        public const string IMG_USE_BAKED_SKIRT   = "43529ce8-7faa-ad92-165a-bc4078371687";
+        public const string IMG_USE_BAKED_HAIR    = "09aac1fb-6bce-0bee-7d44-caac6dbb6c63";
+        public const string IMG_USE_BAKED_LEFTARM = "ff62763f-d60a-9855-890b-0c96f8f8cd98";
+        public const string IMG_USE_BAKED_LEFTLEG = "8e915e25-31d1-cc95-ae08-d58a47488251";
+        public const string IMG_USE_BAKED_AUX1    = "9742065b-19b5-297c-858a-29711d539043";
+        public const string IMG_USE_BAKED_AUX2    = "03642e83-2bd1-4eb9-34b4-4c47ed586d2d";
+        public const string IMG_USE_BAKED_AUX3    = "edd51b77-fc10-ce7a-4b3d-011dfc349e4f";
     }
 }
