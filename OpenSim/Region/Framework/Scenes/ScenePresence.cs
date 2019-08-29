@@ -4366,7 +4366,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 avatar.ControllingClient.SendAppearance(
-                    UUID, Appearance.VisualParams, Appearance.Texture.GetAvatarPublicBytes());
+                    UUID, Appearance.VisualParams, Appearance.Texture.GetBakesBytes());
             }
         }
 
