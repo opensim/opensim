@@ -78,6 +78,8 @@ namespace OpenSim.Region.ClientStack.Linden
         private string m_GridURL = string.Empty;
 
         private bool m_doScriptSyntax;
+        private bool m_BoMSupported = false;
+
         static private object m_scriptSyntaxLock = new object();
         static private UUID m_scriptSyntaxID = UUID.Zero;
         static private string m_scriptSyntaxXML;
@@ -111,6 +113,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_GridName = Util.GetConfigVarFromSections<string>(
                         source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
                 m_doScriptSyntax = config.GetBoolean("ScriptSyntax", m_doScriptSyntax);
+                m_BoMSupported = config.GetBoolean("BoMSupported", m_BoMSupported);
+
             }
 
             ReadScriptSyntax();
@@ -154,12 +158,14 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </remarks>
         private void AddDefaultFeatures()
         {
-
             lock (m_features)
             {
                 m_features["MeshRezEnabled"] = true;
                 m_features["MeshUploadEnabled"] = true;
                 m_features["MeshXferEnabled"] = true;
+
+                if(m_BoMSupported)
+                    m_features["BakesOnMeshEnabled"] = true;
 
                 m_features["PhysicsMaterialsEnabled"] = true;
 
