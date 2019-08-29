@@ -771,12 +771,82 @@
      <Key Name="fileName" Value="b4ba225c-373f-446d-9f7e-6cb7b5cf9b3d.j2c"/>
   </Section>
 
-  <!-- Water texture shown when Transparent Water is disabled in the viewer graphics prefs -->
-  <Section Name="Water">
-    <Key Name="assetID" Value="43c32285-d658-1793-c123-bf86315de055"/>
-    <Key Name="name" Value="Water"/>
-    <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="43c32285-d658-1793-c123-bf86315de055.jp2" />
+  <Section Name="FALLB_BAKED_HEAD">
+     <Key Name="assetID" Value="5a9f4a74-30f2-821c-b88d-70499d3e7183"/>
+     <Key Name="name" Value="FALLB_BAKED_HEAD"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_HEAD_32X32.j2k"/>
   </Section>
+  
+  <Section Name="FALLB_BAKED_UPPER">
+     <Key Name="assetID" Value="ae2de45c-d252-50b8-5c6e-19f39ce79317"/>
+     <Key Name="name" Value="FALLB_BAKED_UPPER"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_UPPER_32X32.j2k"/>
+  </Section>
+  
+  <Section Name="FALLB_BAKED_LOWER">
+     <Key Name="assetID" Value="24daea5f-0539-cfcf-047f-fbc40b2786ba"/>
+     <Key Name="name" Value="FALLB_BAKED_LOWER"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_LOWER_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_EYES">
+     <Key Name="assetID" Value="52cc6bb6-2ee5-e632-d3ad-50197b1dcb8a"/>
+     <Key Name="name" Value="FALLB_BAKED_EYES"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_EYES_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_SKIRT">
+     <Key Name="assetID" Value="43529ce8-7faa-ad92-165a-bc4078371687"/>
+     <Key Name="name" Value="FALLB_BAKED_SKIRT"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_SKIRT_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_HAIR">
+     <Key Name="assetID" Value="09aac1fb-6bce-0bee-7d44-caac6dbb6c63"/>
+     <Key Name="name" Value="FALLB_BAKED_HAIR"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_HAIR_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_LEFTARM">
+     <Key Name="assetID" Value="ff62763f-d60a-9855-890b-0c96f8f8cd98"/>
+     <Key Name="name" Value="FALLB_BAKED_LEFTARM"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_LEFTARM_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_LEFTLEG">
+     <Key Name="assetID" Value="8e915e25-31d1-cc95-ae08-d58a47488251"/>
+     <Key Name="name" Value="FALLB_BAKED_LEFTLEG"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_LEFTLEG_32X32.j2k"/>
+  </Section>
+  
+  <Section Name="FALLB_BAKED_AUX1">
+     <Key Name="assetID" Value="9742065b-19b5-297c-858a-29711d539043"/>
+     <Key Name="name" Value="FALLB_BAKED_AUX1"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_AUX1_32X32.j2k"/>
+  </Section>
+  
+  <Section Name="FALLB_BAKED_AUX2">
+     <Key Name="assetID" Value="03642e83-2bd1-4eb9-34b4-4c47ed586d2d"/>
+     <Key Name="name" Value="FALLB_BAKED_AUX2"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_AUX2_32X32.j2k"/>
+  </Section>
+
+  <Section Name="FALLB_BAKED_AUX3">
+     <Key Name="assetID" Value="edd51b77-fc10-ce7a-4b3d-011dfc349e4f"/>
+     <Key Name="name" Value="FALLB_BAKED_AUX3"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="FALLBACK_BAKED_AUX3_32X32.j2k"/>
+  </Section>
+
 
 </Nini>
