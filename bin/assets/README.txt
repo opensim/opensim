@@ -1,12 +1,11 @@
 README
 
-OpenSim comes with a default asset set contained in the OpenSimAssetSet
-directory.  You can also load up your own asset set to OpenSim on startup by
-making a file entry in AssetSets.xml.  This file should point towards an XML
-file which details the assets in your asset set.  The 
-OpenSimAssetSet/OpenSimAssetSet.xml is a good template for the information 
-required.
+This folder contains a collection of asset sets that should be loaded to assets server at startup
+Each set has own folder, that contains a xml file, that defines all its assets, and the data files needed.
+File AssetSets.xml lists all the sets to include
 
-If you want your assets to show up in the standard inventory library for an
-avatar, you will also need to add separate entries to the xml files in the
-bin/inventory configuration directory.
+You can add more assets or sets. Use the provided ones as example
+
+
+To add items with your assets to OpenSim Inventory library, you need to define them in folder 
+bin/inventory. See that folder README file
