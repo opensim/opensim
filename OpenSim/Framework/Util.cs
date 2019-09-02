@@ -434,9 +434,11 @@ namespace OpenSim.Framework
         }
 
 
-        public static bool checkServiceURI(string uristr, out string serviceURI)
+        public static bool checkServiceURI(string uristr, out string serviceURI, out string serviceHost, out string serviceIPstr)
         {
             serviceURI = string.Empty;
+            serviceHost = string.Empty;
+            serviceIPstr = string.Empty;
             try
             {
                 Uri  uri = new Uri(uristr);
@@ -445,6 +447,13 @@ namespace OpenSim.Framework
                     serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":80/";
                 else if(uri.Port == 443)
                     serviceURI = serviceURI.Trim(new char[] { '/', ' ' }) +":443/";
+                serviceHost = uri.Host;
+
+                IPEndPoint ep = Util.getEndPoint(serviceHost,uri.Port);
+                if(ep == null)
+                    return false;
+
+                serviceIPstr = ep.Address.ToString();
                 return true;
             }
             catch
@@ -454,9 +463,10 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public static bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
+        public static bool buildHGRegionURI(string inputName, out string serverURI, out string serverHost, out string regionName)
         {
             serverURI = string.Empty;
+            serverHost = string.Empty;
             regionName = string.Empty;
 
             inputName = inputName.Trim();
@@ -565,6 +575,7 @@ namespace OpenSim.Framework
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":80/";
             else if(uri.Port == 443)
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":443/";
+            serverHost = uri.Host;
             return true;
         }
 
