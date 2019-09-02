@@ -502,14 +502,19 @@ namespace OpenSim.Services.GridService
             if (count < maxNumber && m_AllowHypergridMapSearch && name.Contains("."))
             {
                 string regionURI = "";
+                string regionHost = "";
                 string regionName = "";
-                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
                     return null;
 
                 string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
-                if(localGrid)
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionHost);
+                if (localGrid)
+                {
+                    if (String.IsNullOrWhiteSpace(regionName))
+                        return GetDefaultRegions(scopeID);
                     mapname = regionName;
+                }
                 else
                     mapname = regionURI + regionName;
 
@@ -595,13 +600,23 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                if(!Util.buildHGRegionURI(name, out regionURI, out regionName))
+                string regionHost = "";
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
                     return null;
 
                 string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
-                if(localGrid)
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionHost);
+                if (localGrid)
+                {
+                    if (String.IsNullOrWhiteSpace(regionName))
+                    {
+                        List< GridRegion> defregs = GetDefaultRegions(scopeID);
+                        if(defregs == null)
+                            return null;
+                        return defregs[0];
+                    }
                     mapname = regionName;
+                }
                 else
                     mapname = regionURI + regionName;
 

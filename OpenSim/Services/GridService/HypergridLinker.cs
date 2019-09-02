@@ -65,8 +65,9 @@ namespace OpenSim.Services.GridService
         protected UUID m_ScopeID = UUID.Zero;
 //        protected bool m_Check4096 = true;
         protected string m_MapTileDirectory = string.Empty;
-        protected string m_ThisGatekeeper = string.Empty;
-        protected Uri m_ThisGatekeeperURI = null;
+        protected string m_ThisGatekeeperURI = string.Empty;
+        protected string m_ThisGatekeeperHost = string.Empty;
+        protected string m_ThisGateKeeperIP = string.Empty;
 
         protected GridRegion m_DefaultRegion;
         protected GridRegion DefaultRegion
@@ -124,24 +125,15 @@ namespace OpenSim.Services.GridService
 
             m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 
-            m_ThisGatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
+            m_ThisGatekeeperURI = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
                 new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
-            // Legacy. Remove soon!
-            m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", m_ThisGatekeeper);
-            try
-            {
-                m_ThisGatekeeperURI = new Uri(m_ThisGatekeeper);
-            }
-            catch
-            {
-                m_log.WarnFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeper);
-            }
+            m_ThisGatekeeperURI = gridConfig.GetString("Gatekeeper", m_ThisGatekeeperURI);
 
-            m_ThisGatekeeper = m_ThisGatekeeperURI.AbsoluteUri;
-            if(m_ThisGatekeeperURI.Port == 80)
-                m_ThisGatekeeper = m_ThisGatekeeper.Trim(new char[] { '/', ' ' }) +":80/";
-            else if(m_ThisGatekeeperURI.Port == 443)
-                m_ThisGatekeeper = m_ThisGatekeeper.Trim(new char[] { '/', ' ' }) +":443/";
+            if(!Util.checkServiceURI(m_ThisGatekeeperURI, out m_ThisGatekeeperURI, out m_ThisGatekeeperHost, out m_ThisGateKeeperIP))
+            {
+                m_log.ErrorFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeperURI);
+                throw new Exception("Failed to resolve gatekeeper external IP, please check GatekeeperURI configuration");
+            }
 
             m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
@@ -197,9 +189,13 @@ namespace OpenSim.Services.GridService
             return TryLinkRegionToCoords(scopeID, mapName, xloc, yloc, UUID.Zero, out reason);
         }
 
-        public bool IsLocalGrid(string serverURI)
+        public bool IsLocalGrid(string UriHost)
         {
-            return serverURI == m_ThisGatekeeper;
+            if(String.IsNullOrEmpty(UriHost))
+                return true;
+            if(m_ThisGatekeeperHost.Equals(UriHost, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+            return m_ThisGateKeeperIP.Equals(UriHost);
         }
 
         public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
@@ -208,9 +204,10 @@ namespace OpenSim.Services.GridService
             GridRegion regInfo = null;
 
             string serverURI = string.Empty;
+            string regionHost = string.Empty;
             string regionName = string.Empty;
 
-            if(!Util.buildHGRegionURI(mapName, out serverURI, out regionName))
+            if (!Util.buildHGRegionURI(mapName, out serverURI, out regionHost, out regionName))
             {
                 reason = "Wrong URI format for link-region";
                 return null;
@@ -277,9 +274,9 @@ namespace OpenSim.Services.GridService
             regInfo.EstateOwner = ownerID;
 
             // Make sure we're not hyperlinking to regions on this grid!
-            if (m_ThisGatekeeperURI != null)
+            if (String.IsNullOrWhiteSpace(m_ThisGateKeeperIP))
             {
-                if (regInfo.ExternalHostName == m_ThisGatekeeperURI.Host && regInfo.HttpPort == m_ThisGatekeeperURI.Port)
+                if (m_ThisGatekeeperHost.Equals(regInfo.ExternalHostName, StringComparison.InvariantCultureIgnoreCase) || m_ThisGateKeeperIP.Equals(regInfo.ExternalHostName))
                 {
                     m_log.InfoFormat("[HYPERGRID LINKER]: Cannot hyperlink to regions on the same grid");
                     reason = "Cannot hyperlink to regions on the same grid";
