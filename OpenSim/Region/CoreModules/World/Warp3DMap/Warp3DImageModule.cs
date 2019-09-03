@@ -541,6 +541,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             }
                         }
                     }
+                    else
+                    {
+                        m_log.WarnFormat("[Warp3D] failed to get mesh or sculpt asset {0} of prim {1} at {2}",
+                            omvPrim.Sculpt.SculptTexture.ToString(), prim.Name, prim.GetWorldPosition().ToString());
+                    }
                 }
             }
 
@@ -579,7 +584,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     //                    if(lod > DetailLevel.Low)
                     {
                         //                    materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, lod == DetailLevel.Low);
-                        materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, false);
+                        materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, false, prim);
                         if (String.IsNullOrEmpty(materialName))
                             continue;
                         int c = renderer.Scene.material(materialName).getColor();
@@ -747,7 +752,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return name;
         }
 
-        public string GetOrCreateMaterial(WarpRenderer renderer, Color4 faceColor, UUID textureID, bool useAverageTextureColor)
+        public string GetOrCreateMaterial(WarpRenderer renderer, Color4 faceColor, UUID textureID, bool useAverageTextureColor, SceneObjectPart sop)
         {
             int color = ConvertColor(faceColor);
             string idstr = textureID.ToString() + color.ToString();
@@ -757,7 +762,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 return materialName;
 
             warp_Material mat = new warp_Material();
-            warp_Texture texture = GetTexture(textureID);
+            warp_Texture texture = GetTexture(textureID, sop);
             if (texture != null)
             {
                 if (useAverageTextureColor)
@@ -774,7 +779,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             return materialName;
         }
 
-        private warp_Texture GetTexture(UUID id)
+        private warp_Texture GetTexture(UUID id, SceneObjectPart sop)
         {
             warp_Texture ret = null;
             if (id == UUID.Zero)
@@ -794,9 +799,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn(string.Format("[WARP 3D IMAGE MODULE]: Failed to decode asset {0}, exception  ", id), e);
+                    m_log.WarnFormat("[Warp3D]: Failed to decode texture {0} for prim {1} at {2}, exception {3] ", id.ToString(), sop.Name, sop.GetWorldPosition().ToString(), e);
                 }
             }
+            else
+                m_log.WarnFormat("[Warp3D]: missing texture {0} data for prim {1} at {2}",
+                    id.ToString(), sop.Name, sop.GetWorldPosition().ToString());
+
             m_warpTextures[id.ToString()] = ret;
             return ret;
         }
