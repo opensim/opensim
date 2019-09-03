@@ -799,7 +799,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[Warp3D]: Failed to decode texture {0} for prim {1} at {2}, exception {3] ", id.ToString(), sop.Name, sop.GetWorldPosition().ToString(), e);
+                    m_log.WarnFormat("[Warp3D]: Failed to decode texture {0} for prim {1} at {2}, exception {3] ", id.ToString(), sop.Name, sop.GetWorldPosition().ToString(), e.Message);
                 }
             }
             else
