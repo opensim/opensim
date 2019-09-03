@@ -257,11 +257,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     return rinfo; // invalid
                 if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) && !m_ThisGatekeeperIP.Equals(regionHost))
                     return rinfo; // not local grid
-                if (String.IsNullOrEmpty(regionName))
-                    return m_RemoteGridService.GetDefaultRegions(scopeID)[0];
             }
 
-            rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
+            if (String.IsNullOrEmpty(regionName))
+            {
+                rinfo = m_RemoteGridService.GetDefaultRegions(UUID.Zero)[0];
+                if (rinfo == null)
+                    m_log.Warn("[REMOTE GRID CONNECTOR] returned null default region");
+                else
+                    m_log.WarnFormat("[REMOTE GRID CONNECTOR] returned default region {0}", rinfo.RegionName);
+            }
+            else
+                rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
             m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
         }
@@ -290,7 +297,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             List<GridRegion> grinfo = null;
             if (String.IsNullOrEmpty(regionName))
-                grinfo = m_RemoteGridService.GetDefaultRegions(scopeID);
+            {
+                List<GridRegion> grinfos = m_RemoteGridService.GetDefaultRegions(UUID.Zero);
+                if (grinfos == null)
+                    m_log.Warn("[REMOTE GRID CONNECTOR] returned null default regions");
+                else
+                {
+                    m_log.WarnFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
+                    // only return first
+                    grinfo = new List<GridRegion>(){grinfos[0]};
+                }
+            }
             else
                 grinfo = m_RemoteGridService.GetRegionsByName(scopeID, regionName, maxNumber);
 
