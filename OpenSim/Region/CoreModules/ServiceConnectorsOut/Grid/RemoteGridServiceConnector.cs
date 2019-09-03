@@ -298,9 +298,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             List<GridRegion> grinfo = null;
             if (String.IsNullOrEmpty(regionName))
             {
-                List<GridRegion> grinfos = m_RemoteGridService.GetDefaultRegions(UUID.Zero);
-                if (grinfos == null)
-                    m_log.Warn("[REMOTE GRID CONNECTOR] returned null default regions");
+                List<GridRegion> grinfos = m_RemoteGridService.GetDefaultRegions(scopeID);
+                if (grinfos == null || grinfos.Count == 0)
+                    m_log.Warn("[REMOTE GRID CONNECTOR] returned no default regions");
                 else
                 {
                     m_log.WarnFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
