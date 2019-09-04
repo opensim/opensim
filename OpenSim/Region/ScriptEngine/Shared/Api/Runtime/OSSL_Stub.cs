@@ -1407,5 +1407,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetPSTWallclock();
         }
 
+        public rotation osSlerp(rotation a, rotation b, LSL_Float amount)
+        {
+            return m_OSSL_Functions.osSlerp(a, b, amount);
+        }
+
     }
 }

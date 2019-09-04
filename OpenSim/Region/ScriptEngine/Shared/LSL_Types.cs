@@ -434,6 +434,58 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 return this;
             }
+
+            public static Quaternion Slerp(Quaternion q1, Quaternion q2, double amount)
+            {
+                double angle = (q1.x * q2.x) + (q1.y * q2.y) + (q1.z * q2.z) + (q1.s * q2.s);
+
+                if (angle < 0f)
+                {
+                    q1.x = -q1.x;
+                    q1.y = -q1.y;
+                    q1.z = -q1.z;
+                    q1.s = -q1.s;
+                    angle *= -1.0;
+                }
+
+                double scale;
+                double invscale;
+
+                if ((angle + 1f) > 0.05f)
+                {
+                    if ((1f - angle) >= 0.05f)
+                    {
+                        // slerp
+                        double theta = Math.Acos(angle);
+                        double invsintheta = 1.0 / Math.Sin(theta);
+                        scale = Math.Sin(theta * (1.0 - amount)) * invsintheta;
+                        invscale = Math.Sin(theta * amount) * invsintheta;
+                    }
+                    else
+                    {
+                        // lerp
+                        scale = 1.0 - amount;
+                        invscale = amount;
+                    }
+                }
+                else
+                {
+                    q2.x = -q1.y;
+                    q2.y = q1.x;
+                    q2.z = -q1.s;
+                    q2.s = q1.z;
+
+                    scale = Math.Sin(Math.PI * (0.5 - amount));
+                    invscale = Math.Sin(Math.PI * amount);
+                }
+
+                return new Quaternion(
+                    q1.x * scale + q2.x * invscale,
+                    q1.y * scale + q2.y * invscale,
+                    q1.z * scale + q2.z * invscale,
+                    q1.s * scale + q2.s * invscale
+                    );
+            }
             #endregion
 
             #region Overriders
