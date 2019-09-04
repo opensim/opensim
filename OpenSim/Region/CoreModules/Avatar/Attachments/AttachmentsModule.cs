@@ -1235,7 +1235,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (objatt == null)
             {
                 m_log.WarnFormat(
-                    "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}",
+                    "[ATTACHMENTS MODULE]: did not attached item {0} to avatar {1} at point {2}",
                     itemID, sp.Name, attachmentPt);
 
                 return null;

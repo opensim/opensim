@@ -556,10 +556,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
             }
 
+/* this is already done under m_Scene.AddInventoryItem(item) that triggers TriggerOnNewInventoryItemUploadComplete calling HG 
             // This is a hook to do some per-asset post-processing for subclasses that need that
             if (remoteClient != null && action != DeRezAction.Delete)
                 ExportAsset(remoteClient.AgentId, asset.FullID);
-
+*/
             return item;
         }
 
@@ -918,8 +919,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             int primcount = 0;
-            foreach (SceneObjectGroup g in objlist)
-                primcount += g.PrimCount;
+            if(attachment)
+            {
+                foreach (SceneObjectGroup g in objlist)
+                {
+                    if(g.RootPart.Shape != null)
+                    {
+                        PCode code = (PCode)g.RootPart.Shape.PCode;
+                        if(code == PCode.Grass || code == PCode.NewTree || code == PCode.Tree)
+                        {
+                            // dont wear vegetables
+                            remoteClient.SendAgentAlertMessage("You cannot wear system plants. They could grow roots inside your avatar", false);
+                            return null;
+                        }
+                    }
+                    primcount += g.PrimCount;
+                }
+            }
+            else
+            {
+                foreach (SceneObjectGroup g in objlist)
+                    primcount += g.PrimCount;
+            }
+
 
             if (!m_Scene.Permissions.CanRezObject(
                 primcount, remoteClient.AgentId, pos)
