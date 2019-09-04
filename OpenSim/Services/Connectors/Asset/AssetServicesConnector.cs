@@ -539,11 +539,11 @@ namespace OpenSim.Services.Connectors
                     // SynchronousRestObjectRequester returns somethins that is not an empty string
 
                     asset.ID = newID;
-
-                    if (m_Cache != null)
-                        m_Cache.Cache(asset);
                 }
             }
+            if (m_Cache != null)
+                m_Cache.Cache(asset);
+
             return asset.ID;
         }
 
@@ -573,8 +573,8 @@ namespace OpenSim.Services.Connectors
             if (newID == null || newID == String.Empty || newID == stringUUIDZero)
             {
                 if(nextRetryLevel >= MAXSENDRETRIESLEN)
-                    m_log.WarnFormat("[Assets] Upload giveup after several retries id: {0} type {1}",
-                            asset.ID.ToString(), asset.Type.ToString());
+                    m_log.WarnFormat("[Assets] Giving up on uploading after {2} retries id: {0} type {1}",
+                            asset.ID.ToString(), asset.Type.ToString(), MAXSENDRETRIESLEN);
                 else
                 {
                     lock(m_sendRetries)
@@ -596,11 +596,11 @@ namespace OpenSim.Services.Connectors
                 if (newID != asset.ID)
                 {
                      asset.ID = newID;
-
-                    if (m_Cache != null)
-                        m_Cache.Cache(asset);
                 }
             }
+
+            if (m_Cache != null)
+                m_Cache.Cache(asset);
         }
 
         public bool UpdateContent(string id, byte[] data)
