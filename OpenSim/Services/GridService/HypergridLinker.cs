@@ -274,7 +274,7 @@ namespace OpenSim.Services.GridService
             regInfo.EstateOwner = ownerID;
 
             // Make sure we're not hyperlinking to regions on this grid!
-            if (String.IsNullOrWhiteSpace(m_ThisGateKeeperIP))
+            if (!String.IsNullOrWhiteSpace(m_ThisGateKeeperIP))
             {
                 if (m_ThisGatekeeperHost.Equals(regInfo.ExternalHostName, StringComparison.InvariantCultureIgnoreCase) || m_ThisGateKeeperIP.Equals(regInfo.ExternalHostName))
                 {
@@ -283,8 +283,6 @@ namespace OpenSim.Services.GridService
                     return false;
                 }
             }
-            else
-                m_log.WarnFormat("[HYPERGRID LINKER]: Please set this grid's Gatekeeper's address in [GridService]!");
 
             // Check for free coordinates
             GridRegion region = m_GridService.GetRegionByPosition(regInfo.ScopeID, regInfo.RegionLocX, regInfo.RegionLocY);
