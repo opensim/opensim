@@ -77,9 +77,11 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             {
                 RegisterCaps(agentID, caps);
             };
+/*
             ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if(simFeatures != null)
                 simFeatures.AddFeature("AvatarHoverHeightEnabled",OSD.FromBoolean(true));
+*/
         }
 
         public void PostInitialise() {}
@@ -122,7 +124,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
         public string UpdateAgentPreferences(string request, string path, string param, UUID agent)
         {
             OSDMap resp = new OSDMap();
-            // The viewer doesn't do much with the return value, so for now, if there is no preference service,
+            // if there is no preference service,
             // we'll return a null llsd block for debugging purposes. This may change if someone knows what the
             // correct server response would be here.
             if (m_scenes[0].AgentPreferencesService == null)
@@ -151,6 +153,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             }
             if (req.ContainsKey("hover_height"))
             {
+                //data.HoverHeight = (float)req["hover_height"].AsReal();
                 data.HoverHeight = req["hover_height"].AsReal();
             }
             if (req.ContainsKey("language"))
@@ -174,7 +177,10 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             resp["hover_height"] = data.HoverHeight;
             resp["language"] = data.Language;
             resp["language_is_public"] = data.LanguageIsPublic;
-
+/*
+            IAvatarFactoryModule afm = m_scenes[0].RequestModuleInterface<IAvatarFactoryModule>();
+            afm?.SetPreferencesHoverZ(agent, (float)data.HoverHeight);
+*/
             string response = OSDParser.SerializeLLSDXmlString(resp);
             return response;
         }
