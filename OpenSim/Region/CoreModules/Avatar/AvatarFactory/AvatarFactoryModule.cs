@@ -582,7 +582,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (checkExternal)
                 {
                     WearableCacheItem[] bakedModuleCache = null;
-                    bool gotbacked = false;
                     hits = 0;
 
                     // m_log.Debug("[ValidateBakedCache] local cache invalid, checking bakedModule");
