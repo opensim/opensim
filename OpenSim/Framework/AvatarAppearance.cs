@@ -848,7 +848,7 @@ namespace OpenSim.Framework
 
                 if (data.TryGetValue("wrbls8", out tmpOSD8) && (tmpOSD8 is OSDArray))
                 {
-                    wears8 = (OSDArray)tmpOSD;
+                    wears8 = (OSDArray)tmpOSD8;
                     wears8Count = wears8.Count;
                 }
 
