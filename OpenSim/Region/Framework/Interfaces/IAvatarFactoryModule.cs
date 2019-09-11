@@ -37,7 +37,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void SetAppearance(IScenePresence sp, AvatarAppearance appearance, WearableCacheItem[] cacheItems);
         void SetAppearance(IScenePresence sp, Primitive.TextureEntry textureEntry, byte[] visualParams, WearableCacheItem[] cacheItems);
-
+        void SetPreferencesHoverZ(UUID agentId, float val);
         /// <summary>
         /// Send the appearance of an avatar to others in the scene.
         /// </summary>

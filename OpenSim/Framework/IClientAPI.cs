@@ -1107,7 +1107,7 @@ namespace OpenSim.Framework
         /// <param name="agentID">The id of the agent associated with the appearance</param>
         /// <param name="visualParams"></param>
         /// <param name="textureEntry"></param>
-        void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry);
+        void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry, float hoverheight);
 
         void SendCachedTextureResponse(ISceneEntity avatar, int serial, List<CachedTextureResponseArg> cachedTextures);
 

@@ -570,7 +570,7 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
+        public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry, float hover)
         {
         }
 

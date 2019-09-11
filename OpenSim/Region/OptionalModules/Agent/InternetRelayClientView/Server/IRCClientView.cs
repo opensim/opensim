@@ -961,7 +961,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
+        public void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry, float hoverheight)
         {
 
         }

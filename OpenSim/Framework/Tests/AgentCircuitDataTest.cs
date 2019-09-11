@@ -220,12 +220,6 @@ namespace OpenSim.Framework.Tests
 
             AvAppearance.VisualParams = VisualParams;
 
-            List<byte> wearbyte = new List<byte>();
-            for (int i = 0; i < VisualParams.Length; i++)
-            {
-                wearbyte.Add(VisualParams[i]);
-            }
-
             AvAppearance.SetAppearance(AvAppearance.Texture, (byte[])VisualParams.Clone());
         }
 

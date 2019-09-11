@@ -129,7 +129,7 @@ namespace OpenSim.Server.Handlers.AgentPreferences
 
             AgentPrefs data = new AgentPrefs(userID);
             data.AccessPrefs = request["AccessPrefs"].ToString();
-            data.HoverHeight = double.Parse(request["HoverHeight"].ToString());
+            data.HoverHeight = float.Parse(request["HoverHeight"].ToString());
             data.Language = request["Language"].ToString();
             data.LanguageIsPublic = bool.Parse(request["LanguageIsPublic"].ToString());
             data.PermEveryone = int.Parse(request["PermEveryone"].ToString());

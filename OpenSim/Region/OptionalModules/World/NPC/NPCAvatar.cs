@@ -664,7 +664,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry)
+        public virtual void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry, float hover)
         {
         }
 

@@ -413,13 +413,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                         sb.AppendFormat("Wearables checks for {0}\n\n", sp.Name);
 
                         AvatarWearable[] wearables = sp.Appearance.Wearables;
-                        if(wearables.Count() == 0)
+                        if(wearables.Length == 0)
                         {
                             MainConsole.Instance.Output("avatar has no wearables");
                             return;
                         }
                         
-                        for (int i = 0; i < wearables.Count(); i++)
+                        for (int i = 0; i < wearables.Length; i++)
                         {
                             AvatarWearable aw = wearables[i];
 
@@ -477,8 +477,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             cdt.AddColumn("Type", 10);
             cdt.AddColumn("Item UUID", ConsoleDisplayUtil.UuidSize);
             cdt.AddColumn("Asset UUID", ConsoleDisplayUtil.UuidSize);
+            AvatarWearable[] wearables = sp.Appearance.Wearables;
 
-            for (int i = (int)WearableType.Shape; i < (int)WearableType.Physics; i++)
+            for (int i = 0; i < wearables.Length; i++)
             {
                 AvatarWearable aw = sp.Appearance.Wearables[i];
 

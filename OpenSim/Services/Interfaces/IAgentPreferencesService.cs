@@ -45,7 +45,7 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("AccessPrefs"))
                 AccessPrefs = kvp["AccessPrefs"];
             if (kvp.ContainsKey("HoverHeight"))
-                HoverHeight = double.Parse(kvp["HoverHeight"]);
+                HoverHeight = float.Parse(kvp["HoverHeight"]);
             if (kvp.ContainsKey("Language"))
                 Language = kvp["Language"];
             if (kvp.ContainsKey("LanguageIsPublic"))
@@ -65,7 +65,7 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("AccessPrefs"))
                 AccessPrefs = kvp["AccessPrefs"].ToString();
             if (kvp.ContainsKey("HoverHeight"))
-                HoverHeight = double.Parse(kvp["HoverHeight"].ToString());
+                HoverHeight = float.Parse(kvp["HoverHeight"].ToString());
             if (kvp.ContainsKey("Language"))
                 Language = kvp["Language"].ToString();
             if (kvp.ContainsKey("LanguageIsPublic"))
@@ -95,7 +95,7 @@ namespace OpenSim.Services.Interfaces
         public UUID PrincipalID = UUID.Zero;
         public string AccessPrefs = "M";
         //public int GodLevel; // *TODO: Implement GodLevel (Unused by the viewer, afaict - 6/11/2015)
-        public double HoverHeight = 0.0;
+        public float HoverHeight = 0.0f;
         public string Language = "en-us";
         public bool LanguageIsPublic = true;
         // DefaultObjectPermMasks

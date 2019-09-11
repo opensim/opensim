@@ -85,8 +85,8 @@ namespace OpenSim
         ///   - this is an older teleport protocol used in OpenSimulator 0.7.5 and before.
         /// </remarks>
         public readonly static float SimulationServiceVersionAcceptedMin = 0.3f;
-        public readonly static float SimulationServiceVersionAcceptedMax = 0.7f;
+        public readonly static float SimulationServiceVersionAcceptedMax = 0.8f;
         public readonly static float SimulationServiceVersionSupportedMin = 0.3f;
-        public readonly static float SimulationServiceVersionSupportedMax = 0.7f;
+        public readonly static float SimulationServiceVersionSupportedMax = 0.8f;
     }
 }
