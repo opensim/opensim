@@ -354,7 +354,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         // called on textures update
         public bool UpdateBakedTextureCache(IScenePresence sp, WearableCacheItem[] cacheItems)
         {
-            if(cacheItems == null)
+            if(cacheItems == null || cacheItems.Length == 0)
                 return false;
 
             // npcs dont have baked cache
@@ -436,7 +436,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // this may be a current fs bug
-            for (int i = 0; i < AvatarAppearance.BAKE_INDICES.Length; i++)
+            for (int i = AvatarAppearance.BAKES_COUNT_PV7; i < AvatarAppearance.BAKE_INDICES.Length; i++)
             {
                 uint idx = AvatarAppearance.BAKE_INDICES[i];
                 if(updatedFaces.Contains(idx))
