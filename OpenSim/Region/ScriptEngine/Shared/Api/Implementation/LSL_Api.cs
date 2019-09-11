@@ -7799,7 +7799,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private float validParticleScale(float value)
         {
-            if (value > 4.0f) return 4.0f;
+            if (value > 7.96f) return 7.96f;
             return value;
         }
 
