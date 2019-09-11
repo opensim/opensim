@@ -861,8 +861,8 @@ namespace OpenSim.Framework
                         m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
                     if (wears8Count > 0)
                     {
-                        for (int i = wears.Count; i < wears8Count + wears.Count; ++i)
-                            m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
+                        for (int i = 0; i < wears8Count; ++i)
+                            m_wearables[i + wears.Count] = new AvatarWearable((OSDArray)wears8[i]);
                     }
                 }
                 else
