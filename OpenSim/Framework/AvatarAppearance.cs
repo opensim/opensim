@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         public const int TEXTURE_COUNT_PV7 = 26;
         public const int BAKES_COUNT_PV7 = 6;
         public const int MAXWEARABLE_PV7 = 16;
-        public const int MAXWEARABLE_LEGACY = 14;
+        public const int MAXWEARABLE_LEGACY = 15;
 
         public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20, 40, 41, 42, 43, 44 };
 
@@ -739,8 +739,6 @@ namespace OpenSim.Framework
                 return data;
 
             bool sendPV8 = false;
-            if(ctx != null)
-                sendPV8 = ctx.OutboundVersion >= 0.8;
 
             // Wearables
             OSDArray wears;
@@ -749,31 +747,33 @@ namespace OpenSim.Framework
                 count = MAXWEARABLE_LEGACY;
             else
             {
-                int wbcount = ctx.WearablesCount;
-                if (wbcount == -1)
-                    wbcount = m_wearables.Length;
-
-                count = wbcount;
-                if(count >  MAXWEARABLE_PV7)
+                if(ctx.OutboundVersion >= 0.8)
                 {
+                    sendPV8 = true;
+                    count = m_wearables.Length;
+                }
+                else if (ctx.OutboundVersion >= 0.6)
                     count = MAXWEARABLE_PV7;
-                    if(sendPV8)
-                    {
-                        wears = new OSDArray(wbcount - MAXWEARABLE_PV7);
-                        for (int i = MAXWEARABLE_PV7; i < wbcount; ++i)
-                            wears.Add(m_wearables[i].Pack());
+                else
+                    count = MAXWEARABLE_LEGACY;
 
-                        data["wrbls8"] = wears;
-                    }
+                if (sendPV8 && count > MAXWEARABLE_PV7)
+                {
+                    wears = new OSDArray(count - MAXWEARABLE_PV7);
+                    for (int i = MAXWEARABLE_PV7; i < count; ++i)
+                        wears.Add(m_wearables[i].Pack());
+
+                    data["wrbls8"] = wears;
+                    count = MAXWEARABLE_PV7;
                 }
             }
 
             wears = new OSDArray(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; ++i)
                 wears.Add(m_wearables[i].Pack());
             data["wearables"] = wears;
 
-            // Avatar Textures and preferences hover
+            // Avatar Textures
             OSDArray textures;
             if (sendPV8)
             {
@@ -783,7 +783,7 @@ namespace OpenSim.Framework
             else
             {
                 textures = new OSDArray(TEXTURE_COUNT_PV7);
-                for (uint i = 0; i < TEXTURE_COUNT_PV7; i++)
+                for (uint i = 0; i < TEXTURE_COUNT_PV7; ++i)
                     textures.Add(OSD.FromUUID(m_texture.GetFace(i).TextureID));
                 data["textures"] = textures;
             }
@@ -796,6 +796,64 @@ namespace OpenSim.Framework
                 baked = WearableCacheItem.BakedToOSD(m_cacheitems, BAKES_COUNT_PV7, -1);
                 if (baked != null && baked.Count > 0)
                     data["bc8"] = baked;
+            }
+
+            // Visual Parameters
+            OSDBinary visualparams = new OSDBinary(m_visualparams);
+            data["visualparams"] = visualparams;
+
+            lock (m_attachments)
+            {
+                // Attachments
+                OSDArray attachs = new OSDArray(m_attachments.Count);
+                foreach (AvatarAttachment attach in GetAttachments())
+                    attachs.Add(attach.Pack());
+                data["attachments"] = attachs;
+            }
+
+            return data;
+        }
+
+        public OSDMap PackForNotecard()
+        {
+            OSDMap data = new OSDMap();
+
+            data["serial"] = OSD.FromInteger(m_serial);
+            data["height"] = OSD.FromReal(m_avatarHeight);
+            data["aphz"] = OSD.FromReal(AvatarPreferencesHoverZ);
+
+            // old regions may not like missing/empty wears
+            OSDArray wears = new OSDArray(MAXWEARABLE_LEGACY);
+            for (int i = 0; i< MAXWEARABLE_LEGACY; ++i)
+                wears.Add(new OSDArray());
+            data["wearables"] = wears;
+
+            // Avatar Textures
+            OSDArray textures;
+
+            // allow old regions to still see something
+            textures = new OSDArray(TEXTURE_COUNT_PV7);
+            textures.Add(OSD.FromUUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE));
+            for (uint i = 1; i < TEXTURE_COUNT_PV7; ++i)
+                textures.Add(OSD.FromUUID(m_texture.GetFace(i).TextureID));
+            data["textures"] = textures;
+
+            bool needExtra = false;
+            for (int i = BAKES_COUNT_PV7; i < BAKE_INDICES.Length; ++i)
+            {
+                int idx = BAKE_INDICES[i];
+                if (m_texture.FaceTextures[idx] == null)
+                    continue;
+                if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
+                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
+                    continue;
+                needExtra = true;
+            }
+
+            if (needExtra)
+            {
+                byte[] te = m_texture.GetBakesBytes();
+                data["te8"] = OSD.FromBinary(te);
             }
 
             // Visual Parameters
@@ -855,22 +913,27 @@ namespace OpenSim.Framework
                 if (data.TryGetValue("wearables", out tmpOSD) && (tmpOSD is OSDArray))
                 {
                     OSDArray wears = (OSDArray)tmpOSD;
-                    m_wearables = new AvatarWearable[wears.Count + wears8Count];
-
-                    for (int i = 0; i < wears.Count; ++i)
-                        m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
-                    if (wears8Count > 0)
+                    if(wears.Count + wears8Count > 0)
                     {
-                        for (int i = 0; i < wears8Count; ++i)
-                            m_wearables[i + wears.Count] = new AvatarWearable((OSDArray)wears8[i]);
+                        m_wearables = new AvatarWearable[wears.Count + wears8Count];
+
+                        for (int i = 0; i < wears.Count; ++i)
+                            m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
+                        if (wears8Count > 0)
+                        {
+                            for (int i = 0; i < wears8Count; ++i)
+                                m_wearables[i + wears.Count] = new AvatarWearable((OSDArray)wears8[i]);
+                        }
                     }
                 }
-                else
-                {
-                    m_log.Warn("[AVATAR APPEARANCE]: failed to unpack wearables");
-                }
 
-                if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray))
+                if (data.TryGetValue("te8", out tmpOSD))
+                {
+                    byte[] teb = tmpOSD.AsBinary();
+                    Primitive.TextureEntry te = new Primitive.TextureEntry(teb, 0, teb.Length);
+                    m_texture = te;
+                }
+                else if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray))
                 {
                     OSDArray textures = (OSDArray)tmpOSD;
                     for (int i = 0; i < textures.Count && i < TEXTURE_COUNT_PV7; ++i)
@@ -879,12 +942,6 @@ namespace OpenSim.Framework
                         if (tmpOSD != null)
                             m_texture.CreateFace((uint)i).TextureID = tmpOSD.AsUUID();
                     }
-                }
-                if (data.TryGetValue("te8", out tmpOSD))
-                {
-                    byte[] teb = tmpOSD.AsBinary();
-                    Primitive.TextureEntry te = new Primitive.TextureEntry(teb, 0, teb.Length);
-                    m_texture = te;
                 }
 
                 if (data.TryGetValue("bakedcache", out tmpOSD) && (tmpOSD is OSDArray))
@@ -965,13 +1022,13 @@ namespace OpenSim.Framework
             }
 
             // also check baked
-            for(int i = BAKES_COUNT_PV7; i < BAKE_INDICES.Length; i++)
+            for (int i = BAKES_COUNT_PV7; i < BAKE_INDICES.Length; i++)
             {
                 int idx = BAKE_INDICES[i];
                 if (m_texture.FaceTextures[idx] == null)
                     continue;
-                UUID tid = m_texture.FaceTextures[idx].TextureID;
-                if(tid == AppearanceManager.DEFAULT_AVATAR_TEXTURE || tid == UUID.Zero)
+                if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
+                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
                     continue;
                 return false;
             }

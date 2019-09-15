@@ -3456,9 +3456,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return SaveAppearanceToNotecard(m_host.OwnerID, notecard);
         }
 
-        public LSL_Key osAgentSaveAppearance(LSL_Key avatarId, string notecard)
+        public LSL_Key osAgentSaveAppearance(LSL_Key avatarKey, string notecard)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAgentSaveAppearance");
+
+            UUID avatarId;
+            if (!UUID.TryParse(avatarKey, out avatarId))
+                return new LSL_Key(UUID.Zero.ToString());
 
             return SaveAppearanceToNotecard(avatarId, notecard);
         }
@@ -3470,8 +3474,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (appearanceModule != null)
             {
                 appearanceModule.SaveBakedTextures(sp.UUID);
-                EntityTransferContext ctx = new EntityTransferContext();
-                OSDMap appearancePacked = sp.Appearance.Pack(ctx);
+                OSDMap appearancePacked = sp.Appearance.PackForNotecard();
 
                 TaskInventoryItem item
                     = SaveNotecard(notecard, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);
@@ -3492,15 +3495,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_Key(UUID.Zero.ToString());
 
             return SaveAppearanceToNotecard(sp, notecard);
-        }
-
-        protected LSL_Key SaveAppearanceToNotecard(LSL_Key rawAvatarId, string notecard)
-        {
-            UUID avatarId;
-            if (!UUID.TryParse(rawAvatarId, out avatarId))
-                return new LSL_Key(UUID.Zero.ToString());
-
-            return SaveAppearanceToNotecard(avatarId, notecard);
         }
 
         /// <summary>

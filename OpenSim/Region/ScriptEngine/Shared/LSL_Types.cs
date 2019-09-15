@@ -451,9 +451,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double scale;
                 double invscale;
 
-                if ((angle + 1f) > 0.05f)
+                if ((angle + 1.0) > 0.0005)
                 {
-                    if ((1f - angle) >= 0.05f)
+                    if ((1f - angle) >= 0.0005)
                     {
                         // slerp
                         double theta = Math.Acos(angle);
