@@ -768,6 +768,9 @@ namespace OpenSim.Framework
                 }
             }
 
+            if(count > m_wearables.Length)
+                count = m_wearables.Length;
+
             wears = new OSDArray(count);
             for (int i = 0; i < count; ++i)
                 wears.Add(m_wearables[i].Pack());
