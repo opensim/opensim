@@ -5072,7 +5072,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch { }
 
-            Animator.ResetAnimations();
+            // we are losing animator somewhere
+            if (Animator == null)
+                Animator = new ScenePresenceAnimator(this);
+            else
+                Animator.ResetAnimations();
 
             Overrides.CopyAOPairsFrom(cAgent.MovementAnimationOverRides);
             int nanim = ControllingClient.NextAnimationSequenceNumber;
