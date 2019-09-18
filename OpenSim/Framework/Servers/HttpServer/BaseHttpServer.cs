@@ -1262,6 +1262,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
                         response.KeepAlive = keepAlive;
+                        response.AddHeader("Access-Control-Allow-Origin", "*");
                     }
                     else
                     {
@@ -1700,6 +1701,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             switch (request.HttpMethod)
             {
                 case "OPTIONS":
+                    response.AddHeader("Access-Control-Allow-Origin", "*");
+                    response.AddHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
+                    response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
                     response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
                     return null;
 
