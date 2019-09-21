@@ -389,7 +389,7 @@ namespace OpenSim.Framework.Console
             System.Console.WriteLine();
         }
 
-        public override void Output(string format, string level = null, params object[] components)
+        public override void Output(string format, string level, params object[] components)
         {
             string text = String.Format(format, components);
 
@@ -400,7 +400,6 @@ namespace OpenSim.Framework.Console
                 if (m_cursorYPosition == -1)
                 {
                     WriteLocalText(text, level);
-
                     return;
                 }
 

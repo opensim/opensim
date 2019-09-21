@@ -58,7 +58,12 @@ namespace OpenSim.Framework.Console
         {
         }
 
-        public virtual void Output(string format, string level = null, params object[] components)
+        public void Output(string format, params object[] components)
+        {
+            Output(format, null, components);
+        }
+
+        public virtual void Output(string format, string level, params object[] components)
         {
             System.Console.WriteLine(format, components);
         }
