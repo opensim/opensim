@@ -66,6 +66,8 @@ namespace OpenSim.Framework.Console
         public void Output(string format, string level, params object[] components) { }
 
         public string Prompt(string p) { return ""; }
+        public string Prompt(string p, string def) { return ""; }
+        public string Prompt(string p, List<char> excludedCharacters) { return ""; }
         public string Prompt(string p, string def, List<char> excludedCharacters, bool echo) { return ""; }
 
         public string Prompt(string prompt, string defaultresponse, List<string> options) { return ""; }
