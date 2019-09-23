@@ -34,9 +34,13 @@ namespace OpenSim.Framework
     {
         IScene ConsoleScene { get; set; }
 
-        void Output(string format, string level = null, params object[] components);
+        void Output(string format, params object[] components);
+        void Output(string format, string level, params object[] components);
 
-        string Prompt(string p, string def = null, List<char> excludedCharacters = null, bool echo = true);
+        string Prompt(string p);
+        string Prompt(string p, string def);
+        string Prompt(string p, List<char> excludedCharacters);
+        string Prompt(string p, string def, List<char> excludedCharacters, bool echo = true);
 
         // Displays a prompt and returns a default value, user may only enter 1 of 2 options
         string Prompt(string prompt, string defaultresponse, List<string> options);
