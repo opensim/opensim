@@ -399,34 +399,6 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
-        // currently not in use
-        public InventoryItemBase GetItem(InventoryItemBase item)
-        {
-            InventoryItemBase it = base.GetItem(item.Owner, item.ID);
-            if (it == null)
-            {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: Unable to retrieve item {0} ({1}) in folder {2}",
-                    item.Name, item.ID, item.Folder);
-                return null;
-            }
-
-            if (!IsWithinSuitcaseTree(it.Owner, it.Folder) && !IsPartOfAppearance(it.Owner, it.ID))
-            {
-                m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetItem: item {0}/{1} (folder {2}) (user {3}) is not within Suitcase tree or Appearance",
-                    it.Name, it.ID, it.Folder, it.Owner);
-                return null;
-            }
-
-            //    UserAccount user = m_Cache.GetUser(it.CreatorId);
-
-            //    // Adjust the creator data
-            //    if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
-            //        it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
-            //}
-
-            return it;
-        }
-
         public override InventoryItemBase GetItem(UUID principalID, UUID itemID)
         {
             InventoryItemBase it = base.GetItem(principalID, itemID);
