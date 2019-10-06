@@ -69,34 +69,6 @@ namespace OpenSim.Services.GridService
         protected string m_ThisGatekeeperHost = string.Empty;
         protected string m_ThisGateKeeperIP = string.Empty;
 
-        protected GridRegion m_DefaultRegion;
-        protected GridRegion DefaultRegion
-        {
-            get
-            {
-                if (m_DefaultRegion == null)
-                {
-                    List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
-                    if (defs != null && defs.Count > 0)
-                        m_DefaultRegion = defs[0];
-                    else
-                    {
-                        // Get any region
-                        defs = m_GridService.GetRegionsByName(m_ScopeID, "", 1);
-                        if (defs != null && defs.Count > 0)
-                            m_DefaultRegion = defs[0];
-                        else
-                        {
-                            // This shouldn't happen
-                            m_DefaultRegion = new GridRegion(1000, 1000);
-                            m_log.Error("[HYPERGRID LINKER]: Something is wrong with this grid. It has no regions?");
-                        }
-                    }
-                }
-                return m_DefaultRegion;
-            }
-        }
-
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
             IConfig gridConfig = config.Configs["GridService"];
