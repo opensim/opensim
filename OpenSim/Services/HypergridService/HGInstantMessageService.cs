@@ -118,6 +118,7 @@ namespace OpenSim.Services.HypergridService
                     return;
                 }
 
+                m_messageKey = cnf.GetString("MessageKey", String.Empty);
                 m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", false);
 
                 if (m_InGatekeeper)
@@ -282,7 +283,7 @@ namespace OpenSim.Services.HypergridService
 
             if (reginfo != null)
             {
-                imresult = InstantMessageServiceConnector.SendInstantMessage(reginfo.ServerURI, im);
+                imresult = InstantMessageServiceConnector.SendInstantMessage(reginfo.ServerURI, im, m_messageKey);
             }
             else
             {
