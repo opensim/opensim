@@ -117,7 +117,6 @@ namespace OpenSim.Region.ClientStack.Linden
             m_GetAssetURL = config.GetString("Cap_GetAsset", string.Empty);
             if (m_GetAssetURL != string.Empty)
                 m_Enabled = true;
-
         }
 
         public void AddRegion(Scene pScene)
@@ -387,6 +386,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 protocol = "https";
             }
 
+            IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
             string baseURL = String.Format("{0}://{1}:{2}", protocol, hostName, port);
 
             if (m_GetTextureURL == "localhost")
@@ -399,7 +399,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 args.Type = PollServiceEventArgs.EventType.Texture;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
-                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", capUrl);
                 else
@@ -420,7 +419,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 args.Type = PollServiceEventArgs.EventType.Mesh;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
 
-                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetMesh", capUrl);
                 else
@@ -438,7 +436,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene);
                 args.Type = PollServiceEventArgs.EventType.Mesh2;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
-                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetMesh2", capUrl);
                 else
@@ -448,6 +446,7 @@ namespace OpenSim.Region.ClientStack.Linden
             else if (m_GetMesh2URL != string.Empty)
                 caps.RegisterHandler("GetMesh2", m_GetMesh2URL);
 
+
             //ViewerAsset
             if (m_GetAssetURL == "localhost")
             {
@@ -456,7 +455,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene);
                 args.Type = PollServiceEventArgs.EventType.Asset;
                 MainServer.Instance.AddPollServiceHTTPHandler(capUrl, args);
-                IExternalCapsModule handler = m_scene.RequestModuleInterface<IExternalCapsModule>();
+
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "ViewerAsset", capUrl);
                 else
@@ -464,8 +463,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_capsDictGetAsset[agentID] = capUrl;
             }
             else if (m_GetAssetURL != string.Empty)
-                caps.RegisterHandler("ViewerAsset", m_GetMesh2URL);
-
+                caps.RegisterHandler("ViewerAsset", m_GetAssetURL);
         }
 
         private void DeregisterCaps(UUID agentID, Caps caps)
