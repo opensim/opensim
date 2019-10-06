@@ -50,7 +50,7 @@ namespace Robust.Tests
             im.message = "Hello";
             im.imSessionID = new Guid();
 
-            bool success = InstantMessageServiceConnector.SendInstantMessage(DemonServer.Address, im);
+            bool success = InstantMessageServiceConnector.SendInstantMessage(DemonServer.Address, im, String.Empty);
             Assert.IsFalse(success, "Sending of IM succeeded, but it should have failed");
         }
 
