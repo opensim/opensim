@@ -54,7 +54,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
         private string m_ServerURL;
         private GridRegion m_Gatekeeper;
 
-        public UserAgentServiceConnector(string url) : this(url, true)
+        public UserAgentServiceConnector(string url) : this(url, false)
         {
         }
 
@@ -140,7 +140,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             m_Gatekeeper = gatekeeper;
 
-            Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
+            //Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
             uint flags = fromLogin ? (uint)TeleportFlags.ViaLogin : (uint)TeleportFlags.ViaHome;
             EntityTransferContext ctx = new EntityTransferContext();
