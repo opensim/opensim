@@ -5560,5 +5560,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return LSL_Rotation.Slerp(a, b, amount);
         }
+
+        public void osResetAllScripts(LSL_Integer linkset)
+        {
+            UUID me = m_item.ItemID;
+            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>();
+
+            if(linkset != 0)
+            {
+                SceneObjectGroup sog = m_host.ParentGroup;
+                if(sog.inTransit || sog.IsDeleted)
+                    return;
+
+                SceneObjectPart[] parts = sog.Parts;
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
+                }
+            }
+            else
+                scripts.AddRange(m_host.Inventory.GetInventoryItems(InventoryType.LSL));
+
+            foreach(TaskInventoryItem script in scripts)
+            {
+                if(script.ItemID == me)
+                    continue;
+                m_ScriptEngine.ResetScript(script.ItemID);
+            }
+
+            if (m_UrlModule != null)
+                m_UrlModule.ScriptRemoved(me);
+
+            m_ScriptEngine.ApiResetScript(me);
+
+        }
     }
 }
