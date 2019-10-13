@@ -86,13 +86,13 @@ namespace OpenSim.Data.PGSQL
 
             if (string.IsNullOrEmpty(pattern)) // True for where clause
             {
-                pattern = " 1 ORDER BY lower(\"Name\") LIMIT 100";
+                pattern = "1";
 
                 return m_Groups.Get(pattern);
             }
             else
             {
-                pattern = " \"ShowInList\" = 1 AND lower(\"Name\") LIKE lower('%" + pattern + "%') ORDER BY lower(\"Name\") LIMIT 100";
+                pattern = " \"ShowInList\" = 1 AND lower(\"Name\") LIKE lower('%" + pattern + "%')";
 
                 return m_Groups.Get(pattern, new NpgsqlParameter("pattern", pattern));
             }
