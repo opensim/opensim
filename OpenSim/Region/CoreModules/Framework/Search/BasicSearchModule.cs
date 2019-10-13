@@ -193,7 +193,7 @@ namespace OpenSim.Region.CoreModules.Framework.Search
                     return;
                 }
 
-                // filter out groups with no members
+                // filter out groups
                 DirGroupsReplyData[] result = new DirGroupsReplyData[answer.Count];
                 int count = 0;
                 foreach(DirGroupsReplyData dgrd in answer)
@@ -207,8 +207,16 @@ namespace OpenSim.Region.CoreModules.Framework.Search
                 if ((queryStart > 0) && (queryStart < count))
                 {
                     int len = count - queryStart;
+                    if (len > 101) // a viewer page is 100
+                        len = 101;
                     DirGroupsReplyData[] tmp = new DirGroupsReplyData[len];
                     Array.Copy(result, queryStart, tmp, 0, len);
+                    result = tmp;
+                }
+                else if (count > 101)
+                {
+                    DirGroupsReplyData[] tmp = new DirGroupsReplyData[101];
+                    Array.Copy(result, 0, tmp, 0, 101);
                     result = tmp;
                 }
 
