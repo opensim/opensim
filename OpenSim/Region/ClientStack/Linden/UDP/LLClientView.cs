@@ -3850,19 +3850,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirGroupsReplyPacket.QueryDataBlock();
             packet.QueryData.QueryID = queryID;
 
-            packet.QueryReplies = new DirGroupsReplyPacket.QueryRepliesBlock[
-                    data.Length];
+            packet.QueryReplies = new DirGroupsReplyPacket.QueryRepliesBlock[data.Length];
 
             int i = 0;
             foreach (DirGroupsReplyData d in data)
             {
                 packet.QueryReplies[i] = new DirGroupsReplyPacket.QueryRepliesBlock();
                 packet.QueryReplies[i].GroupID = d.groupID;
-                packet.QueryReplies[i].GroupName =
-                        Utils.StringToBytes(d.groupName);
+                packet.QueryReplies[i].GroupName = Util.StringToBytes(d.groupName, 35);
                 packet.QueryReplies[i].Members = d.members;
                 packet.QueryReplies[i].SearchOrder = d.searchOrder;
-                i++;
+                ++i;
             }
 
             OutPacket(packet, ThrottleOutPacketType.Task);

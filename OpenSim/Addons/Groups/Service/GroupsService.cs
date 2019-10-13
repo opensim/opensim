@@ -230,15 +230,22 @@ namespace OpenSim.Groups
                     if (d.Data.ContainsKey("Location") && d.Data["Location"] != string.Empty)
                         continue;
 
+                    int nmembers = m_Database.MemberCount(d.GroupID);
+                    if(nmembers == 0)
+                        continue;
+
                     DirGroupsReplyData g = new DirGroupsReplyData();
-                    g.groupID = d.GroupID;
 
                     if (d.Data.ContainsKey("Name"))
                         g.groupName = d.Data["Name"];
                     else
+                    {
                         m_log.DebugFormat("[Groups]: Key Name not found");
+                        continue;
+                    }
 
-                    g.members = m_Database.MemberCount(d.GroupID);
+                    g.groupID = d.GroupID;
+                    g.members = nmembers;
 
                     groups.Add(g);
                 }

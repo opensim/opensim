@@ -186,10 +186,35 @@ namespace OpenSim.Region.CoreModules.Framework.Search
                 if (string.IsNullOrEmpty(queryText))
                     remoteClient.SendDirGroupsReply(queryID, new DirGroupsReplyData[0]);
 
-                // TODO: This currently ignores pretty much all the query flags including Mature and sort order
-                remoteClient.SendDirGroupsReply(queryID, m_GroupsService.FindGroups(remoteClient, queryText).ToArray());
-            }
+                List<DirGroupsReplyData> answer = m_GroupsService.FindGroups(remoteClient, queryText);
+                if(answer.Count == 0)
+                {
+                    remoteClient.SendDirGroupsReply(queryID, new DirGroupsReplyData[0]);
+                    return;
+                }
 
+                // filter out groups with no members
+                DirGroupsReplyData[] result = new DirGroupsReplyData[answer.Count];
+                int count = 0;
+                foreach(DirGroupsReplyData dgrd in answer)
+                {
+                    if(dgrd.members > 0)
+                        result[count++] = dgrd;
+                }
+                answer = null;
+
+                // viewers don't sent sorting, so results they show are a nice mess
+                if ((queryStart > 0) && (queryStart < count))
+                {
+                    int len = count - queryStart;
+                    DirGroupsReplyData[] tmp = new DirGroupsReplyData[len];
+                    Array.Copy(result, queryStart, tmp, 0, len);
+                    result = tmp;
+                }
+
+                // TODO: This currently ignores pretty much all the query flags including Mature and sort order
+                remoteClient.SendDirGroupsReply(queryID, result);
+            }
         }
 
         #endregion Event Handlers
