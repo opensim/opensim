@@ -539,10 +539,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void SendScriptErrorMessage(Exception e, ScriptEventCode ev)
         {
             StringBuilder msg = new StringBuilder();
-
+            bool toowner = false;
             msg.Append("YEngine: ");
             if (e.Message != null)
-                msg.Append(e.Message);
+            {
+                string text = e.Message;
+                if (text.StartsWith("(OWNER)"))
+                {
+                    text = text.Substring(7);
+                    toowner = true;
+                }
+                msg.Append(text);
+            }
 
             msg.Append(" (script: ");
             msg.Append(m_Item.Name);
@@ -563,8 +571,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (msgst.Length > 1000)
                 msgst = msgst.Substring(0, 1000);
 
-            m_Engine.World.SimChat(Utils.StringToBytes(msgst),
-                                                           ChatTypeEnum.DebugChannel, 2147483647,
+            if (toowner)
+            {
+                ScenePresence sp = m_Engine.World.GetScenePresence(m_Part.OwnerID);
+                if (sp != null && !sp.IsNPC)
+                    m_Engine.World.SimChatToAgent(m_Part.OwnerID, Utils.StringToBytes(msgst), 0x7FFFFFFF, m_Part.AbsolutePosition,
+                                                           m_Part.Name, m_Part.UUID, false);
+            }
+            else
+                m_Engine.World.SimChat(Utils.StringToBytes(msgst),
+                                                           ChatTypeEnum.DebugChannel, 0x7FFFFFFF,
                                                            m_Part.AbsolutePosition,
                                                            m_Part.Name, m_Part.UUID, false);
             m_log.Debug(string.Format(

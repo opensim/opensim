@@ -928,17 +928,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         {
                             try
                             {
-
                                 if(e.InnerException != null && e.InnerException is ScriptException)
                                 {
-                                    string text = e.InnerException.Message +
-                                                "(script: " + ScriptName +
+                                    bool toowner = false;
+                                    string text = e.InnerException.Message;
+                                    if(text.StartsWith("(OWNER)"))
+                                    {
+                                        text = text.Substring(7);
+                                        toowner = true;
+                                    }
+                                    text +=     "(script: " + ScriptName +
                                                 " event: " + data.EventName +
                                                 " primID:" + Part.UUID.ToString() +
                                                 " at " + Part.AbsolutePosition + ")";
                                     if (text.Length > 1000)
                                         text = text.Substring(0, 1000);
-                                    Engine.World.SimChat(Utils.StringToBytes(text),
+                                    if (toowner)
+                                    {
+                                        ScenePresence sp = Engine.World.GetScenePresence(Part.OwnerID);
+                                        if (sp != null && !sp.IsNPC)
+                                            Engine.World.SimChatToAgent(Part.OwnerID, Utils.StringToBytes(text), 0x7FFFFFFF, Part.AbsolutePosition,
+                                                                                   Part.Name, Part.UUID, false);
+                                    }
+                                    else
+                                        Engine.World.SimChat(Utils.StringToBytes(text),
                                                            ChatTypeEnum.DebugChannel, 2147483647,
                                                            Part.AbsolutePosition,
                                                            Part.Name, Part.UUID, false);

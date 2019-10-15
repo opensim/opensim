@@ -146,6 +146,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected ISoundModule m_SoundModule = null;
         internal IConfig m_osslconfig;
         internal TimeZoneInfo PSTTimeZone = null;
+        internal bool m_PermissionErrortoOwner = false;
 
         public void Initialize(
             IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
@@ -167,10 +168,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
             }
 
-            m_ScriptDelayFactor =
-                    m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor =
-                    m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_PermissionErrortoOwner = m_osslconfig.GetBoolean("PermissionErrorToOwner", m_PermissionErrortoOwner);
+
+            m_ScriptDelayFactor =  m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
             string risk = m_osslconfig.GetString("OSFunctionThreatLevel", "VeryLow");
             switch (risk)
@@ -286,7 +287,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (!m_OSFunctionsEnabled)
-                OSSLError("permission denied.  All OS functions are disabled."); // throws
+                OSSLError("permission denied. All unsafe OSSL funtions disabled"); // throws
         }
 
         // Returns if the function is allowed. Throws a script exception if not allowed.
@@ -294,17 +295,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             if (!m_OSFunctionsEnabled)
-                OSSLError(String.Format("{0} permission denied.  All OS functions are disabled.", function)); // throws
+            {
+                if (m_PermissionErrortoOwner)
+                    throw new ScriptException("(OWNER)OSSL Permission Error: All unsafe OSSL funtions disabled");
+                else
+                    throw new ScriptException("OSSL Permission Error: All unsafe OSSL funtions disabled");
+            }
 
             string reasonWhyNot = CheckThreatLevelTest(level, function);
             if (!String.IsNullOrEmpty(reasonWhyNot))
             {
-                OSSLError(reasonWhyNot);
+                if (m_PermissionErrortoOwner)
+                    throw new ScriptException("(OWNER)OSSL Permission Error: " + reasonWhyNot);
+                else
+                    throw new ScriptException("OSSL Permission Error: " + reasonWhyNot);
             }
         }
-
-        // Check to see if function is allowed. Returns an empty string if function permitted
-        //     or a string explaining why this function can't be used.
+            // Check to see if function is allowed. Returns an empty string if function permitted
+            //     or a string explaining why this function can't be used.
         private string CheckThreatLevelTest(ThreatLevel level, string function)
         {
             if (!m_FunctionPerms.ContainsKey(function))
@@ -386,107 +394,107 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // Allow / disallow by threat level
                 if (level > m_MaxThreatLevel)
-                    return
-                        String.Format(
+                    return String.Empty;
+                return String.Format(
                             "{0} permission denied.  Allowed threat level is {1} but function threat level is {2}.",
                             function, m_MaxThreatLevel, level);
             }
-            else
+
+            if(m_FunctionPerms[function].AllowedOwners.Count == 0 && m_FunctionPerms[function].AllowedCreators.Count == 0)
+                return String.Format("{0} disabled in region configuration", function);
+
+            if (m_FunctionPerms[function].AllowedOwners.Contains(UUID.Zero)) // always allowed
+                return String.Empty;
+
+            if (m_FunctionPerms[function].AllowedOwners.Contains(m_host.OwnerID))
             {
-                if (!m_FunctionPerms[function].AllowedOwners.Contains(UUID.Zero))
+                // prim owner is in the list of allowed owners
+                return String.Empty;
+            }
+
+            UUID ownerID = m_item.OwnerID;
+
+            //Only Parcelowners may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_OWNER"))
+            {
+                ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+
+                if (land.LandData.OwnerID == ownerID)
                 {
-                    // Not anyone. Do detailed checks
-                    if (m_FunctionPerms[function].AllowedOwners.Contains(m_host.OwnerID))
-                    {
-                        // prim owner is in the list of allowed owners
-                        return String.Empty;
-                    }
-
-                    UUID ownerID = m_item.OwnerID;
-
-                    //OSSL only may be used if object is in the same group as the parcel
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
-                    {
-                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-
-                        if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    //Only Parcelowners may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_OWNER"))
-                    {
-                        ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-
-                        if (land.LandData.OwnerID == ownerID)
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    //Only Estate Managers may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
-                    {
-                        //Only Estate Managers may use the function
-                        if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    //Only regionowners may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_OWNER"))
-                    {
-                        if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-
-                    //Only grid gods may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
-                    {
-                        if (World.Permissions.IsGridGod(ownerID))
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    //Any god may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
-                    {
-                        if (World.Permissions.IsAdministrator(ownerID))
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    //Only active gods may use the function
-                    if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ACTIVE_GOD"))
-                    {
-                        ScenePresence sp = World.GetScenePresence(ownerID);
-                        if (sp != null && !sp.IsDeleted && sp.IsGod)
-                        {
-                            return String.Empty;
-                        }
-                    }
-
-                    if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
-                        return(
-                            String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
-                            function));
-
-                    if (m_item.CreatorID != ownerID)
-                    {
-                        if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
-                            return String.Format("{0} permission denied. Script permissions error.", function);
-
-                    }
+                    return String.Empty;
                 }
             }
+
+            //OSSL only may be used if object is in the same group as the parcel
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
+            {
+                ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+
+                if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
+                {
+                    return String.Empty;
+                }
+            }
+
+            //Only Estate Managers may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
+            {
+                //Only Estate Managers may use the function
+                if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+                {
+                    return String.Empty;
+                }
+            }
+
+            //Only regionowners may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_OWNER"))
+            {
+                if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
+                {
+                    return String.Empty;
+                }
+            }
+
+            //Only grid gods may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
+            {
+                if (World.Permissions.IsGridGod(ownerID))
+                {
+                    return String.Empty;
+                }
+            }
+
+            //Any god may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+            {
+                if (World.Permissions.IsAdministrator(ownerID))
+                {
+                    return String.Empty;
+                }
+            }
+
+            //Only active gods may use the function
+            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ACTIVE_GOD"))
+            {
+                ScenePresence sp = World.GetScenePresence(ownerID);
+                if (sp != null && !sp.IsDeleted && sp.IsGod)
+                {
+                    return String.Empty;
+                }
+            }
+
+            if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
+                return(
+                    String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
+                    function));
+
+            if (m_item.CreatorID != ownerID)
+            {
+                if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
+                    return String.Format("{0} permission denied. Script creator is not prim owner.", function);
+
+            }
+
             return String.Empty;
         }
 
