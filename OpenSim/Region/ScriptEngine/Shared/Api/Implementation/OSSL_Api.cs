@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
@@ -142,99 +143,113 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
+        public const string GridInfoServiceConfigSectionName = "GridInfoService";
+
+        // shared things
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const string GridInfoServiceConfigSectionName = "GridInfoService";
+        private static object m_OSSLLock = new object();
+        private static bool m_doneSharedInit = false;
+        internal static bool m_OSFunctionsEnabled = false;
+        internal static TimeZoneInfo PSTTimeZone = null;
+        internal static bool m_PermissionErrortoOwner = false;
+        internal static ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
+        internal static float m_ScriptDelayFactor = 1.0f;
+        internal static float m_ScriptDistanceFactor = 1.0f;
+        internal static IConfig m_osslconfig;
+
+        internal static ConcurrentDictionary<string, FunctionPerms> m_FunctionPerms = new ConcurrentDictionary<string, FunctionPerms>();
 
         internal IScriptEngine m_ScriptEngine;
         internal LSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
         internal TaskInventoryItem m_item;
-        internal bool m_OSFunctionsEnabled = false;
-        internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
-        internal float m_ScriptDelayFactor = 1.0f;
-        internal float m_ScriptDistanceFactor = 1.0f;
-        internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
-        internal IConfig m_osslconfig;
-        internal TimeZoneInfo PSTTimeZone = null;
-        internal bool m_PermissionErrortoOwner = false;
 
-        public void Initialize(
-            IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
+        public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
+            //private init
             m_ScriptEngine = scriptEngine;
             m_host = host;
             m_item = item;
 
-            m_osslconfig = m_ScriptEngine.ConfigSource.Configs["OSSL"];
-            if(m_osslconfig == null)
-                m_osslconfig = m_ScriptEngine.Config;
-
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
 
-            if (m_osslconfig.GetBoolean("AllowOSFunctions", false))
+            //private init
+            lock (m_OSSLLock)
             {
+                if(m_doneSharedInit)
+                    return;
+
+                m_osslconfig = m_ScriptEngine.ConfigSource.Configs["OSSL"];
+                if(m_osslconfig == null)
+                    m_osslconfig = m_ScriptEngine.Config;
+
+                if (m_osslconfig.GetBoolean("AllowOSFunctions", false))
+                {
                 m_OSFunctionsEnabled = true;
                 // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
-            }
+                }
 
-            m_PermissionErrortoOwner = m_osslconfig.GetBoolean("PermissionErrorToOwner", m_PermissionErrortoOwner);
+                m_PermissionErrortoOwner = m_osslconfig.GetBoolean("PermissionErrorToOwner", m_PermissionErrortoOwner);
 
-            m_ScriptDelayFactor =  m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+                m_ScriptDelayFactor =  m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+                m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
 
-            string risk = m_osslconfig.GetString("OSFunctionThreatLevel", "VeryLow");
-            switch (risk)
-            {
-            case "NoAccess":
-                m_MaxThreatLevel = ThreatLevel.NoAccess;
-                break;
-            case "None":
-                m_MaxThreatLevel = ThreatLevel.None;
-                break;
-            case "VeryLow":
-                m_MaxThreatLevel = ThreatLevel.VeryLow;
-                break;
-            case "Low":
-                m_MaxThreatLevel = ThreatLevel.Low;
-                break;
-            case "Moderate":
-                m_MaxThreatLevel = ThreatLevel.Moderate;
-                break;
-            case "High":
-                m_MaxThreatLevel = ThreatLevel.High;
-                break;
-            case "VeryHigh":
-                m_MaxThreatLevel = ThreatLevel.VeryHigh;
-                break;
-            case "Severe":
-                m_MaxThreatLevel = ThreatLevel.Severe;
-                break;
-            default:
-                break;
-            }
+                string risk = m_osslconfig.GetString("OSFunctionThreatLevel", "VeryLow");
+                switch (risk)
+                {
+                case "NoAccess":
+                    m_MaxThreatLevel = ThreatLevel.NoAccess;
+                    break;
+                case "None":
+                    m_MaxThreatLevel = ThreatLevel.None;
+                    break;
+                case "VeryLow":
+                    m_MaxThreatLevel = ThreatLevel.VeryLow;
+                    break;
+                case "Low":
+                    m_MaxThreatLevel = ThreatLevel.Low;
+                    break;
+                case "Moderate":
+                    m_MaxThreatLevel = ThreatLevel.Moderate;
+                    break;
+                case "High":
+                    m_MaxThreatLevel = ThreatLevel.High;
+                    break;
+                case "VeryHigh":
+                    m_MaxThreatLevel = ThreatLevel.VeryHigh;
+                    break;
+                case "Severe":
+                    m_MaxThreatLevel = ThreatLevel.Severe;
+                    break;
+                default:
+                    break;
+                }
 
-            try
-            {
-                PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-            }
-            catch
-            {
-                PSTTimeZone = null;
-            }
-            if(PSTTimeZone == null)
-            {
                 try
                 {
-                    PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                    PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
                 }
                 catch
                 {
                     PSTTimeZone = null;
                 }
+                if(PSTTimeZone == null)
+                {
+                    try
+                    {
+                        PSTTimeZone = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                    }
+                    catch
+                    {
+                        PSTTimeZone = null;
+                    }
+                }
+
+                m_doneSharedInit = true;
             }
         }
 
