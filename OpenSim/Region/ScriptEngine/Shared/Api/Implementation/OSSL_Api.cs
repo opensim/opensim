@@ -112,18 +112,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     //            modification of user data, or allows the compromise of
     //            sensitive data by design.
 
+    // flags functions threat control
+    public enum AllowedControlFlags : int
+    {
+        NONE                = 0,
+        PARCEL_OWNER        = 1,
+        PARCEL_GROUP_MEMBER = 1 << 1,
+        ESTATE_MANAGER      = 1 << 2,
+        ESTATE_OWNER        = 1 << 3,
+        ACTIVE_GOD          = 1 << 4,
+        GOD                 = 1 << 5,
+        GRID_GOD            = 1 << 6,
+
+        // internal
+        THREATLEVEL         = 1 << 28,
+        OWNERUUID           = 1 << 29,
+        CREATORUUID         = 1 << 30,
+        //int thingie       = 1 << 31,
+        ALL = 0x0FFFFFFF
+    }
+
     class FunctionPerms
     {
         public List<UUID> AllowedCreators;
         public List<UUID> AllowedOwners;
-        public List<string> AllowedOwnerClasses;
-
-        public FunctionPerms()
-        {
-            AllowedCreators = new List<UUID>();
-            AllowedOwners = new List<UUID>();
-            AllowedOwnerClasses = new List<string>();
-        }
+        public AllowedControlFlags AllowedControl = AllowedControlFlags.NONE;
     }
 
     [Serializable]
@@ -311,102 +324,141 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     throw new ScriptException("OSSL Permission Error: " + reasonWhyNot);
             }
         }
-            // Check to see if function is allowed. Returns an empty string if function permitted
-            //     or a string explaining why this function can't be used.
+
+        // Check to see if function is allowed. Returns an empty string if function permitted
+        //     or a string explaining why this function can't be used.
         private string CheckThreatLevelTest(ThreatLevel level, string function)
         {
-            if (!m_FunctionPerms.ContainsKey(function))
+            FunctionPerms perms;
+            if (!m_FunctionPerms.TryGetValue(function, out perms))
             {
-                FunctionPerms perms = new FunctionPerms();
+                perms = new FunctionPerms();
                 m_FunctionPerms[function] = perms;
 
                 string ownerPerm = m_osslconfig.GetString("Allow_" + function, "");
                 string creatorPerm = m_osslconfig.GetString("Creators_" + function, "");
-                if (ownerPerm == "" && creatorPerm == "")
+                if (string.IsNullOrWhiteSpace(ownerPerm) && string.IsNullOrWhiteSpace(creatorPerm))
                 {
-                    // Default behavior
-                    perms.AllowedOwners = null;
-                    perms.AllowedCreators = null;
-                    perms.AllowedOwnerClasses = null;
+                    // Default Threat level check
+                    perms.AllowedControl = AllowedControlFlags.THREATLEVEL;
                 }
                 else
                 {
-                    bool allowed;
-
-                    if (bool.TryParse(ownerPerm, out allowed))
+                    if (bool.TryParse(ownerPerm, out bool allowed))
                     {
                         // Boolean given
                         if (allowed)
                         {
                             // Allow globally
-                            perms.AllowedOwners.Add(UUID.Zero);
+                            perms.AllowedControl = AllowedControlFlags.ALL;
                         }
+                        // false is fallback 
                     }
                     else
                     {
-                        string[] ids = ownerPerm.Split(new char[] {','});
-                        foreach (string id in ids)
+                        string[] ids;
+                        if (!string.IsNullOrWhiteSpace(ownerPerm))
                         {
-                            string current = id.Trim();
-                            if (current.ToUpper() == "PARCEL_GROUP_MEMBER" || current.ToUpper() == "PARCEL_OWNER" || current.ToUpper() == "ESTATE_MANAGER" || current.ToUpper() == "ESTATE_OWNER" || current.ToUpper() == "ACTIVE_GOD" || current.ToUpper() == "GRID_GOD" || current.ToUpper() == "GOD")
+                            ids = ownerPerm.Split(new char[] {','});
+                            foreach (string id in ids)
                             {
-                                if (!perms.AllowedOwnerClasses.Contains(current))
-                                    perms.AllowedOwnerClasses.Add(current.ToUpper());
-                            }
-                            else
-                            {
-                                UUID uuid;
-
-                                if (UUID.TryParse(current, out uuid))
+                                string current = id.Trim();
+                                current = current.ToUpper();
+                                switch(current)
                                 {
-                                    if (uuid != UUID.Zero)
-                                        perms.AllowedOwners.Add(uuid);
+                                    case "":
+                                        break;
+                                    case "PARCEL_OWNER":
+                                        perms.AllowedControl |= AllowedControlFlags.PARCEL_OWNER;
+                                        break;
+                                    case "PARCEL_GROUP_MEMBER":
+                                        perms.AllowedControl |= AllowedControlFlags.PARCEL_GROUP_MEMBER;
+                                        break;
+                                    case "ESTATE_MANAGER":
+                                        perms.AllowedControl |= AllowedControlFlags.ESTATE_MANAGER;
+                                        break;
+                                    case "ESTATE_OWNER":
+                                        perms.AllowedControl |= AllowedControlFlags.ESTATE_OWNER;
+                                        break;
+                                    case "ACTIVE_GOD":
+                                        perms.AllowedControl |= AllowedControlFlags.ACTIVE_GOD;
+                                        break;
+                                    case "GOD":
+                                        perms.AllowedControl |= AllowedControlFlags.GOD;
+                                        break;
+                                    case "GRID_GOD":
+                                        perms.AllowedControl |= AllowedControlFlags.GRID_GOD;
+                                        break;
+                                    default:
+                                    {
+                                        if (UUID.TryParse(current, out UUID uuid))
+                                        {
+                                            if (uuid != UUID.Zero)
+                                            {
+                                                if (perms.AllowedOwners == null)
+                                                    perms.AllowedOwners = new List<UUID>();
+                                                perms.AllowedControl |= AllowedControlFlags.OWNERUUID;
+                                                perms.AllowedOwners.Add(uuid);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            m_log.WarnFormat("[OSSLENABLE]: error parsing line {0}", ownerPerm);
+                                        }
+
+                                        break;
+                                    }
                                 }
                             }
                         }
 
-                        ids = creatorPerm.Split(new char[] {','});
-                        foreach (string id in ids)
+                        if (!string.IsNullOrWhiteSpace(creatorPerm))
                         {
-                            string current = id.Trim();
-                            UUID uuid;
-
-                            if (UUID.TryParse(current, out uuid))
+                            ids = creatorPerm.Split(new char[] {','});
+                            foreach (string id in ids)
                             {
-                                if (uuid != UUID.Zero)
-                                    perms.AllowedCreators.Add(uuid);
+                                string current = id.Trim();
+                                if (UUID.TryParse(current, out UUID uuid))
+                                {
+                                    if (uuid != UUID.Zero)
+                                    {
+                                        if (perms.AllowedCreators == null)
+                                            perms.AllowedCreators = new List<UUID>();
+                                        perms.AllowedControl |= AllowedControlFlags.CREATORUUID;
+                                        perms.AllowedCreators.Add(uuid);
+                                    }
+                                }
+                                else
+                                {
+                                    m_log.WarnFormat("[OSSLENABLE]: error parsing line {0}", creatorPerm);
+                                }
                             }
                         }
+                        // both empty fallback as disabled
                     }
                 }
             }
 
-            // If the list is null, then the value was true / undefined
-            // Threat level governs permissions in this case
-            //
-            // If the list is non-null, then it is a list of UUIDs allowed
-            // to use that particular function. False causes an empty
-            // list and therefore means "no one"
-            //
-            // To allow use by anyone, the list contains UUID.Zero
-            //
-            if (m_FunctionPerms[function].AllowedOwners == null)
+            AllowedControlFlags functionControl = perms.AllowedControl;
+
+            if (functionControl == AllowedControlFlags.THREATLEVEL)
             {
                 // Allow / disallow by threat level
-                if (level > m_MaxThreatLevel)
+                if (level <= m_MaxThreatLevel)
                     return String.Empty;
+
                 return String.Format(
                             "{0} permission denied.  Allowed threat level is {1} but function threat level is {2}.",
                             function, m_MaxThreatLevel, level);
             }
 
-            if(m_FunctionPerms[function].AllowedOwners.Count == 0 && m_FunctionPerms[function].AllowedCreators.Count == 0)
+            if (functionControl == 0)
                 return String.Format("{0} disabled in region configuration", function);
 
-            if (m_FunctionPerms[function].AllowedOwners.Contains(UUID.Zero)) // always allowed
+            if (functionControl == AllowedControlFlags.ALL)
                 return String.Empty;
 
-            if (m_FunctionPerms[function].AllowedOwners.Contains(m_host.OwnerID))
+            if (((functionControl & AllowedControlFlags.OWNERUUID) != 0) && perms.AllowedOwners.Contains(m_host.OwnerID))
             {
                 // prim owner is in the list of allowed owners
                 return String.Empty;
@@ -414,11 +466,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID ownerID = m_item.OwnerID;
 
-            //Only Parcelowners may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_OWNER"))
+            if ((functionControl & AllowedControlFlags.PARCEL_OWNER) != 0)
             {
                 ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-
                 if (land.LandData.OwnerID == ownerID)
                 {
                     return String.Empty;
@@ -426,10 +476,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //OSSL only may be used if object is in the same group as the parcel
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("PARCEL_GROUP_MEMBER"))
+            if ((functionControl & AllowedControlFlags.PARCEL_GROUP_MEMBER) != 0)
             {
                 ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-
                 if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
                 {
                     return String.Empty;
@@ -437,7 +486,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //Only Estate Managers may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_MANAGER"))
+            if ((functionControl & AllowedControlFlags.ESTATE_MANAGER) != 0)
             {
                 //Only Estate Managers may use the function
                 if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
@@ -447,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //Only regionowners may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ESTATE_OWNER"))
+            if ((functionControl & AllowedControlFlags.ESTATE_OWNER) != 0)
             {
                 if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
                 {
@@ -456,7 +505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //Only grid gods may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GRID_GOD"))
+            if ((functionControl & AllowedControlFlags.GRID_GOD) != 0)
             {
                 if (World.Permissions.IsGridGod(ownerID))
                 {
@@ -465,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //Any god may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("GOD"))
+            if ((functionControl & AllowedControlFlags.GOD) != 0)
             {
                 if (World.Permissions.IsAdministrator(ownerID))
                 {
@@ -474,7 +523,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             //Only active gods may use the function
-            if (m_FunctionPerms[function].AllowedOwnerClasses.Contains("ACTIVE_GOD"))
+            if ((functionControl & AllowedControlFlags.ACTIVE_GOD) != 0)
             {
                 ScenePresence sp = World.GetScenePresence(ownerID);
                 if (sp != null && !sp.IsDeleted && sp.IsGod)
@@ -483,7 +532,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            if (!m_FunctionPerms[function].AllowedCreators.Contains(m_item.CreatorID))
+            // else if no creators its denied
+            if((functionControl & AllowedControlFlags.CREATORUUID) == 0)
+                return String.Format("{0} permission denied.", function);
+
+            if (!perms.AllowedCreators.Contains(m_item.CreatorID))
                 return(
                     String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                     function));
