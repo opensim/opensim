@@ -38,7 +38,7 @@ for more information.
 To run OpenSim, from the unpacked distribution type:
 
  * cd bin
- * review and change configuration files (.ini) for your needs.see the "Configuring OpenSim" section
+ * review and change configuration files (.ini) for your needs. see the "Configuring OpenSim" section
  * run ./opensim.sh
 
 
