@@ -1,4 +1,4 @@
-Welcome to OpenSim!
+Welcome to OpenSimulator (OpenSim for short)!
 
 # Overview
 
