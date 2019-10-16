@@ -25,10 +25,9 @@ to capture any errors.
 To run OpenSim from a command prompt
 
  * cd to the bin/ directory where you unpacked OpenSim
- * review and change configuration files (.ini) for your needs
+ * review and change configuration files (.ini) for your needs. see the "Configuring OpenSim" section
  * run OpenSim.exe or opensim32.exe for small regions
 
-Now see the "Configuring OpenSim" section
 
 # Running OpenSim on Linux
 
@@ -39,10 +38,9 @@ for more information.
 To run OpenSim, from the unpacked distribution type:
 
  * cd bin
- * review and change configuration files (.ini) for your needs
+ * review and change configuration files (.ini) for your needs.see the "Configuring OpenSim" section
  * run ./opensim.sh
 
-Now see the "Configuring OpenSim" section
 
 # Configuring OpenSim
 
