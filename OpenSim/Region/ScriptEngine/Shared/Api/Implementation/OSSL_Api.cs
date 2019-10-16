@@ -348,7 +348,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!m_FunctionPerms.TryGetValue(function, out perms))
             {
                 perms = new FunctionPerms();
-                m_FunctionPerms[function] = perms;
 
                 string ownerPerm = m_osslconfig.GetString("Allow_" + function, "");
                 string creatorPerm = m_osslconfig.GetString("Creators_" + function, "");
@@ -456,6 +455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // both empty fallback as disabled
                     }
                 }
+                m_FunctionPerms.TryAdd(function,perms);
             }
 
             AllowedControlFlags functionControl = perms.AllowedControl;
