@@ -245,9 +245,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static Vector3 operator /(Vector3 v, float f)
             {
-                v.x = v.x / f;
-                v.y = v.y / f;
-                v.z = v.z / f;
+                double r = v.x / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.x = r;
+
+                r = v.y / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.y = r;
+
+                r = v.z / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.z = r;
+
                 return v;
             }
 
@@ -267,9 +279,21 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static Vector3 operator /(Vector3 v, double f)
             {
-                v.x = v.x / f;
-                v.y = v.y / f;
-                v.z = v.z / f;
+                double r = v.x / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.x = r;
+
+                r = v.y / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.y = r;
+
+                r = v.z / f;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Vector division by zero");
+                v.z = r;
+
                 return v;
             }
 
@@ -1987,7 +2011,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public LSLInteger operator /(LSLInteger i1, int i2)
             {
-                return new LSLInteger(i1.value / i2);
+                try
+                {
+                    return new LSLInteger(i1.value / i2);
+                }
+                catch(DivideByZeroException)
+                {
+                    throw new ScriptException("Integer division by Zero");
+                }
             }
 
 //            static public LSLFloat operator +(LSLInteger i1, double f)
@@ -2260,7 +2291,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public LSLFloat operator /(LSLFloat f, int i)
             {
-                return new LSLFloat(f.value / (double)i);
+                double r = f.value / (double)i;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Float division by zero");
+                return new LSLFloat(r);
             }
 
             static public LSLFloat operator +(LSLFloat lhs, LSLFloat rhs)
@@ -2280,7 +2314,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             static public LSLFloat operator /(LSLFloat lhs, LSLFloat rhs)
             {
-                return new LSLFloat(lhs.value / rhs.value);
+                double r = lhs.value / rhs.value;
+                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                    throw new ScriptException("Float division by zero");
+                return new LSLFloat(r);
             }
 
             static public LSLFloat operator -(LSLFloat f)
