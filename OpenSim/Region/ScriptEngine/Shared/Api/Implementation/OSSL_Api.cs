@@ -25,38 +25,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Reflection;
-using System.Runtime.Remoting.Lifetime;
-using System.Text;
-using System.Net;
-using System.Threading;
-using System.Xml;
 using log4net;
+using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using Nini.Config;
-using OpenSim;
 using OpenSim.Framework;
-
-using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Scripting;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
-using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.Remoting.Lifetime;
+using System.Text;
 using System.Text.RegularExpressions;
-
+using System.Threading;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
@@ -65,7 +56,7 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using PermissionMask = OpenSim.Framework.PermissionMask;
-using OpenSim.Services.Connectors.Hypergrid;
+using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -187,10 +178,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(m_osslconfig == null)
                     m_osslconfig = m_ScriptEngine.Config;
 
-                if (m_osslconfig.GetBoolean("AllowOSFunctions", false))
+                if (m_osslconfig.GetBoolean("AllowOSFunctions", true))
                 {
-                m_OSFunctionsEnabled = true;
-                // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
+                    m_OSFunctionsEnabled = true;
+                    // m_log.Warn("[OSSL] OSSL FUNCTIONS ENABLED");
                 }
 
                 m_PermissionErrortoOwner = m_osslconfig.GetBoolean("PermissionErrorToOwner", m_PermissionErrortoOwner);
@@ -5673,6 +5664,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_ScriptEngine.ApiResetScript(me);
 
+        }
+
+        public LSL_Integer osIsNotValidNumber(LSL_Float v)
+        {
+            double d = v;
+            if (double.IsNaN(d))
+                return 1;
+            if (double.IsNegativeInfinity(d))
+                return 2;
+            if (double.IsPositiveInfinity(d))
+                return 3;
+            return 0;
         }
     }
 }
