@@ -42,6 +42,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
     public partial class LSL_Types
     {
         // Types are kept is separate .dll to avoid having to add whatever .dll it is in it to script AppDomain
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public unsafe static bool IsBadNumber(double d)
+        {
+            return (*(long*)(&d) & 0x7FFFFFFFFFFFFFFF) >= 0x7FF0000000000000;
+        }
 
         [Serializable]
         public struct Vector3
@@ -246,17 +251,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static Vector3 operator /(Vector3 v, float f)
             {
                 double r = v.x / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.x = r;
 
                 r = v.y / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.y = r;
 
                 r = v.z / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.z = r;
 
@@ -280,17 +285,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static Vector3 operator /(Vector3 v, double f)
             {
                 double r = v.x / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.x = r;
 
                 r = v.y / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.y = r;
 
                 r = v.z / f;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Vector division by zero");
                 v.z = r;
 
@@ -2292,7 +2297,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public LSLFloat operator /(LSLFloat f, int i)
             {
                 double r = f.value / (double)i;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Float division by zero");
                 return new LSLFloat(r);
             }
@@ -2315,7 +2320,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public LSLFloat operator /(LSLFloat lhs, LSLFloat rhs)
             {
                 double r = lhs.value / rhs.value;
-                if (double.IsNaN(r) || double.IsNegativeInfinity(r) || double.IsPositiveInfinity(r))
+                if (IsBadNumber(r))
                     throw new ScriptException("Float division by zero");
                 return new LSLFloat(r);
             }
