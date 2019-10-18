@@ -2020,31 +2020,43 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     return new LSLInteger(i1.value / i2);
                 }
-                catch(DivideByZeroException)
+                catch (DivideByZeroException)
                 {
                     throw new ScriptException("Integer division by Zero");
                 }
             }
 
-//            static public LSLFloat operator +(LSLInteger i1, double f)
-//            {
-//                return new LSLFloat((double)i1.value + f);
-//            }
-//
-//            static public LSLFloat operator -(LSLInteger i1, double f)
-//            {
-//                return new LSLFloat((double)i1.value - f);
-//            }
-//
-//            static public LSLFloat operator *(LSLInteger i1, double f)
-//            {
-//                return new LSLFloat((double)i1.value * f);
-//            }
-//
-//            static public LSLFloat operator /(LSLInteger i1, double f)
-//            {
-//                return new LSLFloat((double)i1.value / f);
-//            }
+            static public LSLInteger operator %(LSLInteger i1, int i2)
+            {
+                try
+                {
+                    return new LSLInteger(i1.value % i2);
+                }
+                catch (DivideByZeroException)
+                {
+                    throw new ScriptException("Integer division by Zero");
+                }
+            }
+
+            //            static public LSLFloat operator +(LSLInteger i1, double f)
+            //            {
+            //                return new LSLFloat((double)i1.value + f);
+            //            }
+            //
+            //            static public LSLFloat operator -(LSLInteger i1, double f)
+            //            {
+            //                return new LSLFloat((double)i1.value - f);
+            //            }
+            //
+            //            static public LSLFloat operator *(LSLInteger i1, double f)
+            //            {
+            //                return new LSLFloat((double)i1.value * f);
+            //            }
+            //
+            //            static public LSLFloat operator /(LSLInteger i1, double f)
+            //            {
+            //                return new LSLFloat((double)i1.value / f);
+            //            }
 
             static public LSLInteger operator -(LSLInteger i)
             {
@@ -2084,10 +2096,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return ret;
             }
 
+            static public LSLInteger operator /(LSLInteger i1, LSLInteger i2)
+            {
+                try
+                {
+                    int ret = i1.value / i2.value;
+                    return ret;
+                }
+                catch (DivideByZeroException)
+                {
+                    throw new ScriptException("Integer division by Zero");
+                }
+            }
+
             static public LSLInteger operator %(LSLInteger i1, LSLInteger i2)
             {
-                int ret = i1.value % i2.value;
-                return ret;
+                try
+                {
+                    int ret = i1.value % i2.value;
+                    return ret;
+                }
+                catch (DivideByZeroException)
+                {
+                    throw new ScriptException("Integer division by Zero");
+                }
             }
 
             static public LSLInteger operator |(LSLInteger i1, LSLInteger i2)
@@ -2302,6 +2334,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLFloat(r);
             }
 
+            static public LSLFloat operator %(LSLFloat f, int i)
+            {
+                double r = f.value % (double)i;
+                if (IsBadNumber(r))
+                    throw new ScriptException("Float division by zero");
+                return new LSLFloat(r);
+            }
+
             static public LSLFloat operator +(LSLFloat lhs, LSLFloat rhs)
             {
                 return new LSLFloat(lhs.value + rhs.value);
@@ -2320,6 +2360,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
             static public LSLFloat operator /(LSLFloat lhs, LSLFloat rhs)
             {
                 double r = lhs.value / rhs.value;
+                if (IsBadNumber(r))
+                    throw new ScriptException("Float division by zero");
+                return new LSLFloat(r);
+            }
+
+            static public LSLFloat operator %(LSLFloat lhs, LSLFloat rhs)
+            {
+                double r = lhs.value % rhs.value;
                 if (IsBadNumber(r))
                     throw new ScriptException("Float division by zero");
                 return new LSLFloat(r);
