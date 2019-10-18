@@ -7296,7 +7296,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             rValRight = rValRight.TryComputeConstant(lookup, ref didOne);
             if((rValLeft is TokenRValConst) && (rValRight is TokenRValConst))
             {
-                try
+//                try
                 {
                     object val = opcode.binOpConst(((TokenRValConst)rValLeft).val,
                                                     ((TokenRValConst)rValRight).val);
@@ -7304,7 +7304,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     didOne = true;
                     return rValConst;
                 }
-                catch
+//                catch
                 {
                 }
             }

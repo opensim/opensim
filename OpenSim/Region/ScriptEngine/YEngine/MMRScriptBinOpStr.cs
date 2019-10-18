@@ -34,6 +34,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
+using OpenSim.Region.ScriptEngine.Shared;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -120,6 +121,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static MethodInfo infoMethVecDivInt = GetBinOpsMethod("MethVecDivInt", new Type[] { typeof(LSL_Vector), typeof(int) });
         private static MethodInfo infoMethVecMulRot = GetBinOpsMethod("MethVecMulRot", new Type[] { typeof(LSL_Vector), typeof(LSL_Rotation) });
         private static MethodInfo infoMethVecDivRot = GetBinOpsMethod("MethVecDivRot", new Type[] { typeof(LSL_Vector), typeof(LSL_Rotation) });
+        private static MethodInfo infoMethDoubleDivDouble = GetBinOpsMethod("MethDoubleDivDouble", new Type[] { typeof(Double), typeof(Double) });
+        private static MethodInfo infoMethLongDivLong = GetBinOpsMethod("MethLongDivLong", new Type[] { typeof(long), typeof(long) });
+        private static MethodInfo infoMethDoubleModDouble = GetBinOpsMethod("MethDoubleModDouble", new Type[] { typeof(Double), typeof(Double) });
+        private static MethodInfo infoMethLongModLong = GetBinOpsMethod("MethLongModLong", new Type[] { typeof(long), typeof(long) });
 
         private static MethodInfo GetBinOpsMethod(string name, Type[] types)
         {
@@ -589,7 +594,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeFloat);
             right.PushVal(scg, errorAt, tokenTypeFloat);
-            scg.ilGen.Emit(errorAt, OpCodes.Div);
+            //scg.ilGen.Emit(errorAt, OpCodes.Div);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethDoubleDivDouble);
             result.PopPost(scg, errorAt, tokenTypeFloat);
         }
 
@@ -598,7 +604,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeFloat);
             right.PushVal(scg, errorAt, tokenTypeFloat);
-            scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            //scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethDoubleModDouble);
             result.PopPost(scg, errorAt, tokenTypeFloat);
         }
 
@@ -694,7 +701,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeFloat);
             right.PushVal(scg, errorAt, tokenTypeFloat);
-            scg.ilGen.Emit(errorAt, OpCodes.Div);
+            //scg.ilGen.Emit(errorAt, OpCodes.Div);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethDoubleDivDouble);
             result.PopPost(scg, errorAt, tokenTypeFloat);
         }
 
@@ -703,7 +711,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             result.PopPre(scg, errorAt);
             left.PushVal(scg, errorAt, tokenTypeFloat);
             right.PushVal(scg, errorAt, tokenTypeFloat);
-            scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            //scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethDoubleModDouble);
             result.PopPost(scg, errorAt, tokenTypeFloat);
         }
 
@@ -917,7 +926,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I8);
             right.PushVal(scg, errorAt, tokenTypeInt);
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I8);
-            scg.ilGen.Emit(errorAt, OpCodes.Div);
+            //scg.ilGen.Emit(errorAt, OpCodes.Div);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethLongDivLong);
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I4);
             result.PopPost(scg, errorAt, tokenTypeInt);
         }
@@ -931,7 +941,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I8);
             right.PushVal(scg, errorAt, tokenTypeInt);
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I8);
-            scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            //scg.ilGen.Emit(errorAt, OpCodes.Rem);
+            scg.ilGen.Emit(errorAt, OpCodes.Call, infoMethLongModLong);
             scg.ilGen.Emit(errorAt, OpCodes.Conv_I4);
             result.PopPost(scg, errorAt, tokenTypeInt);
         }
@@ -1572,6 +1583,46 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static LSL_Vector MethVecDivRot(LSL_Vector left, LSL_Rotation right)
         {
             return left / right;
+        }
+
+        public static double MethDoubleDivDouble(double a, double b)
+        {
+            double r = a / b;
+            if (double.IsNaN(r) || double.IsInfinity(r))
+                throw new ScriptException("Division by Zero");
+            return r;
+        }
+
+        public static long MethLongDivLong(long a, long b)
+        {
+            try
+            {
+                return a / b;
+            }
+            catch (DivideByZeroException)
+            {
+                throw new ScriptException("Division by Zero");
+            }
+        }
+
+        public static double MethDoubleModDouble(double a, double b)
+        {
+            double r = a % b;
+            if (double.IsNaN(r) || double.IsInfinity(r))
+                throw new ScriptException("Division by Zero");
+            return r;
+        }
+
+        public static long MethLongModLong(long a, long b)
+        {
+            try
+            {
+                return a % b;
+            }
+            catch (DivideByZeroException)
+            {
+                throw new ScriptException("Division by Zero");
+            }
         }
     }
 }

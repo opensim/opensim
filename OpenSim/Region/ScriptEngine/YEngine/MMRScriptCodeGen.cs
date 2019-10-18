@@ -64,9 +64,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class ScriptCodeGen: IScriptCodeGen
     {
-        private static readonly bool DEBUG_STACKCAPRES = false;
-        private static readonly bool DEBUG_TRYSTMT = false;
-
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
         public static int COMPILED_VERSION_VALUE = -2;  // decremented when compiler or object file changes
@@ -972,11 +969,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string eventname = declFunc.GetSimpleName();
             TokenArgDecl argDecl = declFunc.argDecl;
 
-             // Make sure event handler name is valid and that number and type of arguments is correct.
-             // Apparently some scripts exist with fewer than correct number of args in their declaration 
-             // so allow for that.  It is ok because the handlers are called with the arguments in an
-             // object[] array, and we just won't access the missing argments in the vector.  But the 
-             // specified types must match one of the prototypes in legalEventHandlers.
+            HeapLocals.Clear();
+
+            // Make sure event handler name is valid and that number and type of arguments is correct.
+            // Apparently some scripts exist with fewer than correct number of args in their declaration 
+            // so allow for that.  It is ok because the handlers are called with the arguments in an
+            // object[] array, and we just won't access the missing argments in the vector.  But the 
+            // specified types must match one of the prototypes in legalEventHandlers.
             TokenDeclVar protoDeclFunc = legalEventHandlers.FindExact(eventname, argDecl.types);
             if(protoDeclFunc == null)
             {
@@ -1113,7 +1112,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateMethodBody(TokenDeclVar declFunc)
         {
-             // Set up code generator for the function's contents.
+            HeapLocals.Clear();
+
+            // Set up code generator for the function's contents.
             _ilGen = declFunc.ilGen;
             StartFunctionBody(declFunc);
 
@@ -1258,7 +1259,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // resume at the correct spot.
             actCallLabels.Clear();
             allCallLabels.Clear();
-            HeapLocals.Clear();
             openCallLabel = null;
 
              // Alloc stack space for local vars.
@@ -1405,18 +1405,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // Build list of locals and temps active at all the call labels.
                 activeTemps = new List<ScriptMyLocal>();
                 foreach (CallLabel cl in allCallLabels)
+                {
+                    foreach (ScriptMyLocal lcl in cl.callLabel.whereAmI.localsReadBeforeWritten)
                     {
-                        foreach(ScriptMyLocal lcl in cl.callLabel.whereAmI.localsReadBeforeWritten)
+                        if (!activeTemps.Contains(lcl))
                         {
-                            if(!activeTemps.Contains(lcl))
-                            {
                             activeTemps.Add(lcl);
                         }
                     }
                 }
 
-                 // Output code to restore the args, locals and temps then jump to
-                 // the call label that we were interrupted at.
+                // Output code to restore the args, locals and temps then jump to
+                // the call label that we were interrupted at.
                 ilGen.MarkLabel(cmRestore);
                 GenerateFrameRestoreCode(activeTemps);
             }
@@ -1546,15 +1546,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, nSaves);
             ilGen.Emit(curDeclFunc, OpCodes.Call, captureStackFrameMethodInfo);
 
-            if(DEBUG_STACKCAPRES)
-            {
-                ilGen.Emit(curDeclFunc, OpCodes.Ldstr, ilGen.methName + "*: capture mainCallNo=");
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, actCallNo);
-                ilGen.Emit(curDeclFunc, OpCodes.Box, typeof(int));
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-            }
-
              // Copy arg values to object array, boxing as needed.
             int i = 0;
             foreach(TokenDeclVar argVar in curDeclFunc.argDecl.varDict)
@@ -1562,13 +1553,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Dup);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
                 argVar.location.PushVal(this, argVar.name, tokenTypeObj);
-                if(DEBUG_STACKCAPRES)
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n    arg:" + argVar.name.val + "=");
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                    ilGen.Emit(curDeclFunc, OpCodes.Dup);
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                }
                 ilGen.Emit(curDeclFunc, OpCodes.Stelem_Ref);
                 i++;
             }
@@ -1596,19 +1580,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     ilGen.Emit(curDeclFunc, OpCodes.Box, t);
                 }
-                if(DEBUG_STACKCAPRES)
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n    lcl:" + lcl.name + "=");
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                    ilGen.Emit(curDeclFunc, OpCodes.Dup);
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                }
                 ilGen.Emit(curDeclFunc, OpCodes.Stelem_Ref);
-            }
-            if(DEBUG_STACKCAPRES)
-            {
-                ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n");
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
             }
 
             ilGen.Emit(curDeclFunc, OpCodes.Pop);
@@ -1629,14 +1601,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(curDeclFunc, OpCodes.Ldloca, actCallNo);  // __mainCallNo
             ilGen.Emit(curDeclFunc, OpCodes.Call, restoreStackFrameMethodInfo);
             ilGen.Emit(curDeclFunc, OpCodes.Stloc, objArray);
-            if(DEBUG_STACKCAPRES)
-            {
-                ilGen.Emit(curDeclFunc, OpCodes.Ldstr, ilGen.methName + "*: restore mainCallNo=");
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, actCallNo);
-                ilGen.Emit(curDeclFunc, OpCodes.Box, typeof(int));
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-            }
 
              // Restore argument values from object array, unboxing as needed.
              // Although the caller has restored them to what it called us with, it's possible that this 
@@ -1649,13 +1613,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, objArray);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldelem_Ref);
-                if(DEBUG_STACKCAPRES)
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n    arg:" + argVar.name.val + "=");
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                    ilGen.Emit(curDeclFunc, OpCodes.Dup);
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                }
                 TypeCast.CastTopOfStack(this, argVar.name, tokenTypeObj, argLoc.type, true);
                 argLoc.PopPost(this, argVar.name);
                 i++;
@@ -1679,13 +1636,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, objArray);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldc_I4, i++);
                 ilGen.Emit(curDeclFunc, OpCodes.Ldelem_Ref);
-                if(DEBUG_STACKCAPRES)
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n    lcl:" + lcl.name + "=");
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                    ilGen.Emit(curDeclFunc, OpCodes.Dup);
-                    ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
-                }
                 if(u.IsValueType)
                 {
                     ilGen.Emit(curDeclFunc, OpCodes.Unbox_Any, u);
@@ -1707,11 +1657,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     ilGen.Emit(curDeclFunc, OpCodes.Stloc, lcl);
                 }
-            }
-            if(DEBUG_STACKCAPRES)
-            {
-                ilGen.Emit(curDeclFunc, OpCodes.Ldstr, "\n");
-                ilGen.Emit(curDeclFunc, OpCodes.Call, consoleWriteMethodInfo);
             }
 
             OutputCallNoSwitchStmt();
@@ -3235,34 +3180,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             new CallLabel(this, tryStmt);              //   <oldcalllabel>:
             ilGen.BeginExceptionBlock();               //     try {
             openCallLabel = null;
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "enter try*: " + tryStmt.line + " callMode=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                PushXMRInst();
-                ilGen.Emit(tryStmt, OpCodes.Ldfld, callModeFieldInfo);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " tryCallNo=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                tryCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " catThrown.IsNull=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catThrown.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Ldnull);
-                ilGen.Emit(tryStmt, OpCodes.Ceq);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " catCallNo=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
 
             GetCallNo(tryStmt, tryCallNo);             //         if (__tryCallNo >= 0) goto tryCallSw;
             ilGen.Emit(tryStmt, OpCodes.Ldc_I4_0);
@@ -3282,31 +3199,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             CallLabel tryThrow = new CallLabel(this, tryStmt); //       tryThrow:<tryCallLabel>:
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "tryThrow*: " + tryStmt.line + " catThrown=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catThrown.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
             catThrown.PushVal(this, tryStmt);          //         throw new ScriptRestoreCatchException (__catThrown);
             ilGen.Emit(tryStmt, OpCodes.Newobj, scriptRestoreCatchExceptionConstructorInfo);
             ilGen.Emit(tryStmt, OpCodes.Throw);
             openCallLabel = null;
 
             ilGen.MarkLabel(tryCallSw);                //       tryCallSw:
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "tryCallSw*: " + tryStmt.line + " tryCallNo=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                tryCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
             OutputCallNoSwitchStmt();              //         switch (tryCallNo) ...
 
             CompValuLocalVar catchVarLocExc = null;
@@ -3324,26 +3222,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ScriptMyLocal excLocal = ilGen.DeclareLocal(typeof(String), "catchstr_" + tryStmt.Unique);
 
             ilGen.BeginCatchBlock(typeof(Exception));     // start of the catch block that can catch any exception
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Ldstr, "enter catch*: " + tryStmt.line + " callMode=");
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                PushXMRInst();
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Ldfld, callModeFieldInfo);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Ldstr, " catCallNo=");
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Ldstr, " exc=");
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Dup);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
             ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, scriptRestoreCatchExceptionUnwrap);
             // exc = ScriptRestoreCatchException.Unwrap (exc);
             ilGen.Emit(tryStmt.catchStmt, OpCodes.Dup);        // rethrow if IXMRUncatchable (eg, StackCaptureException)
@@ -3475,34 +3353,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.BeginExceptionBlock();               //     try {
             ilGen.BeginExceptionBlock();               //     try {
             openCallLabel = null;
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "enter try*: " + tryStmt.line + " callMode=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                PushXMRInst();
-                ilGen.Emit(tryStmt, OpCodes.Ldfld, callModeFieldInfo);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " tryCallNo=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                tryCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " finCallNo=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                finCallNo.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " catThrown.IsNull=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catThrown.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Ldnull);
-                ilGen.Emit(tryStmt, OpCodes.Ceq);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
 
             GetCallNo(tryStmt, tryCallNo);             //         if (__tryCallNo >= 0) goto tryCallSw;
             ilGen.Emit(tryStmt, OpCodes.Ldc_I4_0);
@@ -3529,15 +3379,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             CallLabel tryThrow = new CallLabel(this, tryStmt); //       tryThrow:<tryCallLabel>:
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "tryThrow*: " + tryStmt.line + " catThrown=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                catThrown.PushVal(this, tryStmt);
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
             catThrown.PushVal(this, tryStmt);          //         throw new ScriptRestoreCatchException (__catThrown);
             ilGen.Emit(tryStmt, OpCodes.Newobj, scriptRestoreCatchExceptionConstructorInfo);
             ilGen.Emit(tryStmt, OpCodes.Throw);
@@ -3548,21 +3389,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                                    //     }
 
             ilGen.BeginCatchBlock(typeof(Exception));     // start of the catch block that can catch any exception
-            if(DEBUG_TRYSTMT)
-            {
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "enter catch*: " + tryStmt.line + " callMode=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                PushXMRInst();
-                ilGen.Emit(tryStmt, OpCodes.Ldfld, callModeFieldInfo);
-                ilGen.Emit(tryStmt, OpCodes.Box, typeof(int));
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, " exc=");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Dup);
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-                ilGen.Emit(tryStmt, OpCodes.Ldstr, "\n");
-                ilGen.Emit(tryStmt, OpCodes.Call, consoleWriteMethodInfo);
-            }
             ilGen.Emit(tryStmt, OpCodes.Call, scriptRestoreCatchExceptionUnwrap);  // exc = ScriptRestoreCatchException.Unwrap (exc);
             PushXMRInst();                     // if (callMode == CallMode_SAVE) goto catchRetro;
             ilGen.Emit(tryStmt, OpCodes.Ldfld, callModeFieldInfo);
@@ -4154,11 +3980,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Maybe the expression can be converted to a constant.
             bool didOne;
-            do
+            try
             {
-                didOne = false;
-                rVal = rVal.TryComputeConstant(LookupBodyConstants, ref didOne);
-            } while(didOne);
+                do
+                {
+                    didOne = false;
+                    rVal = rVal.TryComputeConstant(LookupBodyConstants, ref didOne);
+                } while(didOne);
+            }
+            catch(Exception ex)
+            {
+                ErrorMsg(errorMessageToken, ex.Message);
+                throw;
+            }
 
              // Generate code for the computation and return resulting type and location.
             CompValu cVal = null;

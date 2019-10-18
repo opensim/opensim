@@ -138,13 +138,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             };
 
             VarDict ifd = new VarDict(false);
-
             Type[] oneDoub = new Type[] { typeof(double) };
             Type[] twoDoubs = new Type[] { typeof(double), typeof(double) };
 
             /*
              * Mono generates an FPU instruction for many math calls.
              */
+
             new TokenDeclInline_LLAbs(ifd);
             new TokenDeclInline_Math(ifd, "llAcos(float)", "Acos", oneDoub);
             new TokenDeclInline_Math(ifd, "llAsin(float)", "Asin", oneDoub);

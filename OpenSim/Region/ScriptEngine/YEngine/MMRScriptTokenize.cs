@@ -611,8 +611,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     continue;
                 }
 
-                 // Check for option enables.
-                if((c == ';') && (lastToken is TokenName) &&
+                // Check for option enables.
+
+                if ((c == ';') && (lastToken is TokenName) &&
+                    (strcasecmp(((TokenName)lastToken).val, "yoptions") == 0))
+                {
+                    options.advFlowCtl = true;
+                    options.tryCatch = true;
+
+                    lastToken = lastToken.prevToken;
+                    lastToken.nextToken = null;
+                    continue;
+                }
+
+                else if ((c == ';') && (lastToken is TokenName) &&
                         (lastToken.prevToken is TokenName) &&
                         (strcasecmp(((TokenName)lastToken.prevToken).val, "yoption") == 0))
                 {
@@ -2186,44 +2198,79 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         public static object Div(object left, object right)
         {
-            if((left is int) && (right is int))
+            double r;
+            try
             {
-                return (int)left / (int)right;
+                if ((left is int) && (right is int))
+                {
+                    return (int)left / (int)right;
+                }
+                if ((left is double) && (right is int))
+                {
+                    r = (double)left / (int)right;
+                    if (double.IsNaN(r) || double.IsInfinity(r))
+                        throw new Exception("Division by Zero");
+                    return r;
+                }
             }
-            if((left is int) && (right is double))
+            catch (DivideByZeroException)
             {
-                return (int)left / (double)right;
+                throw new Exception("Division by Zero");
             }
-            if((left is double) && (right is int))
+
+            if ((left is int) && (right is double))
             {
-                return (double)left / (int)right;
+                r = (int)left / (double)right;
             }
-            if((left is double) && (right is double))
+            else if((left is double) && (right is double))
             {
-                return (double)left / (double)right;
+                r= (double)left / (double)right;
             }
-            return null;
+            else
+                return null;
+
+            if (double.IsNaN(r) || double.IsInfinity(r))
+                throw new Exception("Division by Zero");
+            return r;
         }
         public static object Mod(object left, object right)
         {
-            if((left is int) && (right is int))
+            double r;
+            try
             {
-                return (int)left % (int)right;
+                if ((left is int) && (right is int))
+                {
+                    return (int)left % (int)right;
+                }
+                if ((left is double) && (right is int))
+                {
+                    r = (double)left % (int)right;
+                    if (double.IsNaN(r) || double.IsInfinity(r))
+                        throw new Exception("Division by Zero");
+                    return r;
+                }
             }
-            if((left is int) && (right is double))
+            catch (DivideByZeroException)
             {
-                return (int)left % (double)right;
+                throw new Exception("Division by Zero");
             }
-            if((left is double) && (right is int))
+
+            if ((left is int) && (right is double))
             {
-                return (double)left % (int)right;
+                r = (int)left % (double)right;
             }
-            if((left is double) && (right is double))
+            else if ((left is double) && (right is double))
             {
-                return (double)left % (double)right;
+                r = (double)left % (double)right;
             }
-            return null;
+            else
+                return null;
+
+            if (double.IsNaN(r) || double.IsInfinity(r))
+                throw new Exception("Division by Zero");
+            return r;
         }
+
         public static object Mul(object left, object right)
         {
             if((left is int) && (right is int))
