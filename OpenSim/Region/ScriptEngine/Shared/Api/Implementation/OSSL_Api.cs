@@ -753,7 +753,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetRot(UUID target, Quaternion rotation)
         {
-            // This function has no security. It can be used to destroy
+            // if enabled It can be used to destroy
             // arbitrary builds the user would normally have no rights to
             //
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetRot");
@@ -778,10 +778,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
                                              int timer)
         {
-            // This may be upgraded depending on the griefing or DOS
-            // potential, or guarded with a delay
-            //
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURL");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURL");
 
             if (dynamicID == String.Empty)
             {
@@ -802,7 +799,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
                                              int timer, int alpha)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURLBlend");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURLBlend");
 
             if (dynamicID == String.Empty)
             {
