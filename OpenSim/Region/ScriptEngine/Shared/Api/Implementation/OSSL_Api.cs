@@ -820,7 +820,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
                                              bool blend, int disp, int timer, int alpha, int face)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureURLBlendFace");
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURLBlendFace");
 
             if (dynamicID == String.Empty)
             {
