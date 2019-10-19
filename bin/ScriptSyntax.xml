@@ -1,4 +1,4 @@
-7ddea7b6-2c1f-1bf6-d0b1-8e99955c9587
+84b526ce-3ad0-46bb-7a8a-b37be2734c5b
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1371,6 +1371,14 @@
   <key>type</key><string>string</string>
   <key>value</key><string>00000000-0000-0000-0000-000000000000</string>
  </map>
+ <key>OBJECT_ANIMATED_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>39</string>
+ </map>
+ <key>OBJECT_ANIMATED_SLOTS_AVAILABLE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>40</string>
+ </map>
  <key>OBJECT_ATTACHED_POINT</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>19</string>
@@ -1390,6 +1398,10 @@
  <key>OBJECT_CLICK_ACTION</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>28</string>
+ </map>
+ <key>OBJECT_CREATION_TIME</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>36</string>
  </map>
  <key>OBJECT_CREATOR</key><map>
   <key>type</key><string>integer</string>
@@ -1483,9 +1495,17 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>12</string>
  </map>
+ <key>OBJECT_SELECT_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>37</string>
+ </map>
  <key>OBJECT_SERVER_COST</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>14</string>
+ </map>
+ <key>OBJECT_SIT_COUNT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>38</string>
  </map>
  <key>OBJECT_STREAMING_COST</key><map>
   <key>type</key><string>integer</string>

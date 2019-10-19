@@ -664,6 +664,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_GROUP_TAG = 33;
         public const int OBJECT_TEMP_ATTACHED = 34;
         public const int OBJECT_ATTACHED_SLOTS_AVAILABLE = 35;
+        public const int OBJECT_CREATION_TIME = 36;
+        public const int OBJECT_SELECT_COUNT = 37;
+        public const int OBJECT_SIT_COUNT = 38;
+        public const int OBJECT_ANIMATED_COUNT = 39;
+        public const int OBJECT_ANIMATED_SLOTS_AVAILABLE = 40;
+
 
         // Pathfinding types
         //ApiDesc not supported
