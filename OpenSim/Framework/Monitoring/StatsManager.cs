@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Monitoring
                     {
                         con.Output("Statistic categories available are:");
                         foreach (string category in RegisteredStats.Keys)
-                            con.Output("  {0}", null, category);
+                            con.Output("  {0}", category);
                     }
                     else
                     {
