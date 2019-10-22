@@ -62,8 +62,8 @@ namespace OpenSim.Framework.Console
             set {}
         }
 
+        public void Output(string format) { }
         public void Output(string format, params object[] components) { }
-        public void Output(string format, string level, params object[] components) { }
 
         public string Prompt(string p) { return ""; }
         public string Prompt(string p, string def) { return ""; }

@@ -55,12 +55,14 @@ namespace OpenSim.Framework.Console
             {
                 if (m_console != null)
                 {
-                    string level = "normal";
+                    ConsoleLevel level;
 
                     if (le.Level == Level.Error)
                         level = "error";
                     else if (le.Level == Level.Warn)
                         level = "warn";
+                    else
+                        level = "normal";
 
                     m_console.Output(loggingMessage, level);
                 }

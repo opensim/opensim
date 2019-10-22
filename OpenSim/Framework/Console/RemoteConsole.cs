@@ -190,12 +190,34 @@ namespace OpenSim.Framework.Console
             m_Server.AddHTTPHandler("/SessionCommand/", HandleHttpSessionCommand);
         }
 
-        public override void Output(string format, string level = null, params object[] components)
+        public override void Output(string format, params object[] components)
         {
-            if (components.Length == 0)
-                Output(format, level, false, false, false);
+            string level = null;
+            if (components != null && components.Length > 0)
+            {
+                if (components[0] == null || components[0] is ConsoleLevel)
+                {
+                    if (components[0] is ConsoleLevel)
+                        level = ((ConsoleLevel)components[0]).ToString();
+
+                    if (components.Length > 1)
+                    {
+                        object[] tmp = new object[components.Length - 1];
+                        Array.Copy(components, 1, tmp, 0, components.Length - 1);
+                        components = tmp;
+                    }
+                    else
+                        components = null;
+                }
+            }
+
+            string text;
+            if (components == null || components.Length == 0)
+                text = format;
             else
-                Output(String.Format(format, components), level, false, false, false);
+                text = String.Format(format, components);
+
+            Output(text, level, false, false, false);
         }
 
         protected void Output(string text, string level, bool isPrompt, bool isCommand, bool isInput)

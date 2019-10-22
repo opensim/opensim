@@ -389,9 +389,32 @@ namespace OpenSim.Framework.Console
             System.Console.WriteLine();
         }
 
-        public override void Output(string format, string level, params object[] components)
+        public override void Output(string format, params object[] components)
         {
-            string text = String.Format(format, components);
+            string level = null;
+            if(components != null && components.Length > 0)
+            {
+                if(components[0] == null || components[0] is ConsoleLevel)
+                {
+                    if(components[0] is ConsoleLevel)
+                        level = ((ConsoleLevel)components[0]).ToString();
+
+                    if (components.Length > 1)
+                    {
+                        object[] tmp = new object[components.Length - 1];
+                        Array.Copy(components, 1, tmp, 0, components.Length - 1);
+                        components = tmp;
+                    }
+                    else
+                        components = null;
+                }
+
+            }
+            string text;
+            if (components == null || components.Length == 0)
+                text = format;
+            else
+                text = String.Format(format, components);
 
             FireOnOutput(text);
 
