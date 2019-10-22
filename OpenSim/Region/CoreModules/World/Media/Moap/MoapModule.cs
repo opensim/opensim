@@ -287,7 +287,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         protected void SetPartMediaFlags(SceneObjectPart part, int face, bool flag)
         {
             Primitive.TextureEntry te = part.Shape.Textures;
-            Primitive.TextureEntryFace teFace = te.CreateFace((uint)face);
+            Primitive.TextureEntryFace teFace = te.GetFace((uint)face);
             teFace.MediaFlags = flag;
             part.Shape.Textures = te;
         }

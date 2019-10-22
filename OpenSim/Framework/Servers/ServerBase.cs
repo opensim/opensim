@@ -498,7 +498,7 @@ namespace OpenSim.Framework.Servers
 
             if (newLevel < 0 || newLevel > Util.MAX_THREADPOOL_LEVEL)
             {
-                MainConsole.Instance.Output("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, null, newLevel);
+                MainConsole.Instance.Output("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, newLevel);
                 return;
             }
 

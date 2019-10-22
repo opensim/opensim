@@ -2536,11 +2536,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (response.ToLower() == "y")
             {
                 Clear(true);
-                MainConsole.Instance.Output("Cleared all parcels from {0}", null, m_scene.Name);
+                MainConsole.Instance.Output("Cleared all parcels from {0}", m_scene.Name);
             }
             else
             {
-                MainConsole.Instance.Output("Aborting clear of all parcels from {0}", null, m_scene.Name);
+                MainConsole.Instance.Output("Aborting clear of all parcels from {0}", m_scene.Name);
             }
         }
 
@@ -2568,7 +2568,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (!m_landList.TryGetValue(landLocalId, out lo))
                     {
-                        MainConsole.Instance.Output("No parcel found with local ID {0}", null, landLocalId);
+                        MainConsole.Instance.Output("No parcel found with local ID {0}", landLocalId);
                         return;
                     }
                 }

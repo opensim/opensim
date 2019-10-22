@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 Primitive.TextureEntryFace bakedTextureFace = bakedTextures[bakeType];
 
-                if (bakedTextureFace == null)
+                if (bakedTextureFace == null || bakedTextureFace.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     continue;
 
                 AssetBase asset;

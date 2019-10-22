@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(!GetUser(userId, out ud))
             {
-                MainConsole.Instance.Output("No name known for user with id {0}", null, userId);
+                MainConsole.Instance.Output("No name known for user with id {0}", userId);
                 return;
             }
 

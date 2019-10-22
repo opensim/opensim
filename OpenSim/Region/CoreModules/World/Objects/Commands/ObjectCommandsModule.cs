@@ -451,7 +451,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.Output("Error: Start vector '{0}' does not have a valid format", null, rawConsoleStartVector);
+                m_console.Output("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
                 return;
             }
 
@@ -460,7 +460,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.Output("Error: End vector '{0}' does not have a valid format", null, rawConsoleEndVector);
+                m_console.Output("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
                 return;
             }
 
@@ -809,7 +809,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         if(so.IsAttachment)
                         {
                             requireConfirmation = true;
-                            m_console.Output("Warning: object with uuid {0} is a attachment", null, uuid);
+                            m_console.Output("Warning: object with uuid {0} is a attachment", uuid);
                         }
                     }
                     break;
@@ -853,7 +853,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     break;
 
                 default:
-                    m_console.Output("Unrecognized mode {0}", null, mode);
+                    m_console.Output("Unrecognized mode {0}", mode);
                     return;
             }
 
@@ -871,17 +871,17 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 if (response.ToLower() != "y")
                 {
                     MainConsole.Instance.Output(
-                        "Aborting delete of {0} objects from {1}", null, deletes.Count, m_scene.RegionInfo.RegionName);
+                        "Aborting delete of {0} objects from {1}", deletes.Count, m_scene.RegionInfo.RegionName);
 
                     return;
                 }
             }
 
-            m_console.Output("Deleting {0} objects in {1}", null, deletes.Count, m_scene.RegionInfo.RegionName);
+            m_console.Output("Deleting {0} objects in {1}", deletes.Count, m_scene.RegionInfo.RegionName);
 
             foreach (SceneObjectGroup g in deletes)
             {
-                m_console.Output("Deleting object {0} {1}", null, g.UUID, g.Name);
+                m_console.Output("Deleting object {0} {1}", g.UUID, g.Name);
                 m_scene.DeleteSceneObject(g, false);
             }
         }

@@ -226,7 +226,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 {
                     MainConsole.Instance.Output(
                         "Cannot set {0} to {1} in {2} as max-agent-limit is {3}", "agent-limit",
-                        null,
                         newValue, m_scene.Name, ri.AgentCapacity);
                 }
                 else
@@ -234,7 +233,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     rs.AgentLimit = newValue;
 
                     MainConsole.Instance.Output(
-                        "{0} set to {1} in {2}", "agent-limit", null, newValue, m_scene.Name);
+                        "{0} set to {1} in {2}", "agent-limit", newValue, m_scene.Name);
                 }
 
                 rs.Save();
@@ -249,14 +248,14 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 ri.AgentCapacity = newValue;
 
                 MainConsole.Instance.Output(
-                    "{0} set to {1} in {2}", "max-agent-limit", null, newValue, m_scene.Name);
+                    "max-agent-limit set to {0} in {1}", newValue, m_scene.Name);
 
                 if (ri.AgentCapacity < rs.AgentLimit)
                 {
                     rs.AgentLimit = ri.AgentCapacity;
 
                     MainConsole.Instance.Output(
-                        "Reducing {0} to {1} in {2}", null, "agent-limit", rs.AgentLimit, m_scene.Name);
+                        "agent-limit set to {0} in {1}", rs.AgentLimit, m_scene.Name);
                 }
 
                 rs.Save();

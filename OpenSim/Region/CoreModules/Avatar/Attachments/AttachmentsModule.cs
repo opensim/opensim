@@ -165,14 +165,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 DebugLevel = debugLevel;
                 MainConsole.Instance.Output(
-                    "Set attachments debug level to {0} in {1}", null, DebugLevel, m_scene.Name);
+                    "Set attachments debug level to {0} in {1}", DebugLevel, m_scene.Name);
             }
         }
 
         private void HandleDebugAttachmentsStatus(string module, string[] args)
         {
-            MainConsole.Instance.Output("Settings for {0}", null, m_scene.Name);
-            MainConsole.Instance.Output("Debug logging level: {0}", null, DebugLevel);
+            MainConsole.Instance.Output("Settings for {0}", m_scene.Name);
+            MainConsole.Instance.Output("Debug logging level: {0}", DebugLevel);
         }
 
         protected void HandleShowAttachmentsCommand(string module, string[] cmd)

@@ -124,7 +124,7 @@ namespace OpenSim.Framework.Monitoring
                         SortedDictionary<string, SortedDictionary<string, Stat>> category;
                         if (!RegisteredStats.TryGetValue(categoryName, out category))
                         {
-                            con.Output("No such category as {0}", null, categoryName);
+                            con.Output("No such category as {0}", categoryName);
                         }
                         else
                         {
@@ -151,13 +151,13 @@ namespace OpenSim.Framework.Monitoring
                                         else
                                         {
                                             con.Output(
-                                                "No such stat {0} in {1}.{2}", null, statName, categoryName, containerName);
+                                                "No such stat {0} in {1}.{2}", statName, categoryName, containerName);
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    con.Output("No such container {0} in category {1}", null, containerName, categoryName);
+                                    con.Output("No such container {0} in category {1}", containerName, categoryName);
                                 }
                             }
                         }

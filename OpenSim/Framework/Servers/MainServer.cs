@@ -198,7 +198,7 @@ namespace OpenSim.Framework.Servers
 
                 if (newDebug < 0 || newDebug > 6)
                 {
-                    MainConsole.Instance.Output("{0} is outside the valid debug level range of 0..6", null, newDebug);
+                    MainConsole.Instance.Output("{0} is outside the valid debug level range of 0..6", newDebug);
                     return;
                 }
 
