@@ -1538,7 +1538,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             else
             {
-                MainConsole.Instance.Output("ERROR: Unrecognised direction {0} - need x or y", null, direction);
+                MainConsole.Instance.Output("ERROR: Unrecognised direction {0} - need x or y", direction);
             }
         }
 

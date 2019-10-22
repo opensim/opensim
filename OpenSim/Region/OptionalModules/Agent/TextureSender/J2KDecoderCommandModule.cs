@@ -114,20 +114,20 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
 
             if (!UUID.TryParse(rawAssetId, out assetId))
             {
-                MainConsole.Instance.Output("ERROR: {0} is not a valid ID format", null, rawAssetId);
+                MainConsole.Instance.Output("ERROR: {0} is not a valid ID format", rawAssetId);
                 return;
             }
 
             AssetBase asset = m_scene.AssetService.Get(assetId.ToString());
             if (asset == null)
             {
-                MainConsole.Instance.Output("ERROR: No asset found with ID {0}", null, assetId);
+                MainConsole.Instance.Output("ERROR: No asset found with ID {0}", assetId);
                 return;
             }
 
             if (asset.Type != (sbyte)AssetType.Texture)
             {
-                MainConsole.Instance.Output("ERROR: Asset {0} is not a texture type", null, assetId);
+                MainConsole.Instance.Output("ERROR: Asset {0} is not a texture type", assetId);
                 return;
             }
 
@@ -144,12 +144,11 @@ namespace OpenSim.Region.OptionalModules.Agent.TextureSender
             {
                 MainConsole.Instance.Output(
                     "Successfully decoded asset {0} with {1} layers and {2} components",
-                    null,
                     assetId, layers.Length, components);
             }
             else
             {
-                MainConsole.Instance.Output("Decode of asset {0} failed", null, assetId);
+                MainConsole.Instance.Output("Decode of asset {0} failed", assetId);
             }
         }
     }

@@ -179,7 +179,6 @@ namespace OpenSim.Server.Base
                         Dictionary<string, object> plugin = (Dictionary<string, object>)result[k];
                         bool enabled = (bool)plugin["enabled"];
                         MainConsole.Instance.Output("{0}) {1} {2} rev. {3}",
-                                                  null,
                                                   k,
                                                   enabled == true ? "[ ]" : "[X]",
                                                   plugin["name"], plugin["version"]);
@@ -217,7 +216,6 @@ namespace OpenSim.Server.Base
                 Dictionary<string, object> plugin = (Dictionary<string, object>)result[k];
                 bool enabled = (bool)plugin["enabled"];
                 MainConsole.Instance.Output("{0}) {1} {2} rev. {3}",
-                                                  null,
                                                   k,
                                                   enabled == true ? "[ ]" : "[X]",
                                                   plugin["name"], plugin["version"]);
@@ -238,7 +236,6 @@ namespace OpenSim.Server.Base
                 // name, version, repository
                 Dictionary<string, object> plugin = (Dictionary<string, object>)result[k];
                 MainConsole.Instance.Output("{0}) {1} rev. {2} {3}",
-                                                  null,
                                                   k,
                                                   plugin["name"],
                                                   plugin["version"],
@@ -313,7 +310,6 @@ namespace OpenSim.Server.Base
                 Dictionary<string, object> repo = (Dictionary<string, object>)result[k];
                 bool enabled = (bool)repo["enabled"];
                 MainConsole.Instance.Output("{0}) {1} {2}",
-                                                  null,
                                                   k,
                                                   enabled == true ? "[ ]" : "[X]",
                                                   repo["name"], repo["url"]);
@@ -334,7 +330,6 @@ namespace OpenSim.Server.Base
                 PluginManager.AddinInfo(ndx, out result);
 
                 MainConsole.Instance.Output("Name: {0}\nURL: {1}\nFile: {2}\nAuthor: {3}\nCategory: {4}\nDesc: {5}",
-                                                  null,
                                                   result["name"],
                                                   result["url"],
                                                   result["file_name"],

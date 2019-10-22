@@ -917,7 +917,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             m_scene.ForEachSOG(searchAction);
 
             if (sceneObjects.Count == 0)
-                m_console.Output("No objects with name {0} found in {1}", null, name, m_scene.RegionInfo.RegionName);
+                m_console.Output("No objects with name {0} found in {1}", name, m_scene.RegionInfo.RegionName);
 
             return sceneObjects;
         }
@@ -952,7 +952,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMinVector(rawConsoleStartVector, out startVector))
             {
-                m_console.Output("Error: Start vector '{0}' does not have a valid format", null, rawConsoleStartVector);
+                m_console.Output("Error: Start vector '{0}' does not have a valid format", rawConsoleStartVector);
                 endVector = Vector3.Zero;
 
                 return false;
@@ -962,7 +962,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (!ConsoleUtil.TryParseConsoleMaxVector(rawConsoleEndVector, out endVector))
             {
-                m_console.Output("Error: End vector '{0}' does not have a valid format", null, rawConsoleEndVector);
+                m_console.Output("Error: End vector '{0}' does not have a valid format", rawConsoleEndVector);
                 return false;
             }
 

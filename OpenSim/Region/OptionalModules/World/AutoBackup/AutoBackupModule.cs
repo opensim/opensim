@@ -327,7 +327,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 m_busy = false;
             }               
             if (!found)
-                    MainConsole.Instance.Output("No such region {0}. Nothing to backup", null, name);
+                    MainConsole.Instance.Output("No such region {0}. Nothing to backup", name);
         }
 
         private void ParseDefaultConfig(IConfig config)
