@@ -163,9 +163,7 @@ namespace OpenSim.Framework.Console
             {
                 itisdone = true;
 
-                ret = Prompt(p, def);
-
-                if (def != null)
+                if (def == null)
                     ret = ReadLine(String.Format("{0}: ", p), false, echo);
                 else
                     ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, echo);
