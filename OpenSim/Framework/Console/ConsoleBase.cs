@@ -121,17 +121,38 @@ namespace OpenSim.Framework.Console
 
         public string Prompt(string p)
         {
-            return Prompt(p, null, null, true);
+            return ReadLine(String.Format("{0}: ", p), false, true);
         }
 
         public string Prompt(string p, string def)
         {
-            return Prompt(p, def, null, true);
+            string ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, true);
+            if (ret == String.Empty)
+                ret = def;
+
+            return ret;
         }
 
         public string Prompt(string p, List<char> excludedCharacters)
         {
-            return Prompt(p, null, excludedCharacters, true);
+            bool itisdone = false;
+            string ret = String.Empty;
+            while (!itisdone)
+            {
+                itisdone = true;
+                ret = Prompt(p);
+
+                foreach (char c in excludedCharacters)
+                {
+                    if (ret.Contains(c.ToString()))
+                    {
+                        System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
+                        itisdone = false;
+                    }
+                }
+            }
+
+            return ret;
         }
 
         public virtual string Prompt(string p, string def, List<char> excludedCharacters, bool echo = true)
@@ -141,6 +162,8 @@ namespace OpenSim.Framework.Console
             while (!itisdone)
             {
                 itisdone = true;
+
+                ret = Prompt(p, def);
 
                 if (def != null)
                     ret = ReadLine(String.Format("{0}: ", p), false, echo);
