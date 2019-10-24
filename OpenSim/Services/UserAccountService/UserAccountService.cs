@@ -377,7 +377,7 @@ namespace OpenSim.Services.UserAccountService
         {
             string firstName;
             string lastName;
-            string password;
+            string password = "";
             string email;
             string rawPrincipalId;
             string model;
@@ -393,7 +393,22 @@ namespace OpenSim.Services.UserAccountService
             else lastName = cmdparams[3];
 
             if (cmdparams.Length < 5)
-                password = MainConsole.Instance.Prompt("Password", null, null, false);
+            {
+                int retries = 3;
+                while(--retries >= 0)
+                {
+                    password = MainConsole.Instance.Prompt("Password", null, null, false);
+                    if(String.IsNullOrWhiteSpace(password))
+                        MainConsole.Instance.Output("  You must provide a Password");
+                    else
+                        break;
+                }
+                if (String.IsNullOrWhiteSpace(password))
+                {
+                    MainConsole.Instance.Output("create user aborted");
+                    return;
+                }
+            }
             else password = cmdparams[4];
 
             if (cmdparams.Length < 6)
