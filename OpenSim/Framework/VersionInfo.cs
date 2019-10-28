@@ -53,7 +53,7 @@ namespace OpenSim
 
         public static string GetVersionString(string versionNumber, Flavour flavour)
         {
-            string versionString = "OpenSim " + versionNumber + " Snail " + flavour;
+            string versionString = "OpenSim " + versionNumber + " Yeti " + flavour;
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 
