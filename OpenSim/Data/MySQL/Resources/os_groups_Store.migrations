@@ -118,6 +118,6 @@ COMMIT;
 
 ALTER TABLE `os_groups_invites`
 
-MODIFY `TMStamp` timestamp NOT NULL, default CURRENT_TIMESTAMP;
+MODIFY `TMStamp` timestamp NOT NULL default CURRENT_TIMESTAMP;
 
 COMMIT;

@@ -16,3 +16,9 @@ CREATE TABLE `hg_traveling_data` (
 
 COMMIT;
 
+:VERSION 2         # -------------------------- 
+
+ALTER TABLE `hg_traveling_data` MODIFY `TMStamp` timestamp NOT NULL default CURRENT_TIMESTAMP;
+
+COMMIT;
+
