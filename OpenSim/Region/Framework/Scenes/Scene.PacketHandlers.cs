@@ -260,21 +260,18 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             bool oldgprSelect = part.ParentGroup.IsSelected;
-
-            // This is wrong, wrong, wrong. Selection should not be
-            // handled by group, but by prim. Legacy cruft.
-            // TODO: Make selection flagging per prim!
-            //
-            if (Permissions.CanChangeSelectedState(part, (ScenePresence)remoteClient.SceneAgent))
+            bool oldSelect = part.IsSelected;
+            part.IsSelected = false;
+ 
+            if (oldgprSelect != part.ParentGroup.IsSelected)
             {
-                part.IsSelected = false;
-                if (!part.ParentGroup.IsAttachment && oldgprSelect != part.ParentGroup.IsSelected)
+                if (!part.ParentGroup.IsAttachment )
                     EventManager.TriggerParcelPrimCountTainted();
-
-                // restore targetOmega
-                if (part.AngularVelocity != Vector3.Zero)
-                    part.ScheduleTerseUpdate();
             }
+
+            // restore targetOmega
+            if (oldSelect && part.AngularVelocity != Vector3.Zero)
+                part.ScheduleTerseUpdate();
         }
 
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount,
