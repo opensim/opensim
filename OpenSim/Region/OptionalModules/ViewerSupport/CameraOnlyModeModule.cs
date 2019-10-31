@@ -122,6 +122,9 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
+            if (!m_Enabled)
+                return;
+
             m_log.DebugFormat("[CAMERA-ONLY MODE]: OnSimulatorFeaturesRequest in {0}", m_scene.RegionInfo.RegionName);
             if (m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
@@ -137,10 +140,6 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 }
                 extrasMap["camera-only-mode"] = OSDMap.FromString("true");
                 m_log.DebugFormat("[CAMERA-ONLY MODE]: Sent in {0}", m_scene.RegionInfo.RegionName);
-
-                // Detaching attachments doesn't work for HG visitors,
-                // so I'm giving that up.
-                //Util.FireAndForget(delegate { DetachAttachments(agentID); });
             }
             else
                 m_log.DebugFormat("[CAMERA-ONLY MODE]: NOT Sending camera-only-mode in {0}", m_scene.RegionInfo.RegionName);
