@@ -294,6 +294,8 @@ namespace OpenSim.Services.UserAccountService
         public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
             UserAccountData[] ret = m_Database.GetUsersWhere(scopeID, "PrincipalID in ('" + String.Join("', '", IDs) + "')");
+            if(ret == null || ret.Length == 0)
+                return new List<UserAccount>();
             return new List<UserAccount>(ret.Select((x) => MakeUserAccount(x)));
         }
 
