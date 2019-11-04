@@ -217,6 +217,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             string[] nvps = extraParams.Split(paramDelimiter);
 
+            bool lossless = false;
             int temp = -1;
             foreach (string pair in nvps)
             {
@@ -306,10 +307,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                              bgColor = Color.FromName(value);
                          }
                          break;
-                     case "altdatadelim":
-                         altDataDelim = value.ToCharArray()[0];
-                         break;
-                     case "":
+                    case "altdatadelim":
+                        altDataDelim = value.ToCharArray()[0];
+                        break;
+                    case "lossless":
+                        if (value.ToLower() == "true")
+                            lossless = true;
+                        break;
+                    case "":
                          // blank string has been passed do nothing just use defaults
                      break;
                      default: // this is all for backwards compat, all a bit ugly hopfully can be removed in future
@@ -385,7 +390,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
                 try
                 {
-                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, false);
+                    imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, lossless);
                 }
                 catch (Exception e)
                 {
