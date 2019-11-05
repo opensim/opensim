@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// based on YEngine from Mike Rieker (Dreamnation) and Melanie Thielker
+// based on XMREngine from Mike Rieker (DreamNation), Melanie Thielker and meta7
 // but with several changes to be more cross platform.
 
 using log4net;
