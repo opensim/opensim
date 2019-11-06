@@ -5846,6 +5846,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llSubStringIndex(string source, string pattern)
         {
             m_host.AddScriptLPS(1);
+            if (string.IsNullOrEmpty(source))
+                return -1;
+            if (string.IsNullOrEmpty(pattern))
+                return 0;
             return source.IndexOf(pattern);
         }
 
