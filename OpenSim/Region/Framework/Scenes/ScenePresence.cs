@@ -78,10 +78,12 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-//        ~ScenePresence()
-//        {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
-//        }
+        public int MaxNumberAttachments { get; } = 38; // per viewers limit
+
+        //        ~ScenePresence()
+        //        {
+        //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
+        //        }
 
         public void TriggerScenePresenceUpdated()
         {
@@ -303,7 +305,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Flying
         {
             get { return PhysicsActor != null && PhysicsActor.Flying; }
-            set { PhysicsActor.Flying = value; }
+            set
+            {
+                if(PhysicsActor != null)
+                    PhysicsActor.Flying = value;
+            }
         }
 
          public bool IsColliding
@@ -5406,6 +5412,12 @@ namespace OpenSim.Region.Framework.Scenes
                 bakedModule.UpdateMeshAvatar(m_uuid);
         }
 
+        public int GetAttachmentsCount()
+        {
+            return m_attachments.Count;
+        }
+
+
         /// <summary>
         /// Get all the presence's attachments.
         /// </summary>
@@ -6605,10 +6617,9 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_lastColliders.Count == 0)
                         return; // nothing to do
 
-                    foreach (uint localID in m_lastColliders)
-                    {
-                        endedColliders.Add(localID);
-                    }
+                    for(int i = 0; i < m_lastColliders.Count; ++i)
+                        endedColliders.Add(m_lastColliders[i]);
+
                     m_lastColliders.Clear();
                 }
                 else
@@ -6668,9 +6679,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (soundinfolist.Count > 0)
                         CollisionSounds.AvatarCollisionSound(this, soundinfolist);
                 }
-
-                foreach (SceneObjectGroup att in GetAttachments())
+                List<SceneObjectGroup> attachements = GetAttachments();
+                for (int i = 0; i< attachements.Count; ++i)
                 {
+                    SceneObjectGroup att = attachements[i];
                     SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
                     SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
                     SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
