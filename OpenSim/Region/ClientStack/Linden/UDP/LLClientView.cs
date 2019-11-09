@@ -5153,7 +5153,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 int count = 0;
                 EntityUpdate eu;
-                for(int indx = 0; indx < objectUpdates.Count;++indx)
+                for(int indx = 0; indx < objectUpdates.Count; ++indx)
                 {
                     eu = objectUpdates[indx];
                     lastpos = zc.Position;
@@ -8971,34 +8971,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandlerModifyLand(IClientAPI sender, Packet Pack)
         {
+            if (OnModifyTerrain == null)
+                return true;
+
             ModifyLandPacket modify = (ModifyLandPacket)Pack;
 
-            #region Packet Session and User Check
-            if (modify.AgentData.SessionID != SessionId ||
-                    modify.AgentData.AgentID != AgentId)
+            if (modify.ParcelData.Length == 0)
                 return true;
+
+            #region Packet Session and User Check
+            if (modify.AgentData.SessionID != SessionId || modify.AgentData.AgentID != AgentId)
+            return true;
 
             #endregion
             //m_log.Info("[LAND]: LAND:" + modify.ToString());
-            if (modify.ParcelData.Length > 0)
+            for (int i = 0; i < modify.ParcelData.Length; i++)
             {
-                // Note: the ModifyTerrain event handler sends out updated packets before the end of this event.  Therefore,
-                // a simple boolean value should work and perhaps queue up just a few terrain patch packets at the end of the edit.
-                if (OnModifyTerrain != null)
-                {
-                    for (int i = 0; i < modify.ParcelData.Length; i++)
-                    {
-                        ModifyTerrain handlerModifyTerrain = OnModifyTerrain;
-                        if (handlerModifyTerrain != null)
-                        {
-                            handlerModifyTerrain(AgentId, modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
-                                                 modify.ModifyBlock.BrushSize,
-                                                 modify.ModifyBlock.Action, modify.ParcelData[i].North,
-                                                 modify.ParcelData[i].West, modify.ParcelData[i].South,
-                                                 modify.ParcelData[i].East, AgentId);
-                        }
-                    }
-                }
+                OnModifyTerrain?.Invoke(AgentId, modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                    modify.ModifyBlockExtended[i].BrushSize, modify.ModifyBlock.Action,
+                                    modify.ParcelData[i].North, modify.ParcelData[i].West,
+                                    modify.ParcelData[i].South, modify.ParcelData[i].East);
             }
 
             return true;

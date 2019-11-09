@@ -60,9 +60,8 @@ namespace OpenSim.Framework
     public delegate void ObjectAttach(
         IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
-    public delegate void ModifyTerrain(UUID user,
-        float height, float seconds, byte size, byte action, float north, float west, float south, float east,
-        UUID agentId);
+    public delegate void ModifyTerrain(UUID user, float height, float seconds, float brushSize,
+        byte action, float north, float west, float south, float east);
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 

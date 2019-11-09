@@ -538,19 +538,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             float cx = m_terrainData.SizeX * 0.5f;
             float cy = m_terrainData.SizeY * 0.5f;
-            float h;
+            float h, b;
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
- //                   h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
-                    h = 1.0f;
-                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 50) * 0.01d);
-                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 100) * 0.001d);
-                    if (h < spherFacA)
-                        h = spherFacA;
-                    if (h < spherFacB)
-                        h = spherFacB;
+                    h = 25 * TerrainUtil.SphericalFactor(x - cx, y - cy, 50);
+                    b = 10 * TerrainUtil.SphericalFactor(x - cx, y - cy, 100);
+                    if (h < b)
+                        h = b;
                     m_terrainData[x, y] = h;
                 }
             }

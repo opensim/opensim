@@ -35,7 +35,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void LoadFromFile(string filename);
         void SaveToFile(string filename);
-        void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId);
+        void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action);
 
         /// <summary>
         /// Taint the terrain. This will lead to sending the terrain data to the clients again.

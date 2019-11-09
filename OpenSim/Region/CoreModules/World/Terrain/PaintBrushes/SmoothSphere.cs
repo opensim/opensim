@@ -34,18 +34,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strengh, int startX, int endX, int startY, int endY)
         {
-            strength = TerrainUtil.MetersToSphericalStrength(strength);
-
             int x, y;
-            double[,] tweak = new double[map.Width,map.Height];
+            double[,] tweak = new double[map.Width, map.Height];
 
-            double area = strength;
-            double step = strength / 4.0;
-            duration = 0.03; //MCP Should be read from ini file
+            double step = size / 4.0;
 
+            if(strengh > 1.0f)
+                strengh = 1.0f;
 
             // compute delta map
             for (x = startX; x <= endX; x++)
@@ -55,7 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     if (!mask[x, y])
                         continue;
 
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
+                    double z = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
 
                     if (z > 0) // add in non-zero amount
                     {
@@ -63,10 +61,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                         int avgsteps = 0;
 
                         double n;
-                        for (n = 0.0 - area; n < area; n += step)
+                        for (n =- size; n < size; n += step)
                         {
                             double l;
-                            for (l = 0.0 - area; l < area; l += step)
+                            for (l = -size; l < size; l += step)
                             {
                                 avgsteps++;
                                 average += TerrainUtil.GetBilinearInterpolate(x + n, y + l, map);
@@ -84,13 +82,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     if (!mask[x, y])
                         continue;
 
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
+                    float distancefactor = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
 
-                    if (z > 0) // add in non-zero amount
+                    if (distancefactor > 0) // add in non-zero amount
                     {
-                        double da = z;
-                        double a = (map[x, y] - tweak[x, y]) * da;
-                        double newz = map[x, y] - (a * duration);
+                        double a = (map[x, y] - tweak[x, y]) * distancefactor;
+                        double newz = map[x, y] - (a * strengh);
 
                         if (newz > 0.0)
                             map[x, y] = newz;

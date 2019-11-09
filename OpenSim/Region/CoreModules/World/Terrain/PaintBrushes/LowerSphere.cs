@@ -34,11 +34,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            int s = (int) (Math.Pow(2, strength) + 0.5);
-
+            size = 0.5f * (float)Math.PI / size;
+            strength *= 2;
             int x, y;
 
             for (x = startX; x <= endX; x++)
@@ -49,19 +49,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                         continue;
 
                     // Calculate a cos-sphere and add it to the heighmap
-                    double r = Math.Sqrt((x-rx) * (x-rx) + ((y-ry) * (y-ry)));
-                    double z = Math.Cos(r * Math.PI / (s * 2));
-                    if (z > 0.0)
+                    double r = Math.Sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
+                    double distancefactor = Math.Cos(r * size);
+                    if (distancefactor > 0.0)
                     {
-                        double newz = map[x, y] - z * duration;
-                        if (newz < 0.0)
-                            map[x, y] = 0.0;
+                        double newz = map[x, y] - distancefactor * strength;
+                        if (newz <= -100f)
+                            map[x, y] = -100f;
                         else
                             map[x, y] = newz;
                     }
                 }
             }
-
         }
         #endregion
     }

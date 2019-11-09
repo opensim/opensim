@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
 
             for (int i = 0; i < rounds; i++)
             {
-                smoothFunction.FloodEffect(map, bitmap, 1.0, 0, map.Width - 1, 0, map.Height - 1);
+                smoothFunction.FloodEffect(map, bitmap, -1f, 1.0f, 0, map.Width - 1, 0, map.Height - 1);
             }
         }
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
                         }
                     }
 
-                    raiseFunction.FloodEffect(map, bitmap, height, 0, map.Width - 1, 0, map.Height - 1);
+                    raiseFunction.FloodEffect(map, bitmap, -1f,(float)height, 0, map.Width - 1, 0, map.Height - 1);
                 }
             }
         }

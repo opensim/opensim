@@ -65,11 +65,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             Smooth = 3,
             Noise = 4,
             Revert = 5,
-
-            // Extended brushes
-            Erode = 255,
-            Weather = 254,
-            Olsen = 253
         }
 
         #endregion
@@ -81,13 +76,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 #pragma warning restore 414
 
         private readonly Commander m_commander = new Commander("terrain");
+        private readonly Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         private readonly Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
             new Dictionary<StandardTerrainEffects, ITerrainFloodEffect>();
-        private readonly Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         private readonly Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
-        private Dictionary<string, ITerrainModifier> m_modifyOperations =
-             new Dictionary<string, ITerrainModifier>();
+        private Dictionary<string, ITerrainModifier> m_modifyOperations = new Dictionary<string, ITerrainModifier>();
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_channel;
         private ITerrainChannel m_baked;
@@ -520,13 +514,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="size">The size of the brush (0=small, 1=medium, 2=large)</param>
         /// <param name="action">0=LAND_LEVEL, 1=LAND_RAISE, 2=LAND_LOWER, 3=LAND_SMOOTH, 4=LAND_NOISE, 5=LAND_REVERT</param>
         /// <param name="agentId">UUID of script-owner</param>
-        public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId)
+        public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action)
         {
             float duration = 0.25f;
-            if (action == 0)
-                duration = 4.0f;
+            float brushSize = size + 1;
+            if (brushSize > 2)
+                    brushSize = 4;
 
-            client_OnModifyTerrain(user, (float)pos.Z, duration, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
+            client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X);
         }
 
         /// <summary>
@@ -686,9 +681,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_painteffects[StandardTerrainEffects.Noise] = new NoiseSphere();
             m_painteffects[StandardTerrainEffects.Flatten] = new FlattenSphere();
             m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_baked);
-            m_painteffects[StandardTerrainEffects.Erode] = new ErodeSphere();
-            m_painteffects[StandardTerrainEffects.Weather] = new WeatherSphere();
-            m_painteffects[StandardTerrainEffects.Olsen] = new OlsenSphere();
 
             // Area of effect selection effects
             m_floodeffects[StandardTerrainEffects.Raise] = new RaiseArea();
@@ -1310,9 +1302,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return ret;
         }
 
-        private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
-                                            float north, float west, float south, float east, UUID agentId)
+        private void client_OnModifyTerrain(UUID user, float height, float seconds, float brushSize, byte action,
+                                            float north, float west, float south, float east)
         {
+        m_log.DebugFormat("brushs {0} seconds {1} height {2}", brushSize, seconds, height);
             bool god = m_scene.Permissions.IsGod(user);
             bool allowed = false;
             if (north == south && east == west)
@@ -1321,25 +1314,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     bool[,] allowMask = new bool[m_channel.Width, m_channel.Height];
                     allowMask.Initialize();
-                    int n = size + 1;
-                    if (n > 2)
-                        n = 4;
 
-                    int zx = (int)(west + 0.5);
-                    int zy = (int)(north + 0.5);
-
-                    int startX = zx - n;
+                    int startX = (int)(west - brushSize + 0.5);
                     if (startX < 0)
                         startX = 0;
 
-                    int startY = zy - n;
+                    int startY = (int)(north - brushSize + 0.5);
                     if (startY < 0)
                         startY = 0;
 
-                    int endX = zx + n;
+                    int endX = (int)(west + brushSize + 0.5);
                     if (endX >= m_channel.Width)
                         endX = m_channel.Width - 1;
-                    int endY = zy + n;
+                    int endY = (int)(north + brushSize + 0.5);
                     if (endY >= m_channel.Height)
                         endY = m_channel.Height - 1;
 
@@ -1349,7 +1336,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         for (y = startY; y <= endY; y++)
                         {
-                            if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x, y, 0)))
+                            if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, 0)))
                             {
                                 allowMask[x, y] = true;
                                 allowed = true;
@@ -1360,7 +1347,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         StoreUndoState();
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
-                            m_channel, allowMask, west, south, height, size, seconds,
+                            m_channel, allowMask, west, south, height, brushSize, seconds,
                             startX, endX, startY, endY);
 
                         //block changes outside estate limits
@@ -1412,7 +1399,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         for (y = startY; y <= endY; y++)
                         {
-                            if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x, y, 0)))
+                            if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, 0)))
                             {
                                 fillArea[x, y] = true;
                                 allowed = true;
@@ -1423,7 +1410,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     if (allowed)
                     {
                         StoreUndoState();
-                        m_floodeffects[(StandardTerrainEffects)action].FloodEffect(m_channel, fillArea, size,
+                        m_floodeffects[(StandardTerrainEffects)action].FloodEffect(m_channel, fillArea, height, seconds,
                             startX, endX, startY, endY);
 
                         //block changes outside estate limits
@@ -1707,20 +1694,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             MainConsole.Instance.Output("max/min/avg/sum: {0}/{1}/{2}/{3}", max, min, avg, sum);
         }
 
-        private void InterfaceEnableExperimentalBrushes(Object[] args)
-        {
-            if ((bool)args[0])
-            {
-                m_painteffects[StandardTerrainEffects.Revert] = new WeatherSphere();
-                m_painteffects[StandardTerrainEffects.Flatten] = new OlsenSphere();
-                m_painteffects[StandardTerrainEffects.Smooth] = new ErodeSphere();
-            }
-            else
-            {
-                InstallDefaultEffects();
-            }
-        }
-
         private void InterfaceRunPluginEffect(Object[] args)
         {
             string firstArg = (string)args[0];
@@ -1841,12 +1814,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             "Shows terrain height at a given co-ordinate.");
             showCommand.AddArgument("point", "point in <x>,<y> format with no spaces (e.g. 45,45)", "String");
 
-            Command experimentalBrushesCommand =
-                new Command("newbrushes", CommandIntentions.COMMAND_HAZARDOUS, InterfaceEnableExperimentalBrushes,
-                            "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
-            experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
-
-            // Plugins
+             // Plugins
             Command pluginRunCommand =
                 new Command("effect", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRunPluginEffect, "Runs a specified plugin effect");
             pluginRunCommand.AddArgument("name", "The plugin effect you wish to run, or 'list' to see all plugins", "String");
@@ -1861,7 +1829,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("multiply", multiplyCommand);
             m_commander.RegisterCommand("bake", bakeRegionCommand);
             m_commander.RegisterCommand("revert", revertRegionCommand);
-            m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
             m_commander.RegisterCommand("show", showCommand);
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
             m_commander.RegisterCommand("effect", pluginRunCommand);

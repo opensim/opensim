@@ -35,49 +35,29 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            strength = TerrainUtil.MetersToSphericalStrength(strength);
-
             int x, y;
 
+            size *= 2;
+
+            float distancefactor;
+
             // blend in map
-            for (x = startX; x <= endX; x++)
+            for (x = startX; x <= endX; ++x)
             {
-                for (y = startY; y <= endY; y++)
+                for (y = startY; y <= endY; ++y)
                 {
                     if (!mask[x,y])
                         continue;
 
-                    double z;
-                    if (duration < 4.0)
-                    {
-                        z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration * 0.25;
-                    }
-                    else {
-                        z = 1.0;
-                    }
+                    distancefactor = strength * TerrainUtil.SphericalFactor(x - rx, y - ry, size);
 
-                    double delta = rz - map[x, y];
-                    if (Math.Abs(delta) > 0.1)
-                    {
-                        if (z > 1.0)
-                        {
-                            z = 1.0;
-                        }
-                        else if (z < 0.0)
-                        {
-                            z = 0.0;
-                        }
-                        delta *= z;
-                    }
-
-                    if (delta != 0) // add in non-zero amount
-                    {
-                        map[x, y] += delta;
-                    }
-
+                    if(distancefactor >= 1.0f)
+                        map[x, y] = rz;
+                    else
+                        map[x, y] += (rz - (float)map[x, y]) * distancefactor;
                 }
             }
         }
