@@ -37,15 +37,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
             int startX, int endX, int startY, int endY)
         {
             int x,y;
-            for (x = startX; x <= endX; x++)
+            for (x = startX; x <= endX; ++x)
             {
-                for (y = startY; y <= endY; y++)
+                for (y = startY; y <= endY; ++y)
                 {
                     if (fillArea[x, y])
                     {
                         map[x, y] -= strength;
-                        if (map[x, y] < -100f)
-                            map[x, y] = -100f;
+                        if (map[x, y] < 0f)
+                            map[x, y] = 0f;
                     }
                 }
             }

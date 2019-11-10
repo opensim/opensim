@@ -43,14 +43,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
             int x, y;
 
-            for (x = startX; x <= endX; x++)
+            for (x = startX; x <= endX; ++x)
             {
-                for (y = startY; y <= endY; y++)
+                for (y = startY; y <= endY; ++y)
                 {
                     if (!mask[x, y])
                         continue;
 
-                    // Calculate a cos-sphere and add it to the heighmap
+                // Calculate a cos-sphere and add it to the heighmap
                     double r = Math.Sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
                     double distancefactor = Math.Cos(r * size);
                     if (distancefactor > 0.0)

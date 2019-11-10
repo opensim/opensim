@@ -60,10 +60,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             TerrainChannel map = new TerrainChannel((int)Constants.RegionSize, (int)Constants.RegionSize);
             ITerrainPaintableEffect effect = new RaiseSphere();
 
-            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 2, 6.0f,
+            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 5, 6.0f,
                 0, midRegion - 1,0, (int)Constants.RegionSize -1);
             Assert.That(map[127, midRegion] > 0.0, "Raise brush should raising value at this point (127,128).");
-            Assert.That(map[125, midRegion] > 0.0, "Raise brush should raising value at this point (124,128).");
+            Assert.That(map[124, midRegion] > 0.0, "Raise brush should raising value at this point (124,128).");
             Assert.That(map[120, midRegion] == 0.0, "Raise brush should not change value at this point (120,128).");
             Assert.That(map[128, midRegion] == 0.0, "Raise brush should not change value at this point (128,128).");
 //            Assert.That(map[0, midRegion] == 0.0, "Raise brush should not change value at this point (0,128).");
@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             }
             effect = new LowerSphere();
 
-            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 2, 6.0f,
+            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 5, 6.0f,
                 0, (int)Constants.RegionSize -1,0, (int)Constants.RegionSize -1);
             Assert.That(map[127, midRegion] >= 0.0, "Lower should not lowering value below 0.0 at this point (127,128).");
             Assert.That(map[127, midRegion] == 0.0, "Lower brush should lowering value to 0.0 at this point (127,128).");

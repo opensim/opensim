@@ -54,8 +54,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     if (distancefactor > 0.0)
                     {
                         double newz = map[x, y] - distancefactor * strength;
-                        if (newz <= -100f)
-                            map[x, y] = -100f;
+                        if (newz <= 0f)
+                            map[x, y] = 0f;
                         else
                             map[x, y] = newz;
                     }
