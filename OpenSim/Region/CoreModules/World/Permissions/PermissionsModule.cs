@@ -2073,20 +2073,28 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             float X = position.X;
             float Y = position.Y;
+            int id = (int)position.Z;
+            ILandObject parcel;
 
-            if (X > ((int)m_scene.RegionInfo.RegionSizeX - 1))
-                X = ((int)m_scene.RegionInfo.RegionSizeX - 1);
-            if (Y > ((int)m_scene.RegionInfo.RegionSizeY - 1))
-                Y = ((int)m_scene.RegionInfo.RegionSizeY - 1);
-            if (X < 0)
-                X = 0;
-            if (Y < 0)
-                Y = 0;
+            if(id >= 0 && X < 0 && Y < 0)
+                parcel = m_scene.LandChannel.GetLandObject(id);
+            else
+            {
+                if (X < 0)
+                    X = 0;
+                else if (X > ((int)m_scene.RegionInfo.RegionSizeX - 1))
+                    X = ((int)m_scene.RegionInfo.RegionSizeX - 1);
+                if (Y < 0)
+                    Y = 0;
+                else if (Y > ((int)m_scene.RegionInfo.RegionSizeY - 1))
+                    Y = ((int)m_scene.RegionInfo.RegionSizeY - 1);
 
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
+                parcel = m_scene.LandChannel.GetLandObject(X, Y);
+            }
+
             if (parcel == null)
                 return false;
-            
+
             LandData landdata = parcel.LandData;
             if (landdata == null)
                 return false;

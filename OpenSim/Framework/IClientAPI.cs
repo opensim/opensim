@@ -61,7 +61,7 @@ namespace OpenSim.Framework
         IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
     public delegate void ModifyTerrain(UUID user, float height, float seconds, float brushSize,
-        byte action, float north, float west, float south, float east);
+        byte action, float north, float west, float south, float east, int parcelLocalID);
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 

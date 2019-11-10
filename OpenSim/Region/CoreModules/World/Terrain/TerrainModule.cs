@@ -521,7 +521,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (brushSize > 2)
                     brushSize = 4;
 
-            client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X);
+            client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X, -1);
         }
 
         /// <summary>
@@ -1303,9 +1303,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         private void client_OnModifyTerrain(UUID user, float height, float seconds, float brushSize, byte action,
-                                            float north, float west, float south, float east)
+                                            float north, float west, float south, float east, int parcelLocalID)
         {
-        m_log.DebugFormat("brushs {0} seconds {1} height {2}", brushSize, seconds, height);
+        m_log.DebugFormat("brushs {0} seconds {1} height {2}, parcel {3}", brushSize, seconds, height, parcelLocalID);
             bool god = m_scene.Permissions.IsGod(user);
             bool allowed = false;
             if (north == south && east == west)
@@ -1313,6 +1313,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
                 {
                     bool[,] allowMask = new bool[m_channel.Width, m_channel.Height];
+                    
                     allowMask.Initialize();
 
                     int startX = (int)(west - brushSize + 0.5);
@@ -1336,7 +1337,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     {
                         for (y = startY; y <= endY; y++)
                         {
-                            if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, 0)))
+                            if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, -1)))
                             {
                                 allowMask[x, y] = true;
                                 allowed = true;
@@ -1392,19 +1393,47 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     else if (endY >= m_channel.Height)
                         endY = m_channel.Height - 1;
 
-
                     int x, y;
-
-                    for (x = startX; x <= endX; x++)
+                    if (parcelLocalID == -1)
                     {
-                        for (y = startY; y <= endY; y++)
+                        for (x = startX; x <= endX; x++)
                         {
-                            if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, 0)))
+                            for (y = startY; y <= endY; y++)
                             {
-                                fillArea[x, y] = true;
-                                allowed = true;
+                                if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, -1)))
+                                {
+                                    fillArea[x, y] = true;
+                                    allowed = true;
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        if (!m_scene.Permissions.CanTerraformLand(user, new Vector3(-1, -1, parcelLocalID)))
+                            return;
+
+                        ILandObject parcel = m_scene.LandChannel.GetLandObject(parcelLocalID);
+                        if(parcel == null)
+                            return;
+                        bool [,] parcelmap = parcel.GetLandBitmap();
+//ugly
+                        for (x = startX; x <= endX; x++)
+                        {
+                            int px = x >> 2;
+                            y = startY;
+                            while( y <= endY)
+                            {
+                                int py = y >> 2;
+                                bool inp = parcelmap[px, py];
+                                fillArea[x, y++] = inp;
+                                fillArea[x, y++] = inp;
+                                fillArea[x, y++] = inp;
+                                fillArea[x, y++] = inp;
+                            }
+                        }
+
+                        allowed = true;
                     }
 
                     if (allowed)

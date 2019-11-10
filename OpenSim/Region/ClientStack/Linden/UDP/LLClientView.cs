@@ -8990,7 +8990,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnModifyTerrain?.Invoke(AgentId, modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
                                     modify.ModifyBlockExtended[i].BrushSize, modify.ModifyBlock.Action,
                                     modify.ParcelData[i].North, modify.ParcelData[i].West,
-                                    modify.ParcelData[i].South, modify.ParcelData[i].East);
+                                    modify.ParcelData[i].South, modify.ParcelData[i].East,
+                                    modify.ParcelData[i].LocalID);
             }
 
             return true;

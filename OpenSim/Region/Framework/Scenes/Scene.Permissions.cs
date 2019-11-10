@@ -844,6 +844,8 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region TERRAFORM LAND
+        // if pos.x < 0, pos.y <0 and pos.z >=0 pos.z is parcel localID
+        // id pos.z < 0 x a and y identify the parcel
         public bool CanTerraformLand(UUID user, Vector3 pos)
         {
             TerraformLandHandler handler = OnTerraformLand;
