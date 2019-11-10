@@ -1305,7 +1305,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void client_OnModifyTerrain(UUID user, float height, float seconds, float brushSize, byte action,
                                             float north, float west, float south, float east, int parcelLocalID)
         {
-        m_log.DebugFormat("brushs {0} seconds {1} height {2}, parcel {3}", brushSize, seconds, height, parcelLocalID);
+            //m_log.DebugFormat("brushs {0} seconds {1} height {2}, parcel {3}", brushSize, seconds, height, parcelLocalID);
             bool god = m_scene.Permissions.IsGod(user);
             bool allowed = false;
             if (north == south && east == west)
