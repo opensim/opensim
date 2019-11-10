@@ -261,15 +261,16 @@ namespace OpenMetaverse
                     // This udp socket flag is not supported under mono,
                     // so we'll catch the exception and continue
                     // Try does not protect some mono versions on mac
-                    if(Util.IsWindows())
-                    {
+                    // this may work now on all platforms
+                    //if(Util.IsWindows())
+                    //{
                         m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
                         m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag set");
-                    }               
-                    else
-                    {
-                        m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
-                    }
+                    //}               
+                    //else
+                    //{
+                    //    m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
+                    //}
                 }
                 catch
                 {
