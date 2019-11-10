@@ -517,9 +517,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action)
         {
             float duration = 0.25f;
-            float brushSize = size + 1;
-            if (brushSize > 2)
-                    brushSize = 4;
+            float brushSize;
+            if(action == (byte)StandardTerrainEffects.Lower || action == (byte)StandardTerrainEffects.Raise)
+                brushSize = (int)(Math.Pow(2, size) + 0.5);
+            else
+                brushSize = (size + 1) * 1.35f;
 
             client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X, -1);
         }
