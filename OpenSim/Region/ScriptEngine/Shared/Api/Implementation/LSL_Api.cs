@@ -5315,7 +5315,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ITerrainModule tm = m_ScriptEngine.World.RequestModuleInterface<ITerrainModule>();
             if (tm != null)
             {
-                tm.ModifyTerrain(m_host.OwnerID, m_host.AbsolutePosition, (byte) brush, (byte) action, m_host.OwnerID);
+                tm.ModifyTerrain(m_host.OwnerID, m_host.AbsolutePosition, (byte) brush, (byte) action);
             }
         }
 
@@ -5765,17 +5765,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            LSL_Vector SunDoubleVector3;
-            Vector3 SunFloatVector3;
-
-            // sunPosition estate setting is set in OpenSim.Region.CoreModules.SunModule
-            // have to convert from Vector3 (float) to LSL_Vector (double)
-            SunFloatVector3 = World.RegionInfo.RegionSettings.SunVector;
-            SunDoubleVector3.x = (double)SunFloatVector3.X;
-            SunDoubleVector3.y = (double)SunFloatVector3.Y;
-            SunDoubleVector3.z = (double)SunFloatVector3.Z;
-
-            return SunDoubleVector3;
+            Vector3 sun = World.RegionInfo.RegionSettings.SunVector;
+            return new LSL_Vector(sun);
         }
 
         public LSL_Vector llGetTextureOffset(int face)
@@ -14540,9 +14531,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(0));
                             break;
                         case ScriptBaseClass.OBJECT_ATTACHED_SLOTS_AVAILABLE:
-                            if (Attachments == null)
-                                Attachments = av.GetAttachments();
-                            ret.Add(new LSL_Integer(38 - Attachments.Count));
+                            ret.Add(new LSL_Integer(38 - av.GetAttachmentsCount()));
                             break;
                         case ScriptBaseClass.OBJECT_CREATION_TIME:
                             ret.Add(new LSL_String(""));
