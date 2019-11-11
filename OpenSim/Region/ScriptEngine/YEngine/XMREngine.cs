@@ -854,13 +854,24 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public bool PostScriptEvent(UUID itemID, EventParams parms)
         {
             XMRInstance instance = GetInstance(itemID);
-            if(instance == null)
+            if (instance == null)
                 return false;
 
             TraceCalls("[YEngine]: YEngine.PostScriptEvent({0},{1})", itemID.ToString(), parms.EventName);
 
             instance.PostEvent(parms);
             return true;
+        }
+
+        public void CancelScriptEvent(UUID itemID, string eventName)
+        {
+            XMRInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return;
+
+            TraceCalls("[YEngine]: YEngine.CancelScriptEvent({0},{1})", itemID.ToString(), eventName);
+
+            instance.CancelEvent(eventName);
         }
 
         // Events targeted at all scripts in the given prim.

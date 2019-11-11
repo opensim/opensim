@@ -1794,6 +1794,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return result;
         }
 
+        public void CancelScriptEvent(UUID itemID, string eventName)
+        {
+        }
+
         /// <summary>
         /// Post an event to a single script
         /// </summary>

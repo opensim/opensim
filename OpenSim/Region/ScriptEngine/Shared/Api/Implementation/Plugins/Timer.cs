@@ -110,8 +110,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             string key = MakeTimerKey(m_localID, m_itemID);
             lock (TimerListLock)
             {
-                if (Timers.ContainsKey(key))
+                if (Timers.TryGetValue(key, out TimerInfo ts))
                 {
+                    m_CmdManager.m_ScriptEngine.CancelScriptEvent(ts.itemID, "timer");
                     Timers.Remove(key);
                 }
             }
