@@ -109,6 +109,11 @@ namespace OpenSim.Tests.Common
             throw new System.NotImplementedException ();
         }
 
+        public void CancelScriptEvent(UUID itemID, string eventName)
+        {
+
+        }
+
         public bool PostScriptEvent(UUID itemID, string name, object[] args)
         {
 //            Console.WriteLine("Posting event {0} for {1}", name, itemID);
