@@ -194,9 +194,6 @@ namespace OpenSim.Framework
             return ret;
         }
 
-        // This one dimensional version is ordered so height = map[y*sizeX+x];
-        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
-        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialized()
         {
             int points = SizeX * SizeY;
@@ -485,7 +482,8 @@ namespace OpenSim.Framework
                         for (int yy = 0; yy < SizeY; yy++)
                             for (int xx = 0; xx < SizeX; xx++)
                             {
-                                bw.Write((float)m_heightmap[xx, yy]);
+                                //bw.Write((float)m_heightmap[xx, yy]);
+                                bw.Write((float)Math.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
                             }
 
                         bw.Flush();

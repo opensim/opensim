@@ -227,7 +227,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         if ((xPos >= 0) && (xPos < map.Width) && (mask[xDim, yDim]))
                         {
                             double endElevation = this.operate(buffer, data, xPos, yPos);
-                            map[xPos, yPos] = endElevation;
+                            map[xPos, yPos] = (float)endElevation;
                         }
                     }
                 }

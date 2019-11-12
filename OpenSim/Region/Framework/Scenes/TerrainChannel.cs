@@ -119,10 +119,7 @@ namespace OpenSim.Region.Framework.Scenes
             return m_terrainData;
         }
 
-        // ITerrainChannel.GetFloatsSerialized()
         // This one dimensional version is ordered so height = map[y*sizeX+x];
-        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
-        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialised()
         {
             return m_terrainData.GetFloatsSerialized();
@@ -147,12 +144,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // ITerrainChannel.this[x,y]
-        public double this[int x, int y]
+        public float this[int x, int y]
         {
             get {
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
                     return 0;
-                return (double)m_terrainData[x, y];
+                return m_terrainData[x, y];
             }
             set
             {
@@ -492,7 +489,7 @@ namespace OpenSim.Region.Framework.Scenes
                     float value;
                     value = BitConverter.ToSingle(dataArray, index);
                     index += 4;
-                    this[x, y] = (double)value;
+                    this[x, y] = value;
                 }
             }
         }

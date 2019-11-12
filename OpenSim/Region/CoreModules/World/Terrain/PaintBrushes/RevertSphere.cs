@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                         continue;
 
                     distancefactor = strength * (1.0f - distancefactor);
-                    map[x, y] = (map[x, y] * (1.0 - distancefactor)) + (m_revertmap[x, y] * distancefactor);
+                    map[x, y] = (map[x, y] * (1.0f - distancefactor)) + (m_revertmap[x, y] * distancefactor);
                 }
             }
         }

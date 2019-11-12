@@ -40,7 +40,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             float distancefactor;
             float dx2;
 
-            double[,] tweak = new double[endX - startX + 1, endX - startX + 1];
+            float[,] tweak = new float[endX - startX + 1, endY - startY + 1];
             int ssize = (int)(size + 0.5);
             if(ssize > 4)
                 ssize = 4;
@@ -64,16 +64,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                     {
                         distancefactor = strength * (1.0f - distancefactor);
 
-                        double average = 0.0;
+                        float average = 0f;
                         int avgsteps = 0;
 
                         for (int n = x - ssize; n <=  x + ssize; ++n)
                         {
-                            if(n > 0 && n < map.Width)
+                            if(n >= 0 && n < map.Width)
                             {
                                 for (int l = y - ssize; l <= y + ssize; ++l)
                                 {
-                                    if (l > 0 && l < map.Height)
+                                    if (l >= 0 && l < map.Height)
                                     {
                                         avgsteps++;
                                         average += map[n, l];
@@ -91,10 +91,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             {
                 for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
-                    double tz = tweak[i, j];
+                    float tz = tweak[i, j];
                     if(tz != 0.0)
                     {
-                        double newz = map[x, y] - tz;
+                        float newz = map[x, y] - tz;
                         if (newz > 0.0)
                             map[x, y] = newz;
                     }

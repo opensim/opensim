@@ -1564,8 +1564,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for (int y = 0; y < m_channel.Height / 2; y++)
                     {
-                        double height = m_channel[x, y];
-                        double flippedHeight = m_channel[x, (int)m_channel.Height - 1 - y];
+                        float height = m_channel[x, y];
+                        float flippedHeight = m_channel[x, (int)m_channel.Height - 1 - y];
                         m_channel[x, y] = flippedHeight;
                         m_channel[x, (int)m_channel.Height - 1 - y] = height;
 
@@ -1578,8 +1578,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for (int x = 0; x < m_channel.Width / 2; x++)
                     {
-                        double height = m_channel[x, y];
-                        double flippedHeight = m_channel[(int)m_channel.Width - 1 - x, y];
+                        float height = m_channel[x, y];
+                        float flippedHeight = m_channel[(int)m_channel.Width - 1 - x, y];
                         m_channel[x, y] = flippedHeight;
                         m_channel[(int)m_channel.Width - 1 - x, y] = height;
 
@@ -1594,11 +1594,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceRescaleTerrain(Object[] args)
         {
-            double desiredMin = (double)args[0];
-            double desiredMax = (double)args[1];
+            float desiredMin = (float)args[0];
+            float desiredMax = (float)args[1];
 
             // determine desired scaling factor
-            double desiredRange = desiredMax - desiredMin;
+            float desiredRange = desiredMax - desiredMin;
             //m_log.InfoFormat("Desired {0}, {1} = {2}", new Object[] { desiredMin, desiredMax, desiredRange });
 
             if (desiredRange == 0d)
@@ -1609,8 +1609,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else
             {
                 //work out current heightmap range
-                double currMin = double.MaxValue;
-                double currMax = double.MinValue;
+                float currMin = float.MaxValue;
+                float currMax = float.MinValue;
 
                 int width = m_channel.Width;
                 int height = m_channel.Height;
@@ -1619,7 +1619,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for(int y = 0; y < height; y++)
                     {
-                        double currHeight = m_channel[x, y];
+                        float currHeight = m_channel[x, y];
                         if (currHeight < currMin)
                         {
                             currMin = currHeight;
@@ -1631,8 +1631,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     }
                 }
 
-                double currRange = currMax - currMin;
-                double scale = desiredRange / currRange;
+                float currRange = currMax - currMin;
+                float scale = desiredRange / currRange;
 
                 //m_log.InfoFormat("Current {0}, {1} = {2}", new Object[] { currMin, currMax, currRange });
                 //m_log.InfoFormat("Scale = {0}", scale);
@@ -1642,7 +1642,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for(int y = 0; y < height; y++)
                     {
-                        double currHeight = m_channel[x, y] - currMin;
+                        float currHeight = m_channel[x, y] - currMin;
                         m_channel[x, y] = desiredMin + (currHeight * scale);
                     }
                 }
@@ -1652,7 +1652,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceElevateTerrain(Object[] args)
         {
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             int x, y;
             for (x = 0; x < m_channel.Width; x++)
@@ -1663,7 +1663,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMultiplyTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1673,7 +1673,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceLowerTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1683,7 +1683,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public void InterfaceFillTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1693,7 +1693,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMinTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
             for (x = 0; x < m_channel.Width; x++)
             {
                 for(y = 0; y < m_channel.Height; y++)
@@ -1706,7 +1706,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMaxTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
             for (x = 0; x < m_channel.Width; x++)
             {
                 for(y = 0; y < m_channel.Height; y++)
@@ -1733,8 +1733,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceShowDebugStats(Object[] args)
         {
-            double max = Double.MinValue;
-            double min = double.MaxValue;
+            float max = float.MinValue;
+            float min = float.MaxValue;
             double sum = 0;
 
             int x;

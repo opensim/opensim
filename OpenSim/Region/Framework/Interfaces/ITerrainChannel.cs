@@ -36,7 +36,7 @@ namespace OpenSim.Region.Framework.Interfaces
         int Height { get;}      // Y dimension
         int Altitude { get;}    // Z dimension
 
-        double this[int x, int y] { get; set; }
+        float this[int x, int y] { get; set; }
 
         float GetHeightAtXYZ(float x, float y, float z);
 

@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                         continue;
 
                     distancefactor = strength * (1.0f - distancefactor);
-                    double noise = TerrainUtil.PerlinNoise2D(x / (double) map.Width, y / (double) map.Height, 8, 1.0);
+                    float noise = (float)TerrainUtil.PerlinNoise2D(x / (double) map.Width, y / (double) map.Height, 8, 1.0);
                     map[x, y] += noise * distancefactor;
                 }
             }

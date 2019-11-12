@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                             for (int x = 0; x < sectionWidth; x++)
                             {
                                 // Read a strip and continue
-                                retval[x, y] = baseHeight + bs.ReadInt16() * (double)heightScale / 65536.0;
+                                retval[x, y] = baseHeight + bs.ReadInt16() * (float)heightScale / 65536.0f;
                             }
                             // record that we wrote it
                             currFileXOffset++;
@@ -188,13 +188,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                             eof = true;
                             // create new channel of proper size (now that we know it)
                             retval = new TerrainChannel(w, h);
-                            double heightScale = (double)bs.ReadInt16() / 65536.0;
-                            double baseHeight = (double)bs.ReadInt16();
+                            float heightScale = bs.ReadInt16() / 65536.0f;
+                            float baseHeight = bs.ReadInt16();
                             for (int y = 0; y < h; y++)
                             {
                                 for (int x = 0; x < w; x++)
                                 {
-                                    retval[x, y] = baseHeight + (double)bs.ReadInt16() * heightScale;
+                                    retval[x, y] = baseHeight + bs.ReadInt16() * heightScale;
                                 }
                             }
                             break;
@@ -222,14 +222,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             BinaryWriter bs = new BinaryWriter(stream);
 
             //find the max and min heights on the map
-            double heightMax = map[0,0];
-            double heightMin = map[0,0];
+            float heightMax = map[0,0];
+            float heightMin = map[0,0];
 
             for (int y = 0; y < map.Height; y++)
             {
                 for (int x = 0; x < map.Width; x++)
                 {
-                    double current = map[x,y];
+                    float current = map[x,y];
                     if (heightMax < current)
                         heightMax = current;
                     if (heightMin > current)
@@ -237,13 +237,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                 }
             }
 
-            double baseHeight = Math.Floor( (heightMax + heightMin) / 2d );
+            float baseHeight = (float)Math.Floor(0.5f * (heightMax + heightMin));
 
-            double horizontalScale = Math.Ceiling((heightMax - heightMin));
+            float horizontalScale = (float) Math.Ceiling((heightMax - heightMin));
 
             // if we are completely flat add 1cm range to avoid NaN divisions
-            if (horizontalScale < 0.01d)
-                horizontalScale = 0.01d;
+            if (horizontalScale < 0.01f)
+                horizontalScale = 0.01f;
 
             Encoding enc = Encoding.ASCII;
 
