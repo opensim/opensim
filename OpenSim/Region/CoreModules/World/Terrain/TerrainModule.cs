@@ -516,12 +516,35 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="agentId">UUID of script-owner</param>
         public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action)
         {
-            float duration = 0.25f;
+            float duration;
             float brushSize;
-            if(action == (byte)StandardTerrainEffects.Lower || action == (byte)StandardTerrainEffects.Raise)
-                brushSize = (int)(Math.Pow(2, size) + 0.5);
+            if (size > 2)
+            {
+                size = 3;
+                brushSize = 4.0f;
+            }
             else
-                brushSize = (size + 1) * 1.35f;
+            {
+                size++;
+                brushSize = size;
+            }
+
+            switch((StandardTerrainEffects)action)
+            {
+                case StandardTerrainEffects.Flatten:
+                    duration = 7.29f * size * size;
+                    break;
+                case StandardTerrainEffects.Smooth:
+                case StandardTerrainEffects.Revert:
+                    duration = 0.06f * size * size;
+                    break;
+                case StandardTerrainEffects.Noise:
+                    duration = 0.46f * size * size;
+                    break;
+                default:
+                    duration = 0.25f;
+                    break;
+            }
 
             client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X, -1);
         }
@@ -1304,9 +1327,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return ret;
         }
 
+        private double NextModifyTerrainTime = double.MinValue;
+
         private void client_OnModifyTerrain(UUID user, float height, float seconds, float brushSize, byte action,
                                             float north, float west, float south, float east, int parcelLocalID)
         {
+            double now = Util.GetTimeStamp();
+            if(now < NextModifyTerrainTime)
+                return;
+
+            NextModifyTerrainTime = double.MaxValue; // block it
+
             //m_log.DebugFormat("brushs {0} seconds {1} height {2}, parcel {3}", brushSize, seconds, height, parcelLocalID);
             bool god = m_scene.Permissions.IsGod(user);
             bool allowed = false;
@@ -1454,6 +1485,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     m_log.Debug("Unknown terrain flood type " + action);
                 }
             }
+            NextModifyTerrainTime = Util.GetTimeStamp() + 0.02; // 20ms cooldown
         }
 
         private void client_OnBakeTerrain(IClientAPI remoteClient)

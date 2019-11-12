@@ -50,21 +50,25 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             if (strength > 1.0f)
                 strength = 1.0f;
 
-            int x,y;
+            int x, y;
+            float distancefactor;
+            float dx2;
+
             for (x = startX; x <= endX; x++)
             {
+                dx2 = (x - rx) * (x - rx);
                 for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x, y])
                         continue;
 
                     // Calculate a sphere and add it to the heighmap
-                    double distancefactor = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
-                    if (distancefactor > 0.0)
-                    {
-                        distancefactor *= strength;
-                        map[x, y] = (map[x, y] * (1.0 - distancefactor)) + (m_revertmap[x, y] * distancefactor);
-                    }
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor > 1.0f)
+                        continue;
+
+                    distancefactor = strength * (1.0f - distancefactor);
+                    map[x, y] = (map[x, y] * (1.0 - distancefactor)) + (m_revertmap[x, y] * distancefactor);
                 }
             }
         }

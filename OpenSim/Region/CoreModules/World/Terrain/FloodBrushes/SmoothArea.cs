@@ -36,18 +36,23 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
         public void FloodEffect(ITerrainChannel map, bool[,] fillArea, float height, float strength,
             int startX, int endX, int startY, int endY)
         {
-            double area = 4;
-            double step = 1;
+            int sx = (endX - startX + 1) / 2;
+            if (sx > 4)
+                sx = 4;
+
+            int sy = (endY - startY + 1) / 2;
+            if (sy > 4)
+                sy = 4;
 
             strength *= 0.002f;
             if(strength > 1.0f)
                 strength = 1.0f;
 
-            double[,] manipulate = new double[map.Width,map.Height];
-            int x, y;
-            for (x = startX; x <= endX; x++)
+            double[,] tweak = new double[endX - startX + 1, endX - startX + 1];
+
+            for (int x = startX, i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
                     if (!fillArea[x, y])
                         continue;
@@ -55,65 +60,31 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                     double average = 0.0;
                     int avgsteps = 0;
 
-                    double n;
-                    for (n = -area; n < area; n += step)
+                    for (int n = x - sx; n <= x + sx; ++n)
                     {
-                        double l;
-                        for (l = -area; l < area; l += step)
+                        for (int l = y - sy; l < y + sy; ++l)
                         {
                             avgsteps++;
-                            average += GetBilinearInterpolate(x + n, y + l, map);
+                            average += map[n, l];
                         }
                     }
 
-                    manipulate[x, y] = average / avgsteps;
+                    tweak[i, j] = average / avgsteps;
                 }
             }
-            for (x = startX; x <= endX; x++)
+
+            for (int x = startX, i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
-                    if (!fillArea[x, y])
+                    double ty = tweak[i, j];
+                    if (ty == 0.0)
                         continue;
 
-                    map[x, y] = (1.0 - strength) * map[x, y] + strength * manipulate[x, y];
+                    map[x, y] = (1.0 - strength) * map[x, y] + strength * ty;
                 }
             }
         }
-
-        #endregion
-
-        private static double GetBilinearInterpolate(double x, double y, ITerrainChannel map)
-        {
-            int w = map.Width;
-            int h = map.Height;
-
-            if (x > w - 2.0)
-                x = w - 2.0;
-            if (y > h - 2.0)
-                y = h - 2.0;
-            if (x < 0.0)
-                x = 0.0;
-            if (y < 0.0)
-                y = 0.0;
-
-            const int stepSize = 1;
-            double h00 = map[(int) x, (int) y];
-            double h10 = map[(int) x + stepSize, (int) y];
-            double h01 = map[(int) x, (int) y + stepSize];
-            double h11 = map[(int) x + stepSize, (int) y + stepSize];
-            double h1 = h00;
-            double h2 = h10;
-            double h3 = h01;
-            double h4 = h11;
-            double a00 = h1;
-            double a10 = h2 - h1;
-            double a01 = h3 - h1;
-            double a11 = h1 - h2 - h3 + h4;
-            double partialx = x - (int) x;
-            double partialz = y - (int) y;
-            double hi = a00 + (a10 * partialx) + (a01 * partialz) + (a11 * partialx * partialz);
-            return hi;
-        }
     }
+        #endregion
 }

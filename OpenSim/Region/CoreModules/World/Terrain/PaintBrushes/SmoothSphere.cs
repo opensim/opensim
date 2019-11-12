@@ -35,60 +35,66 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
         #region ITerrainPaintableEffect Members
 
         public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
-            float size, float strengh, int startX, int endX, int startY, int endY)
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            int x, y;
-            double[,] tweak = new double[map.Width, map.Height];
+            float distancefactor;
+            float dx2;
 
-            double step = size / 4.0;
+            double[,] tweak = new double[endX - startX + 1, endX - startX + 1];
+            int ssize = (int)(size + 0.5);
+            if(ssize > 4)
+                ssize = 4;
 
-            if(strengh > 1.0f)
-                strengh = 1.0f;
+            size *= size;
+
+            if (strength > 1.0f)
+                strength = 1.0f;
 
             // compute delta map
-            for (x = startX; x <= endX; x++)
+            for (int x = startX,  i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                dx2 = (x - rx) * (x - rx);
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
                     if (!mask[x, y])
                         continue;
 
-                    double z = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
-
-                    if (z > 0) // add in non-zero amount
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor <= 1.0f)
                     {
+                        distancefactor = strength * (1.0f - distancefactor);
+
                         double average = 0.0;
                         int avgsteps = 0;
 
-                        double n;
-                        for (n =- size; n < size; n += step)
+                        for (int n = x - ssize; n <=  x + ssize; ++n)
                         {
-                            double l;
-                            for (l = -size; l < size; l += step)
+                            if(n > 0 && n < map.Width)
                             {
-                                avgsteps++;
-                                average += TerrainUtil.GetBilinearInterpolate(x + n, y + l, map);
+                                for (int l = y - ssize; l <= y + ssize; ++l)
+                                {
+                                    if (l > 0 && l < map.Height)
+                                    {
+                                        avgsteps++;
+                                        average += map[n, l];
+                                    }
+                                }
                             }
                         }
-                        tweak[x, y] = average / avgsteps;
+                        average /= avgsteps;
+                        tweak[i, j] = distancefactor * (map[x, y] - average);
                     }
                 }
             }
             // blend in map
-            for (x = startX; x <= endX; x++)
+            for (int x = startX, i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
-                    if (!mask[x, y])
-                        continue;
-
-                    float distancefactor = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
-
-                    if (distancefactor > 0) // add in non-zero amount
+                    double tz = tweak[i, j];
+                    if(tz != 0.0)
                     {
-                        double a = (map[x, y] - tweak[x, y]) * distancefactor;
-                        double newz = map[x, y] - (a * strengh);
-
+                        double newz = map[x, y] - tz;
                         if (newz > 0.0)
                             map[x, y] = newz;
                     }

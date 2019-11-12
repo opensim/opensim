@@ -39,21 +39,27 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             float size, float strength, int startX, int endX, int startY, int endY)
         {
             int x, y;
+            float distancefactor;
+            float dx2;
+
+            size *= size;
 
             for (x = startX; x <= endX; x++)
             {
+                dx2 = (x - rx) * (x - rx);
                 for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x, y])
                         continue;
 
                     // Calculate a sphere and add it to the heighmap
-                    float distancefactor = TerrainUtil.SphericalFactor(x - rx, y - ry, size);
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor > 1.0f)
+                        continue;
 
+                    distancefactor = strength * (1.0f - distancefactor);
                     double noise = TerrainUtil.PerlinNoise2D(x / (double) map.Width, y / (double) map.Height, 8, 1.0);
-
-                    if (distancefactor > 0.0)
-                        map[x, y] += noise * distancefactor * strength;
+                    map[x, y] += noise * distancefactor;
                 }
             }
         }

@@ -39,19 +39,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             float size, float strength, int startX, int endX, int startY, int endY)
         {
             size = 0.5f *(float)Math.PI / size;
-            strength *= 2;
 
-            int x, y;
-
-            for (x = startX; x <= endX; ++x)
+            float dx2;
+            for (int x = startX; x <= endX; ++x)
             {
-                for (y = startY; y <= endY; ++y)
+                dx2 = (x - rx) * (x - rx);
+                for (int y = startY; y <= endY; ++y)
                 {
                     if (!mask[x, y])
                         continue;
 
-                // Calculate a cos-sphere and add it to the heighmap
-                    double r = Math.Sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
+                    // Calculate a cos-sphere and add it to the heighmap
+                    double r = Math.Sqrt(dx2 + (y - ry) * (y - ry));
                     double distancefactor = Math.Cos(r * size);
                     if (distancefactor > 0.0)
                         map[x, y] += distancefactor * strength;

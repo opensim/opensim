@@ -39,22 +39,26 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
             float size, float strength, int startX, int endX, int startY, int endY)
         {
             int x, y;
-
-            size *= 2;
-
             float distancefactor;
+            float dx2;
+
+            size *= 2 * size;
 
             // blend in map
             for (x = startX; x <= endX; ++x)
             {
+                dx2 = (x - rx) * (x - rx);
                 for (y = startY; y <= endY; ++y)
                 {
                     if (!mask[x,y])
                         continue;
+                    
+                    distancefactor =  (dx2 + (y - ry) * (y - ry)) / size;
+                    if(distancefactor > 1.0f)
+                        continue;
 
-                    distancefactor = strength * TerrainUtil.SphericalFactor(x - rx, y - ry, size);
-
-                    if(distancefactor >= 1.0f)
+                    distancefactor = strength * (1.0f - distancefactor);
+                    if (distancefactor >= 1.0f)
                         map[x, y] = rz;
                     else
                         map[x, y] += (rz - (float)map[x, y]) * distancefactor;
