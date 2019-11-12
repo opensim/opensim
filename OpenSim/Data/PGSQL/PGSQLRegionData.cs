@@ -114,6 +114,12 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
+        //BA MOD...
+        public RegionData GetSpecific(string regionName, UUID ScopeID)
+        {
+            return null;
+        }
+
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
             // extend database search for maximum region size area

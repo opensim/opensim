@@ -166,7 +166,13 @@ namespace OpenSim.Data.Null
             return null;
         }
 
-        public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
+        //BA MOD...
+        public RegionData GetSpecific(string regionName, UUID ScopeID)
+        {
+            return null;
+        }
+
+            public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
         {
             if (m_useStaticInstance && Instance != this)
                 return Instance.Get(startX, startY, endX, endY, scopeID);

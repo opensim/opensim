@@ -81,7 +81,30 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public RegionData Get(int posX, int posY, UUID scopeID)
+        //BA MOD....
+        public RegionData GetSpecific(string regionName, UUID scopeID)
+        {
+            string command = "select * from `" + m_Realm + "` where regionName = ?regionName";
+            if (scopeID != UUID.Zero)
+                command += " and ScopeID = ?scopeID";
+
+            //command += " order by regionName";
+
+            using (MySqlCommand cmd = new MySqlCommand(command))
+            {
+                cmd.Parameters.AddWithValue("?regionName", regionName);
+                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+
+                List<RegionData> ret = RunCommand(cmd);
+                if (ret.Count == 0)
+                    return null;
+
+                return ret[0];
+            }
+
+        }
+
+            public RegionData Get(int posX, int posY, UUID scopeID)
         {
 /* fixed size regions
             string command = "select * from `"+m_Realm+"` where locX = ?posX and locY = ?posY";

@@ -240,6 +240,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
+        public GridRegion GetRegionByNameSpecific(UUID scopeID, string regionName)
+        {
+
+            return null;
+        }
+
         public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             bool inCache = false;

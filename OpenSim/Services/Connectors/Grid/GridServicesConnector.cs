@@ -330,6 +330,12 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
+        public GridRegion GetRegionByNameSpecific(UUID scopeID, string regionName)
+        {
+
+            return null;
+        }
+
         public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

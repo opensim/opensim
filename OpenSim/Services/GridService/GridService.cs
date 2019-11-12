@@ -490,7 +490,18 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        //BA MOD....
+        public GridRegion GetRegionByNameSpecific(UUID scopeID, string name)
+        {
+            RegionData rdata = m_Database.GetSpecific(name, scopeID);
+            if (rdata != null)
+            {
+                return RegionData2RegionInfo(rdata);
+            }
+            return null;
+        }
+
+            public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
 //            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
 
