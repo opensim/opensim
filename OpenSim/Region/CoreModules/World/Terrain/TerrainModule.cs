@@ -1832,19 +1832,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             Command fillRegionCommand =
                 new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
             fillRegionCommand.AddArgument("value", "The numeric value of the height you wish to set your region to.",
-                                          "Double");
+                                          "Float");
 
             Command elevateCommand =
                 new Command("elevate", CommandIntentions.COMMAND_HAZARDOUS, InterfaceElevateTerrain, "Raises the current heightmap by the specified amount.");
-            elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Double");
+            elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Float");
 
             Command lowerCommand =
                 new Command("lower", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLowerTerrain, "Lowers the current heightmap by the specified amount.");
-            lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Double");
+            lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Float");
 
             Command multiplyCommand =
                 new Command("multiply", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMultiplyTerrain, "Multiplies the heightmap by the value specified.");
-            multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Double");
+            multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Float");
 
             Command bakeRegionCommand =
                 new Command("bake", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBakeTerrain, "Saves the current terrain into the regions baked map.");
@@ -1857,14 +1857,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             Command rescaleCommand =
                 new Command("rescale", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRescaleTerrain, "Rescales the current terrain to fit between the given min and max heights");
-            rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Double");
-            rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Double");
+            rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Float");
+            rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Float");
 
             Command minCommand = new Command("min", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMinTerrain, "Sets the minimum terrain height to the specified value.");
-            minCommand.AddArgument("min", "terrain height to use as minimum", "Double");
+            minCommand.AddArgument("min", "terrain height to use as minimum", "Float");
 
             Command maxCommand = new Command("max", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMaxTerrain, "Sets the maximum terrain height to the specified value.");
-            maxCommand.AddArgument("min", "terrain height to use as maximum", "Double");
+            maxCommand.AddArgument("min", "terrain height to use as maximum", "Float");
 
 
             // Debug

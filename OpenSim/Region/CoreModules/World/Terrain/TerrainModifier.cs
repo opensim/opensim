@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         public abstract string GetUsage();
 
-        public abstract double operate(double[,] map, TerrainModifierData data, int x, int y);
+        public abstract float operate(float[,] map, TerrainModifierData data, int x, int y);
 
         protected String parseParameters(string[] args, out TerrainModifierData data)
         {
@@ -153,8 +153,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         protected string parseFloat(String s, out float f)
         {
             string result;
-            double d;
-            if (Double.TryParse(s, out d))
+            float d;
+            if (float.TryParse(s, out d))
             {
                 try
                 {
@@ -213,7 +213,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 yMid = 0;
             }
 //            m_log.DebugFormat("Apply {0} mask {1}x{2} @ {3},{4}", data.shape, xMax, yMax, xMid, yMid);
-            double[,] buffer = map.GetDoubles();
+
+            float[,] buffer = new float[map.Width, map.Height];
+            for (int x = data.x0; x < xMax; ++x)
+                for (int y = data.y0; y < yMax; ++y)
+                    buffer[x,y] = map[x,y];
+
             int yDim = yMax;
             while(--yDim >= 0)
             {
@@ -224,6 +229,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     while(--xDim >= 0)
                     {
                         int xPos = data.x0 + xDim - xMid;
+                        
                         if ((xPos >= 0) && (xPos < map.Width) && (mask[xDim, yDim]))
                         {
                             double endElevation = this.operate(buffer, data, xPos, yPos);
@@ -234,13 +240,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
         }
 
-        protected double computeBevel(TerrainModifierData data, int x, int y)
+        protected float computeBevel(TerrainModifierData data, int x, int y)
         {
             int deltaX;
             int deltaY;
             int xMax;
             int yMax;
-            double factor;
+            float factor;
             if (data.bevel == "taper")
             {
                 if (data.shape == "ellipse")
@@ -249,7 +255,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     deltaY = y - data.y0;
                     xMax = data.dx;
                     yMax = data.dy;
-                    factor = (double)((deltaX * deltaX) + (deltaY * deltaY));
+                    factor = ((deltaX * deltaX) + (deltaY * deltaY));
                     factor /= ((xMax * xMax) + (yMax * yMax));
                 }
                 else
@@ -259,12 +265,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     yMax = data.dy / 2 + data.dy % 2;
                     deltaX = Math.Abs(data.x0 + xMax - x);
                     deltaY = Math.Abs(data.y0 + yMax - y);
-                    factor = Math.Max(((double)(deltaY) / yMax), ((double)(deltaX) / xMax));
+                    factor = Math.Max(((float)(deltaY) / yMax), ((float)(deltaX) / xMax));
                 }
             }
             else
             {
-                factor = 0.0;
+                factor = 0.0f;
             }
             return factor;
         }
