@@ -228,6 +228,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
             features["MaxMaterialsPerTransaction"] = m_maxMaterialsPerTransaction;
+            features["RenderMaterialsCapability"] = OSD.FromReal(3);
         }
 
         /// <summary>

@@ -164,7 +164,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["BakesOnMeshEnabled"] = true;
 
                 m_features["PhysicsMaterialsEnabled"] = true;
-
                 OSDMap typesMap = new OSDMap();
                 typesMap["convex"] = true;
                 typesMap["none"] = true;
@@ -175,9 +174,13 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
                 OSDMap meshAnim = new OSDMap();
-                meshAnim["AnimatedObjectMaxTris"] = OSD.FromInteger(10000);
+                meshAnim["AnimatedObjectMaxTris"] = OSD.FromInteger(150000);
                 meshAnim["MaxAgentAnimatedObjectAttachments"] = OSD.FromInteger(2);
                 m_features["AnimatedObjects"] = meshAnim;
+
+                m_features["MaxAgentAttachments"] = OSD.FromInteger(Constants.MaxAgentAttachments);
+                m_features["MaxAgentGroupsBasic"] = OSD.FromInteger(Constants.MaxAgentGroups);
+                m_features["MaxAgentGroupsPremium"] = OSD.FromInteger(Constants.MaxAgentGroups);
 
                 // Extra information for viewers that want to use it
                 // TODO: Take these out of here into their respective modules, like map-server-url

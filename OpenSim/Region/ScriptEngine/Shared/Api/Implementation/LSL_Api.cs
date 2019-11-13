@@ -14531,7 +14531,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(0));
                             break;
                         case ScriptBaseClass.OBJECT_ATTACHED_SLOTS_AVAILABLE:
-                            ret.Add(new LSL_Integer(38 - av.GetAttachmentsCount()));
+                            ret.Add(new LSL_Integer(Constants.MaxAgentAttachments - av.GetAttachmentsCount()));
                             break;
                         case ScriptBaseClass.OBJECT_CREATION_TIME:
                             ret.Add(new LSL_String(""));

@@ -82,7 +82,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(callMode != XMRInstance.CallMode_SAVE)
                     throw new Exception("callMode=" + callMode);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return e;
             }
