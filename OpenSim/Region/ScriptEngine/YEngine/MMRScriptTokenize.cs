@@ -1403,8 +1403,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpLE: TokenKw
     {
-        public TokenKwCmpLE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpLE(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpLE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsLE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpLE(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsLE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return "<=";
@@ -1412,8 +1412,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpGE: TokenKw
     {
-        public TokenKwCmpGE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpGE(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpGE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsGE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpGE(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsGE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return ">=";
@@ -1421,8 +1421,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpEQ: TokenKw
     {
-        public TokenKwCmpEQ(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpEQ(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpEQ(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsEQ; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpEQ(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsEQ; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return "==";
@@ -1430,8 +1430,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpNE: TokenKw
     {
-        public TokenKwCmpNE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpNE(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpNE(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsNE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpNE(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsNE; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return "!=";
@@ -1727,8 +1727,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpLT: TokenKw
     {
-        public TokenKwCmpLT(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpLT(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpLT(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsLT; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpLT(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsLT; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return "<";
@@ -1736,8 +1736,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenKwCmpGT: TokenKw
     {
-        public TokenKwCmpGT(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
-        public TokenKwCmpGT(Token original) : base(original) { binOpConst = TokenRValConstOps.Null; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpGT(TokenErrorMessage emsg, string file, int line, int posn) : base(emsg, file, line, posn) { binOpConst = TokenRValConstOps.binConstsGT; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
+        public TokenKwCmpGT(Token original) : base(original) { binOpConst = TokenRValConstOps.binConstsGT; unOpConst = TokenRValConstOps.Null; sdtClassOp = true; }
         public override string ToString()
         {
             return ">";
@@ -2486,6 +2486,89 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return ~(int)right;
             }
             return null;
+        }
+
+        public static int binConstCompare(object left, object right)
+        {
+            double a;
+            if (left is bool lb)
+                a = lb ? 1.0 : 0.0;
+            else if (left is int li)
+                a = li;
+            else if (left is float lf)
+                a = lf;
+            else if (left is double ld)
+                a = ld;
+            else if(left is string ls)
+            {
+                if(!(right is string rs))
+                    return -2;
+                return ls.CompareTo(rs);
+            }
+            else
+                return -2;
+
+            double b;
+            if (right is bool rb)
+                b = rb ? 1.0 : 0.0;
+            else if (right is int ri)
+                b = ri;
+            else if (right is float rf)
+                b = rf;
+            else if (right is double rd)
+                b = rd;
+            else
+                return -2;
+
+            return a.CompareTo(b);
+        }
+
+        public static object binConstsLT(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res < 0) ? 1 : 0;
+        }
+
+        public static object binConstsLE(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res <= 0) ? 1 : 0;
+        }
+
+        public static object binConstsGT(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res > 0) ? 1 : 0;
+        }
+
+        public static object binConstsGE(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res >= 0) ? 1 : 0;
+        }
+
+        public static object binConstsEQ(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res == 0) ? 1 : 0;
+        }
+
+        public static object binConstsNE(object left, object right)
+        {
+            int res = binConstCompare(left, right);
+            if (res == -2)
+                return null;
+            return (res != 0) ? 1 : 0;
         }
     }
 
