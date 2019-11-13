@@ -30,13 +30,16 @@ namespace OpenSim.Framework
 {
     public class Constants
     {
+        public const int MaxAgentAttachments = 38;
+        public const int MaxAgentGroups = 60;
+
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
         public const uint RegionSize = 256;
         public const uint RegionHeight = 4096;
-        // This could be a parameters but, really, a region of greater than this is pretty unmanageable
-        public const uint MaximumRegionSize = 8192;
+
+        public const uint MaximumRegionSize = 4096;
 
         // Since terrain is stored in 16x16 heights, regions must be a multiple of this number and that is the minimum
         public const int MinRegionSize = 16;

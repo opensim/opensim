@@ -74,6 +74,10 @@ namespace OpenSim
         /// <remarks>
         /// The protocol version that we will use for outgoing transfers
         /// Valid values are
+        /// "SIMULATION/0.8"
+        ///     - up to 45 avatar textures - 11 baked
+        /// "SIMULATION/0.7"
+        ///     TP uses call back again
         /// "SIMULATION/0.3"
         ///   - supports teleports to variable-sized regions
         ///   - Older versions can teleport to this one, but only if the destination region
