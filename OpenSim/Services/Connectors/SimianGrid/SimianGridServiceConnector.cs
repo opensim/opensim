@@ -100,8 +100,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         #region IGridService
 
-
-
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             IPEndPoint ext = regionInfo.ExternalEndPoint;

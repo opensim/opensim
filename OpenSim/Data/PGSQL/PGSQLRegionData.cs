@@ -114,7 +114,6 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
-        //BA MOD...
         public RegionData GetSpecific(string regionName, UUID scopeID)
         {
             string sql = "select * from " + m_Realm + " where lower(\"regionName\") = lower(:regionName) ";

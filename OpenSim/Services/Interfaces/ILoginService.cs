@@ -48,7 +48,7 @@ namespace OpenSim.Services.Interfaces
     public interface ILoginService
     {
         LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID,
-            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP, bool LibOMVclient);
+            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP);
         Hashtable SetLevel(string firstName, string lastName, string passwd, int level, IPEndPoint clientIP);
     }
 

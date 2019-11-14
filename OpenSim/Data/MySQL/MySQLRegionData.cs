@@ -81,14 +81,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        //BA MOD....
         public RegionData GetSpecific(string regionName, UUID scopeID)
         {
             string command = "select * from `" + m_Realm + "` where regionName = ?regionName";
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
-
-            //command += " order by regionName";
 
             using (MySqlCommand cmd = new MySqlCommand(command))
             {
@@ -104,27 +101,8 @@ namespace OpenSim.Data.MySQL
 
         }
 
-            public RegionData Get(int posX, int posY, UUID scopeID)
+        public RegionData Get(int posX, int posY, UUID scopeID)
         {
-/* fixed size regions
-            string command = "select * from `"+m_Realm+"` where locX = ?posX and locY = ?posY";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
-            {
-                cmd.Parameters.AddWithValue("?posX", posX.ToString());
-                cmd.Parameters.AddWithValue("?posY", posY.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-                List<RegionData> ret = RunCommand(cmd);
-                if (ret.Count == 0)
-                    return null;
-
-                return ret[0];
-            }
-*/
-            // extend database search for maximum region size area
             string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";

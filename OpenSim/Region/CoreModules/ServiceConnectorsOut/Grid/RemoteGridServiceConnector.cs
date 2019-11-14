@@ -236,12 +236,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
-        public GridRegion GetRegionByNameSpecific(UUID scopeID, string regionName)
-        {
-
-            return null;
-        }
-
         public GridRegion GetRegionByName(UUID scopeID, string name)
         {
             GridRegion rinfo = m_LocalGridService.GetRegionByName(scopeID, name);

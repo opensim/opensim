@@ -71,8 +71,6 @@ namespace OpenSim.Data
     {
         RegionData Get(UUID regionID, UUID ScopeID);
         List<RegionData> Get(string regionName, UUID ScopeID);
-
-        //BA MOD....
         RegionData GetSpecific(string regionName, UUID ScopeID);
 
         RegionData Get(int x, int y, UUID ScopeID);
