@@ -185,15 +185,18 @@ what it is today.
 * SpotOn3D
 * Stefan_Boom / stoehr
 * Steven Zielinski (MOSES)
+* Stolen Ruby 
 * Strawberry Fride
 * Talun
 * TechplexEngineer (Blake Bourque)
 * TBG Renfold
+* Terry Ford
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * TomDataWorks
 * TomTheDragon (muckwaddle)
 * tyre
+* uriesk
 * Vegaslon <vegaslon@gmail.com>
 * Vincent Sylvester
 * VikingErik
