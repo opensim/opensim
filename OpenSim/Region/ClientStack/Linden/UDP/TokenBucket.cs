@@ -45,15 +45,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static Int32 m_counter = 0;
 
-        protected const float m_timeScale = 1e-3f;
-
-        /// <summary>
+         /// <summary>
         /// minimum recovery rate, ie bandwith
         /// </summary>
         protected const float MINDRIPRATE = 500;
 
-        // minimum and maximim burst size, ie max number of bytes token can have
-        protected const float MINBURST = 1500; // can't be less than one MTU or it will block
+        // maximim burst size, ie max number of bytes token can have
         protected const float MAXBURST = 7500;
 
         /// <summary>Time of the last drip</summary>
@@ -103,9 +100,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_burst; }
             set {
                 float rate = (value < 0 ? 0 : value);
-                if (rate < MINBURST)
-                    rate = MINBURST;
-                else if (rate > MAXBURST)
+                if (rate > MAXBURST)
                     rate = MAXBURST;
 
                 m_burst = rate;
@@ -114,11 +109,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public float Burst
         {
-            get {
-                float rate = RequestedBurst * BurstModifier();
-                if (rate < MINBURST)
-                    rate = MINBURST;
-                return (float)rate;
+            get
+            {
+                return RequestedBurst * BurstModifier(); ;
             }
         }
 
@@ -156,7 +149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (rate < MINDRIPRATE)
                     rate = MINDRIPRATE;
 
-                return (float)rate;
+                return rate;
             }
         }
 
@@ -192,7 +185,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Parent = parent;
             RequestedDripRate = dripRate;
             RequestedBurst = MaxBurst;
-            m_lastDrip = Util.GetTimeStampMS() + 100000.0; // skip first drip
+            m_lastDrip = Util.GetTimeStamp() + 1000; // skip first drip
         }
 
 #endregion Constructor
@@ -214,9 +207,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected float BurstModifier()
         {
-            // for now... burst rate is always m_quantumsPerBurst (constant)
-            // larger than drip rate so the ratio of burst requests is the
-            // same as the drip ratio
             return DripRateModifier();
         }
 
@@ -272,10 +262,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Drip();
 
             // If we have enough tokens then remove them and return
-            if (m_tokenCount - amount >= 0)
+            if (m_tokenCount > 0)
             {
-                // we don't have to remove from the parent, the drip rate is already
-                // reflective of the drip rate limits in the parent
                 m_tokenCount -= amount;
                 return true;
             }
@@ -285,12 +273,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool CheckTokens(int amount)
         {
-            return  (m_tokenCount - amount >= 0);
+            return  (m_tokenCount > 0);
         }
 
         public int GetCatBytesCanSend(int timeMS)
         {
-//            return (int)(m_tokenCount + timeMS * m_dripRate * 1e-3);
             return (int)(timeMS * DripRate * 1e-3);
         }
 
@@ -310,14 +297,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            double now = Util.GetTimeStampMS();
-            double deltaMS = now - m_lastDrip;
+            double now = Util.GetTimeStamp();
+            double delta = now - m_lastDrip;
             m_lastDrip = now;
 
-            if (deltaMS <= 0)
+            if (delta <= 0)
                 return;
 
-            m_tokenCount += (float)deltaMS * DripRate * m_timeScale;
+            m_tokenCount += (float)delta * DripRate;
 
             float burst = Burst;
             if (m_tokenCount > burst)

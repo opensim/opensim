@@ -4846,7 +4846,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
         /// </summary>
-        public void UpdateChildAgent(AgentPosition cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
+        public void UpdateChildAgent(AgentPosition cAgentData)
         {
             if (!IsChildAgent)
                 return;
@@ -4854,6 +4854,10 @@ namespace OpenSim.Region.Framework.Scenes
             GodController.SetState(cAgentData.GodData);
 
             RegionHandle = cAgentData.RegionHandle;
+            uint rRegionX = (uint)(RegionHandle >> 40);
+            uint rRegionY = (((uint)RegionHandle) >> 8);
+            uint tRegionX = m_scene.RegionInfo.RegionLocX;
+            uint tRegionY = m_scene.RegionInfo.RegionLocY;
 
             //m_log.Debug("   >>> ChildAgentPositionUpdate <<< " + rRegionX + "-" + rRegionY);
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
@@ -4863,10 +4867,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             DrawDistance = cAgentData.Far;
 
-            if (cAgentData.Position != marker) // UGH!!
-                m_pos = cAgentData.Position + offset;
-
+            m_pos = cAgentData.Position + offset;
             CameraPosition = cAgentData.Center + offset;
+
+            if (cAgentData.ChildrenCapSeeds != null && cAgentData.ChildrenCapSeeds.Count > 0)
+            {
+                if (Scene.CapsModule != null)
+                {
+                    Scene.CapsModule.SetChildrenSeed(UUID, cAgentData.ChildrenCapSeeds);
+                }
+
+                KnownRegions = cAgentData.ChildrenCapSeeds;
+            }
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
             {
@@ -4880,22 +4892,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 x = x * x + y * y;
 
-                const float distScale = 0.4f / Constants.RegionSize / Constants.RegionSize;
-                float factor = 1.0f - distScale * x;
+                float factor = 1.0f - x * 0.3f / Constants.RegionSize / Constants.RegionSize;
                 if (factor < 0.2f)
                     factor = 0.2f;
 
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles,factor);
-            }
-
-            if(cAgentData.ChildrenCapSeeds != null && cAgentData.ChildrenCapSeeds.Count >0)
-            {
-                if (Scene.CapsModule != null)
-                {
-                    Scene.CapsModule.SetChildrenSeed(UUID, cAgentData.ChildrenCapSeeds);
-                }
-
-                KnownRegions = cAgentData.ChildrenCapSeeds;
             }
 
             //cAgentData.AVHeight;
@@ -5029,7 +5030,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
-                ControllingClient.SetChildAgentThrottle(cAgent.Throttles);
+                ControllingClient.SetChildAgentThrottle(cAgent.Throttles, 1.0f);
 
             m_headrotation = cAgent.HeadRotation;
             Rotation = cAgent.BodyRotation;

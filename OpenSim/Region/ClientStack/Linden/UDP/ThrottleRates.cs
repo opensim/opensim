@@ -39,22 +39,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public sealed class ThrottleRates
     {
         /// <summary>Drip rate for resent packets</summary>
-        public int Resend;
+        public int Resend = 6625;
         /// <summary>Drip rate for terrain packets</summary>
-        public int Land;
+        public int Land = 9125;
         /// <summary>Drip rate for wind packets</summary>
-        public int Wind;
+        public int Wind = 1750;
         /// <summary>Drip rate for cloud packets</summary>
-        public int Cloud;
+        public int Cloud = 1750;
         /// <summary>Drip rate for task packets</summary>
-        public int Task;
+        public int Task = 18500;
         /// <summary>Drip rate for texture packets</summary>
-        public int Texture;
+        public int Texture = 18500;
         /// <summary>Drip rate for asset packets</summary>
-        public int Asset;
+        public int Asset = 10500;
 
         /// <summary>Drip rate for the parent token bucket</summary>
-        public int Total;
+        public int Total = 66750;
 
         /// <summary>Flag used to enable adaptive throttles</summary>
         public bool AdaptiveThrottlesEnabled;
@@ -66,8 +66,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public Int64 MinimumAdaptiveThrottleRate;
 
-        public int ClientMaxRate;
-        public float BurstTime;
+        public int ClientMaxRate = 640000; // 5,120,000 bps
+        public float BurstTime = 10e-3f;
 
         /// <summary>
         /// Default constructor
@@ -78,29 +78,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             try
             {
                 IConfig throttleConfig = config.Configs["ClientStack.LindenUDP"];
+                if(throttleConfig != null)
+                {
+                    ClientMaxRate = throttleConfig.GetInt("client_throttle_max_bps", ClientMaxRate);
+                    if (ClientMaxRate > 1000000)
+                        ClientMaxRate = 1000000; // no more than 8Mbps
+                    else if (ClientMaxRate < 6250)
+                        ClientMaxRate = 6250; // no less than 50kbps
 
-                // Current default total is 66750
-                Resend = throttleConfig.GetInt("resend_default", 6625);
-                Land = throttleConfig.GetInt("land_default", 9125);
-                Wind = throttleConfig.GetInt("wind_default", 1750);
-                Cloud = throttleConfig.GetInt("cloud_default", 1750);
-                Task = throttleConfig.GetInt("task_default", 18500);
-                Texture = throttleConfig.GetInt("texture_default", 18500);
-                Asset = throttleConfig.GetInt("asset_default", 10500);
-
-                Total = Resend + Land + Wind + Cloud + Task + Texture + Asset;
-                // 5120000 bps default max
-                ClientMaxRate = throttleConfig.GetInt("client_throttle_max_bps", 640000);
-                if (ClientMaxRate > 1000000)
-                    ClientMaxRate = 1000000; // no more than 8Mbps
-
-                BurstTime = (float)throttleConfig.GetInt("client_throttle_burtsTimeMS", 10);
-                BurstTime *= 1e-3f;
-
-                // Adaptive is broken
-//                AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
-                AdaptiveThrottlesEnabled = false;
-                MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);
+                    // Adaptive is broken
+                    // AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
+                    AdaptiveThrottlesEnabled = false;
+                    MinimumAdaptiveThrottleRate = throttleConfig.GetInt("adaptive_throttle_min_bps", 32000);
+                }
             }
             catch (Exception) { }
         }
