@@ -559,19 +559,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (finalDestination == null)
             {
-                m_log.WarnFormat( "{0} Final destination is having problems. Unable to teleport {1} {2}: {3}",
+                m_log.WarnFormat( "{0} Unable to teleport {1} {2}: {3}",
                                         LogHeader, sp.Name, sp.UUID, reason);
 
                 sp.ControllingClient.SendTeleportFailed(reason);
-                return;
-            }
-
-            // Check that these are not the same coordinates
-            if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
-                finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
-            {
-                // Can't do. Viewer crashes
-                sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
                 return;
             }
 
@@ -690,6 +681,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             RegionInfo sourceRegion = sp.Scene.RegionInfo;
 
             ulong destinationHandle = finalDestination.RegionHandle;
+
+            if(destinationHandle == sourceRegion.RegionHandle)
+            {
+                sp.ControllingClient.SendTeleportFailed("Can't teleport to a region on same map position. Try going other region first, then retry");
+                return;
+            }
 
             // Let's do DNS resolution only once in this process, please!
             // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
