@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
-        public static int COMPILED_VERSION_VALUE = -2;  // decremented when compiler or object file changes
+        public static int COMPILED_VERSION_VALUE = -3;  // decremented when compiler or object file changes
 
         public static readonly int CALL_FRAME_MEMUSE = 64;
         public static readonly int STRING_LEN_TO_MEMUSE = 2;
@@ -110,6 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static FieldInfo rotationSFieldInfo = typeof(LSL_Rotation).GetField("s");
         private static FieldInfo sdtXMRInstFieldInfo = typeof(XMRSDTypeClObj).GetField("xmrInst");
         private static FieldInfo stackLeftFieldInfo = typeof(XMRInstAbstract).GetField("m_StackLeft");
+        private static FieldInfo heapUsedFieldInfo = typeof(XMRInstAbstract).GetField("m_heapUsed");
         private static FieldInfo vectorXFieldInfo = typeof(LSL_Vector).GetField("x");
         private static FieldInfo vectorYFieldInfo = typeof(LSL_Vector).GetField("y");
         private static FieldInfo vectorZFieldInfo = typeof(LSL_Vector).GetField("z");
@@ -133,19 +134,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static MethodInfo stringConcat2MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string) });
         private static MethodInfo stringConcat3MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string) });
         private static MethodInfo stringConcat4MethodInfo = GetStaticMethod(typeof(String), "Concat", new Type[] { typeof(string), typeof(string), typeof(string), typeof(string) });
-        private static MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen),
-                                                                                 "LSLRotationNegate",
-                                                                                 new Type[] { typeof(LSL_Rotation) });
-        private static MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen),
-                                                                               "LSLVectorNegate",
-                                                                               new Type[] { typeof(LSL_Vector) });
+        private static MethodInfo lslRotationNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLRotationNegate", new Type[] { typeof(LSL_Rotation) });
+        private static MethodInfo lslVectorNegateMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "LSLVectorNegate", new Type[] { typeof(LSL_Vector) });
         private static MethodInfo scriptRestoreCatchExceptionUnwrap = GetStaticMethod(typeof(ScriptRestoreCatchException), "Unwrap", new Type[] { typeof(Exception) });
         private static MethodInfo thrownExceptionWrapMethodInfo = GetStaticMethod(typeof(ScriptThrownException), "Wrap", new Type[] { typeof(object) });
-
-        private static MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen),
-                                                                             "CatchExcToStr",
-                                                                             new Type[] { typeof(Exception) });
-
+        private static MethodInfo catchExcToStrMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "CatchExcToStr", new Type[] { typeof(Exception) });
         private static MethodInfo consoleWriteMethodInfo = GetStaticMethod(typeof(ScriptCodeGen), "ConsoleWrite", new Type[] { typeof(object) });
         public static void ConsoleWrite(object o)
         {
@@ -186,6 +179,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         // These get cleared at beginning of every function definition
         private ScriptMyLocal instancePointer;   // holds XMRInstanceSuperType pointer
+        private ScriptMyLocal curHeapSize;
         private ScriptMyLabel retLabel = null;  // where to jump to exit function
         private ScriptMyLocal retValue = null;
         private ScriptMyLocal actCallNo = null;  // for the active try/catch/finally stack or the big one outside them all
@@ -194,7 +188,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public CallLabel openCallLabel = null;  // only one call label can be open at a time
                                                 // - the call label is open from the time of CallPre() until corresponding CallPost()
                                                 // - so no non-trivial pushes/pops etc allowed between a CallPre() and a CallPost()
-        public List<ScriptMyLocal> HeapLocals = new List<ScriptMyLocal>();
         private ScriptMyILGen _ilGen;
         public ScriptMyILGen ilGen
         {
@@ -969,9 +962,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             string eventname = declFunc.GetSimpleName();
             TokenArgDecl argDecl = declFunc.argDecl;
 
-            HeapLocals.Clear();
-
-            // Make sure event handler name is valid and that number and type of arguments is correct.
+             // Make sure event handler name is valid and that number and type of arguments is correct.
             // Apparently some scripts exist with fewer than correct number of args in their declaration 
             // so allow for that.  It is ok because the handlers are called with the arguments in an
             // object[] array, and we just won't access the missing argments in the vector.  But the 
@@ -1000,8 +991,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ilGen.Emit(declFunc, OpCodes.Castclass, xmrInstSuperType);
             ilGen.Emit(declFunc, OpCodes.Stloc, instancePointer);
 
-             // Output args as variable definitions and initialize each from __sw.ehArgs[].
-             // If the script writer goofed, the typecast will complain.
+            if (curDeclFunc.fullName != "$globalvarinit()")
+            {
+                PushXMRInst();
+                ilGen.Emit(curDeclFunc, OpCodes.Ldfld, heapUsedFieldInfo);
+                curHeapSize = ilGen.DeclareLocal(typeof(int), "__curHeap");
+                ilGen.Emit(curDeclFunc, OpCodes.Stloc, curHeapSize);
+            }
+
+            // Output args as variable definitions and initialize each from __sw.ehArgs[].
+            // If the script writer goofed, the typecast will complain.
             int nArgs = argDecl.vars.Length;
             for(int i = 0; i < nArgs; i++)
             {
@@ -1112,19 +1111,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateMethodBody(TokenDeclVar declFunc)
         {
-            HeapLocals.Clear();
-
             // Set up code generator for the function's contents.
             _ilGen = declFunc.ilGen;
             StartFunctionBody(declFunc);
 
-             // Create a temp to hold XMRInstanceSuperType version of arg 0.
-             // For most functions, arg 0 is already XMRInstanceSuperType.
-             // But for script-defined class instance methods, arg 0 holds
-             // the XMRSDTypeClObj pointer and so we read the XMRInstAbstract
-             // pointer from its XMRSDTypeClObj.xmrInst field then cast it to
-             // XMRInstanceSuperType.
-            if(IsSDTInstMethod())
+            // Create a temp to hold XMRInstanceSuperType version of arg 0.
+            // For most functions, arg 0 is already XMRInstanceSuperType.
+            // But for script-defined class instance methods, arg 0 holds
+            // the XMRSDTypeClObj pointer and so we read the XMRInstAbstract
+            // pointer from its XMRSDTypeClObj.xmrInst field then cast it to
+            // XMRInstanceSuperType.
+            if (IsSDTInstMethod())
             {
                 instancePointer = ilGen.DeclareLocal(xmrInstSuperType, "__xmrinst");
                 ilGen.Emit(declFunc, OpCodes.Ldarg_0);
@@ -1133,9 +1130,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(declFunc, OpCodes.Stloc, instancePointer);
             }
 
-             // Define location of all script-level arguments so script body can access them.
-             // The argument indices need to have +1 added to them because XMRInstance or 
-             // XMRSDTypeClObj is spliced in at arg 0.
+            if (curDeclFunc.fullName != "$globalvarinit()")
+            {
+                PushXMRInst();
+                ilGen.Emit(curDeclFunc, OpCodes.Ldfld, heapUsedFieldInfo);
+                curHeapSize = ilGen.DeclareLocal(typeof(int), "__curHeap");
+                ilGen.Emit(curDeclFunc, OpCodes.Stloc, curHeapSize);
+            }
+
+            // Define location of all script-level arguments so script body can access them.
+            // The argument indices need to have +1 added to them because XMRInstance or 
+            // XMRSDTypeClObj is spliced in at arg 0.
             TokenArgDecl argDecl = declFunc.argDecl;
             int nArgs = argDecl.vars.Length;
             for(int i = 0; i < nArgs; i++)
@@ -1251,7 +1256,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // an infinite loop.  If it is, we don't need any CheckRun()
              // stuff or any of the frame save/restore stuff.
             bool isTrivial = curDeclFunc.IsFuncTrivial(this);
-
+            bool doheap = curDeclFunc.fullName != "$globalvarinit()";
              // Clear list of all call labels.
              // A call label is inserted just before every call that can possibly
              // call CheckRun(), including any direct calls to CheckRun().
@@ -1286,7 +1291,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              //        if (instance.callMode != CallMode_NORMAL) goto __cmRestore;
             actCallNo = null;
             ScriptMyLabel cmRestore = null;
-            if(!isTrivial)
+
+            if (!isTrivial)
             {
                 actCallNo = ilGen.DeclareLocal(typeof(int), "__mainCallNo");
                 SetCallNo(curDeclFunc, actCallNo, -1);
@@ -1378,10 +1384,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Output code body.
             GenerateStmtBlock(curDeclFunc.body);
 
-             // If code falls through to this point, means they are missing 
-             // a return statement.  And that is legal only if the function 
-             // returns 'void'.
-            if(mightGetHere)
+            if (doheap)
+            {
+                PushXMRInst();
+                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, curHeapSize);
+                ilGen.Emit(curDeclFunc, OpCodes.Stfld, heapUsedFieldInfo);
+            }
+
+            // If code falls through to this point, means they are missing 
+            // a return statement.  And that is legal only if the function 
+            // returns 'void'.
+            if (mightGetHere)
             {
                 if(!(curDeclFunc.retType is TokenTypeVoid))
                 {
@@ -1414,6 +1427,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         }
                     }
                 }
+                if(doheap)
+                    activeTemps.Add(curHeapSize);
 
                 // Output code to restore the args, locals and temps then jump to
                 // the call label that we were interrupted at.
@@ -1450,33 +1465,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.EndExceptionBlock();
             }
 
-             // Output the 'real' return opcode.
-             // push return value
+            // Output the 'real' return opcode.
+            // push return value
             ilGen.MarkLabel(retLabel);
             if (!(curDeclFunc.retType is TokenTypeVoid))
             {
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, retValue);
-            }
-
-            // pseudo free memory usage
-            foreach (ScriptMyLocal sml in HeapLocals)
-            {
-                Type t = sml.type;
-                if (t == typeof(HeapTrackerList))
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
-                    HeapTrackerList.GenFree(curDeclFunc, ilGen);
-                }
-                else if (t == typeof(HeapTrackerString))
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
-                    HeapTrackerString.GenFree(curDeclFunc, ilGen);
-                }
-                else if (t == typeof(HeapTrackerObject))
-                {
-                    ilGen.Emit(curDeclFunc, OpCodes.Ldloc, sml);
-                    HeapTrackerObject.GenFree(curDeclFunc, ilGen);
-                }
             }
 
             ilGen.Emit(curDeclFunc, OpCodes.Ret);

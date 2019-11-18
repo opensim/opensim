@@ -453,11 +453,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         \**************************************************/
 
         protected int heapLimit;
-        protected int heapUsed;
+        public int m_heapUsed;
 
         public virtual int UpdateHeapUse(int olduse, int newuse)
         {
-            int newtotal = Interlocked.Add(ref heapUsed, newuse - olduse);
+            if (m_heapUsed < 0)
+                m_heapUsed = 0;
+            int newtotal = Interlocked.Add(ref m_heapUsed, newuse - olduse);
             if(newtotal > heapLimit)
                     throw new OutOfHeapException(newtotal + olduse - newuse, newtotal, heapLimit);
             return newuse;
@@ -465,17 +467,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public virtual void AddHeapUse(int delta)
         {
-            Interlocked.Add(ref heapUsed, delta);
+            Interlocked.Add(ref m_heapUsed, delta);
         }
 
         public int xmrHeapLeft()
         {
-            return heapLimit - heapUsed;
+            if (m_heapUsed < 0)
+                m_heapUsed = 0;
+            return heapLimit - m_heapUsed;
         }
 
         public int xmrHeapUsed()
         {
-            return heapUsed;
+            if(m_heapUsed < 0)
+                m_heapUsed = 0;
+            return m_heapUsed;
         }
 
         /**
