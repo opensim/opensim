@@ -330,7 +330,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         private void SaveFileCacheForAsset(UUID AssetId, OpenJPEG.J2KLayerInfo[] Layers)
         {
-            m_decodedCache.AddOrUpdate(AssetId, Layers, TimeSpan.FromMinutes(10));
+            m_decodedCache.AddOrUpdate(AssetId, Layers, TimeSpan.FromMinutes(1));
 
             if (Cache != null)
             {

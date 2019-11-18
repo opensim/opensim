@@ -292,7 +292,7 @@ namespace OpenSim.Services.LLLoginService
 
             string processedMessage;
 
-            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7} ",
                 firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
 
             string curMac = mac.ToString();
