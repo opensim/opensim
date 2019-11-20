@@ -2485,7 +2485,10 @@ namespace OpenSim.Framework
                 case FireAndForgetMethod.SmartThreadPool:
                     return m_ThreadPool.MaxThreads - m_ThreadPool.InUseThreads;
                 case FireAndForgetMethod.Thread:
-                    return MAX_SYSTEM_THREADS - System.Diagnostics.Process.GetCurrentProcess().Threads.Count;
+                {
+                    using(Process p = System.Diagnostics.Process.GetCurrentProcess())
+                        return MAX_SYSTEM_THREADS - p.Threads.Count;
+                }
                 default:
                     throw new NotImplementedException();
             }
@@ -2972,7 +2975,8 @@ namespace OpenSim.Framework
 
         public static long GetPhysicalMemUse()
         {
-            return System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+            using (Process p = System.Diagnostics.Process.GetCurrentProcess())
+                return p.WorkingSet64;
         }
 
         // returns a timestamp in ms as double

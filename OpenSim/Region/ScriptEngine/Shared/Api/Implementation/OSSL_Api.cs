@@ -3689,7 +3689,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemory");
 
-            long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+            long pws = Util.GetPhysicalMemUse();
 
             if (pws > Int32.MaxValue)
                 return Int32.MaxValue;
@@ -3703,9 +3703,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemoryKB");
 
-            long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+            long pws = Util.GetPhysicalMemUse();
 
-            if((pws & 0x3FFL) != 0)
+            if ((pws & 0x3FFL) != 0)
                 pws += 0x400L;
             pws >>= 10;
 

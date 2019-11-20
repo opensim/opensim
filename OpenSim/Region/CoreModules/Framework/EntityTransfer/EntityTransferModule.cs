@@ -684,7 +684,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if(destinationHandle == sourceRegion.RegionHandle)
             {
-                sp.ControllingClient.SendTeleportFailed("Can't teleport to a region on same map position. Try going other region first, then retry");
+                sp.ControllingClient.SendTeleportFailed("Can't teleport to a region on same map position. Try going to another region first, then retry from there");
                 return;
             }
 
