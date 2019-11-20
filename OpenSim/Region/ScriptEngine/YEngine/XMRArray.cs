@@ -72,10 +72,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             heapUse = inst.UpdateHeapUse(0, EMPTYHEAP);
         }
 
+        /*
         ~XMR_Array()
         {
             heapUse = inst.UpdateHeapUse(heapUse, 0);
         }
+        */
 
         public static TokenType GetRValType(TokenName name)
         {
