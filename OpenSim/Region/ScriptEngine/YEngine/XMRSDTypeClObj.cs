@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public Delegate[][] sdtcITable;
 
         /*
-         * These arrays hold the insance variable values.
+         * These arrays hold the instance variable values.
          * The array lengths are determined by the script compilation,
          * and are found in TokenDeclSDTypeClass.instSizes.
          */

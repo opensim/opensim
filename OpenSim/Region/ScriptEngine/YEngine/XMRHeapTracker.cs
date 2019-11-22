@@ -106,9 +106,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public void Save(LSL_List lis)
         {
             if (lis == null)
-                usage = instance.UpdateHeapUse(usage, 0);
+                usage = instance.UpdateLocalsHeapUse(usage, 0);
             else
-                usage = instance.UpdateHeapUse(usage, Size(lis));
+                usage = instance.UpdateLocalsHeapUse(usage, Size(lis));
             value = lis;
         }
 
@@ -190,8 +190,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void Save(object obj)
         {
-            int newuse = Size(obj);
-            usage = instance.UpdateHeapUse(usage, newuse);
+            usage = instance.UpdateLocalsHeapUse(usage, Size(obj));
             value = obj;
         }
 
@@ -305,8 +304,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void Save(string str)
         {
-            int newuse = Size(str);
-            usage = instance.UpdateHeapUse(usage, newuse);
+            usage = instance.UpdateLocalsHeapUse(usage, Size(str));
             value = str;
         }
 
@@ -318,7 +316,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public static int Size(string str)
         {
-            return (str == null) ? 0 : str.Length * HeapTrackerObject.HT_CHAR;
+            return string.IsNullOrWhiteSpace(str) ? 0 : str.Length * HeapTrackerObject.HT_CHAR;
         }
     }
 }

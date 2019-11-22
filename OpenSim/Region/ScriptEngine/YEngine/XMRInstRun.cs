@@ -888,7 +888,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_SleepUntil = DateTime.MinValue;     // not doing llSleep()
             m_ResetCount++;                        // has been reset once more
 
-            m_heapUsed = 0;
+            m_localsHeapUsed = 0;
+            m_arraysHeapUsed = 0;
             glblVars.Clear();
 
              // Tell next call to 'default state_entry()' to reset all global

@@ -69,15 +69,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             this.inst = inst;
             dnary = new SortedDictionary<object, object>(XMRArrayKeyComparer.singleton);
-            heapUse = inst.UpdateHeapUse(0, EMPTYHEAP);
+            heapUse = inst.UpdateArraysHeapUse(0, EMPTYHEAP);
         }
 
-        /*
+
         ~XMR_Array()
         {
-            heapUse = inst.UpdateHeapUse(heapUse, 0);
+            heapUse = inst.UpdateLocalsHeapUse(heapUse, 0);
         }
-        */
 
         public static TokenType GetRValType(TokenName name)
         {
@@ -123,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 newheapuse += keysize + HeapTrackerObject.Size(value);
             }
-            heapUse = inst.UpdateHeapUse(heapUse, newheapuse);
+            heapUse = inst.UpdateArraysHeapUse(heapUse, newheapuse);
 
              // Save new value in array, replacing one of same key if there.
              // null means remove the value, ie, script did array[key] = undef.
@@ -185,7 +184,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void __pub_clear()
         {
-            heapUse = inst.UpdateHeapUse(heapUse, EMPTYHEAP);
+            heapUse = inst.UpdateArraysHeapUse(heapUse, EMPTYHEAP);
             dnary.Clear();
             enumrValid = false;
             arrayValid = 0;
@@ -286,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public delegate object RecvArrayObjDelegate();
         public void RecvArrayObj(RecvArrayObjDelegate recvObj)
         {
-            heapUse = inst.UpdateHeapUse(heapUse, EMPTYHEAP);
+            heapUse = inst.UpdateArraysHeapUse(heapUse, EMPTYHEAP);
             // Cause any enumeration to refill the array from the sorted dictionary.
             // Since it is a sorted dictionary, any enumerations will be in the same 
             // order as on the sending side.
@@ -301,7 +300,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 object key = FixKey(recvObj());
                 object val = recvObj();
                 int htuse = HeapTrackerObject.Size(key) + HeapTrackerObject.Size(val);
-                heapUse = inst.UpdateHeapUse(heapUse, heapUse + htuse);
+                heapUse = inst.UpdateArraysHeapUse(heapUse, heapUse + htuse);
                 dnary.Add(key, val);
             }
         }
