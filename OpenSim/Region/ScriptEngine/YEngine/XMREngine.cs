@@ -207,8 +207,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(!m_Enabled)
                 return;
 
-            numThreadScriptWorkers = m_Config.GetInt("NumThreadScriptWorkers", 1);
-
+            numThreadScriptWorkers = m_Config.GetInt("NumThreadScriptWorkers", 2);
+            string priority = m_Config.GetString("Priority", "Normal");
             m_TraceCalls = m_Config.GetBoolean("TraceCalls", false);
             m_Verbose = m_Config.GetBoolean("Verbose", false);
             m_ScriptDebug = m_Config.GetBoolean("ScriptDebug", false);
@@ -250,9 +250,31 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return;
             }
 
+            ThreadPriority workersPrio = ThreadPriority.Normal;
+            switch (priority)
+            {
+                case "Lowest":
+                    workersPrio = ThreadPriority.Lowest;
+                    break;
+                case "BelowNormal":
+                    workersPrio = ThreadPriority.BelowNormal;
+                    break;
+                case "Normal":
+                    workersPrio = ThreadPriority.Normal;
+                    break;
+                case "AboveNormal":
+                    workersPrio = ThreadPriority.AboveNormal;
+                    break;
+                case "Highest":
+                    workersPrio = ThreadPriority.Highest;
+                    break;
+                default:
+                    m_log.ErrorFormat("[YEngine] Invalid thread priority: '{0}'. Assuming Normal", priority);
+                    break;
+            }
             m_SleepThread = StartMyThread(RunSleepThread, "Yengine sleep", ThreadPriority.Normal);
             for(int i = 0; i < numThreadScriptWorkers; i++)
-                StartThreadWorker(i);
+                StartThreadWorker(i, workersPrio);
 
             m_log.InfoFormat("[YEngine]: Enabled, {0}.{1} Meg (0x{2}) stacks",
                     (m_StackSize >> 20).ToString(),

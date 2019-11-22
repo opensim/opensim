@@ -933,17 +933,12 @@
     ; PriceGroupCreate = 0
 
 [YEngine]
-    ;; experimental engine
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
     ;; warning: scripts state is lost on TP or cross to Xengine regions (cars stop, etc)
 	;; ignore its extensions (subset of original XMRengine), those are still undefined.
-    Enabled = false
-    ScriptStackSize = 256
-    ScriptHeapSize = 256
-    UseSourceHashCode = true
-    MinTimerInterval = 0.1
-    ;ScriptBasePath="ScriptEngines"
+    ; Enabled = false
+
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
