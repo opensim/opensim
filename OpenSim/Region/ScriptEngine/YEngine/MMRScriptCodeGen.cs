@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
-        public static int COMPILED_VERSION_VALUE = -4;  // decremented when compiler or object file changes
+        public static int COMPILED_VERSION_VALUE = -5;  // decremented when compiler or object file changes
 
         public static readonly int CALL_FRAME_MEMUSE = 64;
         public static readonly int STRING_LEN_TO_MEMUSE = 2;
@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static FieldInfo rotationSFieldInfo = typeof(LSL_Rotation).GetField("s");
         private static FieldInfo sdtXMRInstFieldInfo = typeof(XMRSDTypeClObj).GetField("xmrInst");
         private static FieldInfo stackLeftFieldInfo = typeof(XMRInstAbstract).GetField("m_StackLeft");
-        private static FieldInfo heapUsedFieldInfo = typeof(XMRInstAbstract).GetField("m_heapUsed");
+        private static FieldInfo heapUsedFieldInfo = typeof(XMRInstAbstract).GetField("m_localsHeapUsed");
         private static FieldInfo vectorXFieldInfo = typeof(LSL_Vector).GetField("x");
         private static FieldInfo vectorYFieldInfo = typeof(LSL_Vector).GetField("y");
         private static FieldInfo vectorZFieldInfo = typeof(LSL_Vector).GetField("z");
