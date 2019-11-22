@@ -56,11 +56,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
-        public void StartThreadWorker(int i, ThreadPriority priority)
+        public void StartThreadWorker(int i, ThreadPriority priority, string sceneName)
         {
             Thread thd;
             if(i >= 0)
-                thd = Yengine.StartMyThread(RunScriptThread, "YScript" + i.ToString(), priority);
+                thd = Yengine.StartMyThread(RunScriptThread, "YScript" + i.ToString() + " (" + sceneName +")", priority);
             else
                 thd = Yengine.StartMyThread(RunScriptThread, "YScript", priority);
             lock(m_WakeUpLock)
