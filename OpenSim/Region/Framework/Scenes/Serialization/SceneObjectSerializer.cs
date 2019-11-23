@@ -110,15 +110,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                 }
                 while (reader.ReadToNextSibling("Part"));
-            reader.ReadEndElement();
+                reader.ReadEndElement();
             }
+            else
+                reader.Read();
 
             if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
             {
-
-                string innerkeytxt = reader.ReadElementContentAsString();
-                sceneObject.RootPart.KeyframeMotion = 
-                    KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
+            string innerkeytxt = reader.ReadElementContentAsString();
+            sceneObject.RootPart.KeyframeMotion = 
+                KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
             else
                 sceneObject.RootPart.KeyframeMotion = null;
