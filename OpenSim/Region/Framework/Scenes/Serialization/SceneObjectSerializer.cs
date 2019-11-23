@@ -117,9 +117,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
             {
-            string innerkeytxt = reader.ReadElementContentAsString();
-            sceneObject.RootPart.KeyframeMotion = 
-                KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
+                string innerkeytxt = reader.ReadElementContentAsString();
+                sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
             else
                 sceneObject.RootPart.KeyframeMotion = null;
