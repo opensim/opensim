@@ -105,9 +105,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
         /// dispensed.
         /// </summary>
-        protected uint m_lastAllocatedLocalId = 720000;
-
-        private readonly Mutex _primAllocateMutex = new Mutex(false);
+        protected int m_lastAllocatedLocalId = 720000;
+        protected int m_lastAllocatedIntId = 7200;
 
         protected readonly ClientManager m_clientManager = new ClientManager();
 
@@ -299,14 +298,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>A brand new local ID</returns>
         public uint AllocateLocalId()
         {
-            uint myID;
-
-            _primAllocateMutex.WaitOne();
-            myID = ++m_lastAllocatedLocalId;
-            _primAllocateMutex.ReleaseMutex();
-
-            return myID;
+            return (uint)Interlocked.Increment(ref m_lastAllocatedLocalId);
         }
+
+        public int AllocateIntId()
+        {
+            return Interlocked.Increment(ref m_lastAllocatedLocalId);
+        }
+
+
 
         #region Module Methods
 

@@ -87,14 +87,14 @@ namespace OpenSim.Region.Framework.Scenes
     {
         public Vector3 targetPos;
         public float tolerance;
-        public uint handle;
+        public int handle;
     }
 
     public struct scriptRotTarget
     {
         public Quaternion targetRot;
         public float tolerance;
-        public uint handle;
+        public int handle;
     }
 
     public delegate void PrimCountTaintedDelegate();
@@ -357,15 +357,15 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPart m_rootPart;
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
-        private SortedDictionary<uint, scriptPosTarget> m_targets = new SortedDictionary<uint, scriptPosTarget>();
-        private SortedDictionary<uint, scriptRotTarget> m_rotTargets = new SortedDictionary<uint, scriptRotTarget>();
+        private SortedDictionary<int, scriptPosTarget> m_targets = new SortedDictionary<int, scriptPosTarget>();
+        private SortedDictionary<int, scriptRotTarget> m_rotTargets = new SortedDictionary<int, scriptRotTarget>();
 
-        public SortedDictionary<uint, scriptPosTarget> AtTargets
+        public SortedDictionary<int, scriptPosTarget> AtTargets
         {
             get { return m_targets; }
         }
 
-        public SortedDictionary<uint, scriptRotTarget> RotTargets
+        public SortedDictionary<int, scriptRotTarget> RotTargets
         {
             get { return m_rotTargets; }
         }
@@ -2906,7 +2906,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            if (IsAttachment)
             //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
-            checkAtTargets();
             if (Scene.GetNumberOfClients() == 0)
                 return;
 
@@ -2925,8 +2924,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            if (IsAttachment)
             //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
-            checkAtTargets();
-
             if (Scene.GetNumberOfClients() == 0)
                 return;
 
@@ -4809,7 +4806,7 @@ namespace OpenSim.Region.Framework.Scenes
             scriptRotTarget waypoint = new scriptRotTarget();
             waypoint.targetRot = target;
             waypoint.tolerance = tolerance;
-            uint handle = m_scene.AllocateLocalId();
+            int handle = m_scene.AllocateIntId();
             waypoint.handle = handle;
             lock (m_rotTargets)
             {
@@ -4818,14 +4815,14 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rotTargets.Add(handle, waypoint);
             }
             m_scene.AddGroupTarget(this);
-            return (int)handle;
+            return handle;
         }
 
         public void unregisterRotTargetWaypoint(int handle)
         {
             lock (m_targets)
             {
-                m_rotTargets.Remove((uint)handle);
+                m_rotTargets.Remove(handle);
                 if (m_targets.Count == 0)
                     m_scene.RemoveGroupTarget(this);
             }
@@ -4836,7 +4833,7 @@ namespace OpenSim.Region.Framework.Scenes
             scriptPosTarget waypoint = new scriptPosTarget();
             waypoint.targetPos = target;
             waypoint.tolerance = tolerance;
-            uint handle = m_scene.AllocateLocalId();
+            int handle = m_scene.AllocateIntId();
             waypoint.handle = handle;
             lock (m_targets)
             {
@@ -4852,7 +4849,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_targets)
             {
-                m_targets.Remove((uint)handle);
+                m_targets.Remove(handle);
                 if (m_targets.Count == 0)
                     m_scene.RemoveGroupTarget(this);
             }
@@ -4860,140 +4857,126 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void checkAtTargets()
         {
-            if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
+            if (m_targets.Count > 0 && (m_scriptListens_atTarget || m_scriptListens_notAtTarget))
             {
-                if (m_targets.Count > 0)
+                bool not_target = true;
+
+                List<scriptPosTarget> atTargets = new List<scriptPosTarget>(m_targets.Count);
+                lock (m_targets)
                 {
-                    bool at_target = false;
-                    //Vector3 targetPos;
-                    //uint targetHandle;
-                    Dictionary<uint, scriptPosTarget> atTargets = new Dictionary<uint, scriptPosTarget>();
-                    lock (m_targets)
+                    if (m_scriptListens_atTarget)
                     {
-                        foreach (uint idx in m_targets.Keys)
+                        foreach (scriptPosTarget target in m_targets.Values)
                         {
-                            scriptPosTarget target = m_targets[idx];
                             if (Vector3.DistanceSquared(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance * target.tolerance)
                             {
-                                at_target = true;
-
-                                // trigger at_target
-                                if (m_scriptListens_atTarget)
-                                {
-                                    scriptPosTarget att = new scriptPosTarget();
-                                    att.targetPos = target.targetPos;
-                                    att.tolerance = target.tolerance;
-                                    att.handle = target.handle;
-                                    atTargets.Add(idx, att);
-                                }
+                                not_target = false;
+                                atTargets.Add(target);
                             }
                         }
                     }
-
-                    if (atTargets.Count > 0)
+                    else
                     {
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        foreach (scriptPosTarget target in m_targets.Values)
                         {
-                            foreach (uint target in atTargets.Keys)
+                            if (Vector3.DistanceSquared(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance * target.tolerance)
                             {
-                                scriptPosTarget att = atTargets[target];
-                                m_scene.EventManager.TriggerAtTargetEvent(
-                                    localids[ctr], att.handle, att.targetPos, m_rootPart.GroupPosition);
+                                not_target = false;
+                                break;
                             }
-                        }
-
-                        return;
-                    }
-
-                    if (m_scriptListens_notAtTarget && !at_target)
-                    {
-                        //trigger not_at_target
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
-                        {
-                            m_scene.EventManager.TriggerNotAtTargetEvent(localids[ctr]);
                         }
                     }
                 }
-            }
-            if (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget)
-            {
-                if (m_rotTargets.Count > 0)
+
+                if (atTargets.Count > 0)
                 {
-                    bool at_Rottarget = false;
-                    Dictionary<uint, scriptRotTarget> atRotTargets = new Dictionary<uint, scriptRotTarget>();
-                    lock (m_rotTargets)
+                    SceneObjectPart[] parts = m_parts.GetArray();
+                    for (int ctr = 0; ctr < parts.Length; ++ctr)
                     {
-                        foreach (uint idx in m_rotTargets.Keys)
+                        uint pid = parts[ctr].LocalId;
+                        for(int target = 0; target < atTargets.Count; ++target)
                         {
-                            scriptRotTarget target = m_rotTargets[idx];
-                            double angle
-                                = Math.Acos(
-                                    target.targetRot.X * m_rootPart.RotationOffset.X
-                                        + target.targetRot.Y * m_rootPart.RotationOffset.Y
-                                        + target.targetRot.Z * m_rootPart.RotationOffset.Z
-                                        + target.targetRot.W * m_rootPart.RotationOffset.W)
-                                    * 2;
-                            if (angle < 0) angle = -angle;
-                            if (angle > Math.PI) angle = (Math.PI * 2 - angle);
+                            scriptPosTarget att = atTargets[target];
+                            m_scene.EventManager.TriggerAtTargetEvent(
+                                pid, (uint)att.handle, att.targetPos, m_rootPart.GroupPosition);
+                        }
+                    }
+                }
+
+                if (not_target && m_scriptListens_notAtTarget)
+                {
+                    //trigger not_at_target
+                    SceneObjectPart[] parts = m_parts.GetArray();
+                    for (int ctr = 0; ctr < parts.Length; ctr++)
+                    {
+                        m_scene.EventManager.TriggerNotAtTargetEvent(parts[ctr].LocalId);
+                    }
+                }
+            }
+
+            if (m_rotTargets.Count > 0 && (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget))
+            {
+                bool not_Rottarget = true;
+
+                List<scriptRotTarget> atRotTargets = new List<scriptRotTarget>(m_rotTargets.Count);
+                lock (m_rotTargets)
+                {
+                    if (m_scriptListens_atRotTarget)
+                    {
+                        foreach (scriptRotTarget target in m_rotTargets.Values)
+                        {
+                            double angle = 2 * Math.Acos(Quaternion.Dot(target.targetRot, m_rootPart.RotationOffset));
+                            if (angle < 0)
+                                angle = -angle;
+                            if (angle > Math.PI)
+                                angle = (2 * Math.PI - angle);
                             if (angle <= target.tolerance)
                             {
                                 // trigger at_rot_target
-                                if (m_scriptListens_atRotTarget)
-                                {
-                                    at_Rottarget = true;
-                                    scriptRotTarget att = new scriptRotTarget();
-                                    att.targetRot = target.targetRot;
-                                    att.tolerance = target.tolerance;
-                                    att.handle = target.handle;
-                                    atRotTargets.Add(idx, att);
-                                }
+                                not_Rottarget = false;
+                                atRotTargets.Add(target);
                             }
                         }
                     }
-
-                    if (atRotTargets.Count > 0)
+                    else
                     {
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        foreach (scriptRotTarget target in m_rotTargets.Values)
                         {
-                            foreach (uint target in atRotTargets.Keys)
+                            double angle = 2 * Math.Acos(Quaternion.Dot(target.targetRot, m_rootPart.RotationOffset));
+                            if (angle < 0)
+                                angle = -angle;
+                            if (angle > Math.PI)
+                                angle = (2 * Math.PI - angle);
+                            if (angle <= target.tolerance)
                             {
-                                scriptRotTarget att = atRotTargets[target];
-                                m_scene.EventManager.TriggerAtRotTargetEvent(
-                                    localids[ctr], att.handle, att.targetRot, m_rootPart.RotationOffset);
+                                not_Rottarget = false;
+                                break;
                             }
                         }
-
-                        return;
                     }
+                }
 
-                    if (m_scriptListens_notAtRotTarget && !at_Rottarget)
+                if (atRotTargets.Count > 0)
+                {
+                    SceneObjectPart[] parts = m_parts.GetArray();
+                    for (int ctr = 0; ctr < parts.Length; ++ctr)
                     {
-                        //trigger not_at_target
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        uint pid = parts[ctr].LocalId;
+                        for (int target = 0; target < atRotTargets.Count; ++target)
                         {
-                            m_scene.EventManager.TriggerNotAtRotTargetEvent(localids[ctr]);
+                            scriptRotTarget att = atRotTargets[target];
+                            m_scene.EventManager.TriggerAtRotTargetEvent(
+                                pid, (uint)att.handle, att.targetRot, m_rootPart.RotationOffset);
                         }
                     }
+                }
+
+                if (not_Rottarget && m_scriptListens_notAtRotTarget)
+                {
+                    //trigger not_at_target
+                    SceneObjectPart[] parts = m_parts.GetArray();
+                    for (int ctr = 0; ctr < parts.Length; ++ctr)
+                        m_scene.EventManager.TriggerNotAtRotTargetEvent(parts[ctr].LocalId);
                 }
             }
         }

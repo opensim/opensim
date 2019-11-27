@@ -3344,7 +3344,7 @@ namespace OpenSim.Region.Framework.Scenes
         private const float VELOCITY_TOLERANCE = 0.1f;
         private const float ANGVELOCITY_TOLERANCE = 0.005f;
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
-        private const double TIME_MS_TOLERANCE = 200.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
+        private const double TIME_MS_TOLERANCE = 250.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
 
         private Vector3 ClampVectorForTerseUpdate(Vector3 v, float max)
         {
