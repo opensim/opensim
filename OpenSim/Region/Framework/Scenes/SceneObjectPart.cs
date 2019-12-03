@@ -2313,15 +2313,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (pa != null)
                 {
                     if (UsePhysics != pa.IsPhysical)
-                    {
-                        float minsize = UsePhysics ? ParentGroup.Scene.m_minPhys : ParentGroup.Scene.m_minNonphys;
-                        float maxsize = UsePhysics ? ParentGroup.Scene.m_maxPhys : ParentGroup.Scene.m_maxNonphys;
-                        Vector3 scale = Scale;
-                        scale.X = Util.Clamp(scale.X, minsize, maxsize);
-                        scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
-                        scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
-                        Scale = scale;
-                    }
+                        ClampScale(UsePhysics);
 
                     if (UsePhysics != pa.IsPhysical || isNew)
                     {
@@ -3040,6 +3032,51 @@ namespace OpenSim.Region.Framework.Scenes
             LinkNum = linkNum;
             LocalId = 0;
             Inventory.ResetInventoryIDs();
+        }
+
+
+        private void ClampScale(bool isPhysical)
+        {
+            float minsize = isPhysical ? ParentGroup.Scene.m_minPhys : ParentGroup.Scene.m_minNonphys;
+            float maxsize = isPhysical ? ParentGroup.Scene.m_maxPhys : ParentGroup.Scene.m_maxNonphys;
+            Vector3 scale = Scale;
+            bool changed = false;
+
+            if (scale.X < minsize)
+            {
+                scale.X = minsize;
+                changed = true;
+            }
+            else if (scale.X > maxsize)
+            {
+                scale.X = maxsize;
+                changed = true;
+            }
+
+            if (scale.Y < minsize)
+            {
+                scale.Y = minsize;
+                changed = true;
+            }
+            else if (scale.Y > maxsize)
+            {
+                scale.Y = maxsize;
+                changed = true;
+            }
+
+            if (scale.Z < minsize)
+            {
+                scale.Z = minsize;
+                changed = true;
+            }
+            else if (scale.Z > maxsize)
+            {
+                scale.Z = maxsize;
+                changed = true;
+            }
+
+            if (changed)
+                Scale = scale;
         }
 
         /// <summary>
@@ -4777,15 +4814,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void AddToPhysics(bool isPhysical, bool isPhantom, bool building, bool applyDynamics)
         {
             if (ParentGroup.Scene != null)
-            {
-                float minsize = isPhysical ? ParentGroup.Scene.m_minPhys : ParentGroup.Scene.m_minNonphys;
-                float maxsize = isPhysical ? ParentGroup.Scene.m_maxPhys : ParentGroup.Scene.m_maxNonphys;
-                Vector3 scale = Scale;
-                scale.X = Util.Clamp(scale.X, minsize, maxsize);
-                scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
-                scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
-                Scale = scale;
-            }
+                ClampScale(isPhysical);
 
             PhysicsActor pa;
             Vector3 velocity = Velocity;

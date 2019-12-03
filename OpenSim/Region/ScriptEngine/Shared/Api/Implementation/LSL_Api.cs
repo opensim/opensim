@@ -8912,6 +8912,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     elemLength = 3;
 
                 List<KeyframeMotion.Keyframe> keyframes = new List<KeyframeMotion.Keyframe>();
+                bool hasTranslation = (data & KeyframeMotion.DataFormat.Translation) != 0;
+                bool hasRotation = (data & KeyframeMotion.DataFormat.Rotation) != 0;
                 while (idx < frames.Data.Length)
                 {
                     int remain = frames.Data.Length - idx;
@@ -8923,16 +8925,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     frame.Position = null;
                     frame.Rotation = null;
 
-                    if ((data & KeyframeMotion.DataFormat.Translation) != 0)
+                    if (hasTranslation)
                     {
                         LSL_Types.Vector3 tempv = frames.GetVector3Item(idx++);
                         frame.Position = new Vector3((float)tempv.x, (float)tempv.y, (float)tempv.z);
                     }
-                    if ((data & KeyframeMotion.DataFormat.Rotation) != 0)
+                    if (hasRotation)
                     {
                         LSL_Types.Quaternion tempq = frames.GetQuaternionItem(idx++);
                         Quaternion q = new Quaternion((float)tempq.x, (float)tempq.y, (float)tempq.z, (float)tempq.s);
-                        q.Normalize();
                         frame.Rotation = q;
                     }
 
