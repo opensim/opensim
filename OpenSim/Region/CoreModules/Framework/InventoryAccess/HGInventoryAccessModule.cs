@@ -114,7 +114,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     }
                     else
-                        m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
+                        m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found");
 
                     m_bypassPermissions = !Util.GetConfigVarFromSections<bool>(source, "serverside_object_permissions",
                                             new string[] { "Startup", "Permissions" }, true);
@@ -240,7 +240,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 prefix = string.Empty;
             suffix = " @ " + m_ThisGatekeeper;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\ngatekeeper {5}\n",
+            return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\ngatekeeper {5}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle,

@@ -55,7 +55,7 @@ namespace OpenSim.Framework
 
         // regions and viewer compatibility
         public readonly static int TEXTURE_COUNT = 45;
-        public const int TEXTURE_COUNT_PV7 = 26;
+        public const int TEXTURE_COUNT_PV7 = 29;
         public const int BAKES_COUNT_PV7 = 6;
         public const int MAXWEARABLE_PV7 = 16;
         public const int MAXWEARABLE_LEGACY = 15;

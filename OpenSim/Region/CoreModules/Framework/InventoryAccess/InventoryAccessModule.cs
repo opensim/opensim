@@ -249,7 +249,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             prefix = string.Empty;
             suffix = string.Empty;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+            return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle);

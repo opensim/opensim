@@ -118,7 +118,7 @@ namespace OpenSim.Capabilities.Handlers
 
     class BakedTextureUploader
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event Action<UUID, byte[]> OnUpLoad;
 
@@ -133,7 +133,7 @@ namespace OpenSim.Capabilities.Handlers
             uploaderPath = path;
             httpListener = httpServer;
             AgentId = uUID;
-            //                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
+            // m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace OpenSim.Capabilities.Handlers
 
             httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-//            m_log.DebugFormat("[BAKED TEXTURE UPLOADER]: baked texture upload completed for {0}", newAssetID);
+            // m_log.DebugFormat("[BAKED TEXTURE UPLOADER]: baked texture upload completed for {0}", newAssetID);
 
             return res;
         }
