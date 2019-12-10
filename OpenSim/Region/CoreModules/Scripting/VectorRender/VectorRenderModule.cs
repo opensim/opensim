@@ -55,11 +55,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 //        private static byte[] s_asset2Data;
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static object thisLock = new object();
+        private static Graphics m_graph = null; // just to get chars sizes
 
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
 
-        private Graphics m_graph;
         private string m_fontName = "Arial";
 
         public VectorRenderModule()
@@ -120,18 +121,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public void GetDrawStringSize(string text, string fontName, int fontSize,
                                       out double xSize, out double ySize)
         {
-            lock (this)
+            lock (thisLock)
             {
                 using (Font myFont = new Font(fontName, fontSize))
                 {
                     SizeF stringSize = new SizeF();
-                    // XXX: This lock may be unnecessary.
-                    lock (m_graph)
-                    {
-                        stringSize = m_graph.MeasureString(text, myFont);
-                        xSize = stringSize.Width;
-                        ySize = stringSize.Height;
-                    }
+
+                    stringSize = m_graph.MeasureString(text, myFont);
+                    xSize = stringSize.Width;
+                    ySize = stringSize.Height;
                 }
             }
         }
@@ -151,8 +149,14 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
             // We won't dispose of these explicitly since this module is only removed when the entire simulator
             // is shut down.
-            Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
-            m_graph = Graphics.FromImage(bitmap);
+            lock(thisLock)
+            {
+                if(m_graph == null)
+                {
+                    Bitmap bitmap = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
+                    m_graph = Graphics.FromImage(bitmap);
+                }
+            }
         }
 
         public void PostInitialise()
@@ -404,12 +408,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             }
             finally
             {
-                // XXX: In testing, it appears that if multiple threads dispose of separate GDI+ objects simultaneously,
-                // the native malloc heap can become corrupted, possibly due to a double free().  This may be due to
-                // bugs in the underlying libcairo used by mono's libgdiplus.dll on Linux/OSX.  These problems were
-                // seen with both libcario 1.10.2-6.1ubuntu3 and 1.8.10-2ubuntu1.  They go away if disposal is perfomed
-                // under lock.
-                lock (this)
+                lock (thisLock)
                 {
                     if (graph != null)
                         graph.Dispose();
