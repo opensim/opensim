@@ -3037,9 +3037,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAlertMessage(string message)
         {
             AlertMessagePacket alertPack = (AlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AlertMessage);
-            alertPack.AgentInfo = new AlertMessagePacket.AgentInfoBlock[1];
-            alertPack.AgentInfo[0] = new AlertMessagePacket.AgentInfoBlock();
-            alertPack.AgentInfo[0].AgentID = AgentId;
+            //alertPack.AgentInfo = new AlertMessagePacket.AgentInfoBlock[1];
+            //alertPack.AgentInfo[0] = new AlertMessagePacket.AgentInfoBlock();
+            //alertPack.AgentInfo[0].AgentID = AgentId;
             alertPack.AlertData = new AlertMessagePacket.AlertDataBlock();
             alertPack.AlertData.Message = Util.StringToBytes256(message);
             alertPack.AlertInfo = new AlertMessagePacket.AlertInfoBlock[0];
@@ -3049,9 +3049,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAlertMessage(string message, string info)
         {
             AlertMessagePacket alertPack = (AlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AlertMessage);
-            alertPack.AgentInfo = new AlertMessagePacket.AgentInfoBlock[1];
-            alertPack.AgentInfo[0] = new AlertMessagePacket.AgentInfoBlock();
-            alertPack.AgentInfo[0].AgentID = AgentId;
+            //alertPack.AgentInfo = new AlertMessagePacket.AgentInfoBlock[1];
+            //alertPack.AgentInfo[0] = new AlertMessagePacket.AgentInfoBlock();
+            //alertPack.AgentInfo[0].AgentID = AgentId;
             alertPack.AlertData = new AlertMessagePacket.AlertDataBlock();
             alertPack.AlertData.Message = Util.StringToBytes256(message);
             alertPack.AlertInfo = new AlertMessagePacket.AlertInfoBlock[1];
@@ -6591,6 +6591,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
+            LLSDxmlEncode.AddArrayAndMap("ParcelEnvironmentBlock", sb);
+            LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", -1, sb);
+            LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", false, sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
+
+            bool accessovr = Scene.RegionInfo.EstateSettings.TaxFree;
+            LLSDxmlEncode.AddArrayAndMap("RegionAllowAccessBlock", sb);
+            LLSDxmlEncode.AddElem("RegionAllowAccessOverride", accessovr, sb);
+            LLSDxmlEncode.AddEndMapAndArray(sb);
             OSDllsdxml ev = new OSDllsdxml(eq.EndEvent(sb));
             eq.Enqueue(ev, AgentId);
 
@@ -15437,7 +15446,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
-            return ret; // ???
+
+            return ret;
         }
     }
 }

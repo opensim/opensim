@@ -1172,7 +1172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int dataLength = buffer.DataLength;
 
             // only append acks on plain reliable messages
-            if (flags == Helpers.MSG_RELIABLE && outgoingPacket.UnackedMethod == null)
+            if (flags == Helpers.MSG_RELIABLE)
             {
                 // Keep appending ACKs until there is no room left in the buffer or there are
                 // no more ACKs to append
