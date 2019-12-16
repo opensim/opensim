@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.World
             m_rndnums = new Random(seed);
 
             GenerateCloudCover();
-            m_dataVersion = (int)m_scene.AllocateLocalId();
+            m_dataVersion = m_scene.AllocateIntId();
 
             scene.EventManager.OnNewClient += CloudsToClient;
             scene.EventManager.OnFrame += CloudUpdate;

@@ -150,6 +150,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
+            if (im.dialog == (byte)InstantMessageDialog.RequestLure)
+            {
+                if (m_TransferModule != null)
+                    m_TransferModule.SendInstantMessage(im, delegate (bool success) { });
+            }
         }
 
         void OnIncomingInstantMessage(GridInstantMessage im)
@@ -170,6 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(im, delegate(bool success) { });
             }
+
         }
 
         public void OnStartLure(byte lureType, string message, UUID targetid, IClientAPI client)
