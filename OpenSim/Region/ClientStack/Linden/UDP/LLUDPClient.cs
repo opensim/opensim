@@ -115,13 +115,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Circuit code that this client is connected on</summary>
         public readonly uint CircuitCode;
         /// <summary>Sequence numbers of packets we've received (for duplicate checking)</summary>
-        public IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(256);
+        public IncomingPacketHistoryCollection PacketArchive = new IncomingPacketHistoryCollection(1024);
 
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
 
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
         public DoubleLocklessQueue<uint> PendingAcks = new DoubleLocklessQueue<uint>();
+
+        public int AckStalls;
 
         /// <summary>Current packet sequence number</summary>
         public int CurrentSequence;
@@ -185,7 +187,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private byte[] m_packedThrottles;
 
         private int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
-        private int m_maxRTO = 10000;
+        private int m_maxRTO = 3000;
+        private int m_minRTO = 250;
         public bool m_deliverPackets = true;
 
         private float m_burstTime;
@@ -538,46 +541,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// true if the packet has been queued,
         /// false if the packet has not been queued and should be sent immediately.
         /// </returns>
-        public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue)
+        public bool EnqueueOutgoing(OutgoingPacket packet)
         {
-            return EnqueueOutgoing(packet, forceQueue, false);
+            return EnqueueOutgoing(packet, false);
         }
 
-        public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue, bool highPriority)
+        public bool EnqueueOutgoing(OutgoingPacket packet, bool highPriority)
         {
             int category = (int)packet.Category;
 
             if (category >= 0 && category < m_packetOutboxes.Length)
             {
                 DoubleLocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
-
-                if (forceQueue || m_deliverPackets == false)
-                {
-                    queue.Enqueue(packet, highPriority);
-                    return true;
-                }
-
-                // need to enqueue if queue is not empty
-                if (queue.Count > 0 || m_nextPackets[category] != null)
-                {
-                    queue.Enqueue(packet, highPriority);
-                    return true;
-                }
-
-                // check bandwidth
-                TokenBucket bucket = m_throttleCategories[category];
-                if (bucket.CheckTokens(packet.Buffer.DataLength))
-                {
-                    // enough tokens so it can be sent imediatly by caller
-                    bucket.RemoveTokens(packet.Buffer.DataLength);
-                    return false;
-                }
-                else
-                {
-                    // Force queue specified or not enough tokens in the bucket, queue this packet
-                    queue.Enqueue(packet, highPriority);
-                    return true;
-                }
+                queue.Enqueue(packet, highPriority);
+                return true;
             }
             else
             {
@@ -608,33 +585,84 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutgoingPacket packet = null;
             DoubleLocklessQueue<OutgoingPacket> queue;
-            TokenBucket bucket;
             bool packetSent = false;
             ThrottleOutPacketTypeFlags emptyCategories = 0;
 
             //string queueDebugOutput = String.Empty; // Serious debug business
+            // do resends
 
-            for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
+            packet = m_nextPackets[0];
+            if (packet != null)
             {
-                bucket = m_throttleCategories[i];
+                if (packet.Buffer != null)
+                {
+                    if (m_throttleCategories[0].RemoveTokens(packet.Buffer.DataLength))
+                    {
+                        // Send the packet
+                        m_udpServer.SendPacketFinal(packet);
+                        packetSent = true;
+                        m_nextPackets[0] = null;
+                    }
+                }
+                else
+                    m_nextPackets[0] = null;
+            }
+            else
+            {
+                queue = m_packetOutboxes[0];
+                if (queue != null)
+                {
+                    if(queue.Dequeue(out packet))
+                    {
+                        // A packet was pulled off the queue. See if we have
+                        // enough tokens in the bucket to send it out
+                        if (packet.Buffer != null)
+                        {
+                            if (m_throttleCategories[0].RemoveTokens(packet.Buffer.DataLength))
+                            {
+                                // Send the packet
+                                m_udpServer.SendPacketFinal(packet);
+                                packetSent = true;
+                            }
+                            else
+                            {
+                                // Save the dequeued packet for the next iteration
+                                m_nextPackets[0] = packet;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    m_packetOutboxes[0] = new DoubleLocklessQueue<OutgoingPacket>();
+                }
+            }
+
+            if(NeedAcks.Count() > 50)
+            {
+                Interlocked.Increment(ref AckStalls);
+                return true;
+            }
+
+            for (int i = 1; i < THROTTLE_CATEGORY_COUNT; i++)
+            {
                 //queueDebugOutput += m_packetOutboxes[i].Count + " ";  // Serious debug business
 
-                if (m_nextPackets[i] != null)
+                packet = m_nextPackets[i];
+                if (packet != null)
                 {
-                    // This bucket was empty the last time we tried to send a packet,
-                    // leaving a dequeued packet still waiting to be sent out. Try to
-                    // send it again
-                    OutgoingPacket nextPacket = m_nextPackets[i];
-                    if(nextPacket.Buffer == null)
+                    if(packet.Buffer == null)
                     {
                         if (m_packetOutboxes[i].Count < 5)
                             emptyCategories |= CategoryToFlag(i);
+                        m_nextPackets[i] = null;
                         continue;
                     }
-                    if (bucket.RemoveTokens(nextPacket.Buffer.DataLength))
+
+                    if (m_throttleCategories[i].RemoveTokens(packet.Buffer.DataLength))
                     {
                         // Send the packet
-                        m_udpServer.SendPacketFinal(nextPacket);
+                        m_udpServer.SendPacketFinal(packet);
                         m_nextPackets[i] = null;
                         packetSent = true;
 
@@ -647,55 +675,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // No dequeued packet waiting to be sent, try to pull one off
                     // this queue
                     queue = m_packetOutboxes[i];
-                    if (queue != null)
+                    if(queue.Dequeue(out packet))
                     {
-                        bool success = false;
-                        try
+                        if (packet.Buffer == null)
                         {
-                            success = queue.Dequeue(out packet);
+                            // packet canceled elsewhere (by a ack for example)
+                            if (queue.Count < 5)
+                                emptyCategories |= CategoryToFlag(i);
+                            continue;
                         }
-                        catch
-                        {
-                            m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
-                        }
-                        if (success)
-                        {
-                            // A packet was pulled off the queue. See if we have
-                            // enough tokens in the bucket to send it out
-                            if(packet.Buffer == null)
-                            {
-                                // packet canceled elsewhere (by a ack for example)
-                                if (queue.Count < 5)
-                                    emptyCategories |= CategoryToFlag(i);
-                            }
-                            else
-                            {
-                                if (bucket.RemoveTokens(packet.Buffer.DataLength))
-                                {
-                                    // Send the packet
-                                    m_udpServer.SendPacketFinal(packet);
-                                    packetSent = true;
 
-                                    if (queue.Count < 5)
-                                        emptyCategories |= CategoryToFlag(i);
-                                }
-                                else
-                                {
-                                    // Save the dequeued packet for the next iteration
-                                    m_nextPackets[i] = packet;
-                                }
-                            }
+                        if (m_throttleCategories[i].RemoveTokens(packet.Buffer.DataLength))
+                        {
+                            // Send the packet
+                            m_udpServer.SendPacketFinal(packet);
+                            packetSent = true;
+                            if (queue.Count < 5)
+                                emptyCategories |= CategoryToFlag(i);
                         }
                         else
                         {
-                            // No packets in this queue. Fire the queue empty callback
-                            // if it has not been called recently
-                            emptyCategories |= CategoryToFlag(i);
+                            // Save the dequeued packet for the next iteration
+                            m_nextPackets[i] = packet;
                         }
                     }
                     else
                     {
-                        m_packetOutboxes[i] = new DoubleLocklessQueue<OutgoingPacket>();
+                        // No packets in this queue. Fire the queue empty callback
+                        // if it has not been called recently
                         emptyCategories |= CategoryToFlag(i);
                     }
                 }
@@ -718,8 +725,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             p *= 5;
             if( p> m_maxRTO)
                 p = m_maxRTO;
-            else if(p < m_defaultRTO)
-                p = m_defaultRTO;
+            else if(p < m_minRTO)
+                p = m_minRTO;
 
             m_RTO = p;
         }

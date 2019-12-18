@@ -66,21 +66,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Holds the actual unacked packet data, sorted by sequence number</summary>
-        private Dictionary<uint, OutgoingPacket> m_packets = new Dictionary<uint, OutgoingPacket>();
+        private SortedDictionary<uint, OutgoingPacket> m_packets = new SortedDictionary<uint, OutgoingPacket>();
         /// <summary>Holds packets that need to be added to the unacknowledged list</summary>
         private LocklessQueue<OutgoingPacket> m_pendingAdds = new LocklessQueue<OutgoingPacket>();
         /// <summary>Holds information about pending acknowledgements</summary>
         private LocklessQueue<PendingAck> m_pendingAcknowledgements = new LocklessQueue<PendingAck>();
         /// <summary>Holds information about pending removals</summary>
         private LocklessQueue<uint> m_pendingRemoves = new LocklessQueue<uint>();
-
-
+        private uint m_older;
         public void Clear()
         {
             m_packets.Clear();
             m_pendingAdds = null;
             m_pendingAcknowledgements = null;
             m_pendingRemoves = null;
+            m_older = 0;
+        }
+
+        public int Count()
+        {
+            return m_packets.Count + m_pendingAdds.Count - m_pendingAcknowledgements.Count - m_pendingRemoves.Count;
+        }
+
+        public uint Oldest()
+        {
+            return m_older;
         }
 
         /// <summary>
@@ -148,33 +158,47 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ProcessQueues();
 
             List<OutgoingPacket> expiredPackets = null;
-
+            bool doolder = true;
             if (m_packets.Count > 0)
             {
                 int now = Environment.TickCount & Int32.MaxValue;
 
                 foreach (OutgoingPacket packet in m_packets.Values)
                 {
+                    if(packet.Buffer == null)
+                    {
+                        Remove(packet.SequenceNumber);
+                        continue;
+                    }
+
+                    if(doolder)
+                    {
+                        m_older = packet.SequenceNumber;
+                        doolder = false;
+                    }
+
                     // TickCount of zero means a packet is in the resend queue
                     // but hasn't actually been sent over the wire yet
-                    if (packet.TickCount == 0)
+                    int ptime = Interlocked.Exchange(ref packet.TickCount, 0);
+                    if (ptime == 0)
                         continue;
 
-                    if (now - packet.TickCount >= timeoutMS)
+                    if(now - ptime < timeoutMS)
                     {
-                        if (expiredPackets == null)
-                            expiredPackets = new List<OutgoingPacket>();
-
-                        // The TickCount will be set to the current time when the packet
-                        // is actually sent out again
-                        packet.TickCount = 0;
-
-                        // As with other network applications, assume that an expired packet is
-                        // an indication of some network problem, slow transmission
-                        packet.Client.FlowThrottle.ExpirePackets(1);
-
-                        expiredPackets.Add(packet);
+                        int t = Interlocked.Exchange(ref packet.TickCount, ptime);
+                        if (t > ptime)
+                            Interlocked.Exchange(ref packet.TickCount, t);
+                        continue;
                     }
+
+                    if (expiredPackets == null)
+                        expiredPackets = new List<OutgoingPacket>();
+
+                    // As with other network applications, assume that an expired packet is
+                    // an indication of some network problem, slow transmission
+                    packet.Client.FlowThrottle.ExpirePackets(1);
+
+                    expiredPackets.Add(packet);
                 }
             }
 
@@ -186,64 +210,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessQueues()
         {
+            while (m_pendingRemoves.TryDequeue(out uint pendingRemove))
+            {
+                if (m_packets.TryGetValue(pendingRemove, out OutgoingPacket removedPacket))
+                {
+                    m_packets.Remove(pendingRemove);
+                    if (removedPacket != null)
+                    {
+                        // Update stats
+                        Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);
+
+                        removedPacket.Client.FreeUDPBuffer(removedPacket.Buffer);
+                        removedPacket.Buffer = null;
+                    }
+                }
+            }
+
             // Process all the pending adds
-            OutgoingPacket pendingAdd;
-            while (m_pendingAdds.TryDequeue(out pendingAdd))
+            while (m_pendingAdds.TryDequeue(out OutgoingPacket pendingAdd))
             {
                 if (pendingAdd != null)
                     m_packets[pendingAdd.SequenceNumber] = pendingAdd;
             }
 
             // Process all the pending removes, including updating statistics and round-trip times
-            PendingAck pendingAcknowledgement;
-            while (m_pendingAcknowledgements.TryDequeue(out pendingAcknowledgement))
+            while (m_pendingAcknowledgements.TryDequeue(out PendingAck pendingAcknowledgement))
             {
                 //m_log.DebugFormat("[UNACKED PACKET COLLECTION]: Processing ack {0}", pendingAcknowledgement.SequenceNumber);
-                OutgoingPacket ackedPacket;
-                if (m_packets.TryGetValue(pendingAcknowledgement.SequenceNumber, out ackedPacket))
+                if (m_packets.TryGetValue(pendingAcknowledgement.SequenceNumber, out OutgoingPacket ackedPacket))
                 {
+                    m_packets.Remove(pendingAcknowledgement.SequenceNumber);
                     if (ackedPacket != null)
                     {
-                        m_packets.Remove(pendingAcknowledgement.SequenceNumber);
-
                         // Update stats
-                        Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
+                        if(ackedPacket.Buffer != null)
+                        {
+                            Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
 
-                        ackedPacket.Client.FreeUDPBuffer(ackedPacket.Buffer);
-                        ackedPacket.Buffer = null;
-
+                            ackedPacket.Client.FreeUDPBuffer(ackedPacket.Buffer);
+                            ackedPacket.Buffer = null;
+                        }
                         // As with other network applications, assume that an acknowledged packet is an
                         // indication that the network can handle a little more load, speed up the transmission
                         ackedPacket.Client.FlowThrottle.AcknowledgePackets(1);
-                    }
-                    else
-                    {
-                        // m_log.WarnFormat("[UNACKED PACKET COLLECTION]: found null packet for sequence number {0} to ack",
-                        //                  pendingAcknowledgement.SequenceNumber);
-                    }
-                }
-                else
-                {
-                    // m_log.WarnFormat("[UNACKED PACKET COLLECTION]: Could not find packet with sequence number {0} to ack",
-                    //                  pendingAcknowledgement.SequenceNumber);
-                }
-            }
-
-            uint pendingRemove;
-            while(m_pendingRemoves.TryDequeue(out pendingRemove))
-            {
-                OutgoingPacket removedPacket;
-                if (m_packets.TryGetValue(pendingRemove, out removedPacket))
-                {
-                    if (removedPacket != null)
-                    {
-                        m_packets.Remove(pendingRemove);
-
-                        // Update stats
-                        Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);
-
-                        removedPacket.Client.FreeUDPBuffer(removedPacket.Buffer);
-                        removedPacket.Buffer = null;
                     }
                 }
             }
