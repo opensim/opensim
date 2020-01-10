@@ -51,6 +51,10 @@
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
+	
+	;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames, FQDN or ips of the gatekeeper of this world} {}
+	;; comma separated list
+	; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
