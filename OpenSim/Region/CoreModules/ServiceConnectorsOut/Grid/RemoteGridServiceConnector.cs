@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private string m_ThisGatekeeperURI = string.Empty;
         private string m_ThisGatekeeperHost = string.Empty;
         private string m_ThisGatekeeperIP = string.Empty;
+        private HashSet<string> m_ThisGateKeeperAlias = new HashSet<string>();
 
         private IGridService m_LocalGridService;
         private IGridService m_RemoteGridService;
@@ -134,6 +135,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             m_ThisGatekeeperURI = gridConfig.GetString("Gatekeeper", m_ThisGatekeeperURI);
 
             Util.checkServiceURI(m_ThisGatekeeperURI, out m_ThisGatekeeperURI, out m_ThisGatekeeperHost, out m_ThisGatekeeperIP);
+
+            string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(source, "GatekeeperURIAlias",
+                new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
+
+            if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
+            {
+                string[] alias = gatekeeperURIAlias.Split(',');
+                for (int i = 0; i < alias.Length; ++i)
+                {
+                    if (!string.IsNullOrWhiteSpace(alias[i]))
+                        m_ThisGateKeeperAlias.Add(alias[i].ToLower());
+                }
+            }
             return true;
         }
 
@@ -255,7 +269,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 string regionHost = "";
                 if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
                     return rinfo; // invalid
-                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) && !m_ThisGatekeeperIP.Equals(regionHost))
+                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) 
+                            && !m_ThisGatekeeperIP.Equals(regionHost) 
+                            && !m_ThisGateKeeperAlias.Contains(regionHost.ToLower()))
                     return rinfo; // not local grid
             }
 
@@ -291,7 +307,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 string regionHost = "";
                 if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
                     return rinfo; // invalid
-                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) && !m_ThisGatekeeperIP.Equals(regionHost))
+                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase)
+                            && !m_ThisGatekeeperIP.Equals(regionHost) 
+                            && !m_ThisGateKeeperAlias.Contains(regionHost.ToLower()))
                     return rinfo; // not local grid
             }
 
