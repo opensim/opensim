@@ -748,7 +748,16 @@ namespace OpenSim.Region.CoreModules.World.Land
                     (m_scene.RegionInfo.EstateSettings.DenyAnonymous || ((LandData.Flags & (uint)ParcelFlags.DenyAnonymous) != 0));
                 if(adults || anonymous)
                 {
-                    int userflags = m_scene.GetUserFlags(avatar); // this is heavy
+                    int userflags;
+                    if(m_scene.TryGetScenePresence(avatar, out ScenePresence snp))
+                    {
+                        if(snp.IsNPC)
+                            return false;
+                        userflags = snp.UserFlags;
+                    }
+                    else
+                        userflags = m_scene.GetUserFlags(avatar);
+
                     if(adults && ((userflags & 32) == 0))
                         return true;
                     if(anonymous && ((userflags & 4) == 0))
