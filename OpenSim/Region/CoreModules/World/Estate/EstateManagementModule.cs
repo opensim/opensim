@@ -126,7 +126,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             UserManager = scene.RequestModuleInterface<IUserManagement>();
 
             scene.RegionInfo.EstateSettings.DoDenyMinors = !m_ignoreEstateMinorAccessControl;
-            scene.RegionInfo.EstateSettings.DoDenyAnonymous = !m_ignoreEstateMinorAccessControl;
+            scene.RegionInfo.EstateSettings.DoDenyAnonymous = !m_ignoreEstatePaymentAccessControl;
         }
 
         public void Close()
