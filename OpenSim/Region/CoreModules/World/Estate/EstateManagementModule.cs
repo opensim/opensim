@@ -93,8 +93,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (config != null)
             {
                 AllowRegionRestartFromClient = config.GetBoolean("AllowRegionRestartFromClient", true);
-                m_ignoreEstateMinorAccessControl = config.GetBoolean("IgnoreEstateMinorAccessControl", false);
-                m_ignoreEstatePaymentAccessControl = config.GetBoolean("IgnoreEstatePaymentAccessControl", false);
+                m_ignoreEstateMinorAccessControl = config.GetBoolean("IgnoreEstateMinorAccessControl", true);
+                m_ignoreEstatePaymentAccessControl = config.GetBoolean("IgnoreEstatePaymentAccessControl", true);
             }
         }
 
