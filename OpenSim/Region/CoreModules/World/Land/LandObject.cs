@@ -565,6 +565,20 @@ namespace OpenSim.Region.CoreModules.World.Land
                             ParcelFlags.DenyAgeUnverified);
                 }
             }
+
+            // enforce estate age and payinfo limitations
+            if (m_scene.RegionInfo.EstateSettings.DenyMinors)
+            {
+                args.ParcelFlags |= (uint)ParcelFlags.DenyAgeUnverified;
+                allowedDelta |= (uint)ParcelFlags.DenyAgeUnverified;
+            }
+
+            if (m_scene.RegionInfo.EstateSettings.DenyAnonymous)
+            {
+                args.ParcelFlags |= (uint)ParcelFlags.DenyAnonymous;
+                allowedDelta |= (uint)ParcelFlags.DenyAnonymous;
+            }
+
             if (allowedDelta != (uint)ParcelFlags.None)
             {
                 uint preserve = LandData.Flags & ~allowedDelta;
@@ -727,7 +741,21 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+            {
+                bool adults = m_scene.RegionInfo.EstateSettings.DoDenyMinors &&
+                    (m_scene.RegionInfo.EstateSettings.DenyMinors || ((LandData.Flags & (uint)ParcelFlags.DenyAgeUnverified) != 0));
+                bool anonymous = m_scene.RegionInfo.EstateSettings.DoDenyAnonymous &&
+                    (m_scene.RegionInfo.EstateSettings.DenyAnonymous || ((LandData.Flags & (uint)ParcelFlags.DenyAnonymous) != 0));
+                if(adults || anonymous)
+                {
+                    int userflags = m_scene.GetUserFlags(avatar); // this is heavy
+                    if(adults && ((userflags & 32) == 0))
+                        return true;
+                    if(anonymous && ((userflags & 4) == 0))
+                        return true;
+                }
                 return false;
+            }
 
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
