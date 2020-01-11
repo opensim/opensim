@@ -541,28 +541,30 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            // don't allow passes on group owned until we can give money to groups
-            if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+            if(m_scene.RegionInfo.EstateSettings.TaxFree)
             {
-                newData.PassHours = args.PassHours;
-                newData.PassPrice = args.PassPrice;
+                // don't allow passes on group owned until we can give money to groups
+                if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+                {
+                    newData.PassHours = args.PassHours;
+                    newData.PassPrice = args.PassPrice;
 
-                allowedDelta |= (uint)ParcelFlags.UsePassList;
+                    allowedDelta |= (uint)ParcelFlags.UsePassList;
+                }
+
+                if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed, false))
+                {
+                    allowedDelta |= (uint)(ParcelFlags.UseAccessGroup |
+                            ParcelFlags.UseAccessList);
+                }
+
+                if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned, false))
+                {
+                    allowedDelta |= (uint)(ParcelFlags.UseBanList |
+                            ParcelFlags.DenyAnonymous |
+                            ParcelFlags.DenyAgeUnverified);
+                }
             }
-
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed, false))
-            {
-                allowedDelta |= (uint)(ParcelFlags.UseAccessGroup |
-                        ParcelFlags.UseAccessList);
-            }
-
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned, false))
-            {
-                allowedDelta |= (uint)(ParcelFlags.UseBanList |
-                        ParcelFlags.DenyAnonymous |
-                        ParcelFlags.DenyAgeUnverified);
-            }
-
             if (allowedDelta != (uint)ParcelFlags.None)
             {
                 uint preserve = LandData.Flags & ~allowedDelta;
@@ -691,6 +693,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             ExpireAccessList();
 
+            if (!m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return false;
+
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
@@ -718,6 +723,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
+            if (!m_scene.RegionInfo.EstateSettings.TaxFree) // estate access only
+                return false;
+
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
                 return false;
 
