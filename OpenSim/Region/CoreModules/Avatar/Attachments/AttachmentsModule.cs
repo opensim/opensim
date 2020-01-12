@@ -1268,6 +1268,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             Vector3 lastPos = objatt.RootPart.OffsetPosition;
             Vector3 lastAttPos = objatt.RootPart.AttachedPos;
+            uint lastattPoint = objatt.AttachmentPoint;
             bool doneAttach = false;
             // FIXME: Detect whether it's really likely for AttachObject to throw an exception in the normal
             // course of events.  If not, then it's probably not worth trying to recover the situation
@@ -1301,7 +1302,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            if ((attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint) ||
+            if (lastattPoint != objatt.AttachmentPoint ||
                     lastPos != objatt.RootPart.OffsetPosition ||
                     lastAttPos != objatt.RootPart.AttachedPos)
                 objatt.HasGroupChanged = true;
