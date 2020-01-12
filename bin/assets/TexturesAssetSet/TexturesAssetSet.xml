@@ -411,7 +411,7 @@
     <Key Name="assetID" Value="8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"/>
     <Key Name="name" Value="Default Transparent Texture"/>
     <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="default_clear.jp2" />
+    <Key Name="fileName" Value="transparency.jp2" />
   </Section>
 
   <!-- 3a367d1c-bef1-6d43-7595-e88c1e3aadb3 is a UUID that viewers assume exists in the asset server -->
@@ -420,7 +420,7 @@
     <Key Name="assetID" Value="3a367d1c-bef1-6d43-7595-e88c1e3aadb3"/>
     <Key Name="name" Value="Default Alpha Layer Texture"/>
     <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="default_clear.jp2" />
+    <Key Name="fileName" Value="transparency.jp2" />
   </Section>
   
   <Section Name="Default Avatar">
