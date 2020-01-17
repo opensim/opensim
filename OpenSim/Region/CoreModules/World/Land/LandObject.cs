@@ -541,7 +541,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            if(m_scene.RegionInfo.EstateSettings.TaxFree)
+            if(!m_scene.RegionInfo.EstateSettings.TaxFree)
             {
                 // don't allow passes on group owned until we can give money to groups
                 if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
@@ -707,7 +707,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             ExpireAccessList();
 
-            if (!m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
                 return false;
 
             if (m_scene.Permissions.IsAdministrator(avatar))
@@ -737,7 +737,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if (!m_scene.RegionInfo.EstateSettings.TaxFree) // estate access only
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // estate access only
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)

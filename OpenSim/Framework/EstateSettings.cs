@@ -202,7 +202,7 @@ namespace OpenSim.Framework
         }
 
         private bool m_TaxFree = false;
-        public bool TaxFree // this is now AllowAccessOverride, keeping same name to reuse DB entries
+        public bool TaxFree // this is now !AllowAccessOverride, keeping same name to reuse DB entries
         {
             get { return m_TaxFree; }
             set { m_TaxFree = value; }

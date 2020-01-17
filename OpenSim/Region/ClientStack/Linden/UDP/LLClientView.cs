@@ -6558,9 +6558,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode.AddElem("PassPrice", landData.PassPrice, sb);
             LLSDxmlEncode.AddElem("PublicCount", (int)0, sb); //TODO
             LLSDxmlEncode.AddElem("RegionDenyAnonymous", (regionFlags & (uint)RegionFlags.DenyAnonymous) != 0, sb);
-            //LLSDxmlEncode.AddElem("RegionDenyIdentified", (regionFlags & (uint)RegionFlags.DenyIdentified) != 0, sb);
             LLSDxmlEncode.AddElem("RegionDenyIdentified", false, sb);
-            //LLSDxmlEncode.AddElem("RegionDenyTransacted", (regionFlags & (uint)RegionFlags.DenyTransacted) != 0, sb);
             LLSDxmlEncode.AddElem("RegionDenyTransacted", false, sb);
             LLSDxmlEncode.AddElem("RegionPushOverride", (regionFlags & (uint)RegionFlags.RestrictPushObject) != 0, sb);
             LLSDxmlEncode.AddElem("RentPrice", (int) 0, sb);;
@@ -6600,17 +6598,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LLSDxmlEncode.AddArrayAndMap("AgeVerificationBlock", sb);
 
-            //LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", (regionFlags & (uint)RegionFlags.DenyAgeUnverified) != 0, sb);
-            LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", false, sb);
+            LLSDxmlEncode.AddElem("RegionDenyAgeUnverified", (regionFlags & (uint)RegionFlags.DenyAgeUnverified) != 0, sb);
 
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
             LLSDxmlEncode.AddArrayAndMap("ParcelEnvironmentBlock", sb);
             LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", -1, sb);
-            LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", false, sb);
+            LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", true, sb);
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            bool accessovr = Scene.RegionInfo.EstateSettings.TaxFree;
+            bool accessovr = !Scene.RegionInfo.EstateSettings.TaxFree;
             LLSDxmlEncode.AddArrayAndMap("RegionAllowAccessBlock", sb);
             LLSDxmlEncode.AddElem("RegionAllowAccessOverride", accessovr, sb);
             LLSDxmlEncode.AddEndMapAndArray(sb);

@@ -1549,11 +1549,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.EstateSettings.FixedSun = false;
 
-            // taxfree is now AllowAccessOverride
+            // taxfree is now !AllowAccessOverride (note the negate)
             if ((parms1 & 0x00000020) != 0)
-                Scene.RegionInfo.EstateSettings.TaxFree = true;
-            else
                 Scene.RegionInfo.EstateSettings.TaxFree = false;
+            else
+                Scene.RegionInfo.EstateSettings.TaxFree = true;
 
             if ((parms1 & 0x00100000) != 0)
                 Scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
@@ -1621,7 +1621,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.EstateSettings.DenyAnonymous = denyAnonymous;
             Scene.RegionInfo.EstateSettings.AllowVoice = alloVoiceChat;
 
-            // taxfree is now AllowAccessOverride
+            // taxfree is now !AllowAccessOverride
             Scene.RegionInfo.EstateSettings.TaxFree = overridePublicAccess;
             Scene.RegionInfo.EstateSettings.DenyMinors = denyAgeUnverified;
 
@@ -1695,7 +1695,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.ResetHomeOnTeleport;
             if (Scene.RegionInfo.EstateSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;
-            if (Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means ALLOW_ACCESS_OVERRIDE
+            if (!Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means !ALLOW_ACCESS_OVERRIDE
                 flags |= RegionFlags.TaxFree;
 
             if (Scene.RegionInfo.EstateSettings.PublicAccess) //??

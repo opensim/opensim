@@ -529,7 +529,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (avatar.IsChildAgent)
                 return;
 
-            if ( m_allowedForcefulBans && m_showBansLines && m_scene.RegionInfo.EstateSettings.TaxFree)
+            if ( m_allowedForcefulBans && m_showBansLines && !m_scene.RegionInfo.EstateSettings.TaxFree)
                 SendOutNearestBanLine(avatar.ControllingClient);
         }
 
@@ -579,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(ldata.PassHours == 0)
                 return;
 
-            if (!m_scene.RegionInfo.EstateSettings.TaxFree)
+            if (m_scene.RegionInfo.EstateSettings.TaxFree)
                 return;
 
             // don't allow passes on group owned until we can give money to groups
@@ -694,7 +694,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if ((flags & 0x03) == 0)
                 return; // we only have access and ban
 
-            if(!m_scene.RegionInfo.EstateSettings.TaxFree)
+            if(m_scene.RegionInfo.EstateSettings.TaxFree)
                 return;
 
             ILandObject land;
