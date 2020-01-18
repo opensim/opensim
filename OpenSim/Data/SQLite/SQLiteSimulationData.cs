@@ -1058,10 +1058,8 @@ namespace OpenSim.Data.SQLite
                         rowsToDelete.Add(rowToCheck);
                 }
                 for (int iter = 0; iter < rowsToDelete.Count; iter++)
-                {
-                    rowsToDelete[iter].Delete();
                     landaccesslist.Rows.Remove(rowsToDelete[iter]);
-                }
+
                 rowsToDelete.Clear();
                 foreach (LandAccessEntry entry in parcel.LandData.ParcelAccessList)
                 {
