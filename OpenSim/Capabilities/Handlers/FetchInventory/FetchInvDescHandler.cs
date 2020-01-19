@@ -70,7 +70,7 @@ namespace OpenSim.Capabilities.Handlers
             {
                 hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
             }
-            catch (LLSD.LLSDParseException e)
+            catch (Exception e)
             {
                 m_log.ErrorFormat("[WEB FETCH INV DESC HANDLER]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
                 m_log.Error("Request: " + request);
