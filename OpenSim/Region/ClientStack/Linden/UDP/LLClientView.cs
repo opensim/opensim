@@ -844,7 +844,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 flags |= RegionFlags.ResetHomeOnTeleport;
             if (Scene.RegionInfo.RegionSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;
+
             // allow access override (was taxfree)
+            if (!Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means !ALLOW_ACCESS_OVERRIDE
+                flags |= RegionFlags.AllowParcelAccessOverride;
+
             if (Scene.RegionInfo.RegionSettings.BlockTerraform)
                 flags |= RegionFlags.BlockTerraform;
             if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
