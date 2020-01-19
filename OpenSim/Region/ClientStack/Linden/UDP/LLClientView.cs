@@ -847,7 +847,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // allow access override (was taxfree)
             if (!Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means !ALLOW_ACCESS_OVERRIDE
-                flags |= RegionFlags.AllowParcelAccessOverride;
+                //flags |= RegionFlags.AllowParcelAccessOverride;
+                flags |= RegionFlags.TaxFree;
 
             if (Scene.RegionInfo.RegionSettings.BlockTerraform)
                 flags |= RegionFlags.BlockTerraform;
