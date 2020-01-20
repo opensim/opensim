@@ -543,17 +543,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </returns>
         public bool EnqueueOutgoing(OutgoingPacket packet)
         {
-            return EnqueueOutgoing(packet, false);
-        }
-
-        public bool EnqueueOutgoing(OutgoingPacket packet, bool highPriority)
-        {
             int category = (int)packet.Category;
 
             if (category >= 0 && category < m_packetOutboxes.Length)
             {
                 DoubleLocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
-                queue.Enqueue(packet, highPriority);
+                queue.Enqueue(packet, false);
                 return true;
             }
             else

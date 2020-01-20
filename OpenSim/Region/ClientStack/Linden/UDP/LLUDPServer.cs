@@ -863,14 +863,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Queue or Send
 
-            bool highPriority = false;
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
-
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
             // If we were not provided a method for handling unacked, use the UDPServer default method
@@ -880,7 +872,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
             // packet so that it isn't sent before a queued update packet.
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
             {
                 SendPacketFinal(outgoingPacket);
                 return true;
@@ -953,16 +945,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendUDPPacket(
             LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method, bool zerocode)
         {
-            bool highPriority = false;
-
             if (zerocode)
                 buffer = ZeroEncode(buffer);
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
@@ -970,27 +954,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
                 outgoingPacket.UnackedMethod = ((method == null) ? delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
         public void SendUDPPacket(LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category)
         {
-            bool highPriority = false;
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
-
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
             // If we were not provided a method for handling unacked, use the UDPServer default method
             if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
                 outgoingPacket.UnackedMethod = delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); };
 
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
@@ -1136,7 +1112,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Bump up the resend count on this packet
             Interlocked.Increment(ref outgoingPacket.ResendCount);
             // Requeue or resend the packet
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
