@@ -3477,12 +3477,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.PhysActor == null)
             {
                 // none physcis shape
-                if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
+                //if (part.PhysicsShapeType == (byte)PhysicsShapeType.None)
                     ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
-                else
+                //else
                 { // non physical phantom  TODO
 //                    ControllingClient.SendAlertMessage(" There is no suitable surface to sit on, try another spot.");
-                    return false;
+                //    return false;
                 }
                 return true;
             }
