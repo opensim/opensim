@@ -195,8 +195,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_currentParcelHide = false;
 
                     ILandObject land = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
-                    if (land != null && !land.LandData.SeeAVs)
-                        m_currentParcelHide = true;
+                    if (land != null)
+                        m_currentParcelHide = !land.LandData.SeeAVs;
 
                     if (m_previusParcelUUID != UUID.Zero || checksame)
                         ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID, m_currentParcelHide, m_previusParcelHide, oldhide,checksame);
@@ -3572,7 +3572,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_pos = offset;
 
             ControllingClient.SendSitResponse(
-                part.ParentGroup.UUID, offset, Orientation, true, cameraAtOffset, cameraEyeOffset, forceMouselook);
+                part.ParentGroup.UUID, offset, Orientation, false, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
             SendAvatarDataToAllAgents();
 
