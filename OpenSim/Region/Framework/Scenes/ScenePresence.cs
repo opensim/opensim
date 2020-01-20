@@ -2670,7 +2670,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
 //                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
                 bool update_rotation = false;
-                if (agentData.BodyRotation != Rotation)
+                if (!IsSatOnObject && agentData.BodyRotation != Rotation)
                 {
                     Rotation = agentData.BodyRotation;
                     update_rotation = true;
