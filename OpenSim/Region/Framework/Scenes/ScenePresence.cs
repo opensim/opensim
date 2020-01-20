@@ -681,7 +681,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (IClientCore)ControllingClient; }
         }
 
-        public UUID COF { get; set; }
+        //public UUID COF { get; set; }
 
 //        public Vector3 ParentPosition { get; set; }
 
@@ -2217,7 +2217,7 @@ namespace OpenSim.Region.Framework.Scenes
                             Grouptitle = gm.GetGroupTitle(m_uuid);
 
                         //m_log.DebugFormat("[CompleteMovement] Missing Grouptitle: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-
+                        /*
                         InventoryFolderBase cof = m_scene.InventoryService.GetFolderForType(client.AgentId, (FolderType)46);
                         if (cof == null)
                             COF = UUID.Zero;
@@ -2225,6 +2225,7 @@ namespace OpenSim.Region.Framework.Scenes
                             COF = cof.ID;
 
                         m_log.DebugFormat("[CompleteMovement]: Missing COF for {0} is {1}", client.AgentId, COF);
+                        */
                     }
                 }
 
@@ -4981,7 +4982,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(isCrossUpdate)
             {
-                cAgent.agentCOF = COF;
+                //cAgent.agentCOF = COF;
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
                 if(Grouptitle == null)
@@ -5126,7 +5127,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(cAgent.ActiveGroupTitle != null)
             {
                 m_haveGroupInformation = true;
-                COF = cAgent.agentCOF;
+                //COF = cAgent.agentCOF;
                 if(ControllingClient.IsGroupMember(cAgent.ActiveGroupID))
                 {
                     ControllingClient.ActiveGroupId = cAgent.ActiveGroupID;
