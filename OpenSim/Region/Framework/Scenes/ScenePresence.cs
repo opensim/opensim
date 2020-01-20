@@ -3254,7 +3254,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                part.ParentGroup.DeleteAvatar(UUID);
 
                 Quaternion standRotation = part.ParentGroup.RootPart.RotationOffset;
-                Vector3 sitPartWorldPosition = part.ParentGroup.AbsolutePosition + m_pos * standRotation;
+                Vector3 sitWorldPosition = part.ParentGroup.AbsolutePosition + m_pos * standRotation;
                 ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
 
                 ParentID = 0;
@@ -3282,9 +3282,9 @@ namespace OpenSim.Region.Framework.Scenes
                     standRotationZ.Z = 0f;
                 }
 
-                Vector3 adjustmentForSitPose = new Vector3(0.75f, 0, m_sitAvatarHeight + .3f) * standRotationZ;
+                Vector3 adjustmentForSitPose = new Vector3(0.75f, 0, m_sitAvatarHeight * 0.5f + .1f) * standRotationZ;
 
-                Vector3 standPos = sitPartWorldPosition + adjustmentForSitPose;
+                Vector3 standPos = sitWorldPosition + adjustmentForSitPose;
                 m_pos = standPos;
 
             }
@@ -3307,7 +3307,6 @@ namespace OpenSim.Region.Framework.Scenes
             // reset to default sitAnimation
             sitAnimation = "SIT";
 
-//            Animator.TrySetMovementAnimation("STAND");
             Animator.SetMovementAnimations("STAND");
 
             TriggerScenePresenceUpdated();
