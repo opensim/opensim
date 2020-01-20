@@ -65,19 +65,21 @@ namespace OpenSim.Capabilities.Handlers
         {
             //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
 
-            Hashtable hash = new Hashtable();
+            ArrayList foldersrequested = null;
             try
             {
-                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+                Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
+                foldersrequested = (ArrayList)hash["folders"];
+                hash = null;
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[WEB FETCH INV DESC HANDLER]: Fetch error: {0}{1}" + e.Message, e.StackTrace);
-                m_log.Error("Request: " + request);
+                m_log.ErrorFormat("[FETCH INV DESC]: fail parsing request: '{0}'; path: '{1}'; exception: '{2}'", request, path, e.Message);
+                foldersrequested = null;
             }
 
-            ArrayList foldersrequested = (ArrayList)hash["folders"];
-            hash.Clear();
+            if(foldersrequested == null || foldersrequested.Count == 0)
+                return "<llsd><map><key>folders</key><array /></map></llsd>";
  
             List<LLSDFetchInventoryDescendents> folders = new List<LLSDFetchInventoryDescendents>();
             for (int i = 0; i < foldersrequested.Count; i++)
@@ -91,7 +93,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 catch (Exception e)
                 {
-                    m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e);
+                    m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e.Message);
                     continue;
                 }
 
