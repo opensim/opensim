@@ -3401,6 +3401,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (PhysicsSit(part,offset)) // physics engine
                     return;
 
+                if (Vector3.DistanceSquared(AbsolutePosition, pos) > 100f)
+                    return;
+
                 AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
             }
 
