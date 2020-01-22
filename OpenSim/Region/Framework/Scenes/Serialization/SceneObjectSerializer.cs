@@ -445,6 +445,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("SitTargetPosition", ProcessSitTargetPosition);
             m_SOPXmlProcessors.Add("SitTargetPositionLL", ProcessSitTargetPositionLL);
             m_SOPXmlProcessors.Add("SitTargetOrientationLL", ProcessSitTargetOrientationLL);
+            m_SOPXmlProcessors.Add("StandTarget", ProcessStandTarget);
             m_SOPXmlProcessors.Add("ParentID", ProcessParentID);
             m_SOPXmlProcessors.Add("CreationDate", ProcessCreationDate);
             m_SOPXmlProcessors.Add("Category", ProcessCategory);
@@ -499,6 +500,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("SoundQueueing", ProcessSoundQueueing);
 
             m_SOPXmlProcessors.Add("SOPAnims", ProcessSOPAnims);
+
+            m_SOPXmlProcessors.Add("SitActRange", ProcessSitActRange);
 
             #endregion
 
@@ -793,6 +796,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.SoundQueueing = Util.ReadBoolean(reader);
         }
 
+        private static void ProcessSitActRange(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.SitActiveRange = reader.ReadElementContentAsFloat("SitActRange", String.Empty);
+        }
+
         private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
@@ -884,6 +892,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessSitTargetOrientationLL(SceneObjectPart obj, XmlReader reader)
         {
             obj.SitTargetOrientationLL = Util.ReadQuaternion(reader, "SitTargetOrientationLL");
+        }
+
+        private static void ProcessStandTarget(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.StandOffset = Util.ReadVector(reader, "StandTarget");
         }
 
         private static void ProcessParentID(SceneObjectPart obj, XmlReader reader)
@@ -1533,6 +1546,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
+            WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
             writer.WriteElementString("Category", sop.Category.ToString());
@@ -1622,6 +1636,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     writer.WriteElementString("SOPAnims", Convert.ToBase64String(data));
             }
 
+            writer.WriteElementString("SitActRange", sop.SitActiveRange.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
