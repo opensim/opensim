@@ -380,33 +380,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List osGetRegionStats();
         vector osGetRegionSize();
 
-        int osGetSimulatorMemory();
-        int osGetSimulatorMemoryKB();
+         int osGetSimulatorMemory();
+         int osGetSimulatorMemoryKB();
         void osKickAvatar(string FirstName, string SurName, string alert);
         void osKickAvatar(LSL_Key agentId, string alert);
         void osSetSpeed(string UUID, LSL_Float SpeedModifier);
         void osSetOwnerSpeed(LSL_Float SpeedModifier);
-        LSL_Float osGetHealth(key agentId);
+   LSL_Float osGetHealth(key agentId);
         void osCauseHealing(key agentId, LSL_Float healing);
         void osSetHealth(key agentId, LSL_Float health);
         void osSetHealRate(key agentId, LSL_Float health);
-        LSL_Float osGetHealRate(key agentId);
+   LSL_Float osGetHealRate(key agentId);
         void osCauseDamage(key avatar, LSL_Float damage);
         void osForceOtherSit(string avatar);
         void osForceOtherSit(string avatar, string target);
-        LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
+    LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
         void osSetPrimitiveParams(LSL_Key prim, LSL_List rules);
         void osSetProjectionParams(LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb);
         void osSetProjectionParams(LSL_Key prim, LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb);
         void osSetProjectionParams(LSL_Integer linknumber, LSL_Integer projection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb);
 
-        LSL_List osGetAvatarList();
-        LSL_List osGetNPCList();
+    LSL_List osGetAvatarList();
+    LSL_List osGetNPCList();
 
-        LSL_String osUnixTimeToTimestamp(LSL_Integer time);
+  LSL_String osUnixTimeToTimestamp(LSL_Integer time);
 
-        LSL_Integer osInviteToGroup(LSL_Key agentId);
-        LSL_Integer osEjectFromGroup(LSL_Key agentId);
+ LSL_Integer osInviteToGroup(LSL_Key agentId);
+ LSL_Integer osEjectFromGroup(LSL_Key agentId);
 
         void osSetTerrainTexture(int level, LSL_Key texture);
         void osSetTerrainTextureHeight(int corner, double low, double high);
@@ -416,7 +416,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// </summary>
         /// <param name="thing"></param>
         /// <returns>1 if thing is a valid UUID, 0 otherwise</returns>
-        LSL_Integer osIsUUID(string thing);
+ LSL_Integer osIsUUID(string thing);
 
         /// <summary>
         /// Wraps to Math.Min()
@@ -424,7 +424,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        LSL_Float osMin(double a, double b);
+ LSL_Float osMin(double a, double b);
 
         /// <summary>
         /// Wraps to Math.max()
@@ -432,7 +432,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        LSL_Float osMax(double a, double b);
+ LSL_Float osMax(double a, double b);
 
         /// <summary>
         /// Get the key of the object that rezzed this object.
@@ -559,5 +559,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osResetAllScripts(LSL_Integer AllLinkset);
         LSL_Integer osIsNotValidNumber(LSL_Float v);
+
+        void osSetSitActiveRange(LSL_Float v);
+        LSL_Float osGetSitActiveRange();
+        void osSetStandTarget(vector v);
+        vector osGetStandTarget();
     }
 }

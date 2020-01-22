@@ -3262,21 +3262,52 @@ namespace OpenSim.Region.Framework.Scenes
                 standRotation = standRotation * m_bodyRot;
                 m_bodyRot = standRotation;
 
-                Quaternion standRotationZ = new Quaternion(0,0,standRotation.Z,standRotation.W);
-                float t = standRotationZ.W * standRotationZ.W + standRotationZ.Z * standRotationZ.Z;
-                if (t > 0)
+                Quaternion standRotationZ;
+                Vector3 adjustmentForSitPose = part.StandOffset;
+                if (adjustmentForSitPose.X == 0 &&
+                    adjustmentForSitPose.Y == 0 &&
+                    adjustmentForSitPose.Z == 0)
                 {
-                    t = 1.0f / (float)Math.Sqrt(t);
-                    standRotationZ.W *= t;
-                    standRotationZ.Z *= t;
+                    standRotationZ = new Quaternion(0, 0, standRotation.Z, standRotation.W);
+                    float t = standRotationZ.W * standRotationZ.W + standRotationZ.Z * standRotationZ.Z;
+                    if (t > 0)
+                    {
+                        t = 1.0f / (float)Math.Sqrt(t);
+                        standRotationZ.W *= t;
+                        standRotationZ.Z *= t;
+                    }
+                    else
+                    {
+                        standRotationZ.W = 1.0f;
+                        standRotationZ.Z = 0f;
+                    }
+                    adjustmentForSitPose = new Vector3(0.65f, 0, m_sitAvatarHeight * 0.5f + .1f) * standRotationZ;
                 }
                 else
                 {
-                    standRotationZ.W = 1.0f;
-                    standRotationZ.Z = 0f;
-                }
+                    sitWorldPosition = part.GetWorldPosition();
 
-                Vector3 adjustmentForSitPose = new Vector3(0.65f, 0, m_sitAvatarHeight * 0.5f + .1f) * standRotationZ;
+                    standRotation = part.GetWorldRotation();
+                    standRotationZ = new Quaternion(0, 0, standRotation.Z, standRotation.W);
+                    float t = standRotationZ.W * standRotationZ.W + standRotationZ.Z * standRotationZ.Z;
+                    if (t > 0)
+                    {
+                        t = 1.0f / (float)Math.Sqrt(t);
+                        standRotationZ.W *= t;
+                        standRotationZ.Z *= t;
+                    }
+                    else
+                    {
+                        standRotationZ.W = 1.0f;
+                        standRotationZ.Z = 0f;
+                    }
+                    adjustmentForSitPose *= standRotationZ;
+
+                    if (Appearance != null && Appearance.AvatarHeight > 0)
+                        adjustmentForSitPose.Z += 0.5f * Appearance.AvatarHeight + .1f;
+                    else
+                        adjustmentForSitPose.Z += .9f;
+                }
 
                 m_pos = sitWorldPosition + adjustmentForSitPose;
             }
@@ -3325,7 +3356,7 @@ namespace OpenSim.Region.Framework.Scenes
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
-                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
+                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero && part.SitActiveRange > 0)
                 {
                     //switch the target to this prim
                     return part;
@@ -3346,6 +3377,17 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
+            float range = part.SitActiveRange;
+            if (range < 0)
+                return;
+
+            Vector3 pos = part.AbsolutePosition + offset;
+            if (range > 1e-5f)
+            {
+                if (Vector3.DistanceSquared(AbsolutePosition, pos) > range * range)
+                    return;
+            }
+
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
@@ -3359,9 +3401,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (PhysicsSit(part,offset)) // physics engine
                     return;
 
-                Vector3 pos = part.AbsolutePosition + offset;
-                if (Vector3.DistanceSquared(AbsolutePosition, pos) > 100)
-                    return;
                 AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
             }
 

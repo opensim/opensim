@@ -5674,5 +5674,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 3;
             return 0;
         }
+
+        public void osSetSitActiveRange(LSL_Float v)
+        {
+            if (v > 128f)
+                v = 128f;
+            m_host.SitActiveRange = (float)v;
+        }
+
+        public LSL_Float osGetSitActiveRange()
+        {
+            return m_host.SitActiveRange;
+        }
+
+        public void osSetStandTarget(LSL_Vector v)
+        {
+            // todo add limits ?
+            m_host.StandOffset = v;
+        }
+
+        public LSL_Vector osGetStandTarget()
+        {
+            return m_host.StandOffset;
+        }
     }
 }
