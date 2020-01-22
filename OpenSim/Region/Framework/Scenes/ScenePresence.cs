@@ -3356,7 +3356,7 @@ namespace OpenSim.Region.Framework.Scenes
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
-                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero && part.SitActiveRange > 0)
+                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero && part.SitActiveRange >= 0)
                 {
                     //switch the target to this prim
                     return part;
