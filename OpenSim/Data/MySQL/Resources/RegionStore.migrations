@@ -474,3 +474,13 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `sopanims` blob default NULL;
 COMMIT;
 
+:VERSION 59         #----- Add standtarget and sit range
+
+BEGIN;
+ALTER TABLE `prims` 
+ADD COLUMN `standtargetx` float DEFAULT '0.0',
+ADD COLUMN `standtargety` float DEFAULT '0.0',
+ADD COLUMN `standtargetz` float DEFAULT '0.0',
+ADD COLUMN `sitactrange` float DEFAULT '0.0';
+COMMIT;
+

@@ -154,16 +154,15 @@ namespace OpenSim.Data.MySQL
                                     "Name, Text, Description, " +
                                     "SitName, TouchName, ObjectFlags, " +
                                     "OwnerMask, NextOwnerMask, GroupMask, " +
-                                    "EveryoneMask, BaseMask, PositionX, " +
-                                    "PositionY, PositionZ, GroupPositionX, " +
-                                    "GroupPositionY, GroupPositionZ, VelocityX, " +
-                                    "VelocityY, VelocityZ, AngularVelocityX, " +
-                                    "AngularVelocityY, AngularVelocityZ, " +
-                                    "AccelerationX, AccelerationY, " +
-                                    "AccelerationZ, RotationX, " +
-                                    "RotationY, RotationZ, " +
-                                    "RotationW, SitTargetOffsetX, " +
-                                    "SitTargetOffsetY, SitTargetOffsetZ, " +
+                                    "EveryoneMask, BaseMask, " +
+                                    "PositionX, PositionY, PositionZ, " +
+                                    "GroupPositionX, GroupPositionY, GroupPositionZ, " +
+                                    "VelocityX, VelocityY, VelocityZ, " +
+                                    "AngularVelocityX, AngularVelocityY, AngularVelocityZ, " +
+                                    "AccelerationX, AccelerationY, AccelerationZ, " +
+                                    "standtargetx, standtargety, standtargetz, " +
+                                    "RotationX, RotationY, RotationZ, RotationW, " +
+                                    "SitTargetOffsetX, SitTargetOffsetY, SitTargetOffsetZ, " +
                                     "SitTargetOrientW, SitTargetOrientX, " +
                                     "SitTargetOrientY, SitTargetOrientZ, " +
                                     "RegionUUID, CreatorID, " +
@@ -189,20 +188,19 @@ namespace OpenSim.Data.MySQL
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
-                                    "RotationAxisLocks, sopanims" +
+                                    "RotationAxisLocks, sopanims, sitactrange" +
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
                                     "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
                                     "?GroupMask, ?EveryoneMask, ?BaseMask, " +
                                     "?PositionX, ?PositionY, ?PositionZ, " +
-                                    "?GroupPositionX, ?GroupPositionY, " +
-                                    "?GroupPositionZ, ?VelocityX, " +
-                                    "?VelocityY, ?VelocityZ, ?AngularVelocityX, " +
-                                    "?AngularVelocityY, ?AngularVelocityZ, " +
-                                    "?AccelerationX, ?AccelerationY, " +
-                                    "?AccelerationZ, ?RotationX, " +
-                                    "?RotationY, ?RotationZ, " +
+                                    "?GroupPositionX, ?GroupPositionY, ?GroupPositionZ, " +
+                                    "?VelocityX, ?VelocityY, ?VelocityZ, "+
+                                    "?AngularVelocityX, ?AngularVelocityY, ?AngularVelocityZ, " +
+                                    "?AccelerationX, ?AccelerationY, ?AccelerationZ, " +
+                                    "?standtargetx, ?standtargety, ?standtargetz, " +
+                                    "?RotationX, ?RotationY, ?RotationZ, " +
                                     "?RotationW, ?SitTargetOffsetX, " +
                                     "?SitTargetOffsetY, ?SitTargetOffsetZ, " +
                                     "?SitTargetOrientW, ?SitTargetOrientX, " +
@@ -226,7 +224,7 @@ namespace OpenSim.Data.MySQL
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
-                                    "?RotationAxisLocks, ?sopanims)";
+                                    "?RotationAxisLocks, ?sopanims, ?sitactrange)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1395,6 +1393,14 @@ namespace OpenSim.Data.MySQL
                 (float)(double)row["SitTargetOrientW"]
                 );
 
+            prim.StandOffset = new Vector3(
+                (float)row["standtargetx"],
+                (float)row["standtargety"],
+                (float)row["standtargetz"]
+                );
+
+            prim.SitActiveRange = (float)row["sitactrange"];
+
             prim.PayPrice[0] = (int)row["PayPrice"];
             prim.PayPrice[1] = (int)row["PayButton1"];
             prim.PayPrice[2] = (int)row["PayButton2"];
@@ -1514,6 +1520,8 @@ namespace OpenSim.Data.MySQL
             {
                 prim.Animations = null;
             }
+
+            prim.SitActiveRange = (float)row["sitactrange"];
 
             return prim;
         }
@@ -1771,6 +1779,11 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("AccelerationX", (double)prim.Acceleration.X);
             cmd.Parameters.AddWithValue("AccelerationY", (double)prim.Acceleration.Y);
             cmd.Parameters.AddWithValue("AccelerationZ", (double)prim.Acceleration.Z);
+
+            cmd.Parameters.AddWithValue("standtargetx", prim.StandOffset.X);
+            cmd.Parameters.AddWithValue("standtargety", prim.StandOffset.Y);
+            cmd.Parameters.AddWithValue("standtargetz", prim.StandOffset.Z);
+
             // quaternions
             cmd.Parameters.AddWithValue("RotationX", (double)prim.RotationOffset.X);
             cmd.Parameters.AddWithValue("RotationY", (double)prim.RotationOffset.Y);
@@ -1899,6 +1912,8 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("sopanims", prim.SerializeAnimations());
             else
                 cmd.Parameters.AddWithValue("sopanims", null);
+
+            cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
         }
 
         /// <summary>
