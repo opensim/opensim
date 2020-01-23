@@ -377,3 +377,13 @@ COMMIT;
 BEGIN;
 ALTER TABLE `prims` ADD COLUMN `PhysInertia` TEXT default NULL;
 COMMIT;
+
+:VERSION 37         #----- Add standtarget and sit range
+
+BEGIN;
+ALTER TABLE `prims` 
+ADD COLUMN `standtargetx` float NOT NULL DEFAULT '0.0',
+ADD COLUMN `standtargety` float NOT NULL DEFAULT '0.0',
+ADD COLUMN `standtargetz` float NOT NULL DEFAULT '0.0',
+ADD COLUMN `sitactrange` float NOT NULL DEFAULT '0.0';
+COMMIT;

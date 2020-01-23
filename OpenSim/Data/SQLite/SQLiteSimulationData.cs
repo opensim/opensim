@@ -1060,7 +1060,6 @@ namespace OpenSim.Data.SQLite
                 for (int iter = 0; iter < rowsToDelete.Count; ++iter)
                     rowsToDelete[iter].Delete();
 
-
                 foreach (LandAccessEntry entry in parcel.LandData.ParcelAccessList)
                 {
                     DataRow newAccessRow = landaccesslist.NewRow();
@@ -1722,14 +1721,18 @@ namespace OpenSim.Data.SQLite
                                                    Convert.ToSingle(row["SitTargetOffsetY"]),
                                                    Convert.ToSingle(row["SitTargetOffsetZ"]));
             prim.SitTargetOrientationLL = new Quaternion(
-                                                         Convert.ToSingle(
-                                                                          row["SitTargetOrientX"]),
-                                                         Convert.ToSingle(
-                                                                          row["SitTargetOrientY"]),
-                                                         Convert.ToSingle(
-                                                                          row["SitTargetOrientZ"]),
-                                                         Convert.ToSingle(
-                                                                          row["SitTargetOrientW"]));
+                                                         Convert.ToSingle(row["SitTargetOrientX"]),
+                                                         Convert.ToSingle(row["SitTargetOrientY"]),
+                                                         Convert.ToSingle(row["SitTargetOrientZ"]),
+                                                         Convert.ToSingle(row["SitTargetOrientW"]));
+
+            prim.StandOffset = new Vector3(
+                            Convert.ToSingle(row["standtargetx"]),
+                            Convert.ToSingle(row["standtargety"]),
+                            Convert.ToSingle(row["standtargetz"])
+                            );
+
+            prim.SitActiveRange = Convert.ToSingle(row["sitactrange"]);
 
             prim.ClickAction = Convert.ToByte(row["ClickAction"]);
             prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
@@ -2172,6 +2175,14 @@ namespace OpenSim.Data.SQLite
             row["SitTargetOrientX"] = sitTargetOrient.X;
             row["SitTargetOrientY"] = sitTargetOrient.Y;
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
+
+            Vector3 standTarget = prim.StandOffset;
+            row["standtargetx"] = standTarget.X;
+            row["standtargety"] = standTarget.Y;
+            row["standtargetz"] = standTarget.Z;
+
+            row["sitactrange"] = prim.SitActiveRange;
+
             row["ColorR"] = Convert.ToInt32(prim.Color.R);
             row["ColorG"] = Convert.ToInt32(prim.Color.G);
             row["ColorB"] = Convert.ToInt32(prim.Color.B);
@@ -2196,7 +2207,6 @@ namespace OpenSim.Data.SQLite
             row["CameraAtOffsetX"] = prim.GetCameraAtOffset().X;
             row["CameraAtOffsetY"] = prim.GetCameraAtOffset().Y;
             row["CameraAtOffsetZ"] = prim.GetCameraAtOffset().Z;
-
 
             if ((prim.SoundFlags & 1) != 0) // Looped
             {

@@ -1232,3 +1232,13 @@ BEGIN TRANSACTION;
 
 ALTER TABLE prims ADD "Vehicle" TEXT;
 COMMIT;
+
+:VERSION 48         #----- Add standtarget and sit range
+
+BEGIN;
+ALTER TABLE `prims` 
+ADD COLUMN `standtargetx` real DEFAULT '0.0',
+ADD COLUMN `standtargety` real DEFAULT '0.0',
+ADD COLUMN `standtargetz` real DEFAULT '0.0',
+ADD COLUMN `sitactrange` real DEFAULT '0.0';
+COMMIT;
