@@ -561,6 +561,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osIsNotValidNumber(LSL_Float v);
 
         void osSetSitActiveRange(LSL_Float v);
+        void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v);
         LSL_Float osGetSitActiveRange();
         void osSetStandTarget(vector v);
         vector osGetStandTarget();

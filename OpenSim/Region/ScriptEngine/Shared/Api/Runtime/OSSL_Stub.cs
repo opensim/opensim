@@ -1427,6 +1427,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetSitActiveRange(v);
         }
 
+        public void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v)
+        {
+            m_OSSL_Functions.osSetLinkSitActiveRange(linkNumber, v);
+        }
+
         public LSL_Float osGetSitActiveRange()
         {
             return m_OSSL_Functions.osGetSitActiveRange();

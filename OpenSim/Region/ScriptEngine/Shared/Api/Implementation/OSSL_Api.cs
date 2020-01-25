@@ -5679,7 +5679,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (v > 128f)
                 v = 128f;
+            float old = m_host.SitActiveRange;
             m_host.SitActiveRange = (float)v;
+            if(old != (float)v)
+                m_host.ParentGroup.HasGroupChanged = true;
+        }
+
+        public void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v)
+        {
+            if (v > 128f)
+                v = 128f;
+
+            bool changed = false;
+            InitLSL();
+            List<SceneObjectPart> parts = m_LSL_Api.GetLinkParts(linkNumber);
+            for(int i = 0; i < parts.Count; ++i)
+            {
+                SceneObjectPart sop = parts[i];
+                float old = sop.SitActiveRange;
+                sop.SitActiveRange = (float)v;
+                if (old != (float)v)
+                    changed = true;
+            }
+
+            if (changed)
+                m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public LSL_Float osGetSitActiveRange()
@@ -5690,7 +5714,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osSetStandTarget(LSL_Vector v)
         {
             // todo add limits ?
+            Vector3 old = m_host.StandOffset;
             m_host.StandOffset = v;
+            if(!old.ApproxEquals(v))
+                m_host.ParentGroup.HasGroupChanged = true;
         }
 
         public LSL_Vector osGetStandTarget()
