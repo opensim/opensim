@@ -1448,9 +1448,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
 
         public vector osGetStandTarget()
-
         {
             return m_OSSL_Functions.osGetStandTarget();
+        }
+
+        public vector osGetLinkStandTarget(LSL_Integer linkNumber)
+        {
+            return m_OSSL_Functions.osGetLinkStandTarget(linkNumber);
         }
     }
 }

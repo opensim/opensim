@@ -5738,5 +5738,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             return m_host.StandOffset;
         }
+
+        public LSL_Vector osGetLinkStandTarget(LSL_Integer linkNumber)
+        {
+            if (linkNumber == ScriptBaseClass.LINK_THIS)
+                return m_host.StandOffset;
+            if (linkNumber < 0)
+                return Vector3.Zero;
+            if (linkNumber < 2)
+                return m_host.ParentGroup.RootPart.StandOffset;
+            SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkNumber);
+            if (target == null)
+                return Vector3.Zero;
+            return target.StandOffset;
+        }
     }
 }
