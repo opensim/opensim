@@ -5711,6 +5711,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.SitActiveRange;
         }
 
+        public LSL_Float osGetLinkSitActiveRange(LSL_Integer linkNumber)
+        {
+            if (linkNumber == ScriptBaseClass.LINK_THIS)
+                return m_host.SitActiveRange;
+            if (linkNumber < 0)
+                return int.MinValue;
+            if (linkNumber < 2)
+                return m_host.ParentGroup.RootPart.SitActiveRange;
+            SceneObjectPart target = m_host.ParentGroup.GetLinkNumPart(linkNumber);
+            if (target == null)
+                return int.MinValue;
+            return target.SitActiveRange;
+        }
+
         public void osSetStandTarget(LSL_Vector v)
         {
             // todo add limits ?
