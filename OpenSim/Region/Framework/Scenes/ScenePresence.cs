@@ -2423,6 +2423,8 @@ namespace OpenSim.Region.Framework.Scenes
                         //m_log.DebugFormat("[CompleteMovement] friendsModule: {0}ms",    Util.EnvironmentTickCountSubtract(ts));
                     }
                 }
+                else
+                    NeedInitialData = -1;
             }
             finally
             {
