@@ -186,13 +186,10 @@ namespace OpenSim.Data.SQLite
         private void DoCreate(EstateSettings es)
         {
             List<string> names = new List<string>(FieldList);
-
-            IDataReader r = null;
+            names.Remove("EstateID");
 
             using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
             {
-                names.Remove("EstateID");
-
                 string sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
 
                 cmd.CommandText = sql;
@@ -217,17 +214,12 @@ namespace OpenSim.Data.SQLite
 
                 cmd.CommandText = "select LAST_INSERT_ROWID() as id";
                 cmd.Parameters.Clear();
-
-                r = cmd.ExecuteReader();
+                using(IDataReader r = cmd.ExecuteReader())
+                {
+                    r.Read();
+                    es.EstateID = Convert.ToUInt32(r["id"]);
+                }
             }
-
-            r.Read();
-
-            es.EstateID = Convert.ToUInt32(r["id"]);
-
-            r.Close();
-
-            es.Save();
         }
 
         public void StoreEstateSettings(EstateSettings es)
@@ -240,11 +232,10 @@ namespace OpenSim.Data.SQLite
             foreach (string f in fields)
                 terms.Add(f+" = :"+f);
 
-            string sql = "update estate_settings set "+String.Join(", ", terms.ToArray())+" where EstateID = :EstateID";
-
             using (SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = sql;
+                cmd.CommandText = "update estate_settings set " + String.Join(", ", terms.ToArray()) + " where EstateID = :EstateID"; ;
+                cmd.Parameters.AddWithValue(":EstateID", es.EstateID);
 
                 foreach (string name in FieldList)
                 {
@@ -472,34 +463,35 @@ namespace OpenSim.Data.SQLite
 
         public bool LinkRegion(UUID regionID, int estateID)
         {
-            SqliteTransaction transaction = m_connection.BeginTransaction();
-
-            // Delete any existing estate mapping for this region.
-            using(SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
+            using(SqliteTransaction transaction = m_connection.BeginTransaction())
             {
-                cmd.CommandText = "delete from estate_map where RegionID = :RegionID";
-                cmd.Transaction = transaction;
-                cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
-
-                cmd.ExecuteNonQuery();
-            }
-
-            using(SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
-            {
-                cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
-                cmd.Transaction = transaction;
-                cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
-                cmd.Parameters.AddWithValue(":EstateID", estateID.ToString());
-
-                if (cmd.ExecuteNonQuery() == 0)
+                // Delete any existing estate mapping for this region.
+                using(SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
-                    transaction.Rollback();
-                    return false;
+                    cmd.CommandText = "delete from estate_map where RegionID = :RegionID";
+                    cmd.Transaction = transaction;
+                    cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
+
+                    cmd.ExecuteNonQuery();
                 }
-                else
+
+                using(SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand())
                 {
-                    transaction.Commit();
-                    return true;
+                    cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
+                    cmd.Transaction = transaction;
+                    cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
+                    cmd.Parameters.AddWithValue(":EstateID", estateID.ToString());
+
+                    if (cmd.ExecuteNonQuery() == 0)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                    else
+                    {
+                        transaction.Commit();
+                        return true;
+                    }
                 }
             }
         }
