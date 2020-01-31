@@ -626,10 +626,13 @@ namespace OpenSim.Data.SQLite
 //                    m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                     addPrim(prim, obj.UUID, regionUUID);
                 }
+                primDa.Update(ds, "prims");
+                shapeDa.Update(ds, "primshapes");
+                itemsDa.Update(ds, "primitems");
+                ds.AcceptChanges();
             }
 
-            Commit();
-//            m_log.Info("[Dump of prims]: " + ds.GetXml());
+            //            m_log.Info("[Dump of prims]: " + ds.GetXml());
         }
 
         /// <summary>
@@ -1309,6 +1312,17 @@ namespace OpenSim.Data.SQLite
 
             createCol(prims, "KeyframeMotion", typeof(Byte[]));
 
+            createCol(prims, "PassTouches", typeof(bool));
+            createCol(prims, "PassCollisions", typeof(bool));
+            createCol(prims, "Vehicle", typeof(string));
+
+            createCol(prims, "PhysInertia", typeof(string));
+
+            createCol(prims, "standtargetx", typeof(float));
+            createCol(prims, "standtargety", typeof(float));
+            createCol(prims, "standtargetz", typeof(float));
+            createCol(prims, "sitactrange", typeof(float));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -1516,6 +1530,8 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "map_tile_ID", typeof(String));
             createCol(regionsettings, "TelehubObject", typeof(String));
             createCol(regionsettings, "parcel_tile_ID", typeof(String));
+            createCol(regionsettings, "block_search", typeof(Boolean));
+            createCol(regionsettings, "casino", typeof(Boolean));
             regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
         }
