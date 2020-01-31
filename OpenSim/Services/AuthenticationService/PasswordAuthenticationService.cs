@@ -115,7 +115,10 @@ namespace OpenSim.Services.AuthenticationService
 
             List<UserAccount> accounts = m_UserAccountService.GetUserAccountsWhere(UUID.Zero, "UserLevel >= 200");
             if (accounts == null || accounts.Count == 0)
+            {
+                m_log.DebugFormat("[PASS AUTH]: No suitable gods found");
                 return String.Empty;
+            }
 
             foreach (UserAccount a in accounts)
             {
@@ -124,6 +127,7 @@ namespace OpenSim.Services.AuthenticationService
                     !data.Data.ContainsKey("passwordHash") ||
                     !data.Data.ContainsKey("passwordSalt"))
                 {
+                    m_log.DebugFormat("[PASS AUTH]: {0} {1} has no suitable password set", a.FirstName, a.LastName);
                     continue;
                 }
 
@@ -138,12 +142,12 @@ namespace OpenSim.Services.AuthenticationService
                     realID = a.PrincipalID;
                     return GetToken(principalID, lifetime);
                 }
-//                else
-//                {
-//                    m_log.DebugFormat(
-//                        "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
-//                        hashed, data.Data["passwordHash"], data.PrincipalID);
-//                }
+                else
+                {
+                    m_log.DebugFormat(
+                        "[AUTH SERVICE]: Salted hash {0} of given password did not match salted hash of {1} for PrincipalID {2}.  Authentication failure.",
+                        hashed, data.Data["passwordHash"], data.PrincipalID);
+                }
             }
 
             m_log.DebugFormat("[PASS AUTH]: Impersonation of {0} failed", principalID);
