@@ -5452,19 +5452,19 @@ Label_GroupsDone:
                 return 0;
             }
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 2000)
+            if ((Util.EnvironmentTickCountSubtract(m_lastFrameTick)) < 4000)
             {
                 health+=1;
                 flags |= 1;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 2000)
+            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 6000)
             {
                 health+=1;
                 flags |= 2;
             }
 
-            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 2000)
+            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 6000)
             {
                 health+=1;
                 flags |= 4;
@@ -6012,7 +6012,7 @@ Environment.Exit(1);
                 case 1: // Incoming
                     m_lastIncoming = Util.EnvironmentTickCount();
                     break;
-                case 2: // Incoming
+                case 2: // Outgoing
                     m_lastOutgoing = Util.EnvironmentTickCount();
                     break;
             }
