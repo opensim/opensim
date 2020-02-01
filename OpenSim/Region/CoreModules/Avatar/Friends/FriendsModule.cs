@@ -274,6 +274,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnNewClient(IClientAPI client)
         {
             client.OnInstantMessage += OnInstantMessage;
+
+            if (client is INPC)
+                return;
+
             client.OnApproveFriendRequest += OnApproveFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += RemoveFriendship;
@@ -640,7 +644,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected virtual void OnApproveFriendRequest(IClientAPI client, UUID friendID, List<UUID> callingCardFolders)
         {
             m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", client.AgentId, friendID);
-
             AddFriendship(client, friendID);
         }
 
