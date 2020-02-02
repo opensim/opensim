@@ -1249,5 +1249,3 @@
     ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
     ; Include-Architecture = "config-include/Grid.ini"
     ; Include-Architecture = "config-include/GridHypergrid.ini"
-    ; Include-Architecture = "config-include/SimianGrid.ini"
-    ; Include-Architecture = "config-include/HyperSimianGrid.ini"
