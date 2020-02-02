@@ -76,6 +76,7 @@ namespace OpenSim.Framework.Capabilities
                 m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
                 m_httpListener.RemoveStreamHandler("PUT", m_capsHandlers[capsName].Path);
                 m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[capsName].Path);
+                m_httpListener.RemoveStreamHandler("DELETE", m_capsHandlers[capsName].Path);
                 m_capsHandlers.Remove(capsName);
             }
         }
@@ -110,6 +111,9 @@ namespace OpenSim.Framework.Capabilities
                     if (m_capsHandlers.ContainsKey(idx))
                     {
                         m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[idx].Path);
+                        m_httpListener.RemoveStreamHandler("PUT", m_capsHandlers[idx].Path);
+                        m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[idx].Path);
+                        m_httpListener.RemoveStreamHandler("DELETE", m_capsHandlers[idx].Path);
                         m_capsHandlers.Remove(idx);
                     }
 
