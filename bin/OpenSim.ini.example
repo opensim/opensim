@@ -1083,10 +1083,9 @@
     ;; Minimum user level required to create groups
     ; LevelGroupCreate = 0
 
-    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {Default "Groups Module V2"} Default
+    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam)} {Default "Groups Module V2"} Default
     ;; The default module can use a PHP XmlRpc server from the Flotsam project at
     ;; http://code.google.com/p/flotsam/
-    ;; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ; Module = Default
     ;; or... use Groups Module V2, which works for standalones and robust grids
     ; Module = "Groups Module V2"
@@ -1094,10 +1093,9 @@
     ;# {StorageProvider} {Module:Groups Module V2} {The DLL that provides the storage for V2} {OpenSim.Data.MySQL.dll}
     ; StorageProvider = OpenSim.Data.MySQL.dll
 
-    ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
+    ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
     ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one as follows:
     ;; -- for Flotsam Groups use XmlRpcGroupsServicesConnector
-    ;; -- for Simian Groups use SimianGroupsServicesConnector
     ;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
     ;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
     ;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
@@ -1115,7 +1113,6 @@
     ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
-    ;; or http://mygridserver.com:82/Grid/ for SimianGrid
     ;; or ${Const|BaseURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
@@ -1234,7 +1231,7 @@
 ;    Surnames = "Kryztlsk"
 
 [Architecture]
-    ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
+    ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini} config-include/Standalone.ini
     ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,
     ;; uncomment Include-Architecture = "config-include/Standalone.ini"
     ;;

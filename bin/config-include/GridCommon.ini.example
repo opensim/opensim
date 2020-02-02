@@ -239,13 +239,6 @@
     ; Example:
     ; Region_Test_1 = "DisallowForeigners"
 
-;; Uncomment if you are using SimianGrid for grid services
-[SimianGrid]
-    ;; SimianGrid services URL
-    ;; SimianServiceURL = "http://grid.sciencesim.com/Grid/"
-
-    ;; Capability assigned by the grid administrator for the simulator
-    ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
 
 [MuteListService]
     MuteListServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
