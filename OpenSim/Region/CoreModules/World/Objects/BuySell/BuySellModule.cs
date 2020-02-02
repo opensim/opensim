@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
                 rootpart.ObjectSaleType = 0;
                 rootpart.SalePrice = 10;
-                rootpart.ClickAction = Convert.ToByte(0);
+                rootpart.ClickAction = 0;
 
                 group.HasGroupChanged = true;
                 rootpart.SendPropertiesToClient(remoteClient);
@@ -178,7 +178,20 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                     return false;
                 }
 
+                // save sell data
+                int price = rootpart.SalePrice;
+                byte clickAction = rootpart.ClickAction;
+
+                // reset sale data for the copy
+                rootpart.ObjectSaleType = 0;
+                rootpart.SalePrice = 10;
+                rootpart.ClickAction = 0;
+
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
+
+                rootpart.ObjectSaleType = saleType;
+                rootpart.SalePrice = price;
+                rootpart.ClickAction = clickAction;
 
                 string name = rootpart.Name;
                 string desc = rootpart.Description;
