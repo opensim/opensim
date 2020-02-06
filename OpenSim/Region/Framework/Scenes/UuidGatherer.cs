@@ -364,7 +364,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else if ((sbyte)AssetType.Notecard == assetType)
                 {
-                    RecordTextEmbeddedAssetUuids(assetBase);
+                    RecordNoteCardEmbeddedAssetUuids(assetBase);
                 }
                 else if ((sbyte)AssetType.LSLText == assetType)
                 {
@@ -543,6 +543,22 @@ namespace OpenSim.Region.Framework.Scenes
                 if(!UncertainAssetsUUIDs.Contains(uuid))
                     UncertainAssetsUUIDs.Add(uuid);
                 AddForInspection(uuid);
+            }
+        }
+
+        private void RecordNoteCardEmbeddedAssetUuids(AssetBase textAsset)
+        {
+            List<UUID> ids = SLUtil.GetEmbeddedAssetIDs(textAsset.Data);
+            if(ids == null)
+                return;
+
+            for(int i = 0; i < ids.Count; ++i)
+            {
+                if (ids[i] == UUID.Zero)
+                    continue;
+                if (!UncertainAssetsUUIDs.Contains(ids[i]))
+                    UncertainAssetsUUIDs.Add(ids[i]);
+                AddForInspection(ids[i]);
             }
         }
 

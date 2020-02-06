@@ -29,6 +29,7 @@ using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace OpenSim.Framework
 {
@@ -794,6 +795,69 @@ namespace OpenSim.Framework
             item.SaleType = (byte)SaleType.Not;
             item.ID = UUID.Random();
             return item;
+        }
+
+        public static List<UUID> GetEmbeddedAssetIDs(byte[] data)
+        {
+            if (data == null || data.Length < 60)
+                return null;
+
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return null;
+
+            // waste some time checking rigid versions
+            string tmpStr = note.Substring(0, 21);
+            if (!tmpStr.Equals("Linden text version 2"))
+                return null;
+
+            tmpStr = note.Substring(24, 25);
+            if (!tmpStr.Equals("LLEmbeddedItems version 1"))
+                return null;
+
+            tmpStr = note.Substring(52,5);
+            if (!tmpStr.Equals("count"))
+                return null;
+
+            int limit = note.Length - 57 - 2;
+            if (limit > 8)
+                limit = 8;
+
+            int indx = note.IndexOfAny(seps, 57, limit);
+            if(indx < 0)
+                return null;
+
+            if (!int.TryParse(note.Substring(57, indx - 57), out int count))
+                return null;
+
+            List<UUID> ids = new List<UUID>();
+            while(count > 0)
+            {
+                string valuestr;
+                UUID assetID = UUID.Zero;
+                indx = note.IndexOf('}'); // skip to end of permissions
+                indx = getField(note, indx, "asset_id", false, out valuestr);
+                if (indx < 0)
+                {
+                    indx = getField(note, indx, "shadow_id", false, out valuestr);
+                    if (indx < 0)
+                        return null;
+                    if (!UUID.TryParse(valuestr, out assetID))
+                        return null;
+                    assetID = deMoronize(assetID);
+                }
+                else
+                {
+                    if (!UUID.TryParse(valuestr, out assetID))
+                        return null;
+                }
+                ids.Add(assetID);
+                --count;
+            }
+
+            if(ids.Count == 0)
+                return null;
+            return ids;
         }
     }
 }
