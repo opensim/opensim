@@ -602,7 +602,7 @@ namespace OpenSim.Framework
         }
 
         static char[] seps = new char[] { '\t', '\n' };
-        static char[] stringseps = new char[] { '|', '\t', '\n' };
+        static char[] stringseps = new char[] { '|', '\n' };
 
         static byte[] moronize = new byte[16]
         {
