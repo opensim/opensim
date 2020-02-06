@@ -600,164 +600,177 @@ namespace OpenSim.Framework
             return readNotecard(rawInput).Replace("\r", "").Split('\n');
         }
 
-        private static int skipcontrol(string data, int indx)
-        {
-            while(indx < data.Length)
-            {
-                char c = data[indx];
-                switch(c)
-                {
-                    case '\n':
-                    case '\t':
-                    case '{':
-                        ++indx;
-                        break;
-                    default:
-                        return indx;
-                }
-            }
-            return -1;
-        }
+        static char[] seps = new char[] { '\t', '\n' };
+        static char[] stringseps = new char[] { '|', '\t', '\n' };
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        static int checkfield(string note, int start, string name, out int end)
+        static byte[] moronize = new byte[16]
         {
-            end = -1;
+            60, 17, 94, 81, 4, 244, 82, 60, 159, 166, 152, 175, 241, 3, 71, 48
+        };
+
+        static int getField(string note, int start, string name, bool isString, out string value)
+        {
+            value = String.Empty;
+            int end = -1;
             int limit = note.Length - start;
-            if(limit > 64)
+            if (limit > 64)
                 limit = 64;
             int indx = note.IndexOf(name, start, limit);
             if (indx < 0)
                 return -1;
-            indx += name.Length;
-            indx = skipcontrol(note, indx);
-            if (indx < 0)
-                return -1;
-            end = note.IndexOfAny(seps, indx);
+            indx += name.Length + 1; // eat \t
+            limit = note.Length - indx - 2;
+            if (limit > 129)
+                limit = 129;
+            if (isString)
+                end = note.IndexOfAny(stringseps, indx, limit);
+            else
+                end = note.IndexOfAny(seps, indx, limit);
             if (end < 0)
                 return -1;
-            return indx;
+            value = note.Substring(indx, end - indx);
+            return end;
         }
 
-        static char[] seps = new char[]{ '\t','\n'};
+        private static UUID deMoronize(UUID id)
+        {
+            byte[] data = new byte[16];
+            id.ToBytes(data,0);
+            for(int i = 0; i < 16; ++i)
+                data[i] ^= moronize[i];
+
+            return new UUID(data,0);
+        }
+
         public static InventoryItemBase GetEmbeddedItem(byte[] data, UUID itemID)
         {
-            if(data == null || data.Length < 200)
+            if(data == null || data.Length < 300)
                 return null;
 
             string note = Util.UTF8.GetString(data);
             if (String.IsNullOrWhiteSpace(note))
                 return null;
 
-            int start = note.IndexOf(itemID.ToString());
-            if (start < 0)
+            // waste some time checking rigid versions
+            string version = note.Substring(0,21);
+            if (!version.Equals("Linden text version 2"))
                 return null;
 
-            int end;
-            start = note.IndexOf("permissions", start, 100);
-            if (start < 0)
-                return null;
-            start = checkfield(note, start, "base_mask", out end);
-            if (start < 0)
+            version = note.Substring(24, 25);
+            if (!version.Equals("LLEmbeddedItems version 1"))
                 return null;
 
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint basemask))
+            int indx = note.IndexOf(itemID.ToString(), 100);
+            if (indx < 0)
                 return null;
 
-            start = checkfield(note, end, "owner_mask", out end);
-            if (start < 0)
+            indx = note.IndexOf("permissions", indx, 100); // skip parentID
+            if (indx < 0)
                 return null;
 
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint ownermask))
+            string valuestr;
+
+            indx = getField(note, indx, "base_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint basemask))
                 return null;
 
-            start = checkfield(note, end, "group_mask", out end);
-            if (start < 0)
+            indx = getField(note, indx, "owner_mask", false, out valuestr);
+            if (indx < 0)
                 return null;
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint groupmask))
-                return null;
-
-            start = checkfield(note, end, "everyone_mask", out end);
-            if (start < 0)
-                return null;
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint everyonemask))
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint ownermask))
                 return null;
 
-            start = checkfield(note, end, "next_owner_mask", out end);
-            if (start < 0)
+            indx = getField(note, indx, "group_mask", false, out valuestr);
+            if (indx < 0)
                 return null;
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint nextownermask))
-                return null;
-
-            start = checkfield(note, end, "creator_id", out end);
-            if (start < 0)
-                return null;
-            if (!UUID.TryParse(note.Substring(start, end - start), out UUID creatorID))
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint groupmask))
                 return null;
 
-            start = checkfield(note, end, "owner_id", out end);
-            if (start < 0)
+            indx = getField(note, indx, "everyone_mask", false, out valuestr);
+            if (indx < 0)
                 return null;
-            if (!UUID.TryParse(note.Substring(start, end - start), out UUID ownerID))
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint everyonemask))
                 return null;
 
-            /*
-            start = checkfield(note, end, "last_owner_id", out end);
-            if (start < 0)
+            indx = getField(note, indx, "next_owner_mask", false, out valuestr);
+            if (indx < 0)
                 return null;
-            if (!UUID.TryParse(note.Substring(start, end - start), out UUID lastownerID))
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint nextownermask))
                 return null;
-            */
 
-            int limit = note.Length - end;
+            indx = getField(note, indx, "creator_id", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!UUID.TryParse(valuestr, out UUID creatorID))
+                return null;
+
+            indx = getField(note, indx, "owner_id", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!UUID.TryParse(valuestr, out UUID ownerID))
+                return null;
+
+            int limit = note.Length - indx;
             if (limit > 120)
                 limit = 120;
-            end = note.IndexOf('}', end, limit); // last owner
-            start = checkfield(note, end, "asset_id", out end);
-            if (start < 0)
-                return null;
-            if (!UUID.TryParse(note.Substring(start, end - start), out UUID assetID))
+            indx = note.IndexOf('}', indx, limit); // last owner
+            if (indx < 0)
                 return null;
 
-            start = checkfield(note, end, "type", out end);
-            if (start < 0)
-                return null;
-            string typestr = note.Substring(start, end - start);
-            AssetType assetType = SLAssetName2Type(typestr);
+            int curindx = indx;
+            UUID assetID = UUID.Zero;
+            indx = getField(note, indx, "asset_id", false, out valuestr);
+            if (indx < 0)
+            {
+                indx = getField(note, indx, "shadow_id", false, out valuestr);
+                if (indx < 0)
+                    return null;
+                if (!UUID.TryParse(valuestr, out assetID))
+                    return null;
+                assetID = deMoronize(assetID);
+            }
+            else
+            {
+                if (!UUID.TryParse(valuestr, out assetID))
+                    return null;
+            }
 
-            start = checkfield(note, end, "inv_type", out end);
-            if (start < 0)
-                return null;
-            string inttypestr = note.Substring(start, end - start);
-            FolderType invType = SLInvName2Type(inttypestr);
-
-            start = checkfield(note, end, "flags", out end);
-            if (start < 0)
-                return null;
-            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint flags))
+            indx = getField(note, indx, "type", false, out valuestr);
+            if (indx < 0)
                 return null;
 
-            limit = note.Length - end;
+            AssetType assetType = SLAssetName2Type(valuestr);
+
+            indx = getField(note, indx, "inv_type", false, out valuestr);
+            if (indx < 0)
+                return null;
+            FolderType invType = SLInvName2Type(valuestr);
+
+            indx = getField(note, indx, "flags", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint flags))
+                return null;
+
+            limit = note.Length - indx;
             if (limit > 120)
                 limit = 120;
-            end = note.IndexOf('}', end, limit); // skip sale
-            start = checkfield(note, end, "name", out end);
-            if (start < 0)
+            indx = note.IndexOf('}', indx, limit); // skip sale
+            if (indx < 0)
                 return null;
 
-            string name = note.Substring(start, end - start - 1);
+            indx = getField(note, indx, "name", true, out valuestr);
+            if (indx < 0)
+                return null;
 
-            start = checkfield(note, end, "desc", out end);
-            if (start < 0)
+            string name = valuestr;
+
+            indx = getField(note, indx, "desc", true, out valuestr);
+            if (indx < 0)
                 return null;
-            string desc = note.Substring(start, end - start - 1);
-            /*
-            start = checkfield(note, end, "creation_date", out end);
-            if (start < 0)
-                return null;
-            if (!int.TryParse(note.Substring(start, end - start), out int creationdate))
-                return null;
-            */
+            string desc = valuestr;
 
             InventoryItemBase item = new InventoryItemBase();
             item.AssetID = assetID;
