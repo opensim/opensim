@@ -835,7 +835,9 @@ namespace OpenSim.Framework
             {
                 string valuestr;
                 UUID assetID = UUID.Zero;
-                indx = note.IndexOf('}'); // skip to end of permissions
+                indx = note.IndexOf('}',indx); // skip to end of permissions
+                if (indx < 0)
+                    return null;
                 indx = getField(note, indx, "asset_id", false, out valuestr);
                 if (indx < 0)
                 {
@@ -852,6 +854,23 @@ namespace OpenSim.Framework
                         return null;
                 }
                 ids.Add(assetID);
+
+                indx = note.IndexOf('}', indx); // skip to end of sale
+                if (indx < 0)
+                    return null;
+                indx = getField(note, indx, "name", false, out valuestr); // avoid name contents
+                if (indx < 0)
+                    return null;
+                indx = getField(note, indx, "desc", false, out valuestr); // avoid desc contents
+                if (indx < 0)
+                    return null;
+
+                if(count > 1)
+                {
+                    indx = note.IndexOf("ext char index", indx); // skip to next
+                    if (indx < 0)
+                        return null;
+                }
                 --count;
             }
 

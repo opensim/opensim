@@ -267,7 +267,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             GetAssetUuids(nextToInspect);
 
-            return true;
+            return m_assetUuidsToInspect.Count != 0;
         }
 
         /// <summary>
