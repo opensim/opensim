@@ -1430,10 +1430,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 UUID folderID = content["folder-id"].AsUUID();
                 UUID itemID = content["item-id"].AsUUID();
 
-                UUID noteAssetID = UUID.Zero;
                 //  m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, FolderID:{0}, ItemID:{1}, NotecardID:{2}, ObjectID:{3}", folderID, itemID, notecardID, objectID);
 
-                m_Scene.TryGetClient(m_HostCapsObj.AgentID, out client);
+                UUID noteAssetID = UUID.Zero;
+                UUID agentID = m_HostCapsObj.AgentID;
+
+                m_Scene.TryGetClient(agentID, out client);
 
                 if (objectID != UUID.Zero)
                 {
@@ -1441,8 +1443,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     if(part == null)
                         throw new Exception("find object with notecard item" + notecardID.ToString());
 
-                        if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, m_HostCapsObj.AgentID))
-                            return CopyInventoryFromNotecardError(httpResponse);
+                    if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, agentID))
+                        return CopyInventoryFromNotecardError(httpResponse);
+
                     TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
                     if(taskItem == null || taskItem.AssetID == UUID.Zero)
                         throw new Exception("Failed to find notecard item" + notecardID.ToString());
@@ -1450,11 +1453,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 else
                 {
-                    InventoryItemBase localitem = m_Scene.InventoryService.GetItem(m_HostCapsObj.AgentID, itemID);
+                    // we may have the item around...
+                    InventoryItemBase localitem = m_Scene.InventoryService.GetItem(agentID, itemID);
                     if (localitem != null)
                     {
                         string message;
-                        copyItem = m_Scene.GiveInventoryItem(m_HostCapsObj.AgentID, localitem.Owner, itemID, folderID, out message);
+                        copyItem = m_Scene.GiveInventoryItem(agentID, localitem.Owner, itemID, folderID, out message);
                         if (copyItem == null)
                             throw new Exception("Failed to find notecard item" + notecardID.ToString());
 
@@ -1466,7 +1470,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     if (notecardID != UUID.Zero)
                     {
-                        InventoryItemBase noteItem = m_Scene.InventoryService.GetItem(m_HostCapsObj.AgentID, notecardID);
+                        InventoryItemBase noteItem = m_Scene.InventoryService.GetItem(agentID, notecardID);
                         if (noteItem == null || noteItem.AssetID == UUID.Zero)
                             throw new Exception("Failed to find notecard item" + notecardID.ToString());
                         noteAssetID = noteItem.AssetID;
@@ -1475,17 +1479,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 AssetBase noteAsset = m_Scene.AssetService.Get(noteAssetID.ToString());
                 if (noteAsset == null || noteAsset.Type != (sbyte)AssetType.Notecard)
-                    throw new Exception("Failed to find notecard asset" + notecardID.ToString());
+                    throw new Exception("Failed to find the notecard asset" + notecardID.ToString());
 
                 InventoryItemBase item = SLUtil.GetEmbeddedItem(noteAsset.Data, itemID);
                 if(item == null)
-                    throw new Exception("Failed to open notecard asset" + notecardID.ToString());
+                    throw new Exception("Failed to find the notecard item" + notecardID.ToString());
 
-                noteAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
-                if (noteAsset == null)
-                    throw new Exception("Failed to find notecard " + notecardID.ToString() +" item "+ itemID.ToString() + " asset");
-
-                if (!m_Scene.Permissions.CanTransferUserInventory(itemID, item.Owner, m_HostCapsObj.AgentID))
+                if (!m_Scene.Permissions.CanTransferUserInventory(itemID, item.Owner, agentID))
                     throw new Exception("Notecard item permissions check fail" + notecardID.ToString());
 
                 if (!m_Scene.Permissions.BypassPermissions())
@@ -1494,7 +1494,29 @@ namespace OpenSim.Region.ClientStack.Linden
                         throw new Exception("Notecard item permissions check fail" + notecardID.ToString());
                 }
 
-                if (m_Scene.Permissions.PropagatePermissions() && item.Owner != m_HostCapsObj.AgentID)
+                // check if we do have the item asset
+                noteAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                if (noteAsset == null)
+                    throw new Exception("Failed to find the notecard " + notecardID.ToString() +" item asset");
+
+                // find where to put it
+                InventoryFolderBase folder = null;
+                if (folderID != UUID.Zero)
+                    folder = m_Scene.InventoryService.GetFolder(agentID, folderID);
+
+                if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
+                    folder = m_Scene.InventoryService.GetFolderForType(agentID, (FolderType)item.AssetType);
+
+                if (folder == null)
+                    folder = m_Scene.InventoryService.GetRootFolder(agentID);
+
+                if (folder == null)
+                    throw new Exception("Failed to find a folder for the notecard item" + notecardID.ToString());
+
+                item.Folder = folder.ID;
+
+                // do change owner permissions (c&p from scene inventory code)
+                if (m_Scene.Permissions.PropagatePermissions() && item.Owner != agentID)
                 {
                     uint permsMask = ~((uint)PermissionMask.Copy |
                                         (uint)PermissionMask.Transfer |
@@ -1509,8 +1531,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     if (nextPerms == permsMask)
                         nextPerms |= (uint)PermissionMask.Transfer;
 
-                    uint basePerms = item.BasePermissions |
-                                    (uint)PermissionMask.Move;
+                    uint basePerms = item.BasePermissions | (uint)PermissionMask.Move;
                     uint ownerPerms = item.CurrentPermissions;
 
                     uint foldedPerms = (item.CurrentPermissions & (uint)PermissionMask.FoldedMask) << (int)PermissionMask.FoldingShift;
@@ -1542,32 +1563,17 @@ namespace OpenSim.Region.ClientStack.Linden
                     item.Flags &= ~(uint)(InventoryItemFlags.ObjectOverwriteBase | InventoryItemFlags.ObjectOverwriteOwner | InventoryItemFlags.ObjectOverwriteGroup | InventoryItemFlags.ObjectOverwriteEveryone | InventoryItemFlags.ObjectOverwriteNextOwner);
                     item.NextPermissions = item.NextPermissions;
                     item.EveryOnePermissions = item.EveryOnePermissions & nextPerms;
-                    item.GroupPermissions = 0;
+                }
+                else
+                {
+                    //??
+                    item.EveryOnePermissions &= item.NextPermissions;
                 }
 
-                InventoryFolderBase folder = null;
-                if (folderID != UUID.Zero)
-                    folder = m_Scene.InventoryService.GetFolder(m_HostCapsObj.AgentID, folderID);
+                item.GroupPermissions = 0; // we killed the group
+                item.Owner = agentID;
 
-                if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
-                    folder = m_Scene.InventoryService.GetFolderForType(m_HostCapsObj.AgentID, (FolderType)item.AssetType);
-
-                if(folder == null)
-                    folder = m_Scene.InventoryService.GetRootFolder(m_HostCapsObj.AgentID);
-
-                if(folder == null)
-                    throw new Exception("Failed to find a folder for the notecard item" + notecardID.ToString());
-
-                item.Folder = folder.ID;
-
-                UUID senderId = item.Owner;
-                item.Owner = m_HostCapsObj.AgentID;
-
-                IInventoryAccessModule invAccess = m_Scene.RequestModuleInterface<IInventoryAccessModule>();
-                if (invAccess != null)
-                    invAccess.TransferInventoryAssets(item, senderId, m_HostCapsObj.AgentID);
-
-                if(!m_Scene.InventoryService.AddItem(item))
+                if (!m_Scene.InventoryService.AddItem(item))
                     throw new Exception("Failed create the notecard item" + notecardID.ToString());
 
                 m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0} FolderID:{1}", item.ID, item.Folder);
