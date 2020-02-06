@@ -28,6 +28,7 @@
 using OpenMetaverse;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace OpenSim.Framework
 {
@@ -190,6 +191,56 @@ namespace OpenSim.Framework
         private static Dictionary<sbyte, string> inventory2Content;
         private static Dictionary<string, sbyte> content2Asset;
         private static Dictionary<string, sbyte> content2Inventory;
+        private static Dictionary<string, AssetType> name2Asset = new Dictionary<string, AssetType>()
+        {
+            {"texture", AssetType.Texture },
+            {"sound", AssetType.Sound},
+            {"callcard", AssetType.CallingCard},
+            {"landmark", AssetType.Landmark},
+            {"script", (AssetType)4},
+            {"clothing", AssetType.Clothing},
+            {"object", AssetType.Object},
+            {"notecard", AssetType.Notecard},
+            {"category", AssetType.Folder},
+            {"lsltext", AssetType.LSLText},
+            {"lslbyte", AssetType.LSLBytecode},
+            {"txtr_tga", AssetType.TextureTGA},
+            {"bodypart", AssetType.Bodypart},
+            {"snd_wav", AssetType.SoundWAV},
+            {"img_tga", AssetType.ImageTGA},
+            {"jpeg", AssetType.ImageJPEG},
+            {"animatn", AssetType.Animation},
+            {"gesture", AssetType.Gesture},
+            {"simstate", AssetType.Simstate},
+            {"mesh", AssetType.Mesh}
+//            "settings", AssetType.Settings}
+        };
+        private static Dictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
+        {
+            {"texture", FolderType.Texture},
+            {"sound", FolderType.Sound},
+            {"callcard", FolderType.CallingCard},
+            {"landmark", FolderType.Landmark},
+            {"script", (FolderType)4},
+            {"clothing", FolderType.Clothing},
+            {"object", FolderType.Object},
+            {"notecard", FolderType.Notecard},
+            {"root", FolderType.Root},
+            {"lsltext", FolderType.LSLText},
+            {"bodypart", FolderType.BodyPart},
+            {"trash", FolderType.Trash},
+            {"snapshot", FolderType.Snapshot},
+            {"lostandfound", FolderType.LostAndFound},
+            {"animatn", FolderType.Animation},
+            {"gesture", FolderType.Gesture},
+            {"favorites", FolderType.Favorites},
+            {"currentoutfit", FolderType.CurrentOutfit},
+            {"outfit", FolderType.Outfit},
+            {"myoutfits", FolderType.MyOutfits},
+            {"mesh", FolderType.Mesh},
+//            "settings", FolderType.Settings},
+            {"suitcase", FolderType.Suitcase}
+        };
 
         static SLUtil()
         {
@@ -225,6 +276,20 @@ namespace OpenSim.Framework
                         content2Inventory.Add(mapping.ContentType2, mapping.InventoryType);
                 }
             }
+        }
+
+        public static AssetType SLAssetName2Type(string name)
+        {
+            if (name2Asset.TryGetValue(name, out AssetType type))
+                return type;
+            return AssetType.Unknown;
+        }
+
+        public static FolderType SLInvName2Type(string name)
+        {
+            if (name2Inventory.TryGetValue(name, out FolderType type))
+                return type;
+            return FolderType.None;
         }
 
         public static string SLAssetTypeToContentType(int assetType)
@@ -533,6 +598,189 @@ namespace OpenSim.Framework
         public static string[] ParseNotecardToArray(byte[] rawInput)
         {
             return readNotecard(rawInput).Replace("\r", "").Split('\n');
+        }
+
+        private static int skipcontrol(string data, int indx)
+        {
+            while(indx < data.Length)
+            {
+                char c = data[indx];
+                switch(c)
+                {
+                    case '\n':
+                    case '\t':
+                    case '{':
+                        ++indx;
+                        break;
+                    default:
+                        return indx;
+                }
+            }
+            return -1;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        static int checkfield(string note, int start, string name, out int end)
+        {
+            end = -1;
+            int limit = note.Length - start;
+            if(limit > 64)
+                limit = 64;
+            int indx = note.IndexOf(name, start, limit);
+            if (indx < 0)
+                return -1;
+            indx += name.Length;
+            indx = skipcontrol(note, indx);
+            if (indx < 0)
+                return -1;
+            end = note.IndexOfAny(seps, indx);
+            if (end < 0)
+                return -1;
+            return indx;
+        }
+
+        static char[] seps = new char[]{ '\t','\n'};
+        public static InventoryItemBase GetEmbeddedItem(byte[] data, UUID itemID)
+        {
+            if(data == null || data.Length < 200)
+                return null;
+
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return null;
+
+            int start = note.IndexOf(itemID.ToString());
+            if (start < 0)
+                return null;
+
+            int end;
+            start = note.IndexOf("permissions", start, 100);
+            if (start < 0)
+                return null;
+            start = checkfield(note, start, "base_mask", out end);
+            if (start < 0)
+                return null;
+
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint basemask))
+                return null;
+
+            start = checkfield(note, end, "owner_mask", out end);
+            if (start < 0)
+                return null;
+
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint ownermask))
+                return null;
+
+            start = checkfield(note, end, "group_mask", out end);
+            if (start < 0)
+                return null;
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint groupmask))
+                return null;
+
+            start = checkfield(note, end, "everyone_mask", out end);
+            if (start < 0)
+                return null;
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint everyonemask))
+                return null;
+
+            start = checkfield(note, end, "next_owner_mask", out end);
+            if (start < 0)
+                return null;
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint nextownermask))
+                return null;
+
+            start = checkfield(note, end, "creator_id", out end);
+            if (start < 0)
+                return null;
+            if (!UUID.TryParse(note.Substring(start, end - start), out UUID creatorID))
+                return null;
+
+            start = checkfield(note, end, "owner_id", out end);
+            if (start < 0)
+                return null;
+            if (!UUID.TryParse(note.Substring(start, end - start), out UUID ownerID))
+                return null;
+
+            /*
+            start = checkfield(note, end, "last_owner_id", out end);
+            if (start < 0)
+                return null;
+            if (!UUID.TryParse(note.Substring(start, end - start), out UUID lastownerID))
+                return null;
+            */
+
+            int limit = note.Length - end;
+            if (limit > 120)
+                limit = 120;
+            end = note.IndexOf('}', end, limit); // last owner
+            start = checkfield(note, end, "asset_id", out end);
+            if (start < 0)
+                return null;
+            if (!UUID.TryParse(note.Substring(start, end - start), out UUID assetID))
+                return null;
+
+            start = checkfield(note, end, "type", out end);
+            if (start < 0)
+                return null;
+            string typestr = note.Substring(start, end - start);
+            AssetType assetType = SLAssetName2Type(typestr);
+
+            start = checkfield(note, end, "inv_type", out end);
+            if (start < 0)
+                return null;
+            string inttypestr = note.Substring(start, end - start);
+            FolderType invType = SLInvName2Type(inttypestr);
+
+            start = checkfield(note, end, "flags", out end);
+            if (start < 0)
+                return null;
+            if (!uint.TryParse(note.Substring(start, end - start), NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint flags))
+                return null;
+
+            limit = note.Length - end;
+            if (limit > 120)
+                limit = 120;
+            end = note.IndexOf('}', end, limit); // skip sale
+            start = checkfield(note, end, "name", out end);
+            if (start < 0)
+                return null;
+
+            string name = note.Substring(start, end - start - 1);
+
+            start = checkfield(note, end, "desc", out end);
+            if (start < 0)
+                return null;
+            string desc = note.Substring(start, end - start - 1);
+            /*
+            start = checkfield(note, end, "creation_date", out end);
+            if (start < 0)
+                return null;
+            if (!int.TryParse(note.Substring(start, end - start), out int creationdate))
+                return null;
+            */
+
+            InventoryItemBase item = new InventoryItemBase();
+            item.AssetID = assetID;
+            item.AssetType = (sbyte)assetType;
+            item.BasePermissions = basemask;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
+            item.CreatorData = "";
+            item.CreatorId = creatorID.ToString();
+            item.CurrentPermissions = ownermask;
+            item.Description = desc;
+            item.Flags = flags;
+            item.Folder = UUID.Zero;
+            item.GroupID = UUID.Zero;
+            item.GroupOwned = false;
+            item.GroupPermissions = groupmask;
+            item.InvType = (sbyte)invType;
+            item.Name = name;
+            item.NextPermissions = nextownermask;
+            item.Owner = ownerID;
+            item.SalePrice = 0;
+            item.SaleType = (byte)SaleType.Not;
+            item.ID = UUID.Random();
+            return item;
         }
     }
 }
