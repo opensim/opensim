@@ -738,23 +738,24 @@ namespace OpenSim.Framework
             if (s.Length < 36)
                 return ids;
 
-            int end = s.Length - 35;
+            int endA = s.Length - 35;
+            int endB = s.Length - 26;
             int idbase;
             int next;
             int retry;
 
-            while (indx < end)
+            while (indx < endA)
             {
-                for (; indx < end; ++indx)
+                for (; indx < endA; ++indx)
                 {
                     if (IsHexa(s[indx]))
                         break;
                 }
-                if (indx == end)
+                if (indx == endA)
                     break;
 
                 idbase = indx;
-                for (; indx < s.Length - 26; ++indx)
+                for (; indx < endB; ++indx)
                 {
                     if (!IsHexa(s[indx]))
                         break;
