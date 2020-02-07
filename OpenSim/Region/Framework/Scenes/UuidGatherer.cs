@@ -527,29 +527,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="textAsset"></param>
         private void RecordTextEmbeddedAssetUuids(AssetBase textAsset)
         {
-            //            m_log.DebugFormat("[ASSET GATHERER]: Getting assets for uuid references in asset {0}", embeddingAssetId);
+            // m_log.DebugFormat("[ASSET GATHERER]: Getting assets for uuid references in asset {0}", embeddingAssetId);
 
             string text = Utils.BytesToString(textAsset.Data);
-//            m_log.DebugFormat("[UUID GATHERER]: Text {0}", text);
-            MatchCollection uuidMatches = Util.PermissiveUUIDPattern.Matches(text);
-//            m_log.DebugFormat("[UUID GATHERER]: Found {0} matches in text", uuidMatches.Count);
+            if(text.Length < 36)
+                return;
 
-            foreach (Match uuidMatch in uuidMatches)
+            List<UUID> ids = Util.GetUUIDsOnString(ref text, 0);
+            if (ids == null || ids.Count == 0)
+                return;
+
+            for (int i = 0; i < ids.Count; ++i)
             {
-                UUID uuid = new UUID(uuidMatch.Value);
-                if(uuid == UUID.Zero)
+                if (ids[i] == UUID.Zero)
                     continue;
-//                m_log.DebugFormat("[UUID GATHERER]: Recording {0} in text", uuid);
-                if(!UncertainAssetsUUIDs.Contains(uuid))
-                    UncertainAssetsUUIDs.Add(uuid);
-                AddForInspection(uuid);
+                if (!UncertainAssetsUUIDs.Contains(ids[i]))
+                    UncertainAssetsUUIDs.Add(ids[i]);
+                AddForInspection(ids[i]);
             }
         }
 
         private void RecordNoteCardEmbeddedAssetUuids(AssetBase textAsset)
         {
             List<UUID> ids = SLUtil.GetEmbeddedAssetIDs(textAsset.Data);
-            if(ids == null)
+            if(ids == null || ids.Count == 0)
                 return;
 
             for(int i = 0; i < ids.Count; ++i)

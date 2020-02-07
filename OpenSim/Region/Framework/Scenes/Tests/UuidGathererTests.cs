@@ -42,6 +42,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         protected IAssetService m_assetService;
         protected UuidGatherer m_uuidGatherer;
 
+        protected static string noteBase = @"Linden text version 2\n{\nLLEmbeddedItems version 1\n
+{\ncount 0\n}\nText length xxx\n"; // len does not matter on this test
         [SetUp]
         public void Init()
         {
@@ -58,7 +60,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             AssetBase corruptAsset
-                = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, "CORRUPT ASSET", UUID.Zero);
+                = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, noteBase + "CORRUPT ASSET", UUID.Zero);
             m_assetService.Store(corruptAsset);
 
             m_uuidGatherer.AddForInspection(corruptAssetUuid);
@@ -87,9 +89,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestNotecardAsset()
         {
-         /* TODO fix this actually creating a valid notecard
             TestHelpers.InMethod();
-//            TestHelpers.EnableLogging();
+            // TestHelpers.EnableLogging();
 
             UUID ownerId = TestHelpers.ParseTail(0x10);
             UUID embeddedId = TestHelpers.ParseTail(0x20);
@@ -99,35 +100,34 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             AssetBase ncAsset
                 = AssetHelpers.CreateNotecardAsset(
-                    ncAssetId, string.Format("Hello{0}World{1}", embeddedId, missingEmbeddedId));
+                    ncAssetId, string.Format("{0}Hello{1}World{2}", noteBase, embeddedId, missingEmbeddedId));
             m_assetService.Store(ncAsset);
 
             AssetBase embeddedAsset
-                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0} We'll meet again.", secondLevelEmbeddedId));
+                = AssetHelpers.CreateNotecardAsset(embeddedId, string.Format("{0}{1} We'll meet again.", noteBase, secondLevelEmbeddedId));
             m_assetService.Store(embeddedAsset);
 
             AssetBase secondLevelEmbeddedAsset
-                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, "Don't know where, don't know when.");
+                = AssetHelpers.CreateNotecardAsset(secondLevelEmbeddedId, noteBase + "Don't know where, don't know when.");
             m_assetService.Store(secondLevelEmbeddedAsset);
 
             m_uuidGatherer.AddForInspection(ncAssetId);
             m_uuidGatherer.GatherAll();
 
-//            foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
-//                System.Console.WriteLine("key : {0}", key);
+            // foreach (UUID key in m_uuidGatherer.GatheredUuids.Keys)
+            // System.Console.WriteLine("key : {0}", key);
 
             Assert.That(m_uuidGatherer.GatheredUuids.Count, Is.EqualTo(3));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(ncAssetId));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(embeddedId));
             Assert.That(m_uuidGatherer.GatheredUuids.ContainsKey(secondLevelEmbeddedId));
-            */
         }
 
         [Test]
         public void TestTaskItems()
         {
             TestHelpers.InMethod();
-//                        TestHelpers.EnableLogging();
+            // TestHelpers.EnableLogging();
 
             UUID ownerId = TestHelpers.ParseTail(0x10);
 

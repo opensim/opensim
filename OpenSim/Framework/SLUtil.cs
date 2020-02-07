@@ -29,7 +29,6 @@ using OpenMetaverse;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace OpenSim.Framework
 {
@@ -874,7 +873,15 @@ namespace OpenSim.Framework
                 --count;
             }
 
-            if(ids.Count == 0)
+            indx = note.IndexOf("Text length",indx);
+            if(indx > 0)
+            {
+                indx += 14;
+                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx);
+                if(textIDs.Count > 0)
+                    ids.AddRange(textIDs);
+            }
+            if (ids.Count == 0)
                 return null;
             return ids;
         }
