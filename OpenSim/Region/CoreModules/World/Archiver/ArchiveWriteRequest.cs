@@ -278,11 +278,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         m_log.ErrorFormat("[ARCHIVER]: object {0} '{1}', at {2}, contains {3} references to missing or damaged assets",
                             sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), curErrorCntr);
                         if(possible > 0)
-                            m_log.WarnFormat("[ARCHIVER Warning]: object also contains {0} references that may be to missing or damaged assets or not a problem", possible);
+                            m_log.WarnFormat("[ARCHIVER Warning]: object also contains {0} references that may not be assets or are missing", possible);
                     }
                     else if(possible > 0)
                     {
-                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references that may be to missing or damaged assets or not a problem",
+                        m_log.WarnFormat("[ARCHIVER Warning]: object {0} '{1}', at {2}, contains {3} references that may not be assets or are missing",
                             sceneObject.UUID, sceneObject.Name ,sceneObject.AbsolutePosition.ToString(), possible);
                     }
                 }
