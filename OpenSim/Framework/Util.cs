@@ -732,14 +732,19 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public static List<UUID> GetUUIDsOnString(ref string s, int indx)
+        public static List<UUID> GetUUIDsOnString(ref string s, int indx, int len)
         {
             var ids = new List<UUID>();
-            if (s.Length < 36)
+
+            int endA = indx + len;
+            if(endA > s.Length)
+                endA = s.Length;
+            if (endA - indx < 36)
                 return ids;
 
-            int endA = s.Length - 35;
-            int endB = s.Length - 26;
+            int endB = endA - 26;
+            endA -= 35;
+
             int idbase;
             int next;
             int retry;

@@ -595,14 +595,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             try
             {
-                string jsondata = SLUtil.ParseNotecardToString(a.Data);
-                int result = m_store.SetValue(storeID, path, jsondata,true) ? 1 : 0;
+                int result;
+                string[] data = SLUtil.ParseNotecardToArray(a.Data);
+                if(data.Length == 0)
+                    result = m_store.SetValue(storeID, path, string.Empty, true) ? 1 : 0;
+                else
+                {
+                    StringBuilder sb = new StringBuilder(256);
+                    for(int i = 0; i < data.Length; ++i)
+                        sb.AppendLine(data[i]);
+                    result = m_store.SetValue(storeID, path, sb.ToString(),true) ? 1 : 0;
+                }
                 m_comms.DispatchReply(scriptID, result, "", reqID.ToString());
                 return;
-            }
-            catch(SLUtil.NotANotecardFormatException e)
-            {
-                m_log.WarnFormat("[JsonStoreScripts]: Notecard parsing failed; assetId {0} at line number {1}", assetID.ToString(), e.lineNumber);
             }
             catch (Exception e)
             {
