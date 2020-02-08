@@ -246,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // Find all the embedded assets
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
             uuidGatherer.AddForInspection(asset.FullID);
-            uuidGatherer.GatherAll();
+            uuidGatherer.GatherAll(true);
 
             // Check which assets already exist in the destination server
 

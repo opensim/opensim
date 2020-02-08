@@ -29,8 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Threading;
+using System.Text;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
@@ -69,6 +68,8 @@ namespace OpenSim.Region.Framework.Scenes
         public HashSet<UUID> UncertainAssetsUUIDs { get; private set; }
         public int possibleNotAssetCount { get; set; }
         public int ErrorCount { get; private set; }
+        private bool verbose = true;
+
         /// <summary>
         /// Gets the next UUID to inspect.
         /// </summary>
@@ -267,19 +268,35 @@ namespace OpenSim.Region.Framework.Scenes
 
             GetAssetUuids(nextToInspect);
 
-            return m_assetUuidsToInspect.Count != 0;
+            return m_assetUuidsToInspect.Count > 0;
         }
 
         /// <summary>
         /// Gathers all remaining asset UUIDS no matter how many calls are required to the asset service.
         /// </summary>
         /// <returns>false if gathering is already complete, true otherwise</returns>
-        public bool GatherAll()
+        public bool GatherAll(bool report = false)
         {
             if (Complete)
                 return false;
+            if(report)
+                verbose = false;
 
             while (GatherNext());
+
+            if (report && FailedUUIDs.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder(512);
+                int i = FailedUUIDs.Count;
+                sb.Append("[UUID GATHERER]: UUIDs that are not assets or really missing assets:\n\t");
+                foreach (UUID id in FailedUUIDs)
+                {
+                    sb.Append(id);
+                    if (--i > 0)
+                        sb.Append(',');
+                }
+                m_log.Debug(sb.ToString());
+            }
 
             return true;
         }
@@ -321,7 +338,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset {0} : {1}", assetUuid, e.Message);
+                if(verbose)
+                    m_log.ErrorFormat("[UUID GATHERER]: Failed to get asset {0} : {1}", assetUuid, e.Message);
                 ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
                 return;
@@ -381,7 +399,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset with id {0} type {1}: {2}", assetUuid, assetType, e.Message);
+                if(verbose)
+                    m_log.ErrorFormat("[UUID GATHERER]: Failed to gather uuids for asset with id {0} type {1}: {2}", assetUuid, assetType, e.Message);
                 GatheredUuids.Remove(assetUuid);
                 ErrorCount++;
                 FailedUUIDs.Add(assetUuid);
@@ -683,13 +702,13 @@ namespace OpenSim.Region.Framework.Scenes
             : base(assetService, collector)
         {
             m_assetServerURL = assetServerURL;
-            if (!m_assetServerURL.EndsWith("/") && !m_assetServerURL.EndsWith("="))
+            if (!String.IsNullOrWhiteSpace(assetServerURL) && !m_assetServerURL.EndsWith("/") && !m_assetServerURL.EndsWith("="))
                 m_assetServerURL = m_assetServerURL + "/";
         }
 
         protected override AssetBase GetAsset(UUID uuid)
         {
-            if (string.Empty == m_assetServerURL)
+            if (String.IsNullOrWhiteSpace(m_assetServerURL))
                 return base.GetAsset(uuid);
             else
                 return FetchAsset(uuid);
