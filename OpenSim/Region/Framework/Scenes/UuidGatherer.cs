@@ -558,7 +558,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else if ((sbyte)AssetType.LSLText == assetType)
                 {
-                    RecordTextEmbeddedAssetUuids(assetBase);
+                    RecordEmbeddedAssetDataUuids(assetBase);
                 }
                 else if ((sbyte)OpenSimAssetType.Material == assetType)
                 {
@@ -716,15 +716,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// Record the asset uuids embedded within the given text (e.g. a script).
         /// </summary>
         /// <param name="textAsset"></param>
-        private void RecordTextEmbeddedAssetUuids(AssetBase textAsset)
+        private void RecordEmbeddedAssetDataUuids(AssetBase textAsset)
         {
             // m_log.DebugFormat("[ASSET GATHERER]: Getting assets for uuid references in asset {0}", embeddingAssetId);
 
-            string text = Utils.BytesToString(textAsset.Data);
-            if(text.Length < 36)
+            if(textAsset.Data.Length < 36)
                 return;
 
-            List<UUID> ids = Util.GetUUIDsOnString(ref text, 0, text.Length);
+            List<UUID> ids = Util.GetUUIDsOnData(textAsset.Data, 0, textAsset.Data.Length);
             if (ids == null || ids.Count == 0)
                 return;
 
