@@ -590,16 +590,6 @@ namespace OpenSim.Framework
             return readNotecard(rawInput);
         }
 
-        /// <summary>
-        /// Parse a notecard in Linden format to a list of ordinary lines.
-        /// </summary>
-        /// <param name="rawInput"></param>
-        /// <returns></returns>
-        public static string[] ParseNotecardToArray(byte[] rawInput)
-        {
-            return readNotecard(rawInput).Replace("\r", "").Split('\n');
-        }
-
         static char[] seps = new char[] { '\t', '\n' };
         static char[] stringseps = new char[] { '|', '\n' };
 
@@ -798,7 +788,7 @@ namespace OpenSim.Framework
 
         public static List<UUID> GetEmbeddedAssetIDs(byte[] data)
         {
-            if (data == null || data.Length < 60)
+            if (data == null || data.Length < 79)
                 return null;
 
             string note = Util.UTF8.GetString(data);
@@ -877,13 +867,79 @@ namespace OpenSim.Framework
             if(indx > 0)
             {
                 indx += 14;
-                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx);
+                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx, note.Length - indx);
                 if(textIDs.Count > 0)
                     ids.AddRange(textIDs);
             }
             if (ids.Count == 0)
                 return null;
             return ids;
+        }
+
+        /// <summary>
+        /// Parse a notecard in Linden format to a list of ordinary lines for LSL
+        /// </summary>
+        /// <param name="rawInput"></param>
+        /// <returns></returns>
+
+        public static string[] ParseNotecardToArray(byte[] data)
+        {
+            // check of a valid notecard
+            if (data == null || data.Length < 79)
+                return new string[0];
+
+            //LSL can't read notecards with embedded items
+            if (data[58] != '0' || data[59] != '\n')
+                return new string[0];
+
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return new string[0];
+
+            // waste some time checking rigid versions
+            string tmpStr = note.Substring(0, 21);
+            if (!tmpStr.Equals("Linden text version 2"))
+                return new string[0];
+
+            tmpStr = note.Substring(24, 25);
+            if (!tmpStr.Equals("LLEmbeddedItems version 1"))
+                return new string[0];
+
+            tmpStr = note.Substring(52, 5);
+            if (!tmpStr.Equals("count"))
+                return new string[0];
+
+            int indx = note.IndexOf("Text length", 60);
+            if(indx < 0)
+                return new string[0];
+
+            indx += 12;
+            int end = indx + 1;
+            for (; end < note.Length && note[end] != '\n'; ++end);
+            if (note[end] != '\n')
+                return new string[0];
+
+            tmpStr = note.Substring(indx, end - indx);
+            if (!int.TryParse(tmpStr, out int textLen) || textLen == 0)
+                return new string[0];
+
+            indx = end + 1;
+            textLen += indx;
+            var lines = new List<string>();
+            while (indx < textLen)
+            {
+                end = indx;
+                for (; end < textLen && note[end] != '\n'; ++end);
+                if(end == indx)
+                    lines.Add(String.Empty);
+                else
+                    lines.Add(note.Substring(indx, end - indx));
+                indx = end + 1;
+            }
+
+            if(lines.Count == 0)
+                return new string[0];
+            return lines.ToArray();
         }
     }
 }

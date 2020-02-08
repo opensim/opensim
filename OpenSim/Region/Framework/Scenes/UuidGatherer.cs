@@ -552,7 +552,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(text.Length < 36)
                 return;
 
-            List<UUID> ids = Util.GetUUIDsOnString(ref text, 0);
+            List<UUID> ids = Util.GetUUIDsOnString(ref text, 0, text.Length);
             if (ids == null || ids.Count == 0)
                 return;
 
