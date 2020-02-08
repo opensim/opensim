@@ -27,10 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Xml;
+using System.Text;
 
 using log4net;
 using OpenMetaverse;
@@ -38,12 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
 
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
-
-//using HyperGrid.Framework;
-//using OpenSim.Region.Communications.Hypergrid;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
@@ -114,19 +107,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return asset;
         }
 
-        public bool PostAsset(string url, AssetBase asset)
+        public bool PostAsset(string url, AssetBase asset, bool verbose = true)
         {
-            if (string.IsNullOrEmpty(url))
-                return false;
-
-            if (!url.EndsWith("/") && !url.EndsWith("="))
-                url = url + "/";
-
             if (asset == null)
             {
                 m_log.Warn("[HG ASSET MAPPER]: Tried to post asset to remote server, but asset not in local cache.");
                 return false;
             }
+
+            if (string.IsNullOrEmpty(url))
+                return false;
+
+            if (!url.EndsWith("/") && !url.EndsWith("="))
+                url = url + "/";
 
             // See long comment in AssetCache.AddAsset
             if (asset.Temporary || asset.Local)
@@ -150,13 +143,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             string id = m_scene.AssetService.Store(asset1);
             if (String.IsNullOrEmpty(id))
             {
-                m_log.DebugFormat("[HG ASSET MAPPER]: Asset server {0} did not accept {1}", url, asset.ID);
+                if (verbose)
+                    m_log.DebugFormat("[HG ASSET MAPPER]: Asset server {0} did not accept {1}", url, asset.ID);
                 return false;
             }
-            else {
+
+            if (verbose)
                 m_log.DebugFormat("[HG ASSET MAPPER]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
-                return true;
-            }
+            return true;
         }
 
         private void Copy(AssetBase from, AssetBase to)
@@ -176,11 +170,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (!string.IsNullOrEmpty(meta.CreatorID))
             {
-                UUID uuid = UUID.Zero;
-                UUID.TryParse(meta.CreatorID, out uuid);
-                UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
-                if (creator != null)
-                    meta.CreatorID = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
+                if(UUID.TryParse(meta.CreatorID, out UUID uuid))
+                {
+                    UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                    if (creator != null)
+                        meta.CreatorID = m_HomeURI + ";" + creator.FirstName + " " + creator.LastName;
+                }
             }
         }
 
@@ -240,17 +235,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public void Post(UUID assetID, UUID ownerID, string userAssetURL)
         {
-            m_log.DebugFormat("[HG ASSET MAPPER]: Starting to send asset {0} with children to asset server {1}", assetID, userAssetURL);
-
-            // Find all the embedded assets
-
             AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
             if (asset == null)
             {
-                m_log.DebugFormat("[HG ASSET MAPPER]: Something wrong with asset {0}, it could not be found", assetID);
+                m_log.DebugFormat("[HG ASSET MAPPER POST]: Something wrong with asset {0}, it could not be found", assetID);
                 return;
             }
+            m_log.DebugFormat("[HG ASSET MAPPER  POST]: Starting to send asset {0} to asset server {1}", assetID, userAssetURL);
 
+            // Find all the embedded assets
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
             uuidGatherer.AddForInspection(asset.FullID);
             uuidGatherer.GatherAll();
@@ -266,7 +259,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             foreach (UUID id in uuidGatherer.GatheredUuids.Keys)
                 remoteAssetIDs[i++] = url + id.ToString();
 
-            bool[] exist = m_scene.AssetService.AssetsExist(remoteAssetIDs);
+            bool[] exist;
+            try
+            {
+                exist = m_scene.AssetService.AssetsExist(remoteAssetIDs);
+            }
+            catch
+            {
+                m_log.DebugFormat("[HG ASSET MAPPER POST]: Problems sending asset {0} to asset server {1}", assetID, userAssetURL);
+                return;
+            }
 
             var existSet = new HashSet<string>();
             i = 0;
@@ -280,50 +282,94 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // Send only those assets which don't already exist in the destination server
 
             bool success = true;
+            var notFound = new List<string>();
+            var posted = new List<string>();
 
             foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
             {
-                if (!existSet.Contains(uuid.ToString()))
-                {
-                    asset = m_scene.AssetService.Get(uuid.ToString());
-                    if (asset == null)
-                    {
-                        m_log.DebugFormat("[HG ASSET MAPPER]: Could not find asset {0}", uuid);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            success &= PostAsset(userAssetURL, asset);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error(
-                                string.Format(
-                                    "[HG ASSET MAPPER]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ",
-                                    asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL),
-                                e);
+                string idstr = uuid.ToString();
+                if (existSet.Contains(idstr))
+                    continue;
 
-                            // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
-                            // debugging we may want to simply report the failure if we can tell this is due to a failure
-                            // with a particular asset and not a destination network failure where all asset posts will fail (and
-                            // generate large amounts of log spam).
-                            throw e;
-                        }
-                    }
+                asset = m_scene.AssetService.Get(idstr);
+                if (asset == null)
+                {   
+                    notFound.Add(idstr);
+                    continue;
                 }
-                else
+
+                try
                 {
-                    m_log.DebugFormat(
-                        "[HG ASSET MAPPER]: Didn't post asset {0} referenced from {1} because it already exists in asset server {2}",
-                        uuid, assetID, userAssetURL);
+                    bool b = PostAsset(userAssetURL, asset, false);
+                    if(b)
+                        posted.Add(idstr);
+                    success &= b;
                 }
+                catch (Exception e)
+                {
+                    m_log.Error(
+                        string.Format(
+                            "[HG ASSET MAPPER POST]: Failed to post asset {0} (type {1}, length {2}) referenced from {3} to {4} with exception  ",
+                            asset.ID, asset.Type, asset.Data.Length, assetID, userAssetURL),
+                        e);
+
+                    // For debugging purposes for now we will continue to throw the exception up the stack as was already happening.  However, after
+                    // debugging we may want to simply report the failure if we can tell this is due to a failure
+                    // with a particular asset and not a destination network failure where all asset posts will fail (and
+                    // generate large amounts of log spam).
+                    throw e;
+                }
+            }
+            StringBuilder sb = null;
+            if (notFound.Count > 0)
+            {
+                if (sb == null)
+                    sb = new StringBuilder(512);
+                i = notFound.Count;
+                sb.Append("[HG ASSET MAPPER POST]: Missing assets:\n\t");
+                for (int j = 0; j < notFound.Count; ++j)
+                {
+                    sb.Append(notFound[j]);
+                    if (i < j)
+                        sb.Append(',');
+                }
+                m_log.Debug(sb.ToString());
+                sb.Clear();
+            }
+            if (existSet.Count > 0)
+            {
+                if (sb == null) 
+                    sb = new StringBuilder(512);
+                i = existSet.Count;
+                sb.Append("[HG ASSET MAPPER POST]: Already at destination server:\n\t");
+                foreach (UUID id in existSet)
+                {
+                    sb.Append(id);
+                    if (--i > 0)
+                        sb.Append(',');
+                }
+                m_log.Debug(sb.ToString());
+                sb.Clear();
+            }
+            if (posted.Count > 0)
+            {
+                if (sb == null) 
+                    sb = new StringBuilder(512);
+                i = posted.Count;
+                sb.Append("[HG ASSET MAPPER POST]: Posted assets:\n\t");
+                for (int j = 0; j < posted.Count; ++j)
+                {
+                    sb.Append(posted[j]);
+                    if (i < j)
+                        sb.Append(',');
+                }
+                m_log.Debug(sb.ToString());
             }
 
             if (!success)
-                m_log.DebugFormat("[HG ASSET MAPPER]: Problems sending asset {0} with children to asset server {1}", assetID, userAssetURL);
+                m_log.DebugFormat("[HG ASSET MAPPER POST]: Problems sending asset {0} to asset server {1}", assetID, userAssetURL);
             else
-                m_log.DebugFormat("[HG ASSET MAPPER]: Successfully sent asset {0} with children to asset server {1}", assetID, userAssetURL);
+                m_log.DebugFormat("[HG ASSET MAPPER POST]: Successfully sent asset {0} to asset server {1}", assetID, userAssetURL);
         }
 
         #endregion
