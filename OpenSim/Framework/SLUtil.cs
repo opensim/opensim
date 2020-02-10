@@ -457,7 +457,7 @@ namespace OpenSim.Framework
             indx = getField(note, indx, "asset_id", false, out valuestr);
             if (indx < 0)
             {
-                indx = getField(note, indx, "shadow_id", false, out valuestr);
+                indx = getField(note, curindx, "shadow_id", false, out valuestr);
                 if (indx < 0)
                     return null;
                 if (!UUID.TryParse(valuestr, out assetID))
@@ -570,10 +570,12 @@ namespace OpenSim.Framework
                 indx = note.IndexOf('}',indx); // skip to end of permissions
                 if (indx < 0)
                     return null;
+
+                int curindx = indx;
                 indx = getField(note, indx, "asset_id", false, out valuestr);
                 if (indx < 0)
                 {
-                    indx = getField(note, indx, "shadow_id", false, out valuestr);
+                    indx = getField(note, curindx, "shadow_id", false, out valuestr);
                     if (indx < 0)
                         return null;
                     if (!UUID.TryParse(valuestr, out assetID))
