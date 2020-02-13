@@ -669,7 +669,12 @@ namespace OpenSim.Framework
                 return new string[0];
 
             indx = end + 1;
-            textLen += indx;
+            if (textLen + indx > data.Length)
+                return new string[0];
+            // yeackk
+            note = Util.UTF8.GetString(data, indx, textLen);
+            textLen = note.Length;
+            indx = 0;
             var lines = new List<string>();
             while (indx < textLen)
             {
@@ -681,6 +686,7 @@ namespace OpenSim.Framework
                     lines.Add(note.Substring(indx, end - indx));
                 indx = end + 1;
             }
+            // notes only seem to have one text section
 
             if(lines.Count == 0)
                 return new string[0];
