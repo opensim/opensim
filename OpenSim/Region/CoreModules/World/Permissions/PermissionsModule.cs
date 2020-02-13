@@ -872,8 +872,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 returnMask = ApplyObjectModifyMasks(grpEffectiveOwnerPerms, objflags, unlocked);
                 returnMask |= 
                     (uint)PrimFlags.ObjectGroupOwned |
-                    (uint)PrimFlags.ObjectYouOwner;
-                if((returnMask & (uint)PrimFlags.ObjectModify) != 0)
+                    (uint)PrimFlags.ObjectYouOwner |
+                    (uint)PrimFlags.ObjectAnyOwner;
+                if ((returnMask & (uint)PrimFlags.ObjectModify) != 0)
                     returnMask |= (uint)PrimFlags.ObjectOwnerModify;
                 return returnMask;
             }
