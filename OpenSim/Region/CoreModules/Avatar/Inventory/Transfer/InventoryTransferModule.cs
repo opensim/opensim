@@ -260,8 +260,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         });
                 }
             }
-            else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted ||
-                     im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
+            else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted)
             {
                 UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
                 IInventoryService invService = scene.InventoryService;
@@ -306,26 +305,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
-
-            // XXX: This code was placed here to try and accomodate RLV which moves given folders named #RLV/~<name>
-            // to the requested folder, which in this case is #RLV.  However, it is the viewer that appears to be
-            // response from renaming the #RLV/~example folder to ~example.  For some reason this is not yet
-            // happening, possibly because we are not sending the correct inventory update messages with the correct
-            // transaction IDs
             else if (im.dialog == (byte) InstantMessageDialog.TaskInventoryAccepted)
             {
                 UUID destinationFolderID = UUID.Zero;
 
                 if (im.binaryBucket != null && im.binaryBucket.Length >= 16)
-                {
                     destinationFolderID = new UUID(im.binaryBucket, 0);
-                }
 
+                IInventoryService invService = scene.InventoryService;
+                InventoryFolderBase destinationFolder = null;
                 if (destinationFolderID != UUID.Zero)
-                {
-                    InventoryFolderBase destinationFolder = new InventoryFolderBase(destinationFolderID, client.AgentId);
-                    IInventoryService invService = scene.InventoryService;
+                    destinationFolder = invService.GetFolder(client.AgentId, destinationFolderID);
 
+                if(destinationFolder != null)
+                {
                     UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
 
                     InventoryItemBase item = invService.GetItem(client.AgentId, inventoryID);
@@ -334,11 +327,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     if (item != null) // It's an item
                     {
-                        previousParentFolderID = item.Folder;
-                        item.Folder = destinationFolderID;
+                        if(item.Folder != destinationFolderID)
+                        {
+                            previousParentFolderID = item.Folder;
+                            item.Folder = destinationFolderID;
 
-                        invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
-                        scene.AddInventoryItem(client, item);
+                            invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
+                            scene.AddInventoryItem(client, item);
+                        }
                     }
                     else
                     {
@@ -346,9 +342,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                         if (folder != null) // It's a folder
                         {
-                            previousParentFolderID = folder.ParentID;
-                            folder.ParentID = destinationFolderID;
-                            invService.MoveFolder(folder);
+                            if(folder.ParentID != destinationFolderID)
+                            {
+                                previousParentFolderID = folder.ParentID;
+                                folder.ParentID = destinationFolderID;
+                                invService.MoveFolder(folder);
+                            }
                         }
                     }
 
