@@ -331,9 +331,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         {
                             previousParentFolderID = item.Folder;
                             item.Folder = destinationFolderID;
-
-                            invService.DeleteItems(item.Owner, new List<UUID>() { item.ID });
-                            scene.AddInventoryItem(client, item);
+                            invService.MoveItems(item.Owner, new List<InventoryItemBase>() { item });
+                            client.SendInventoryItemCreateUpdate(item, 0);
                         }
                     }
                     else

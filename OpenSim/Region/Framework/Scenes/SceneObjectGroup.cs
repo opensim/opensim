@@ -1551,7 +1551,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.OffsetPosition;
                 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(part.RotationOffset);
+                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.RotationOffset));
                 Vector3 a = m.AtAxis;
                 a.X = Math.Abs(a.X);
                 a.Y = Math.Abs(a.Y);
@@ -1598,7 +1598,6 @@ namespace OpenSim.Region.Framework.Scenes
     /// <summary>
     /// Gets a vector representing the size of the bounding box containing all the prims in the group
     /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
-    /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
     /// </summary>
     /// <returns></returns>
     public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
@@ -1619,7 +1618,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.GetWorldPosition() - absPos;
                 Vector3 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(part.GetWorldRotation());
+                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.GetWorldRotation()));
                 Vector3 a = m.AtAxis;
                 a.X = Math.Abs(a.X);
                 a.Y = Math.Abs(a.Y);
@@ -1664,6 +1663,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Gets a vector representing the size of the bounding box containing all the prims in the group
+        /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
+        /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
+        /// </summary>
+        /// <returns></returns>
         public Vector3 GetAxisAlignedBoundingBox(out float offsetHeight)
         {
             float minX;
@@ -1677,17 +1682,11 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
 
             offsetHeight = 0;
-            float lower = (minZ * -1);
+            float lower = -minZ;
             if (lower > maxZ)
-            {
-                offsetHeight = lower - (boundingBox.Z / 2);
-
-            }
+                offsetHeight = lower - 0.5f * boundingBox.Z;
             else if (maxZ > lower)
-            {
-                offsetHeight = maxZ - (boundingBox.Z / 2);
-                offsetHeight *= -1;
-            }
+                offsetHeight = 0.5f * boundingBox.Z - maxZ;
 
            // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
