@@ -1,0 +1,82 @@
+; local region changes for Enable OSSL functions.
+; copy this file to osslEnable.ini, unless you already have one with local changes that are still valid for current opensim version.
+; this file is included from osslDefaultEnable.ini file where defaults are defined, and allows to override them
+; to not edit that file, copy the line you want to change to this file, then edit here
+; see osslDefaultEnable.ini and
+; http://opensimulator.org/wiki/Category:OSSL_Functions for a description of OSSL functions
+
+; do not delete this line;
+[OSSL]
+  ; Allow the use of os* functions (some are always available)
+  ;AllowOSFunctions = true
+
+  ; Allow the user of mod* functions.  This allows a script to pass messages
+  ;   to a region module via the modSendCommand() function and is used by some
+  ;   modules to extend the scripting language.
+  ;AllowMODFunctions = true
+
+  ; Allow the use of LightShare functions.
+  ; The setting enable_windlight = true must also be enabled in the [LightShare] section.
+  ;AllowLightShareFunctions = true
+
+  ; Send function permission error to owner if true, to all if false
+  ;PermissionErrorToOwner = false
+  
+  ; Function Threat level
+  ; Several functions have a predefined threat level, one of:  None, VeryLow, Low, Moderate, High, VeryHigh, Severe.
+  ; See http://opensimulator.org/wiki/Threat_level for more information on these levels.
+  ; Blanket enabling the ossl functions is dangerous and we do not recommend setting higher
+  ;   than 'Low' unless you have a high level of trust in all the users that can run scripts
+  ;   in your simulator.  It is safer to explicitly allow certain types of user to run
+  ;   higher threat level OSSL functions, as detailed later on.
+  ; This setting defines the highest level allowed to execute
+  OSFunctionThreatLevel = VeryLow
+
+  ; The threat level can be replaced by more detailed rules by lines of the form
+  ; Allow_FunctionName = parameters
+  ; To use the default threat level coment the respective line
+  ; parameters can be:
+  ; 'false' disables the function.
+  ; 'true' enables for everyone
+  ;  or to enable for individuals or groups, set it to a comma separated list. This checks
+  ;    against the owner of the object containing the script.
+  ;    The comma separated entries in the list may be one of:
+  ;           "GRID_GOD" -- enable for users with UserLevel >= 200
+  ;           "GOD" -- enable for users with rights to be god (local or grid)
+  ;           "ACTIVE_GOD" -- enable for users that are present and with active god power
+  ;           "ESTATE_MANAGER" -- enable for estate manager
+  ;           "ESTATE_OWNER" -- enable for estate owner
+  ;           "PARCEL_OWNER" -- enable for parcel owner
+  ;           "PARCEL_GROUP_MEMBER" -- enable for any member of the parcel group
+  ;           uuid -- enable for specified ID (may be avatar or group ID)
+  ;    from this we can also create macros that can be include in the list as
+  ;    ${OSSL|macroname} see examples below
+
+  ; parcel macros
+  ; Allowing ossl functions for anyone owning a parcel can be dangerous especially if
+  ;    a region is selling or otherwise giving away parcel ownership. By default, parcel
+  ;    ownership or group membership does not enable OSSL functions. Uncomment the
+  ;    appropriate line below to allow parcel ownership and groups to do restricted
+  ;    OSSL functions. It might be better to check the list below and edit the ones
+  ;    to enable individually.
+  osslParcelO = ""
+  osslParcelOG = ""
+  ; osslParcelO = "PARCEL_OWNER,"
+  ; osslParcelOG = "PARCEL_GROUP_MEMBER,PARCEL_OWNER,"
+
+  ; NPC macros
+  ; These can be mis-used so limit use to those you can trust.
+  osslNPC = ${OSSL|osslParcelOG}ESTATE_MANAGER,ESTATE_OWNER
+  
+  ; example
+  ; Allow_osNpcCreate =               ${OSSL|osslNPC}
+  
+  ; The threat level also can be replaced by lines of the form
+  ; Creators__FunctionName = comma separated list of UUIDs
+  ; this will enable the function for users that are the script creators and owners of the prim
+
+; *************************************************
+; add lines with our region local changes, below this to replace the default on osslDefaultEnable.ini or code.
+
+
+ 

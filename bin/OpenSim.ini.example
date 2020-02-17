@@ -1053,10 +1053,9 @@
     ; ScriptEnginesPath = "ScriptEngines"
 
 [OSSL]
-    ;# {Include-osslEnable} {} {Include file for enabling and permissions for OSSL functions} {}
-    ;; Optionally include file to enable OSSL functions and set permissions on who can use which.
+    ;# {Include-osslDefaultEnable} {} {Include file for enabling and permissions for OSSL functions} {}
     ;; If this INI file is not included, the OSSL functions are disabled.
-    Include-osslEnable = "config-include/osslEnable.ini"
+    Include-osslDefaultEnable = "config-include/osslDefaultEnable.ini"
 
 
 [FreeSwitchVoice]
