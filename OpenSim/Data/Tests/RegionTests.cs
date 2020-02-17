@@ -269,12 +269,12 @@ namespace OpenSim.Data.Tests
             random.NextBytes(partsys);
             DateTime expires = new DateTime(2008, 12, 20);
             DateTime rezzed = new DateTime(2009, 07, 15);
-            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
-            Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
-            Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
+            Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Quaternion rotoff = new Quaternion(random.Next(1),random.Next(1),random.Next(1),random.Next(1));
+            Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             string description = name;
             Color color = Color.FromArgb(255, 165, 50, 100);
             string text = "All Your Base Are Belong to Us";
@@ -289,7 +289,7 @@ namespace OpenSim.Data.Tests
             pbshap.ProfileBegin = ushort.MaxValue;
             pbshap.ProfileEnd = ushort.MaxValue;
             pbshap.ProfileHollow = ushort.MaxValue;
-            Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
+            Vector3 scale = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
 
             RegionInfo regionInfo = new RegionInfo();
             regionInfo.RegionID = region3;
@@ -378,9 +378,9 @@ namespace OpenSim.Data.Tests
             SceneObjectPart p = sogs[0].RootPart;
             Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
             //Assert.That(localid,Is.EqualTo(p.LocalId), "Assert.That(localid,Is.EqualTo(p.LocalId))");
-            Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
+            Assert.That(groupos, Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
-            Assert.That(rotoff,Is.EqualTo(p.RotationOffset), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+            Assert.That(rotoff, Is.EqualTo(p.RotationOffset), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
             Assert.That(uuid,Is.EqualTo(p.UUID), "Assert.That(uuid,Is.EqualTo(p.UUID))");
             Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
             //Assert.That(iserial,Is.EqualTo(p.InventorySerial), "Assert.That(iserial,Is.EqualTo(p.InventorySerial))");
@@ -443,12 +443,12 @@ namespace OpenSim.Data.Tests
             random.NextBytes(partsys);
             DateTime expires = new DateTime(2010, 12, 20);
             DateTime rezzed = new DateTime(2005, 07, 15);
-            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
-            Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
-            Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
-            Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
+            Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Quaternion rotoff = new Quaternion(random.Next(100000),random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+            Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             string description = name;
             Color color = Color.FromArgb(255, 255, 255, 0);
             string text = "What You Say?{]\vz~";
@@ -536,12 +536,12 @@ namespace OpenSim.Data.Tests
             {
                 UUID tmp = UUID.Random();
                 SceneObjectPart sop = NewSOP(("Test SOP " + i.ToString()),tmp);
-                Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
-                Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
-                Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
-                Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
-                Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
-                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
+                Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+                Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+                Quaternion rotoff = new Quaternion(random.Next(100000),random.Next(100000),random.Next(100000),random.Next(100000));
+                Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+                Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
+                Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
 
                 sop.GroupPosition = groupos;
                 sop.RotationOffset = rotoff;
@@ -970,7 +970,7 @@ namespace OpenSim.Data.Tests
             db.StoreTerrain(t1, region1);
 
             // store terrain is async
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
 
             Assert.That(db.LoadTerrain(zero), Is.Null);
             Assert.That(db.LoadTerrain(region1), Is.Not.Null);
@@ -1000,7 +1000,7 @@ namespace OpenSim.Data.Tests
             db.StoreTerrain(baseterrain2, region1);
 
             // store terrain is async
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
 
             double[,] t1 = db.LoadTerrain(region1);
             Assert.That(CompareTerrain(t1, baseterrain1), Is.False);
