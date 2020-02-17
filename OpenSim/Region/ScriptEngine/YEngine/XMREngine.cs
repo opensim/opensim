@@ -273,7 +273,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     break;
             }
 
-
             m_MaintenanceInterval = m_Config.GetInt("MaintenanceInterval", 10);
 
             if(m_MaintenanceInterval > 0)
@@ -904,6 +903,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         //
         public bool PostObjectEvent(uint localID, EventParams parms)
         {
+            if(m_Exiting)
+                return false;
+
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
 
             if(part == null)

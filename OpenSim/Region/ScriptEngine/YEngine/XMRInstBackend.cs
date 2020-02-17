@@ -260,8 +260,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                  // Say how long to sleep.
                 m_SleepUntil = DateTime.UtcNow + TimeSpan.FromMilliseconds(ms);
-
-                 // Don't wake on any events.
+                // Don't wake on any events.
                 m_SleepEventMask1 = 0;
                 m_SleepEventMask2 = 0;
             }
