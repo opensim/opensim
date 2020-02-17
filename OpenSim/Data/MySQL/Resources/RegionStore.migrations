@@ -484,3 +484,52 @@ ADD COLUMN `standtargetz` float DEFAULT '0.0',
 ADD COLUMN `sitactrange` float DEFAULT '0.0';
 COMMIT;
 
+:VERSION 60         #----- don't store float on double
+
+BEGIN;
+ALTER TABLE `prims` 
+MODIFY `PositionX` float DEFAULT '0.0',
+MODIFY `PositionY` float DEFAULT '0.0',
+MODIFY `PositionZ` float DEFAULT '0.0',
+MODIFY `GroupPositionX` float DEFAULT '0.0',
+MODIFY `GroupPositionY` float DEFAULT '0.0',
+MODIFY `GroupPositionZ` float DEFAULT '0.0',
+MODIFY `VelocityX` float DEFAULT '0.0',
+MODIFY `VelocityY` float DEFAULT '0.0',
+MODIFY `VelocityZ` float DEFAULT '0.0',
+MODIFY `AngularVelocityX` float DEFAULT '0.0',
+MODIFY `AngularVelocityY` float DEFAULT '0.0',
+MODIFY `AngularVelocityZ` float DEFAULT '0.0',
+MODIFY `AccelerationX` float DEFAULT '0.0',
+MODIFY `AccelerationY` float DEFAULT '0.0',
+MODIFY `AccelerationZ` float DEFAULT '0.0',
+MODIFY `RotationX` float DEFAULT '0.0',
+MODIFY `RotationY` float DEFAULT '0.0',
+MODIFY `RotationZ` float DEFAULT '0.0',
+MODIFY `RotationW` float DEFAULT '0.0',
+MODIFY `SitTargetOffsetX` float DEFAULT '0.0',
+MODIFY `SitTargetOffsetY` float DEFAULT '0.0',
+MODIFY `SitTargetOffsetZ` float DEFAULT '0.0',
+MODIFY `SitTargetOrientX` float DEFAULT '0.0',
+MODIFY `SitTargetOrientY` float DEFAULT '0.0',
+MODIFY `SitTargetOrientZ` float DEFAULT '0.0',
+MODIFY `SitTargetOrientW` float DEFAULT '0.0',
+MODIFY `OmegaX` float DEFAULT '0.0',
+MODIFY `OmegaY` float DEFAULT '0.0',
+MODIFY `OmegaZ` float DEFAULT '0.0',
+MODIFY `CameraEyeOffsetX` float DEFAULT '0.0',
+MODIFY `CameraEyeOffsetY` float DEFAULT '0.0',
+MODIFY `CameraEyeOffsetZ` float DEFAULT '0.0',
+MODIFY `CameraAtOffsetX` float DEFAULT '0.0',
+MODIFY `CameraAtOffsetY` float DEFAULT '0.0',
+MODIFY `CameraAtOffsetZ` float DEFAULT '0.0',
+MODIFY `Density` float DEFAULT '1000.0',
+MODIFY `GravityModifier` float DEFAULT '1.0',
+MODIFY `Friction` float DEFAULT '0.6',
+MODIFY `Restitution` float DEFAULT '0.5',
+MODIFY `AttachedPosX` float DEFAULT '0',
+MODIFY `AttachedPosY` float DEFAULT '0',
+MODIFY `AttachedPosZ` float DEFAULT '0',
+MODIFY `LoopedSoundGain` float DEFAULT '0';
+COMMIT;
+
