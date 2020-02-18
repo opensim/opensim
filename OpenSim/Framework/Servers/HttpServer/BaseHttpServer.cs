@@ -158,6 +158,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_port = port;
         }
 
+        public RemoteCertificateValidationCallback CertificateValidationCallback
+        {
+            set { m_certificateValidationCallback = value; }
+        }
+
         private void load_cert(string CPath, string CPass)
         {
             try
