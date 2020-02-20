@@ -820,13 +820,14 @@ namespace OpenSim.Region.Framework.Scenes
             int rootcount = 0;
             int childcount = 0;
 
-            ForEachScenePresence(delegate(ScenePresence presence)
+            List<ScenePresence> presences = GetScenePresences();
+            for (int i = 0; i < presences.Count; ++i)
             {
-                if (presence.IsChildAgent)
+                if (presences[i].IsChildAgent)
                     ++childcount;
                 else
                     ++rootcount;
-            });
+            };
 
             m_numRootAgents = rootcount;
             m_numChildAgents = childcount;
@@ -1374,29 +1375,39 @@ namespace OpenSim.Region.Framework.Scenes
         /// This is just a shortcut function since frequently actions only appy to root SPs
         /// </summary>
         /// <param name="action"></param>
-        public void ForEachAvatar(Action<ScenePresence> action)
+        public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
-            ForEachScenePresence(delegate(ScenePresence sp)
+            List<ScenePresence> presences = GetScenePresences();
+            for (int i = 0; i < presences.Count; ++i)
             {
-                if (!sp.IsChildAgent)
-                    action(sp);
-            });
+                if(presences[i].IsChildAgent || presences[i].IsDeleted)
+                    continue;
+
+                try
+                {
+                    action(presences[i]);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                }
+            };
         }
 
         /// <summary>
-        /// Performs action on all scene presences. This can ultimately run the actions in parallel but
-        /// any delegates passed in will need to implement their own locking on data they reference and
-        /// modify outside of the scope of the delegate.
+        /// Performs action on all scene presences
         /// </summary>
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence sp in presences)
+            for(int i = 0; i < presences.Count; ++i)
             {
+                if (presences[i].IsDeleted)
+                    continue;
                 try
                 {
-                    action(sp);
+                    action(presences[i]);
                 }
                 catch (Exception e)
                 {
