@@ -5979,14 +5979,16 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             if(objectID == m_scene.RegionInfo.RegionID) // for all objects
             {
-
+                List<SceneObjectGroup> sogs = m_scene.GetSceneObjectGroups();
+                for(int i = 0; i < sogs.Count; ++i)
+                    sogs[i].RemoveScriptsPermissions(this, (int)permissions);
             }
             else
             {
                 SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
                 if(part != null)
                 {
-
+                    part.Inventory.RemoveScriptsPermissions(this, (int)permissions);
                 }
             }
         }
