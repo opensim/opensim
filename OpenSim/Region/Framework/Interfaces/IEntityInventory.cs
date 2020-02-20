@@ -105,6 +105,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         void StopScriptInstances();
 
+        void RemoveScriptsPermissions(int permissions);
+        void RemoveScriptsPermissions(ScenePresence sp, int permissions);
+
         /// <summary>
         /// Start a script which is in this entity's inventory.
         /// </summary>

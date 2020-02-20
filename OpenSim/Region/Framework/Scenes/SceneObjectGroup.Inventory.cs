@@ -103,6 +103,20 @@ namespace OpenSim.Region.Framework.Scenes
             Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
         }
 
+        public void RemoveScriptsPermissions(int permissions)
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].Inventory.RemoveScriptsPermissions(permissions);
+        }
+
+        public void RemoveScriptsPermissions(ScenePresence sp, int permissions)
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].Inventory.RemoveScriptsPermissions(sp, permissions);
+        }
+
         /// <summary>
         /// Add an inventory item from a user's inventory to a prim in this scene object.
         /// </summary>
@@ -139,6 +153,7 @@ namespace OpenSim.Region.Framework.Scenes
             taskItem.CreatorID = item.CreatorIdAsUuid;
             taskItem.Type = item.AssetType;
             taskItem.InvType = item.InvType;
+            taskItem.Flags = item.Flags;
 
             if (agentID != part.OwnerID && m_scene.Permissions.PropagatePermissions())
             {
@@ -165,15 +180,14 @@ namespace OpenSim.Region.Framework.Scenes
                 taskItem.NextPermissions = item.NextPermissions;
             }
 
-            taskItem.Flags = item.Flags;
 
-//                m_log.DebugFormat(
-//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
-//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
+            // m_log.DebugFormat(
+            //      "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}",
+            //       taskItem.Flags, taskItem.Name, localID, remoteClient.Name);
 
             // TODO: These are pending addition of those fields to TaskInventoryItem
-//                taskItem.SalePrice = item.SalePrice;
-//                taskItem.SaleType = item.SaleType;
+            // taskItem.SalePrice = item.SalePrice;
+            // taskItem.SaleType = item.SaleType;
             taskItem.CreationDate = (uint)item.CreationDate;
                 
             bool addFromAllowedDrop;

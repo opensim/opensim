@@ -714,6 +714,77 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_part.ParentGroup.AddActiveScriptCount(-1);
         }
 
+        public void RemoveScriptsPermissions(int permissions)
+        {
+            bool removeControl = ((permissions & 4) != 0); //takecontrol
+            List<UUID> grants = new List<UUID>();
+            List<UUID> items = new List<UUID>();
+
+            permissions = ~permissions;
+            m_items.LockItemsForWrite(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                if (item.InvType != (int)InventoryType.LSL)
+                    continue;
+                int curmask = item.PermsMask;
+                UUID curGrant = item.PermsGranter;
+                if (removeControl && ((curmask & 4) != 0))
+                {
+                    grants.Add(curGrant);
+                    items.Add(item.ItemID);
+                }
+                curmask &= permissions;
+                item.PermsMask = curmask;
+                if(curmask == 0)
+                    item.PermsGranter = UUID.Zero;
+            }
+            m_items.LockItemsForWrite(false);
+
+            if(grants.Count > 0)
+            {
+                for(int i = 0; i< grants.Count;++i)
+                {
+                    ScenePresence presence = m_part.ParentGroup.Scene.GetScenePresence(grants[i]);
+                    if (presence != null && !presence.IsDeleted)
+                        presence.UnRegisterControlEventsToScript(m_part.LocalId, items[i]);
+                }
+            }
+        }
+
+        public void RemoveScriptsPermissions(ScenePresence sp, int permissions)
+        {
+            bool removeControl = ((permissions & 4) != 0); //takecontrol
+            UUID grant = sp.UUID;
+            List<UUID> items = new List<UUID>();
+
+            permissions = ~permissions;
+            m_items.LockItemsForWrite(true);
+            foreach (TaskInventoryItem item in m_items.Values)
+            {
+                    if (item.InvType != (int) InventoryType.LSL)
+                        continue;
+                    if(grant != item.PermsGranter)
+                        continue;
+                    int curmask = item.PermsMask;
+                    if (removeControl && ((curmask & 4) != 0))
+                        items.Add(item.ItemID);
+                    curmask &= permissions;
+                    item.PermsMask = curmask;
+                    if(curmask == 0)
+                        item.PermsGranter = UUID.Zero;
+            }
+            m_items.LockItemsForWrite(false);
+
+            if(items.Count > 0)
+            {
+                for(int i = 0; i < items.Count; ++i)
+                {
+                    if (!sp.IsDeleted)
+                        sp.UnRegisterControlEventsToScript(m_part.LocalId, items[i]);
+                }
+            }
+        }
+
         /// <summary>
         /// Check if the inventory holds an item with a given name.
         /// </summary>
