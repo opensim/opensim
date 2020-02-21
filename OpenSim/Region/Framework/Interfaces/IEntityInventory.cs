@@ -105,6 +105,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         void StopScriptInstances();
 
+        void SendReleaseScriptsControl();
         void RemoveScriptsPermissions(int permissions);
         void RemoveScriptsPermissions(ScenePresence sp, int permissions);
 
@@ -119,8 +120,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// true if the script instance was valid for starting, false otherwise.  This does not guarantee
         /// that the script was actually started, just that the script was valid (i.e. its asset data could be found, etc.)
         /// </returns>
-        bool CreateScriptInstance(
-            TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource);
+        bool CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez, string engine, int stateSource);
 
         /// <summary>
         /// Start a script which is in this entity's inventory.
