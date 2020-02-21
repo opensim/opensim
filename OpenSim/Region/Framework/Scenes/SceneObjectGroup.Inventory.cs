@@ -103,6 +103,13 @@ namespace OpenSim.Region.Framework.Scenes
             Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
         }
 
+        public void SendReleaseScriptsControl()
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].Inventory.SendReleaseScriptsControl();
+        }
+
         public void RemoveScriptsPermissions(int permissions)
         {
             SceneObjectPart[] parts = m_parts.GetArray();
