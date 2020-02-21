@@ -2771,8 +2771,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             SceneObjectPart[] partList = group.Parts;
 
-            foreach (SceneObjectPart part in partList)
+            for(int i = 0; i < partList.Length; ++i)
             {
+                SceneObjectPart part = partList[i];
+
+                if (removeScripts)
+                    part.Inventory.SendReleaseScriptsControl();
+
                 if (part.KeyframeMotion != null)
                 {
                     part.KeyframeMotion.Delete();
