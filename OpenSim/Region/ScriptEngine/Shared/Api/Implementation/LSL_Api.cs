@@ -1199,12 +1199,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
-            World.SimChat(Utils.StringToBytes(text),
+            byte[] binText = Util.StringToBytes(text, 1023);
+            World.SimChat(binText,
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
+                wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, Util.UTF8.GetString(binText));
         }
 
         private void CheckSayShoutTime()
@@ -1236,15 +1237,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (text.Length > 1023)
-                    text = text.Substring(0, 1023);
-
-                World.SimChat(Utils.StringToBytes(text),
+                byte[] binText = Util.StringToBytes(text, 1023);
+                World.SimChat(binText,
                               ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
                 IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
                 if (wComm != null)
-                    wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
+                    wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, Util.UTF8.GetString(binText));
             }
         }
 
@@ -1259,15 +1258,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
 
-            if (text.Length > 1023)
-                text = text.Substring(0, 1023);
+            byte[] binText = Util.StringToBytes(text, 1023);
 
-            World.SimChat(Utils.StringToBytes(text),
+            World.SimChat(binText,
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
+                wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, Util.UTF8.GetString(binText));
         }
 
         public void llRegionSay(int channelID, string text)
