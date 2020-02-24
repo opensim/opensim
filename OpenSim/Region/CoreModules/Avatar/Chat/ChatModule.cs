@@ -51,6 +51,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         protected int m_saydistance = 20;
         protected int m_shoutdistance = 100;
         protected int m_whisperdistance = 10;
+
+        protected float m_saydistanceSQ;
+        protected float m_shoutdistanceSQ;
+        protected float m_whisperdistanceSQ;
+
         protected List<Scene> m_scenes = new List<Scene>();
         protected List<string> FreezeCache = new List<string>();
         protected string m_adminPrefix = "";
@@ -70,11 +75,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     return;
                 }
 
-            m_whisperdistance = m_config.GetInt("whisper_distance", m_whisperdistance);
-            m_saydistance = m_config.GetInt("say_distance", m_saydistance);
-            m_shoutdistance = m_config.GetInt("shout_distance", m_shoutdistance);
-            m_adminPrefix = m_config.GetString("admin_prefix", "");
+                m_whisperdistance = m_config.GetInt("whisper_distance", m_whisperdistance);
+                m_saydistance = m_config.GetInt("say_distance", m_saydistance);
+                m_shoutdistance = m_config.GetInt("shout_distance", m_shoutdistance);
+                m_adminPrefix = m_config.GetString("admin_prefix", "");
+
             }
+            m_saydistanceSQ = m_saydistance * m_saydistance;
+            m_shoutdistanceSQ = m_shoutdistance * m_shoutdistance;
+            m_whisperdistanceSQ = m_whisperdistance *m_whisperdistance;
+
         }
 
         public virtual void AddRegion(Scene scene)
@@ -407,22 +417,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             UUID fromAgentID, UUID ownerID, string fromName, ChatTypeEnum type,
             string message, ChatSourceType src, bool ignoreDistance)
         {
-            if (presence.LifecycleState != ScenePresenceState.Running)
+            if (presence.IsDeleted || presence.IsInTransit || !presence.ControllingClient.IsActive)
                 return false;
 
             if (!ignoreDistance)
             {
-                Vector3 fromRegionPos = fromPos + regionPos;
-                Vector3 toRegionPos = presence.AbsolutePosition +
-                    new Vector3(presence.Scene.RegionInfo.WorldLocX, presence.Scene.RegionInfo.WorldLocY, 0);
-
-                int dis = (int)Util.GetDistanceTo(toRegionPos, fromRegionPos);
-
-                if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
-                    type == ChatTypeEnum.Say && dis > m_saydistance ||
-                    type == ChatTypeEnum.Shout && dis > m_shoutdistance)
+                float maxDistSQ;
+                switch(type)
                 {
-                    return false;
+                    case ChatTypeEnum.Whisper:
+                        maxDistSQ = m_whisperdistanceSQ;
+                        break;
+                    case ChatTypeEnum.Say:
+                        maxDistSQ = m_saydistanceSQ;
+                        break;
+                    case ChatTypeEnum.Shout:
+                        maxDistSQ = m_shoutdistanceSQ;
+                        break;
+                    default:
+                        maxDistSQ = -1f;
+                        break;
+                }
+
+                if(maxDistSQ > 0)
+                {
+                    Vector3 fromRegionPos = fromPos + regionPos;
+                    Vector3 toRegionPos = presence.AbsolutePosition +
+                        new Vector3(presence.Scene.RegionInfo.WorldLocX, presence.Scene.RegionInfo.WorldLocY, 0);
+
+                    if(maxDistSQ < Vector3.DistanceSquared(toRegionPos, fromRegionPos))
+                        return false;
                 }
             }
 
