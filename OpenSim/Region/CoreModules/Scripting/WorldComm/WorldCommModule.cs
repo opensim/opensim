@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -99,8 +100,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private const int DEBUG_CHANNEL = 2147483647;
 
         private ListenerManager m_listenerManager;
-        private Queue m_pending;
-        private Queue m_pendingQ;
+        private ConcurrentQueue<ListenerInfo> m_pending;
         private Scene m_scene;
         private int m_whisperdistance = 10;
         private int m_saydistance = 20;
@@ -140,8 +140,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 maxlisteners = maxhandles;
 
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
-            m_pendingQ = new Queue();
-            m_pending = Queue.Synchronized(m_pendingQ);
+            m_pending = new ConcurrentQueue<ListenerInfo>();
         }
 
         public void PostInitialise()
@@ -319,35 +318,31 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
 
-            foreach (ListenerInfo li
-                    in m_listenerManager.GetListeners(UUID.Zero, channel,
-                    name, id, msg))
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
                 // Dont process if this message is from yourself!
                 if (li.GetHostID().Equals(id))
                     continue;
 
-                SceneObjectPart sPart = m_scene.GetSceneObjectPart(
-                        li.GetHostID());
+                SceneObjectPart sPart = m_scene.GetSceneObjectPart(li.GetHostID());
                 if (sPart == null)
                     continue;
 
-                double dis = Util.GetDistanceTo(sPart.AbsolutePosition,
-                        position);
+                double dis = Vector3.DistanceSquared(sPart.AbsolutePosition, position);
                 switch (type)
                 {
                     case ChatTypeEnum.Whisper:
-                        if (dis < m_whisperdistance)
+                        if (dis < m_whisperdistance * m_whisperdistance)
                             QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
                     case ChatTypeEnum.Say:
-                        if (dis < m_saydistance)
+                        if (dis < m_saydistance * m_saydistance)
                             QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
                     case ChatTypeEnum.Shout:
-                        if (dis < m_shoutdistance)
+                        if (dis < m_shoutdistance * m_shoutdistance)
                             QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
@@ -453,10 +448,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         protected void QueueMessage(ListenerInfo li)
         {
-            lock (m_pending.SyncRoot)
-            {
-                m_pending.Enqueue(li);
-            }
+            m_pending.Enqueue(li);
         }
 
         /// <summary>
@@ -474,13 +466,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <returns>ListenerInfo with filter filled in</returns>
         public IWorldCommListenerInfo GetNextMessage()
         {
-            ListenerInfo li = null;
-
-            lock (m_pending.SyncRoot)
-            {
-                li = (ListenerInfo)m_pending.Dequeue();
-            }
-
+            m_pending.TryDequeue(out ListenerInfo li);
             return li;
         }
 
