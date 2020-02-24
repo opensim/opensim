@@ -290,17 +290,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         return;
 
                     if(presence.IsChildAgent)
-                        {
-                            if(checkParcelHide)
-                                return;
-                            if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
-                                        ownerID, fromNamePrefix + fromName, c.Type,
-                                        message, sourceType, (destination != UUID.Zero)))
-                                receiverIDs.Add(presence.UUID);
+                    {
+                        if(checkParcelHide)
                             return;
-                        }
+                        if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                                    ownerID, fromNamePrefix + fromName, c.Type,
+                                    message, sourceType, (destination != UUID.Zero)))
+                            receiverIDs.Add(presence.UUID);
+                        return;
+                    }
 
-                    ILandObject Presencecheck = scene.LandChannel.GetLandObject(presence.AbsolutePosition.X,            presence.AbsolutePosition.Y);
+                    ILandObject Presencecheck = scene.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                     if (Presencecheck != null)
                     {
                         if (checkParcelHide)
