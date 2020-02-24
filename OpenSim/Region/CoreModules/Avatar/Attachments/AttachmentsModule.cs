@@ -1163,7 +1163,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 m_scene.EventManager.TriggerOnAttach(grp.LocalId, grp.FromItemID, UUID.Zero);
                 // Allow detach event time to do some work before stopping the script
-                Thread.Sleep(2);
+                Thread.Sleep(30);
             }
 
             using (StringWriter sw = new StringWriter())
