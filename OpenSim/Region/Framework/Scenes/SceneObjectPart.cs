@@ -3013,8 +3013,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_scriptEvents)
             {
-                if (m_scriptEvents.ContainsKey(scriptid))
+                if (m_scriptEvents.TryGetValue(scriptid, out scriptEvents ev))
                 {
+                    if (((ev & (scriptEvents.at_target | scriptEvents.at_rot_target)) != 0) && ParentGroup != null)
+                        ParentGroup.RemoveScriptTargets(scriptid);
+
                     m_scriptEvents.Remove(scriptid);
                     aggregateScriptEvents();
                 }
@@ -3993,15 +3996,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="events"></param>
         public void SetScriptEvents(UUID scriptid, int events)
         {
-//            m_log.DebugFormat(
-//                "[SCENE OBJECT PART]: Set script events for script with id {0} on {1}/{2} to {3} in {4}",
-//                scriptid, Name, ParentGroup.Name, events, ParentGroup.Scene.Name);
-
+            //            m_log.DebugFormat(
+            //                "[SCENE OBJECT PART]: Set script events for script with id {0} on {1}/{2} to {3} in {4}",
+            //                scriptid, Name, ParentGroup.Name, events, ParentGroup.Scene.Name);
             // scriptEvents oldparts;
             lock (m_scriptEvents)
             {
-                if (m_scriptEvents.ContainsKey(scriptid) && m_scriptEvents[scriptid] == (scriptEvents) events)
+                if (m_scriptEvents.TryGetValue(scriptid, out scriptEvents ev))
+                {
+                    if (((ev & (scriptEvents.at_target | scriptEvents.at_rot_target)) != 0) && ParentGroup != null)
+                        ParentGroup.RemoveScriptTargets(scriptid);
+                    if (ev == (scriptEvents)events)
                         return;
+                }
                 m_scriptEvents[scriptid] = (scriptEvents) events;
             }
             aggregateScriptEvents();

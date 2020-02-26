@@ -309,10 +309,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     zeroDetectParams));
         }
 
-        public void at_target(uint localID, uint handle, Vector3 targetpos,
-                Vector3 atpos)
+        public void at_target(UUID scriptID, uint handle, Vector3 targetpos, Vector3 atpos)
         {
-            this.PostObjectEvent(localID, new EventParams(
+            PostScriptEvent(scriptID, new EventParams(
                     "at_target", new object[] {
                     (int)handle,
                     new LSL_Vector(targetpos.X,targetpos.Y,targetpos.Z),
@@ -320,32 +319,28 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     zeroDetectParams));
         }
 
-        public void not_at_target(uint localID)
+        public void not_at_target(UUID scriptID)
         {
-            this.PostObjectEvent(localID, new EventParams(
+            PostScriptEvent(scriptID, new EventParams(
                     "not_at_target", zeroObjectArray,
                     zeroDetectParams));
         }
 
-        public void at_rot_target(uint localID, uint handle, OpenMetaverse.Quaternion targetrot, OpenMetaverse.Quaternion atrot)
+        public void at_rot_target(UUID scriptID, uint handle, OpenMetaverse.Quaternion targetrot, OpenMetaverse.Quaternion atrot)
         {
-            this.PostObjectEvent(
-                localID,
-                new EventParams(
+            PostScriptEvent(scriptID, new EventParams(
                     "at_rot_target",
                     new object[] {
                         new LSL_Integer(handle),
                         new LSL_Rotation(targetrot.X, targetrot.Y, targetrot.Z, targetrot.W),
                         new LSL_Rotation(atrot.X, atrot.Y, atrot.Z, atrot.W)
                     },
-                    zeroDetectParams
-                )
-            );
+                    zeroDetectParams));
         }
 
-        public void not_at_rot_target(uint localID)
+        public void not_at_rot_target(UUID scriptID)
         {
-            this.PostObjectEvent(localID, new EventParams(
+            PostScriptEvent(scriptID, new EventParams(
                     "not_at_rot_target", zeroObjectArray,
                     zeroDetectParams));
         }

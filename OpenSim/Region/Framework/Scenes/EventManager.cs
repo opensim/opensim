@@ -569,7 +569,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public event ScriptMovingEndEvent OnScriptMovingEndEvent;
 
-        public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
+        public delegate void ScriptAtTargetEvent(UUID scriptID, uint handle, Vector3 targetpos, Vector3 atpos);
 
         /// <summary>
         /// Triggered when an object has arrived within a tolerance distance
@@ -583,7 +583,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
-        public delegate void ScriptNotAtTargetEvent(uint localID);
+        public delegate void ScriptNotAtTargetEvent(UUID scriptID);
 
         /// <summary>
         /// Triggered when an object has a motion target but has not arrived
@@ -597,7 +597,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
-        public delegate void ScriptAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion atrot);
+        public delegate void ScriptAtRotTargetEvent(UUID scriptID, uint handle, Quaternion targetrot, Quaternion atrot);
 
         /// <summary>
         /// Triggered when an object has arrived within a tolerance rotation
@@ -611,7 +611,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event ScriptAtRotTargetEvent OnScriptAtRotTargetEvent;
 
-        public delegate void ScriptNotAtRotTargetEvent(uint localID);
+        public delegate void ScriptNotAtRotTargetEvent(UUID scriptID);
 
         /// <summary>
         /// Triggered when an object has a rotation target but has not arrived
@@ -2325,7 +2325,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 currentpos)
+        public void TriggerAtTargetEvent(UUID scriptID, uint handle, Vector3 targetpos, Vector3 currentpos)
         {
             ScriptAtTargetEvent handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
             if (handlerScriptAtTargetEvent != null)
@@ -2334,7 +2334,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(localID, handle, targetpos, currentpos);
+                        d(scriptID, handle, targetpos, currentpos);
                     }
                     catch (Exception e)
                     {
@@ -2346,7 +2346,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerNotAtTargetEvent(uint localID)
+        public void TriggerNotAtTargetEvent(UUID scriptID)
         {
             ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = OnScriptNotAtTargetEvent;
             if (handlerScriptNotAtTargetEvent != null)
@@ -2355,7 +2355,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(localID);
+                        d(scriptID);
                     }
                     catch (Exception e)
                     {
@@ -2367,7 +2367,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion currentrot)
+        public void TriggerAtRotTargetEvent(UUID scriptID, uint handle, Quaternion targetrot, Quaternion currentrot)
         {
             ScriptAtRotTargetEvent handlerScriptAtRotTargetEvent = OnScriptAtRotTargetEvent;
             if (handlerScriptAtRotTargetEvent != null)
@@ -2376,7 +2376,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(localID, handle, targetrot, currentrot);
+                        d(scriptID, handle, targetrot, currentrot);
                     }
                     catch (Exception e)
                     {
@@ -2388,7 +2388,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerNotAtRotTargetEvent(uint localID)
+        public void TriggerNotAtRotTargetEvent(UUID scriptID)
         {
             ScriptNotAtRotTargetEvent handlerScriptNotAtRotTargetEvent = OnScriptNotAtRotTargetEvent;
             if (handlerScriptNotAtRotTargetEvent != null)
@@ -2397,7 +2397,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(localID);
+                        d(scriptID);
                     }
                     catch (Exception e)
                     {

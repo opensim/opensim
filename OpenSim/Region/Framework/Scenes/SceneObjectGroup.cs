@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 targetPos;
         public float tolerance;
         public int handle;
-        public uint partLocalID;
+        public UUID scriptID;
     }
 
     public struct scriptRotTarget
@@ -96,7 +96,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Quaternion targetRot;
         public float tolerance;
         public int handle;
-        public uint partLocalID;
+        public UUID scriptID;
     }
 
     public delegate void PrimCountTaintedDelegate();
@@ -4802,12 +4802,12 @@ namespace OpenSim.Region.Framework.Scenes
             return 0;
         }
 
-        public int registerRotTargetWaypoint(uint partLocalID, Quaternion target, float tolerance)
+        public int registerRotTargetWaypoint(UUID scriptID, Quaternion target, float tolerance)
         {
             scriptRotTarget waypoint = new scriptRotTarget();
             waypoint.targetRot = target;
             waypoint.tolerance = tolerance;
-            waypoint.partLocalID = partLocalID;
+            waypoint.scriptID = scriptID;
             int handle = m_scene.AllocateIntId();
             waypoint.handle = handle;
             lock (m_rotTargets)
@@ -4830,15 +4830,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public int registerTargetWaypoint(uint partLocalID, Vector3 target, float tolerance)
+        public int registerTargetWaypoint(UUID scriptID, Vector3 target, float tolerance)
         {
-
             int handle = m_scene.AllocateIntId();
 
             scriptPosTarget waypoint = new scriptPosTarget();
             waypoint.targetPos = target;
             waypoint.tolerance = tolerance * tolerance;
-            waypoint.partLocalID = partLocalID;
+            waypoint.scriptID = scriptID;
             waypoint.handle = handle;
 
             lock (m_targets)
@@ -4861,12 +4860,46 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void RemoveScriptTargets(UUID scriptID)
+        {
+            List<int> toremove = new List<int>();
+            lock (m_targets)
+            {
+                foreach (KeyValuePair<int, scriptPosTarget> kvp in m_targets)
+                {
+                    if (kvp.Value.scriptID == scriptID)
+                        toremove.Add(kvp.Key);
+                }
+                if (toremove.Count > 0)
+                {
+                    for (int i = 0; i < toremove.Count; ++i)
+                        m_targets.Remove(toremove[i]);
+                    toremove.Clear();
+                }
+            }
+
+            lock (m_rotTargets)
+            {
+                foreach (KeyValuePair<int, scriptRotTarget> kvp in m_rotTargets)
+                {
+                    if (kvp.Value.scriptID == scriptID)
+                        toremove.Add(kvp.Key);
+                }
+                if (toremove.Count > 0)
+                {
+                    for (int i = 0; i < toremove.Count; ++i)
+                        m_targets.Remove(toremove[i]);
+                }
+
+            }
+        }
+
         public void checkAtTargets()
         {
             int targetsCount = m_targets.Count;
             if (targetsCount > 0 && (m_scriptListens_atTarget || m_scriptListens_notAtTarget))
             {
-                List<scriptPosTarget> atTargets = new List<scriptPosTarget>(targetsCount);
+                List<scriptPosTarget> atTargets = new List<scriptPosTarget>();
                 List<scriptPosTarget> notatTargets = new List<scriptPosTarget>(targetsCount);
                 Vector3 pos = m_rootPart.GroupPosition;
                 lock (m_targets)
@@ -4886,21 +4919,26 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                bool hasnot = notatTargets.Count > 0;
+                HashSet<UUID> excludes = new HashSet<UUID>();
                 if (atTargets.Count > 0)
                 {
                     for (int target = 0; target < atTargets.Count; ++target)
                     {
                         scriptPosTarget att = atTargets[target];
-                        m_scene.EventManager.TriggerAtTargetEvent(
-                                att.partLocalID, (uint)att.handle, att.targetPos, pos);
+                        m_scene.EventManager.TriggerAtTargetEvent(att.scriptID, (uint)att.handle, att.targetPos, pos);
+                        if(hasnot)
+                            excludes.Add(att.scriptID);
                     }
                 }
 
-                if (notatTargets.Count > 0)
+                if (hasnot)
                 {
                     for (int target = 0; target < notatTargets.Count; ++target)
                     {
-                        m_scene.EventManager.TriggerNotAtTargetEvent(notatTargets[target].partLocalID);
+                        UUID id = notatTargets[target].scriptID;
+                        if(!excludes.Contains(id))
+                            m_scene.EventManager.TriggerNotAtTargetEvent(id);
                     }
                 }
             }
@@ -4933,13 +4971,17 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                bool hasnot = notatRotTargets.Count > 0;
+                HashSet<UUID> excludes = new HashSet<UUID>();
+
                 if (atRotTargets.Count > 0)
                 {
                     for (int target = 0; target < atRotTargets.Count; ++target)
                     {
                         scriptRotTarget att = atRotTargets[target];
-                        m_scene.EventManager.TriggerAtRotTargetEvent(
-                            att.partLocalID, (uint)att.handle, att.targetRot, rot);
+                        m_scene.EventManager.TriggerAtRotTargetEvent(att.scriptID, (uint)att.handle, att.targetRot, rot);
+                        if(hasnot)
+                            excludes.Add(att.scriptID);
                     }
                 }
 
@@ -4947,7 +4989,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     for (int target = 0; target < notatRotTargets.Count; ++target)
                     {
-                        m_scene.EventManager.TriggerNotAtRotTargetEvent(notatRotTargets[target].partLocalID);
+                        UUID id = notatRotTargets[target].scriptID;
+                        if(!excludes.Contains(id))
+                            m_scene.EventManager.TriggerNotAtRotTargetEvent(id);
                     }
                 }
             }

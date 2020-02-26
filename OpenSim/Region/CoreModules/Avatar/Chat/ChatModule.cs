@@ -365,6 +365,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
             else if (c.SenderUUID != UUID.Zero)
             {
+                if(c.SenderObject == null)
+                    return;
                 fromID = c.SenderUUID;
                 ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
             }

@@ -3035,7 +3035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llTarget(LSL_Vector position, double range)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerTargetWaypoint(m_host.LocalId, position, (float)range);
+            return m_host.ParentGroup.registerTargetWaypoint(m_item.ItemID, position, (float)range);
         }
 
         public void llTargetRemove(int number)
@@ -3047,7 +3047,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerRotTargetWaypoint(m_host.LocalId, rot, (float)error);
+            return m_host.ParentGroup.registerRotTargetWaypoint(m_item.ItemID, rot, (float)error);
         }
 
         public void llRotTargetRemove(int number)
