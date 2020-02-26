@@ -904,6 +904,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // 'state_entry()' event handler.
             m_RunOnePhase = "ResetLocked: posting default:state_entry() event";
             stateCode = 0;
+            m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(0));
             PostEvent(new EventParams("state_entry",
                                       zeroObjectArray,

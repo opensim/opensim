@@ -594,7 +594,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
             m_XMRLSLApi.acm.TimerPlugin.CreateFromData(m_LocalID, m_ItemID, UUID.Zero, timers);
 
-             // Tell whoever cares which event handlers the new state has.
+            // Tell whoever cares which event handlers the new state has.
+            m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(stateCode));
 
             // keep link messages

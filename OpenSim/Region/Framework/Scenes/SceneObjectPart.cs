@@ -3011,18 +3011,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RemoveScriptEvents(UUID scriptid)
         {
-
-            if (ParentGroup != null)
-                ParentGroup.RemoveScriptTargets(scriptid);
-
             lock (m_scriptEvents)
             {
                 if (m_scriptEvents.TryGetValue(scriptid, out scriptEvents ev))
                 {
+                    if((ev & (scriptEvents.anyTarget)) != 0 && ParentGroup != null)
+                            ParentGroup.RemoveScriptTargets(scriptid);
                     m_scriptEvents.Remove(scriptid);
                     aggregateScriptEvents();
                 }
             }
+        }
+
+        public void RemoveScriptTargets(UUID scriptid)
+        {
+            if(ParentGroup != null)
+                ParentGroup.RemoveScriptTargets(scriptid);
         }
 
         /// <summary>
@@ -4001,10 +4005,6 @@ namespace OpenSim.Region.Framework.Scenes
             //                "[SCENE OBJECT PART]: Set script events for script with id {0} on {1}/{2} to {3} in {4}",
             //                scriptid, Name, ParentGroup.Name, events, ParentGroup.Scene.Name);
             // scriptEvents oldparts;
-
-            if (ParentGroup != null)
-                ParentGroup.RemoveScriptTargets(scriptid);
-
             lock (m_scriptEvents)
             {
                 if (m_scriptEvents.TryGetValue(scriptid, out scriptEvents ev))
