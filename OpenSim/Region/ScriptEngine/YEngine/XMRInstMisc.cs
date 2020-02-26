@@ -82,7 +82,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(m_Part != null)
                 {
-                    m_Part.RemoveScriptEvents(m_ItemID);
                     AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
                     m_Part = null;
                 }
