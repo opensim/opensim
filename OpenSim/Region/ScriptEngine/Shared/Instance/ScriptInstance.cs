@@ -1085,8 +1085,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             State = "default";
 
 
-            part.SetScriptEvents(ItemID,
-                                 (int)m_Script.GetStateEventFlags(State));
+            part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
             if (running)
                 Start();
 
