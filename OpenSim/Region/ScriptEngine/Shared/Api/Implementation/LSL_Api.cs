@@ -1199,7 +1199,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
-            byte[] binText = Util.StringToBytes(text, 1023);
+            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
             World.SimChat(binText,
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1237,7 +1237,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                byte[] binText = Util.StringToBytes(text, 1023);
+                byte[] binText = Util.StringToBytesNoTerm(text, 1023);
                 World.SimChat(binText,
                               ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1258,7 +1258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
 
-            byte[] binText = Util.StringToBytes(text, 1023);
+            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
 
             World.SimChat(binText,
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
@@ -1276,22 +1276,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (text.Length > 1023)
-                text = text.Substring(0, 1023);
+            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
 
             m_host.AddScriptLPS(1);
 
             // debug channel is also sent to avatars
             if (channelID == ScriptBaseClass.DEBUG_CHANNEL)
             {
-                World.SimChat(Utils.StringToBytes(text),
+                World.SimChat(binText,
                     ChatTypeEnum.Shout, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             }
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if (wComm != null)
-                wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
+                wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, Util.UTF8.GetString(binText));
         }
 
         public void  llRegionSayTo(string target, int channel, string msg)

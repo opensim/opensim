@@ -2597,7 +2597,7 @@ namespace OpenSim.Framework
                 return Utils.EmptyBytes;
 
             if (!str.EndsWith("\0"))
-                 str += "\0";
+                str += "\0";
 
             // Because this is UTF-8 encoding and not ASCII, it's possible we
             // might have gotten an oversized array even after the string trim
@@ -2605,14 +2605,37 @@ namespace OpenSim.Framework
 
             if (data.Length > MaxLength)
             {
-                int cut = MaxLength - 1 ;
-                if((data[cut] & 0x80 ) != 0 )
-                    {
-                    while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
+                int cut = MaxLength - 1;
+                if ((data[cut] & 0x80) != 0)
+                {
+                    while (cut > 0 && (data[cut] & 0xc0) != 0xc0)
                         cut--;
-                    }
+                }
                 Array.Resize<byte>(ref data, cut + 1);
                 data[cut] = 0;
+            }
+
+            return data;
+        }
+
+        public static byte[] StringToBytesNoTerm(string str, int MaxLength)
+        {
+            if (String.IsNullOrEmpty(str))
+                return Utils.EmptyBytes;
+
+            // Because this is UTF-8 encoding and not ASCII, it's possible we
+            // might have gotten an oversized array even after the string trim
+            byte[] data = UTF8.GetBytes(str);
+
+            if (data.Length > MaxLength)
+            {
+                int cut = MaxLength - 1;
+                if ((data[cut] & 0x80) != 0)
+                {
+                    while (cut > 0 && (data[cut] & 0xc0) != 0xc0)
+                        cut--;
+                }
+                Array.Resize<byte>(ref data, cut);
             }
 
             return data;
