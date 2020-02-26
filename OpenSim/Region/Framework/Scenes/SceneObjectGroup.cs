@@ -80,7 +80,8 @@ namespace OpenSim.Region.Framework.Scenes
         touch_start = 2097152,
         transaction_result = 33554432,
         object_rez = 4194304,
-        anytouch = touch | touch_end | touch_start
+        anytouch = touch | touch_end | touch_start,
+        anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target
     }
 
     public struct scriptPosTarget
