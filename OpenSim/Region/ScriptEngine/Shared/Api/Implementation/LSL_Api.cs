@@ -4956,7 +4956,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             Vector3 av3 = Util.Clip(color, 0.0f, 1.0f);
             byte[] data;
-            data = Util.StringToBytes256(text);
+            data = Util.StringToBytesNoTerm(text,256);
             text = Util.UTF8.GetString(data);
             m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
         }
