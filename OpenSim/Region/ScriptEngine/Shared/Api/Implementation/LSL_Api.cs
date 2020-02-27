@@ -917,51 +917,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return eul;
         }
 
-        /* From wiki:
-        The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes
-        in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation,
-        a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting
-        vector 2 degrees around the global Y axis, and finally rotating that 1 degree around the global X axis.
-        */
-
-        /* How we arrived at this llEuler2Rot
-         *
-         * Experiment in SL to determine conventions:
-         *   llEuler2Rot(<PI,0,0>)=<1,0,0,0>
-         *   llEuler2Rot(<0,PI,0>)=<0,1,0,0>
-         *   llEuler2Rot(<0,0,PI>)=<0,0,1,0>
-         *
-         * Important facts about Quaternions
-         *  - multiplication is non-commutative (a*b != b*a)
-         *  - http://en.wikipedia.org/wiki/Quaternion#Basis_multiplication
-         *
-         * Above SL experiment gives (c1,c2,c3,s1,s2,s3 as defined in our llEuler2Rot):
-         *   Qx = c1+i*s1
-         *   Qy = c2+j*s2;
-         *   Qz = c3+k*s3;
-         *
-         * Rotations applied in order (from above) Z, Y, X
-         * Q = (Qz * Qy) * Qx
-         * ((c1+i*s1)*(c2+j*s2))*(c3+k*s3)
-         * (c1*c2+i*s1*c2+j*c1*s2+ij*s1*s2)*(c3+k*s3)
-         * (c1*c2+i*s1*c2+j*c1*s2+k*s1*s2)*(c3+k*s3)
-         * c1*c2*c3+i*s1*c2*c3+j*c1*s2*c3+k*s1*s2*c3+k*c1*c2*s3+ik*s1*c2*s3+jk*c1*s2*s3+kk*s1*s2*s3
-         * c1*c2*c3+i*s1*c2*c3+j*c1*s2*c3+k*s1*s2*c3+k*c1*c2*s3 -j*s1*c2*s3 +i*c1*s2*s3   -s1*s2*s3
-         * regroup: x=i*(s1*c2*c3+c1*s2*s3)
-         *          y=j*(c1*s2*c3-s1*c2*s3)
-         *          z=k*(s1*s2*c3+c1*c2*s3)
-         *          s=   c1*c2*c3-s1*s2*s3
-         *
-         * This implementation agrees with the functions found here:
-         * http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions
-         * And with the results in SL.
-         *
-         * It's also possible to calculate llEuler2Rot by direct multiplication of
-         * the Qz, Qy, and Qx vectors (as above - and done in the "accurate" function
-         * from the wiki).
-         * Apparently in some cases this is better from a numerical precision perspective?
-         */
-
         public LSL_Rotation llEuler2Rot(LSL_Vector v)
         {
             m_host.AddScriptLPS(1);
@@ -1122,48 +1077,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             //A and B should both be normalized
             m_host.AddScriptLPS(1);
-            /*  This method is more accurate than the SL one, and thus causes problems
-                for scripts that deal with the SL inaccuracy around 180-degrees -.- .._.
-
-            double dotProduct = LSL_Vector.Dot(a, b);
-            LSL_Vector crossProduct = LSL_Vector.Cross(a, b);
-            double magProduct = LSL_Vector.Mag(a) * LSL_Vector.Mag(b);
-            double angle = Math.Acos(dotProduct / magProduct);
-            LSL_Vector axis = LSL_Vector.Norm(crossProduct);
-            double s = Math.Sin(angle / 2);
-
-            double x = axis.x * s;
-            double y = axis.y * s;
-            double z = axis.z * s;
-            double w = Math.Cos(angle / 2);
-
-            if (Double.IsNaN(x) || Double.IsNaN(y) || Double.IsNaN(z) || Double.IsNaN(w))
-                return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
-
-            return new LSL_Rotation((float)x, (float)y, (float)z, (float)w);
-            */
 
             // This method mimics the 180 errors found in SL
             // See www.euclideanspace.com... angleBetween
-            LSL_Vector vec_a = a;
-            LSL_Vector vec_b = b;
 
             // Eliminate zero length
-            LSL_Float vec_a_mag = LSL_Vector.Mag(vec_a);
-            LSL_Float vec_b_mag = LSL_Vector.Mag(vec_b);
-            if (vec_a_mag < 0.00001 ||
-                vec_b_mag < 0.00001)
+            LSL_Float vec_a_mag = LSL_Vector.MagSquare(a);
+            LSL_Float vec_b_mag = LSL_Vector.MagSquare(b);
+            if (vec_a_mag < 1e-12 ||
+                vec_b_mag < 1e-12)
             {
                 return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
             }
 
             // Normalize
-            vec_a = llVecNorm(vec_a);
-            vec_b = llVecNorm(vec_b);
+            a = llVecNorm(a);
+            b = llVecNorm(b);
 
             // Calculate axis and rotation angle
-            LSL_Vector axis = vec_a % vec_b;
-            LSL_Float cos_theta  = vec_a * vec_b;
+            LSL_Vector axis = a % b;
+            LSL_Float cos_theta  = a * b;
 
             // Check if parallel
             if (cos_theta > 0.99999)
@@ -1174,8 +1107,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Check if anti-parallel
             else if (cos_theta < -0.99999)
             {
-                LSL_Vector orthog_axis = new LSL_Vector(1.0, 0.0, 0.0) - (vec_a.x / (vec_a * vec_a) * vec_a);
-                if (LSL_Vector.Mag(orthog_axis)  < 0.000001)  orthog_axis = new LSL_Vector(0.0, 0.0, 1.0);
+                LSL_Vector orthog_axis = new LSL_Vector(1.0, 0.0, 0.0) - (a.x / (a * a) * a);
+                if (LSL_Vector.MagSquare(orthog_axis)  < 1e-12)
+                    orthog_axis = new LSL_Vector(0.0, 0.0, 1.0);
                 return new LSL_Rotation((float)orthog_axis.x, (float)orthog_axis.y, (float)orthog_axis.z, 0.0);
             }
             else // other rotation
@@ -11198,11 +11132,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// http://wiki.secondlife.com/wiki/LlGetBoundingBox
         /// http://lslwiki.net/lslwiki/wakka.php?wakka=llGetBoundingBox
         /// Returns local bounding box of avatar without attachments
-        /// if target is non-seated avatar or prim/mesh in avatar attachment.
-        /// Returns local bounding box of object including seated avatars
+        ///   if target is non-seated avatar or prim/mesh in avatar attachment.
+        /// Returns local bounding box of object
         /// if target is seated avatar or prim/mesh in object.
-        /// Uses meshing of prims for high accuracy
-        /// or less accurate box models for speed.
+        /// Uses less accurate box models for speed.
         /// </summary>
         public LSL_List llGetBoundingBox(string obj)
         {
@@ -13482,6 +13415,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetPayPrice(int price, LSL_List quick_pay_buttons)
         {
             m_host.AddScriptLPS(1);
+            if(m_host.LocalId != m_host.ParentGroup.RootPart.LocalId)
+                return;
 
             if (quick_pay_buttons.Data.Length < 4)
             {
