@@ -7762,32 +7762,74 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(destination, out destID))
                 return;
 
+            SceneObjectPart destsop = null;
+            ScenePresence sp = null;
+            bool isNotOwner = true;
+            if (!World.TryGetSceneObjectPart(destID, out destsop))
+            {
+                if (!World.TryGetScenePresence(destID, out sp))
+                {
+                    // we could check if it is a grid user and allow the transfer as in older code
+                    // but that increases security risk
+                    Error("llGiveInventoryList", "Unable to give list, destination not found");
+                    ScriptSleep(100);
+                    return;
+                }
+                isNotOwner = sp.UUID != m_host.OwnerID;
+            }
+
             List<UUID> itemList = new List<UUID>();
 
             foreach (Object item in inventory.Data)
             {
                 string rawItemString = item.ToString();
+                TaskInventoryItem taskItem = null;
 
-                UUID itemID;
-                if (UUID.TryParse(rawItemString, out itemID))
+                if (UUID.TryParse(rawItemString, out UUID itemID))
+                    taskItem = m_host.Inventory.GetInventoryItem(itemID);
+                else
+                    taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
+
+                if(taskItem == null)
+                    continue;
+
+                if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    continue;
+
+                if (destsop != null)
                 {
-                    itemList.Add(itemID);
+                    if(!World.Permissions.CanDoObjectInvToObjectInv(taskItem, m_host, destsop))
+                        continue;
                 }
                 else
                 {
-                    TaskInventoryItem taskItem = m_host.Inventory.GetInventoryItem(rawItemString);
-
-                    if (taskItem != null)
-                        itemList.Add(taskItem.ItemID);
+                    if(isNotOwner)
+                    {
+                        if ((taskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                            continue;
+                    }
                 }
+
+                itemList.Add(taskItem.ItemID);
             }
 
             if (itemList.Count == 0)
+            {
+                Error("llGiveInventoryList", "Unable to give list, no items found");
+                ScriptSleep(100);
                 return;
+            }
 
             UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
 
             if (folderID == UUID.Zero)
+            {
+                Error("llGiveInventoryList", "Unable to give list");
+                ScriptSleep(100);
+                return;
+            }
+
+            if (destsop != null)
                 return;
 
             if (m_TransferModule != null)
@@ -7807,6 +7849,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
+
+            ScriptSleep(destsop == null ?  3000 : 100);
         }
 
         public void llSetVehicleType(int type)
