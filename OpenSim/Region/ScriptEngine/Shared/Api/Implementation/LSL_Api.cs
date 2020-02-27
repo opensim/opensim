@@ -115,6 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_ScriptDistanceFactor = 1.0f;
         protected float m_MinTimerInterval = 0.5f;
         protected float m_recoilScaleFactor = 0.0f;
+        protected bool m_AllowGodFunctions;
 
         protected double m_timer = Util.GetTimeStampMS();
         protected bool m_waitingForScriptAnswer = false;
@@ -340,7 +341,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Rezzing an object with a velocity can create recoil. This feature seems to have been
                 //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
                 //    it by this factor. May be zero to turn off recoil all together.
-                m_recoilScaleFactor = m_ScriptEngine.Config.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
+                m_recoilScaleFactor = seConfig.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
+                m_AllowGodFunctions = seConfig.GetBoolean("AllowGodFunctions", false);
             }
 
             if (m_notecardLineReadCharsMax > 65535)
@@ -4841,8 +4843,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 byte[] bucket = new byte[1];
                 bucket[0] = (byte)item.Type;
-                //byte[] objBytes = agentItem.ID.GetBytes();
-                //Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.OwnerID, m_host.Name, destId,
@@ -11161,8 +11161,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence presence = World.GetScenePresence(objID);
             if (presence != null)
             {
-                // As per LSL Wiki, there is no difference between sitting
-                // and standing avatar since server 1.36
                 LSL_Vector lower;
                 LSL_Vector upper;
 
@@ -12667,74 +12665,132 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_List(outlist);
         }
 
+        private const uint fullperms = (uint)PermissionMask.All; // no export for now
+
+        private int PermissionMaskToLSLPerm(uint value)
+        {
+            value &= fullperms;
+            if (value == fullperms)
+                return ScriptBaseClass.PERM_ALL;
+            if( value == 0)
+                return 0;
+
+            int ret = 0;
+
+            if ((value & (uint)PermissionMask.Copy) != 0)
+                ret |= ScriptBaseClass.PERM_COPY;
+
+            if ((value & (uint)PermissionMask.Modify) != 0)
+                ret |= ScriptBaseClass.PERM_MODIFY;
+
+            if ((value & (uint)PermissionMask.Move) != 0)
+                ret |= ScriptBaseClass.PERM_MOVE;
+
+            if ((value & (uint)PermissionMask.Transfer) != 0)
+                ret |= ScriptBaseClass.PERM_TRANSFER;
+
+            return ret;
+        }
+
+        private uint LSLPermToPermissionMask(int lslperm, uint oldvalue)
+        {
+            lslperm &= ScriptBaseClass.PERM_ALL;
+            if (lslperm == ScriptBaseClass.PERM_ALL)
+                return oldvalue |= fullperms;
+
+            oldvalue &= ~fullperms;
+            if(lslperm != 0)
+            {
+                if ((lslperm & ScriptBaseClass.PERM_COPY) != 0)
+                    oldvalue |= (uint)PermissionMask.Copy;
+
+                if ((lslperm & ScriptBaseClass.PERM_MODIFY) != 0)
+                    oldvalue |= (uint)PermissionMask.Modify;
+
+                if ((lslperm & ScriptBaseClass.PERM_MOVE) != 0)
+                    oldvalue |= (uint)PermissionMask.Move;
+
+                if ((lslperm & ScriptBaseClass.PERM_TRANSFER) != 0)
+                    oldvalue |= (uint)PermissionMask.Transfer;
+            }
+
+            return oldvalue;
+        }
+
+        private int fixedCopyTransfer(int value)
+        {
+            if ((value & (ScriptBaseClass.PERM_COPY | ScriptBaseClass.PERM_TRANSFER)) == 0)
+                value |= ScriptBaseClass.PERM_TRANSFER;
+            return value;
+        }
+
         public LSL_Integer llGetObjectPermMask(int mask)
         {
             m_host.AddScriptLPS(1);
 
-            int permmask = 0;
-
-            if (mask == ScriptBaseClass.MASK_BASE)//0
+            switch(mask)
             {
-                permmask = (int)m_host.BaseMask;
-            }
+                case ScriptBaseClass.MASK_BASE:
+                    return PermissionMaskToLSLPerm(m_host.BaseMask);
 
-            else if (mask == ScriptBaseClass.MASK_OWNER)//1
-            {
-                permmask = (int)m_host.OwnerMask;
-            }
+                case ScriptBaseClass.MASK_OWNER:
+                    return PermissionMaskToLSLPerm(m_host.OwnerMask);
 
-            else if (mask == ScriptBaseClass.MASK_GROUP)//2
-            {
-                permmask = (int)m_host.GroupMask;
-            }
+                case ScriptBaseClass.MASK_GROUP:
+                    return PermissionMaskToLSLPerm(m_host.GroupMask);
 
-            else if (mask == ScriptBaseClass.MASK_EVERYONE)//3
-            {
-                permmask = (int)m_host.EveryoneMask;
-            }
+                case ScriptBaseClass.MASK_EVERYONE:
+                    return PermissionMaskToLSLPerm(m_host.EveryoneMask);
 
-            else if (mask == ScriptBaseClass.MASK_NEXT)//4
-            {
-                permmask = (int)m_host.NextOwnerMask;
+                case ScriptBaseClass.MASK_NEXT:
+                    return PermissionMaskToLSLPerm(m_host.NextOwnerMask);
             }
-
-            return permmask;
+            return -1;
         }
 
         public void llSetObjectPermMask(int mask, int value)
         {
             m_host.AddScriptLPS(1);
 
-            if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
+            if (!m_AllowGodFunctions || !World.Permissions.IsAdministrator(m_host.OwnerID))
+                return;
+
+            // not even admins have right to violate basic rules
+            if (mask != ScriptBaseClass.MASK_BASE)
             {
-                if (World.Permissions.IsAdministrator(m_host.OwnerID))
-                {
-                    if (mask == ScriptBaseClass.MASK_BASE)//0
-                    {
-                        m_host.BaseMask = (uint)value;
-                    }
-
-                    else if (mask == ScriptBaseClass.MASK_OWNER)//1
-                    {
-                        m_host.OwnerMask = (uint)value;
-                    }
-
-                    else if (mask == ScriptBaseClass.MASK_GROUP)//2
-                    {
-                        m_host.GroupMask = (uint)value;
-                    }
-
-                    else if (mask == ScriptBaseClass.MASK_EVERYONE)//3
-                    {
-                        m_host.EveryoneMask = (uint)value;
-                    }
-
-                    else if (mask == ScriptBaseClass.MASK_NEXT)//4
-                    {
-                        m_host.NextOwnerMask = (uint)value;
-                    }
-                }
+                mask &= PermissionMaskToLSLPerm(m_host.BaseMask);
+                if (mask != ScriptBaseClass.MASK_OWNER)
+                    mask &= PermissionMaskToLSLPerm(m_host.OwnerMask);
             }
+
+            switch (mask)
+            {
+                case ScriptBaseClass.MASK_BASE:
+                    value = fixedCopyTransfer(value);
+                    m_host.BaseMask = LSLPermToPermissionMask(value, m_host.BaseMask);
+                    break;
+
+                case ScriptBaseClass.MASK_OWNER:
+                    value = fixedCopyTransfer(value);
+                    m_host.OwnerMask = LSLPermToPermissionMask(value, m_host.OwnerMask);
+                    break;
+
+                case ScriptBaseClass.MASK_GROUP:
+                    m_host.GroupMask = LSLPermToPermissionMask(value, m_host.GroupMask);
+                    break;
+
+                case ScriptBaseClass.MASK_EVERYONE:
+                    m_host.EveryoneMask = LSLPermToPermissionMask(value, m_host.EveryoneMask);
+                    break;
+
+                case ScriptBaseClass.MASK_NEXT:
+                    value = fixedCopyTransfer(value);
+                    m_host.NextOwnerMask = LSLPermToPermissionMask(value, m_host.NextOwnerMask);
+                    break;
+                default:
+                    return;
+            }
+            m_host.ParentGroup.AggregatePerms();
         }
 
         public LSL_Integer llGetInventoryPermMask(string itemName, int mask)
@@ -12748,53 +12804,68 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             switch (mask)
             {
-                case 0:
-                    return (int)item.BasePermissions;
-                case 1:
-                    return (int)item.CurrentPermissions;
-                case 2:
-                    return (int)item.GroupPermissions;
-                case 3:
-                    return (int)item.EveryonePermissions;
-                case 4:
-                    return (int)item.NextPermissions;
+                case ScriptBaseClass.MASK_BASE:
+                    return PermissionMaskToLSLPerm(item.BasePermissions);
+                case ScriptBaseClass.MASK_OWNER:
+                    return PermissionMaskToLSLPerm(item.CurrentPermissions);
+                case ScriptBaseClass.MASK_GROUP:
+                    return PermissionMaskToLSLPerm(item.GroupPermissions);
+                case ScriptBaseClass.MASK_EVERYONE:
+                    return PermissionMaskToLSLPerm(item.EveryonePermissions);
+                case ScriptBaseClass.MASK_NEXT:
+                    return PermissionMaskToLSLPerm(item.NextPermissions);
             }
-
             return -1;
         }
 
         public void llSetInventoryPermMask(string itemName, int mask, int value)
         {
             m_host.AddScriptLPS(1);
+            if(!m_AllowGodFunctions || !World.Permissions.IsAdministrator(m_host.OwnerID))
+                return;
 
-            if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
+            TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
+
+            if (item != null)
             {
-                if (World.Permissions.IsAdministrator(m_host.OwnerID))
+                if (mask != ScriptBaseClass.MASK_BASE)
                 {
-                    TaskInventoryItem item = m_host.Inventory.GetInventoryItem(itemName);
-
-                    if (item != null)
-                    {
-                        switch (mask)
-                        {
-                            case 0:
-                                item.BasePermissions = (uint)value;
-                                break;
-                            case 1:
-                                item.CurrentPermissions = (uint)value;
-                                break;
-                            case 2:
-                                item.GroupPermissions = (uint)value;
-                                break;
-                            case 3:
-                                item.EveryonePermissions = (uint)value;
-                                break;
-                            case 4:
-                                item.NextPermissions = (uint)value;
-                                break;
-                        }
-                    }
+                    mask &= PermissionMaskToLSLPerm(item.BasePermissions);
+                    if (mask != ScriptBaseClass.MASK_OWNER)
+                        mask &= PermissionMaskToLSLPerm(item.CurrentPermissions);
                 }
+
+                /*
+                if(item.Type == (int)(AssetType.Settings))
+                    value |= ScriptBaseClass.PERM_COPY;
+                */
+
+                switch (mask)
+                {
+                    case ScriptBaseClass.MASK_BASE:
+                        value = fixedCopyTransfer(value);
+                        item.BasePermissions = LSLPermToPermissionMask(value, item.BasePermissions);
+                        break;
+                    case ScriptBaseClass.MASK_OWNER:
+                        value = fixedCopyTransfer(value);
+                        item.CurrentPermissions = LSLPermToPermissionMask(value, item.CurrentPermissions);
+                        break;
+                    case ScriptBaseClass.MASK_GROUP:
+                        item.GroupPermissions = LSLPermToPermissionMask(value, item.GroupPermissions);
+                        break;
+                    case ScriptBaseClass.MASK_EVERYONE:
+                        item.EveryonePermissions = LSLPermToPermissionMask(value, item.EveryonePermissions);
+                        break;
+                    case ScriptBaseClass.MASK_NEXT:
+                        value = fixedCopyTransfer(value);
+                        item.NextPermissions = LSLPermToPermissionMask(value, item.NextPermissions);
+                        break;
+                    default:
+                        return;
+                }
+
+                m_host.ParentGroup.InvalidateDeepEffectivePerms();
+                m_host.ParentGroup.AggregatePerms();
             }
         }
 
