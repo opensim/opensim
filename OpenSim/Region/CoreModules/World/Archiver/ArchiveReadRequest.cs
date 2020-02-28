@@ -101,16 +101,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Merging usually suppresses terrain and parcel loading
         /// </value>
         protected bool m_merge;
+        protected bool m_mergeReplaceObjects;
 
         /// <value>
         /// If true, force the loading of terrain from the oar file
         /// </value>
-        protected bool m_forceTerrain;
+        protected bool m_mergeTerrain;
 
         /// <value>
-        /// If true, force the loading of parcels from the oar file
+        /// If true, force the merge of parcels from the oar file
         /// </value>
-        protected bool m_forceParcels;
+        protected bool m_mergeParcels;
 
         /// <value>
         /// Should we ignore any assets when reloading the archive?
@@ -210,8 +211,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_errorMessage = String.Empty;
 
             m_merge = options.ContainsKey("merge");
-            m_forceTerrain = options.ContainsKey("force-terrain");
-            m_forceParcels = options.ContainsKey("force-parcels");
+            m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
+            m_mergeTerrain = options.ContainsKey("merge-terrain");
+            m_mergeParcels = options.ContainsKey("merge-parcels");
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
             m_requestId = requestId;
@@ -270,6 +272,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_loadStream = loadStream;
             m_skipAssets = options.ContainsKey("skipAssets");
             m_merge = options.ContainsKey("merge");
+            m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
             m_requestId = requestId;
 
             m_defaultUser = scene.RegionInfo.EstateSettings.EstateOwner;
@@ -352,7 +355,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if ((successfulAssetRestores + failedAssetRestores) % 250 == 0)
                             m_log.Debug("[ARCHIVER]: Loaded " + successfulAssetRestores + " assets and failed to load " + failedAssetRestores + " assets...");
                     }
-                    else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH) && (!m_merge || m_forceTerrain))
+                    else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH) && (!m_merge || m_mergeTerrain))
                     {
                         LoadTerrain(scene, filePath, data);
                     }
@@ -360,7 +363,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         LoadRegionSettings(scene, filePath, data, dearchivedScenes);
                     }
-                    else if (filePath.StartsWith(ArchiveConstants.LANDDATA_PATH) && (!m_merge || m_forceParcels))
+                    else if (filePath.StartsWith(ArchiveConstants.LANDDATA_PATH) && (!m_merge || m_mergeParcels))
                     {
                         sceneContext.SerialisedParcels.Add(Encoding.UTF8.GetString(data));
                     }
@@ -546,23 +549,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             int sceneObjectsLoadedCount = 0;
             Vector3 boundingExtent = new Vector3(m_boundingOrigin.X + m_boundingSize.X, m_boundingOrigin.Y + m_boundingSize.Y, m_boundingOrigin.Z + m_boundingSize.Z);
 
+            int mergeskip = 0;
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
-                /*
-                m_log.DebugFormat("[ARCHIVER]: Loading xml with raw size {0}", serialisedSceneObject.Length);
-
-                // Really large xml files (multi megabyte) appear to cause
-                // memory problems
-                // when loading the xml.  But don't enable this check yet
-
-                if (serialisedSceneObject.Length > 5000000)
-                {
-                    m_log.Error("[ARCHIVER]: Ignoring xml since size > 5000000);");
-                    continue;
-                }
-                */
-
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);
+                if (m_merge)
+                {
+                    if(scene.TryGetSceneObjectGroup(sceneObject.UUID, out SceneObjectGroup oldSog))
+                    {
+                        ++mergeskip;
+                        if (m_mergeReplaceObjects)
+                            scene.DeleteSceneObject(oldSog, false);
+                        else
+                            continue;
+                    }
+                }
 
                 Vector3 pos = sceneObject.AbsolutePosition;
                 if (m_debug)
@@ -636,12 +637,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
             }
 
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjectsLoadedCount);
+            m_log.InfoFormat("[ARCHIVER]: Loaded {0} scene objects to the scene", sceneObjectsLoadedCount);
+            int ignoredObjects = serialisedSceneObjects.Count - sceneObjectsLoadedCount - mergeskip;
 
-            int ignoredObjects = serialisedSceneObjects.Count - sceneObjectsLoadedCount;
-
+            if(mergeskip > 0)
+            {
+                if(m_mergeReplaceObjects)
+                    m_log.InfoFormat("[ARCHIVER]:     Replaced {0} scene objects", mergeskip);
+                else
+                    m_log.InfoFormat("[ARCHIVER]:     Skipped {0} scene objects that already existed in the scene", mergeskip);
+            }
             if (ignoredObjects > 0)
-                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene or were out of bounds", ignoredObjects);
+                m_log.WarnFormat("[ARCHIVER]:     Ignored {0} possible out of bounds", ignoredObjects);
 
             if (oldTelehubUUID != UUID.Zero)
             {
@@ -730,6 +737,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="serialisedParcels"></param>
         protected void LoadParcels(Scene scene, List<string> serialisedParcels)
         {
+            if(serialisedParcels.Count == 0)
+            {
+                m_log.Info("[ARCHIVER]: No parcels to load, or skiping load");
+                return;
+            }
+
             // Reload serialized parcels
             m_log.InfoFormat("[ARCHIVER]: Loading {0} parcels.  Please wait.", serialisedParcels.Count);
             List<LandData> landData = new List<LandData>();
@@ -743,6 +756,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Gather any existing parcels before we add any more. Later as we add parcels we can check if the new parcel
             // data overlays any of the old data, and we can modify and remove (if empty) the old parcel so that there's no conflict
+            bool domerge = m_merge & m_mergeParcels;
+
             parcels = scene.LandChannel.AllParcels();
 
             foreach (string serialisedParcel in serialisedParcels)
@@ -787,7 +802,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 parcel.AABBMin = AABBMin;
                 parcel.AABBMax = AABBMax;
 
-                if (m_merge)
+                if (domerge)
                 {
                     // give the remapped parcel a new GlobalID, in case we're using the same OAR twice and a bounding cube, displacement and --merge
                     parcel.GlobalID = UUID.Random();
@@ -854,19 +869,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 landData.Add(parcel);
             }
 
-            if (m_merge)
-            {
-                for (int i = 0; i < parcels.Count; i++) //if merging then we need to also add back in any existing parcels
-                {
-                    if (parcels[i] != null) landData.Add(parcels[i].LandData);
-                }
-            }
-
             m_log.InfoFormat("[ARCHIVER]: Clearing {0} parcels.", parcels.Count);
             bool setupDefaultParcel = (landData.Count == 0);
             scene.LandChannel.Clear(setupDefaultParcel);
+
+            if (domerge)
+            {
+                int j = 0;
+                for (int i = 0; i < parcels.Count; i++) //if merging then we need to also add back in any existing parcels
+                {
+                    if (parcels[i] != null)
+                    {
+                        landData.Add(parcels[i].LandData);
+                        j++;
+                    }
+                }
+                m_log.InfoFormat("[ARCHIVER]: Keeping {0} old parcels.", j);
+            }
+
             scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);
+            m_log.InfoFormat("[ARCHIVER]: Added {0} total parcels.", landData.Count);
         }
 
         /// <summary>

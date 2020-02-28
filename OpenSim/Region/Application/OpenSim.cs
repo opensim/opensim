@@ -317,7 +317,8 @@ namespace OpenSim
             m_console.Commands.AddCommand("Archiving", false, "load oar",
                                           "load oar [-m|--merge] [-s|--skip-assets]"
                                              + " [--default-user \"User Name\"]"
-                                             + " [--force-terrain] [--force-parcels]"
+                                             + " [--merge-terrain] [--merge-parcels]"
+                                             + " [--mergeReplaceObjects]"
                                              + " [--no-objects]"
                                              + " [--rotation degrees]"
                                              + " [--bounding-origin \"<x,y,z>\"]"
@@ -327,10 +328,13 @@ namespace OpenSim
                                              + " [<OAR path>]",
                                           "Load a region's data from an OAR archive.",
                                           "--merge will merge the OAR with the existing scene (suppresses terrain and parcel info loading).\n"
+                                            + " options with --merge\n"
+                                            + "  --merge-terrain also load the terrain, replacing original\n"
+                                            + "  --merge-parcels also load parcels, merging with original\n"
+                                            + "  --mergeReplaceObjects if scene as a object with same id, replace it\n"
+                                            + "       without this option, skip loading that object\n"
                                             + "--skip-assets will load the OAR but ignore the assets it contains.\n"
                                             + "--default-user will use this user for any objects with an owner whose UUID is not found in the grid.\n"
-                                            + "--force-terrain forces the loading of terrain from the oar (undoes suppression done by --merge).\n"
-                                            + "--force-parcels forces the loading of parcels from the oar (undoes suppression done by --merge).\n"
                                             + "--no-objects suppresses the addition of any objects (good for loading only the terrain).\n"
                                             + "--rotation specified rotation to be applied to the oar. Specified in degrees.\n"
                                             + "--bounding-origin will only place objects that after displacement and rotation fall within the bounding cube who's position starts at <x,y,z>. Defaults to <0,0,0>.\n"

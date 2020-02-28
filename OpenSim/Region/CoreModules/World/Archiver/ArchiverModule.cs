@@ -101,9 +101,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
         {
             bool mergeOar = false;
+            bool mergeReplaceObjects = false;
             bool skipAssets = false;
-            bool forceTerrain = false;
-            bool forceParcels = false;
+            bool mergeTerrain = false;
+            bool mergeParcels = false;
             bool noObjects = false;
             Vector3 displacement = new Vector3(0f, 0f, 0f);
             String defaultUser = "";
@@ -112,14 +113,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Vector3 boundingOrigin = new Vector3(0f, 0f, 0f);
             Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue);
             bool debug = false;
-
+            
             OptionSet options = new OptionSet();
             options.Add("m|merge", delegate(string v) { mergeOar = (v != null); });
+            options.Add("mergeReplaceObjects", delegate (string v) { mergeReplaceObjects = (v != null); });
             options.Add("s|skip-assets", delegate(string v) { skipAssets = (v != null); });
-            options.Add("force-terrain", delegate(string v) { forceTerrain = (v != null); });
-            options.Add("forceterrain", delegate(string v) { forceTerrain = (v != null); });   // downward compatibility
-            options.Add("force-parcels", delegate(string v) { forceParcels = (v != null); });
-            options.Add("forceparcels", delegate(string v) { forceParcels = (v != null); });   // downward compatibility
+            options.Add("merge-terrain", delegate(string v) { mergeTerrain = (v != null); });
+            options.Add("force-terrain", delegate (string v) { mergeTerrain = (v != null); });   // downward compatibility
+            options.Add("forceterrain", delegate (string v) { mergeTerrain = (v != null); });   // downward compatibility
+            options.Add("merge-parcels", delegate(string v) { mergeParcels = (v != null); });
+            options.Add("force-parcels", delegate (string v) { mergeParcels = (v != null); });   // downward compatibility
+            options.Add("forceparcels", delegate (string v) { mergeParcels = (v != null); });   // downward compatibility
             options.Add("no-objects", delegate(string v) { noObjects = (v != null); });
             options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
             options.Add("displacement=", delegate(string v)
@@ -212,8 +216,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
             if (mergeOar) archiveOptions.Add("merge", null);
             if (skipAssets) archiveOptions.Add("skipAssets", null);
-            if (forceTerrain) archiveOptions.Add("force-terrain", null);
-            if (forceParcels) archiveOptions.Add("force-parcels", null);
+            if (mergeReplaceObjects) archiveOptions.Add("mReplaceObjects", null);
+            if (mergeTerrain) archiveOptions.Add("merge-terrain", null);
+            if (mergeParcels) archiveOptions.Add("merge-parcels", null);
             if (noObjects) archiveOptions.Add("no-objects", null);
             if (defaultUser != "")
             {
