@@ -612,53 +612,52 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                 // Check for option enables.
-
-                if ((c == ';') && (lastToken is TokenName) &&
-                    (strcasecmp(((TokenName)lastToken).val, "yoptions") == 0))
+                if ((c == ';') && (lastToken is TokenName))
                 {
-                    options.advFlowCtl = true;
-                    options.tryCatch = true;
-
-                    lastToken = lastToken.prevToken;
-                    lastToken.nextToken = null;
-                    continue;
-                }
-
-                else if ((c == ';') && (lastToken is TokenName) &&
-                        (lastToken.prevToken is TokenName) &&
-                        (strcasecmp(((TokenName)lastToken.prevToken).val, "yoption") == 0))
-                {
-                    string opt = ((TokenName)lastToken).val;
-                    if(strcasecmp(opt, "allowall") == 0)
+                    if(strcasecmp(((TokenName)lastToken).val, "yoptions") == 0)
                     {
-                        options.arrays = true;
                         options.advFlowCtl = true;
                         options.tryCatch = true;
-                        options.objects = true;
-                        options.chars = true;
-                        //                        options.noRightToLeft = true;
-                        options.dollarsigns = true;
-                    }
-                    else if(strcasecmp(opt, "arrays") == 0)
-                        options.arrays = true;
-                    else if(strcasecmp(opt, "advflowctl") == 0)
-                        options.advFlowCtl = true;
-                    else if(strcasecmp(opt, "trycatch") == 0)
-                        options.tryCatch = true;
-                    else if(strcasecmp(opt, "objects") == 0)
-                        options.objects = true;
-                    else if(strcasecmp(opt, "chars") == 0)
-                        options.chars = true;
-                    else if(strcasecmp(opt, "norighttoleft") == 0)
-                        options.noRightToLeft = true;
-                    else if(strcasecmp(opt, "dollarsigns") == 0)
-                        options.dollarsigns = true;
-                    else
-                        lastToken.ErrorMsg("unknown YOption");
 
-                    lastToken = lastToken.prevToken.prevToken;
-                    lastToken.nextToken = null;
-                    continue;
+                        lastToken = lastToken.prevToken;
+                        lastToken.nextToken = null;
+                        continue;
+                    }
+                    else if ((lastToken.prevToken is TokenName) &&
+                            (strcasecmp(((TokenName)lastToken.prevToken).val, "yoption") == 0))
+                    {
+                        string opt = ((TokenName)lastToken).val;
+                        if(strcasecmp(opt, "allowall") == 0)
+                        {
+                            options.arrays = true;
+                            options.advFlowCtl = true;
+                            options.tryCatch = true;
+                            options.objects = true;
+                            options.chars = true;
+                            //                        options.noRightToLeft = true;
+                            options.dollarsigns = true;
+                        }
+                        else if(strcasecmp(opt, "arrays") == 0)
+                            options.arrays = true;
+                        else if(strcasecmp(opt, "advflowctl") == 0)
+                            options.advFlowCtl = true;
+                        else if(strcasecmp(opt, "trycatch") == 0)
+                            options.tryCatch = true;
+                        else if(strcasecmp(opt, "objects") == 0)
+                            options.objects = true;
+                        else if(strcasecmp(opt, "chars") == 0)
+                            options.chars = true;
+                        else if(strcasecmp(opt, "norighttoleft") == 0)
+                            options.noRightToLeft = true;
+                        else if(strcasecmp(opt, "dollarsigns") == 0)
+                            options.dollarsigns = true;
+                        else
+                            lastToken.ErrorMsg("unknown YOption");
+
+                        lastToken = lastToken.prevToken.prevToken;
+                        lastToken.nextToken = null;
+                        continue;
+                    }
                 }
 
                  // Lastly, check for delimeters.
