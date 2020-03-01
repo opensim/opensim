@@ -143,7 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
                             count = 0;
                         }
                     }
-                    catch (Exception e)
+                    catch
+                    // catch (Exception e)
                     {
                         //m_log.ErrorFormat(
                         //    "[ASYNC OBJECT DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
