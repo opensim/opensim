@@ -2318,7 +2318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="fetchFolders">Do we need to send folder information?</param>
         /// <param name="fetchItems">Do we need to send item information?</param>
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
-                                               List<InventoryFolderBase> folders, int version,
+                                               List<InventoryFolderBase> folders, int version, int descendents,
                                                bool fetchFolders, bool fetchItems)
         {
             // An inventory descendents packet consists of a single agent section and an inventory details
@@ -2339,7 +2339,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Handle empty folders
             //
             if (totalItems == 0 && totalFolders == 0)
-                currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, 0, 0);
+                currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, descendents, 0, 0);
 
             // To preserve SL compatibility, we will NOT combine folders and items in one packet
             //
@@ -2358,7 +2358,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             itemsToSend = MAX_ITEMS_PER_PACKET;
                     }
 
-                    currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, foldersToSend, itemsToSend);
+                    currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, descendents, foldersToSend, itemsToSend);
                 }
 
                 if (foldersToSend-- > 0)
@@ -10190,9 +10190,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (Fetch.AgentData.SessionID != SessionId || Fetch.AgentData.AgentID != AgentId)
                 return;
 
-            OnFetchInventoryDescendents?.Invoke(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID,
-                                                Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems,
-                                                Fetch.InventoryData.SortOrder);
+            FetchInventoryDescendentsPacket.InventoryDataBlock data = Fetch.InventoryData;
+            OnFetchInventoryDescendents?.Invoke(this, data.FolderID, data.OwnerID,
+                                                data.FetchFolders, data.FetchItems,
+                                                data.SortOrder);
         }
 
         private void HandlePurgeInventoryDescendents(Packet Pack)

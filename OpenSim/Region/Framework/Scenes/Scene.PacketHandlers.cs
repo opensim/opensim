@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -504,15 +505,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             public IClientAPI RemoteClient;
             public UUID FolderID;
-            public UUID OwnerID;
+            //public UUID OwnerID;
             public bool FetchFolders;
             public bool FetchItems;
-            public int SortOrder;
+            //public int SortOrder;
         }
 
-        private Queue<DescendentsRequestData> m_descendentsRequestQueue = new Queue<DescendentsRequestData>();
-        private Object m_descendentsRequestLock = new Object();
-        private bool m_descendentsRequestProcessing = false;
+        static private ConcurrentQueue<DescendentsRequestData> m_descendentsRequestQueue = new ConcurrentQueue<DescendentsRequestData>();
+        static private Object m_descendentsRequestLock = new Object();
+        static private bool m_descendentsRequestProcessing = false;
 
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
@@ -543,74 +544,54 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
                 {
+                    List<InventoryItemBase> its = fold.RequestListOfItems();
+                    List<InventoryFolderBase> fds = fold.RequestListOfFolders();
                     remoteClient.SendInventoryFolderDetails(
-                        fold.Owner, folderID, fold.RequestListOfItems(),
-                        fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
+                        fold.Owner, folderID, its, fds,
+                        fold.Version, its.Count + fds.Count, fetchFolders, fetchItems);
                     return;
                 }
             }
 
-            lock (m_descendentsRequestLock)
+            DescendentsRequestData req = new DescendentsRequestData();
+            req.RemoteClient = remoteClient;
+            req.FolderID = folderID;
+            //req.OwnerID = ownerID;
+            req.FetchFolders = fetchFolders;
+            req.FetchItems = fetchItems;
+            //req.SortOrder = sortOrder;
+
+            m_descendentsRequestQueue.Enqueue(req);
+
+            if (Monitor.TryEnter(m_descendentsRequestLock))
             {
                 if (!m_descendentsRequestProcessing)
                 {
                     m_descendentsRequestProcessing = true;
-
-                    // We're going to send the reply async, because there may be
-                    // an enormous quantity of packets -- basically the entire inventory!
-                    // We don't want to block the client thread while all that is happening.
-                    SendInventoryDelegate d = SendInventoryAsync;
-                    d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
-
-                    return;
+                    Util.FireAndForget(x => SendInventoryAsync());
                 }
-
-                DescendentsRequestData req = new DescendentsRequestData();
-                req.RemoteClient = remoteClient;
-                req.FolderID = folderID;
-                req.OwnerID = ownerID;
-                req.FetchFolders = fetchFolders;
-                req.FetchItems = fetchItems;
-                req.SortOrder = sortOrder;
-
-                m_descendentsRequestQueue.Enqueue(req);
+                Monitor.Exit(m_descendentsRequestLock);
             }
         }
 
-        delegate void SendInventoryDelegate(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
-
-        void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
+        void SendInventoryAsync()
         {
-            try
+            lock(m_descendentsRequestLock)
             {
-                SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(
-                    string.Format(
-                        "[AGENT INVENTORY]: Error in SendInventoryAsync() for {0} with folder ID {1}.  Exception  ", e, folderID));
-            }
-            Thread.Sleep(20);
-        }
-
-        void SendInventoryComplete(IAsyncResult iar)
-        {
-            SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
-            d.EndInvoke(iar);
-
-            lock (m_descendentsRequestLock)
-            {
-                if (m_descendentsRequestQueue.Count > 0)
+                try
                 {
-                    DescendentsRequestData req = m_descendentsRequestQueue.Dequeue();
-
-                    d = SendInventoryAsync;
-                    d.BeginInvoke(req.RemoteClient, req.FolderID, req.OwnerID, req.FetchFolders, req.FetchItems, req.SortOrder, SendInventoryComplete, d);
-
-                    return;
+                    while(m_descendentsRequestQueue.TryDequeue(out DescendentsRequestData req))
+                    {
+                        if(!req.RemoteClient.IsActive)
+                            continue;
+                        SendInventoryUpdate(req.RemoteClient, new InventoryFolderBase(req.FolderID), req.FetchFolders, req.FetchItems);
+                        Thread.Sleep(50);
+                    }
                 }
-
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[AGENT INVENTORY]: Error in SendInventoryAsync(). Exception {0}", e);
+                }
                 m_descendentsRequestProcessing = false;
             }
         }

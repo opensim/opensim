@@ -1586,9 +1586,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((fold = LibraryService.LibraryRootFolder.FindFolder(folder.ID)) != null)
                 {
+                    List<InventoryItemBase> its = fold.RequestListOfItems();
+                    List<InventoryFolderBase> fds = fold.RequestListOfFolders();
                     client.SendInventoryFolderDetails(
-                        fold.Owner, folder.ID, fold.RequestListOfItems(),
-                        fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
+                        fold.Owner, folder.ID, its, fds,
+                        fold.Version, its.Count + fds.Count, fetchFolders, fetchItems);
                     return;
                 }
             }
@@ -1602,37 +1604,41 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
 //                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
-            if (containingFolder != null)
+            if (containingFolder != null )
             {
-                // If the folder requested contains links, then we need to send those folders first, otherwise the links
-                // will be broken in the viewer.
-                HashSet<UUID> linkedItemFolderIdsToSend = new HashSet<UUID>();
-                foreach (InventoryItemBase item in contents.Items)
-                {
-                    if (item.AssetType == (int)AssetType.Link)
-                    {
-                        InventoryItemBase linkedItem = InventoryService.GetItem(client.AgentId, item.AssetID);
+                int descendents = contents.Folders.Count + contents.Items.Count;
 
-                        // Take care of genuinely broken links where the target doesn't exist
-                        // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
-                        // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
-                        // rather than having to keep track of every folder requested in the recursion.
-                        if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+                if(fetchItems && contents.Items.Count > 0)
+                {
+                    var linksIDs = new HashSet<UUID>();
+                    var links = new List<InventoryItemBase>();
+                    for (int i = 0; i < contents.Items.Count; ++i)
+                    {
+                        InventoryItemBase item = contents.Items[i];
+                        if (item.AssetType == (int)AssetType.Link)
                         {
-                            // We don't need to send the folder if source and destination of the link are in the same
-                            // folder.
-                            if (linkedItem.Folder != containingFolder.ID)
-                                linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                            UUID linkid = item.AssetID;
+                            if(linksIDs.Contains(linkid))
+                                continue;
+
+                            InventoryItemBase linkedItem = InventoryService.GetItem(item.Owner, linkid);
+                            if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link && linkedItem.AssetType != (int)AssetType.LinkFolder)
+                            {
+                                links.Add(linkedItem);
+                                linksIDs.Add(linkedItem.ID);
+                            }
                         }
+                    }
+                    if(links.Count > 0)
+                    {
+                        links.AddRange(contents.Items);
+                        contents.Items = links;
                     }
                 }
 
-                foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
-                    SendInventoryUpdate(client, new InventoryFolderBase(linkedItemFolderId), false, true);
-
                 client.SendInventoryFolderDetails(
                     client.AgentId, folder.ID, contents.Items, contents.Folders,
-                    containingFolder.Version, fetchFolders, fetchItems);
+                    containingFolder.Version, descendents, fetchFolders, fetchItems);
             }
         }
 

@@ -1207,8 +1207,8 @@ namespace OpenSim.Framework
         void FlushPrimUpdates();
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
-                                        List<InventoryFolderBase> folders, int version, bool fetchFolders,
-                                        bool fetchItems);
+                                        List<InventoryFolderBase> folders, int version, int descendents, 
+                                        bool fetchFolders, bool fetchItems);
 
         void SendInventoryItemDetails(InventoryItemBase[] items);
 
