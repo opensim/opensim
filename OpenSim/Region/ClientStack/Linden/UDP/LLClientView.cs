@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event TeleportCancel OnTeleportCancel;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
-        public event FetchInventory OnAgentDataUpdateRequest;
+        public event AgentDataUpdate OnAgentDataUpdateRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
@@ -2496,50 +2496,74 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return descend;
         }
 
-        public void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item)
+        public void SendInventoryItemDetails(InventoryItemBase[] items)
         {
             // Fudge this value. It's only needed to make the CRC anyway
             const uint FULL_MASK_PERMISSIONS = (uint)0x7fffffff;
 
             FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket)PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
-            // TODO: don't create new blocks if recycling an old packet
             inventoryReply.AgentData.AgentID = AgentId;
-            inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[1];
-            inventoryReply.InventoryData[0] = new FetchInventoryReplyPacket.InventoryDataBlock();
-            inventoryReply.InventoryData[0].ItemID = item.ID;
-            inventoryReply.InventoryData[0].AssetID = item.AssetID;
-            inventoryReply.InventoryData[0].CreatorID = item.CreatorIdAsUuid;
-            inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
-            inventoryReply.InventoryData[0].CreationDate = item.CreationDate;
 
-            inventoryReply.InventoryData[0].Description = Util.StringToBytes256(item.Description);
-            inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
-            inventoryReply.InventoryData[0].FolderID = item.Folder;
-            inventoryReply.InventoryData[0].InvType = (sbyte)item.InvType;
-            inventoryReply.InventoryData[0].Name = Util.StringToBytes256(item.Name);
-            inventoryReply.InventoryData[0].NextOwnerMask = item.NextPermissions;
-            inventoryReply.InventoryData[0].OwnerID = item.Owner;
-            inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
-            inventoryReply.InventoryData[0].Type = (sbyte)item.AssetType;
+            int total = items.Length;
+            int count = 0;
+            for(int i = 0; i < items.Length; ++i)
+            {
+                if(count == 0)
+                {
+                    if(total < 10)
+                    {
+                        inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[total];
+                        total = 0;
+                    }
+                    else
+                    {
+                        inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[10];
+                        total -= 10;
+                    }
+                }
 
-            inventoryReply.InventoryData[0].GroupID = item.GroupID;
-            inventoryReply.InventoryData[0].GroupOwned = item.GroupOwned;
-            inventoryReply.InventoryData[0].GroupMask = item.GroupPermissions;
-            inventoryReply.InventoryData[0].Flags = item.Flags;
-            inventoryReply.InventoryData[0].SalePrice = item.SalePrice;
-            inventoryReply.InventoryData[0].SaleType = item.SaleType;
+                inventoryReply.InventoryData[count] = new FetchInventoryReplyPacket.InventoryDataBlock();
+                FetchInventoryReplyPacket.InventoryDataBlock data = inventoryReply.InventoryData[count];
 
-            inventoryReply.InventoryData[0].CRC =
-                Helpers.InventoryCRC(
-                    1000, 0, inventoryReply.InventoryData[0].InvType,
-                    inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
-                    inventoryReply.InventoryData[0].GroupID, 100,
-                    inventoryReply.InventoryData[0].OwnerID, inventoryReply.InventoryData[0].CreatorID,
-                    inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
-                    FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
-                    FULL_MASK_PERMISSIONS);
-            inventoryReply.Header.Zerocoded = true;
-            OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
+                data.ItemID = items[i].ID;
+                data.AssetID = items[i].AssetID;
+                data.CreatorID = items[i].CreatorIdAsUuid;
+                data.BaseMask = items[i].BasePermissions;
+                data.CreationDate = items[i].CreationDate;
+
+                data.Description = Util.StringToBytes256(items[i].Description);
+                data.EveryoneMask = items[i].EveryOnePermissions;
+                data.FolderID = items[i].Folder;
+                data.InvType = (sbyte)items[i].InvType;
+                data.Name = Util.StringToBytes256(items[i].Name);
+                data.NextOwnerMask = items[i].NextPermissions;
+                data.OwnerID = items[i].Owner;
+                data.OwnerMask = items[i].CurrentPermissions;
+                data.Type = (sbyte)items[i].AssetType;
+
+                data.GroupID = items[i].GroupID;
+                data.GroupOwned = items[i].GroupOwned;
+                data.GroupMask = items[i].GroupPermissions;
+                data.Flags = items[i].Flags;
+                data.SalePrice = items[i].SalePrice;
+                data.SaleType = items[i].SaleType;
+
+                data.CRC = Helpers.InventoryCRC(
+                        1000, 0, data.InvType, data.Type, data.AssetID,
+                        data.GroupID, 100, data.OwnerID, data.CreatorID,
+                        data.ItemID, data.FolderID, FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                        FULL_MASK_PERMISSIONS);
+
+                ++count;
+                if(count == 10 || total == 0)
+                {
+                    inventoryReply.Header.Zerocoded = true;
+                    OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
+                    if(total == 0)
+                        break;
+                    count = 0;
+                }
+            }
         }
 
         protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase)
@@ -10146,11 +10170,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (FetchInventoryx.AgentData.SessionID != SessionId || FetchInventoryx.AgentData.AgentID != AgentId)
                 return;
 
-            for (int i = 0; i < FetchInventoryx.InventoryData.Length; i++)
+            FetchInventoryPacket.InventoryDataBlock[] data = FetchInventoryx.InventoryData;
+
+            UUID[] items = new UUID[data.Length];
+            UUID[]  owners = new UUID[data.Length];
+
+            for (int i = 0; i < data.Length; ++i)
             {
-                OnFetchInventory?.Invoke(this, FetchInventoryx.InventoryData[i].ItemID,
-                                        FetchInventoryx.InventoryData[i].OwnerID);
+                items[i] =data[i].ItemID;
+                owners[i] = data[i].OwnerID;
             }
+
+            OnFetchInventory?.Invoke(this, items, owners);
         }
 
         private void HandleFetchInventoryDescendents(Packet Pack)

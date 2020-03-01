@@ -348,7 +348,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event SpinStop OnSpinStop;
         public event ViewerEffectEventHandler OnViewerEffect;
 
-        public event FetchInventory OnAgentDataUpdateRequest;
+        public event AgentDataUpdate OnAgentDataUpdateRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
 
         public event UpdateShape OnUpdatePrimShape;
@@ -847,7 +847,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item)
+        public virtual void SendInventoryItemDetails(InventoryItemBase[] items)
         {
         }
 

@@ -27,7 +27,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Collections.Concurrent;
+//using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
@@ -39,12 +40,14 @@ namespace OpenSim.Region.Framework.Scenes
     class FetchHolder
     {
         public IClientAPI Client { get; private set; }
-        public UUID ItemID { get; private set; }
+        public UUID[] Items { get; private set; }
+        public UUID[] Owners { get; private set; }
 
-        public FetchHolder(IClientAPI client, UUID itemID)
+        public FetchHolder(IClientAPI client, UUID[] items, UUID[] owners)
         {
             Client = client;
-            ItemID = itemID;
+            Items = items;
+            Owners = owners;
         }
     }
 
@@ -77,16 +80,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Queues fetch requests
         /// </summary>
-        Queue<FetchHolder> m_fetchHolder = new Queue<FetchHolder>();
+        private static ConcurrentQueue<FetchHolder> m_fetchHolder = new ConcurrentQueue<FetchHolder>();
+        static private object m_threadLock = new object();
+        static private bool m_running;
 
         /// <summary>
         /// Signal whether a queue is currently being processed or not.
         /// </summary>
-        protected volatile bool m_processing;
-
         public AsyncInventorySender(Scene scene)
         {
-            m_processing = false;
             m_scene = scene;
         }
 
@@ -96,20 +98,20 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
         /// <param name="ownerID"></param>
-        public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
+        public void HandleFetchInventory(IClientAPI remoteClient, UUID[] items, UUID[] owners)
         {
-            lock (m_fetchHolder)
-            {
-//                m_log.DebugFormat(
-//                    "[ASYNC INVENTORY SENDER]: Putting request from {0} for {1} on queue", remoteClient.Name, itemID);
+               //m_log.DebugFormat(
+               //     "[ASYNC INVENTORY SENDER]: Putting request from {0} for {1} on queue", remoteClient.Name, itemID);
 
-                m_fetchHolder.Enqueue(new FetchHolder(remoteClient, itemID));
-            }
-
-            if (!m_processing)
+            m_fetchHolder.Enqueue(new FetchHolder(remoteClient, items, owners));
+            if (Monitor.TryEnter(m_threadLock))
             {
-                m_processing = true;
-                ProcessQueue();
+                if (!m_running)
+                {
+                    m_running = true;
+                    Util.FireAndForget(x => ProcessQueue());
+                }
+                Monitor.Exit(m_threadLock);
             }
         }
 
@@ -118,37 +120,42 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void ProcessQueue()
         {
-            FetchHolder fh = null;
-
-            while (true)
+            lock(m_threadLock)
             {
-                lock (m_fetchHolder)
+                try
                 {
-//                    m_log.DebugFormat("[ASYNC INVENTORY SENDER]: {0} items left to process", m_fetchHolder.Count);
+                    while (m_fetchHolder.TryDequeue(out FetchHolder fh))
+                    {
+                        if (!fh.Client.IsActive)
+                            continue;
+                        // m_log.DebugFormat(
+                        //     "[ASYNC INVENTORY SENDER]: Handling request from {0} for {1} on queue", fh.Client.Name, fh.ItemID);
 
-                    if (m_fetchHolder.Count == 0)
-                    {
-                        m_processing = false;
-                        return;
-                    }
-                    else
-                    {
-                        fh = m_fetchHolder.Dequeue();
+                        var items = new List<InventoryItemBase>();
+                        for(int i = 0; i < fh.Items.Length; ++i )
+                        {
+                            InventoryItemBase item = m_scene.InventoryService.GetItem(fh.Owners[i], fh.Items[i]);
+                            if (item == null)
+                                continue;
+
+                            /*
+                            if (item.AssetType == (int)AssetType.Link)
+                            {
+                                InventoryItemBase itemlk = m_scene.InventoryService.GetItem(fh.Owners[i], item.AssetID);
+                                if(itemlk != null)
+                                    items.Add(itemlk);
+                            }
+                            */
+
+                            items.Add(item);
+                        }
+
+                        fh.Client.SendInventoryItemDetails(items.ToArray());
+                         // TODO: Possibly log any failure
                     }
                 }
-
-                if (!fh.Client.IsActive)
-                    continue;
-
-//                m_log.DebugFormat(
-//                    "[ASYNC INVENTORY SENDER]: Handling request from {0} for {1} on queue", fh.Client.Name, fh.ItemID);
-
-                InventoryItemBase item = m_scene.InventoryService.GetItem(fh.Client.AgentId, fh.ItemID);
-
-                if (item != null)
-                    fh.Client.SendInventoryItemDetails(item.Owner, item);
-
-                 // TODO: Possibly log any failure
+                catch  { }
+                m_running = false;
             }
         }
     }

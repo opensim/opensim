@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Reflection;
+//using System.Reflection;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class AsyncSceneObjectGroupDeleter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         /// <value>
         /// Is the deleter currently enabled?
         /// </value>
@@ -145,8 +145,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat(
-                            "[ASYNC OBJECT DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
+                        //m_log.ErrorFormat(
+                        //    "[ASYNC OBJECT DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
                     }
                 }
                 // m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
