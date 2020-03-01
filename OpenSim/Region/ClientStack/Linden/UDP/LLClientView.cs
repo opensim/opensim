@@ -363,8 +363,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //        protected HashSet<uint> m_attachmentsSent;
 
-        private bool m_deliverPackets = true;
-
         private bool m_SendLogoutPacketWhenClosing = true;
 
         /// <summary>
