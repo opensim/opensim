@@ -716,6 +716,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         #region Cache Management
         public virtual bool GetUser(UUID uuid, out UserData userdata)
         {
+            if (m_Scenes.Count <= 0)
+            {
+                userdata = new UserData();
+                return false;
+            }
             return GetUser(uuid, m_Scenes[0].RegionInfo.ScopeID, out userdata);
         }
 
