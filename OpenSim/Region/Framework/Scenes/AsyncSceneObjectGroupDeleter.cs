@@ -27,8 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
-using System.Timers;
+using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -51,24 +52,20 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class AsyncSceneObjectGroupDeleter
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         /// <value>
         /// Is the deleter currently enabled?
         /// </value>
         public bool Enabled;
-
-        private Timer m_inventoryTicker = new Timer(2000);
-        private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();
         private Scene m_scene;
+
+        static private ConcurrentQueue<DeleteToInventoryHolder> m_inventoryDeletes = new ConcurrentQueue<DeleteToInventoryHolder>();
+        static private object m_threadLock = new object();
+        static private bool m_running;
 
         public AsyncSceneObjectGroupDeleter(Scene scene)
         {
             m_scene = scene;
-
-            m_inventoryTicker.AutoReset = false;
-            m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;
         }
 
         /// <summary>
@@ -78,21 +75,14 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> objectGroups, IClientAPI remoteClient,
                 bool permissionToDelete)
         {
-            if (Enabled)
-                lock (m_inventoryTicker)
-                    m_inventoryTicker.Stop();
+            DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
+            dtis.action = action;
+            dtis.folderID = folderID;
+            dtis.objectGroups = objectGroups;
+            dtis.remoteClient = remoteClient;
+            dtis.permissionToDelete = permissionToDelete;
 
-            lock (m_inventoryDeletes)
-            {
-                DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
-                dtis.action = action;
-                dtis.folderID = folderID;
-                dtis.objectGroups = objectGroups;
-                dtis.remoteClient = remoteClient;
-                dtis.permissionToDelete = permissionToDelete;
-
-                m_inventoryDeletes.Enqueue(dtis);
-            }
+            m_inventoryDeletes.Enqueue(dtis);
 
             if (permissionToDelete)
             {
@@ -100,23 +90,22 @@ namespace OpenSim.Region.Framework.Scenes
                     g.DeleteGroupFromScene(false);
             }
 
-            if (Enabled)
-                lock (m_inventoryTicker)
-                    m_inventoryTicker.Start();
-        }
-
-        private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
-        {
-//            m_log.Debug("[ASYNC DELETER]: Starting send to inventory loop");
-
-            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
-            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
-            // number seperators.
-            Culture.SetCurrentCulture();
-
-            while (InventoryDeQueueAndDelete())
+            if(Monitor.TryEnter(m_threadLock))
             {
-                //m_log.Debug("[ASYNC DELETER]: Sent item successfully to inventory, continuing...");
+                if(!m_running)
+                {
+                    if(Enabled)
+                    {
+                        m_running = true;
+                        Util.FireAndForget(x => InventoryDeQueueAndDelete());
+                    }
+                    else
+                    {
+                        m_running = true;
+                        InventoryDeQueueAndDelete();
+                    }
+                }
+                Monitor.Exit(m_threadLock);
             }
         }
 
@@ -124,60 +113,45 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move the next object in the queue to inventory.  Then delete it properly from the scene.
         /// </summary>
         /// <returns></returns>
-        public bool InventoryDeQueueAndDelete()
+        public void InventoryDeQueueAndDelete()
         {
-            DeleteToInventoryHolder x = null;
-
-            try
+            lock (m_threadLock)
             {
-                lock (m_inventoryDeletes)
+                IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+                if (invAccess == null)
+                    return;
+
+                int count = 0;
+                while (m_inventoryDeletes.TryDequeue(out DeleteToInventoryHolder x))
                 {
-                    int left = m_inventoryDeletes.Count;
-                    if (left > 0)
+                    //  m_log.DebugFormat(
+                    //  "[ASYNC DELETER]: Sending object to user's inventory, action {1}, count {2}, {0} item(s) remaining.",
+                    //  left, x.action, x.objectGroups.Count);
+                    try
                     {
-                        x = m_inventoryDeletes.Dequeue();
-
-//                        m_log.DebugFormat(
-//                            "[ASYNC DELETER]: Sending object to user's inventory, action {1}, count {2}, {0} item(s) remaining.",
-//                            left, x.action, x.objectGroups.Count);
-
-                        try
+                        invAccess.CopyToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient, false);
+                        if (x.permissionToDelete)
                         {
-                            IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
-                            if (invAccess != null)
-                                invAccess.CopyToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient, false);
-
-                            if (x.permissionToDelete)
-                            {
-                                foreach (SceneObjectGroup g in x.objectGroups)
-                                    m_scene.DeleteSceneObject(g, true);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat(
-                                "[ASYNC DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
+                            foreach (SceneObjectGroup g in x.objectGroups)
+                                m_scene.DeleteSceneObject(g, true);
                         }
 
-                        return true;
+                        count += x.objectGroups.Count;
+                        if(count > 256)
+                        {
+                            Thread.Sleep(50); // throttle
+                            count = 0;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[ASYNC OBJECT DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
                     }
                 }
+                // m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
+                m_running = false;
             }
-            catch (Exception e)
-            {
-                // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
-                // FIXME: This needs to be fixed.
-                m_log.ErrorFormat(
-                    "[ASYNC DELETER]: Queued sending of scene object to agent {0} {1} failed: {2} {3}",
-                    (x != null ? x.remoteClient.Name : "unavailable"),
-                    (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"),
-                    e.Message,
-                    e.StackTrace);
-            }
-
-//            m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
-
-            return false;
         }
     }
 }
