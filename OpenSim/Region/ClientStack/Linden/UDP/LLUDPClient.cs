@@ -189,7 +189,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
         private int m_maxRTO = 3000;
         private int m_minRTO = 250;
-        public bool m_deliverPackets = true;
 
         private float m_burstTime;
         private int m_maxRate;

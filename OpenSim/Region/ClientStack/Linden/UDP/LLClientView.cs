@@ -54,7 +54,7 @@ using RegionFlags = OpenMetaverse.RegionFlags;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public delegate void PacketMethod(IClientAPI simClient, Packet packet);
+    public delegate void PacketMethod(Packet packet);
 
     /// <summary>
     /// Handles new client connections
@@ -411,14 +411,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         public float StartFar { get; set; }
 
-        public bool DeliverPackets
-        {
-            get { return m_deliverPackets; }
-            set {
-                m_deliverPackets = value;
-                m_udpClient.m_deliverPackets = value;
-            }
-        }
         public UUID AgentId { get { return m_agentId; } }
         public UUID ScopeId { get { return m_scopeId; } }
         public ISceneAgent SceneAgent { get; set; }
@@ -722,18 +714,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>true if the handler was added.  This is currently always the case.</returns>
         public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool doAsync)
         {
-            bool result = false;
-            lock (m_packetHandlers)
+             lock (m_packetHandlers)
             {
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
-                    m_packetHandlers.Add(
-                        packetType, new PacketProcessor() { method = handler, Async = doAsync});
-                    result = true;
+                    m_packetHandlers.Add(packetType, new PacketProcessor() { method = handler, Async = doAsync});
+                    return true;
                 }
             }
-
-            return result;
+            return false;
         }
 
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
@@ -759,18 +748,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>True if a handler was found which successfully processed the packet.</returns>
         protected bool ProcessPacketMethod(Packet packet)
         {
-            PacketProcessor pprocessor;
-            if (m_packetHandlers.TryGetValue(packet.Type, out pprocessor))
+            if (m_packetHandlers.TryGetValue(packet.Type, out PacketProcessor pprocessor))
             {
-                //there is a local handler for this packet type
                 if (pprocessor.Async)
                 {
-                    object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
+                    object obj = new AsyncPacketProcess(pprocessor.method, packet);
                     m_asyncPacketProcess.QueueJob(packet.Type.ToString(), () => ProcessSpecificPacketAsync(obj));
                 }
                 else
                 {
-                    pprocessor.method(this, packet);
+                    pprocessor.method(packet);
                 }
                 return true;
             }
@@ -783,7 +770,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                packetObject.Method(packetObject.ClientView, packetObject.Pack);
+                packetObject.Method(packetObject.Pack);
             }
             catch (Exception e)
             {
@@ -8277,7 +8264,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        private void HandleAgentUpdate(IClientAPI sender, Packet packet)
+        private void HandleAgentUpdate(Packet packet)
         {
             if(OnAgentUpdate == null)
             {
@@ -8360,14 +8347,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             PacketPool.Instance.ReturnPacket(packet);
         }
 
-        private void HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
+        private void HandleMoneyTransferRequest(Packet Pack)
         {
             if(OnMoneyTransferRequest == null)
                 return;
             MoneyTransferRequestPacket money = (MoneyTransferRequestPacket)Pack;
             // validate the agent owns the agentID and sessionID
-            if (money.MoneyData.SourceID == sender.AgentId && money.AgentData.AgentID == sender.AgentId &&
-                money.AgentData.SessionID == sender.SessionId)
+            if (money.MoneyData.SourceID == AgentId && money.AgentData.AgentID == AgentId &&
+                money.AgentData.SessionID == SessionId)
             {
                 OnMoneyTransferRequest?.Invoke(money.MoneyData.SourceID, money.MoneyData.DestID,
                                             money.MoneyData.Amount, money.MoneyData.TransactionType,
@@ -8375,12 +8362,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleParcelGodMarkAsContent(IClientAPI client, Packet Packet)
+        private void HandleParcelGodMarkAsContent(Packet packet)
         {
             if(OnParcelGodMark == null)
                 return;
 
-            ParcelGodMarkAsContentPacket ParcelGodMarkAsContent = (ParcelGodMarkAsContentPacket)Packet;
+            ParcelGodMarkAsContentPacket ParcelGodMarkAsContent = (ParcelGodMarkAsContentPacket)packet;
             if(SessionId != ParcelGodMarkAsContent.AgentData.SessionID || AgentId != ParcelGodMarkAsContent.AgentData.AgentID)
                 return;
 
@@ -8389,12 +8376,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 ParcelGodMarkAsContent.ParcelData.LocalID);
         }
 
-        private void HandleFreezeUser(IClientAPI client, Packet Packet)
+        private void HandleFreezeUser(Packet packet)
         {
             if(OnParcelFreezeUser == null)
                 return;
 
-            FreezeUserPacket FreezeUser = (FreezeUserPacket)Packet;
+            FreezeUserPacket FreezeUser = (FreezeUserPacket)packet;
              if(SessionId != FreezeUser.AgentData.SessionID || AgentId != FreezeUser.AgentData.AgentID)
                 return;
 
@@ -8404,12 +8391,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 FreezeUser.Data.TargetID);
         }
 
-        private void HandleEjectUser(IClientAPI client, Packet Packet)
+        private void HandleEjectUser(Packet packet)
         {
             if(OnParcelEjectUser == null)
                 return;
 
-            EjectUserPacket EjectUser = (EjectUserPacket)Packet;
+            EjectUserPacket EjectUser = (EjectUserPacket)packet;
             if(SessionId != EjectUser.AgentData.SessionID || AgentId != EjectUser.AgentData.AgentID)
                 return;
 
@@ -8419,12 +8406,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 EjectUser.Data.TargetID);
         }
 
-        private void HandleParcelBuyPass(IClientAPI client, Packet Packet)
+        private void HandleParcelBuyPass(Packet packet)
         {
             if(OnParcelBuyPass == null)
                 return;
 
-            ParcelBuyPassPacket ParcelBuyPass = (ParcelBuyPassPacket)Packet;
+            ParcelBuyPassPacket ParcelBuyPass = (ParcelBuyPassPacket)packet;
 
             if(SessionId != ParcelBuyPass.AgentData.SessionID || AgentId != ParcelBuyPass.AgentData.AgentID)
                 return;
@@ -8434,7 +8421,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 ParcelBuyPass.ParcelData.LocalID);
         }
 
-        private void HandleParcelBuyRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelBuyRequest(Packet Pack)
         {
             ParcelBuyPacket parcel = (ParcelBuyPacket)Pack;
             if (parcel.AgentData.AgentID == AgentId && parcel.AgentData.SessionID == SessionId)
@@ -8447,7 +8434,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleUUIDGroupNameRequest(IClientAPI sender, Packet Pack)
+        private void HandleUUIDGroupNameRequest(Packet Pack)
         {
             if(OnUUIDGroupNameRequest == null)
                 return;
@@ -8463,7 +8450,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void HandleGenericMessage(IClientAPI sender, Packet pack)
+        public void HandleGenericMessage(Packet pack)
         {
             if (m_genericPacketHandlers.Count == 0)
                 return;
@@ -8488,7 +8475,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 try
                 {
                     OnBinaryGenericMessage?.Invoke(this, method, msgBytes.ToArray());
-                    handlerGenericMessage?.Invoke(sender, method, msg);
+                    handlerGenericMessage?.Invoke(this, method, msg);
                 }
                 catch (Exception e)
                 {
@@ -8498,7 +8485,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
+        public void HandleObjectGroupRequest(Packet Pack)
         {
             if(OnObjectGroupRequest == null)
                 return;
@@ -8513,7 +8500,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleViewerEffect(IClientAPI sender, Packet Pack)
+        private void HandleViewerEffect(Packet Pack)
         {
             if(OnViewerEffect == null)
                 return;
@@ -8536,10 +8523,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 argument.TypeData = viewer.Effect[i].TypeData;
                 args.Add(argument);
             }
-            OnViewerEffect?.Invoke(sender, args);
+            OnViewerEffect?.Invoke(this, args);
         }
 
-        private void HandleVelocityInterpolateOff(IClientAPI sender, Packet Pack)
+        private void HandleVelocityInterpolateOff(Packet Pack)
         {
             VelocityInterpolateOffPacket p = (VelocityInterpolateOffPacket)Pack;
             if (p.AgentData.SessionID != SessionId || p.AgentData.AgentID != AgentId)
@@ -8548,7 +8535,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_VelocityInterpolate = false;
         }
 
-        private void HandleVelocityInterpolateOn(IClientAPI sender, Packet Pack)
+        private void HandleVelocityInterpolateOn(Packet Pack)
         {
             VelocityInterpolateOnPacket p = (VelocityInterpolateOnPacket)Pack;
             if (p.AgentData.SessionID != SessionId || p.AgentData.AgentID != AgentId)
@@ -8557,7 +8544,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_VelocityInterpolate = true;
         }
 
-        private void HandleAvatarPropertiesRequest(IClientAPI sender, Packet Pack)
+        private void HandleAvatarPropertiesRequest(Packet Pack)
         {
             AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
@@ -8567,7 +8554,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRequestAvatarProperties?.Invoke(this, avatarProperties.AgentData.AvatarID);
         }
 
-        private void HandleChatFromViewer(IClientAPI sender, Packet Pack)
+        private void HandleChatFromViewer(Packet Pack)
         {
             if (OnChatFromClient == null)
                 return;
@@ -8599,7 +8586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnChatFromClient?.Invoke(this, args);
         }
 
-        private void HandlerAvatarPropertiesUpdate(IClientAPI sender, Packet Pack)
+        private void HandlerAvatarPropertiesUpdate(Packet Pack)
         {
             if (OnUpdateAvatarProperties == null)
                 return;
@@ -8624,7 +8611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnUpdateAvatarProperties?.Invoke(this, UserProfile);
         }
 
-        private void HandlerScriptDialogReply(IClientAPI sender, Packet Pack)
+        private void HandlerScriptDialogReply(Packet Pack)
         {
             if (OnChatFromClient == null)
                 return;
@@ -8649,7 +8636,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnChatFromClient?.Invoke(this, args);
         }
 
-        private void HandlerImprovedInstantMessage(IClientAPI sender, Packet Pack)
+        private void HandlerImprovedInstantMessage(Packet Pack)
         {
             if(OnInstantMessage == null)
                 return;
@@ -8677,7 +8664,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnInstantMessage?.Invoke(this, im);
         }
 
-        private void HandlerAcceptFriendship(IClientAPI sender, Packet Pack)
+        private void HandlerAcceptFriendship(Packet Pack)
         {
             if(OnApproveFriendRequest == null)
                 return;
@@ -8698,7 +8685,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnApproveFriendRequest?.Invoke(this, transactionID, callingCardFolders);
         }
 
-        private void HandlerDeclineFriendship(IClientAPI sender, Packet Pack)
+        private void HandlerDeclineFriendship(Packet Pack)
         {
             DeclineFriendshipPacket dfriendpack = (DeclineFriendshipPacket)Pack;
 
@@ -8710,7 +8697,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     null);
         }
 
-        private void HandlerTerminateFriendship(IClientAPI sender, Packet Pack)
+        private void HandlerTerminateFriendship(Packet Pack)
         {
             TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
 
@@ -8722,15 +8709,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TerminateFriendshipHandler?.Invoke(this, exFriendID);
         }
 
-        private void HandleFindAgent(IClientAPI client, Packet Packet)
+        private void HandleFindAgent(Packet packet)
         {
-            FindAgentPacket FindAgent = (FindAgentPacket)Packet;
+            FindAgentPacket FindAgent = (FindAgentPacket)packet;
             OnFindAgent?.Invoke(this,FindAgent.AgentBlock.Hunter,FindAgent.AgentBlock.Prey);
         }
 
-        private void HandleTrackAgent(IClientAPI client, Packet Packet)
+        private void HandleTrackAgent(Packet packet)
         {
-            TrackAgentPacket TrackAgent = (TrackAgentPacket)Packet;
+            TrackAgentPacket TrackAgent = (TrackAgentPacket)packet;
 
             if(TrackAgent.AgentData.AgentID != AgentId || TrackAgent.AgentData.SessionID != SessionId)
                 return;
@@ -8740,7 +8727,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 TrackAgent.TargetData.PreyID);
         }
 
-        private void HandlerRezObject(IClientAPI sender, Packet Pack)
+        private void HandlerRezObject(Packet Pack)
         {
             RezObjectPacket rezPacket = (RezObjectPacket)Pack;
 
@@ -8764,7 +8751,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         private Dictionary<UUID, DeRezObjectInfo> m_DeRezObjectDelayed = new Dictionary<UUID, DeRezObjectInfo>();
 
-        private void HandlerDeRezObject(IClientAPI sender, Packet Pack)
+        private void HandlerDeRezObject(Packet Pack)
         {
             if (OnDeRezObject == null)
                 return;
@@ -8821,7 +8808,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 action, DeRezPacket.AgentBlock.DestinationID);
         }
 
-        private void HandlerRezRestoreToWorld(IClientAPI sender, Packet Pack)
+        private void HandlerRezRestoreToWorld(Packet Pack)
         {
             RezRestoreToWorldPacket restore = (RezRestoreToWorldPacket)Pack;
 
@@ -8831,7 +8818,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRezRestoreToWorld?.Invoke(this, restore.InventoryData.ItemID);
         }
 
-        private void HandlerModifyLand(IClientAPI sender, Packet Pack)
+        private void HandlerModifyLand(Packet Pack)
         {
             if (OnModifyTerrain == null)
                 return;
@@ -8857,7 +8844,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public uint m_viewerHandShakeFlags = 0;
 
-        private void HandlerRegionHandshakeReply(IClientAPI sender, Packet Pack)
+        private void HandlerRegionHandshakeReply(Packet Pack)
         {
             if (OnRegionHandShakeReply == null)
                 return; // silence the warning
@@ -8874,13 +8861,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRegionHandShakeReply?.Invoke(this);
         }
 
-        private void HandlerAgentWearablesRequest(IClientAPI sender, Packet Pack)
+        private void HandlerAgentWearablesRequest(Packet Pack)
         {
-            OnRequestWearables?.Invoke(sender);
+            OnRequestWearables?.Invoke(this);
             OnRequestAvatarsData?.Invoke(this);
         }
 
-        private void HandlerAgentSetAppearance(IClientAPI sender, Packet Pack)
+        private void HandlerAgentSetAppearance(Packet Pack)
         {
             if(OnSetAppearance == null)
                 return;
@@ -8908,7 +8895,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TextureIndex=Convert.ToUInt32(appear.WearableData[i].TextureIndex)
                         };
 
-                OnSetAppearance?.Invoke(sender, te, visualparams,avSize, cacheitems);
+                OnSetAppearance?.Invoke(this, te, visualparams,avSize, cacheitems);
             }
             catch (Exception e)
             {
@@ -8918,7 +8905,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandlerAgentIsNowWearing(IClientAPI sender, Packet Pack)
+        private void HandlerAgentIsNowWearing(Packet Pack)
         {
             if (OnAvatarNowWearing == null)
                 return;
@@ -8941,7 +8928,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnAvatarNowWearing?.Invoke(this, wearingArgs);
         }
 
-        private void HandlerRezSingleAttachmentFromInv(IClientAPI sender, Packet Pack)
+        private void HandlerRezSingleAttachmentFromInv(Packet Pack)
         {
             RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
             if (rez.AgentData.SessionID != SessionId || rez.AgentData.AgentID != AgentId)
@@ -8951,7 +8938,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            rez.ObjectData.AttachmentPt);
         }
 
-        private void HandleRezMultipleAttachmentsFromInv(IClientAPI sender, Packet Pack)
+        private void HandleRezMultipleAttachmentsFromInv(Packet Pack)
         {
             if(OnRezMultipleAttachmentsFromInv == null)
                 return;
@@ -8967,7 +8954,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRezMultipleAttachmentsFromInv?.Invoke(this, rezlist);
         }
 
-        private void HandleDetachAttachmentIntoInv(IClientAPI sender, Packet Pack)
+        private void HandleDetachAttachmentIntoInv(Packet Pack)
         {
             if (OnDetachAttachmentIntoInv == null)
                 return;
@@ -8979,7 +8966,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnDetachAttachmentIntoInv?.Invoke(detachtoInv.ObjectData.ItemID, this);
         }
 
-        private void HandleObjectAttach(IClientAPI sender, Packet Pack)
+        private void HandleObjectAttach(Packet Pack)
         {
             if (OnObjectAttach == null)
                 return;
@@ -8992,7 +8979,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnObjectAttach?.Invoke(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, false);
         }
 
-        private void HandleObjectDetach(IClientAPI sender, Packet Pack)
+        private void HandleObjectDetach(Packet Pack)
         {
             if(OnObjectDetach == null)
                 return;
@@ -9008,7 +8995,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectDrop(IClientAPI sender, Packet Pack)
+        private void HandleObjectDrop(Packet Pack)
         {
             if(OnObjectDrop == null)
                 return;
@@ -9025,7 +9012,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleSetAlwaysRun(IClientAPI sender, Packet Pack)
+        private void HandleSetAlwaysRun(Packet Pack)
         {
             SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
 
@@ -9035,7 +9022,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSetAlwaysRun?.Invoke(this, run.AgentData.AlwaysRun);
         }
 
-        private void HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
+        private void HandleCompleteAgentMovement(Packet Pack)
         {
             //m_log.DebugFormat("[LLClientView] HandleCompleteAgentMovement");
 
@@ -9043,10 +9030,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(cmp.AgentData.AgentID != m_agentId || cmp.AgentData.SessionID != m_sessionId || cmp.AgentData.CircuitCode != m_circuitCode)
                 return;
 
-            OnCompleteMovementToRegion?.Invoke(sender, true);
+            OnCompleteMovementToRegion?.Invoke(this, true);
         }
 
-        private void HandleAgentAnimation(IClientAPI sender, Packet Pack)
+        private void HandleAgentAnimation(Packet Pack)
         {
             if(OnChangeAnim == null)
                 return;
@@ -9061,7 +9048,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnChangeAnim?.Invoke(UUID.Zero, false, true);
         }
 
-        private void HandleAgentRequestSit(IClientAPI sender, Packet Pack)
+        private void HandleAgentRequestSit(Packet Pack)
         {
             if (OnAgentRequestSit == null)
                 return;
@@ -9081,7 +9068,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
         }
 
-        private void HandleAgentSit(IClientAPI sender, Packet Pack)
+        private void HandleAgentSit(Packet Pack)
         {
             if (OnAgentSit == null)
                 return;
@@ -9107,7 +9094,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendAlertMessage("Try moving closer.  Can't sit on object because it is not in the same region as you.");
         }
 
-        private void HandleSoundTrigger(IClientAPI sender, Packet Pack)
+        private void HandleSoundTrigger(Packet Pack)
         {
             SoundTriggerPacket soundTriggerPacket = (SoundTriggerPacket)Pack;
 
@@ -9118,7 +9105,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 soundTriggerPacket.SoundData.Handle);
         }
 
-        private void HandleAvatarPickerRequest(IClientAPI sender, Packet Pack)
+        private void HandleAvatarPickerRequest(Packet Pack)
         {
             AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
 
@@ -9133,7 +9120,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         Utils.BytesToString(querydata.Name));
         }
 
-        private void HandleAgentDataUpdateRequest(IClientAPI sender, Packet Pack)
+        private void HandleAgentDataUpdateRequest(Packet Pack)
         {
             AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
 
@@ -9143,7 +9130,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnAgentDataUpdateRequest?.Invoke(this, avRequestDataUpdatePacket.AgentData.AgentID, avRequestDataUpdatePacket.AgentData.SessionID);
         }
 
-        private void HandleUserInfoRequest(IClientAPI sender, Packet Pack)
+        private void HandleUserInfoRequest(Packet Pack)
         {
             if (OnUserInfoRequest != null)
             {
@@ -9155,7 +9142,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleUpdateUserInfo(IClientAPI sender, Packet Pack)
+        private void HandleUpdateUserInfo(Packet Pack)
         {
             if(OnUpdateUserInfo == null)
                 return;
@@ -9172,7 +9159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnUpdateUserInfo?.Invoke( updateUserInfo.UserData.IMViaEMail, visible, this);
         }
 
-        private void HandleSetStartLocationRequest(IClientAPI sender, Packet Pack)
+        private void HandleSetStartLocationRequest(Packet Pack)
         {
             SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
 
@@ -9204,7 +9191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                 avSetStartLocationRequestPacket.StartLocationData.LocationID);
         }
 
-        private void HandleAgentThrottle(IClientAPI sender, Packet Pack)
+        private void HandleAgentThrottle(Packet Pack)
         {
             AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
 
@@ -9215,18 +9202,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnUpdateThrottles?.Invoke();
         }
 
-        private void HandleAgentPause(IClientAPI sender, Packet Pack)
+        private void HandleAgentPause(Packet Pack)
         {
             m_udpClient.IsPaused = true;
         }
 
-        private void HandleAgentResume(IClientAPI sender, Packet Pack)
+        private void HandleAgentResume(Packet Pack)
         {
             m_udpClient.IsPaused = false;
             m_udpServer.SendPing(m_udpClient);
         }
 
-        private void HandleForceScriptControlRelease(IClientAPI sender, Packet Pack)
+        private void HandleForceScriptControlRelease(Packet Pack)
         {
             OnForceReleaseControls?.Invoke(this, AgentId);
         }
@@ -9235,7 +9222,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Objects/m_sceneObjects
 
-        private void HandleObjectLink(IClientAPI sender, Packet Pack)
+        private void HandleObjectLink(Packet Pack)
         {
             ObjectLinkPacket link = (ObjectLinkPacket)Pack;
 
@@ -9256,7 +9243,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnLinkObjects?.Invoke(this, parentprimid, childrenprims);
         }
 
-        private void HandleObjectDelink(IClientAPI sender, Packet Pack)
+        private void HandleObjectDelink(Packet Pack)
         {
             ObjectDelinkPacket delink = (ObjectDelinkPacket)Pack;
 
@@ -9276,7 +9263,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnDelinkObjects?.Invoke(prims, this);
         }
 
-        private void HandleObjectAdd(IClientAPI sender, Packet Pack)
+        private void HandleObjectAdd(Packet Pack)
         {
                 ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
 
@@ -9287,7 +9274,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnAddPrim?.Invoke(AgentId, addPacket.AgentData.GroupID, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
         }
 
-        private void HandleObjectShape(IClientAPI sender, Packet Pack)
+        private void HandleObjectShape(Packet Pack)
         {
             if(OnUpdatePrimShape == null)
                 return;
@@ -9296,7 +9283,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (shapePacket.AgentData.SessionID != SessionId || shapePacket.AgentData.AgentID != AgentId)
                 return;
 
-            UpdateShape handlerUpdatePrimShape = null;
             for (int i = 0; i < shapePacket.ObjectData.Length; i++)
             {
                 UpdateShapeArgs shapeData = new UpdateShapeArgs();
@@ -9325,7 +9311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectExtraParams(IClientAPI sender, Packet Pack)
+        private void HandleObjectExtraParams(Packet Pack)
         {
             ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
             if (extraPar.AgentData.SessionID != SessionId || extraPar.AgentData.AgentID != AgentId)
@@ -9343,7 +9329,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectDuplicate(IClientAPI sender, Packet Pack)
+        private void HandleObjectDuplicate(Packet Pack)
         {
             if(OnObjectDuplicate == null)
                 return;
@@ -9365,7 +9351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleRequestMultipleObjects(IClientAPI sender, Packet Pack)
+        private void HandleRequestMultipleObjects(Packet Pack)
         {
             if (OnObjectRequest == null)
                 return;
@@ -9378,7 +9364,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnObjectRequest?.Invoke(incomingRequest.ObjectData[i].ID, this);
         }
 
-        private void HandleObjectSelect(IClientAPI sender, Packet Pack)
+        private void HandleObjectSelect(Packet Pack)
         {
             if(OnObjectSelect == null)
                 return;
@@ -9394,7 +9380,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnObjectSelect?.Invoke(thisSelection, this);
         }
 
-        private void HandleObjectDeselect(IClientAPI sender, Packet Pack)
+        private void HandleObjectDeselect(Packet Pack)
         {
             if(OnObjectDeselect == null)
                 return;
@@ -9409,7 +9395,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectPosition(IClientAPI sender, Packet Pack)
+        private void HandleObjectPosition(Packet Pack)
         {
             if (OnUpdatePrimGroupPosition == null)
                 return;
@@ -9423,7 +9409,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  OnUpdatePrimGroupPosition?.Invoke(position.ObjectData[i].ObjectLocalID, position.ObjectData[i].Position, this);
         }
 
-        private void HandleObjectScale(IClientAPI sender, Packet Pack)
+        private void HandleObjectScale(Packet Pack)
         {
             if (OnUpdatePrimGroupScale == null)
                 return;
@@ -9437,7 +9423,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                  OnUpdatePrimGroupScale?.Invoke(scale.ObjectData[i].ObjectLocalID, scale.ObjectData[i].Scale, this);
         }
 
-        private void HandleObjectRotation(IClientAPI sender, Packet Pack)
+        private void HandleObjectRotation(Packet Pack)
         {
             if (OnUpdatePrimGroupRotation == null)
                 return;
@@ -9452,7 +9438,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnUpdatePrimGroupRotation?.Invoke(rotation.ObjectData[i].ObjectLocalID, rotation.ObjectData[i].Rotation, this);
         }
 
-        private void HandleObjectFlagUpdate(IClientAPI sender, Packet Pack)
+        private void HandleObjectFlagUpdate(Packet Pack)
         {
             if(OnUpdatePrimFlags == null)
                 return;
@@ -9497,7 +9483,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         Dictionary<uint, uint> objImageSeqs = null;
         double lastobjImageSeqsMS = 0.0;
 
-        private void HandleObjectImage(IClientAPI sender, Packet Pack)
+        private void HandleObjectImage(Packet Pack)
         {
             if (OnUpdatePrimTexture == null)
                 return;
@@ -9533,7 +9519,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectGrab(IClientAPI sender, Packet Pack)
+        private void HandleObjectGrab(Packet Pack)
         {
             if(OnGrabObject == null)
                 return;
@@ -9560,7 +9546,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnGrabObject?.Invoke(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this, touchArgs);
         }
 
-        private void HandleObjectGrabUpdate(IClientAPI sender, Packet Pack)
+        private void HandleObjectGrabUpdate(Packet Pack)
         {
             if (OnGrabUpdate == null)
                 return;
@@ -9589,7 +9575,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                   grabUpdate.ObjectData.GrabPosition, this, touchArgs);
         }
 
-        private void HandleObjectDeGrab(IClientAPI sender, Packet Pack)
+        private void HandleObjectDeGrab(Packet Pack)
         {
             if (OnDeGrabObject == null)
                 return;
@@ -9617,7 +9603,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnDeGrabObject?.Invoke(deGrab.ObjectData.LocalID, this, touchArgs);
         }
 
-        private void HandleObjectSpinStart(IClientAPI sender, Packet Pack)
+        private void HandleObjectSpinStart(Packet Pack)
         {
             //m_log.Warn("[CLIENT]: unhandled ObjectSpinStart packet");
             ObjectSpinStartPacket spinStart = (ObjectSpinStartPacket)Pack;
@@ -9627,7 +9613,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSpinStart?.Invoke(spinStart.ObjectData.ObjectID, this);
         }
 
-        private void HandleObjectSpinUpdate(IClientAPI sender, Packet Pack)
+        private void HandleObjectSpinUpdate(Packet Pack)
         {
             //m_log.Warn("[CLIENT]: unhandled ObjectSpinUpdate packet");
             ObjectSpinUpdatePacket spinUpdate = (ObjectSpinUpdatePacket)Pack;
@@ -9642,7 +9628,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSpinUpdate?.Invoke(spinUpdate.ObjectData.ObjectID, spinUpdate.ObjectData.Rotation, this);
         }
 
-        private void HandleObjectSpinStop(IClientAPI sender, Packet Pack)
+        private void HandleObjectSpinStop(Packet Pack)
         {
             //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
             ObjectSpinStopPacket spinStop = (ObjectSpinStopPacket)Pack;
@@ -9652,7 +9638,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSpinStop?.Invoke(spinStop.ObjectData.ObjectID, this);
         }
 
-        private void HandleObjectDescription(IClientAPI sender, Packet Pack)
+        private void HandleObjectDescription(Packet Pack)
         {
             if(OnObjectDescription == null)
                 return;
@@ -9666,7 +9652,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                              Util.FieldToString(objDes.ObjectData[i].Description));
         }
 
-        private void HandleObjectName(IClientAPI sender, Packet Pack)
+        private void HandleObjectName(Packet Pack)
         {
             if(OnObjectName == null)
                 return;
@@ -9680,7 +9666,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                       Util.FieldToString(objName.ObjectData[i].Name));
         }
 
-        private void HandleObjectPermissions(IClientAPI sender, Packet Pack)
+        private void HandleObjectPermissions(Packet Pack)
         {
             if (OnObjectPermissions == null)
                 return;
@@ -9718,7 +9704,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // That means multiple object perms may be updated in a single packet.
         }
 
-        private void HandleUndo(IClientAPI sender, Packet Pack)
+        private void HandleUndo(Packet Pack)
         {
             if(OnUndo == null)
                 return;
@@ -9731,7 +9717,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OnUndo?.Invoke(this, undoitem.ObjectData[i].ObjectID);
         }
 
-        private void HandleLandUndo(IClientAPI sender, Packet Pack)
+        private void HandleLandUndo(Packet Pack)
         {
             UndoLandPacket undolanditem = (UndoLandPacket)Pack;
             if (undolanditem.AgentData.SessionID != SessionId || undolanditem.AgentData.AgentID != AgentId)
@@ -9740,7 +9726,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnLandUndo?.Invoke(this);
         }
 
-        private void HandleRedo(IClientAPI sender, Packet Pack)
+        private void HandleRedo(Packet Pack)
         {
             if(OnRedo == null)
                 return;
@@ -9753,7 +9739,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OnRedo?.Invoke(this, redoitem.ObjectData[i].ObjectID);
         }
 
-        private void HandleObjectDuplicateOnRay(IClientAPI sender, Packet Pack)
+        private void HandleObjectDuplicateOnRay(Packet Pack)
         {
             if(OnObjectDuplicateOnRay == null)
                 return;
@@ -9777,7 +9763,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleRequestObjectPropertiesFamily(IClientAPI sender, Packet Pack)
+        private void HandleRequestObjectPropertiesFamily(Packet Pack)
         {
             //This powers the little tooltip that appears when you move your mouse over an object
             RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;
@@ -9790,7 +9776,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                      packObjBlock.ObjectID);
         }
 
-        private void HandleObjectIncludeInSearch(IClientAPI sender, Packet Pack)
+        private void HandleObjectIncludeInSearch(Packet Pack)
         {
             if(OnObjectIncludeInSearch == null)
                 return;
@@ -9808,7 +9794,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleScriptAnswerYes(IClientAPI sender, Packet Pack)
+        private void HandleScriptAnswerYes(Packet Pack)
         {
             ScriptAnswerYesPacket scriptAnswer = (ScriptAnswerYesPacket)Pack;
             if (scriptAnswer.AgentData.SessionID != SessionId || scriptAnswer.AgentData.AgentID != AgentId)
@@ -9817,7 +9803,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnScriptAnswer?.Invoke(this, scriptAnswer.Data.TaskID, scriptAnswer.Data.ItemID, scriptAnswer.Data.Questions);
         }
 
-        private void HandleObjectClickAction(IClientAPI sender, Packet Pack)
+        private void HandleObjectClickAction(Packet Pack)
         {
             if(OnObjectClickAction == null)
                 return;
@@ -9834,7 +9820,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectMaterial(IClientAPI sender, Packet Pack)
+        private void HandleObjectMaterial(Packet Pack)
         {
             if(OnObjectMaterial == null)
                 return;
@@ -9855,7 +9841,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Inventory/Asset/Other related packets
 
-        private void HandleRequestImage(IClientAPI sender, Packet Pack)
+        private void HandleRequestImage(Packet Pack)
         {
             RequestImagePacket imageRequest = (RequestImagePacket)Pack;
             if (imageRequest.AgentData.SessionID != SessionId || imageRequest.AgentData.AgentID != AgentId)
@@ -9891,7 +9877,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="sender"></param>
         /// <param name="Pack"></param>
         /// <returns>This parameter may be ignored since we appear to return true whatever happens</returns>
-        private void HandleTransferRequest(IClientAPI sender, Packet Pack)
+        private void HandleTransferRequest(Packet Pack)
         {
             //m_log.Debug("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
 
@@ -9905,7 +9891,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     Util.FireAndForget(delegate
                     {
                         // This requests the asset if needed
-                        HandleSimInventoryTransferRequestWithPermsCheck(sender, transfer);
+                        HandleSimInventoryTransferRequestWithPermsCheck(this, transfer);
                     }, null, "LLClientView.HandleTransferRequest");
 
                     return;
@@ -10034,7 +10020,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
 
-        private void HandleAssetUploadRequest(IClientAPI sender, Packet Pack)
+        private void HandleAssetUploadRequest(Packet Pack)
         {
             AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
 
@@ -10048,31 +10034,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           request.AssetBlock.Tempfile);
         }
 
-        private void HandleRequestXfer(IClientAPI sender, Packet Pack)
+        private void HandleRequestXfer(Packet Pack)
         {
             RequestXferPacket xferReq = (RequestXferPacket)Pack;
             OnRequestXfer?.Invoke(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
         }
 
-        private void HandleSendXferPacket(IClientAPI sender, Packet Pack)
+        private void HandleSendXferPacket(Packet Pack)
         {
             SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
             OnXferReceive?.Invoke(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
         }
 
-        private void HandleConfirmXferPacket(IClientAPI sender, Packet Pack)
+        private void HandleConfirmXferPacket(Packet Pack)
         {
             ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
             OnConfirmXfer?.Invoke(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
         }
 
-        private void HandleAbortXfer(IClientAPI sender, Packet Pack)
+        private void HandleAbortXfer(Packet Pack)
         {
             AbortXferPacket abortXfer = (AbortXferPacket)Pack;
             OnAbortXfer?.Invoke(this, abortXfer.XferID.ID);
         }
 
-        private void HandleCreateInventoryFolder(IClientAPI sender, Packet Pack)
+        private void HandleCreateInventoryFolder(Packet Pack)
         {
             CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
             if (invFolder.AgentData.SessionID != SessionId || invFolder.AgentData.AgentID != AgentId)
@@ -10084,7 +10070,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                              invFolder.FolderData.ParentID);
         }
 
-        private void HandleUpdateInventoryFolder(IClientAPI sender, Packet Pack)
+        private void HandleUpdateInventoryFolder(Packet Pack)
         {
             if (OnUpdateInventoryFolder == null)
                 return;
@@ -10101,7 +10087,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleMoveInventoryFolder(IClientAPI sender, Packet Pack)
+        private void HandleMoveInventoryFolder(Packet Pack)
         {
             if (OnMoveInventoryFolder == null)
                 return;
@@ -10117,7 +10103,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleCreateInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleCreateInventoryItem(Packet Pack)
         {
             CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
             if (createItem.AgentData.SessionID != SessionId || createItem.AgentData.AgentID != AgentId)
@@ -10135,7 +10121,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               Util.UnixTimeSinceEpoch());
         }
 
-        private void HandleLinkInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleLinkInventoryItem(Packet Pack)
         {
             LinkInventoryItemPacket createLink = (LinkInventoryItemPacket)Pack;
             if (createLink.AgentData.SessionID != SessionId || createLink.AgentData.AgentID != AgentId)
@@ -10153,7 +10139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 createLink.InventoryBlock.OldItemID);
         }
 
-        private void HandleFetchInventory(IClientAPI sender, Packet Pack)
+        private void HandleFetchInventory(Packet Pack)
         {
             if (OnFetchInventory == null)
                 return;
@@ -10169,7 +10155,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleFetchInventoryDescendents(IClientAPI sender, Packet Pack)
+        private void HandleFetchInventoryDescendents(Packet Pack)
         {
             FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
             if (Fetch.AgentData.SessionID != SessionId || Fetch.AgentData.AgentID != AgentId)
@@ -10180,7 +10166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                 Fetch.InventoryData.SortOrder);
         }
 
-        private void HandlePurgeInventoryDescendents(IClientAPI sender, Packet Pack)
+        private void HandlePurgeInventoryDescendents(Packet Pack)
         {
             PurgeInventoryDescendentsPacket Purge = (PurgeInventoryDescendentsPacket)Pack;
             if (Purge.AgentData.SessionID != SessionId || Purge.AgentData.AgentID != AgentId)
@@ -10189,7 +10175,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnPurgeInventoryDescendents?.Invoke(this, Purge.InventoryData.FolderID);
         }
 
-        private void HandleUpdateInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleUpdateInventoryItem(Packet Pack)
         {
             if (OnUpdateInventoryItem == null)
                 return;
@@ -10222,7 +10208,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleCopyInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleCopyInventoryItem(Packet Pack)
         {
             if(OnCopyInventoryItem == null)
                 return;
@@ -10239,7 +10225,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleMoveInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleMoveInventoryItem(Packet Pack)
         {
             if (OnMoveInventoryItem == null)
                 return;
@@ -10262,7 +10248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnMoveInventoryItem?.Invoke(this, items);
         }
 
-        private void HandleRemoveInventoryItem(IClientAPI sender, Packet Pack)
+        private void HandleRemoveInventoryItem(Packet Pack)
         {
             if(OnRemoveInventoryItem == null)
                 return;
@@ -10279,7 +10265,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRemoveInventoryItem?.Invoke(this, uuids);
         }
 
-        private void HandleRemoveInventoryFolder(IClientAPI sender, Packet Pack)
+        private void HandleRemoveInventoryFolder(Packet Pack)
         {
             if (OnRemoveInventoryFolder == null)
                 return;
@@ -10296,7 +10282,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRemoveInventoryFolder?.Invoke(this, uuids);
         }
 
-        private void HandleRemoveInventoryObjects(IClientAPI sender, Packet Pack)
+        private void HandleRemoveInventoryObjects(Packet Pack)
         {
             if (OnRemoveInventoryFolder == null || OnRemoveInventoryItem == null)
                 return;
@@ -10316,7 +10302,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRemoveInventoryItem?.Invoke(this, uuids);
         }
 
-        private void HandleRequestTaskInventory(IClientAPI sender, Packet Pack)
+        private void HandleRequestTaskInventory(Packet Pack)
         {
             RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
             if (requesttask.AgentData.SessionID != SessionId || requesttask.AgentData.AgentID != AgentId)
@@ -10325,7 +10311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRequestTaskInventory?.Invoke(this, requesttask.InventoryData.LocalID);
         }
 
-        private void HandleUpdateTaskInventory(IClientAPI sender, Packet Pack)
+        private void HandleUpdateTaskInventory(Packet Pack)
         {
             if (OnUpdateTaskInventory == null)
                 return;
@@ -10365,7 +10351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             newTaskItem, updatetask.UpdateData.LocalID);
         }
 
-        private void HandleRemoveTaskInventory(IClientAPI sender, Packet Pack)
+        private void HandleRemoveTaskInventory(Packet Pack)
         {
             RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
             if (removeTask.AgentData.SessionID != SessionId || removeTask.AgentData.AgentID != AgentId)
@@ -10374,7 +10360,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRemoveTaskItem?.Invoke(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
         }
 
-        private void HandleMoveTaskInventory(IClientAPI sender, Packet Pack)
+        private void HandleMoveTaskInventory(Packet Pack)
         {
             MoveTaskInventoryPacket moveTaskInventoryPacket = (MoveTaskInventoryPacket)Pack;
             if (moveTaskInventoryPacket.AgentData.SessionID != SessionId || moveTaskInventoryPacket.AgentData.AgentID != AgentId)
@@ -10386,7 +10372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     moveTaskInventoryPacket.InventoryData.ItemID);
         }
 
-        private void HandleRezScript(IClientAPI sender, Packet Pack)
+        private void HandleRezScript(Packet Pack)
         {
             if(OnRezScript == null)
                 return;
@@ -10420,12 +10406,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRezScript?.Invoke(this, item, rezScriptx.InventoryBlock.TransactionID, rezScriptx.UpdateBlock.ObjectLocalID);
         }
 
-        private void HandleMapLayerRequest(IClientAPI sender, Packet Pack)
+        private void HandleMapLayerRequest(Packet Pack)
         {
             RequestMapLayer();
         }
 
-        private void HandleMapBlockRequest(IClientAPI sender, Packet Pack)
+        private void HandleMapBlockRequest(Packet Pack)
         {
             MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
             if (MapRequest.AgentData.SessionID != SessionId || MapRequest.AgentData.AgentID != AgentId)
@@ -10435,7 +10421,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY, MapRequest.AgentData.Flags);
         }
 
-        private void HandleMapNameRequest(IClientAPI sender, Packet Pack)
+        private void HandleMapNameRequest(Packet Pack)
         {
             MapNameRequestPacket map = (MapNameRequestPacket)Pack;
             if (map.AgentData.SessionID != SessionId || map.AgentData.AgentID != AgentId)
@@ -10447,7 +10433,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnMapNameRequest?.Invoke(this, mapName, map.AgentData.Flags);
         }
 
-        private void HandleTeleportLandmarkRequest(IClientAPI sender, Packet Pack)
+        private void HandleTeleportLandmarkRequest(Packet Pack)
         {
             TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
             if (tpReq.Info.SessionID != SessionId || tpReq.Info.AgentID != AgentId)
@@ -10497,7 +10483,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnTeleportLandmarkRequest?.Invoke(this, lm);
         }
 
-        private void HandleTeleportCancel(IClientAPI sender, Packet Pack)
+        private void HandleTeleportCancel(Packet Pack)
         {
             TeleportCancelPacket pkt = (TeleportCancelPacket) Pack;
             if(pkt.Info.AgentID != AgentId || pkt.Info.SessionID != SessionId)
@@ -10519,7 +10505,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return null;
         }
 
-        private void HandleTeleportLocationRequest(IClientAPI sender, Packet Pack)
+        private void HandleTeleportLocationRequest(Packet Pack)
         {
             if(OnTeleportLocationRequest == null)
             {
@@ -10550,7 +10536,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Inventory/Asset/Other related packets
 
-        private void HandleUUIDNameRequest(IClientAPI sender, Packet Pack)
+        private void HandleUUIDNameRequest(Packet Pack)
         {
             if(OnNameFromUUIDRequest == null)
                 return;
@@ -10567,13 +10553,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Parcel related packets
 
-        private void HandleRegionHandleRequest(IClientAPI sender, Packet Pack)
+        private void HandleRegionHandleRequest(Packet Pack)
         {
             RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
             OnRegionHandleRequest?.Invoke(this, rhrPack.RequestBlock.RegionID);
         }
 
-        private void HandleParcelInfoRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelInfoRequest(Packet Pack)
         {
             if(OnParcelInfoRequest == null)
                 return;
@@ -10585,7 +10571,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelInfoRequest?.Invoke(this, pirPack.Data.ParcelID);
         }
 
-        private void HandleParcelAccessListRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelAccessListRequest(Packet Pack)
         {
             ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
             if (requestPacket.AgentData.SessionID != SessionId || requestPacket.AgentData.AgentID != AgentId)
@@ -10596,7 +10582,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                requestPacket.Data.LocalID, this);
         }
 
-        private void HandleParcelAccessListUpdate(IClientAPI sender, Packet Pack)
+        private void HandleParcelAccessListUpdate(Packet Pack)
         {
             if(OnParcelAccessListUpdateRequest == null)
                 return;
@@ -10623,7 +10609,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                      entries, this);
         }
 
-        private void HandleParcelPropertiesRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelPropertiesRequest(Packet Pack)
         {
             ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
             if (propertiesRequest.AgentData.SessionID != SessionId || propertiesRequest.AgentData.AgentID != AgentId)
@@ -10637,7 +10623,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                propertiesRequest.ParcelData.SnapSelection, this);
         }
 
-        private void HandleParcelDivide(IClientAPI sender, Packet Pack)
+        private void HandleParcelDivide(Packet Pack)
         {
             ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
             if (landDivide.AgentData.SessionID != SessionId || landDivide.AgentData.AgentID != AgentId)
@@ -10649,7 +10635,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            (int)Math.Round(landDivide.ParcelData.North), this);
         }
 
-        private void HandleParcelJoin(IClientAPI sender, Packet Pack)
+        private void HandleParcelJoin(Packet Pack)
         {
             ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
             if (landJoin.AgentData.SessionID != SessionId || landJoin.AgentData.AgentID != AgentId)
@@ -10661,7 +10647,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                          (int)Math.Round(landJoin.ParcelData.North), this);
         }
 
-        private void HandleParcelPropertiesUpdate(IClientAPI sender, Packet Pack)
+        private void HandleParcelPropertiesUpdate(Packet Pack)
         {
             if (OnParcelPropertiesUpdateRequest == null)
                 return;
@@ -10692,7 +10678,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelPropertiesUpdateRequest?.Invoke(args, parcelPropertiesPacket.ParcelData.LocalID, this);
         }
 
-        private void HandleParcelSelectObjects(IClientAPI sender, Packet Pack)
+        private void HandleParcelSelectObjects(Packet Pack)
         {
             if(OnParcelSelectObjects == null)
                 return;
@@ -10711,7 +10697,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            Convert.ToInt32(selectPacket.ParcelData.ReturnType), returnIDs, this);
         }
 
-        private void HandleParcelObjectOwnersRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelObjectOwnersRequest(Packet Pack)
         {
             ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
             if (reqPacket.AgentData.SessionID != SessionId || reqPacket.AgentData.AgentID != AgentId)
@@ -10720,7 +10706,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelObjectOwnerRequest?.Invoke(reqPacket.ParcelData.LocalID, this);
         }
 
-        private void HandleParcelGodForceOwner(IClientAPI sender, Packet Pack)
+        private void HandleParcelGodForceOwner(Packet Pack)
         {
             ParcelGodForceOwnerPacket godForceOwnerPacket = (ParcelGodForceOwnerPacket)Pack;
             if (godForceOwnerPacket.AgentData.SessionID != SessionId || godForceOwnerPacket.AgentData.AgentID != AgentId)
@@ -10729,7 +10715,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelGodForceOwner?.Invoke(godForceOwnerPacket.Data.LocalID, godForceOwnerPacket.Data.OwnerID, this);
         }
 
-        private void HandleParcelRelease(IClientAPI sender, Packet Pack)
+        private void HandleParcelRelease(Packet Pack)
         {
             ParcelReleasePacket releasePacket = (ParcelReleasePacket)Pack;
             if (releasePacket.AgentData.SessionID != SessionId || releasePacket.AgentData.AgentID != AgentId)
@@ -10738,7 +10724,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelAbandonRequest?.Invoke(releasePacket.Data.LocalID, this);
         }
 
-        private void HandleParcelReclaim(IClientAPI sender, Packet Pack)
+        private void HandleParcelReclaim(Packet Pack)
         {
             ParcelReclaimPacket reclaimPacket = (ParcelReclaimPacket)Pack;
             if (reclaimPacket.AgentData.SessionID != SessionId || reclaimPacket.AgentData.AgentID != AgentId)
@@ -10747,7 +10733,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelReclaim?.Invoke(reclaimPacket.Data.LocalID, this);
         }
 
-        private void HandleParcelReturnObjects(IClientAPI sender, Packet Pack)
+        private void HandleParcelReturnObjects(Packet Pack)
         {
             if(OnParcelReturnObjectsRequest == null)
                 return;
@@ -10767,7 +10753,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelReturnObjectsRequest?.Invoke(parcelReturnObjects.ParcelData.LocalID, parcelReturnObjects.ParcelData.ReturnType, puserselectedOwnerIDs, puserselectedTaskIDs, this);
         }
 
-        private void HandleParcelSetOtherCleanTime(IClientAPI sender, Packet Pack)
+        private void HandleParcelSetOtherCleanTime(Packet Pack)
         {
             ParcelSetOtherCleanTimePacket parcelSetOtherCleanTimePacket = (ParcelSetOtherCleanTimePacket)Pack;
             if (parcelSetOtherCleanTimePacket.AgentData.SessionID != SessionId || parcelSetOtherCleanTimePacket.AgentData.AgentID != AgentId)
@@ -10778,7 +10764,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                parcelSetOtherCleanTimePacket.ParcelData.OtherCleanTime);
         }
 
-        private void HandleLandStatRequest(IClientAPI sender, Packet Pack)
+        private void HandleLandStatRequest(Packet Pack)
         {
             LandStatRequestPacket lsrp = (LandStatRequestPacket)Pack;
             if (lsrp.AgentData.SessionID != SessionId || lsrp.AgentData.AgentID != AgentId)
@@ -10787,7 +10773,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnLandStatRequest?.Invoke(lsrp.RequestData.ParcelLocalID, lsrp.RequestData.ReportType, lsrp.RequestData.RequestFlags, Utils.BytesToString(lsrp.RequestData.Filter), this);
         }
 
-        private void HandleParcelDwellRequest(IClientAPI sender, Packet Pack)
+        private void HandleParcelDwellRequest(Packet Pack)
         {
             ParcelDwellRequestPacket dwellrq = (ParcelDwellRequestPacket)Pack;
             if (dwellrq.AgentData.SessionID != SessionId || dwellrq.AgentData.AgentID != AgentId)
@@ -10801,7 +10787,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Estate Packets
         private static double m_lastMapRegenTime = Double.MinValue;
 
-        private void HandleEstateOwnerMessage(IClientAPI sender, Packet Pack)
+        private void HandleEstateOwnerMessage(Packet Pack)
         {
             EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
             if (messagePacket.AgentData.SessionID != SessionId || messagePacket.AgentData.AgentID != AgentId)
@@ -11158,7 +11144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //lsrp.RequestData.Filter;
         }
 
-        private void HandleRequestRegionInfo(IClientAPI sender, Packet Pack)
+        private void HandleRequestRegionInfo(Packet Pack)
         {
             RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
             if (mPacket.SessionID != SessionId || mPacket.AgentID != AgentId)
@@ -11167,7 +11153,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRegionInfoRequest?.Invoke(this);
         }
 
-        private void HandleEstateCovenantRequest(IClientAPI sender, Packet Pack)
+        private void HandleEstateCovenantRequest(Packet Pack)
         {
             EstateCovenantRequestPacket.AgentDataBlock epack = ((EstateCovenantRequestPacket)Pack).AgentData;
             if (epack.SessionID != SessionId || epack.AgentID != AgentId)
@@ -11180,7 +11166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region GodPackets
 
-        private void HandleRequestGodlikePowers(IClientAPI sender, Packet Pack)
+        private void HandleRequestGodlikePowers(Packet Pack)
         {
             RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
             RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
@@ -11192,9 +11178,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRequestGodlikePowers?.Invoke(ablock.AgentID, ablock.SessionID, token, rblock.Godlike);
         }
 
-        private void HandleGodUpdateRegionInfoUpdate(IClientAPI client, Packet Packet)
+        private void HandleGodUpdateRegionInfoUpdate(Packet packet)
         {
-            GodUpdateRegionInfoPacket GodUpdateRegionInfo = (GodUpdateRegionInfoPacket)Packet;
+            GodUpdateRegionInfoPacket GodUpdateRegionInfo = (GodUpdateRegionInfoPacket)packet;
             if (GodUpdateRegionInfo.AgentData.SessionID != SessionId || GodUpdateRegionInfo.AgentData.AgentID != AgentId)
                 return;
 
@@ -11207,18 +11193,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            GodUpdateRegionInfo.RegionInfo.RedirectGridY);
         }
 
-        private void HandleSimWideDeletes(IClientAPI client, Packet Packet)
+        private void HandleSimWideDeletes(Packet packet)
         {
-            SimWideDeletesPacket SimWideDeletesRequest = (SimWideDeletesPacket)Packet;
+            SimWideDeletesPacket SimWideDeletesRequest = (SimWideDeletesPacket)packet;
             if(SimWideDeletesRequest.AgentData.AgentID != AgentId || SimWideDeletesRequest.AgentData.SessionID != SessionId)
                 return;
 
             OnSimWideDeletes?.Invoke(this, SimWideDeletesRequest.AgentData.AgentID,(int)SimWideDeletesRequest.DataBlock.Flags,SimWideDeletesRequest.DataBlock.TargetID);
         }
 
-        private void HandleGodlikeMessage(IClientAPI client, Packet Packet)
+        private void HandleGodlikeMessage(Packet packet)
         {
-            GodlikeMessagePacket GodlikeMessage = (GodlikeMessagePacket)Packet;
+            GodlikeMessagePacket GodlikeMessage = (GodlikeMessagePacket)packet;
 
             if (GodlikeMessage.AgentData.SessionID != SessionId || GodlikeMessage.AgentData.AgentID != AgentId)
                 return;
@@ -11229,9 +11215,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                       GodlikeMessage.ParamList[0].Parameter);
         }
 
-        private void HandleSaveStatePacket(IClientAPI client, Packet Packet)
+        private void HandleSaveStatePacket(Packet packet)
         {
-            StateSavePacket SaveStateMessage = (StateSavePacket)Packet;
+            StateSavePacket SaveStateMessage = (StateSavePacket)packet;
 
             if (SaveStateMessage.AgentData.SessionID != SessionId || SaveStateMessage.AgentData.AgentID != AgentId)
                 return;
@@ -11239,7 +11225,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSaveState?.Invoke(this,SaveStateMessage.AgentData.AgentID);
         }
 
-        private void HandleGodKickUser(IClientAPI sender, Packet Pack)
+        private void HandleGodKickUser(Packet Pack)
         {
             GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
             if (gkupack.UserInfo.GodSessionID != SessionId || gkupack.UserInfo.GodID != AgentId)
@@ -11251,7 +11237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Economy/Transaction Packets
 
-        private void HandleMoneyBalanceRequest(IClientAPI sender, Packet Pack)
+        private void HandleMoneyBalanceRequest(Packet Pack)
         {
             MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
             if (moneybalancerequestpacket.AgentData.SessionID != SessionId || moneybalancerequestpacket.AgentData.AgentID != AgentId)
@@ -11260,18 +11246,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnMoneyBalanceRequest?.Invoke(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
         }
 
-        private void HandleEconomyDataRequest(IClientAPI sender, Packet Pack)
+        private void HandleEconomyDataRequest(Packet Pack)
         {
             OnEconomyDataRequest?.Invoke(this);
         }
 
-        private void HandleRequestPayPrice(IClientAPI sender, Packet Pack)
+        private void HandleRequestPayPrice(Packet Pack)
         {
             RequestPayPricePacket requestPayPricePacket = (RequestPayPricePacket)Pack;
             OnRequestPayPrice?.Invoke(this, requestPayPricePacket.ObjectData.ObjectID);
         }
 
-        private void HandleObjectSaleInfo(IClientAPI sender, Packet Pack)
+        private void HandleObjectSaleInfo(Packet Pack)
         {
             if(OnObjectSaleInfo == null)
                 return;
@@ -11291,7 +11277,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleObjectBuy(IClientAPI sender, Packet Pack)
+        private void HandleObjectBuy(Packet Pack)
         {
             if(OnObjectBuy == null)
                 return;
@@ -11316,14 +11302,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion Economy/Transaction Packets
 
         #region Script Packets
-        private void HandleGetScriptRunning(IClientAPI sender, Packet Pack)
+        private void HandleGetScriptRunning(Packet Pack)
         {
             GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
 
             OnGetScriptRunning?.Invoke(this, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
         }
 
-        private void HandleSetScriptRunning(IClientAPI sender, Packet Pack)
+        private void HandleSetScriptRunning(Packet Pack)
         {
             SetScriptRunningPacket setScriptRunning = (SetScriptRunningPacket)Pack;
             if (setScriptRunning.AgentData.SessionID != SessionId || setScriptRunning.AgentData.AgentID != AgentId)
@@ -11332,7 +11318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnSetScriptRunning?.Invoke(this, setScriptRunning.Script.ObjectID, setScriptRunning.Script.ItemID, setScriptRunning.Script.Running);
         }
 
-        private void HandleScriptReset(IClientAPI sender, Packet Pack)
+        private void HandleScriptReset(Packet Pack)
         {
             ScriptResetPacket scriptResetPacket = (ScriptResetPacket)Pack;
             if (scriptResetPacket.AgentData.SessionID != SessionId || scriptResetPacket.AgentData.AgentID != AgentId)
@@ -11345,7 +11331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Gesture Managment
 
-        private void HandleActivateGestures(IClientAPI sender, Packet Pack)
+        private void HandleActivateGestures(Packet Pack)
         {
             if(OnActivateGesture == null)
                 return;
@@ -11364,7 +11350,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleDeactivateGestures(IClientAPI sender, Packet Pack)
+        private void HandleDeactivateGestures(Packet Pack)
         {
             if(OnDeactivateGesture == null)
                 return;
@@ -11383,7 +11369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Gesture Managment
 
-        private void HandleObjectOwner(IClientAPI sender, Packet Pack)
+        private void HandleObjectOwner(Packet Pack)
         {
             if (OnObjectOwner == null)
                 return;
@@ -11399,7 +11385,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnObjectOwner?.Invoke(this, objectOwnerPacket.HeaderData.OwnerID, objectOwnerPacket.HeaderData.GroupID, localIDs);
         }
 
-        private void HandleAgentFOV(IClientAPI sender, Packet Pack)
+        private void HandleAgentFOV(Packet Pack)
         {
             AgentFOVPacket fovPacket = (AgentFOVPacket)Pack;
             if(fovPacket.AgentData.AgentID != AgentId || fovPacket.AgentData.SessionID != SessionId)
@@ -11414,13 +11400,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region unimplemented handlers
 
-        private void HandleViewerStats(IClientAPI sender, Packet Pack)
+        private void HandleViewerStats(Packet Pack)
         {
             // TODO: handle this packet
             //m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
         }
 
-        private void HandleMapItemRequest(IClientAPI sender, Packet Pack)
+        private void HandleMapItemRequest(Packet Pack)
         {
             MapItemRequestPacket mirpk = (MapItemRequestPacket)Pack;
             if (mirpk.AgentData.SessionID != SessionId || mirpk.AgentData.AgentID != AgentId)
@@ -11439,11 +11425,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleTransferAbort(IClientAPI sender, Packet Pack)
+        private void HandleTransferAbort(Packet Pack)
         {
         }
 
-        private void HandleMuteListRequest(IClientAPI sender, Packet Pack)
+        private void HandleMuteListRequest(Packet Pack)
         {
             MuteListRequestPacket muteListRequest = (MuteListRequestPacket)Pack;
             if (muteListRequest.AgentData.SessionID != SessionId || muteListRequest.AgentData.AgentID != AgentId)
@@ -11462,9 +11448,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleUpdateMuteListEntry(IClientAPI client, Packet Packet)
+        private void HandleUpdateMuteListEntry(Packet packet)
         {
-            UpdateMuteListEntryPacket UpdateMuteListEntry = (UpdateMuteListEntryPacket)Packet;
+            UpdateMuteListEntryPacket UpdateMuteListEntry = (UpdateMuteListEntryPacket)packet;
             if (UpdateMuteListEntry.AgentData.SessionID != SessionId || UpdateMuteListEntry.AgentData.AgentID != AgentId)
                 return;
 
@@ -11474,9 +11460,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            UpdateMuteListEntry.MuteData.MuteFlags);
         }
 
-        private void HandleRemoveMuteListEntry(IClientAPI client, Packet Packet)
+        private void HandleRemoveMuteListEntry(Packet packet)
         {
-            RemoveMuteListEntryPacket RemoveMuteListEntry = (RemoveMuteListEntryPacket)Packet;
+            RemoveMuteListEntryPacket RemoveMuteListEntry = (RemoveMuteListEntryPacket)packet;
             if (RemoveMuteListEntry.AgentData.SessionID != SessionId || RemoveMuteListEntry.AgentData.AgentID != AgentId)
                 return;
 
@@ -11485,9 +11471,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            Utils.BytesToString(RemoveMuteListEntry.MuteData.MuteName));
         }
 
-        private void HandleUserReport(IClientAPI client, Packet Packet)
+        private void HandleUserReport(Packet packet)
         {
-            UserReportPacket UserReport = (UserReportPacket)Packet;
+            UserReportPacket UserReport = (UserReportPacket)packet;
             if (UserReport.AgentData.SessionID != SessionId || UserReport.AgentData.AgentID != AgentId)
                 return;
 
@@ -11505,14 +11491,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     UserReport.AgentData.AgentID);
         }
 
-        private void HandleSendPostcard(IClientAPI client, Packet packet)
+        private void HandleSendPostcard(Packet packet)
         {
             //            SendPostcardPacket SendPostcard =
             //                (SendPostcardPacket)packet;
             OnSendPostcard?.Invoke(this);
         }
 
-        private void HandleChangeInventoryItemFlags(IClientAPI client, Packet packet)
+        private void HandleChangeInventoryItemFlags(Packet packet)
         {
             if(OnChangeInventoryItemFlags == null)
                 return;
@@ -11525,7 +11511,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OnChangeInventoryItemFlags?.Invoke(this, b.ItemID, b.Flags);
         }
 
-        private void HandleUseCircuitCode(IClientAPI sender, Packet Pack)
+        private void HandleUseCircuitCode(Packet Pack)
         {
             /*
             UseCircuitCodePacket uccp = (UseCircuitCodePacket)Pack;
@@ -11539,7 +11525,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             */
         }
 
-        private void HandleCreateNewOutfitAttachments(IClientAPI sender, Packet Pack)
+        private void HandleCreateNewOutfitAttachments(Packet Pack)
         {
             if(OnMoveItemsAndLeaveCopy == null)
                 return;
@@ -11560,12 +11546,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnMoveItemsAndLeaveCopy?.Invoke(this, items, packet.HeaderData.NewFolderID);
         }
 
-        private void HandleAgentHeightWidth(IClientAPI sender, Packet Pack)
+        private void HandleAgentHeightWidth(Packet Pack)
         {
         }
 
 
-        private void HandleInventoryDescendents(IClientAPI sender, Packet Pack)
+        private void HandleInventoryDescendents(Packet Pack)
         {
         }
 
@@ -11573,7 +11559,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Dir handlers
 
-        private void HandleDirPlacesQuery(IClientAPI sender, Packet Pack)
+        private void HandleDirPlacesQuery(Packet Pack)
         {
             DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;
             if (dirPlacesQueryPacket.AgentData.SessionID != SessionId || dirPlacesQueryPacket.AgentData.AgentID != AgentId)
@@ -11590,7 +11576,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                       dirPlacesQueryPacket.QueryData.QueryStart);
         }
 
-        private void HandleDirFindQuery(IClientAPI sender, Packet Pack)
+        private void HandleDirFindQuery(Packet Pack)
         {
             DirFindQueryPacket dirFindQueryPacket = (DirFindQueryPacket)Pack;
             if (dirFindQueryPacket.AgentData.SessionID != SessionId || dirFindQueryPacket.AgentData.AgentID != AgentId)
@@ -11604,7 +11590,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     dirFindQueryPacket.QueryData.QueryStart);
         }
 
-        private void HandleDirLandQuery(IClientAPI sender, Packet Pack)
+        private void HandleDirLandQuery(Packet Pack)
         {
             DirLandQueryPacket dirLandQueryPacket = (DirLandQueryPacket)Pack;
             if (dirLandQueryPacket.AgentData.SessionID != SessionId || dirLandQueryPacket.AgentData.AgentID != AgentId)
@@ -11619,7 +11605,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     dirLandQueryPacket.QueryData.QueryStart);
         }
 
-        private void HandleDirPopularQuery(IClientAPI sender, Packet Pack)
+        private void HandleDirPopularQuery(Packet Pack)
         {
             DirPopularQueryPacket dirPopularQueryPacket = (DirPopularQueryPacket)Pack;
             if (dirPopularQueryPacket.AgentData.SessionID != SessionId || dirPopularQueryPacket.AgentData.AgentID != AgentId)
@@ -11630,7 +11616,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                        dirPopularQueryPacket.QueryData.QueryFlags);
         }
 
-        private void HandleDirClassifiedQuery(IClientAPI sender, Packet Pack)
+        private void HandleDirClassifiedQuery(Packet Pack)
         {
             DirClassifiedQueryPacket dirClassifiedQueryPacket = (DirClassifiedQueryPacket)Pack;
             if (dirClassifiedQueryPacket.AgentData.SessionID != SessionId || dirClassifiedQueryPacket.AgentData.AgentID != AgentId)
@@ -11645,7 +11631,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           dirClassifiedQueryPacket.QueryData.QueryStart);
         }
 
-        private void HandleEventInfoRequest(IClientAPI sender, Packet Pack)
+        private void HandleEventInfoRequest(Packet Pack)
         {
             EventInfoRequestPacket eventInfoRequestPacket = (EventInfoRequestPacket)Pack;
             if (eventInfoRequestPacket.AgentData.SessionID != SessionId || eventInfoRequestPacket.AgentData.AgentID != AgentId)
@@ -11658,7 +11644,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Calling Card
 
-        private void HandleOfferCallingCard(IClientAPI sender, Packet Pack)
+        private void HandleOfferCallingCard(Packet Pack)
         {
             OfferCallingCardPacket offerCallingCardPacket = (OfferCallingCardPacket)Pack;
             if (offerCallingCardPacket.AgentData.SessionID != SessionId || offerCallingCardPacket.AgentData.AgentID != AgentId)
@@ -11669,7 +11655,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                    offerCallingCardPacket.AgentBlock.TransactionID);
         }
 
-        private void HandleAcceptCallingCard(IClientAPI sender, Packet Pack)
+        private void HandleAcceptCallingCard(Packet Pack)
         {
             AcceptCallingCardPacket acceptCallingCardPacket = (AcceptCallingCardPacket)Pack;
             if (acceptCallingCardPacket.AgentData.SessionID != SessionId || acceptCallingCardPacket.AgentData.AgentID != AgentId)
@@ -11685,7 +11671,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleDeclineCallingCard(IClientAPI sender, Packet Pack)
+        private void HandleDeclineCallingCard(Packet Pack)
         {
             DeclineCallingCardPacket declineCallingCardPacket = (DeclineCallingCardPacket)Pack;
             if (declineCallingCardPacket.AgentData.SessionID != SessionId || declineCallingCardPacket.AgentData.AgentID != AgentId)
@@ -11699,7 +11685,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Groups
 
-        private void HandleActivateGroup(IClientAPI sender, Packet Pack)
+        private void HandleActivateGroup(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -11711,52 +11697,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_GroupsModule.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
         }
 
-        private void HandleGroupVoteHistoryRequest(IClientAPI client, Packet Packet)
+        private void HandleGroupVoteHistoryRequest(Packet packet)
         {
-            GroupVoteHistoryRequestPacket GroupVoteHistoryRequest = (GroupVoteHistoryRequestPacket)Packet;
+            GroupVoteHistoryRequestPacket GroupVoteHistoryRequest = (GroupVoteHistoryRequestPacket)packet;
             if (GroupVoteHistoryRequest.AgentData.SessionID != SessionId || GroupVoteHistoryRequest.AgentData.AgentID != AgentId)
                 return;
 
             OnGroupVoteHistoryRequest?.Invoke(this, AgentId, SessionId, GroupVoteHistoryRequest.GroupData.GroupID, GroupVoteHistoryRequest.TransactionData.TransactionID);
         }
 
-        private void HandleGroupActiveProposalsRequest(IClientAPI client, Packet Packet)
+        private void HandleGroupActiveProposalsRequest(Packet packet)
         {
-            GroupActiveProposalsRequestPacket GroupActiveProposalsRequest = (GroupActiveProposalsRequestPacket)Packet;
+            GroupActiveProposalsRequestPacket GroupActiveProposalsRequest = (GroupActiveProposalsRequestPacket)packet;
             if (GroupActiveProposalsRequest.AgentData.SessionID != SessionId || GroupActiveProposalsRequest.AgentData.AgentID != AgentId)
                 return;
 
             OnGroupActiveProposalsRequest?.Invoke(this, AgentId, SessionId, GroupActiveProposalsRequest.GroupData.GroupID, GroupActiveProposalsRequest.TransactionData.TransactionID);
         }
 
-        private void HandleGroupAccountDetailsRequest(IClientAPI client, Packet Packet)
+        private void HandleGroupAccountDetailsRequest(Packet packet)
         {
-            GroupAccountDetailsRequestPacket GroupAccountDetailsRequest = (GroupAccountDetailsRequestPacket)Packet;
+            GroupAccountDetailsRequestPacket GroupAccountDetailsRequest = (GroupAccountDetailsRequestPacket)packet;
             if (GroupAccountDetailsRequest.AgentData.SessionID != SessionId || GroupAccountDetailsRequest.AgentData.AgentID != AgentId)
                 return;
 
             OnGroupAccountDetailsRequest?.Invoke(this, AgentId, GroupAccountDetailsRequest.AgentData.GroupID, GroupAccountDetailsRequest.MoneyData.RequestID, SessionId);
         }
 
-        private void HandleGroupAccountSummaryRequest(IClientAPI client, Packet Packet)
+        private void HandleGroupAccountSummaryRequest(Packet packet)
         {
-            GroupAccountSummaryRequestPacket GroupAccountSummaryRequest = (GroupAccountSummaryRequestPacket)Packet;
+            GroupAccountSummaryRequestPacket GroupAccountSummaryRequest = (GroupAccountSummaryRequestPacket)packet;
             if (GroupAccountSummaryRequest.AgentData.SessionID != SessionId || GroupAccountSummaryRequest.AgentData.AgentID != AgentId)
                 return;
 
             OnGroupAccountSummaryRequest?.Invoke(this, AgentId,GroupAccountSummaryRequest.AgentData.GroupID);
         }
 
-        private void HandleGroupTransactionsDetailsRequest(IClientAPI client, Packet Packet)
+        private void HandleGroupTransactionsDetailsRequest(Packet packet)
         {
-            GroupAccountTransactionsRequestPacket GroupAccountTransactionsRequest = (GroupAccountTransactionsRequestPacket)Packet;
+            GroupAccountTransactionsRequestPacket GroupAccountTransactionsRequest = (GroupAccountTransactionsRequestPacket)packet;
             if (GroupAccountTransactionsRequest.AgentData.SessionID != SessionId || GroupAccountTransactionsRequest.AgentData.AgentID != AgentId)
                 return;
 
             OnGroupAccountTransactionsRequest?.Invoke(this, AgentId,GroupAccountTransactionsRequest.AgentData.GroupID,GroupAccountTransactionsRequest.MoneyData.RequestID, SessionId);
         }
 
-        private void HandleGroupTitlesRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupTitlesRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -11792,7 +11778,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         UUID lastGroupProfileRequestID = UUID.Zero;
         double lastGroupProfileRequestTS = Util.GetTimeStampMS();
 
-        private void HandleGroupProfileRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupProfileRequest(Packet Pack)
         {
             if(m_GroupsModule == null)
                 return;
@@ -11837,10 +11823,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
             groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
 
-            if (m_scene.Permissions.IsGod(sender.AgentId) && (!sender.IsGroupMember(groupProfileRequest.GroupData.GroupID)))
+            if (m_scene.Permissions.IsGod(AgentId) && (!IsGroupMember(groupProfileRequest.GroupData.GroupID)))
             {
                 ScenePresence p;
-                if (m_scene.TryGetScenePresence(sender.AgentId, out p))
+                if (m_scene.TryGetScenePresence(AgentId, out p))
                 {
                     if (p.IsViewerUIGod)
                     {
@@ -11856,7 +11842,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lastGroupProfileRequestTS = Util.GetTimeStampMS() - 7000;
         }
 
-        private void HandleGroupMembersRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupMembersRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -11903,7 +11889,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleGroupRoleDataRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupRoleDataRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -11940,7 +11926,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(groupRolesReply, ThrottleOutPacketType.Task);
         }
 
-        private void HandleGroupRoleMembersRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupRoleMembersRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -11984,7 +11970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleCreateGroupRequest(IClientAPI sender, Packet Pack)
+        private void HandleCreateGroupRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12004,7 +11990,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                            createGroupRequest.GroupData.MaturePublish);
         }
 
-        private void HandleUpdateGroupInfo(IClientAPI sender, Packet Pack)
+        private void HandleUpdateGroupInfo(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12024,7 +12010,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                updateGroupInfo.GroupData.MaturePublish);
         }
 
-        private void HandleSetGroupAcceptNotices(IClientAPI sender, Packet Pack)
+        private void HandleSetGroupAcceptNotices(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12039,7 +12025,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                      setGroupAcceptNotices.NewData.ListInProfile);
         }
 
-        private void HandleGroupTitleUpdate(IClientAPI sender, Packet Pack)
+        private void HandleGroupTitleUpdate(Packet Pack)
         {
 
             GroupTitleUpdatePacket groupTitleUpdate = (GroupTitleUpdatePacket)Pack;
@@ -12051,7 +12037,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                 groupTitleUpdate.AgentData.TitleRoleID);
         }
 
-        private void HandleParcelDeedToGroup(IClientAPI sender, Packet Pack)
+        private void HandleParcelDeedToGroup(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12063,7 +12049,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnParcelDeedToGroup?.Invoke(parcelDeedToGroup.Data.LocalID, parcelDeedToGroup.Data.GroupID, this);
         }
 
-        private void HandleGroupNoticesListRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupNoticesListRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12098,7 +12084,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(groupNoticesListReply, ThrottleOutPacketType.Task);
         }
 
-        private void HandleGroupNoticeRequest(IClientAPI sender, Packet Pack)
+        private void HandleGroupNoticeRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12110,7 +12096,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_GroupsModule.GroupNoticeRequest(this, groupNoticeRequest.Data.GroupNoticeID);
         }
 
-        private void HandleGroupRoleUpdate(IClientAPI sender, Packet Pack)
+        private void HandleGroupRoleUpdate(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12133,7 +12119,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_GroupsModule.NotifyChange(groupRoleUpdate.AgentData.GroupID);
         }
 
-        private void HandleGroupRoleChanges(IClientAPI sender, Packet Pack)
+        private void HandleGroupRoleChanges(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12153,7 +12139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_GroupsModule.NotifyChange(groupRoleChanges.AgentData.GroupID);
         }
 
-        private void HandleJoinGroupRequest(IClientAPI sender, Packet Pack)
+        private void HandleJoinGroupRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12165,7 +12151,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_GroupsModule.JoinGroupRequest(this, joinGroupRequest.GroupData.GroupID);
         }
 
-        private void HandleLeaveGroupRequest(IClientAPI sender, Packet Pack)
+        private void HandleLeaveGroupRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12177,7 +12163,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              m_GroupsModule.LeaveGroupRequest(this, leaveGroupRequest.GroupData.GroupID);
         }
 
-        private void HandleEjectGroupMemberRequest(IClientAPI sender, Packet Pack)
+        private void HandleEjectGroupMemberRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12194,7 +12180,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleInviteGroupRequest(IClientAPI sender, Packet Pack)
+        private void HandleInviteGroupRequest(Packet Pack)
         {
             if (m_GroupsModule == null)
                 return;
@@ -12214,7 +12200,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Groups
 
-        private void HandleStartLure(IClientAPI sender, Packet Pack)
+        private void HandleStartLure(Packet Pack)
         {
             if(OnStartLure == null)
             return;
@@ -12233,7 +12219,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandleTeleportLureRequest(IClientAPI sender, Packet Pack)
+        private void HandleTeleportLureRequest(Packet Pack)
         {
             TeleportLureRequestPacket teleportLureRequest = (TeleportLureRequestPacket)Pack;
             if (teleportLureRequest.Info.SessionID != SessionId || teleportLureRequest.Info.AgentID != AgentId)
@@ -12245,7 +12231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                          this);
         }
 
-        private void HandleClassifiedInfoRequest(IClientAPI sender, Packet Pack)
+        private void HandleClassifiedInfoRequest(Packet Pack)
         {
             ClassifiedInfoRequestPacket classifiedInfoRequest = (ClassifiedInfoRequestPacket)Pack;
             if (classifiedInfoRequest.AgentData.SessionID != SessionId || classifiedInfoRequest.AgentData.AgentID != AgentId)
@@ -12256,7 +12242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                          this);
         }
 
-        private void HandleClassifiedInfoUpdate(IClientAPI sender, Packet Pack)
+        private void HandleClassifiedInfoUpdate(Packet Pack)
         {
             ClassifiedInfoUpdatePacket classifiedInfoUpdate = (ClassifiedInfoUpdatePacket)Pack;
             if (classifiedInfoUpdate.AgentData.SessionID != SessionId || classifiedInfoUpdate.AgentData.AgentID != AgentId)
@@ -12279,7 +12265,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         this);
         }
 
-        private void HandleClassifiedDelete(IClientAPI sender, Packet Pack)
+        private void HandleClassifiedDelete(Packet Pack)
         {
             ClassifiedDeletePacket classifiedDelete = (ClassifiedDeletePacket)Pack;
             if (classifiedDelete.AgentData.SessionID != SessionId || classifiedDelete.AgentData.AgentID != AgentId)
@@ -12290,7 +12276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                          this);
         }
         
-        private void HandleClassifiedGodDelete(IClientAPI sender, Packet Pack)
+        private void HandleClassifiedGodDelete(Packet Pack)
         {
             ClassifiedGodDeletePacket classifiedGodDelete = (ClassifiedGodDeletePacket)Pack;
             if (classifiedGodDelete.AgentData.SessionID != SessionId || classifiedGodDelete.AgentData.AgentID != AgentId)
@@ -12302,7 +12288,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                          this);
         }
 
-        private void HandleEventGodDelete(IClientAPI sender, Packet Pack)
+        private void HandleEventGodDelete(Packet Pack)
         {
             EventGodDeletePacket eventGodDelete = (EventGodDeletePacket)Pack;
             if (eventGodDelete.AgentData.SessionID != SessionId || eventGodDelete.AgentData.AgentID != AgentId)
@@ -12318,7 +12304,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         this);
         }
 
-        private void HandleEventNotificationAddRequest(IClientAPI sender, Packet Pack)
+        private void HandleEventNotificationAddRequest(Packet Pack)
         {
             EventNotificationAddRequestPacket eventNotificationAdd = (EventNotificationAddRequestPacket)Pack;
             if (eventNotificationAdd.AgentData.SessionID != SessionId || eventNotificationAdd.AgentData.AgentID != AgentId)
@@ -12327,7 +12313,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnEventNotificationAddRequest?.Invoke(eventNotificationAdd.EventData.EventID, this);
         }
 
-        private void HandleEventNotificationRemoveRequest(IClientAPI sender, Packet Pack)
+        private void HandleEventNotificationRemoveRequest(Packet Pack)
         {
             EventNotificationRemoveRequestPacket eventNotificationRemove = (EventNotificationRemoveRequestPacket)Pack;
             if (eventNotificationRemove.AgentData.SessionID != SessionId || eventNotificationRemove.AgentData.AgentID != AgentId)
@@ -12336,7 +12322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnEventNotificationRemoveRequest?.Invoke(eventNotificationRemove.EventData.EventID, this);
         }
 
-        private void HandleRetrieveInstantMessages(IClientAPI sender, Packet Pack)
+        private void HandleRetrieveInstantMessages(Packet Pack)
         {
             RetrieveInstantMessagesPacket rimpInstantMessagePack = (RetrieveInstantMessagesPacket)Pack;
             if (rimpInstantMessagePack.AgentData.SessionID != SessionId || rimpInstantMessagePack.AgentData.AgentID != AgentId)
@@ -12345,7 +12331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnRetrieveInstantMessages?.Invoke(this);
         }
 
-        private void HandlePickDelete(IClientAPI sender, Packet Pack)
+        private void HandlePickDelete(Packet Pack)
         {
             PickDeletePacket pickDelete = (PickDeletePacket)Pack;
             if (pickDelete.AgentData.SessionID != SessionId || pickDelete.AgentData.AgentID != AgentId)
@@ -12354,7 +12340,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OnPickDelete?.Invoke(this, pickDelete.Data.PickID);
         }
 
-        private void HandlePickGodDelete(IClientAPI sender, Packet Pack)
+        private void HandlePickGodDelete(Packet Pack)
         {
             PickGodDeletePacket pickGodDelete = (PickGodDeletePacket)Pack;
             if (pickGodDelete.AgentData.SessionID != SessionId || pickGodDelete.AgentData.AgentID != AgentId)
@@ -12366,7 +12352,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         pickGodDelete.Data.QueryID);
         }
 
-        private void HandlePickInfoUpdate(IClientAPI sender, Packet Pack)
+        private void HandlePickInfoUpdate(Packet Pack)
         {
             PickInfoUpdatePacket pickInfoUpdate = (PickInfoUpdatePacket)Pack;
             if (pickInfoUpdate.AgentData.SessionID != SessionId || pickInfoUpdate.AgentData.AgentID != AgentId)
@@ -12383,7 +12369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         pickInfoUpdate.Data.Enabled);
         }
 
-        private void HandleAvatarNotesUpdate(IClientAPI sender, Packet Pack)
+        private void HandleAvatarNotesUpdate(Packet Pack)
         {
             AvatarNotesUpdatePacket avatarNotesUpdate = (AvatarNotesUpdatePacket)Pack;
             if (avatarNotesUpdate.AgentData.SessionID != SessionId || avatarNotesUpdate.AgentData.AgentID != AgentId)
@@ -12394,7 +12380,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         Utils.BytesToString(avatarNotesUpdate.Data.Notes));
         }
 
-        private void HandleAvatarInterestsUpdate(IClientAPI sender, Packet Pack)
+        private void HandleAvatarInterestsUpdate(Packet Pack)
         {
             AvatarInterestsUpdatePacket avatarInterestUpdate = (AvatarInterestsUpdatePacket)Pack;
             if (avatarInterestUpdate.AgentData.SessionID != SessionId || avatarInterestUpdate.AgentData.AgentID != AgentId)
@@ -12408,7 +12394,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
         }
 
-        private void HandleGrantUserRights(IClientAPI sender, Packet Pack)
+        private void HandleGrantUserRights(Packet Pack)
         {
             GrantUserRightsPacket GrantUserRights = (GrantUserRightsPacket)Pack;
             if (GrantUserRights.AgentData.SessionID != SessionId || GrantUserRights.AgentData.AgentID != AgentId)
@@ -12419,7 +12405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     GrantUserRights.Rights[0].RelatedRights);
         }
 
-        private void HandleRevokePermissions(IClientAPI sender, Packet Pack)
+        private void HandleRevokePermissions(Packet Pack)
         {
             RevokePermissionsPacket pkt = (RevokePermissionsPacket)Pack;
             if (pkt.AgentData.SessionID != SessionId || pkt .AgentData.AgentID != AgentId)
@@ -12435,7 +12421,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void HandlePlacesQuery(IClientAPI sender, Packet Pack)
+        private void HandlePlacesQuery(Packet Pack)
         {
             PlacesQueryPacket placesQueryPacket = (PlacesQueryPacket)Pack;
             if (placesQueryPacket.AgentData.SessionID != SessionId || placesQueryPacket.AgentData.AgentID != AgentId)
@@ -12474,14 +12460,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="client"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected virtual void HandleLogout(IClientAPI client, Packet packet)
+        protected virtual void HandleLogout(Packet packet)
         {
             if (packet.Type == PacketType.LogoutRequest)
             {
                 if (((LogoutRequestPacket)packet).AgentData.SessionID != SessionId)
                 return;
             }
-            Logout(client);
+            Logout(this);
         }
 
         /// <summary>
@@ -12504,7 +12490,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packet"></param>
         /// <returns></returns>
 
-        protected void HandleAgentTextureCached(IClientAPI simclient, Packet packet)
+        protected void HandleAgentTextureCached(Packet packet)
         {
             //m_log.Debug("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
@@ -12608,7 +12594,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(cachedresp, ThrottleOutPacketType.Task);
         }
 
-        protected void HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
+        protected void HandleMultipleObjUpdate(Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
 
@@ -12633,7 +12619,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (part == null)
                     {
                         // It's a ghost! tell the client to delete it from view.
-                        simClient.SendKillObject(new List<uint> { localId });
+                        SendKillObject(new List<uint> { localId });
                     }
                     else
                     {
@@ -13444,12 +13430,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public class AsyncPacketProcess
         {
-            public readonly LLClientView ClientView = null;
             public readonly Packet Pack = null;
             public readonly PacketMethod Method = null;
-            public AsyncPacketProcess(LLClientView pClientview, PacketMethod pMethod, Packet pPack)
+            public AsyncPacketProcess(PacketMethod pMethod, Packet pPack)
             {
-                ClientView = pClientview;
                 Method = pMethod;
                 Pack = pPack;
             }
