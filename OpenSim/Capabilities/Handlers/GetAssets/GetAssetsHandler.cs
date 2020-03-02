@@ -68,7 +68,8 @@ namespace OpenSim.Capabilities.Handlers
             {"jpeg_id", AssetType.ImageJPEG},
             {"animatn_id", AssetType.Animation},
             {"gesture_id", AssetType.Gesture},
-            {"mesh_id", AssetType.Mesh}
+            {"mesh_id", AssetType.Mesh},
+            {"settings_id", AssetType.Settings}
         };
 
         private IAssetService m_assetService;
@@ -136,7 +137,7 @@ namespace OpenSim.Capabilities.Handlers
                 return responsedata;
             }
 
-            if(type == AssetType.Mesh || type == AssetType.Texture)
+            if (type == AssetType.Mesh || type == AssetType.Texture)
                 responsedata["throttle"] = true;
 
             responsedata["content_type"] = asset.Metadata.ContentType;

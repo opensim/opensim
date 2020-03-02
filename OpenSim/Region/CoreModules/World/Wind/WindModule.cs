@@ -160,7 +160,7 @@ namespace OpenSim.Region.CoreModules
             // Generate initial wind values
             GenWind();
             // hopefully this will not be the same for all regions on same instance
-            m_dataVersion = (int)m_scene.AllocateLocalId();
+            m_dataVersion = m_scene.AllocateIntId();
             // Mark Module Ready for duty
             m_ready = true;
         }

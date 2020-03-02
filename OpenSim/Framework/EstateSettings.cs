@@ -237,6 +237,8 @@ namespace OpenSim.Framework
             set { m_DenyMinors = value; }
         }
 
+        public bool AllowEnviromentOverride {get; set;} = true;
+
         // All those lists...
         //
         private List<UUID> l_EstateManagers = new List<UUID>();

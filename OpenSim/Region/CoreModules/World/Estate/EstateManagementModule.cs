@@ -183,6 +183,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
+            if (Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+                flags |= RegionFlags.AllowEnviromentOverride;
 
             // TODO: SkipUpdateInterestList
 
@@ -1401,7 +1403,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
         }
 
-        private void HandleRegionInfoRequest(IClientAPI remote_client)
+        public void HandleRegionInfoRequest(IClientAPI remote_client)
         {
            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
            args.billableFactor = Scene.RegionInfo.EstateSettings.BillableFactor;
@@ -1555,6 +1557,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.EstateSettings.TaxFree = true;
 
+            if ((parms1 & 0x00000200) != 0)
+                Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = true;
+            else
+                Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = false;
+
             if ((parms1 & 0x00100000) != 0)
                 Scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
             else
@@ -1600,7 +1607,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             bool externallyVisible,
             bool allowDirectTeleport,
             bool denyAnonymous, bool denyAgeUnverified,
-            bool alloVoiceChat, bool overridePublicAccess)
+            bool alloVoiceChat, bool overridePublicAccess,
+            bool allowEnviromentOverride)
         {
             if (sunHour == 0)
             {
@@ -1624,6 +1632,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             // taxfree is now !AllowAccessOverride
             Scene.RegionInfo.EstateSettings.TaxFree = overridePublicAccess;
             Scene.RegionInfo.EstateSettings.DenyMinors = denyAgeUnverified;
+            Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = allowEnviromentOverride;
 
             Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
             TriggerEstateInfoChange();
@@ -1696,8 +1705,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;
             if (!Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means !ALLOW_ACCESS_OVERRIDE
-                flags |= RegionFlags.TaxFree;
+                flags |= RegionFlags.AllowParcelAccessOverride;
 
+            if(Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+                flags |= RegionFlags.AllowEnviromentOverride;
             if (Scene.RegionInfo.EstateSettings.PublicAccess) //??
                 flags |= (RegionFlags.PublicAllowed | RegionFlags.ExternallyVisible);
 

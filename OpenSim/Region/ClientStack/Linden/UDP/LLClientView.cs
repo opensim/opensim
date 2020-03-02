@@ -827,8 +827,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // allow access override (was taxfree)
             if (!Scene.RegionInfo.EstateSettings.TaxFree) // this is now wrong means !ALLOW_ACCESS_OVERRIDE
-                //flags |= RegionFlags.AllowParcelAccessOverride;
-                flags |= RegionFlags.TaxFree;
+                flags |= RegionFlags.AllowParcelAccessOverride;
 
             if (Scene.RegionInfo.RegionSettings.BlockTerraform)
                 flags |= RegionFlags.BlockTerraform;
@@ -6607,9 +6606,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
+            bool allowenvovr = Scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
             LLSDxmlEncode.AddArrayAndMap("ParcelEnvironmentBlock", sb);
-            LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", -1, sb);
-            LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", true, sb);
+            LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", allowenvovr ? -1: -1, sb);
+            LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", allowenvovr, sb);
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
             bool accessovr = !Scene.RegionInfo.EstateSettings.TaxFree;

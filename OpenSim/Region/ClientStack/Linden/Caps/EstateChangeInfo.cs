@@ -200,9 +200,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (r.ContainsKey("override_public_access"))
                     overridePublicAccess = !r["override_public_access"].AsBoolean();
 
+                bool allowEnviromentOverride = m_scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
+                if (r.ContainsKey("override_environment"))
+                    allowEnviromentOverride = !r["override_environment"].AsBoolean();
+
                 ok = m_EstateModule.handleEstateChangeInfoCap(estateName, invoice, sunHour, sunFixed,
                         externallyVisible, allowDirectTeleport, denyAnonymous, denyAgeUnverified,
-                        alloVoiceChat, overridePublicAccess);
+                        alloVoiceChat, overridePublicAccess, allowEnviromentOverride);
             }
             catch
             {
