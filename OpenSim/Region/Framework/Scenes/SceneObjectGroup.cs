@@ -3420,28 +3420,21 @@ namespace OpenSim.Region.Framework.Scenes
             linkPart.setGroupPosition(worldPos);
             linkPart.setOffsetPosition(Vector3.Zero);
             linkPart.setRotationOffset(worldRot);
-            linkPart.Rezzed = RootPart.Rezzed;
 
             // Create a new SOG to go around this unlinked and unattached SOP
             SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
+            m_scene.AddNewSceneObject(objectGroup, true);
+            linkPart.Rezzed = RootPart.Rezzed;
+
             InvalidBoundsRadius();
             InvalidatePartsLinkMaps();
-            objectGroup.InvalidateEffectivePerms();
-
-            objectGroup.HasGroupChangedDueToDelink = true;
-
-            // When we delete a group, we currently have to force persist to the database if the object id has changed
-            // (since delete works by deleting all rows which have a given object id)
-
-            // this is as it seems to be in sl now
-            if (linkPart.PhysicsShapeType == (byte)PhysShapeType.none)
-                linkPart.PhysicsShapeType = linkPart.DefaultPhysicsShapeType(); // root prims can't have type none for now
-
-            m_scene.AddNewSceneObject(objectGroup, true);
+            InvalidateEffectivePerms();
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = false;
 
+            objectGroup.HasGroupChangedDueToDelink = true;
+            
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
