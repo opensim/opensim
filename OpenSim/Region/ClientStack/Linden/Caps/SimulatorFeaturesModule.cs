@@ -283,7 +283,6 @@ namespace OpenSim.Region.ClientStack.Linden
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 200;
             responsedata["content_type"] = "text/plain";
-
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(copy);
 
             return responsedata;

@@ -331,7 +331,7 @@ namespace OpenSim.Server.Base
 
             int nterms = terms.Length;
             if (nterms == 0)
-                return new Dictionary<string, object>();           
+                return new Dictionary<string, object>();
 
             Dictionary<string, object> result = new Dictionary<string, object>(nterms);
             string name;

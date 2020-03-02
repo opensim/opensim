@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public DropMethod Drop;
         public UUID Id;
         public int TimeOutms;
-        public EventType Type;
+        //public EventType Type;
 
         public enum EventType : int
         {
@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Drop = pDrop;
             Id = pId;
             TimeOutms = pTimeOutms;
-            Type = EventType.Poll;
+            //Type = EventType.Poll;
         }
     }
 }

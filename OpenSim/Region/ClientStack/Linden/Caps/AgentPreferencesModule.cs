@@ -97,23 +97,23 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegisterCaps(UUID agent, Caps caps)
         {
-            UUID capId = UUID.Random();
+            string capPath = "/CAPS/" + UUID.Random().ToString();
             caps.RegisterHandler("AgentPreferences",
-                new RestStreamHandler("POST", "/CAPS/" + capId,
+                new RestStreamHandler("POST", capPath,
                     delegate(string request, string path, string param,
                         IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
                         return UpdateAgentPreferences(request, path, param, agent);
                     }));
             caps.RegisterHandler("UpdateAgentLanguage",
-                new RestStreamHandler("POST", "/CAPS/" + capId,
+                new RestStreamHandler("POST", capPath,
                     delegate(string request, string path, string param,
                         IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
                         return UpdateAgentPreferences(request, path, param, agent);
                     }));
             caps.RegisterHandler("UpdateAgentInformation",
-                new RestStreamHandler("POST", "/CAPS/" + capId,
+                new RestStreamHandler("POST", capPath,
                     delegate(string request, string path, string param,
                         IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
