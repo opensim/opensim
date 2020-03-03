@@ -5006,7 +5006,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
                     }
 
-                    if (updateFlags == PrimUpdateFlags.Animations)
+                    if (updateFlags.HasFlag(PrimUpdateFlags.Animations))
                     {
                         if (m_SupportObjectAnimations && part.Animations != null)
                         {
@@ -5015,7 +5015,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             ObjectAnimationUpdates.Add(part);
                             maxUpdatesBytes -= 20 * part.Animations.Count + 24;
                         }
-                        continue;
                     }
 
                     if(viewerCache)
