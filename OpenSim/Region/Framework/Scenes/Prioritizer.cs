@@ -247,6 +247,9 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 grppos = group.getCenterOffset();
             distance = Vector3.Distance(presencePos, grppos);
             distance -= bradius;
+            if(distance < 0)
+                return pqueue;
+
             distance *= group.getAreaFactor();
             if(group.IsAttachment)
                 distance *= 0.5f;

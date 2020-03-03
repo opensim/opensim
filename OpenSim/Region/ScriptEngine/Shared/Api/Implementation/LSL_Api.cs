@@ -1841,6 +1841,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             tmp.Y = (float)scale.y;
             tmp.Z = (float)scale.z;
             part.Scale = tmp;
+            part.ParentGroup.HasGroupChanged = true;
             part.SendFullUpdateToAllClients();
         }
 
