@@ -5688,6 +5688,24 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public int ClearObjectAnimations()
+        {
+            int ret = 0;
+            if(Animations != null)
+            {
+                ret = Animations.Count;
+                Animations.Clear();
+                AnimationsNames.Clear();
+            }
+            else
+            {
+                Animations = new Dictionary<UUID, int>();
+                AnimationsNames = new Dictionary<UUID, string>();
+            }
+            ScheduleUpdate(PrimUpdateFlags.Animations);
+            return ret;
+        }
+
         public int GetAnimations(out UUID[] ids, out int[] seqs)
         {
             ids = null;

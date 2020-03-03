@@ -5170,16 +5170,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         SceneObjectPart part = (SceneObjectPart)eu.Entity;
                         shouldCreateSelected = part.CreateSelected;
-                        if (eu.Flags.HasFlag(PrimUpdateFlags.Animations))
-                        {
-                            if (m_SupportObjectAnimations && part.Animations != null)
-                            {
-                                if (ObjectAnimationUpdates == null)
-                                    ObjectAnimationUpdates = new List<SceneObjectPart>();
-                                ObjectAnimationUpdates.Add(part);
-                            }
-                            eu.Flags &= ~PrimUpdateFlags.Animations;
-                        }
                         CreatePrimUpdateBlock(part, mysp, zc);
                     }
                     if (zc.Position < LLUDPServer.MAXPAYLOAD - 300)
@@ -5335,17 +5325,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
 
                     shouldCreateSelected = sop.CreateSelected;
-
-                    if (eu.Flags.HasFlag(PrimUpdateFlags.Animations))
-                    {
-                        if (m_SupportObjectAnimations && sop.Animations != null)
-                        {
-                            if (ObjectAnimationUpdates == null)
-                                ObjectAnimationUpdates = new List<SceneObjectPart>();
-                            ObjectAnimationUpdates.Add(sop);
-                        }
-                        eu.Flags &= ~PrimUpdateFlags.Animations;
-                    }
 
                     lastpos = zc.Position;
                     lastzc = zc.ZeroCount;
