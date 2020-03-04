@@ -30,17 +30,17 @@ using System.IO;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
+using System.Threading;
 using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
-using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -70,12 +70,150 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
         ExpiringCache<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCache<UUID, UserProfileCacheEntry>();
         IAssetCache m_assetCache;
+        IGroupsModule m_groupsModule = null;
 
         static readonly UUID m_MrOpenSimID = new UUID("11111111-1111-0000-0000-000100bba000");
         static readonly DateTime m_MrOpenSimBorn = new DateTime(2007,1,1,0,0,0,DateTimeKind.Utc);
 
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
         private bool m_allowUserProfileWebURLs = true;
+
+        struct AsyncPropsRequest
+        {
+            public IClientAPI client;
+            public ScenePresence presence;
+            public UUID agent;
+            public int reqtype;
+        }
+
+        private ConcurrentQueue<AsyncPropsRequest> m_asyncRequests = new ConcurrentQueue<AsyncPropsRequest>();
+        private object m_asyncRequestsLock = new object();
+        private bool m_asyncRequestsRunning = false;
+
+        private void ProcessRequests()
+        {
+            lock(m_asyncRequestsLock)
+            {
+                try
+                {
+                    while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
+                    {
+                        IClientAPI client = req.client;
+                        if(!client.IsActive)
+                            continue;
+
+                        if(req.reqtype == 0)
+                        {
+                            UUID avatarID = req.agent;
+                            ScenePresence p = req.presence;
+
+                            string serverURI = string.Empty;
+                            bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
+
+                            UserAccount account = null;
+
+                            if (!foreign)
+                                account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, avatarID);
+
+                            Byte[] membershipType = new Byte[1];
+                            string born = string.Empty;
+                            uint flags = 0x00;
+
+                            if (null != account)
+                            {
+                                if (account.UserTitle == "")
+                                    membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
+                                else
+                                    membershipType = Utils.StringToBytes(account.UserTitle);
+
+                                born = Util.ToDateTime(account.Created).ToString(
+                                                  "M/d/yyyy", CultureInfo.InvariantCulture);
+                                flags = (uint)(account.UserFlags & 0xff);
+                            }
+                            else
+                            {
+                                if (GetUserAccountData(avatarID, out Dictionary<string, object> userInfo) == true)
+                                {
+                                    if ((string)userInfo["user_title"] == "")
+                                        membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
+                                    else
+                                        membershipType = Utils.StringToBytes((string)userInfo["user_title"]);
+
+                                    int val_born = (int)userInfo["user_created"];
+                                    if (val_born != 0)
+                                        born = Util.ToDateTime(val_born).ToString(
+                                                  "M/d/yyyy", CultureInfo.InvariantCulture);
+
+                                    // picky, picky
+                                    int val_flags = (int)userInfo["user_flags"];
+                                    flags = (uint)(val_flags & 0xff);
+                                }
+                            }
+
+                            UserProfileProperties props = new UserProfileProperties();
+                            props.UserId = avatarID;
+
+                            string result = string.Empty;
+                            if (!GetProfileData(ref props, foreign, serverURI, out result))
+                            {
+                                props.AboutText = "Profile not available at this time. User may still be unknown to this grid";
+                            }
+
+                            if (!m_allowUserProfileWebURLs)
+                                props.WebUrl = "";
+
+                            GroupMembershipData[] agentGroups = null;
+                            if(m_groupsModule != null)
+                                agentGroups = m_groupsModule.GetMembershipData(avatarID);
+
+                            HashSet<IClientAPI> clients;
+                            lock (m_profilesCache)
+                            {
+                                if (!m_profilesCache.TryGetValue(props.UserId, out UserProfileCacheEntry uce) || uce == null)
+                                    uce = new UserProfileCacheEntry();
+                                uce.props = props;
+                                uce.born = born;
+                                uce.membershipType = membershipType;
+                                uce.flags = flags;
+                                clients = uce.ClientsWaitingProps;
+                                uce.ClientsWaitingProps = null;
+                                uce.avatarGroups = agentGroups;
+                                m_profilesCache.AddOrUpdate(props.UserId, uce, PROFILECACHEEXPIRE);
+                            }
+
+                            // if on same region force online
+                            if (p != null && !p.IsDeleted)
+                                flags |= 0x10;
+
+                            if(!clients.Contains(client) && client.IsActive)
+                            {
+                                client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                              props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+                                client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                             (uint)props.SkillsMask, props.SkillsText, props.Language);
+                                if (agentGroups != null)
+                                    client.SendAvatarGroupsReply(avatarID, agentGroups);
+                            }
+                            foreach (IClientAPI cli in clients)
+                            {
+                                if (!cli.IsActive)
+                                    continue;
+                                cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+                                cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                            (uint)props.SkillsMask, props.SkillsText, props.Language);
+                                if (agentGroups != null)
+                                    cli.SendAvatarGroupsReply(avatarID, agentGroups);
+                            }
+                        }
+                    }
+                    m_asyncRequestsRunning = false;
+                }
+                catch { }
+            }
+        }
 
         public Scene Scene
         {
@@ -225,6 +363,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!Enabled)
                 return;
             m_assetCache = Scene.RequestModuleInterface<IAssetCache>();
+            m_groupsModule = Scene.RequestModuleInterface<IGroupsModule>();
         }
 
         /// <summary>
@@ -1339,10 +1478,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            if (String.IsNullOrEmpty(avatarID.ToString()) || String.IsNullOrEmpty(remoteClient.AgentId.ToString()))
+            if (avatarID == UUID.Zero)
             {
                 // Looking for a reason that some viewers are sending null Id's
-                m_log.DebugFormat("[PROFILES]: This should not happen remoteClient.AgentId {0} - avatarID {1}", remoteClient.AgentId, avatarID);
+                m_log.Debug("[PROFILES]: got request of null ID");
                 return;
             }
 
@@ -1386,6 +1525,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         remoteClient.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask,
                             props.WantToText, (uint)props.SkillsMask,
                             props.SkillsText, props.Language);
+                        if(uce.avatarGroups != null)
+                            remoteClient.SendAvatarGroupsReply(avatarID, uce.avatarGroups);
                         return;
                     }
                     else
@@ -1406,6 +1547,25 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
+            AsyncPropsRequest req = new AsyncPropsRequest();
+            req.client = remoteClient;
+            req.presence = p;
+            req.agent = avatarID;
+            req.reqtype = 0;
+
+            m_asyncRequests.Enqueue(req);
+            if(Monitor.TryEnter(m_asyncRequestsLock))
+            {
+                if (!m_asyncRequestsRunning)
+                {
+                    m_asyncRequestsRunning = true;
+                    Util.FireAndForget(x => ProcessRequests());
+                }
+                Monitor.Exit(m_asyncRequestsLock);
+
+            }
+
+            /*
             string serverURI = string.Empty;
             bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
 
@@ -1510,6 +1670,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                 }
             }
+            */
         }
 
         /// <summary>
