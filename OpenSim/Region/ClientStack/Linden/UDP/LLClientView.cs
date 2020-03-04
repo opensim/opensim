@@ -2998,24 +2998,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(economyData, ThrottleOutPacketType.Task);
         }
 
-        public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
+        static private readonly byte[] AvatarPickerReplyHeader = new byte[] {
+                Helpers.MSG_RELIABLE,
+                0, 0, 0, 0, // sequence number
+                0, // extra
+                0xff, 0xff, 0, 28 // ID 28 (low frequency bigendian)
+                };
+
+        public void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
         {
-            //construct the AvatarPickerReply packet.
-            AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
-            replyPacket.AgentData.AgentID = AgentData.AgentID;
-            replyPacket.AgentData.QueryID = AgentData.QueryID;
-            //int i = 0;
-            List<AvatarPickerReplyPacket.DataBlock> data_block = new List<AvatarPickerReplyPacket.DataBlock>();
-            foreach (AvatarPickerReplyDataArgs arg in Data)
+            UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+            byte[] data = buf.Data;
+
+            //setup header
+            Buffer.BlockCopy(AvatarPickerReplyHeader, 0, data, 0, 10);
+            AgentId.ToBytes(data, 10); //26
+            QueryID.ToBytes(data, 26); //42
+
+            if (users.Count == 0)
             {
-                AvatarPickerReplyPacket.DataBlock db = new AvatarPickerReplyPacket.DataBlock();
-                db.AvatarID = arg.AvatarID;
-                db.FirstName = arg.FirstName;
-                db.LastName = arg.LastName;
-                data_block.Add(db);
+                data[42] = 0;
+                buf.DataLength = 43;
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
+                return;
             }
-            replyPacket.Data = data_block.ToArray();
-            OutPacket(replyPacket, ThrottleOutPacketType.Task);
+
+            int pos = 43;
+            int count = 0;
+            for(int u = 0; u < users.Count; ++u)
+            {
+                UserData user = users[u];
+                user.Id.ToBytes(data,pos);
+                pos+= 16;
+                byte[] tmp = Utils.StringToBytes(user.FirstName);
+                data[pos++] = (byte)tmp.Length;
+                if(tmp.Length > 0)
+                {
+                    Buffer.BlockCopy(tmp, 0, data, pos, tmp.Length);
+                    pos += tmp.Length;
+                }
+                tmp = Utils.StringToBytes(user.LastName);
+                data[pos++] = (byte)tmp.Length;
+                if (tmp.Length > 0)
+                {
+                    Buffer.BlockCopy(tmp, 0, data, pos, tmp.Length);
+                    pos += tmp.Length;
+                }
+                ++count;
+
+                if (pos >= LLUDPServer.MAXPAYLOAD - 120)
+                {
+                    data[42] = (byte)count;
+                    buf.DataLength = pos;
+                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
+                    if (u < users.Count - 1)
+                    {
+                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                        byte[] newdata = newbuf.Data;
+                        Buffer.BlockCopy(data, 0, newdata, pos, 42);
+                        pos = 43;
+                    }
+                    count = 0;
+                }
+            }
+            if(count > 0)
+            {
+                data[42] = (byte)count;
+                buf.DataLength = pos;
+                m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
+            }
         }
 
         public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)

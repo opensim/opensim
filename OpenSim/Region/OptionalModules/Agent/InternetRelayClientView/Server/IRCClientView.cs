@@ -1176,7 +1176,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
+        public void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
         {
 
         }

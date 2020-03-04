@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -237,51 +238,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //EventManager.TriggerAvatarPickerRequest();
 
             m_log.DebugFormat("[USER MANAGEMENT MODULE]: HandleAvatarPickerRequest for {0}", query);
-
             List<UserData> users = GetUserData(query, 500, 1);
-
-            AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
-            // TODO: don't create new blocks if recycling an old packet
-
-            AvatarPickerReplyPacket.DataBlock[] searchData =
-                new AvatarPickerReplyPacket.DataBlock[users.Count];
-            AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
-
-            agentData.AgentID = avatarID;
-            agentData.QueryID = RequestID;
-            replyPacket.AgentData = agentData;
-            //byte[] bytes = new byte[AvatarResponses.Count*32];
-
-            int i = 0;
-            foreach (UserData item in users)
-            {
-                UUID translatedIDtem = item.Id;
-                searchData[i] = new AvatarPickerReplyPacket.DataBlock();
-                searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Utils.StringToBytes((string)item.FirstName);
-                searchData[i].LastName = Utils.StringToBytes((string)item.LastName);
-                i++;
-            }
-            if (users.Count == 0)
-            {
-                searchData = new AvatarPickerReplyPacket.DataBlock[0];
-            }
-            replyPacket.Data = searchData;
-
-            AvatarPickerReplyAgentDataArgs agent_data = new AvatarPickerReplyAgentDataArgs();
-            agent_data.AgentID = replyPacket.AgentData.AgentID;
-            agent_data.QueryID = replyPacket.AgentData.QueryID;
-
-            List<AvatarPickerReplyDataArgs> data_args = new List<AvatarPickerReplyDataArgs>();
-            for (i = 0; i < replyPacket.Data.Length; i++)
-            {
-                AvatarPickerReplyDataArgs data_arg = new AvatarPickerReplyDataArgs();
-                data_arg.AvatarID = replyPacket.Data[i].AvatarID;
-                data_arg.FirstName = replyPacket.Data[i].FirstName;
-                data_arg.LastName = replyPacket.Data[i].LastName;
-                data_args.Add(data_arg);
-            }
-            client.SendAvatarPickerReply(agent_data, data_args);
+            client.SendAvatarPickerReply(RequestID, users);
         }
 
         protected virtual void AddAdditionalUsers(string query, List<UserData> users)

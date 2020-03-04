@@ -677,7 +677,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
+        public virtual void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
         {
         }
 

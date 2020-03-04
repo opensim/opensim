@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             if (p != null && !p.IsDeleted)
                                 flags |= 0x10;
 
-                            if(!clients.Contains(client) && client.IsActive)
+                            if(clients == null)
                             {
                                 client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
                                                               props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
@@ -195,17 +195,30 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 if (agentGroups != null)
                                     client.SendAvatarGroupsReply(avatarID, agentGroups);
                             }
-                            foreach (IClientAPI cli in clients)
+                            else
                             {
-                                if (!cli.IsActive)
-                                    continue;
-                                cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
-                                                            props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+                                if (!clients.Contains(client) && client.IsActive)
+                                {
+                                    client.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                                  props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
 
-                                cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
-                                                            (uint)props.SkillsMask, props.SkillsText, props.Language);
-                                if (agentGroups != null)
-                                    cli.SendAvatarGroupsReply(avatarID, agentGroups);
+                                    client.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                                 (uint)props.SkillsMask, props.SkillsText, props.Language);
+                                    if (agentGroups != null)
+                                        client.SendAvatarGroupsReply(avatarID, agentGroups);
+                                }
+                                foreach (IClientAPI cli in clients)
+                                {
+                                    if (!cli.IsActive)
+                                        continue;
+                                    cli.SendAvatarProperties(props.UserId, props.AboutText, born, membershipType, props.FirstLifeText, flags,
+                                                                props.FirstLifeImageId, props.ImageId, props.WebUrl, props.PartnerId);
+
+                                    cli.SendAvatarInterestsReply(props.UserId, (uint)props.WantToMask, props.WantToText,
+                                                                (uint)props.SkillsMask, props.SkillsText, props.Language);
+                                    if (agentGroups != null)
+                                        cli.SendAvatarGroupsReply(avatarID, agentGroups);
+                                }
                             }
                         }
                     }
