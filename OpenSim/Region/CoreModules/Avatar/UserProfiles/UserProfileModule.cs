@@ -94,9 +94,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             lock(m_asyncRequestsLock)
             {
-                try
+                while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
                 {
-                    while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
+                    try
                     {
                         IClientAPI client = req.client;
                         if(!client.IsActive)
@@ -209,10 +209,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             }
                         }
                     }
-                }
-                catch(Exception e )
-                {
-                    m_log.ErrorFormat("[ProfileModule]: Process fail {0}",e.Message);
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[ProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
+                    }
                 }
                 m_asyncRequestsRunning = false;
             }
