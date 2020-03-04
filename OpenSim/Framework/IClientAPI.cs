@@ -1250,7 +1250,7 @@ namespace OpenSim.Framework
                              int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice,
                              float TeleportPriceExponent);
 
-        void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data);
+        void SendAvatarPickerReply(UUID QueryID, List<UserData> users);
 
         void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers,
                                  string groupname, string grouptitle);
