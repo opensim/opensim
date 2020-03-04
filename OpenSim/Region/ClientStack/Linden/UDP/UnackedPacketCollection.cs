@@ -215,7 +215,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_packets.TryGetValue(pendingRemove, out OutgoingPacket removedPacket))
                 {
                     m_packets.Remove(pendingRemove);
-                    if (removedPacket != null)
+                    if (removedPacket != null && removedPacket.Buffer != null)
                     {
                         // Update stats
                         Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);

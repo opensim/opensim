@@ -4831,10 +4831,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // because we are requeuing the list of updates. They will be resent in new packets
             // with the most recent state and priority.
             m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
-            if(oPacket.Buffer == null)
+            if (oPacket.Buffer == null)
                 return;
-
-            m_udpClient.FreeUDPBuffer(oPacket.Buffer);
 
             // Count this as a resent packet since we are going to requeue all of the updates contained in it
             Interlocked.Increment(ref m_udpClient.PacketsResent);

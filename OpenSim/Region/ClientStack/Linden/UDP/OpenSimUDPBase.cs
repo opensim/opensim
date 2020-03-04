@@ -192,6 +192,7 @@ namespace OpenMetaverse
                     m_udpBuffersPool[m_udpBuffersPoolPtr] = null;
                     m_udpBuffersPoolPtr--;
                     buf.RemoteEndPoint = remoteEndpoint;
+                    buf.DataLength = 0;
                     return buf;
                 }
             }
@@ -202,10 +203,13 @@ namespace OpenMetaverse
         {
             lock (m_udpBuffersPoolLock)
             {
+                if(buf.DataLength < 0)
+                    return; // avoid duplicated free that may still happen
+
                 if (m_udpBuffersPoolPtr < 999)
                 {
                     buf.RemoteEndPoint = null;
-                    buf.DataLength = 0;
+                    buf.DataLength = -1;
                     m_udpBuffersPoolPtr++;
                     m_udpBuffersPool[m_udpBuffersPoolPtr] = buf;
                 }
