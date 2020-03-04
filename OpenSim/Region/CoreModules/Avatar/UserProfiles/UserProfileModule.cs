@@ -209,9 +209,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             }
                         }
                     }
-                    m_asyncRequestsRunning = false;
                 }
-                catch { }
+                catch(Exception e )
+                {
+                    m_log.ErrorFormat("[ProfileModule]: Process fail {0}",e.Message);
+                }
+                m_asyncRequestsRunning = false;
             }
         }
 
