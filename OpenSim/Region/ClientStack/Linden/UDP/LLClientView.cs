@@ -3055,7 +3055,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                         byte[] newdata = newbuf.Data;
-                        Buffer.BlockCopy(data, 0, newdata, pos, 42);
+                        Buffer.BlockCopy(data, 0, newdata, 0, 42);
+                        buf = newbuf;
+                        data = newdata;
                         pos = 43;
                     }
                     count = 0;
