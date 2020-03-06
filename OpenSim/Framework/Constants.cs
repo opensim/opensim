@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
@@ -46,6 +47,9 @@ namespace OpenSim.Framework
         public const int TerrainPatchSize = 16;
 
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
+
+        public static readonly UUID m_MrOpenSimID = new UUID("11111111-1111-0000-0000-000100bba000");
+        public static readonly DateTime m_MrOpenSimBorn = new DateTime(2007, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public enum EstateAccessCodex : uint
         {
