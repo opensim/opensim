@@ -68,6 +68,8 @@ namespace OpenSim.Region.CoreModules.Asset
         private const string m_ModuleName = "FlotsamAssetCache";
         private const string m_DefaultCacheDirectory = "./assetcache";
         private string m_CacheDirectory = m_DefaultCacheDirectory;
+        private string m_assetLoader;
+        private string m_assetLoaderArgs;
 
         private readonly List<char> m_InvalidChars = new List<char>();
 
@@ -205,14 +207,26 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_CacheDirectoryTierLen = 1;
                     }
                     else if (m_CacheDirectoryTierLen > 4)
-                    {
                         m_CacheDirectoryTierLen = 4;
+
+                    assetConfig = source.Configs["AssetService"];
+                    if(assetConfig != null)
+                    {
+                        m_assetLoader = assetConfig.GetString("DefaultAssetLoader", String.Empty);
+                        m_assetLoaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
+                        if (string.IsNullOrWhiteSpace(m_assetLoaderArgs))
+                            m_assetLoader = string.Empty;
                     }
 
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache status", "fcache status", "Display cache status", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the cache.  If file or memory is specified then only this cache is cleared.", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache expire", "fcache expire <datetime>", "Purge cached assets older then the specified date/time", HandleConsoleCommand);
+                    if (!string.IsNullOrWhiteSpace(m_assetLoader))
+                    {
+                        MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache cachedefaultassets", "fcache cachedefaultassets", "loads local default assets to cache. This may override grid ones. use with care", HandleConsoleCommand);
+                        MainConsole.Instance.Commands.AddCommand("Assets", true, "fcache deletedefaultassets", "fcache deletedefaultassets", "deletes default local assets from cache so they can be refreshed from grid. use with care", HandleConsoleCommand);
+                    }
                 }
             }
         }
@@ -1231,6 +1245,12 @@ namespace OpenSim.Region.CoreModules.Asset
                             con.Output("File cache not active, not clearing.");
 
                         break;
+                    case "cachedefaultassets":
+                        HandleLoadDefaultAssets();
+                        break;
+                    case "deletedefaultassets":
+                        HandleDeleteDefaultAssets();
+                        break;
                     default:
                         con.Output("Unknown command {0}", cmd);
                         break;
@@ -1242,6 +1262,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 con.Output("fcache expire <datetime> - Purge assets older then the specified date & time");
                 con.Output("fcache clear [file] [memory] - Remove cached assets");
                 con.Output("fcache status - Display cache status");
+                con.Output("fcache cachedefaultassets - loads default assets to cache replacing existent ones, this may override grid assets. Use with care");
+                con.Output("fcache deletedefaultassets - deletes default local assets from cache so they can be refreshed from grid");
             }
         }
 
@@ -1316,6 +1338,59 @@ namespace OpenSim.Region.CoreModules.Asset
             return true;
         }
 
+        private void HandleLoadDefaultAssets()
+        {
+            if (string.IsNullOrWhiteSpace(m_assetLoader))
+            {
+                m_log.Info("[FLOTSAM ASSET CACHE] default assets loader not defined");
+                return;
+            }
+
+            IAssetLoader assetLoader = ServerUtils.LoadPlugin<IAssetLoader>(m_assetLoader, new object[] { });
+            if (assetLoader == null)
+            {
+                m_log.Info("[FLOTSAM ASSET CACHE] default assets loader not found");
+                return;
+            }
+
+            m_log.Info("[FLOTSAM ASSET CACHE] start loading local default assets");
+            int count = 0;
+            assetLoader.ForEachDefaultXmlAsset(
+                    m_assetLoaderArgs,
+                    delegate (AssetBase a)
+                    {
+                        Cache(a);
+                        ++count;
+                    });
+            m_log.InfoFormat("[FLOTSAM ASSET CACHE] loaded {0} local default assets", count);
+        }
+
+        private void HandleDeleteDefaultAssets()
+        {
+            if (string.IsNullOrWhiteSpace(m_assetLoader))
+            {
+                m_log.Info("[FLOTSAM ASSET CACHE] default assets loader not defined");
+                return;
+            }
+
+            IAssetLoader assetLoader = ServerUtils.LoadPlugin<IAssetLoader>(m_assetLoader, new object[] { });
+            if (assetLoader == null)
+            {
+                m_log.Info("[FLOTSAM ASSET CACHE] default assets loader not found");
+                return;
+            }
+
+            m_log.Info("[FLOTSAM ASSET CACHE] started deleting local default assets");
+            int count = 0;
+            assetLoader.ForEachDefaultXmlAsset(
+                    m_assetLoaderArgs,
+                    delegate (AssetBase a)
+                    {
+                        Expire(a.ID);
+                        ++count;
+                    });
+            m_log.InfoFormat("[FLOTSAM ASSET CACHE] deleted {0} local default assets", count);
+        }
         #endregion
     }
 }
