@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Asset
             return asset != null;
         }
 
-        public void Cache(AssetBase asset)
+        public void Cache(AssetBase asset, bool replace = true)
         {
             if (asset != null)
                 m_Cache.Store(asset.ID, asset);
