@@ -33,6 +33,8 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -92,6 +94,19 @@ namespace OpenSim.Framework
         /// </remarks>
         public const int MaxRequestDiagLength = 200;
 
+
+        public static bool ValidateServerCertificateNoChecks(
+            object sender,
+            X509Certificate certificate,
+            X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            sslPolicyErrors &= ~SslPolicyErrors.RemoteCertificateChainErrors;
+            sslPolicyErrors &= ~SslPolicyErrors.RemoteCertificateNameMismatch;
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+            return false;
+        }
         #region JSONRequest
 
         /// <summary>

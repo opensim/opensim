@@ -1162,6 +1162,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     //m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
 
                     HttpWebRequest req = (HttpWebRequest)WebRequest.Create(requrl);
+                    req.ServerCertificateValidationCallback = WebUtil.ValidateServerCertificateNoChecks; // vivox servers have invalid certs
 
                     // We are sending just parameters, no content
                     req.ContentLength = 0;
