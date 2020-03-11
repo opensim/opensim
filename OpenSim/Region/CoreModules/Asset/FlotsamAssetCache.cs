@@ -982,7 +982,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             double weakHitRate = m_weakRefHits * invReq;
             int weakEntriesAlive = 0;
-            lock(weakAssetReferences)
+            lock(weakAssetReferencesLock)
             {
                 foreach(WeakReference aref in weakAssetReferences.Values)
                 {
