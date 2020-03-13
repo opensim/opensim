@@ -365,18 +365,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     }
                 }
 
-                // LLSDVoiceAccountResponse voiceAccountResponse =
-               //     new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm, "http://etsvc02.hursley.ibm.com/api");
-               LLSDVoiceAccountResponse voiceAccountResponse =
-                   new LLSDVoiceAccountResponse(agentname, password, m_freeSwitchRealm,
-                                                String.Format("http://{0}:{1}{2}/", m_openSimWellKnownHTTPAddress,
-                                                              m_freeSwitchServicePort, m_freeSwitchAPIPrefix));
-
-                string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
-
-//                m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
-
-                return r;
+                string accounturl = String.Format("http://{0}:{1}{2}/", m_openSimWellKnownHTTPAddress,
+                                                              m_freeSwitchServicePort, m_freeSwitchAPIPrefix);
+                // fast foward encode
+                StringBuilder lsl = LLSDxmlEncode.Start(512);
+                LLSDxmlEncode.AddMap(lsl);
+                LLSDxmlEncode.AddElem("username", agentname, lsl);
+                LLSDxmlEncode.AddElem("password", password, lsl);
+                LLSDxmlEncode.AddElem("voice_sip_uri_hostname", m_freeSwitchRealm, lsl);
+                LLSDxmlEncode.AddElem("voice_account_server_name", accounturl, lsl);
+                LLSDxmlEncode.AddEndMap(lsl);
+                return LLSDxmlEncode.End(lsl);
             }
             catch (Exception e)
             {
@@ -414,7 +413,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             // - send channel_uri: as "sip:regionID@m_sipDomain"
             try
             {
-                LLSDParcelVoiceInfoResponse parcelVoiceInfo;
                 string channelUri;
 
                 if (null == scene.LandChannel)
@@ -431,15 +429,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 //                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
 
                 // TODO: EstateSettings don't seem to get propagated...
-                // if (!scene.RegionInfo.EstateSettings.AllowVoice)
-                // {
-                //     m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": voice not enabled in estate settings",
-                //                       scene.RegionInfo.RegionName);
-                //     channel_uri = String.Empty;
-                // }
-                // else
+                 if (!scene.RegionInfo.EstateSettings.AllowVoice)
+                 {
+                     m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": voice not enabled in estate settings",
+                                       scene.RegionInfo.RegionName);
+                    channelUri = String.Empty;
+                }
+                else
 
-                if ((land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
+                if (!scene.RegionInfo.EstateSettings.TaxFree && (land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
 //                    m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
 //                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
@@ -450,16 +448,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     channelUri = ChannelUri(scene, land);
                 }
 
-                // fill in our response to the client
-                Hashtable creds = new Hashtable();
-                creds["channel_uri"] = channelUri;
+                // fast foward encode
+                StringBuilder lsl = LLSDxmlEncode.Start(512);
+                LLSDxmlEncode.AddMap(lsl);
+                LLSDxmlEncode.AddElem("parcel_local_id", land.LocalID, lsl);
+                LLSDxmlEncode.AddElem("region_name", scene.Name, lsl);
+                LLSDxmlEncode.AddMap("voice_credentials", lsl);
+                LLSDxmlEncode.AddElem("channel_uri", channelUri, lsl);
+                //LLSDxmlEncode.AddElem("channel_credentials", channel_credentials, lsl);
+                LLSDxmlEncode.AddEndMap(lsl);
+                LLSDxmlEncode.AddEndMap(lsl);
 
-                parcelVoiceInfo = new LLSDParcelVoiceInfoResponse(scene.RegionInfo.RegionName, land.LocalID, creds);
-                string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
-
-//                m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
-//                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
-                return r;
+                return LLSDxmlEncode.End(lsl);
             }
             catch (Exception e)
             {
