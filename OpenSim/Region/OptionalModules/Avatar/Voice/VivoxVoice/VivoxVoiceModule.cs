@@ -209,7 +209,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     return;
                 }
 
-                m_vivoxVoiceAccountApi = String.Format("https://{0}:443/api2", m_vivoxServer); // fs seems to not like https here
+                //m_vivoxVoiceAccountApi = String.Format("https://{0}:443/api2", m_vivoxServer);
+                m_vivoxVoiceAccountApi = String.Format("http://{0}/api2", m_vivoxServer); // fs <6.3 seems to not like https here
                 if (!Uri.TryCreate(m_vivoxVoiceAccountApi, UriKind.Absolute, out Uri accoutURI))
                 {
                     m_log.Error("[VivoxVoice] invalid vivox server");
