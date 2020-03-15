@@ -718,11 +718,10 @@ namespace OpenSim.Region.ClientStack.Linden
             ma = mlst + ml + mm + mh;
 
             // get LODs compressed sizes
-            // giving 384 bytes bonus
-            int lst = curCost.lowestLODSize - 384;
-            int l = curCost.lowLODSize - 384;
-            int m = curCost.medLODSize - 384;
-            int h = curCost.highLODSize - 384;
+            int lst = curCost.lowestLODSize;
+            int l = curCost.lowLODSize;
+            int m = curCost.medLODSize;
+            int h = curCost.highLODSize;
 
             // use previous higher LOD size on missing ones
             if (m <= 0)
@@ -731,6 +730,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 l = m;
             if (lst <= 0)
                 lst = l;
+
+            // giving 384 bytes bonus
+            lst -= 384;
+            l -= 384;
+            m -= 384;
+            h -= 384;
 
             // force minumum sizes
             if (lst < 16)
@@ -743,7 +748,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 h = 16;
 
             // compute cost weighted by relative effective areas
-            float cost = (float)lst * mlst + (float)l * ml + (float)m * mm + (float)h * mh;
+            float cost = lst * mlst + l * ml + m * mm + h * mh;
             cost /= ma;
 
             cost *= 0.004f; // overall tunning parameter
