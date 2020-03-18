@@ -191,7 +191,13 @@ namespace OpenSim.Framework.Servers
             m_log.InfoFormat(
                 "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
                 Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
-            m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"));
+
+            // next code can be changed on .net 4.7.x
+            if(Util.IsWindows())
+                m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine));
+            else
+                m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"));
+
             try
             {
                 StartupSpecific();
