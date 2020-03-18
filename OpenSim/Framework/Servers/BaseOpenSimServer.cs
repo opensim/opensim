@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Servers
                 return true;
 
             return false;
-        }             
+        }
         /// <summary>
         /// Must be overriden by child classes for their own server specific startup behaviour.
         /// </summary>
@@ -190,8 +190,8 @@ namespace OpenSim.Framework.Servers
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
             m_log.InfoFormat(
                 "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
-                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
-
+                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
+            m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"));
             try
             {
                 StartupSpecific();

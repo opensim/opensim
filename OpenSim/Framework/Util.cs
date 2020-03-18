@@ -113,7 +113,7 @@ namespace OpenSim.Framework
         RegressionTest,
         QueueUserWorkItem,
         SmartThreadPool,
-        Thread,
+        Thread
     }
 
     /// <summary>
@@ -996,7 +996,7 @@ namespace OpenSim.Framework
             // controlled in config files.
             string nativeLibraryPath;
 
-            if (Util.Is64BitProcess())
+            if (Environment.Is64BitProcess)
                 nativeLibraryPath = Path.Combine(Path.Combine(path, "lib64"), libraryName);
             else
                 nativeLibraryPath = Path.Combine(Path.Combine(path, "lib32"), libraryName);
@@ -2712,10 +2712,6 @@ namespace OpenSim.Framework
         /// Determine whether the current process is 64 bit
         /// </summary>
         /// <returns>true if so, false if not</returns>
-        public static bool Is64BitProcess()
-        {
-            return IntPtr.Size == 8;
-        }
 
         #region FireAndForget Threading Pattern
 
@@ -2974,7 +2970,7 @@ namespace OpenSim.Framework
                         realCallback.Invoke(obj);
                         break;
                     case FireAndForgetMethod.QueueUserWorkItem:
-                        ThreadPool.QueueUserWorkItem(realCallback, obj);
+                        ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
                         break;
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)

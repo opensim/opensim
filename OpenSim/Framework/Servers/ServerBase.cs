@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Servers
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
             m_log.InfoFormat(
                 "[SERVER BASE]: Operating system version: {0}, .NET platform {1}, {2}-bit",
-                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
+                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
         }
 
         public void RegisterCommonAppenders(IConfig startupConfig)
