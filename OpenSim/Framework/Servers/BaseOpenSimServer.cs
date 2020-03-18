@@ -194,9 +194,13 @@ namespace OpenSim.Framework.Servers
 
             // next code can be changed on .net 4.7.x
             if(Util.IsWindows())
-                m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine));
+                m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
+                    System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine),
+                    BitConverter.IsLittleEndian ?"le":"be");
             else
-                m_log.Info("[STARTUP]: Processor Architecture: " + System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"));
+                m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
+                    System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"),
+                    BitConverter.IsLittleEndian ? "le" : "be");
 
             try
             {
