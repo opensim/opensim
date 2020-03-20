@@ -160,6 +160,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     m_levelUpload = sconfig.GetInt("LevelUpload", 0);
                 }
+                if (m_levelUpload == 0)
+                {
+                    IConfig pconfig = config.Configs["Permissions"];
+                    if (pconfig != null)
+                    {
+                        m_levelUpload = pconfig.GetInt("LevelUpload", 0);
+                    }
+                }
 
                 IConfig appearanceConfig = config.Configs["Appearance"];
                 if (appearanceConfig != null)
