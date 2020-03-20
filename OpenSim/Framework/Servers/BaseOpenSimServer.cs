@@ -197,11 +197,8 @@ namespace OpenSim.Framework.Servers
                 m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
                     System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine),
                     BitConverter.IsLittleEndian ?"le":"be");
-            else
-                m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
-                    System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE"),
-                    BitConverter.IsLittleEndian ? "le" : "be");
 
+            // on other platforms we need to wait for .net4.7.1
             try
             {
                 StartupSpecific();
