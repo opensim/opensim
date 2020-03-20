@@ -473,7 +473,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 if(m_Materials.ContainsKey(id))
                 {
                     m_MaterialsRefCount[id]--;
-                    if (m_MaterialsRefCount[id] <= 0)
+                    if (m_MaterialsRefCount[id] == 0)
                         delayedDelete.Enqueue(id);
                 }
             }
@@ -866,13 +866,11 @@ namespace OpenSim.Region.OptionalModules.Materials
                 if(m_Materials.ContainsKey(id))
                 {
                     m_MaterialsRefCount[id]--;
-                    if(m_MaterialsRefCount[id] <= 0)
+                    if(m_MaterialsRefCount[id] == 0)
                     {
                         FaceMaterial fm = m_Materials[id];
                         m_changed.Remove(fm);
-                        m_Materials.Remove(id);
-                        m_MaterialsRefCount.Remove(id);
-                        m_cache.Expire(id.ToString());
+                        delayedDelete.Enqueue(id);
                     }
                 }
             }
