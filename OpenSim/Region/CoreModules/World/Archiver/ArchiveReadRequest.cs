@@ -1092,6 +1092,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.LoadedCreationDateTime = dearchivedScenes.LoadedCreationDateTime;
             currentRegionSettings.LoadedCreationID = dearchivedScenes.GetOriginalRegionID(scene.RegionInfo.RegionID).ToString();
 
+            currentRegionSettings.CacheID = UUID.Random();
             currentRegionSettings.Save();
 
             scene.TriggerEstateSunUpdate();
