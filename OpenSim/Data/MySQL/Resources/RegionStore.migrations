@@ -533,3 +533,9 @@ MODIFY `AttachedPosZ` float DEFAULT '0',
 MODIFY `LoopedSoundGain` float DEFAULT '0';
 COMMIT;
 
+:VERSION 61         #----- Add pseudo CRC and region cache id
+
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `pseudocrc` int DEFAULT '0';
+ALTER TABLE `regionsettings` ADD COLUMN `cacheID` char(36) DEFAULT NULL;
+COMMIT;

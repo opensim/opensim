@@ -130,10 +130,6 @@ namespace OpenSim.Data.MySQL
 
             // Eligibility check
             //
-            // PrimFlags.Temporary is not used in OpenSim code and cannot
-            // be guaranteed to always be clear. Don't check it.
-//            if ((flags & (uint)PrimFlags.Temporary) != 0)
-//                return;
             if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
                 return;
 
@@ -188,7 +184,7 @@ namespace OpenSim.Data.MySQL
                                     "AttachedPosY, AttachedPosZ, " +
                                     "PhysicsShapeType, Density, GravityModifier, " +
                                     "Friction, Restitution, Vehicle, PhysInertia, DynAttrs, " +
-                                    "RotationAxisLocks, sopanims, sitactrange" +
+                                    "RotationAxisLocks, sopanims, sitactrange, pseudocrc" + 
                                     ") values (" + "?UUID, " +
                                     "?CreationDate, ?Name, ?Text, " +
                                     "?Description, ?SitName, ?TouchName, " +
@@ -224,7 +220,7 @@ namespace OpenSim.Data.MySQL
                                     "?AttachedPosY, ?AttachedPosZ, " +
                                     "?PhysicsShapeType, ?Density, ?GravityModifier, " +
                                     "?Friction, ?Restitution, ?Vehicle, ?PhysInertia, ?DynAttrs," +
-                                    "?RotationAxisLocks, ?sopanims, ?sitactrange)";
+                                    "?RotationAxisLocks, ?sopanims, ?sitactrange, ?pseudocrc)";
 
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1229,7 +1225,7 @@ namespace OpenSim.Data.MySQL
                          "covenant, covenant_datetime, Sandbox, sunvectorx, sunvectory, " +
                          "sunvectorz, loaded_creation_datetime, " +
                          "loaded_creation_id, map_tile_ID, block_search, casino, " +
-                         "TelehubObject, parcel_tile_ID) " +
+                         "TelehubObject, parcel_tile_ID, cacheID) " +
                           "values (?RegionUUID, ?BlockTerraform, " +
                          "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                          "?AllowLandResell, ?AllowLandJoinDivide, " +
@@ -1246,7 +1242,7 @@ namespace OpenSim.Data.MySQL
                          "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                          "?LoadedCreationDateTime, ?LoadedCreationID, " +
                          "?TerrainImageID, ?block_search, ?casino, " +
-                         "?TelehubObject, ?ParcelImageID)";
+                         "?TelehubObject, ?ParcelImageID, ?cacheID)";
 
                     FillRegionSettingsCommand(cmd, rs);
                     ExecuteNonQuery(cmd);
@@ -1523,6 +1519,10 @@ namespace OpenSim.Data.MySQL
 
             prim.SitActiveRange = (float)row["sitactrange"];
 
+            int pseudocrc = (int)row["pseudocrc"];
+            if(pseudocrc != 0)
+                prim.PseudoCRC = pseudocrc;
+
             return prim;
         }
 
@@ -1627,6 +1627,8 @@ namespace OpenSim.Data.MySQL
             newSettings.GodBlockSearch = Convert.ToBoolean(row["block_search"]);
             newSettings.Casino = Convert.ToBoolean(row["casino"]);
 
+            if (!(row["cacheID"] is DBNull))
+                newSettings.CacheID = DBGuid.FromDB(row["cacheID"]);
             return newSettings;
         }
 
@@ -1914,6 +1916,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("sopanims", null);
 
             cmd.Parameters.AddWithValue("sitactrange", prim.SitActiveRange);
+            cmd.Parameters.AddWithValue("pseudocrc", prim.PseudoCRC);
         }
 
         /// <summary>
@@ -1997,6 +2000,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("ParcelImageID", settings.ParcelImageID);
             cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject);
+            cmd.Parameters.AddWithValue("cacheID", settings.CacheID);
         }
 
         /// <summary>
