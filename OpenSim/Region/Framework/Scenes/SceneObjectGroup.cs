@@ -147,8 +147,6 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
 
-        public int PseudoCRC;
-
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
         /// (the database).
@@ -167,7 +165,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Backup)
                         m_scene.SceneGraph.FireChangeBackup(this);
 
-                    PseudoCRC = (int)(DateTime.UtcNow.Ticks);
                     timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
                         timeFirstChanged = timeLastChanged;
@@ -1336,7 +1333,6 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup()
         {
             m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
-            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
         }
 
         /// <summary>
@@ -2545,7 +2541,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             dupe.InvalidatePartsLinkMaps();
-            dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
+            
             m_dupeInProgress = false;
             return dupe;
         }
@@ -2799,7 +2795,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             rpart.ScheduleFullUpdate();
         }
 
@@ -2839,7 +2834,6 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ResetIDs(part.LinkNum); // Don't change link nums
                     m_parts.Add(part.UUID, part);
                 }
-                PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             }
         }
 
