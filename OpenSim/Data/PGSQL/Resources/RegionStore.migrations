@@ -1242,3 +1242,11 @@ ADD COLUMN `standtargety` real DEFAULT '0.0',
 ADD COLUMN `standtargetz` real DEFAULT '0.0',
 ADD COLUMN `sitactrange` real DEFAULT '0.0';
 COMMIT;
+
+
+:VERSION 50         #----- Add pseudo CRC and region cache id
+
+BEGIN;
+ALTER TABLE `prims` ADD COLUMN `pseudocrc` integer DEFAULT '0';
+ALTER TABLE `regionsettings` ADD COLUMN `cacheID` uuid DEFAULT NULL;
+COMMIT;
