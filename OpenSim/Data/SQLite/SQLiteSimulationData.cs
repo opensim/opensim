@@ -632,7 +632,7 @@ namespace OpenSim.Data.SQLite
                 ds.AcceptChanges();
             }
 
-            //            m_log.Info("[Dump of prims]: " + ds.GetXml());
+            // m_log.Info("[Dump of prims]: " + ds.GetXml());
         }
 
         /// <summary>
@@ -1323,6 +1323,8 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "standtargetz", typeof(float));
             createCol(prims, "sitactrange", typeof(float));
 
+            createCol(prims, "pseudocrc", typeof(int));
+
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] { prims.Columns["UUID"] };
 
@@ -1532,6 +1534,7 @@ namespace OpenSim.Data.SQLite
             createCol(regionsettings, "parcel_tile_ID", typeof(String));
             createCol(regionsettings, "block_search", typeof(Boolean));
             createCol(regionsettings, "casino", typeof(Boolean));
+            createCol(regionsettings, "cacheID", typeof(string));
             regionsettings.PrimaryKey = new DataColumn[] { regionsettings.Columns["regionUUID"] };
             return regionsettings;
         }
@@ -1867,6 +1870,10 @@ namespace OpenSim.Data.SQLite
             if (!(row["PhysInertia"] is DBNull) && row["PhysInertia"].ToString() != String.Empty)
                 pdata = PhysicsInertiaData.FromXml2(row["PhysInertia"].ToString());
             prim.PhysicsInertia = pdata;
+
+            int pseudocrc = Convert.ToInt32(row["pseudocrc"]);
+            if(pseudocrc != 0)
+                prim.PseudoCRC = pseudocrc;
 
             return prim;
         }
@@ -2303,6 +2310,7 @@ namespace OpenSim.Data.SQLite
             else
                 row["PhysInertia"] = String.Empty;
 
+            row["pseudocrc"] = prim.PseudoCRC;
         }
 
         /// <summary>
@@ -2450,6 +2458,7 @@ namespace OpenSim.Data.SQLite
             row["parcel_tile_ID"] = settings.ParcelImageID.ToString();
             row["block_search"] = settings.GodBlockSearch;
             row["casino"] = settings.Casino;
+            row["cacheID"] = settings.CacheID;
         }
 
         /// <summary>
