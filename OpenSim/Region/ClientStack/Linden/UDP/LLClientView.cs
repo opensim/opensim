@@ -4104,6 +4104,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LLSDxmlEncode.AddElem("AvatarID", avatarID, sb);
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
+            bool notSameAvatar = avatarID != AgentId;
             if(data.Length == 0)
                 LLSDxmlEncode.AddEmptyArray("GroupData", sb);
             else
@@ -4113,6 +4114,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int indx = 0; indx < data.Length; ++indx)
                 {
                     m = data[indx];
+                    if(notSameAvatar && !m.ListInProfile)
+                        continue;
                     LLSDxmlEncode.AddMap(sb);
                        LLSDxmlEncode.AddElem("GroupPowers", m.GroupPowers, sb);
                         LLSDxmlEncode.AddElem("GroupTitle", m.GroupTitle, sb);

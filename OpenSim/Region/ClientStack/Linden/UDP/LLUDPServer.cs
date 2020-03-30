@@ -417,7 +417,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (config != null)
             {
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
-                sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
+                sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 6250000);
 
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
 
