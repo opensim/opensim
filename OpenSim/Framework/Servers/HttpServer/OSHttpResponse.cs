@@ -231,6 +231,18 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public int Priority
+        {
+            get
+            {
+                return _httpResponse.Priority;
+            }
+            set
+            {
+                _httpResponse.Priority = value;
+            }
+        }
+
         /// <summary>
         /// Set a redirct location.
         /// </summary>

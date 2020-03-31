@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool m_running = false;
 
-        private SmartThreadPool m_threadPool;
+        //private SmartThreadPool m_threadPool;
 
         public PollServiceRequestManager(
             bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_workerThreads = new Thread[m_WorkerThreadCount];
 
             m_bycontext = new Dictionary<int, Queue<PollServiceHttpRequest>>(256);
-
+            /*
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.IdleTimeout = 30000;
             startInfo.MaxWorkerThreads = 20;
@@ -70,6 +70,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             startInfo.ThreadPoolName = "PoolService";
 
             m_threadPool = new SmartThreadPool(startInfo);
+            */
         }
 
         public void Start()
@@ -77,7 +78,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_running)
                 return;
             m_running = true;
-            m_threadPool.Start();
+            //m_threadPool.Start();
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
@@ -192,7 +193,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId);
 
-            m_threadPool.Shutdown();
+            //m_threadPool.Shutdown();
 
             // any entry in m_bycontext should have a active request on the other queues
             // so just delete contents to easy GC
@@ -263,8 +264,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
                         PollServiceHttpRequest nreq = req;
-                        m_threadPool.QueueWorkItem(x =>
-                        {
+                        //m_threadPool.QueueWorkItem(x =>
+                        //{
                             try
                             {
                                 Hashtable responsedata = nreq.PollServiceArgs.GetEvents(nreq.RequestID, nreq.PollServiceArgs.Id);
@@ -276,16 +277,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 byContextDequeue(nreq);
                                 nreq = null;
                             }
-                            return null;
-                        }, null);
+                            //return null;
+                        //}, null);
                     }
                     else
                     {
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
                             PollServiceHttpRequest nreq = req;
-                            m_threadPool.QueueWorkItem(x =>
-                            {
+                            //m_threadPool.QueueWorkItem(x =>
+                            //{
                                 try
                                 {
                                     nreq.DoHTTPGruntWork(nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
@@ -296,8 +297,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     byContextDequeue(nreq);
                                     nreq = null;
                                 }
-                                return null;
-                            }, null);
+                                //return null;
+                            //}, null);
                         }
                         else
                         {
