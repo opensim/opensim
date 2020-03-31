@@ -138,7 +138,10 @@ namespace OpenSim.Capabilities.Handlers
             }
 
             if (type == AssetType.Mesh || type == AssetType.Texture)
+            {
                 responsedata["throttle"] = true;
+                responsedata["prio"] = 2;
+            }
 
             responsedata["content_type"] = asset.Metadata.ContentType;
             responsedata["bin_response_data"] = asset.Data;
