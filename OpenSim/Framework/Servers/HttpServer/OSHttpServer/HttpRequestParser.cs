@@ -189,11 +189,6 @@ namespace OSHttpServer.Parser
                 return AddToBody(buffer, offset, count);
             }
 
-#if DEBUG
-            string temp = Encoding.ASCII.GetString(buffer, offset, count);
-            _log.Write(this, LogPrio.Trace, "\r\n\r\n HTTP MESSAGE: " + temp + "\r\n");
-#endif
-
             int currentLine = 1;
             int startPos = -1;
 
