@@ -1,3 +1,5 @@
+Embedded http lister uses some code derived from Gauffin Telecom AB HttpServer
+
 Files: HttpServer_OpenSim.dll
 
 Apache License
