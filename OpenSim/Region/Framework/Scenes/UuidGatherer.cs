@@ -603,7 +603,8 @@ namespace OpenSim.Region.Framework.Scenes
                     || (sbyte)AssetType.Notecard == assetType
                     || (sbyte)AssetType.LSLText == assetType
                     || (sbyte)OpenSimAssetType.Material == assetType
-                    || (sbyte)AssetType.Object == assetType)
+                    || (sbyte)AssetType.Object == assetType
+                    || (sbyte)AssetType.Settings == assetType)
                 {
                     AddForInspection(assetUuid);
                 }

@@ -32,7 +32,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using HttpServer;
+using OSHttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {

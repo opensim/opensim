@@ -28,8 +28,7 @@
 using System;
 using System.Collections.Specialized;
 using System.IO;
-using HttpServer;
-using HttpServer.FormDecoders;
+using OSHttpServer;
 
 namespace OpenSim.Tests.Common
 {

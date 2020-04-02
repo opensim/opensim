@@ -68,6 +68,11 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public long ContentLength64 { get; set; }
 
+        public int Priority { get; set; }
+        public byte[] RawBuffer { get; set; }
+        public int RawBufferStart { get; set; }
+        public int RawBufferLen { get; set; }
+
         /// <summary>
         /// Encoding of the body content.
         /// </summary>
@@ -96,11 +101,6 @@ namespace OpenSim.Tests.Common
         /// Return the output stream feeding the body.
         /// </summary>
         public Stream Body { get; private set; }
-
-        /// <summary>
-        /// Set a redirct location.
-        /// </summary>
-        public string RedirectLocation { private get; set; }
 
         /// <summary>
         /// Chunk transfers.

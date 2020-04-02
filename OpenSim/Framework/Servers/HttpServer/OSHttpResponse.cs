@@ -28,7 +28,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using HttpServer;
+using OSHttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -242,19 +242,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _httpResponse.Priority = value;
             }
         }
-
-        /// <summary>
-        /// Set a redirct location.
-        /// </summary>
-        public string RedirectLocation
-        {
-            // get { return _redirectLocation; }
-            set
-            {
-                _httpResponse.Redirect(value);
-            }
-        }
-
 
         /// <summary>
         /// Chunk transfers.

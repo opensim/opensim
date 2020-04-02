@@ -34,7 +34,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Web;
-using HttpServer;
+using OSHttpServer;
 using log4net;
 
 namespace OpenSim.Framework.Servers.HttpServer
