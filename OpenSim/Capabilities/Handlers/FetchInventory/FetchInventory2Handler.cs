@@ -105,7 +105,7 @@ namespace OpenSim.Capabilities.Handlers
             }            
 
             LLSDxmlEncode.AddEndMap(lsl);
-            return LLSDxmlEncode.End(lsl);;
+            return LLSDxmlEncode.End(lsl);
         }
     }
 }

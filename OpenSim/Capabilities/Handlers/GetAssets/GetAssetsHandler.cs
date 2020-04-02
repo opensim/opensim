@@ -137,27 +137,13 @@ namespace OpenSim.Capabilities.Handlers
                 return responsedata;
             }
 
-            if (type == AssetType.Mesh || type == AssetType.Texture)
-            {
-                responsedata["throttle"] = true;
-                responsedata["prio"] = 2;
-            }
-
-            responsedata["content_type"] = asset.Metadata.ContentType;
-            responsedata["bin_response_data"] = asset.Data;
-            responsedata["int_bytes"] = asset.Data.Length;
-            responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
+            int len = asset.Data.Length;
 
             string range = String.Empty;
             if (((Hashtable)request["headers"])["range"] != null)
                range = (string)((Hashtable)request["headers"])["range"];
             else if (((Hashtable)request["headers"])["Range"] != null)
                 range = (string)((Hashtable)request["headers"])["Range"];
-            else
-                return responsedata; // full asset
-
-            if (String.IsNullOrEmpty(range))
-                return responsedata; // full asset
 
             // range request
             int start, end;
@@ -177,7 +163,7 @@ namespace OpenSim.Capabilities.Handlers
                     end = Utils.Clamp(end, 0, asset.Data.Length - 1);
 
                 start = Utils.Clamp(start, 0, end);
-                int len = end - start + 1;
+                len = end - start + 1;
 
                 //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
                 Hashtable headers = new Hashtable();
@@ -185,12 +171,19 @@ namespace OpenSim.Capabilities.Handlers
                 responsedata["headers"] = headers;
                 responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
                 responsedata["bin_start"] = start;
-                responsedata["int_bytes"] = len;
-                return responsedata;
             }
+            else
+                responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
 
-            m_log.Warn("[GETASSETS]: Failed to parse a range, sending full asset: " + assetStr);
-            return responsedata;
+            responsedata["content_type"] = asset.Metadata.ContentType;
+            responsedata["bin_response_data"] = asset.Data;
+            responsedata["int_bytes"] = len;
+            if (type == AssetType.Mesh || type == AssetType.Texture)
+            {
+                responsedata["throttle"] = true;
+                responsedata["prio"] = len < 8196 ? 1 : 2;
+            }
+            return responsedata; // full asset
         }
     }
 }
