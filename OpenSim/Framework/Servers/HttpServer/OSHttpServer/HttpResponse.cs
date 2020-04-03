@@ -89,7 +89,6 @@ namespace OSHttpServer
                     m_body = new MemoryStream();
                 return m_body;
             }
-            set { m_body = value; }
         }
 
         /// <summary>
@@ -298,7 +297,6 @@ namespace OSHttpServer
 
             if(m_body != null && m_body.Length > 0)
             {
-                m_body.Flush();
                 m_body.Seek(0, SeekOrigin.Begin);
 
                 var buffer = new byte[8192];
@@ -592,12 +590,12 @@ namespace OSHttpServer
 
             if (m_body != null && m_body.Length != 0)
             {
-                m_body.Flush();
-                m_body.Seek(0, SeekOrigin.Begin);
-
-                RawBuffer = new byte[m_body.Length];
-                RawBufferLen = m_body.Read(RawBuffer, 0, (int)m_body.Length);
-                m_body.Dispose();
+                MemoryStream mb = m_body as MemoryStream;
+                RawBuffer = mb.GetBuffer();
+                RawBufferStart = 0; // must be a internal buffer, or starting at 0
+                RawBufferLen = (int)mb.Length;
+                mb.Dispose();
+                m_body = null;
 
                 if(RawBufferLen > 0)
                 {
@@ -632,32 +630,6 @@ namespace OSHttpServer
                 m_body.Dispose();
             Sent = true;
             m_context.ReqResponseSent(requestID, Connection);
-        }
-
-        /// <summary>
-        /// Redirect client to somewhere else using the 302 status code.
-        /// </summary>
-        /// <param name="uri">Destination of the redirect</param>
-        /// <exception cref="InvalidOperationException">If headers already been sent.</exception>
-        /// <remarks>You can not do anything more with the request when a redirect have been done. This should be your last
-        /// action.</remarks>
-        public void Redirect(Uri uri)
-        {
-            Status = HttpStatusCode.Redirect;
-            m_headers["location"] = uri.ToString();
-        }
-
-        /// <summary>
-        /// redirect to somewhere
-        /// </summary>
-        /// <param name="url">where the redirect should go</param>
-        /// <remarks>
-        /// No body are allowed when doing redirects.
-        /// </remarks>
-        public void Redirect(string url)
-        {
-            Status = HttpStatusCode.Redirect;
-            m_headers["location"] = url;
         }
 
         public void Clear()

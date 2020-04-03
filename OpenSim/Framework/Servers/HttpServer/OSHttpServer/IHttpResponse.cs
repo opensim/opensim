@@ -31,7 +31,7 @@ namespace OSHttpServer
         /// before sending everything to the client. It's the simplest
         /// way to serve documents.
         /// </summary>
-        Stream Body { get; set; }
+        Stream Body { get; }
         byte[] RawBuffer { get; set; }
         int RawBufferStart { get; set; }
         int RawBufferLen { get; set; }
