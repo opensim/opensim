@@ -125,41 +125,6 @@ namespace OSHttpServer
         /// </summary>
         /// <exception cref="InvalidOperationException">If content have already been sent.</exception>
         void Send();
-
-        /// <summary>
-        /// Make sure that you have specified ContentLength and sent the headers first.
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <exception cref="InvalidOperationException">If headers have not been sent.</exception>
-        /// <see cref="IHttpResponse.SendHeaders"/>
-        /// <param name="offset">offest of first byte to send</param>
-        /// <param name="count">number of bytes to send.</param>
-        /// <seealso cref="IHttpResponse.Send"/>
-        /// <seealso cref="IHttpResponse.SendHeaders"/>
-        /// <remarks>This method can be used if you want to send body contents without caching them first. This
-        /// is recommended for larger files to keep the memory usage low.</remarks>
-        bool SendBody(byte[] buffer, int offset, int count);
-
-        /// <summary>
-        /// Make sure that you have specified ContentLength and sent the headers first.
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <exception cref="InvalidOperationException">If headers have not been sent.</exception>
-        /// <see cref="IHttpResponse.SendHeaders"/>
-        /// <seealso cref="IHttpResponse.Send"/>
-        /// <seealso cref="IHttpResponse.SendHeaders"/>
-        /// <remarks>This method can be used if you want to send body contents without caching them first. This
-        /// is recommended for larger files to keep the memory usage low.</remarks>
-        bool SendBody(byte[] buffer);
-
-        /// <summary>
-        /// Send headers to the client.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">If headers already been sent.</exception>
-        /// <seealso cref="IHttpResponse.AddHeader"/>
-        /// <seealso cref="IHttpResponse.Send"/>
-        /// <seealso cref="IHttpResponse.SendBody(byte[])"/>
-        bool SendHeaders();
     }
 
     /// <summary>
