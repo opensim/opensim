@@ -2142,6 +2142,9 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroup copy = original.Copy(true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
 
+                    copy.RootPart.Rezzed = DateTime.UtcNow;
+                    copy.RootPart.RezzerID = AgentID;
+
                     SceneObjectPart[] parts = copy.Parts;
 
                     m_numTotalPrim += parts.Length;
