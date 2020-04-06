@@ -20,7 +20,7 @@ namespace OSHttpServer
     /// </remarks>
     public class HttpClientContext : IHttpClientContext, IDisposable
     {
-        const int MAXREQUESTS = 20;
+        const int MAXPIPEREQUESTS = 5;
         const int MAXKEEPALIVE = 60000;
 
         static private int basecontextID;
@@ -47,7 +47,7 @@ namespace OSHttpServer
         public int m_TimeoutKeepAlive = MAXKEEPALIVE; // 400 seconds before keepalive timeout
         // public int TimeoutKeepAlive = 120000; // 400 seconds before keepalive timeout
 
-        public int m_maxRequests = MAXREQUESTS;
+        public int m_maxPipeRequests = MAXPIPEREQUESTS;
 
         public bool FirstRequestLineReceived;
         public bool FullRequestReceived;
@@ -68,12 +68,15 @@ namespace OSHttpServer
             }
         }
 
-        public int MAXRequests
+        public int MaxPipeRequests
         {
-            get { return m_maxRequests; }
+            get { return m_maxPipeRequests; }
             set
             {
-                m_maxRequests = value > MAXREQUESTS ? MAXREQUESTS : value;
+                if(value <= 1)
+                    m_maxPipeRequests = 1;
+                else
+                   m_maxPipeRequests = value > MAXPIPEREQUESTS ? MAXPIPEREQUESTS : value;
             }
         }
 
@@ -354,6 +357,9 @@ namespace OSHttpServer
                     return;
                 }
 
+                if(m_maxPipeRequests <= 0)
+                    return;
+
                 m_ReceiveBytesLeft += bytesRead;
                 if (m_ReceiveBytesLeft > m_ReceiveBuffer.Length)
                 {
@@ -531,28 +537,29 @@ namespace OSHttpServer
         {
             TriggerKeepalive = false;
             MonitorKeepaliveMS = 0;
+            FullRequestReceived = true;
+
+            if (m_maxPipeRequests == 0)
+                return;
+
+            if(--m_maxPipeRequests == 0)
+                m_currentRequest.Connection = ConnectionType.Close;
 
             // load cookies if they exist
-
-            RequestCookies cookies = m_currentRequest.Headers["cookie"] != null
-                ? new RequestCookies(m_currentRequest.Headers["cookie"]) : new RequestCookies(String.Empty);
-            m_currentRequest.SetCookies(cookies);
+            if(m_currentRequest.Headers["cookie"] != null)
+                m_currentRequest.SetCookies(new RequestCookies(m_currentRequest.Headers["cookie"]));
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
-
-            FullRequestReceived = true;
 
             int nreqs;
             lock (requestsInServiceIDs)
             {
                 nreqs = requestsInServiceIDs.Count;
                 requestsInServiceIDs.Add(m_currentRequest.ID);
-                if (m_maxRequests > 0)
-                    m_maxRequests--;
             }
 
             // for now pipeline requests need to be serialized by opensim
-            RequestReceived(this, new RequestEventArgs(m_currentRequest));
+            RequestReceived?.Invoke(this, new RequestEventArgs(m_currentRequest));
 
             m_currentRequest = new HttpRequest(this);
 
@@ -610,10 +617,8 @@ namespace OSHttpServer
             lock (requestsInServiceIDs)
             {
                 requestsInServiceIDs.Remove(requestID);
-//                doclose = doclose && requestsInServiceIDs.Count == 0;
                 if (requestsInServiceIDs.Count > 1)
                 {
-
                 }
             }
 
@@ -750,11 +755,11 @@ namespace OSHttpServer
         /// <remarks>
         /// Event can be used to clean up a context, or to reuse it.
         /// </remarks>
-        public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
+        public event EventHandler<DisconnectedEventArgs> Disconnected;
         /// <summary>
         /// A request have been received in the context.
         /// </summary>
-        public event EventHandler<RequestEventArgs> RequestReceived = delegate { };
+        public event EventHandler<RequestEventArgs> RequestReceived;
 
         public HTTPNetworkContext GiveMeTheNetworkStreamIKnowWhatImDoing()
         {

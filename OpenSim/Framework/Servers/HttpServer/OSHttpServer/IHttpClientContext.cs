@@ -23,7 +23,7 @@ namespace OSHttpServer
 
         int contextID {get;}
         int TimeoutKeepAlive {get; set; }
-        int MAXRequests{get; set; }
+        int MaxPipeRequests{get; set; }
 
         bool CanSend();
         bool IsSending();

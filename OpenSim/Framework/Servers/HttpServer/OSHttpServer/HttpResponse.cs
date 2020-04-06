@@ -245,9 +245,9 @@ namespace OSHttpServer
                 sb.Append("Server: OSWebServer\r\n");
 
             int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-            if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MAXRequests > 0)
+            if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxPipeRequests > 0)
             {
-                sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MAXRequests);
+                sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxPipeRequests);
                 sb.Append("Connection: Keep-Alive\r\n");
             }
             else
@@ -282,7 +282,7 @@ namespace OSHttpServer
             if (Sent)
                 throw new InvalidOperationException("Everything have already been sent.");
 
-            if (m_context.MAXRequests == 0 || m_keepAlive == 0)
+            if (m_context.MaxPipeRequests == 0 || m_keepAlive == 0)
             {
                 Connection = ConnectionType.Close;
                 m_context.TimeoutKeepAlive = 0;
