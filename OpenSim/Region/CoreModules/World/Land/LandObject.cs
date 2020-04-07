@@ -614,10 +614,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             UUID previousOwner = LandData.OwnerID;
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-//            m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            SendLandUpdateToAvatarsOverMe(true);
-
-            if (sellObjects) SellLandObjects(previousOwner);
+            if (sellObjects)
+                SellLandObjects(previousOwner);
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
         }
 
         public void DeedToGroup(UUID groupID)
@@ -632,7 +631,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            SendLandUpdateToAvatarsOverMe(true);
         }
 
         public bool IsEitherBannedOrRestricted(UUID avatar)
@@ -842,6 +840,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
             {
+                if (avatar.IsNPC)
+                    return;
+
                 ILandObject over = null;
                 try
                 {
@@ -868,6 +869,49 @@ namespace OpenSim.Region.CoreModules.World.Land
                         avatar.currentParcelUUID = LandData.GlobalID;
                     }
                 }
+            });
+        }
+
+        public void SendLandUpdateToAvatars()
+        {
+            m_scene.ForEachScenePresence(delegate (ScenePresence avatar)
+            {
+                if (avatar.IsNPC)
+                    return;
+
+                if(avatar.IsChildAgent)
+                {
+                    SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
+                    return;
+                }
+                ILandObject over = null;
+                try
+                {
+                    over =
+                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.X), 0, ((int)m_scene.RegionInfo.RegionSizeX - 1)),
+                                                        Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.Y), 0, ((int)m_scene.RegionInfo.RegionSizeY - 1)));
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " +
+                            Math.Round(avatar.AbsolutePosition.Y));
+                }
+
+                if (over != null)
+                {
+                    if (over.LandData.LocalID == LandData.LocalID)
+                    {
+                        if (m_scene.RegionInfo.RegionSettings.AllowDamage)
+                            avatar.Invulnerable = false;
+                        else
+                            avatar.Invulnerable = (over.LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
+
+                        avatar.currentParcelUUID = LandData.GlobalID;
+                        SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
+                        return;
+                    }
+                }
+                SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
             });
         }
 
