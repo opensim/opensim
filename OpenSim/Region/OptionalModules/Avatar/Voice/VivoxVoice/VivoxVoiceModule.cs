@@ -362,10 +362,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                                 }
                             }
                         }
+                        if (!IsOK(VivoxDeleteChannel(null, channelId)))
+                            m_log.WarnFormat("[VivoxVoice] Parent channel delete failed {0}:{1}:{2}", sceneName, sceneUUID, channelId);
                     }
-
-                    if (!IsOK(VivoxDeleteChannel(null, channelId)))
-                        m_log.WarnFormat("[VivoxVoice] Parent channel delete failed {0}:{1}:{2}", sceneName, sceneUUID, channelId);
 
                     // Remove the channel umbrella entry
 
