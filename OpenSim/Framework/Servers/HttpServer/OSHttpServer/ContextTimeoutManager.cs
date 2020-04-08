@@ -93,17 +93,17 @@ namespace OSHttpServer
         {
             while (!m_shuttingDown)
             {
-                m_processWaitEven.WaitOne(100);
+                m_processWaitEven.WaitOne(500);
 
                 if(m_shuttingDown)
                     return;
 
-                double now = GetTimeStampMS();
+                double now = GetTimeStamp();
                 if(m_contexts.Count > 0)
                 {
                     ProcessSendQueues(now);
 
-                    if (now - m_lastTimeOutCheckTime > 1000)
+                    if (now - m_lastTimeOutCheckTime > 1.0)
                     {
                         ProcessContextTimeouts();
                         m_lastTimeOutCheckTime = now;
@@ -158,8 +158,8 @@ namespace OSHttpServer
             if(curConcurrentLimit > inqueues)
                 curConcurrentLimit = inqueues;
 
-            if (dt > 0.1)
-                dt = 0.1;
+            if (dt > 0.5)
+                dt = 0.5;
 
             dt /= curConcurrentLimit;
             int curbytesLimit = (int)(m_maxBandWidth * dt);
@@ -250,68 +250,64 @@ namespace OSHttpServer
             if (context.contextID < 0 || context.StopMonitoring || context.StreamPassedOff)
                 return true;
 
-            // Now we start checking for actual timeouts
+            int nowMS = EnvironmentTickCount();
 
-            // First we check that we got at least one line within context.TimeoutFirstLine milliseconds
+            // First we check first contact line
             if (!context.FirstRequestLineReceived)
             {
-                if (EnvironmentTickCountAdd(context.TimeoutFirstLine, context.MonitorStartMS) <= EnvironmentTickCount())
+                if (EnvironmentTickCountAdd(context.TimeoutFirstLine, context.LastActivityTimeMS) < nowMS)
                 {
                     disconnectError = SocketError.TimedOut;
-                    context.MonitorStartMS = 0;
                     return true;
                 }
+                return false;
             }
 
+            // First we check first contact request
             if (!context.FullRequestReceived)
             {
-                if (EnvironmentTickCountAdd(context.TimeoutRequestReceived, context.MonitorStartMS) <= EnvironmentTickCount())
+                if (EnvironmentTickCountAdd(context.TimeoutRequestReceived, context.LastActivityTimeMS) < nowMS)
                 {
                     disconnectError = SocketError.TimedOut;
-                    context.MonitorStartMS = 0;
                     return true;
                 }
-            }
-
-            // 
-            if (!context.FullRequestProcessed)
-            {
-                if (EnvironmentTickCountAdd(context.TimeoutFullRequestProcessed, context.MonitorStartMS) <= EnvironmentTickCount())
-                {
-                    disconnectError = SocketError.TimedOut;
-                    context.MonitorStartMS = 0;
-                    return true;
-                }
+                return false;
             }
 
             if (context.TriggerKeepalive)
             {
                 context.TriggerKeepalive = false;
-                context.MonitorKeepaliveMS = EnvironmentTickCount();
+                context.MonitorKeepaliveStartMS = nowMS;
+                return false;
             }
 
-            if (context.FullRequestProcessed && context.MonitorKeepaliveMS == 0)
-                return true;
+            if (context.MonitorKeepaliveStartMS != 0)
+            {
+                if (EnvironmentTickCountAdd(context.TimeoutKeepAlive, context.MonitorKeepaliveStartMS) < nowMS)
+                {
+                    disconnectError = SocketError.TimedOut;
+                    context.MonitorKeepaliveStartMS = 0;
+                    return true;
+                }
+                return false;
+            }
 
-            if (context.MonitorKeepaliveMS != 0 &&
-                EnvironmentTickCountAdd(context.TimeoutKeepAlive, context.MonitorKeepaliveMS) <= EnvironmentTickCount())
+            if (EnvironmentTickCountAdd(context.TimeoutMaxIdle, context.LastActivityTimeMS) < nowMS)
             {
                 disconnectError = SocketError.TimedOut;
-                context.MonitorStartMS = 0;
-                context.MonitorKeepaliveMS = 0;
+                context.MonitorKeepaliveStartMS = 0;
                 return true;
             }
-
             return false;
         }
 
         public static void StartMonitoringContext(HttpClientContext context)
         {
-            context.MonitorStartMS = EnvironmentTickCount();
+            context.LastActivityTimeMS = EnvironmentTickCount();
             m_contexts.Enqueue(context);
         }
 
-        public static void EnqueueSend(HttpClientContext context, int priority)
+        public static void EnqueueSend(HttpClientContext context, int priority, bool notThrottled = true)
         {
             switch(priority)
             {
@@ -327,7 +323,8 @@ namespace OSHttpServer
                 default:
                     return;
             }
-            m_processWaitEven.Set();
+            if(notThrottled)
+                m_processWaitEven.Set();
         }
 
         public static void ContextEnterActiveSend()

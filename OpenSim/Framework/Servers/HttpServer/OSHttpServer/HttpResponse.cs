@@ -10,6 +10,8 @@ namespace OSHttpServer
 {
     public class HttpResponse : IHttpResponse
     {
+        public event EventHandler<BandWitdhEventArgs> BandWitdhEvent;
+
         private const string DefaultContentType = "text/html;charset=UTF-8";
         private readonly IHttpClientContext m_context;
         private readonly ResponseCookies m_cookies = new ResponseCookies();
@@ -245,9 +247,9 @@ namespace OSHttpServer
                 sb.Append("Server: OSWebServer\r\n");
 
             int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-            if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxPipeRequests > 0)
+            if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
             {
-                sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxPipeRequests);
+                sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
                 sb.Append("Connection: Keep-Alive\r\n");
             }
             else
@@ -282,7 +284,7 @@ namespace OSHttpServer
             if (Sent)
                 throw new InvalidOperationException("Everything have already been sent.");
 
-            if (m_context.MaxPipeRequests == 0 || m_keepAlive == 0)
+            if (m_context.MaxRequests == 0 || m_keepAlive == 0)
             {
                 Connection = ConnectionType.Close;
                 m_context.TimeoutKeepAlive = 0;
@@ -326,7 +328,12 @@ namespace OSHttpServer
             {
                 if(!await m_context.SendAsync(m_headerBytes, 0, m_headerBytes.Length).ConfigureAwait(false))
                 {
-                    if(m_body != null)
+                    if (m_context.CanSend())
+                    {
+                        m_context.ContinueSendResponse(true);
+                        return;
+                    }
+                    if (m_body != null)
                         m_body.Dispose();
                     RawBuffer = null;
                     Sent = true;
@@ -336,7 +343,7 @@ namespace OSHttpServer
                 m_headerBytes = null;
                 if(bytesLimit <= 0)
                 {
-                    m_context.ContinueSendResponse();
+                    m_context.ContinueSendResponse(true);
                     return;
                 }
             }
@@ -345,21 +352,34 @@ namespace OSHttpServer
             {
                 if (RawBufferLen > 0)
                 {
+                    if(BandWitdhEvent!=null)
+                        bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
+
                     bool sendRes;
                     if(RawBufferLen > bytesLimit)
                     {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false);
-                        RawBufferLen -= bytesLimit;
-                        RawBufferStart += bytesLimit;
+                        sendRes = (await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false));
+                        if (sendRes)
+                        {
+                            RawBufferLen -= bytesLimit;
+                            RawBufferStart += bytesLimit;
+                        }
                     }
                     else
                     {
                         sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        RawBufferLen = 0;
+                        if(sendRes)
+                            RawBufferLen = 0;
                     }
 
                     if (!sendRes)
                     {
+                        if (m_context.CanSend())
+                        {
+                            m_context.ContinueSendResponse(true);
+                            return;
+                        }
+
                         RawBuffer = null;
                         if(m_body != null)
                             Body.Dispose();
@@ -371,7 +391,7 @@ namespace OSHttpServer
                     RawBuffer = null;
                 else
                 {
-                    m_context.ContinueSendResponse();
+                    m_context.ContinueSendResponse(true);
                     return;
                 }
             }
@@ -391,17 +411,26 @@ namespace OSHttpServer
                     if (RawBufferLen > bytesLimit)
                     {
                         sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false);
-                        RawBufferLen -= bytesLimit;
-                        RawBufferStart += bytesLimit;
+                        if (sendRes)
+                        {
+                            RawBufferLen -= bytesLimit;
+                            RawBufferStart += bytesLimit;
+                        }
                     }
                     else
                     {
                         sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        RawBufferLen = 0;
+                        if (sendRes)
+                            RawBufferLen = 0;
                     }
 
                     if (!sendRes)
                     {
+                        if (m_context.CanSend())
+                        {
+                            m_context.ContinueSendResponse(true);
+                            return;
+                        }
                         RawBuffer = null;
                         Sent = true;
                         return;
@@ -409,7 +438,7 @@ namespace OSHttpServer
                 }
                 if (RawBufferLen > 0)
                 {
-                    m_context.ContinueSendResponse();
+                    m_context.ContinueSendResponse(false);
                     return;
                 }
             }
@@ -417,7 +446,19 @@ namespace OSHttpServer
             if (m_body != null)
                 m_body.Dispose();
             Sent = true;
-            m_context.ReqResponseSent(requestID, Connection);
+            m_context.EndSendResponse(requestID, Connection);
+        }
+
+        private int CheckBandwidth(int request, int bytesLimit)
+        {
+            if(request > bytesLimit)
+                request = bytesLimit;
+            var args = new BandWitdhEventArgs(request);
+            BandWitdhEvent?.Invoke(this, args);
+            if(args.Result > 8196)
+                return args.Result;
+
+            return 8196;
         }
 
         public void Clear()

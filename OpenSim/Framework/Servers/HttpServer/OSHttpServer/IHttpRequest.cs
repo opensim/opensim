@@ -154,12 +154,5 @@ namespace OSHttpServer
         /// </summary>
         /// <param name="cookies">The cookies.</param>
         void SetCookies(RequestCookies cookies);
-
-		/// <summary>
-		/// Create a response object.
-		/// </summary>
-		/// <param name="context">Context for the connected client.</param>
-		/// <returns>A new <see cref="IHttpResponse"/>.</returns>
-		//IHttpResponse CreateResponse(IHttpClientContext context);
     }
 }

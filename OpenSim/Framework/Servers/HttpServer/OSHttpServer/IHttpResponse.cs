@@ -26,11 +26,13 @@ namespace OSHttpServer
     /// </example>
     public interface IHttpResponse
     {
+        event EventHandler<BandWitdhEventArgs> BandWitdhEvent;
         /// <summary>
         /// The body stream is used to cache the body contents
         /// before sending everything to the client. It's the simplest
         /// way to serve documents.
         /// </summary>
+        ///
         Stream Body { get; }
         byte[] RawBuffer { get; set; }
         int RawBufferStart { get; set; }
@@ -141,5 +143,20 @@ namespace OSHttpServer
         /// Connection is kept alive for X seconds (unless another request have been made)
         /// </summary>
         KeepAlive
+    }
+
+    public class BandWitdhEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Gets received request.
+        /// </summary>
+        public int Result;
+        public int Request;
+
+        public BandWitdhEventArgs(int request)
+        {
+            Request = request;
+            Result = request;
+        }
     }
 }
