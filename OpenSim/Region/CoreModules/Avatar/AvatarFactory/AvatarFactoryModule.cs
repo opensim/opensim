@@ -609,6 +609,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
                                 bakedModuleCache[i].TextureAsset.Temporary = true;
                                 bakedModuleCache[i].TextureAsset.Local = true;
+                                bakedModuleCache[i].TextureAsset.Flags = AssetFlags.AvatarBake;
                                 cache.Cache(bakedModuleCache[i].TextureAsset);
                             }
                         }

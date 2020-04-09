@@ -26,14 +26,7 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Reflection;
-using System.IO;
-using System.Web;
 using log4net;
 using Nini.Config;
 using Mono.Addins;

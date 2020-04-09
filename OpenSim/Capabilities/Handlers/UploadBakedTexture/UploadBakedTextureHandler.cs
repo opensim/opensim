@@ -65,24 +65,19 @@ namespace OpenSim.Capabilities.Handlers
         {
             try
             {
-                string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
-                string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+                string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath + Util.RandomClass.Next(5000, 8000).ToString("0000");
 
                 BakedTextureUploader uploader =
-                    new BakedTextureUploader(capsBase + uploaderPath, m_HostCapsObj.HttpListener, m_HostCapsObj.AgentID);
+                    new BakedTextureUploader(capsBase, m_HostCapsObj.HttpListener, m_HostCapsObj.AgentID);
                 uploader.OnUpLoad += BakedTextureUploaded;
 
                 m_HostCapsObj.HttpListener.AddStreamHandler(
-                    new BinaryStreamHandler(
-                        "POST", capsBase + uploaderPath, uploader.uploaderCaps, "UploadBakedTexture", null));
+                    new BinaryStreamHandler("POST", capsBase, uploader.uploaderCaps, "UploadBakedTexture", null));
 
-                string protocol = "http://";
-
-                if (m_HostCapsObj.SSLCaps)
-                    protocol = "https://";
+                string protocol = m_HostCapsObj.SSLCaps ? "https://" : "http://";
 
                 string uploaderURL = protocol + m_HostCapsObj.HostName + ":" +
-                        m_HostCapsObj.Port.ToString() + capsBase + uploaderPath;
+                        m_HostCapsObj.Port.ToString() + capsBase;
 
                 LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
                 uploadResponse.uploader = uploaderURL;
@@ -112,6 +107,7 @@ namespace OpenSim.Capabilities.Handlers
             asset.Data = data;
             asset.Temporary = true;
             asset.Local = true;
+            asset.Flags = AssetFlags.AvatarBake;
             m_assetService.Store(asset);
         }
     }
@@ -145,13 +141,10 @@ namespace OpenSim.Capabilities.Handlers
         /// <returns></returns>
         public string uploaderCaps(byte[] data, string path, string param)
         {
-            Action<UUID, byte[]> handlerUpLoad = OnUpLoad;
-
             // Don't do this asynchronously, otherwise it's possible for the client to send set appearance information
             // on another thread which might send out avatar updates before the asset has been put into the asset
             // service.
-            if (handlerUpLoad != null)
-                handlerUpLoad(newAssetID, data);
+            OnUpLoad?.Invoke(newAssetID, data);
 
             string res = String.Empty;
             LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
