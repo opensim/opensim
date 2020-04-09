@@ -125,7 +125,8 @@ namespace OpenSim.Framework.Capabilities
             None =          0,
             SentSeeds =     1,
 
-            ObjectAnim = 0x10
+            ObjectAnim = 0x10,
+            AdvEnv     = 0x20
         }
 
         public CapsFlags Flags { get; set;}

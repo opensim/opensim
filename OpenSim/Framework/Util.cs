@@ -2667,6 +2667,8 @@ namespace OpenSim.Framework
         public static bool TryParseHttpRange(string header, out int start, out int end)
         {
             start = end = 0;
+            if(string.IsNullOrWhiteSpace(header))
+                return false;
 
             if (header.StartsWith("bytes="))
             {

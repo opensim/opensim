@@ -708,7 +708,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 }
                 else
                 {
-                    Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                    Status = 499; //ClientErrorJoker;
                     ResponseBody = e.Message;
                 }
             }
@@ -733,7 +733,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 {
                     if (Redirects >= MaxRedirects)
                     {
-                        Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                        Status = 499;//.ClientErrorJoker;
                         ResponseBody = "Number of redirects exceeded max redirects";
                         WorkItem = null;
                         RequestModule.GotCompletedRequest(this);
@@ -744,14 +744,14 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                         if (location == null)
                         {
-                            Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                            Status = 499;//ClientErrorJoker;
                             ResponseBody = "HTTP redirect code but no location header";
                             WorkItem = null;
                             RequestModule.GotCompletedRequest(this);
                         }
                         else if (!RequestModule.CheckAllowed(new Uri(location)))
                         {
-                            Status = (int)OSHttpStatusCode.ClientErrorJoker;
+                            Status = 499;//ClientErrorJoker;
                             ResponseBody = "URL from HTTP redirect blocked: " + location;
                             WorkItem = null;
                             RequestModule.GotCompletedRequest(this);

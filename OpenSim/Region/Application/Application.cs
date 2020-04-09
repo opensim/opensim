@@ -115,7 +115,6 @@ namespace OpenSim
                     "[OPENSIM MAIN]: Environment variable MONO_THREADS_PER_CPU is {0}", monoThreadsPerCpu ?? "unset");
             }
 
-            
             // Verify the Threadpool allocates or uses enough worker and IO completion threads
             // .NET 2.0, workerthreads default to 50 *  numcores
             // .NET 3.0, workerthreads defaults to 250 * numcores

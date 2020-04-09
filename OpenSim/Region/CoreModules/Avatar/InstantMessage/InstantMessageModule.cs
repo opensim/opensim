@@ -75,14 +75,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
 
             lock (m_scenes)
-            {
-                if (!m_scenes.Contains(scene))
-                {
-                    m_scenes.Add(scene);
-                    scene.EventManager.OnClientConnect += OnClientConnect;
-                    scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-                }
-            }
+                m_scenes.Add(scene);
         }
 
         public virtual void RegionLoaded(Scene scene)
@@ -92,8 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (m_TransferModule == null)
             {
-                m_TransferModule =
-                    scene.RequestModuleInterface<IMessageTransferModule>();
+                m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
 
                 if (m_TransferModule == null)
                 {
@@ -105,6 +97,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     m_enabled = false;
                 }
             }
+            scene.EventManager.OnClientConnect += OnClientConnect;
+            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
         }
 
         public virtual void RemoveRegion(Scene scene)

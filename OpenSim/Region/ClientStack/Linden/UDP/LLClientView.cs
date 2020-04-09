@@ -750,8 +750,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (pprocessor.Async)
                 {
-                    object obj = new AsyncPacketProcess(pprocessor.method, packet);
-                    m_asyncPacketProcess.QueueJob(packet.Type.ToString(), () => ProcessSpecificPacketAsync(obj));
+                    m_asyncPacketProcess.QueueJob(packet.Type.ToString(), () =>
+                    {
+                        try
+                        {
+                            pprocessor.method(packet);
+                        }
+                        catch (Exception e)
+                        {
+                            // Make sure that we see any exception caused by the asynchronous operation.
+                            m_log.Error(string.Format(
+                                    "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}  ", packet, Name),e);
+                        }
+                    });
                 }
                 else
                 {
@@ -760,24 +771,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return true;
             }
             return false;
-        }
-
-        public void ProcessSpecificPacketAsync(object state)
-        {
-            AsyncPacketProcess packetObject = (AsyncPacketProcess)state;
-
-            try
-            {
-                packetObject.Method(packetObject.Pack);
-            }
-            catch (Exception e)
-            {
-                // Make sure that we see any exception caused by the asynchronous operation.
-                m_log.Error(
-                    string.Format(
-                        "[LLCLIENTVIEW]: Caught exception while processing {0} for {1}  ", packetObject.Pack, Name),
-                    e);
-            }
         }
 
         #endregion Packet Handling

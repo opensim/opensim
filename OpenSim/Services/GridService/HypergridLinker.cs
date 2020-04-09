@@ -117,7 +117,7 @@ namespace OpenSim.Services.GridService
                 for(int i = 0; i < alias.Length; ++i)
                 {
                     if(!string.IsNullOrWhiteSpace(alias[i]))
-                        m_ThisGateKeeperAlias.Add(alias[i].ToLower());
+                        m_ThisGateKeeperAlias.Add(alias[i].Trim().ToLower());
                 }
             }
 

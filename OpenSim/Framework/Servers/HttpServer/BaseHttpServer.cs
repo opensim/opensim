@@ -1703,7 +1703,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.AddHeader("Access-Control-Allow-Origin", "*");
                     response.AddHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
                     response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
-                    response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
+                    response.StatusCode = (int)HttpStatusCode.OK;
                     return null;
 
                 default:
@@ -1948,7 +1948,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             response.StatusCode = responsecode;
 
-            if (responsecode == (int)OSHttpStatusCode.RedirectMovedPermanently)
+            if (responsecode == (int)HttpStatusCode.Moved)
             {
                 response.AddHeader("Location:", (string)responsedata["str_redirect_location"]);
                 response.StatusCode = responsecode;
@@ -2010,7 +2010,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public byte[] SendHTML500(OSHttpResponse response)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
-            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
+            response.StatusCode = (int)HttpStatusCode.OK;
             response.AddHeader("Content-type", "text/html");
 
             string responseString = GetHTTP500();

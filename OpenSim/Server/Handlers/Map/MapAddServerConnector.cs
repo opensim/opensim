@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Net;
 using System.Xml;
 
 using Nini.Config;
@@ -115,7 +116,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 if (!request.ContainsKey("X") || !request.ContainsKey("Y") || !request.ContainsKey("DATA"))
                 {
-                    httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                     return FailureResult("Bad request.");
                 }
                 int x = 0, y = 0;
