@@ -13474,24 +13474,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             /// <summary>
             /// Packet handling method.
             /// </summary>
-            public PacketMethod method { get; set; }
+            public PacketMethod method;
 
             /// <summary>
             /// Should this packet be handled asynchronously?
             /// </summary>
-            public bool Async { get; set; }
+            public bool Async;
 
-        }
-
-        public class AsyncPacketProcess
-        {
-            public readonly Packet Pack = null;
-            public readonly PacketMethod Method = null;
-            public AsyncPacketProcess(PacketMethod pMethod, Packet pPack)
-            {
-                Method = pMethod;
-                Pack = pPack;
-            }
         }
 
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
