@@ -43,7 +43,7 @@ namespace OSHttpServer
         public int TimeoutRequestReceived = 30000; // 30 seconds
 
         // The difference between this and request received is on POST more time is needed before we get the full request.
-        public int TimeoutMaxIdle = 180000; // 3 minutes
+        public int TimeoutMaxIdle = 600000; // 3 minutes
         public int m_TimeoutKeepAlive = MAXKEEPALIVE; // 400 seconds before keepalive timeout
 
         public int m_maxRequests = MAXREQUESTS;
