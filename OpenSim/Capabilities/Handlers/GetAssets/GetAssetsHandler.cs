@@ -180,8 +180,16 @@ namespace OpenSim.Capabilities.Handlers
             responsedata["int_bytes"] = len;
             if (type == AssetType.Mesh || type == AssetType.Texture)
             {
-                responsedata["throttle"] = true;
-                responsedata["prio"] = len < 8196 ? 1 : 2;
+                if(len > 8196)
+                {
+                    responsedata["throttle"] = true;
+                    if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
+                        responsedata["prio"] = 1;
+                    else
+                        responsedata["prio"] = 2;
+                }
+                else
+                    responsedata["prio"] = 1;
             }
             return responsedata; // full asset
         }
