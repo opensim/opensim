@@ -30,6 +30,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
@@ -124,7 +125,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
         private Hashtable ProcessServerReleaseNotes(Hashtable request, UUID agentID)
         {
             Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 301;
+            responsedata["int_response_code"] = HttpStatusCode.Moved;
             responsedata["str_redirect_location"] = m_ServerReleaseNotesURL;
             return responsedata;
         }

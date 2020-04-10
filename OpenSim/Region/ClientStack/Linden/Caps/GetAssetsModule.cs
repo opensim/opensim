@@ -65,7 +65,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public PollServiceAssetEventArgs thepoll;
             public UUID reqID;
-            public Hashtable request;
+            //public Hashtable request;
+            public OSHttpRequest request;
         }
 
         public class APollResponse
@@ -228,7 +229,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private class PollServiceAssetEventArgs : PollServiceEventArgs
         {
-            private List<Hashtable> requests = new List<Hashtable>();
+            //private List<Hashtable> requests = new List<Hashtable>();
+            private List<OSHttpRequest> requests = new List<OSHttpRequest>();
             private Dictionary<UUID, APollResponse> responses =new Dictionary<UUID, APollResponse>();
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 

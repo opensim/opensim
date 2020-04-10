@@ -124,11 +124,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         private NameValueCollection _queryString;
 
-        public Hashtable Query
+        public Dictionary<string,string> Query
         {
             get { return _query; }
         }
-        private Hashtable _query;
+        private Dictionary<string, string> _query;
 
         /// <value>
         /// POST request values, if applicable
@@ -225,7 +225,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             _queryString = new NameValueCollection();
-            _query = new Hashtable();
+            _query = new Dictionary<string, string>();
             try
             {
                 foreach (HttpInputItem item in req.QueryString)

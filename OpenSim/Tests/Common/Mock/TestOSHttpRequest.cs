@@ -137,7 +137,7 @@ namespace OpenSim.Tests.Common
             }
         }
 
-        public Hashtable Query
+        public Dictionary<string,string> Query
         {
             get
             {

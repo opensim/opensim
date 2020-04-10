@@ -533,49 +533,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 IHttpClientContext context = (IHttpClientContext)source;
                 IHttpRequest request = args.Request;
 
-                PollServiceEventArgs psEvArgs;
-
-                if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
+                if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
-
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-
-                    if (psEvArgs.Request != null)
-                    {
-                        OSHttpRequest req = new OSHttpRequest(context, request);
-                        string requestBody;
-                        Encoding encoding = Encoding.UTF8;
-                        using(StreamReader reader = new StreamReader(req.InputStream, encoding))
-                            requestBody = reader.ReadToEnd();
-
-                        Hashtable keysvals = new Hashtable();
-                        Hashtable headervals = new Hashtable();
-
-                        string[] querystringkeys = req.QueryString.AllKeys;
-                        string[] rHeaders = req.Headers.AllKeys;
-
-                        keysvals.Add("body", requestBody);
-                        keysvals.Add("uri", req.RawUrl);
-                        keysvals.Add("content-type", req.ContentType);
-                        keysvals.Add("http-method", req.HttpMethod);
-
-                        foreach (string queryname in querystringkeys)
-                        {
-                            keysvals.Add(queryname, req.QueryString[queryname]);
-                        }
-
-                        foreach (string headername in rHeaders)
-                        {
-                            headervals[headername] = req.Headers[headername];
-                        }
-
-                        keysvals.Add("headers", headervals);
-                        keysvals.Add("querystringkeys", querystringkeys);
-
-                        psEvArgs.Request(psreq.RequestID, keysvals);
-                    }
-
+                    psEvArgs.Request?.Invoke(psreq.RequestID, new OSHttpRequest(context, request));
                     m_pollServiceManager.Enqueue(psreq);
                 }
                 else
@@ -1128,7 +1090,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             String requestBody;
 
-            Stream requestStream = Util.Copy(request.InputStream);
+            Stream requestStream = request.InputStream;
             Stream innerStream = null;
             try
             {
@@ -1141,7 +1103,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
                     requestBody = reader.ReadToEnd();
 
-                }
+            }
             finally
             {
                 if (innerStream != null && innerStream.CanRead)
@@ -1402,12 +1364,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             //m_log.Warn("[BASE HTTP SERVER]: We've figured out it's a LLSD Request");
             bool notfound = false;
-
-            Stream requestStream = request.InputStream;
-
             string requestBody;
-            Encoding encoding = Encoding.UTF8;
-            using(StreamReader reader = new StreamReader(requestStream, encoding))
+            using(StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
                 requestBody= reader.ReadToEnd();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
@@ -1433,9 +1391,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (llsdRequest != null)// && m_defaultLlsdHandler != null)
             {
-                LLSDMethod llsdhandler = null;
-
-                if (TryGetLLSDHandler(request.RawUrl, out llsdhandler) && !LegacyLLSDLoginLibOMV)
+                if (!LegacyLLSDLoginLibOMV && TryGetLLSDHandler(request.RawUrl, out LLSDMethod llsdhandler))
                 {
                     // we found a registered llsd handler to service this request
                     llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
@@ -1447,7 +1403,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     if (m_defaultLlsdHandler != null)
                     {
-                        // LibOMV path
                         llsdResponse = m_defaultLlsdHandler(llsdRequest, request.RemoteIPEndPoint);
                     }
                     else
@@ -1729,10 +1684,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             byte[] buffer;
 
-            Stream requestStream = request.InputStream;
             string requestBody;
-            Encoding encoding = Encoding.UTF8;
-            using(StreamReader reader = new StreamReader(requestStream, encoding))
+            using(StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
                 requestBody = reader.ReadToEnd();
 
             Hashtable keysvals = new Hashtable();

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
@@ -50,7 +51,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool IsSecured { get; }
         bool KeepAlive { get; }
         NameValueCollection QueryString { get; }
-        Hashtable Query { get; }
+        Dictionary<string, string> Query { get; }
         string RawUrl { get; }
         IPEndPoint RemoteIPEndPoint { get; }
         Uri Url { get; }

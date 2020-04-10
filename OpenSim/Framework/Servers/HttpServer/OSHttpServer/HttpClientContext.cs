@@ -29,7 +29,6 @@ namespace OSHttpServer
         private int m_ReceiveBytesLeft;
         private ILogWriter _log;
         private readonly IHttpRequestParser m_parser;
-        private readonly int m_bufferSize;
         private HashSet<uint> requestsInServiceIDs;
         private Socket m_sock;
 
@@ -119,8 +118,7 @@ namespace OSHttpServer
             m_stream = stream;
             m_sock = sock;
 
-            m_bufferSize = 8196;
-            m_ReceiveBuffer = new byte[m_bufferSize];
+            m_ReceiveBuffer = new byte[16384];
             requestsInServiceIDs = new HashSet<uint>();
 
             SSLCommonName = "";
@@ -218,6 +216,8 @@ namespace OSHttpServer
             if (StreamPassedOff)
                 return;
 
+            contextID = -100;
+
             if (m_stream != null)
             {
                 m_stream.Close();
@@ -230,6 +230,7 @@ namespace OSHttpServer
             m_currentResponse?.Clear();
             m_currentResponse = null;
             requestsInServiceIDs.Clear();
+            m_parser.Clear();
 
             FirstRequestLineReceived = false;
             FullRequestReceived = false;
@@ -239,11 +240,7 @@ namespace OSHttpServer
             TriggerKeepalive = false;
 
             isSendingResponse = false;
-
             m_ReceiveBytesLeft = 0;
-
-            contextID = -100;
-            m_parser.Clear();
         }
 
         public void Close()
@@ -317,7 +314,7 @@ namespace OSHttpServer
                     if (m_stream != null)
                     {
                         if (error == SocketError.Success)
-                            m_stream.Flush();
+                            m_stream.Flush(); // we should be on a work task
                         m_stream.Close();
                         m_stream = null;
                     }
@@ -330,114 +327,6 @@ namespace OSHttpServer
             catch (Exception err)
             {
                 LogWriter.Write(this, LogPrio.Error, "Disconnect threw an exception: " + err);
-            }
-        }
-
-        private void OnReceive(IAsyncResult ar)
-        {
-            try
-            {
-                int bytesRead = 0;
-                if (m_stream == null)
-                    return;
-                try
-                {
-                    bytesRead = m_stream.EndRead(ar);
-                }
-                catch (NullReferenceException)
-                {
-                    Disconnect(SocketError.ConnectionReset);
-                    return;
-                }
-
-                if (bytesRead == 0)
-                {
-                    Disconnect(SocketError.ConnectionReset);
-                    return;
-                }
-
-                if(m_maxRequests <= 0)
-                    return;
-
-                m_ReceiveBytesLeft += bytesRead;
-                if (m_ReceiveBytesLeft > m_ReceiveBuffer.Length)
-                {
-                    throw new BadRequestException("HTTP header Too large: " + m_ReceiveBytesLeft);
-                }
-
-                int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
-                if (m_stream == null)
-                    return; // "Connection: Close" in effect.
-
-                // try again to see if we can parse another message (check parser to see if it is looking for a new message)
-                int nextOffset;
-                int nextBytesleft = m_ReceiveBytesLeft - offset;
-
-                while (offset != 0 && nextBytesleft > 0)
-                {
-                    nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
-
-                    if (m_stream == null)
-                        return; // "Connection: Close" in effect.
-
-                    if (nextOffset == 0)
-                        break;
-
-                    offset = nextOffset;
-                    nextBytesleft = m_ReceiveBytesLeft - offset;
-                }
-
-                // copy unused bytes to the beginning of the array
-                if (offset > 0 && m_ReceiveBytesLeft > offset)
-                    Buffer.BlockCopy(m_ReceiveBuffer, offset, m_ReceiveBuffer, 0, m_ReceiveBytesLeft - offset);
-
-                m_ReceiveBytesLeft -= offset;
-                if (m_stream != null && m_stream.CanRead)
-                {
-                    if (!StreamPassedOff)
-                        Stream.BeginRead(m_ReceiveBuffer, m_ReceiveBytesLeft, m_ReceiveBuffer.Length - m_ReceiveBytesLeft, OnReceive, null);
-                    else
-                    {
-                        _log.Write(this, LogPrio.Warning, "Could not read any more from the socket.");
-                        Disconnect(SocketError.Success);
-                    }
-                }
-            }
-            catch (BadRequestException err)
-            {
-                LogWriter.Write(this, LogPrio.Warning, "Bad request, responding with it. Error: " + err);
-                try
-                {
-                    Respond("HTTP/1.0", HttpStatusCode.BadRequest, err.Message);
-                }
-                catch (Exception err2)
-                {
-                    LogWriter.Write(this, LogPrio.Fatal, "Failed to reply to a bad request. " + err2);
-                }
-                Disconnect(SocketError.NoRecovery);
-            }
-            catch (IOException err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
-                if (err.InnerException is SocketException)
-                    Disconnect((SocketError)((SocketException)err.InnerException).ErrorCode);
-                else
-                    Disconnect(SocketError.ConnectionReset);
-            }
-            catch (ObjectDisposedException err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : " + err.Message);
-                Disconnect(SocketError.NotSocket);
-            }
-            catch (NullReferenceException err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : NullRef: " + err.Message);
-                Disconnect(SocketError.NoRecovery);
-            }
-            catch (Exception err)
-            {
-                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
-                Disconnect(SocketError.NoRecovery);
             }
         }
 
