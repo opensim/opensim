@@ -47,30 +47,23 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] data = ReadFully(request);
-            string param = GetParam(path);
-            string responseString = m_method(data, path, param);
-
-            return Encoding.UTF8.GetBytes(responseString);
-        }
-
-        private static byte[] ReadFully(Stream stream)
-        {
-            byte[] buffer = new byte[1024];
-            using (MemoryStream ms = new MemoryStream(1024*256))
+            byte[] data;
+            if (request is MemoryStream)
+                data = ((MemoryStream)request).ToArray();
+            else
             {
-                while (true)
+                request.Seek(0, SeekOrigin.Begin);
+                using (MemoryStream ms = new MemoryStream((int)request.Length))
                 {
-                    int read = stream.Read(buffer, 0, buffer.Length);
-
-                    if (read <= 0)
-                    {
-                        return ms.ToArray();
-                    }
-
-                    ms.Write(buffer, 0, read);
+                    request.CopyTo(ms);
+                    data = ms.ToArray();
                 }
             }
+            request.Dispose();
+
+            string param = GetParam(path);
+            string responseString = m_method(data, path, param);
+            return Encoding.UTF8.GetBytes(responseString);
         }
     }
 }
