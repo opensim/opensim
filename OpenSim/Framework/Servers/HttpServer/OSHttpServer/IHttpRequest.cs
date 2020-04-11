@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using OSHttpServer.Exceptions;
 
 namespace OSHttpServer
@@ -8,7 +9,7 @@ namespace OSHttpServer
     /// <summary>
     /// Contains server side HTTP request information.
     /// </summary>
-    public interface IHttpRequest : ICloneable
+    public interface IHttpRequest
     {
         /// <summary>
         /// Gets kind of types accepted by the client.
@@ -134,5 +135,7 @@ namespace OSHttpServer
         /// </summary>
         /// <param name="cookies">The cookies.</param>
         void SetCookies(RequestCookies cookies);
+
+        IPEndPoint RemoteIPEndPoint { get; }
     }
 }

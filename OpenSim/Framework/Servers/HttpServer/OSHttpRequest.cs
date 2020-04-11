@@ -147,9 +147,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public IPEndPoint RemoteIPEndPoint
         {
-            get { return _remoteIPEndPoint; }
+            get { return _request.RemoteIPEndPoint; }
         }
-        private IPEndPoint _remoteIPEndPoint;
 
         public Uri Url
         {
@@ -205,29 +204,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _contentType = _request.Headers["content-type"];
             if (null != req.Headers["user-agent"])
                 _userAgent = req.Headers["user-agent"];
-
-            if (null != req.Headers["remote_addr"])
-            {
-                try
-                {
-                    IPAddress addr = IPAddress.Parse(req.Headers["remote_addr"]);
-                    // sometimes req.Headers["remote_port"] returns a comma separated list, so use
-                    // the first one in the list and log it
-                    string[] strPorts = req.Headers["remote_port"].Split(new char[] { ',' });
-                    if (strPorts.Length > 1)
-                    {
-                        _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring",
-                                     req.Headers["remote_addr"], req.Headers["remote_port"]);
-                    }
-                    int port = Int32.Parse(strPorts[0]);
-                    _remoteIPEndPoint = new IPEndPoint(addr, port);
-                }
-                catch (FormatException)
-                {
-                    _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring",
-                                     req.Headers["remote_addr"], req.Headers["remote_port"]);
-                }
-            }
 
 //            Form = new Hashtable();
 //            foreach (HttpInputItem item in req.Form)

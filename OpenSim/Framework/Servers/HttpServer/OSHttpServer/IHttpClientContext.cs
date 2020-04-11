@@ -16,6 +16,8 @@ namespace OSHttpServer
         /// </summary>
         string SSLCommonName { get; }
 
+        IPEndPoint LocalRemoteEndPoint {get; set;}
+
         /// <summary>
         /// Using SSL or other encryption method.
         /// </summary>

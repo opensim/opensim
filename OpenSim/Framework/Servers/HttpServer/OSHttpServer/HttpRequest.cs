@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Web;
 using OSHttpServer.Exceptions;
@@ -31,6 +32,7 @@ namespace OSHttpServer
         private Uri m_uri = null;
         private string m_uriPath;
         public readonly IHttpClientContext m_context;
+        IPEndPoint m_remoteIPEndPoint = null;
 
         public HttpRequest(IHttpClientContext pContext)
         {
@@ -268,6 +270,33 @@ namespace OSHttpServer
         {
             Cookies = cookies;
         }
+
+        public IPEndPoint RemoteIPEndPoint
+        {
+            get
+            {
+                if(m_remoteIPEndPoint == null)
+                {
+                    string addr = m_headers["x-forwarded-for"];
+                    if(!string.IsNullOrEmpty(addr))
+                    {
+                        int port = m_context.LocalRemoteEndPoint.Port;
+                        try
+                        {
+                            m_remoteIPEndPoint = new IPEndPoint(IPAddress.Parse(addr), port);
+                        }
+                        catch
+                        {
+                            m_remoteIPEndPoint = null;
+                        }
+                    }
+                }
+                if (m_remoteIPEndPoint == null)
+                    m_remoteIPEndPoint = m_context.LocalRemoteEndPoint;
+
+                return m_remoteIPEndPoint;
+            }
+        }
         /*
         /// <summary>
         /// Create a response object.
@@ -306,8 +335,7 @@ namespace OSHttpServer
                         AcceptTypes[i] = AcceptTypes[i].Trim();
                     break;
                 case "content-length":
-                    int t;
-                    if (!int.TryParse(value, out t))
+                    if (!int.TryParse(value, out int t))
                         throw new BadRequestException("Invalid content length.");
                     ContentLength = t;
                     break; //todo: maybe throw an exception
@@ -323,11 +351,44 @@ namespace OSHttpServer
                     }
                     break;
                 case "remote_addr":
-                    // to prevent hacking (since it's added by IHttpClientContext before parsing).
                     if (m_headers[name] == null)
                         m_headers.Add(name, value);
                     break;
 
+                case "forwarded":
+                    string[] parts = value.Split(new char[]{';'});
+                    string addr = string.Empty;
+                    for(int i = 0; i < parts.Length; ++i)
+                    {
+                        string s = parts[i].TrimStart();
+                        if(s.Length < 10)
+                            continue;
+                        if(s.StartsWith("for", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int indx = s.IndexOf("=", 3);
+                            if(indx < 0 || indx >= s.Length - 1)
+                                continue;
+                            s = s.Substring(indx);
+                            addr = s.Trim();
+                        }
+                    }
+                    if(addr.Length > 7)
+                    {
+                        m_headers.Add("x-forwarded-for", addr);
+                    }
+                    break;
+                case "x-forwarded-for":
+                    if (value.Length > 7)
+                    {
+                        string[] xparts = value.Split(new char[]{','});
+                        if(xparts.Length > 0)
+                        {
+                            string xs = xparts[0].Trim();
+                            if(xs.Length > 7)
+                                m_headers.Add("x-forwarded-for", xs);
+                        }
+                    }
+                    break;
                 case "connection":
                     if (string.Compare(value, "close", true) == 0)
                         Connection = ConnectionType.Close;
