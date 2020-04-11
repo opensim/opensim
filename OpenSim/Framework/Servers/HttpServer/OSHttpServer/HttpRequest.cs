@@ -2,6 +2,7 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Text;
+using System.Web;
 using OSHttpServer.Exceptions;
 
 
@@ -26,8 +27,8 @@ namespace OSHttpServer
         private int m_contentLength;
         private string m_httpVersion = string.Empty;
         private string m_method = string.Empty;
-        private HttpInput m_queryString = HttpInput.Empty;
-        private Uri m_uri = HttpHelper.EmptyUri;
+        private NameValueCollection m_queryString = null;
+        private Uri m_uri = null;
         private string m_uriPath;
         public readonly IHttpClientContext m_context;
 
@@ -42,7 +43,7 @@ namespace OSHttpServer
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="HttpRequest"/> is secure.
         /// </summary>
-        public bool Secure { get; internal set; }
+        public bool Secure { get { return m_context.IsSecured; } }
 
         public IHttpClientContext Context { get { return m_context; } }
         /// <summary>
@@ -52,24 +53,7 @@ namespace OSHttpServer
         public string UriPath
         {
             get { return m_uriPath; }
-            set
-            {
-                m_uriPath = value;
-                int pos = m_uriPath.IndexOf('?');
-                if (pos != -1)
-                {
-                    m_queryString = HttpHelper.ParseQueryString(m_uriPath.Substring(pos + 1));
-                    m_param.SetQueryString(m_queryString);
-                    string path = m_uriPath.Substring(0, pos);
-                    m_uriPath = System.Web.HttpUtility.UrlDecode(path) + "?" + m_uriPath.Substring(pos + 1);
-                    UriParts = value.Substring(0, pos).Split(UriSplitters, StringSplitOptions.RemoveEmptyEntries);
-                }
-                else
-                {
-                    m_uriPath = System.Web.HttpUtility.UrlDecode(m_uriPath);
-                    UriParts = value.Split(UriSplitters, StringSplitOptions.RemoveEmptyEntries);
-                }
-            }
+            set { m_uriPath = value; }
         }
 
         /// <summary>
@@ -84,14 +68,6 @@ namespace OSHttpServer
         */
 
         #region IHttpRequest Members
-
-        /// <summary>
-        /// Gets whether the body is complete.
-        /// </summary>
-        public bool BodyIsComplete
-        {
-            get { return m_bodyBytesLeft == 0; }
-        }
 
         /// <summary>
         /// Gets kind of types accepted by the client.
@@ -167,39 +143,37 @@ namespace OSHttpServer
         /// <summary>
         /// Gets variables sent in the query string
         /// </summary>
-        public HttpInput QueryString
+        public NameValueCollection QueryString
         {
-            get { return m_queryString; }
+            get
+            {
+                if(m_queryString == null)
+                {
+                    if(m_uri == null || m_uri.Query.Length == 0)
+                        m_queryString = new NameValueCollection();
+                    else
+                    {
+                        try
+                        {
+                            m_queryString = HttpUtility.ParseQueryString(m_uri.Query);
+                        }
+                        catch { m_queryString = new NameValueCollection(); }
+                    }
+                }
+
+            return m_queryString;
+            }
         }
 
-
+        public static readonly Uri EmptyUri = new Uri("http://localhost/");
         /// <summary>
         /// Gets or sets requested URI.
         /// </summary>
         public Uri Uri
         {
             get { return m_uri; }
-            set
-            {
-                m_uri = value ?? HttpHelper.EmptyUri;
-                UriParts = m_uri.AbsolutePath.Split(UriSplitters, StringSplitOptions.RemoveEmptyEntries);
-            }
+            set { m_uri = value ?? EmptyUri; } // not safe
         }
-
-        /// <summary>
-        /// Uri absolute path splitted into parts.
-        /// </summary>
-        /// <example>
-        /// // uri is: http://gauffin.com/code/tiny/
-        /// Console.WriteLine(request.UriParts[0]); // result: code
-        /// Console.WriteLine(request.UriParts[1]); // result: tiny
-        /// </example>
-        /// <remarks>
-        /// If you're using controllers than the first part is controller name,
-        /// the second part is method name and the third part is Id property.
-        /// </remarks>
-        /// <seealso cref="Uri"/>
-        public string[] UriParts { get; private set; }
 
         /// <summary>
         /// Gets parameter from <see cref="QueryString"/> or <see cref="Form"/>.
@@ -341,7 +315,7 @@ namespace OSHttpServer
                     try
                     {
                         m_uri = new Uri(Secure ? "https://" : "http://" + value + m_uriPath);
-                        UriParts = m_uri.AbsolutePath.Split(UriSplitters, StringSplitOptions.RemoveEmptyEntries);
+                        m_uriPath = m_uri.AbsolutePath;
                     }
                     catch (UriFormatException err)
                     {
@@ -421,8 +395,8 @@ namespace OSHttpServer
             m_body = null;
             m_contentLength = 0;
             m_method = string.Empty;
-            m_uri = HttpHelper.EmptyUri;
-            m_queryString = HttpInput.Empty;
+            m_uri = null;
+            m_queryString = null;
             m_bodyBytesLeft = 0;
             m_headers.Clear();
             m_connection = ConnectionType.KeepAlive;

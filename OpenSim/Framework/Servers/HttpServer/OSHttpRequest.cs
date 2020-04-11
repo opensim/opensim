@@ -120,15 +120,20 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public NameValueCollection QueryString
         {
-            get { return _queryString; }
+            get { return _request.QueryString;}
         }
-        private NameValueCollection _queryString;
 
         public Dictionary<string,string> Query
         {
-            get { return _query; }
+            get
+            {
+                if (_queryKeyValues == null)
+                    BuildQueryDictionary();
+                return _queryKeyValues;
+            }
         }
-        private Dictionary<string, string> _query;
+
+        private Dictionary<string, string> _queryKeyValues = null;
 
         /// <value>
         /// POST request values, if applicable
@@ -190,7 +195,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
                 }
-                catch (Exception)
+                catch
                 {
                     // ignore
                 }
@@ -224,35 +229,28 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
-            _queryString = new NameValueCollection();
-            _query = new Dictionary<string, string>();
-            try
-            {
-                foreach (HttpInputItem item in req.QueryString)
-                {
-                    try
-                    {
-                        _queryString.Add(item.Name, item.Value);
-                        _query[item.Name] = item.Value;
-                    }
-                    catch (InvalidCastException)
-                    {
-                        _log.DebugFormat("[OSHttpRequest]: error parsing {0} query item, skipping it", item.Name);
-                        continue;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                _log.ErrorFormat("[OSHttpRequest]: Error parsing querystring");
-            }
-
 //            Form = new Hashtable();
 //            foreach (HttpInputItem item in req.Form)
 //            {
 //                _log.DebugFormat("[OSHttpRequest]: Got form item {0}={1}", item.Name, item.Value);
 //                Form.Add(item.Name, item.Value);
 //            }
+        }
+
+        private void BuildQueryDictionary()
+        {
+            NameValueCollection q = _request.QueryString;
+            _queryKeyValues = new Dictionary<string, string>(); // only key value pairs
+            for(int i = 0; i <q.Count; ++i)
+            {
+                try
+                {
+                    var name = q.GetKey(i);
+                    if(!string.IsNullOrEmpty(name))
+                        _queryKeyValues[name] = q[i];
+                }
+                catch {}
+            }
         }
 
         public override string ToString()

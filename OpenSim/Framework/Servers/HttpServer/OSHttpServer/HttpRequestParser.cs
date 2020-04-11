@@ -123,12 +123,15 @@ namespace OSHttpServer.Parser
             string path = value.Substring(oldPos, pos - oldPos);
             if (path.Length > 4196)
                 throw new BadRequestException("Too long URI.");
+            if (path == "*")
+                throw new BadRequestException("Not supported URI.");
 
             if (pos + 1 >= value.Length)
             {
                 m_log.Write(this, LogPrio.Warning, "Invalid request line, missing HTTP-Version. Line: " + value);
                 throw new BadRequestException("Invalid request line, missing HTTP-Version. Line: " + value);
             }
+
             string version = value.Substring(pos + 1);
             if (version.Length < 4 || string.Compare(version.Substring(0, 4), "HTTP", true) != 0)
             {

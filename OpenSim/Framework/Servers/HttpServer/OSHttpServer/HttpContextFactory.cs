@@ -86,7 +86,6 @@ namespace OSHttpServer
                 return;
 
             m_activeContexts.TryRemove(imp.contextID, out HttpClientContext dummy);
-
             imp.Close();
         }
 

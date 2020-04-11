@@ -314,7 +314,13 @@ namespace OSHttpServer
                     if (m_stream != null)
                     {
                         if (error == SocketError.Success)
-                            m_stream.Flush(); // we should be on a work task
+                        {
+                            try
+                            {
+                                m_stream.Flush(); // we should be on a work task so hold on it
+                            }
+                            catch { }
+                        }
                         m_stream.Close();
                         m_stream = null;
                     }
@@ -344,7 +350,7 @@ namespace OSHttpServer
 
                     if (bytesRead == 0)
                     {
-                        Disconnect(SocketError.ConnectionReset);
+                        Disconnect(SocketError.Success);
                         return;
                     }
 
@@ -394,7 +400,8 @@ namespace OSHttpServer
                 {
                     LogWriter.Write(this, LogPrio.Fatal, "Failed to reply to a bad request. " + err2);
                 }
-                Disconnect(SocketError.NoRecovery);
+                //Disconnect(SocketError.NoRecovery);
+                Disconnect(SocketError.Success); // try to flush
             }
             catch (IOException err)
             {
@@ -433,6 +440,21 @@ namespace OSHttpServer
 
             if(--m_maxRequests == 0)
                 m_currentRequest.Connection = ConnectionType.Close;
+
+            if(m_currentRequest.Uri == null)
+            {
+                // should not happen
+                try
+                {
+                    Uri uri = new Uri(m_currentRequest.Secure ? "https://" : "http://" + m_currentRequest.UriPath);
+                    m_currentRequest.Uri = uri;
+                    m_currentRequest.UriPath = uri.AbsolutePath;
+                }
+                catch
+                {
+                    return;
+                }
+            }
 
             // load cookies if they exist
             if(m_currentRequest.Headers["cookie"] != null)
