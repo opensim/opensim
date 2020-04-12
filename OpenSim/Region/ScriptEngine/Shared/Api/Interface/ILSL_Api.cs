@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llGetVel();
          LSL_Float llGetWallclock();
               void llGiveInventory(LSL_Key destination, LSL_String inventory);
-              void llGiveInventoryList(LSL_Key destination, LSL_String category, LSL_List inventory);
+              void llGiveInventoryList(LSL_Key destination, LSL_String folderName, LSL_List inventory);
        LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount);
            LSL_Key llTransferLindenDollars(LSL_Key destination, LSL_Integer amount);
               void llGodLikeRezObject(string inventory, LSL_Vector pos);
