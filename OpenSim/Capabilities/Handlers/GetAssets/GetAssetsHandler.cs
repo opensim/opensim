@@ -95,7 +95,7 @@ namespace OpenSim.Capabilities.Handlers
 
             responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.BadRequest;
 
-            var queries = req.Query;
+            var queries = req.QueryAsDictionary;
             if(queries.Count == 0)
                 return responsedata;
 
@@ -107,6 +107,7 @@ namespace OpenSim.Capabilities.Handlers
                 {
                     type = queryTypes[kvp.Key];
                     assetStr = kvp.Value;
+                    break;
                 }
             }
 
