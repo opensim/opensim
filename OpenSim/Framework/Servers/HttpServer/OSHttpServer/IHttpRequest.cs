@@ -136,6 +136,7 @@ namespace OSHttpServer
         /// <param name="cookies">The cookies.</param>
         void SetCookies(RequestCookies cookies);
 
+        IPEndPoint LocalIPEndPoint { get; }
         IPEndPoint RemoteIPEndPoint { get; }
     }
 }

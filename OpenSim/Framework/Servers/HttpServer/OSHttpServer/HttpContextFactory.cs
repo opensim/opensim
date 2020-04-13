@@ -54,7 +54,7 @@ namespace OSHttpServer
 
             context.Stream = stream;
             context.IsSecured = isSecured;
-            context.LocalRemoteEndPoint = endPoint;
+            context.LocalIPEndPoint = endPoint;
             ContextTimeoutManager.StartMonitoringContext(context);
             m_activeContexts[context.contextID] = context;
             context.Start();

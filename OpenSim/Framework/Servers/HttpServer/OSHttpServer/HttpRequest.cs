@@ -271,6 +271,8 @@ namespace OSHttpServer
             Cookies = cookies;
         }
 
+        public IPEndPoint LocalIPEndPoint { get {return m_context.LocalIPEndPoint; }}
+
         public IPEndPoint RemoteIPEndPoint
         {
             get
@@ -280,7 +282,7 @@ namespace OSHttpServer
                     string addr = m_headers["x-forwarded-for"];
                     if(!string.IsNullOrEmpty(addr))
                     {
-                        int port = m_context.LocalRemoteEndPoint.Port;
+                        int port = m_context.LocalIPEndPoint.Port;
                         try
                         {
                             m_remoteIPEndPoint = new IPEndPoint(IPAddress.Parse(addr), port);
@@ -292,7 +294,7 @@ namespace OSHttpServer
                     }
                 }
                 if (m_remoteIPEndPoint == null)
-                    m_remoteIPEndPoint = m_context.LocalRemoteEndPoint;
+                    m_remoteIPEndPoint = m_context.LocalIPEndPoint;
 
                 return m_remoteIPEndPoint;
             }

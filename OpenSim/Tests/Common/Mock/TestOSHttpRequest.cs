@@ -165,7 +165,15 @@ namespace OpenSim.Tests.Common
         {
             get
             {
-                throw new NotImplementedException ();
+                throw new NotImplementedException();
+            }
+        }
+
+        public IPEndPoint LocalIPEndPoint
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 

@@ -55,6 +55,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         Dictionary<string, string> QueryAsDictionary { get; } //faster than Query
         string RawUrl { get; }
         IPEndPoint RemoteIPEndPoint { get; }
+        IPEndPoint LocalIPEndPoint { get; }
         Uri Url { get; }
         string UserAgent { get; }
     }

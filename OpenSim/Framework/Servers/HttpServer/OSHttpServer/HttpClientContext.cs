@@ -89,7 +89,7 @@ namespace OSHttpServer
         /// </summary>
         public event EventHandler Started;
 
-        public IPEndPoint LocalRemoteEndPoint {get; set;}
+        public IPEndPoint LocalIPEndPoint {get; set;}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpClientContext"/> class.
@@ -107,7 +107,7 @@ namespace OSHttpServer
             if (!stream.CanWrite || !stream.CanRead)
                 throw new ArgumentException("Stream must be writable and readable.");
 
-            LocalRemoteEndPoint = remoteEndPoint;
+            LocalIPEndPoint = remoteEndPoint;
             _log = NullLogWriter.Instance;
             m_parser = parserFactory.CreateParser(_log);
             m_parser.RequestCompleted += OnRequestCompleted;
@@ -186,8 +186,8 @@ namespace OSHttpServer
             m_currentRequest.Method = e.HttpMethod;
             m_currentRequest.HttpVersion = e.HttpVersion;
             m_currentRequest.UriPath = e.UriPath;
-            m_currentRequest.AddHeader("remote_addr", LocalRemoteEndPoint.Address.ToString());
-            m_currentRequest.AddHeader("remote_port", LocalRemoteEndPoint.Port.ToString());
+            m_currentRequest.AddHeader("remote_addr", LocalIPEndPoint.Address.ToString());
+            m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
 
             FirstRequestLineReceived = true;
             TriggerKeepalive = false;
