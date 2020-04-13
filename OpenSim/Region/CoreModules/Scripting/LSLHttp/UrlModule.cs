@@ -648,8 +648,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 try
                 {
-                    NameValueCollection headers = request.Headers;
-
                     //string uri_full = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
 
                     int pos1 = uri.IndexOf("/");// /lslhttp
@@ -696,31 +694,31 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     if (requestData.headers == null)
                         requestData.headers = new Dictionary<string, string>();
 
-                    foreach (DictionaryEntry header in headers)
+                    NameValueCollection headers = request.Headers;
+                    if (headers.Count > 0)
                     {
-                        string key = (string)header.Key;
-                        string value = (string)header.Value;
-                        requestData.headers.Add(key, value);
+                        for(int i = 0; i < headers.Count; ++i)
+                        {
+                            string name = headers.GetKey(i);
+                            if (!string.IsNullOrEmpty(name))
+                                requestData.headers[name] = headers[i];
+                        }
                     }
 
-                    if(request.QueryString.Count > 0)
+                    NameValueCollection query = request.QueryString;
+                    if (query.Count > 0)
                     {
                         StringBuilder sb = new StringBuilder();
-                        foreach (DictionaryEntry qs in request.QueryString)
+                        for (int i = 0; i < query.Count; ++i)
                         {
-                            string key = (string)qs.Key;
-                            string value = (string)qs.Value;
-                            if (key != "")
-                            {
-                                sb.AppendFormat("{0} = {1}&",key, value);
-                            }
+                            string key = query.GetKey(i);
+                            if (string.IsNullOrEmpty(key))
+                                sb.AppendFormat("{0}&", query[i]);
                             else
-                            {
-                                sb.AppendFormat("{0}&", value);
-                            }
+                                sb.AppendFormat("{0} = {1}&", key, query[i]);
                         }
-                        if(sb.Length > 1)
-                            sb.Remove(sb.Length -1,1);
+                        if (sb.Length > 1)
+                            sb.Remove(sb.Length - 1, 1);
                         requestData.headers["x-query-string"] = sb.ToString();
                     }
                     else
@@ -728,7 +726,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                     //if this machine is behind DNAT/port forwarding, currently this is being
                     //set to address of port forwarding router
-                    requestData.headers["x-remote-ip"] = requestData.headers["remote_addr"];
+                    requestData.headers["x-remote-ip"] = request.RemoteIPEndPoint.Address.ToString();
                     requestData.headers["x-path-info"] = pathInfo;
                     requestData.headers["x-script-url"] = url.url;
 
