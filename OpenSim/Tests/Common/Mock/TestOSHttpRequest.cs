@@ -153,6 +153,14 @@ namespace OpenSim.Tests.Common
             }
         }
 
+        public HashSet<string> QueryFlags
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public string RawUrl
         {
             get

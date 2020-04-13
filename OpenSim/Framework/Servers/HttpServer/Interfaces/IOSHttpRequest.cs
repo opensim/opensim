@@ -52,6 +52,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool KeepAlive { get; }
         NameValueCollection QueryString { get; }
         Hashtable Query { get; }
+        HashSet<string> QueryFlags { get; }
         Dictionary<string, string> QueryAsDictionary { get; } //faster than Query
         string RawUrl { get; }
         IPEndPoint RemoteIPEndPoint { get; }
