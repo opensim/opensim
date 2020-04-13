@@ -51,7 +51,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool IsSecured { get; }
         bool KeepAlive { get; }
         NameValueCollection QueryString { get; }
-        Dictionary<string, string> Query { get; }
+        Hashtable Query { get; }
+        Dictionary<string, string> QueryAsDictionary { get; } //faster than Query
         string RawUrl { get; }
         IPEndPoint RemoteIPEndPoint { get; }
         Uri Url { get; }

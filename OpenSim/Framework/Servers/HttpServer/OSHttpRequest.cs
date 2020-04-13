@@ -123,17 +123,28 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return _request.QueryString;}
         }
 
-        public Dictionary<string,string> Query
+        private Hashtable _queryAsHashtable = null;
+        public Hashtable Query
         {
             get
             {
-                if (_queryKeyValues == null)
-                    BuildQueryDictionary();
-                return _queryKeyValues;
+                if (_queryAsHashtable == null)
+                    BuildQueryHashtable();
+                return _queryAsHashtable;
             }
         }
 
-        private Dictionary<string, string> _queryKeyValues = null;
+        //faster than Query
+        private Dictionary<string, string> _queryAsDictionay = null;
+        public Dictionary<string,string> QueryAsDictionary
+        {
+            get
+            {
+                if (_queryAsDictionay == null)
+                    BuildQueryDictionary();
+                return _queryAsDictionay;
+            }
+        }
 
         /// <value>
         /// POST request values, if applicable
@@ -148,6 +159,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         public IPEndPoint RemoteIPEndPoint
         {
             get { return _request.RemoteIPEndPoint; }
+        }
+
+        public IPEndPoint LocalIPEndPoint
+        {
+            get { return _request.LocalIPEndPoint; }
         }
 
         public Uri Url
@@ -216,16 +232,32 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void BuildQueryDictionary()
         {
             NameValueCollection q = _request.QueryString;
-            _queryKeyValues = new Dictionary<string, string>(); // only key value pairs
+            _queryAsDictionay = new Dictionary<string, string>(); // only key value pairs
             for(int i = 0; i <q.Count; ++i)
             {
                 try
                 {
                     var name = q.GetKey(i);
                     if(!string.IsNullOrEmpty(name))
-                        _queryKeyValues[name] = q[i];
+                        _queryAsDictionay[name] = q[i];
                 }
                 catch {}
+            }
+        }
+
+        private void BuildQueryHashtable()
+        {
+            NameValueCollection q = _request.QueryString;
+            _queryAsHashtable = new Hashtable();
+            for (int i = 0; i < q.Count; ++i)
+            {
+                try
+                {
+                    var name = q.GetKey(i);
+                    if (!string.IsNullOrEmpty(name))
+                        _queryAsDictionay[name] = q[i];
+                }
+                catch { }
             }
         }
 

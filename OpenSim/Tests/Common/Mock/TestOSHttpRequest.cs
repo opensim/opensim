@@ -137,11 +137,19 @@ namespace OpenSim.Tests.Common
             }
         }
 
-        public Dictionary<string,string> Query
+        public Hashtable Query
         {
             get
             {
-                throw new NotImplementedException ();
+                throw new NotImplementedException();
+            }
+        }
+
+        public Dictionary<string, string> QueryAsDictionary
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 
