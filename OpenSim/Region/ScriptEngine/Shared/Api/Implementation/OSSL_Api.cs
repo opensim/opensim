@@ -298,7 +298,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             if(wComm != null)
                 wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
-        }
+
+            if (m_item != null)
+                m_ScriptEngine.SleepScript(m_item.ItemID, 1000);
+            else
+                Thread.Sleep(1000);
+            }
 
         // Returns if OSSL is enabled. Throws a script exception if OSSL is not allowed..
         // for safe funtions always active
