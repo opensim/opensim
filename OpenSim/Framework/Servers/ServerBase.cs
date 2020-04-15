@@ -684,6 +684,11 @@ namespace OpenSim.Framework.Servers
 
         private void ShowLogLevel()
         {
+            if (null == m_consoleAppender)
+            {
+                Notice("No appender named Console found (see the log4net config file for this executable)!");
+                return;
+            }
             Notice("Console log level is {0}", m_consoleAppender.Threshold);
         }
 
