@@ -344,7 +344,7 @@ namespace OSHttpServer
                 case "host":
                     try
                     {
-                        m_uri = new Uri(Secure ? "https://" : "http://" + value + m_uriPath);
+                        m_uri = new Uri((Secure ? "https://" : "http://") + value + m_uriPath);
                         m_uriPath = m_uri.AbsolutePath;
                     }
                     catch (UriFormatException err)
