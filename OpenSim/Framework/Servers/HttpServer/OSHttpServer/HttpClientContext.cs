@@ -140,6 +140,7 @@ namespace OSHttpServer
                 basecontextID = 1;
 
             contextID = basecontextID;
+            sock.NoDelay = true;
         }
 
         public bool CanSend()
@@ -175,7 +176,7 @@ namespace OSHttpServer
                 lock (requestsInServiceIDs)
                 {
                     if (requestsInServiceIDs.Count == 0)
-                        Respond("HTTP/1.1", HttpStatusCode.Continue, "Please continue.");
+                        Respond("HTTP/1.1", HttpStatusCode.Continue, null);
                 }
             }
             m_currentRequest.AddHeader(e.Name, e.Value);
@@ -557,20 +558,21 @@ namespace OSHttpServer
         {
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
 
-            if (string.IsNullOrEmpty(contentType))
-                contentType = "text/html";
-
             if (string.IsNullOrEmpty(reason))
                 reason = statusCode.ToString();
 
             byte[] buffer;
             if(string.IsNullOrEmpty(body))
-                buffer = Encoding.ASCII.GetBytes(httpVersion + " " + (int)statusCode + " " + reason ?? statusCode.ToString() + "\r\n\r\n");
+                buffer = Encoding.ASCII.GetBytes(httpVersion + " " + (int)statusCode + " " + reason + "\r\n\r\n");
             else
+            {
+                if (string.IsNullOrEmpty(contentType))
+                    contentType = "text/html";
                 buffer = Encoding.UTF8.GetBytes(
                         string.Format("{0} {1} {2}\r\nContent-Type: {5}\r\nContent-Length: {3}\r\n\r\n{4}",
                                                   httpVersion, (int)statusCode, reason ?? statusCode.ToString(),
                                                   body.Length, body, contentType));
+            }
             Send(buffer);
         }
 
@@ -582,8 +584,10 @@ namespace OSHttpServer
         /// <param name="reason">reason for the status code.</param>
         public void Respond(string httpVersion, HttpStatusCode statusCode, string reason)
         {
-
-            Respond(httpVersion, statusCode, reason, null, null);
+            if (string.IsNullOrEmpty(reason))
+                reason = statusCode.ToString();
+            byte[] buffer = Encoding.ASCII.GetBytes(httpVersion + " " + (int)statusCode + " " + reason + "\r\n\r\n");
+            Send(buffer);
         }
 
         /// <summary>

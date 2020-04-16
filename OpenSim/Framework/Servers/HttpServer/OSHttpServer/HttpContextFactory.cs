@@ -103,7 +103,6 @@ namespace OSHttpServer
         public IHttpClientContext CreateSecureContext(Socket socket, X509Certificate certificate,
              SslProtocols protocol, RemoteCertificateValidationCallback _clientCallback = null)
         {
-            socket.NoDelay = true;
             var networkStream = new NetworkStream(socket, true);
             var remoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
 
