@@ -525,6 +525,17 @@ namespace OSHttpServer
             else
             {
                 LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+                if(Stream!=null && Stream.CanWrite)
+                {
+                    try
+                    {
+                        Stream.Flush();
+                    }
+                    catch
+                    {
+                    };
+                }
+
                 lock (requestsInServiceIDs)
                 {
                     if (requestsInServiceIDs.Count == 0)
