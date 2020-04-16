@@ -251,10 +251,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             if(String.IsNullOrEmpty(mmodule))
             {
                 if(economyConfig != null)
-                    mmodule = economyConfig.GetString("economymodule","");
+                {
+                    mmodule = economyConfig.GetString("economymodule", "");
+                    if (String.IsNullOrEmpty(mmodule))
+                        mmodule = economyConfig.GetString("EconomyModule", "");
+                }
             }
 
-            if(!String.IsNullOrEmpty(mmodule) && mmodule != Name)
+            if (!String.IsNullOrEmpty(mmodule) && mmodule != Name)
             {
                 // some other money module selected
                 m_enabled = false;
