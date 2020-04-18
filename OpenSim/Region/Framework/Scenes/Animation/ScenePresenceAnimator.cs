@@ -216,7 +216,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 {
                     if (anim == "SITGROUND")
                     {
-                        UUID defsit = DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"];
+                        UUID defsit = DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"];
                         if (defsit == UUID.Zero)
                             return false;
                         m_animations.SetDefaultAnimation(defsit, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
@@ -863,7 +863,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             string animName;
 
-            if (!DefaultAvatarAnimations.AnimsNames.TryGetValue(animId, out animName))
+            if (!DefaultAvatarAnimations.AnimsNamesbyUUID.TryGetValue(animId, out animName))
             {
                 AssetMetadata amd = m_scenePresence.Scene.AssetService.GetMetadata(animId.ToString());
                 if (amd != null)

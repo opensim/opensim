@@ -6662,7 +6662,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              }
 
              if (agent.Animator.Animations.ImplicitDefaultAnimation.AnimID
-                == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
@@ -11212,7 +11212,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Vector3 box = presence.Appearance.AvatarBoxSize * 0.5f;
 
                 if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID
-                    == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                    == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
 /*
                 {
                     // This is for ground sitting avatars
@@ -11310,7 +11310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 upper = new Vector3(m_lABB2SitX0, m_lABB2SitY0, m_lABB2SitZ0 + m_lABB2SitZ1 * height);
             }
             // When avatar is groundsitting
-            else if (sp.Animator.Animations.ImplicitDefaultAnimation.AnimID == DefaultAvatarAnimations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+            else if (sp.Animator.Animations.ImplicitDefaultAnimation.AnimID == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
             {
                 lower = new Vector3(m_lABB1GrsX0, m_lABB1GrsY0, m_lABB1GrsZ0 + m_lABB1GrsZ1 * height);
                 upper = new Vector3(m_lABB2GrsX0, m_lABB2GrsY0, m_lABB2GrsZ0 + m_lABB2GrsZ1 * height);
@@ -17365,7 +17365,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (animID == UUID.Zero)
             {
                 String animupper = ((string)anim).ToUpperInvariant();
-                DefaultAvatarAnimations.AnimsUUID.TryGetValue(animupper, out animID);
+                DefaultAvatarAnimations.AnimsUUIDbyName.TryGetValue(animupper, out animID);
             }
 
             if (animID == UUID.Zero)
@@ -17458,7 +17458,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (animID == UUID.Zero)
                 return animState;
 
-            foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUID)
+            foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUIDbyName)
             {
                 if (kvp.Value == animID)
                     return kvp.Key.ToLower();
