@@ -16,7 +16,6 @@ namespace OSHttpServer
     public class HttpContextFactory : IHttpContextFactory
     {
         private readonly ConcurrentDictionary<int, HttpClientContext> m_activeContexts = new ConcurrentDictionary<int, HttpClientContext>();
-        private readonly IRequestParserFactory m_parserfactory;
         private readonly ILogWriter m_logWriter;
 
         /// <summary>
@@ -30,10 +29,9 @@ namespace OSHttpServer
         /// <param name="writer">The writer.</param>
         /// <param name="bufferSize">Amount of bytes to read from the incoming socket stream.</param>
         /// <param name="factory">Used to create a request parser.</param>
-        public HttpContextFactory(ILogWriter writer, IRequestParserFactory factory)
+        public HttpContextFactory(ILogWriter writer)
         {
             m_logWriter = writer;
-            m_parserfactory = factory;
             ContextTimeoutManager.Start();
         }
 
@@ -46,31 +44,14 @@ namespace OSHttpServer
         /// <returns>A context.</returns>
         protected HttpClientContext CreateContext(bool isSecured, IPEndPoint endPoint, Stream stream, Socket sock)
         {
-            HttpClientContext context;
-
-            context = CreateNewContext(isSecured, endPoint, stream, sock);
+            var context = new HttpClientContext(isSecured, endPoint, stream, m_logWriter, sock);
             context.Disconnected += OnFreeContext;
             context.RequestReceived += OnRequestReceived;
 
-            context.Stream = stream;
-            context.IsSecured = isSecured;
-            context.LocalIPEndPoint = endPoint;
             ContextTimeoutManager.StartMonitoringContext(context);
             m_activeContexts[context.contextID] = context;
             context.Start();
             return context;
-        }
-
-        /// <summary>
-        /// Create a new context.
-        /// </summary>
-        /// <param name="isSecured">true if HTTPS is used.</param>
-        /// <param name="endPoint">Remote client</param>
-        /// <param name="stream">Network stream, <see cref="HttpClientContext"/></param>
-        /// <returns>A new context (always).</returns>
-        protected virtual HttpClientContext CreateNewContext(bool isSecured, IPEndPoint endPoint, Stream stream, Socket sock)
-        {
-            return new HttpClientContext(isSecured, endPoint, stream, m_parserfactory, sock);
         }
 
         private void OnRequestReceived(object sender, RequestEventArgs e)

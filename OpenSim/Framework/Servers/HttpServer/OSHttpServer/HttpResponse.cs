@@ -281,6 +281,9 @@ namespace OSHttpServer
 
         public void Send()
         {
+            if(m_context.IsClosing)
+                return;
+
             if (Sent)
                 throw new InvalidOperationException("Everything have already been sent.");
 
@@ -446,7 +449,7 @@ namespace OSHttpServer
             if (m_body != null)
                 m_body.Dispose();
             Sent = true;
-            m_context.EndSendResponse(requestID, Connection);
+            await m_context.EndSendResponse(requestID, Connection).ConfigureAwait(false);
         }
 
         private int CheckBandwidth(int request, int bytesLimit)

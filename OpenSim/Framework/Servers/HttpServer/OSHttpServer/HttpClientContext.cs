@@ -21,13 +21,13 @@ namespace OSHttpServer
     public class HttpClientContext : IHttpClientContext, IDisposable
     {
         const int MAXREQUESTS = 20;
-        const int MAXKEEPALIVE = 60000;
+        const int MAXKEEPALIVE = 120000;
 
         static private int basecontextID;
 
         private readonly byte[] m_ReceiveBuffer;
         private int m_ReceiveBytesLeft;
-        private ILogWriter _log;
+        private ILogWriter m_log;
         private readonly IHttpRequestParser m_parser;
         private HashSet<uint> requestsInServiceIDs;
         private Socket m_sock;
@@ -42,8 +42,8 @@ namespace OSHttpServer
         public int TimeoutRequestReceived = 30000; // 30 seconds
 
         // The difference between this and request received is on POST more time is needed before we get the full request.
-        public int TimeoutMaxIdle = 600000; // 3 minutes
-        public int m_TimeoutKeepAlive = MAXKEEPALIVE; // 400 seconds before keepalive timeout
+        public int TimeoutMaxIdle = 600000; // 10 minutes
+        public int m_TimeoutKeepAlive = 60000;
 
         public int m_maxRequests = MAXREQUESTS;
 
@@ -51,6 +51,7 @@ namespace OSHttpServer
         public bool FullRequestReceived;
 
         private bool isSendingResponse = false;
+        private bool m_isClosing = false;
 
         private HttpRequest m_currentRequest;
         private HttpResponse m_currentResponse;
@@ -63,6 +64,11 @@ namespace OSHttpServer
             {
                 m_TimeoutKeepAlive = (value > MAXKEEPALIVE) ? MAXKEEPALIVE : value;
             }
+        }
+
+        public bool IsClosing
+        {
+            get { return m_isClosing;}
         }
 
         public int MaxRequests
@@ -102,14 +108,15 @@ namespace OSHttpServer
         /// <exception cref="SocketException">If <see cref="Socket.BeginReceive(byte[],int,int,SocketFlags,AsyncCallback,object)"/> fails</exception>
         /// <exception cref="ArgumentException">Stream must be writable and readable.</exception>
         public HttpClientContext(bool secured, IPEndPoint remoteEndPoint,
-                                    Stream stream, IRequestParserFactory parserFactory, Socket sock)
+                                    Stream stream, ILogWriter m_logWriter, Socket sock)
         {
             if (!stream.CanWrite || !stream.CanRead)
                 throw new ArgumentException("Stream must be writable and readable.");
 
             LocalIPEndPoint = remoteEndPoint;
-            _log = NullLogWriter.Instance;
-            m_parser = parserFactory.CreateParser(_log);
+            m_log = m_logWriter;
+            m_isClosing = false;
+            m_parser = new HttpRequestParser(m_log);
             m_parser.RequestCompleted += OnRequestCompleted;
             m_parser.RequestLineReceived += OnRequestLine;
             m_parser.HeaderReceived += OnHeaderReceived;
@@ -145,7 +152,7 @@ namespace OSHttpServer
 
         public bool CanSend()
         {
-            if (contextID < 0)
+            if (contextID < 0 || m_isClosing)
                 return false;
 
             if (m_stream == null || m_sock == null || !m_sock.Connected)
@@ -273,11 +280,11 @@ namespace OSHttpServer
         /// </summary>
         public ILogWriter LogWriter
         {
-            get { return _log; }
+            get { return m_log; }
             set
             {
-                _log = value ?? NullLogWriter.Instance;
-                m_parser.LogWriter = _log;
+                m_log = value ?? NullLogWriter.Instance;
+                m_parser.LogWriter = m_log;
             }
         }
 
@@ -309,9 +316,10 @@ namespace OSHttpServer
                         {
                             try
                             {
-                                m_stream.Flush(); // we should be on a work task so hold on it
+                                m_stream.Flush();
                             }
                             catch { }
+
                         }
                         m_stream.Close();
                         m_stream = null;
@@ -345,6 +353,9 @@ namespace OSHttpServer
                         Disconnect(SocketError.Success);
                         return;
                     }
+
+                    if(m_isClosing)
+                        continue;
 
                     m_ReceiveBytesLeft += bytesRead;
                     if (m_ReceiveBytesLeft > m_ReceiveBuffer.Length)
@@ -506,7 +517,7 @@ namespace OSHttpServer
             ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, notThrottled);
         }
 
-        public void EndSendResponse(uint requestID, ConnectionType ctype)
+        public async Task EndSendResponse(uint requestID, ConnectionType ctype)
         {
             isSendingResponse = false;
             m_currentResponse?.Clear();
@@ -522,19 +533,28 @@ namespace OSHttpServer
             }
 
             if (doclose)
-                Disconnect(SocketError.Success);
+            {
+                m_isClosing = true;
+                lock (requestsInServiceIDs)
+                    requestsInServiceIDs.Clear();
+
+                TriggerKeepalive = true;
+                return;
+            }
             else
             {
                 LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 if(Stream!=null && Stream.CanWrite)
                 {
+                    ContextTimeoutManager.ContextEnterActiveSend();
                     try
                     {
-                        Stream.Flush();
+                        await Stream.FlushAsync().ConfigureAwait(false);
                     }
                     catch
                     {
                     };
+                    ContextTimeoutManager.ContextLeaveActiveSend();
                 }
 
                 lock (requestsInServiceIDs)

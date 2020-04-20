@@ -277,7 +277,7 @@ namespace OSHttpServer
             if (context.TriggerKeepalive)
             {
                 context.TriggerKeepalive = false;
-                context.MonitorKeepaliveStartMS = nowMS;
+                context.MonitorKeepaliveStartMS = nowMS + 1;
                 return false;
             }
 
@@ -285,7 +285,10 @@ namespace OSHttpServer
             {
                 if (EnvironmentTickCountAdd(context.TimeoutKeepAlive, context.MonitorKeepaliveStartMS) < nowMS)
                 {
-                    disconnectError = SocketError.TimedOut;
+                    if(context.IsClosing)
+                        disconnectError = SocketError.Success;
+                    else
+                        disconnectError = SocketError.TimedOut;
                     context.MonitorKeepaliveStartMS = 0;
                     return true;
                 }

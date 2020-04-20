@@ -34,11 +34,11 @@ namespace OSHttpServer
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <exception cref="ArgumentNullException"><c>address</c> is null.</exception>
         /// <exception cref="ArgumentException">Port must be a positive number.</exception>
-        protected OSHttpListener(IPAddress address, int port, IHttpContextFactory factory)
+        protected OSHttpListener(IPAddress address, int port)
         {
             m_address = address;
             m_port = port;
-            m_contextFactory = factory;
+            m_contextFactory = new HttpContextFactory(m_logWriter);
             m_contextFactory.RequestReceived += OnRequestReceived;
         }
 
@@ -49,12 +49,10 @@ namespace OSHttpServer
         /// <param name="port">TCP Port to listen on, default HTTPS port is 443</param>
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <param name="certificate">Certificate to use</param>
-        /// <param name="protocol">which HTTPS protocol to use, default is TLS.</param>
-        protected OSHttpListener(IPAddress address, int port, IHttpContextFactory factory, X509Certificate certificate,
-                                   SslProtocols protocol)
-            : this(address, port, factory, certificate)
+        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate)
+            : this(address, port)
         {
-            m_sslProtocol = protocol;
+            m_certificate = certificate;
         }
 
         /// <summary>
@@ -64,38 +62,34 @@ namespace OSHttpServer
         /// <param name="port">TCP Port to listen on, default HTTPS port is 443</param>
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <param name="certificate">Certificate to use</param>
-        protected OSHttpListener(IPAddress address, int port, IHttpContextFactory factory, X509Certificate certificate)
-            : this(address, port, factory)
+        /// <param name="protocol">which HTTPS protocol to use, default is TLS.</param>
+        protected OSHttpListener(IPAddress address, int port, X509Certificate certificate,
+                                   SslProtocols protocol)
+            : this(address, port)
         {
             m_certificate = certificate;
+            m_sslProtocol = protocol;
         }
 
         public static OSHttpListener Create(IPAddress address, int port)
         {
-            RequestParserFactory requestFactory = new RequestParserFactory();
-            HttpContextFactory factory = new HttpContextFactory(NullLogWriter.Instance, requestFactory);
-            return new OSHttpListener(address, port, factory);
+            return new OSHttpListener(address, port);
         }
 
         public static OSHttpListener Create(IPAddress address, int port, X509Certificate certificate)
         {
-            RequestParserFactory requestFactory = new RequestParserFactory();
-            HttpContextFactory factory = new HttpContextFactory(NullLogWriter.Instance, requestFactory);
-            return new OSHttpListener(address, port, factory, certificate);
+            return new OSHttpListener(address, port, certificate);
         }
 
         public static OSHttpListener Create(IPAddress address, int port, X509Certificate certificate, SslProtocols protocol)
         {
-            RequestParserFactory requestFactory = new RequestParserFactory();
-            HttpContextFactory factory = new HttpContextFactory(NullLogWriter.Instance, requestFactory);
-            return new OSHttpListener(address, port, factory, certificate, protocol);
+            return new OSHttpListener(address, port, certificate, protocol);
         }
 
         private void OnRequestReceived(object sender, RequestEventArgs e)
         {
             RequestReceived?.Invoke(sender, e);
         }
-
 
         public RemoteCertificateValidationCallback CertificateValidationCallback
         {

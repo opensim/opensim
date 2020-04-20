@@ -29,6 +29,7 @@ namespace OSHttpServer
 
         bool CanSend();
         bool IsSending();
+        bool IsClosing {get ;}
 
         /// <summary>
         /// Disconnect from client
@@ -95,7 +96,7 @@ namespace OSHttpServer
 
         void StartSendResponse(HttpResponse response);
         void ContinueSendResponse(bool notThrottled);
-        void EndSendResponse(uint requestID, ConnectionType connection);
+        Task EndSendResponse(uint requestID, ConnectionType connection);
         bool TrySendResponse(int limit);
     }
 
