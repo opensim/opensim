@@ -148,6 +148,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (responsedata.ContainsKey("keepalive"))
                 response.KeepAlive = (bool)responsedata["keepalive"];
 
+            if (responsedata.ContainsKey("keepaliveTimeout"))
+                response.KeepAliveTimeout = (int)responsedata["keepaliveTimeout"];
+
+
             if (responsedata.ContainsKey("prio"))
                 response.Priority = (int)responsedata["prio"];
 
