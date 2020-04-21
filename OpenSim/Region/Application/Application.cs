@@ -77,12 +77,12 @@ namespace OpenSim
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            //if(Util.IsWindows())
+            if(Util.IsWindows())
                 ServicePointManager.DefaultConnectionLimit = 32;
-            //else
-            //{
-            //    ServicePointManager.DefaultConnectionLimit = 32;
-            //}
+            else
+            {
+                ServicePointManager.DefaultConnectionLimit = 12;
+            }
 
             try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
             ServicePointManager.Expect100Continue = false;
