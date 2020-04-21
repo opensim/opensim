@@ -39,7 +39,7 @@ namespace OSHttpServer
         {
             m_httpVersion = request.HttpVersion;
             if (string.IsNullOrEmpty(m_httpVersion))
-                m_httpVersion = "HTTP/1.0";
+                m_httpVersion = "HTTP/1.1";
 
             Status = HttpStatusCode.OK;
             m_context = context;
@@ -222,7 +222,7 @@ namespace OSHttpServer
 
             var sb = new StringBuilder();
             if(string.IsNullOrWhiteSpace(m_httpVersion))
-                sb.AppendFormat("HTTP1/0 {0} {1}\r\n", (int)Status,
+                sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (int)Status,
                                 string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
             else
                 sb.AppendFormat("{0} {1} {2}\r\n", m_httpVersion, (int)Status,

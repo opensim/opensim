@@ -396,7 +396,7 @@ namespace OSHttpServer
                 LogWriter.Write(this, LogPrio.Warning, "Bad request, responding with it. Error: " + err);
                 try
                 {
-                    Respond("HTTP/1.0", HttpStatusCode.BadRequest, err.Message);
+                    Respond("HTTP/1.1", HttpStatusCode.BadRequest, err.Message);
                 }
                 catch (Exception err2)
                 {

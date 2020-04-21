@@ -1256,7 +1256,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.ContentType = "text/plain";
                     response.StatusCode = 404;
                     response.StatusDescription = "Not Found";
-                    response.ProtocolVersion = "HTTP/1.0";
                     responseString = "Not found";
                     response.KeepAlive = false;
 
@@ -1431,7 +1430,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.ContentType = "text/plain";
                 response.StatusCode = 404;
                 response.StatusDescription = "Not Found";
-                response.ProtocolVersion = "HTTP/1.0";
                 buffer = Encoding.UTF8.GetBytes("Not found");
             }
             else
