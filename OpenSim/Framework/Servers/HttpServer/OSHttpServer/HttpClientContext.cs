@@ -41,8 +41,7 @@ namespace OSHttpServer
         public int TimeoutFirstLine = 10000; // 10 seconds
         public int TimeoutRequestReceived = 30000; // 30 seconds
 
-        // The difference between this and request received is on POST more time is needed before we get the full request.
-        public int TimeoutMaxIdle = 600000; // 10 minutes
+        public int TimeoutMaxIdle = 180000; // 3 minutes
         public int m_TimeoutKeepAlive = 60000;
 
         public int m_maxRequests = MAXREQUESTS;
@@ -505,7 +504,8 @@ namespace OSHttpServer
 
             if(!CanSend())
                 return false;
- 
+
+            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
             m_currentResponse?.SendNextAsync(bytesLimit);
             return false;
         }
@@ -641,7 +641,10 @@ namespace OSHttpServer
             if (offset + size > buffer.Length)
                 throw new ArgumentOutOfRangeException("offset", offset, "offset + size is beyond end of buffer.");
 
+            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+
             bool ok = true;
+            ContextTimeoutManager.ContextEnterActiveSend();
             lock (sendLock) // can't have overlaps here
             {
                 try
@@ -652,11 +655,12 @@ namespace OSHttpServer
                 {
                     ok = false;
                 }
-
-                if (!ok && m_stream != null)
-                    Disconnect(SocketError.NoRecovery);
-                return ok;
             }
+
+            ContextTimeoutManager.ContextLeaveActiveSend();
+            if (!ok && m_stream != null)
+                Disconnect(SocketError.NoRecovery);
+            return ok;
         }
 
         public async Task<bool> SendAsync(byte[] buffer, int offset, int size)
