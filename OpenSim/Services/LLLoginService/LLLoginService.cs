@@ -417,9 +417,9 @@ namespace OpenSim.Services.LLLoginService
                             m_log.InfoFormat(
                                 "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: already logged in",
                                 firstName, lastName);
-                            return LLFailedLoginResponse.AlreadyLoggedInProblem;
                         }
                         m_GridUserService.LoggedOut(PrincipalIDstr, scopeID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+                        return LLFailedLoginResponse.AlreadyLoggedInProblem;
                     }
                 }
 
