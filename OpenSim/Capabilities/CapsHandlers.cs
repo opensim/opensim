@@ -170,37 +170,39 @@ namespace OpenSim.Framework.Capabilities
         public Hashtable GetCapsDetails(bool excludeSeed, List<string> requestedCaps)
         {
             Hashtable caps = new Hashtable();
-            if(requestedCaps == null)
-                return caps;
 
-            string protocol = "http://";
-
-            if (m_useSSL)
-                protocol = "https://";
-
+            string protocol = m_useSSL ? "https://" : "http://";
             string baseUrl = protocol + m_httpListenerHostName + ":" + m_httpListenerPort.ToString();
+
+            if (requestedCaps == null)
+            {
+                lock (m_capsHandlers)
+                {
+                    foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)
+                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                    foreach (KeyValuePair<string, IRequestHandler> kvp in m_capsHandlers)
+                        caps[kvp.Key] = baseUrl + kvp.Value.Path;
+                }
+                return caps;
+            }
 
             lock (m_capsHandlers)
             {
-                foreach (string capsName in m_capsHandlers.Keys)
+                for(int i = 0; i < requestedCaps.Count; ++i)
                 {
+                    string capsName = requestedCaps[i];
                     if (excludeSeed && "SEED" == capsName)
                         continue;
 
-                    if (!requestedCaps.Contains(capsName))
+                    if (m_capsSimpleHandlers.TryGetValue(capsName, out ISimpleStreamHandler shdr))
+                    {
+                        caps[capsName] = baseUrl + shdr.Path;
                         continue;
-
-                    caps[capsName] = baseUrl + m_capsHandlers[capsName].Path;
-                }
-                foreach (string capsName in m_capsSimpleHandlers.Keys)
-                {
-                    if (excludeSeed && "SEED" == capsName)
-                        continue;
-
-                    if (!requestedCaps.Contains(capsName))
-                        continue;
-
-                    caps[capsName] = baseUrl + m_capsSimpleHandlers[capsName].Path;
+                    }
+                    if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler chdr))
+                    {
+                        caps[capsName] = baseUrl + chdr.Path;
+                    }
                 }
             }
 
