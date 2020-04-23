@@ -98,7 +98,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
-        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers  = new ConcurrentDictionary<string, IRequestHandler>();
+        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
+        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
 //        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
         protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers =
@@ -329,7 +330,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             string path = handler.Path;
             string handlerKey = GetHandlerKey(httpMethod, path);
 
-                    // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
+            // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
             m_streamHandlers.TryAdd(handlerKey, handler);
         }
 
@@ -340,6 +341,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
             m_streamHandlers.TryAdd(handler.Path, handler);
+        }
+
+        public void AddSimpleStreamHandler(ISimpleStreamHandler handler)
+        {
+            // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
+            m_simpleStreamHandlers.TryAdd(handler.Path, handler);
         }
 
         public void AddWebSocketHandler(string servicepath, WebSocketRequestDelegate handler)
@@ -1054,6 +1061,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        private bool TryGetSimpleStreamHandler(string uripath, out ISimpleStreamHandler handler)
+        {
+            return m_simpleStreamHandlers.TryGetValue(uripath, out handler);
+        }
 //        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
 //        {
 //            agentHandler = null;
@@ -2115,6 +2126,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void RemoveStreamHandler(string path)
         {
             m_streamHandlers.TryRemove(path, out IRequestHandler dummy);
+        }
+
+        public void RemoveSimpleStreamHandler(string path)
+        {
+            m_simpleStreamHandlers.TryRemove(path, out ISimpleStreamHandler dummy);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)

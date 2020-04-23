@@ -181,6 +181,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return m_request.Uri; }
         }
 
+        public string UriPath
+        {
+            get { return m_request.UriPath; }
+        }
+
         public string UserAgent
         {
             get { return m_userAgent; }

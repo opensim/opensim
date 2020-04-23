@@ -58,6 +58,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         IPEndPoint RemoteIPEndPoint { get; }
         IPEndPoint LocalIPEndPoint { get; }
         Uri Url { get; }
+        string UriPath { get; }
         string UserAgent { get; }
     }
 }
