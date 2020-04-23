@@ -265,9 +265,15 @@ namespace OpenSim.Framework.Servers
                     foreach (String s in httpServer.GetLLSDHandlerKeys())
                         handlers.AppendFormat("\t{0}\n", s);
 
-                    handlers.AppendFormat("* StreamHandlers ({0}):\n", httpServer.GetStreamHandlerKeys().Count);
-                    foreach (String s in httpServer.GetStreamHandlerKeys())
+                    List<string> shdrs = httpServer.GetStreamHandlerKeys();
+                    handlers.AppendFormat("* StreamHandlers ({0}):\n", shdrs.Count);
+                    foreach (String s in shdrs)
                         handlers.AppendFormat("\t{0}\n", s);
+
+                    shdrs = httpServer.GetSimpleStreamHandlerKeys();
+                    handlers.AppendFormat("* SimpleStreamHandlers ({0}):\n", shdrs.Count);
+                    foreach (String s in shdrs)
+                        handlers.AppendFormat("\t***:{0}\n", s);
 
                     handlers.Append("\n");
                 }

@@ -370,6 +370,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return new List<string>(m_streamHandlers.Keys);
         }
 
+        public List<string> GetSimpleStreamHandlerKeys()
+        {
+            return new List<string>(m_simpleStreamHandlers.Keys);
+        }
+
         private static string GetHandlerKey(string httpMethod, string path)
         {
             return httpMethod + ":" + path;
