@@ -176,6 +176,12 @@ namespace OpenSim.Framework.Capabilities
             m_capsHandlers[capName] = handler;
         }
 
+        public void RegisterSimpleHandler(string capName, ISimpleStreamHandler handler, bool addToListener = true)
+        {
+            //m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
+            m_capsHandlers.AddSimpleHandler(capName, handler, addToListener);
+        }
+
         public void RegisterPollHandler(string capName, PollServiceEventArgs pollServiceHandler)
         {
 //            m_log.DebugFormat(
