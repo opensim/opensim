@@ -635,7 +635,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //                    }
                 //                }
                 string path = request.UriPath;
-                if (!string.IsNullOrWhiteSpace(path) && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
+                if (!string.IsNullOrWhiteSpace(path) && path!="/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
