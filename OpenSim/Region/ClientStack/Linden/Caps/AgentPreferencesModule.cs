@@ -95,7 +95,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegisterCaps(UUID agent, Caps caps)
         {
-            string capPath = "/" + UUID.Random().ToString() + "/";
+            string capPath = "/" + UUID.Random().ToString();
             caps.RegisterSimpleHandler("AgentPreferences",
                 new SimpleStreamHandler(capPath, delegate(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {

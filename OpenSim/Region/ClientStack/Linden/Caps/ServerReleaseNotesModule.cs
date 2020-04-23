@@ -112,7 +112,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capPath = "/" + UUID.Random() + "/";
+            string capPath = "/" + UUID.Random();
             caps.RegisterSimpleHandler("ServerReleaseNotes",
                            new SimpleStreamHandler(capPath, delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                            {
