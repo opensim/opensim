@@ -262,7 +262,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 PollServiceEventArgs args
                     = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
                 //args.Type = PollServiceEventArgs.EventType.LslHttp;
-                m_HttpServer.AddPollServiceHTTPHandler(uri, args);
+                m_HttpServer.AddPollServiceHTTPHandler(args);
 
 //                m_log.DebugFormat(
 //                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 PollServiceEventArgs args
                     = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
                 //args.Type = PollServiceEventArgs.EventType.LslHttp;
-                m_HttpsServer.AddPollServiceHTTPHandler(uri, args);
+                m_HttpsServer.AddPollServiceHTTPHandler(args);
 
 //                m_log.DebugFormat(
 //                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",

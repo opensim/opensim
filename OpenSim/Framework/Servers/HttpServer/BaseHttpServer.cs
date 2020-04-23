@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -97,11 +98,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
-        protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
+        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers  = new ConcurrentDictionary<string, IRequestHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
 //        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
-        protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
-            new Dictionary<string, PollServiceEventArgs>();
+        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers =
+            new ConcurrentDictionary<string, PollServiceEventArgs>();
 
         protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers =
             new Dictionary<string, WebSocketRequestDelegate>();
@@ -328,14 +329,17 @@ namespace OpenSim.Framework.Servers.HttpServer
             string path = handler.Path;
             string handlerKey = GetHandlerKey(httpMethod, path);
 
-            lock (m_streamHandlers)
-            {
-                if (!m_streamHandlers.ContainsKey(handlerKey))
-                {
                     // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
-                    m_streamHandlers.Add(handlerKey, handler);
-                }
-            }
+            m_streamHandlers.TryAdd(handlerKey, handler);
+        }
+
+        public void AddGenericStreamHandler(IRequestHandler handler)
+        {
+            if(String.IsNullOrWhiteSpace(handler.Path))
+                return;
+
+            // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
+            m_streamHandlers.TryAdd(handler.Path, handler);
         }
 
         public void AddWebSocketHandler(string servicepath, WebSocketRequestDelegate handler)
@@ -356,8 +360,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetStreamHandlerKeys()
         {
-            lock (m_streamHandlers)
-                return new List<string>(m_streamHandlers.Keys);
+            return new List<string>(m_streamHandlers.Keys);
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
@@ -456,24 +459,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return new List<string>(m_HTTPHandlers.Keys);
         }
 
-        public bool AddPollServiceHTTPHandler(string methodName, PollServiceEventArgs args)
+        public bool AddPollServiceHTTPHandler(string url, PollServiceEventArgs args)
         {
-            lock (m_pollHandlers)
-            {
-                if (!m_pollHandlers.ContainsKey(methodName))
-                {
-                    m_pollHandlers.Add(methodName, args);
-                    return true;
-                }
-            }
+            return m_pollHandlers.TryAdd(url, args);
+        }
 
-            return false;
+        public bool AddPollServiceHTTPHandler(PollServiceEventArgs args)
+        {
+            return m_pollHandlers.TryAdd(args.Url, args);
         }
 
         public List<string> GetPollServiceHandlerKeys()
         {
-            lock (m_pollHandlers)
-                return new List<string>(m_pollHandlers.Keys);
+            return new List<string>(m_pollHandlers.Keys);
         }
 
 //        // Note that the agent string is provided simply to differentiate
@@ -533,7 +531,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 IHttpClientContext context = (IHttpClientContext)source;
                 IHttpRequest request = args.Request;
 
-                if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out PollServiceEventArgs psEvArgs))
+                if (TryGetPollServiceHTTPHandler(request.UriPath, out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
@@ -567,15 +565,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request));
-
             HandleRequest(req, resp);
-
-            // !!!HACK ALERT!!!
-            // There seems to be a bug in the underlying http code that makes subsequent requests
-            // come up with trash in Accept headers. Until that gets fixed, we're cleaning them up here.
-            if (request.AcceptTypes != null)
-                for (int i = 0; i < request.AcceptTypes.Length; i++)
-                    request.AcceptTypes[i] = string.Empty;
         }
 
         /// <summary>
@@ -999,6 +989,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool TryGetPollServiceHTTPHandler(string handlerKey, out PollServiceEventArgs oServiceEventArgs)
         {
+            if(m_pollHandlers.TryGetValue(handlerKey, out oServiceEventArgs))
+                return true;
+
             string bestMatch = null;
 
             lock (m_pollHandlers)
@@ -2109,12 +2102,19 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveStreamHandler(string httpMethod, string path)
         {
+            if (m_streamHandlers.TryRemove(path, out IRequestHandler dummy))
+                return;
+
             string handlerKey = GetHandlerKey(httpMethod, path);
 
             //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
 
-            lock (m_streamHandlers)
-                m_streamHandlers.Remove(handlerKey);
+            m_streamHandlers.TryRemove(handlerKey, out dummy);
+        }
+
+        public void RemoveStreamHandler(string path)
+        {
+            m_streamHandlers.TryRemove(path, out IRequestHandler dummy);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)
@@ -2134,25 +2134,29 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemovePollServiceHTTPHandler(string httpMethod, string path)
         {
-            lock (m_pollHandlers)
-                m_pollHandlers.Remove(path);
+            m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy);
         }
 
-//        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
-//        {
-//            lock (m_agentHandlers)
-//            {
-//                IHttpAgentHandler foundHandler;
-//
-//                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
-//                {
-//                    m_agentHandlers.Remove(agent);
-//                    return true;
-//                }
-//            }
-//
-//            return false;
-//        }
+        public void RemovePollServiceHTTPHandler(string path)
+        {
+            m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy);
+        }
+
+        //        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
+        //        {
+        //            lock (m_agentHandlers)
+        //            {
+        //                IHttpAgentHandler foundHandler;
+        //
+        //                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
+        //                {
+        //                    m_agentHandlers.Remove(agent);
+        //                    return true;
+        //                }
+        //            }
+        //
+        //            return false;
+        //        }
 
         public void RemoveXmlRPCHandler(string method)
         {
