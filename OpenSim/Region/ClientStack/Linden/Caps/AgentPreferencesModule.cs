@@ -27,8 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
-using System.IO;
+using System.Text;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -73,10 +74,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegionLoaded(Scene scene)
         {
-            scene.EventManager.OnRegisterCaps += delegate(UUID agentID, OpenSim.Framework.Capabilities.Caps caps)
-            {
-                RegisterCaps(agentID, caps);
-            };
+            scene.EventManager.OnRegisterCaps += RegisterCaps;
 
             ISimulatorFeaturesModule simFeatures = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if(simFeatures != null)
@@ -97,52 +95,66 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegisterCaps(UUID agent, Caps caps)
         {
-            string capPath = "/CAPS/" + UUID.Random().ToString();
-            caps.RegisterHandler("AgentPreferences",
-                new RestStreamHandler("POST", capPath,
-                    delegate(string request, string path, string param,
-                        IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            string capPath = UUID.Random().ToString();
+            caps.RegisterSimpleHandler("AgentPreferences",
+                new SimpleStreamHandler(capPath, delegate(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
-                        return UpdateAgentPreferences(request, path, param, agent);
+                        UpdateAgentPreferences(httpRequest, httpResponse, agent);
                     }));
-            caps.RegisterHandler("UpdateAgentLanguage",
-                new RestStreamHandler("POST", capPath,
-                    delegate(string request, string path, string param,
-                        IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            caps.RegisterSimpleHandler("UpdateAgentLanguage",
+                new SimpleStreamHandler( capPath, delegate(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
-                        return UpdateAgentPreferences(request, path, param, agent);
-                    }));
-            caps.RegisterHandler("UpdateAgentInformation",
-                new RestStreamHandler("POST", capPath,
-                    delegate(string request, string path, string param,
-                        IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                        UpdateAgentPreferences(httpRequest, httpResponse, agent);
+                    }), false);
+            caps.RegisterSimpleHandler("UpdateAgentInformation",
+                new SimpleStreamHandler(capPath, delegate(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
-                        return UpdateAgentPreferences(request, path, param, agent);
-                    }));
+                        UpdateAgentPreferences(httpRequest, httpResponse, agent);
+                    }), false);
         }
 
-        public string UpdateAgentPreferences(string request, string path, string param, UUID agent)
+        public void UpdateAgentPreferences(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agent)
         {
-            OSDMap resp = new OSDMap();
+            if(httpRequest.HttpMethod != "POST")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            httpResponse.KeepAlive = false;
             // if there is no preference service,
             // we'll return a null llsd block for debugging purposes. This may change if someone knows what the
             // correct server response would be here.
             if (m_scenes[0].AgentPreferencesService == null)
             {
-                return OSDParser.SerializeLLSDXmlString(resp);
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
             }
             m_log.DebugFormat("[AgentPrefs]: UpdateAgentPreferences for {0}", agent.ToString());
-            OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            OSDMap req;
+
+            try
+            {
+                req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+
             AgentPrefs data = m_scenes[0].AgentPreferencesService.GetAgentPreferences(agent);
             if (data == null)
             {
                 data = new AgentPrefs(agent);
             }
 
+            bool changed = false;
             if (req.ContainsKey("access_prefs"))
             {
                 OSDMap accessPrefs = (OSDMap)req["access_prefs"];  // We could check with ContainsKey...
                 data.AccessPrefs = accessPrefs["max"].AsString();
+                changed = true;
             }
             if (req.ContainsKey("default_object_perm_masks"))
             {
@@ -150,40 +162,50 @@ namespace OpenSim.Region.ClientStack.LindenCaps
                 data.PermEveryone = permsMap["Everyone"].AsInteger();
                 data.PermGroup = permsMap["Group"].AsInteger();
                 data.PermNextOwner = permsMap["NextOwner"].AsInteger();
+                changed = true;
             }
             if (req.ContainsKey("hover_height"))
             {
                 data.HoverHeight = (float)req["hover_height"].AsReal();
+                changed = true;
             }
             if (req.ContainsKey("language"))
             {
                 data.Language = req["language"].AsString();
+                changed = true;
             }
             if (req.ContainsKey("language_is_public"))
             {
                 data.LanguageIsPublic = req["language_is_public"].AsBoolean();
+                changed = true;
             }
-            m_scenes[0].AgentPreferencesService.StoreAgentPreferences(data);
+
+            if(changed)
+                m_scenes[0].AgentPreferencesService.StoreAgentPreferences(data);
+
+            IAvatarFactoryModule afm = m_scenes[0].RequestModuleInterface<IAvatarFactoryModule>();
+            afm?.SetPreferencesHoverZ(agent, (float)data.HoverHeight);
+
+            OSDMap resp = new OSDMap();
             OSDMap respAccessPrefs = new OSDMap();
             respAccessPrefs["max"] = data.AccessPrefs;
             resp["access_prefs"] = respAccessPrefs;
+
             OSDMap respDefaultPerms = new OSDMap();
             respDefaultPerms["Everyone"] = data.PermEveryone;
             respDefaultPerms["Group"] = data.PermGroup;
             respDefaultPerms["NextOwner"] = data.PermNextOwner;
+
             resp["default_object_perm_masks"] = respDefaultPerms;
             resp["god_level"] = 0; // *TODO: Add this
             resp["hover_height"] = data.HoverHeight;
             resp["language"] = data.Language;
             resp["language_is_public"] = data.LanguageIsPublic;
 
-            IAvatarFactoryModule afm = m_scenes[0].RequestModuleInterface<IAvatarFactoryModule>();
-            afm?.SetPreferencesHoverZ(agent, (float)data.HoverHeight);
-
             string response = OSDParser.SerializeLLSDXmlString(resp);
-            return response;
+            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(response);
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
-
         #endregion Region module
     }
 }
