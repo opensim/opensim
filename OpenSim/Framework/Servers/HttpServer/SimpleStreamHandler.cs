@@ -38,28 +38,39 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// <remarks>
     /// Inheriting classes should override ProcessRequest() rather than Handle()
     /// </remarks>
-    public abstract class SimpleStreamHandler : SimpleBaseRequestHandler, ISimpleStreamHandler
+    public class SimpleStreamHandler : SimpleBaseRequestHandler, ISimpleStreamHandler
     {
         protected IServiceAuth m_Auth;
+        protected SimpleStreamMethod m_processRequest;
 
-        protected SimpleStreamHandler(string path) : this(path, null, null) { }
+        public SimpleStreamHandler(string path) : base(path, null, null) { }
+        public SimpleStreamHandler(string path, string name, string description) : base(path, name, description) { }
 
-        protected SimpleStreamHandler(string path, string name, string description)
-            : base(path, name, description) { }
+        public SimpleStreamHandler(string path, SimpleStreamMethod processRequest) : base(path, null, null)
+        {
+            m_processRequest = processRequest;
+        }
 
-        protected SimpleStreamHandler(string path, IServiceAuth auth)
+        public SimpleStreamHandler(string path, IServiceAuth auth) : base(path, null, null)
+        {
+            m_Auth = auth;
+        }
+
+        public SimpleStreamHandler(string path, IServiceAuth auth, SimpleStreamMethod processRequest)
             : base(path, null, null)
         {
             m_Auth = auth;
+            m_processRequest = processRequest;
         }
 
-        protected SimpleStreamHandler(string path, IServiceAuth auth, string name, string description)
+        public SimpleStreamHandler(string path, IServiceAuth auth, SimpleStreamMethod processRequest, string name, string description)
             : base(path, name, description)
         {
             m_Auth = auth;
+            m_processRequest = processRequest;
         }
 
-    public virtual void Handle(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public virtual void Handle(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             RequestsReceived++;
 
@@ -73,8 +84,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     return;
                 }
             }
-
-            ProcessRequest(httpRequest, httpResponse);
+            if(m_processRequest != null)
+                m_processRequest(httpRequest, httpResponse);
+            else
+                ProcessRequest(httpRequest, httpResponse);
             RequestsHandled++;
         }
 

@@ -101,4 +101,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         // Handle request stream, return byte array
         void Handle(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
     }
+
+    public delegate void SimpleStreamMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
 }
