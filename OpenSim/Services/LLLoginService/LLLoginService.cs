@@ -419,6 +419,7 @@ namespace OpenSim.Services.LLLoginService
                                 firstName, lastName);
                             return LLFailedLoginResponse.AlreadyLoggedInProblem;
                         }
+                        m_GridUserService.LoggedOut(PrincipalIDstr, scopeID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
                     }
                 }
 
