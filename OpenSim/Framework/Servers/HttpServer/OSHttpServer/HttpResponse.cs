@@ -298,18 +298,25 @@ namespace OSHttpServer
                     m_context.TimeoutKeepAlive = m_keepAlive * 1000;
             }
 
-            m_headerBytes = GetHeaders();
             if (RawBuffer != null)
             {
-                if (RawBufferStart < 0 || RawBufferStart > RawBuffer.Length)
+                if (RawBufferStart > RawBuffer.Length)
                     return;
+
+                if (RawBufferStart < 0)
+                    RawBufferStart = 0;
 
                 if (RawBufferLen < 0)
                     RawBufferLen = RawBuffer.Length;
 
                 if (RawBufferLen + RawBufferStart > RawBuffer.Length)
                     RawBufferLen = RawBuffer.Length - RawBufferStart;
+            }
 
+            m_headerBytes = GetHeaders();
+
+            if (RawBuffer != null)
+            {
                 int tlen = m_headerBytes.Length + RawBufferLen;
                 if(RawBufferLen > 0 && tlen < 16384)
                 {
