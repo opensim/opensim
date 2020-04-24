@@ -34,7 +34,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
+
 using System.Threading;
 using log4net;
 using Nini.Config;
@@ -184,26 +184,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             myMapImageJPEG = new byte[0];
 
-            string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
+            string regionimage = "/regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
             m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "index.php?method=" + regionimage);
 
-/*
-            MainServer.Instance.AddHTTPHandler(regionimage,
-                new GenericHTTPDOSProtector(OnHTTPGetMapImage, OnHTTPThrottled, new BasicDosProtectorOptions()
-                {
-                    AllowXForwardedFor = false,
-                    ForgetTimeSpan = TimeSpan.FromMinutes(2),
-                    MaxRequestsInTimeframe = 4,
-                    ReportingName = "MAPDOSPROTECTOR",
-                    RequestTimeSpan = TimeSpan.FromSeconds(10),
-                    ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
-                }).Process);
-*/
-
-            MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
-            MainServer.Instance.AddLLSDHandler(
-                "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest);
+            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler(regionimage, OnHTTPGetMapImage));
+            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler(
+                "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest));
 
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnNewClient += OnNewClient;
@@ -229,26 +216,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             m_scene.UnregisterModuleInterface<IWorldMapModule>(this);
 
-            string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
+            MainServer.Instance.RemoveSimpleStreamHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString());
+            string regionimage = "/regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            MainServer.Instance.RemoveLLSDHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(),
-                                                              HandleRemoteMapItemRequest);
-            MainServer.Instance.RemoveHTTPHandler("", regionimage);
+            MainServer.Instance.RemoveSimpleStreamHandler(regionimage);
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
             string capspath =  "/CAPS/" + UUID.Random();
-            caps.RegisterHandler(
-                "MapLayer",
-                new RestStreamHandler(
-                    "POST",
-                    capspath,
-                    (request, path, param, httpRequest, httpResponse)
-                        => MapLayerRequest(request, path, param, agentID, caps),
-                    "MapLayer",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("MapLayer", new SimpleStreamHandler("/CAPS/" + UUID.Random(), MapLayerRequest));
         }
 
         /// <summary>
@@ -260,78 +238,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string MapLayerRequest(string request, string path, string param,
-                                      UUID agentID, Caps caps)
+        public void MapLayerRequest(IOSHttpRequest request, IOSHttpResponse response)
         {
-            // not sure about this....
-
-            //try
-            //
-            //m_log.DebugFormat("[MAPLAYER]: path: {0}, param: {1}, agent:{2}",
-            //                  path, param, agentID.ToString());
-
-            // There is a major hack going on in this method. The viewer doesn't request
-            // map blocks (RequestMapBlocks) above 2048. That means that if we don't hack,
-            // grids above that cell don't have a map at all. So, here's the hack: we wait
-            // for this CAP request to come, and we inject the map blocks at this point.
-            // In a normal scenario, this request simply sends back the MapLayer (the blue color).
-            // In the hacked scenario, it also sends the map blocks via UDP.
-            //
-            // 6/8/2011 -- I'm adding an explicit 2048 check, so that we never forget that there is
-            // a hack here, and so that regions below 4096 don't get spammed with unnecessary map blocks.
-
-            //if (m_scene.RegionInfo.RegionLocX >= 2048 || m_scene.RegionInfo.RegionLocY >= 2048)
-            //{
-            //    ScenePresence avatarPresence = null;
-
-            //    m_scene.TryGetScenePresence(agentID, out avatarPresence);
-
-            //    if (avatarPresence != null)
-            //    {
-            //        bool lookup = false;
-
-            //        lock (cachedMapBlocks)
-            //        {
-            //            if (cachedMapBlocks.Count > 0 && ((cachedTime + 1800) > Util.UnixTimeSinceEpoch()))
-            //            {
-            //                List<MapBlockData> mapBlocks;
-
-            //                mapBlocks = cachedMapBlocks;
-            //                avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
-            //            }
-            //            else
-            //            {
-            //                lookup = true;
-            //            }
-            //        }
-            //        if (lookup)
-            //        {
-            //            List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
-
-            //            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-            //                (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
-            //                (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
-            //                (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
-            //                (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
-            //            foreach (GridRegion r in regions)
-            //            {
-            //                MapBlockData block = new MapBlockData();
-            //                MapBlockFromGridRegion(block, r, 0);
-            //                mapBlocks.Add(block);
-            //            }
-            //            avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
-
-            //            lock (cachedMapBlocks)
-            //                cachedMapBlocks = mapBlocks;
-
-            //            cachedTime = Util.UnixTimeSinceEpoch();
-            //        }
-            //    }
-            //}
-
+            // this is wrong but does seem i use
+            if(request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
-            return mapResponse.ToString();
+            response.RawBuffer = System.Text.Encoding.UTF8.GetBytes(LLSDHelpers.SerialiseLLSDReply(mapResponse));
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         /// <summary>
@@ -356,8 +274,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // not sure about this.... 2048 or master 5000 and hack above?
 
             OSDMapLayer mapLayer = new OSDMapLayer();
-            mapLayer.Right = 2048;
-            mapLayer.Top = 2048;
+            mapLayer.Right = 30000;
+            mapLayer.Top = 30000;
             mapLayer.ImageID = new UUID("00000000-0000-1111-9999-000000000006");
 
             return mapLayer;
@@ -1294,80 +1212,86 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return reply;
         }
 
-        public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
+        public void OnHTTPGetMapImage(IOSHttpRequest request, IOSHttpResponse response)
         {
-            Hashtable reply = new Hashtable();
-            int statuscode = 200;
-            byte[] jpeg = new byte[0];
-
-            if (m_scene.RegionInfo.RegionSettings.TerrainImageID != UUID.Zero)
+            if(request.HttpMethod != "GET" || m_scene.RegionInfo.RegionSettings.TerrainImageID == UUID.Zero)
             {
-                m_log.Debug("[WORLD MAP]: Sending map image jpeg");
-
-                if (myMapImageJPEG.Length == 0)
-                {
-                    MemoryStream imgstream = null;
-                    Bitmap mapTexture = new Bitmap(1, 1);
-                    ManagedImage managedImage;
-                    Image image = (Image)mapTexture;
-
-                    try
-                    {
-                        // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
-
-                        imgstream = new MemoryStream();
-
-                        // non-async because we know we have the asset immediately.
-                        AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
-
-                        // Decode image to System.Drawing.Image
-                        if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
-                        {
-                            // Save to bitmap
-                            mapTexture = new Bitmap(image);
-
-                            EncoderParameters myEncoderParameters = new EncoderParameters();
-                            myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
-
-                            // Save bitmap to stream
-                            mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
-
-                            // Write the stream to a byte array for output
-                            jpeg = imgstream.ToArray();
-                            myMapImageJPEG = jpeg;
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // Dummy!
-                        m_log.Warn("[WORLD MAP]: Unable to generate Map image");
-                    }
-                    finally
-                    {
-                        // Reclaim memory, these are unmanaged resources
-                        // If we encountered an exception, one or more of these will be null
-                        if (mapTexture != null)
-                            mapTexture.Dispose();
-
-                        if (image != null)
-                            image.Dispose();
-
-                        if (imgstream != null)
-                            imgstream.Dispose();
-                    }
-                }
-                else
-                {
-                    // Use cached version so we don't have to loose our mind
-                    jpeg = myMapImageJPEG;
-                }
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
             }
 
-            reply["str_response_string"] = Convert.ToBase64String(jpeg);
-            reply["int_response_code"] = statuscode;
-            reply["content_type"] = "image/jpeg";
+            byte[] jpeg = null;
+            m_log.Debug("[WORLD MAP]: Sending map image jpeg");
 
-            return reply;
+            if (myMapImageJPEG.Length == 0)
+            {
+                MemoryStream imgstream = null;
+                Bitmap mapTexture = new Bitmap(1, 1);
+                ManagedImage managedImage;
+                Image image = (Image)mapTexture;
+
+                try
+                {
+                    // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
+
+                    imgstream = new MemoryStream();
+
+                    // non-async because we know we have the asset immediately.
+                    AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
+
+                    // Decode image to System.Drawing.Image
+                    if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
+                    {
+                        // Save to bitmap
+                        mapTexture = new Bitmap(image);
+
+                        EncoderParameters myEncoderParameters = new EncoderParameters();
+                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95);
+
+                        // Save bitmap to stream
+                        mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
+
+                        // Write the stream to a byte array for output
+                        jpeg = imgstream.ToArray();
+                        myMapImageJPEG = jpeg;
+                    }
+                }
+                catch (Exception)
+                {
+                    // Dummy!
+                    m_log.Warn("[WORLD MAP]: Unable to generate Map image");
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+                finally
+                {
+                    // Reclaim memory, these are unmanaged resources
+                    // If we encountered an exception, one or more of these will be null
+                    if (mapTexture != null)
+                        mapTexture.Dispose();
+
+                    if (image != null)
+                        image.Dispose();
+
+                    if (imgstream != null)
+                        imgstream.Dispose();
+                }
+            }
+            else
+            {
+                // Use cached version so we don't have to loose our mind
+                jpeg = myMapImageJPEG;
+            }
+            if(jpeg == null)
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            response.RawBuffer = jpeg;
+            //response.RawBuffer = Convert.ToBase64String(jpeg);
+            response.ContentType = "image/jpeg";
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         // From msdn
@@ -1548,7 +1472,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.RegenerateMaptileAndReregister(this, null);
         }
 
-        public OSD HandleRemoteMapItemRequest(string path, OSD request, string endpoint)
+        public void HandleRemoteMapItemRequest(IOSHttpRequest request, IOSHttpResponse response)
         {
             uint xstart = 0;
             uint ystart = 0;
@@ -1658,7 +1582,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
             }
 
-            return responsemap;
+            response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(responsemap);
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         public void GenerateMaptile()
