@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Reflection;
 
@@ -130,57 +131,44 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             string capUrl = "/CAPS/" + UUID.Random() + "/";
 
-            caps.RegisterHandler(
-                "EstateChangeInfo",
-                new RestHTTPHandler(
-                    "POST",
-                    capUrl,
-                    httpMethod => ProcessRequest(httpMethod, agentID, caps),
-                    "EstateChangeInfo",
-                    agentID.ToString())); ;
+            caps.RegisterSimpleHandler("EstateChangeInfo",
+                new SimpleStreamHandler("/CAPS/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ProcessRequest(httpRequest, httpResponse, agentID, caps);
+                    }));
         }
 
-        public Hashtable ProcessRequest(Hashtable request, UUID AgentId, Caps cap)
+        public void ProcessRequest(IOSHttpRequest request, IOSHttpResponse response, UUID AgentId, Caps cap)
         {
-            Hashtable responsedata = new Hashtable();
+            if(request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             ScenePresence avatar;
             if (!m_scene.TryGetScenePresence(AgentId, out avatar) || !m_scene.Permissions.CanIssueEstateCommand(AgentId, false))
             {
-                responsedata["int_response_code"] = 401;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
             }
 
-            if (m_scene.RegionInfo == null 
-                || m_scene.RegionInfo.EstateSettings == null)
+            if (m_scene.RegionInfo == null || m_scene.RegionInfo.EstateSettings == null)
             {
-                responsedata["int_response_code"] = 501;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.NotImplemented;
+                return;
             }
 
             OSDMap r;
-
             try
             {
-                r = (OSDMap)OSDParser.Deserialize((string)request["requestbody"]);
+                r = (OSDMap)OSDParser.Deserialize(request.InputStream);
             }
             catch (Exception ex)
             {
                 m_log.Error("[UPLOAD OBJECT ASSET MODULE]: Error deserializing message " + ex.ToString());
-                r = null;
-            }
-
-            if (r == null)
-            {
-                responsedata["int_response_code"] = 400; //501; //410; //404;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
             }
 
             bool ok = true;
@@ -213,20 +201,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 ok = false;
             }
 
-            if(ok)
-            {
-                responsedata["int_response_code"] = 200;
-                responsedata["content_type"] = "text/plain";
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-            }
-            else
-            {
-                responsedata["int_response_code"] = 400; //501; //410; //404;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-            }
-            return responsedata;
-        }
+            response.StatusCode = ok ? (int)HttpStatusCode.OK : (int)HttpStatusCode.BadRequest;
+         }
     }
 }
