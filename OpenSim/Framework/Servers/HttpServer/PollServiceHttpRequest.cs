@@ -135,7 +135,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.StatusCode = responsecode;
             if (responsecode == (int)HttpStatusCode.Moved)
             {
-                response.AddHeader("Location:", (string)responsedata["str_redirect_location"]);
+                response.AddHeader("Location", (string)responsedata["str_redirect_location"]);
                 response.KeepAlive = false;
                 PollServiceArgs.RequestsHandled++;
                 response.Send();
