@@ -31,7 +31,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
@@ -130,7 +132,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_AllowCapGroupMemberData = true;
         private  IUserManagement m_UserManager;
         private IUserAccountService m_userAccountService;
-
+        private IMoneyModule m_moneyModule;
 
         private enum FileAgentInventoryState : int
         {
@@ -212,6 +214,7 @@ namespace OpenSim.Region.ClientStack.Linden
             m_regionName = m_Scene.RegionInfo.RegionName;
             m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
             m_userAccountService = m_Scene.RequestModuleInterface<IUserAccountService>();
+            m_moneyModule = m_Scene.RequestModuleInterface<IMoneyModule>();
             if (m_UserManager == null)
                 m_log.Error("[CAPS]: GetDisplayNames disabled because user management component not found");
 
@@ -242,14 +245,11 @@ namespace OpenSim.Region.ClientStack.Linden
         public void RegisterHandlers()
         {
             // this path is also defined elsewhere so keeping it
-            string seedcapsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath +"0000/";
+            string seedcapsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath + "0000/";
 
-            // the root of all evil path needs to be capsBase + m_requestPath
-            m_HostCapsObj.RegisterHandler(
-                    "SEED", new RestStreamHandler("POST", seedcapsBase, SeedCapRequest, "SEED", null));
-
-//                m_log.DebugFormat(
-//                    "[CAPS]: Registered seed capability {0} for {1}", seedcapsBase, m_HostCapsObj.AgentID);
+            m_HostCapsObj.RegisterSimpleHandler("SEED", new SimpleStreamHandler(seedcapsBase, SeedCapRequest));
+            // m_log.DebugFormat(
+            //     "[CAPS]: Registered seed capability {0} for {1}", seedcapsBase, m_HostCapsObj.AgentID);
 
             RegisterRegionServiceHandlers();
             RegisterInventoryServiceHandlers();
@@ -368,41 +368,62 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="httpRequest">HTTP request header object</param>
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
-        public string SeedCapRequest(string request, string path, string param,
-                                  IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void SeedCapRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             UUID agentID = m_HostCapsObj.AgentID;
             m_log.DebugFormat(
                 "[CAPS]: Received SEED caps request in {0} for agent {1}", m_regionName, agentID);
 
+            if(httpRequest.HttpMethod != "POST" || httpRequest.ContentType != "application/llsd+xml")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
             if (!m_HostCapsObj.WaitForActivation())
-                return string.Empty;
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                httpResponse.AddHeader("Retry-After", "30");
+                return;
+            }
 
             if (!m_Scene.CheckClient(agentID, httpRequest.RemoteIPEndPoint))
             {
                 m_log.WarnFormat(
                     "[CAPS]: Unauthorized CAPS client {0} from {1}",
                     agentID, httpRequest.RemoteIPEndPoint);
-
-                return string.Empty;
+                httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;
+                return;
             }
 
-            OSDArray capsRequested = (OSDArray)OSDParser.DeserializeLLSDXml(request);
+            OSDArray capsRequested;
+            try
+            {
+                capsRequested = (OSDArray)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+
+
             List<string> validCaps = new List<string>();
 
             foreach (OSD c in capsRequested)
             {
                 string cstr = c.AsString();
-                if(cstr == "ObjectAnimation")
+                if (cstr.Equals("ObjectAnimation"))
                     m_HostCapsObj.Flags |= Caps.CapsFlags.ObjectAnim;
+                else if (cstr.Equals("ExtEnvironment"))
+                    m_HostCapsObj.Flags |= Caps.CapsFlags.AdvEnv;
                 validCaps.Add(cstr);
             }
 
             string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
-
+            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(result);
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
-
-            return result;
         }
 
         /// <summary>
