@@ -285,11 +285,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         new SimpleStreamHandler(GetNewCapPath(), HomeLocation));
                 }
 
-                if(m_AllowCapGroupMemberData)
+                if (m_AllowCapGroupMemberData)
                 {
-                    IRequestHandler GroupMemberDataHandler = new RestStreamHandler(
-                        "POST", GetNewCapPath(), GroupMemberData, "GroupMemberData", null);
-                    m_HostCapsObj.RegisterHandler("GroupMemberData", GroupMemberDataHandler);
+                    m_HostCapsObj.RegisterSimpleHandler("GroupMemberData",
+                        new SimpleStreamHandler(GetNewCapPath(), GroupMemberData));
                 }
 
 
@@ -345,9 +344,8 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (m_UserManager != null)
                 {
-                    IRequestHandler GetDisplayNamesHandler = new RestStreamHandler(
-                        "GET",  GetNewCapPath(), GetDisplayNames, "GetDisplayNames", null);
-                    m_HostCapsObj.RegisterHandler("GetDisplayNames", GetDisplayNamesHandler);
+                    m_HostCapsObj.RegisterSimpleHandler("GetDisplayNames",
+                        new SimpleStreamHandler(GetNewCapPath() +"/", GetDisplayNames));
                 }
             }
             catch (Exception e)
@@ -2005,9 +2003,14 @@ namespace OpenSim.Region.ClientStack.Linden
             return -(x.Members.CompareTo(y.Members));
         }
 
-        public string GroupMemberData(string request, string path, string param, IOSHttpRequest httpRequest,
-                IOSHttpResponse httpResponse)
+        public void GroupMemberData(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            if (httpRequest.HttpMethod != "POST")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
             OSDMap resp = new OSDMap();
 
             string response;
@@ -2033,11 +2036,22 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 client = sp.ControllingClient;
 
-                OSDMap req = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-                if(!req.ContainsKey("group_id"))
+                OSDMap req;
+                try
+                {
+                    req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                }
+                catch
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
+
+                OSD tmp;
+                if(!req.TryGetValue("group_id", out tmp) || !(tmp is OSDUUID))
                     break;
 
-                groupID = req["group_id"].AsUUID();
+                groupID = tmp.AsUUID();
                 if(groupID == UUID.Zero)
                     break;
 
@@ -2121,34 +2135,33 @@ namespace OpenSim.Region.ClientStack.Linden
                 resp["members"] = new OSDMap();
             }
 
-            response = OSDParser.SerializeLLSDXmlString(resp);
-            return response;
+            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        public string GetDisplayNames(string request, string path,
-                string param, IOSHttpRequest httpRequest,
-                IOSHttpResponse httpResponse)
+        public void GetDisplayNames(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.Gone;
-            httpResponse.ContentType = "text/plain";
+            if (httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             ScenePresence sp = m_Scene.GetScenePresence(m_AgentID);
             if(sp == null || sp.IsDeleted)
-                return "";
-
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.Gone;
+                return;
+            }
             if(sp.IsInTransit && !sp.IsInLocalTransit)
             {
-                httpResponse.StatusCode = (int)System.Net.HttpStatusCode.ServiceUnavailable;
+                httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                 httpResponse.AddHeader("Retry-After","30");
-                return "";
+                return;
             }
 
             // Full content request
-            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.OK;
-            //httpResponse.ContentLength = ??;
-            httpResponse.ContentType = "application/llsd+xml";
-
-            NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            NameValueCollection query = httpRequest.QueryString;
             string[] ids = query.GetValues("ids");
 
             Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids, m_scopeID);
@@ -2195,7 +2208,10 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         
             LLSDxmlEncode.AddEndMap(lsl);
-            return LLSDxmlEncode.End(lsl);;
+
+            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.ContentType = "application/llsd+xml";
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
     }
 
