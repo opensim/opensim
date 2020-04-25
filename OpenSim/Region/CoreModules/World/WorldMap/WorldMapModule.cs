@@ -184,11 +184,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             myMapImageJPEG = new byte[0];
 
-            string regionimage = "/regionImage" + m_scene.RegionInfo.RegionID.ToString();
+            string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
             m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "index.php?method=" + regionimage);
 
-            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler(regionimage, OnHTTPGetMapImage));
+            MainServer.Instance.AddIndexPHPMethodHandler(regionimage, OnHTTPGetMapImage);
             MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler(
                 "/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString(), HandleRemoteMapItemRequest));
 
@@ -217,9 +217,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.UnregisterModuleInterface<IWorldMapModule>(this);
 
             MainServer.Instance.RemoveSimpleStreamHandler("/MAP/MapItems/" + m_scene.RegionInfo.RegionHandle.ToString());
-            string regionimage = "/regionImage" + m_scene.RegionInfo.RegionID.ToString();
+            string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            MainServer.Instance.RemoveSimpleStreamHandler(regionimage);
+            MainServer.Instance.RemoveIndexPHPMethodHandler(regionimage);
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
