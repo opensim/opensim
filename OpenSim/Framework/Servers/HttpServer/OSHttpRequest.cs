@@ -161,7 +161,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// </value>
     //        public Hashtable Form { get; private set; }
 
-    public string RawUrl
+        public string RawUrl
         {
             get { return m_request.Uri.AbsolutePath; }
         }

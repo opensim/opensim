@@ -246,14 +246,25 @@ namespace OSHttpServer
             if (m_headers["Server"] == null)
                 sb.Append("Server: OSWebServer\r\n");
 
-            int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-            if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+            if(Status != HttpStatusCode.OK)
             {
-                sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
-                sb.Append("Connection: Keep-Alive\r\n");
+                sb.Append("Connection: close\r\n");
+                Connection = ConnectionType.Close;
             }
             else
-                sb.Append("Connection: close\r\n");
+            {
+                int keepaliveS = m_context.TimeoutKeepAlive / 1000;
+                if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                {
+                    sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
+                    sb.Append("Connection: Keep-Alive\r\n");
+                }
+                else
+                {
+                    sb.Append("Connection: close\r\n");
+                    Connection = ConnectionType.Close;
+                }
+            }
 
             if (m_headers["Connection"] != null)
                 m_headers["Connection"] = null;
