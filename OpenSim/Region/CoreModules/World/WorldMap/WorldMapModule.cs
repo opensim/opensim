@@ -1214,7 +1214,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void OnHTTPGetMapImage(IOSHttpRequest request, IOSHttpResponse response)
         {
-            if(request.HttpMethod != "GET" || m_scene.RegionInfo.RegionSettings.TerrainImageID == UUID.Zero)
+            response.KeepAlive = false;
+            if (request.HttpMethod != "GET" || m_scene.RegionInfo.RegionSettings.TerrainImageID == UUID.Zero)
             {
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
