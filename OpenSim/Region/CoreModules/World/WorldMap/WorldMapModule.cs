@@ -1239,6 +1239,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                     // non-async because we know we have the asset immediately.
                     AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
+                    if(mapasset == null || mapasset.Data == null || mapasset.Data.Length == 0)
+                    {
+                        response.StatusCode = (int)HttpStatusCode.NotFound;
+                        return;
+                    }
 
                     // Decode image to System.Drawing.Image
                     if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))
@@ -1247,7 +1252,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         mapTexture = new Bitmap(image);
 
                         EncoderParameters myEncoderParameters = new EncoderParameters();
-                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95);
+                        myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, 95L);
 
                         // Save bitmap to stream
                         mapTexture.Save(imgstream, GetEncoderInfo("image/jpeg"), myEncoderParameters);
@@ -1257,10 +1262,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         myMapImageJPEG = jpeg;
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     // Dummy!
-                    m_log.Warn("[WORLD MAP]: Unable to generate Map image");
+                    m_log.Warn("[WORLD MAP]: Unable to generate Map image" + e.Message);
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     return;
                 }
