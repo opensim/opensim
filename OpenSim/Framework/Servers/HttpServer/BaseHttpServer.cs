@@ -542,7 +542,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 IHttpClientContext context = (IHttpClientContext)source;
                 IHttpRequest request = args.Request;
-
                 if (TryGetPollServiceHTTPHandler(request.UriPath, out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
@@ -587,23 +586,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="response"></param>
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
-            if (request.HttpMethod == String.Empty) // Can't handle empty requests, not wasting a thread
-            {
-                try
-                {
-                    if(request.InputStream != null && request.InputStream.CanRead) 
-                        request.InputStream.Close();
-                    byte[] buffer500 = SendHTML500(response);
-                    response.OutputStream.Write(buffer500, 0, buffer500.Length);
-                    response.Send();
-                }
-                catch
-                {
-                }
-
-                return;
-            }
-
             string requestMethod = request.HttpMethod;
             string uriString = request.RawUrl;
 
@@ -850,8 +832,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_log.Error("[BASE HTTP SERVER]: HandleRequest() threw exception ", e);
                 try
                 {
-                    byte[] buffer500 = SendHTML500(response);
-                    response.OutputStream.Write(buffer500, 0, buffer500.Length);
+                    response.StatusCode =(int)HttpStatusCode.InternalServerError;
                     response.Send();
                 }
                 catch
@@ -1980,21 +1961,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             return buffer;
         }
 
-        public byte[] SendHTML500(OSHttpResponse response)
-        {
-            // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
-            response.StatusCode = (int)HttpStatusCode.OK;
-            response.AddHeader("Content-type", "text/html");
-
-            string responseString = GetHTTP500();
-            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-
-            response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
-
-            return buffer;
-        }
-
         public void Start()
         {
             Start(true, true);
@@ -2232,26 +2198,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             return result;
         }
 
-        public string GetHTTP500()
-        {
-            string file = Path.Combine(".", "http_500.html");
-            if (!File.Exists(file))
-                return getDefaultHTTP500();
-            string result;
-            using(StreamReader sr = File.OpenText(file))
-                result = sr.ReadToEnd();
-            return result;
-        }
-
         // Fallback HTTP responses in case the HTTP error response files don't exist
         private static string getDefaultHTTP404(string host)
         {
             return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P><P>If you are trying to log-in, your link parameters should have: &quot;-loginpage http://" + host + "/?method=login -loginuri http://" + host + "/&quot; in your link </P></BODY></HTML>";
-        }
-
-        private static string getDefaultHTTP500()
-        {
-            return "<HTML><HEAD><TITLE>500 Internal Server Error</TITLE><BODY><BR /><H1>Ooops!</H1><P>The server you requested is overun by knomes! Find hippos quick!</P></BODY></HTML>";
         }
     }
 
