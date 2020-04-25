@@ -28,7 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -1917,6 +1917,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void EventManagerOnRegisterCaps(UUID agentID, Caps caps)
         {
+
             string cap = "/CAPS/" + UUID.Random();
             caps.RegisterHandler(
                 "RemoteParcelRequest",
@@ -1927,69 +1928,44 @@ namespace OpenSim.Region.CoreModules.World.Land
                     "RemoteParcelRequest",
                     agentID.ToString()));
 
-            cap = "/CAPS/" + UUID.Random();
-            caps.RegisterHandler(
-                "ParcelPropertiesUpdate",
-                new RestStreamHandler(
-                    "POST", cap,
-                    (request, path, param, httpRequest, httpResponse)
-                        => ProcessPropertiesUpdate(request, path, param, agentID, caps),
-                    "ParcelPropertiesUpdate",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("ParcelPropertiesUpdate", new SimpleStreamHandler("/" + UUID.Random(),
+                delegate (IOSHttpRequest request, IOSHttpResponse response)
+                {
+                    ProcessPropertiesUpdate(request, response, agentID);
+                }));
         }
-        private string ProcessPropertiesUpdate(string request, string path, string param, UUID agentID, Caps caps)
+
+        private void ProcessPropertiesUpdate(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
         {
+            if (request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
             IClientAPI client;
             if (!m_scene.TryGetClient(agentID, out client))
             {
                 m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to retrieve IClientAPI for {0}", agentID);
-                return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
+                response.StatusCode = (int)HttpStatusCode.Gone;
+                return;
             }
 
-            ParcelPropertiesUpdateMessage properties = new ParcelPropertiesUpdateMessage();
-            OpenMetaverse.StructuredData.OSDMap args = (OpenMetaverse.StructuredData.OSDMap) OSDParser.DeserializeLLSDXml(request);
+            OpenMetaverse.StructuredData.OSDMap args;
+            ParcelPropertiesUpdateMessage properties;
+            try
+            {
+                args = (OpenMetaverse.StructuredData.OSDMap)OSDParser.DeserializeLLSDXml(request.InputStream);
+                properties = new ParcelPropertiesUpdateMessage();
+                properties.Deserialize(args);
+            }
+            catch
+            {
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
 
-            properties.Deserialize(args);
-
-            LandUpdateArgs land_update = new LandUpdateArgs();
             int parcelID = properties.LocalID;
-            land_update.AuthBuyerID = properties.AuthBuyerID;
-            land_update.Category = properties.Category;
-            land_update.Desc = properties.Desc;
-            land_update.GroupID = properties.GroupID;
-            land_update.LandingType = (byte) properties.Landing;
-            land_update.MediaAutoScale = (byte) Convert.ToInt32(properties.MediaAutoScale);
-            land_update.MediaID = properties.MediaID;
-            land_update.MediaURL = properties.MediaURL;
-            land_update.MusicURL = properties.MusicURL;
-            land_update.Name = properties.Name;
-            land_update.ParcelFlags = (uint) properties.ParcelFlags;
-            land_update.PassHours = properties.PassHours;
-            land_update.PassPrice = (int) properties.PassPrice;
-            land_update.SalePrice = (int) properties.SalePrice;
-            land_update.SnapshotID = properties.SnapshotID;
-            land_update.UserLocation = properties.UserLocation;
-            land_update.UserLookAt = properties.UserLookAt;
-            land_update.MediaDescription = properties.MediaDesc;
-            land_update.MediaType = properties.MediaType;
-            land_update.MediaWidth = properties.MediaWidth;
-            land_update.MediaHeight = properties.MediaHeight;
-            land_update.MediaLoop = properties.MediaLoop;
-            land_update.ObscureMusic = properties.ObscureMusic;
-            land_update.ObscureMedia = properties.ObscureMedia;
-
-            if (args.ContainsKey("see_avs"))
-            {
-                land_update.SeeAVs = args["see_avs"].AsBoolean();
-                land_update.AnyAVSounds = args["any_av_sounds"].AsBoolean();
-                land_update.GroupAVSounds = args["group_av_sounds"].AsBoolean();
-            }
-            else
-            {
-                land_update.SeeAVs = true;
-                land_update.AnyAVSounds = true;
-                land_update.GroupAVSounds = true;
-            }
 
             ILandObject land = null;
             lock (m_landList)
@@ -1997,18 +1973,66 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.TryGetValue(parcelID, out land);
             }
 
-            if (land != null)
+            if (land == null)
             {
+                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to find parcelID {0}", parcelID);
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            try
+            {
+                LandUpdateArgs land_update = new LandUpdateArgs();
+                land_update.AuthBuyerID = properties.AuthBuyerID;
+                land_update.Category = properties.Category;
+                land_update.Desc = properties.Desc;
+                land_update.GroupID = properties.GroupID;
+                land_update.LandingType = (byte) properties.Landing;
+                land_update.MediaAutoScale = (byte) Convert.ToInt32(properties.MediaAutoScale);
+                land_update.MediaID = properties.MediaID;
+                land_update.MediaURL = properties.MediaURL;
+                land_update.MusicURL = properties.MusicURL;
+                land_update.Name = properties.Name;
+                land_update.ParcelFlags = (uint) properties.ParcelFlags;
+                land_update.PassHours = properties.PassHours;
+                land_update.PassPrice = (int) properties.PassPrice;
+                land_update.SalePrice = (int) properties.SalePrice;
+                land_update.SnapshotID = properties.SnapshotID;
+                land_update.UserLocation = properties.UserLocation;
+                land_update.UserLookAt = properties.UserLookAt;
+                land_update.MediaDescription = properties.MediaDesc;
+                land_update.MediaType = properties.MediaType;
+                land_update.MediaWidth = properties.MediaWidth;
+                land_update.MediaHeight = properties.MediaHeight;
+                land_update.MediaLoop = properties.MediaLoop;
+                land_update.ObscureMusic = properties.ObscureMusic;
+                land_update.ObscureMedia = properties.ObscureMedia;
+
+                if (args.ContainsKey("see_avs"))
+                {
+                    land_update.SeeAVs = args["see_avs"].AsBoolean();
+                    land_update.AnyAVSounds = args["any_av_sounds"].AsBoolean();
+                    land_update.GroupAVSounds = args["group_av_sounds"].AsBoolean();
+                }
+                else
+                {
+                    land_update.SeeAVs = true;
+                    land_update.AnyAVSounds = true;
+                    land_update.GroupAVSounds = true;
+                }
+
                 UpdateLandProperties(land,land_update, client);
                 m_scene.EventManager.TriggerOnParcelPropertiesUpdateRequest(land_update, parcelID, client);
             }
-            else
+            catch
             {
-                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to find parcelID {0}", parcelID);
+                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return;
             }
 
-            return LLSDxmlEncode.LLSDEmpty;
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
+
         // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
         // "real" parcelID, because we wouldn't be able to map that to the region the parcel belongs to.
         // So, we create a "fake" parcelID by using the regionHandle (64 bit), and the local (integer) x
