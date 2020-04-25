@@ -26,22 +26,14 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
+using System.Net;
 using System.Reflection;
-using System.Web;
-using System.Xml;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
@@ -112,44 +104,58 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            string uri = "/CAPS/" + UUID.Random();
-
-            caps.RegisterHandler(
-                "UntrustedSimulatorMessage",
-                new RestStreamHandler("POST", uri, HandleUntrustedSimulatorMessage, "UntrustedSimulatorMessage", null));
+            caps.RegisterSimpleHandler("UntrustedSimulatorMessage", new SimpleStreamHandler("/C" + UUID.Random(), HandleUntrustedSimulatorMessage));
         }
 
-        private string HandleUntrustedSimulatorMessage(string request,
-                string path, string param, IOSHttpRequest httpRequest,
-                IOSHttpResponse httpResponse)
+        private void HandleUntrustedSimulatorMessage(IOSHttpRequest request, IOSHttpResponse response)
         {
-            OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(request);
-
-            string message = osd["message"].AsString();
-
-            if (message == "GodKickUser")
+            if (request.HttpMethod != "POST")
             {
-                OSDMap body = (OSDMap)osd["body"];
-                OSDArray userInfo = (OSDArray)body["UserInfo"];
-                OSDMap userData = (OSDMap)userInfo[0];
-
-                UUID agentID = userData["AgentID"].AsUUID();
-                UUID godID = userData["GodID"].AsUUID();
-                UUID godSessionID = userData["GodSessionID"].AsUUID();
-                uint kickFlags = userData["KickFlags"].AsUInteger();
-                string reason = userData["Reason"].AsString();
-
-                ScenePresence god = m_scene.GetScenePresence(godID);
-                if (god == null || god.ControllingClient.SessionId != godSessionID)
-                    return String.Empty;
-
-                KickUser(godID, agentID, kickFlags, reason);
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
             }
-            else
+
+            OSDMap osd;
+            try
             {
-                m_log.ErrorFormat("[GOD]: Unhandled UntrustedSimulatorMessage: {0}", message);
+                osd = (OSDMap)OSDParser.DeserializeLLSDXml(request.InputStream);
+
+                string message = osd["message"].AsString();
+                if (message == "GodKickUser")
+                {
+                    OSDMap body = (OSDMap)osd["body"];
+                    OSDArray userInfo = (OSDArray)body["UserInfo"];
+                    OSDMap userData = (OSDMap)userInfo[0];
+
+                    UUID agentID = userData["AgentID"].AsUUID();
+                    UUID godID = userData["GodID"].AsUUID();
+                    UUID godSessionID = userData["GodSessionID"].AsUUID();
+                    uint kickFlags = userData["KickFlags"].AsUInteger();
+                    string reason = userData["Reason"].AsString();
+
+                    ScenePresence god = m_scene.GetScenePresence(godID);
+                    if (god == null || god.ControllingClient.SessionId != godSessionID)
+                    {
+                        response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        return;
+                    }
+
+                    KickUser(godID, agentID, kickFlags, reason);
+                }
+                else
+                {
+                    m_log.ErrorFormat("[GOD]: Unhandled UntrustedSimulatorMessage: {0}", message);
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
             }
-            return String.Empty;
+            catch
+            {
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         public void RequestGodlikePowers(
