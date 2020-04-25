@@ -1718,11 +1718,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 headervals[headername] = request.Headers[headername];
             }
 
-            if (headervals.Contains("Host"))
-            {
-                host = (string)headervals["Host"];
-            }
-
             keysvals.Add("headers", headervals);
             keysvals.Add("querystringkeys", querystringkeys);
             keysvals.Add("requestvars", requestVars);
@@ -1745,7 +1740,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else
                 {
 //                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found");
-                    buffer = SendHTML404(response, host);
+                    buffer = SendHTML404(response);
                 }
             }
             else
@@ -1762,7 +1757,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else
                 {
 //                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found2");
-                    buffer = SendHTML404(response, host);
+                    buffer = SendHTML404(response);
                 }
             }
 
@@ -1946,12 +1941,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             return buffer;
         }
 
-        public byte[] SendHTML404(OSHttpResponse response, string host)
+        public byte[] SendHTML404(OSHttpResponse response)
         {
             response.StatusCode = 404;
             response.ContentType = "text/html";
 
-            string responseString = GetHTTP404(host);
+            string responseString = GetHTTP404();
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
             response.ContentLength64 = buffer.Length;
@@ -2185,11 +2180,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
-        public string GetHTTP404(string host)
+        public string GetHTTP404()
         {
             string file = Path.Combine(".", "http_404.html");
             if (!File.Exists(file))
-                return getDefaultHTTP404(host);
+                return getDefaultHTTP404();
 
             StreamReader sr = File.OpenText(file);
             string result = sr.ReadToEnd();
@@ -2198,9 +2193,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         // Fallback HTTP responses in case the HTTP error response files don't exist
-        private static string getDefaultHTTP404(string host)
+        private static string getDefaultHTTP404()
         {
-            return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P><P>If you are trying to log-in, your link parameters should have: &quot;-loginpage http://" + host + "/?method=login -loginuri http://" + host + "/&quot; in your link </P></BODY></HTML>";
+            return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P></BODY></HTML>";
         }
     }
 

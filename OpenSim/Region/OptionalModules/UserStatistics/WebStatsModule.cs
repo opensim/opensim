@@ -317,7 +317,7 @@ namespace OpenSim.Region.UserStatistics
             }
             else
             {
-                strOut = MainServer.Instance.GetHTTP404("");
+                strOut = MainServer.Instance.GetHTTP404();
             }
 
             responsedata["int_response_code"] = response_code;

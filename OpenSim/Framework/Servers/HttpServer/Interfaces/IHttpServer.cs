@@ -148,6 +148,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         void RemoveJsonRPCHandler(string method);
 
-        string GetHTTP404(string host);
+        string GetHTTP404();
     }
 }
