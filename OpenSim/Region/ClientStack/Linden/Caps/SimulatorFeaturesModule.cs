@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
@@ -81,7 +82,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         static private object m_scriptSyntaxLock = new object();
         static private UUID m_scriptSyntaxID = UUID.Zero;
-        static private string m_scriptSyntaxXML;
+        static private byte[] m_scriptSyntaxXML = null;
 
         #region ISharedRegionModule Members
 
@@ -214,19 +215,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler = new RestHTTPHandler(
-                    "GET", "/CAPS/" + UUID.Random(),
-                    x => { return HandleSimulatorFeaturesRequest(x, agentID); },
-                    "SimulatorFeatures", agentID.ToString());
-            caps.RegisterHandler("SimulatorFeatures", reqHandler);
+            caps.RegisterSimpleHandler("SimulatorFeatures",
+                new SimpleStreamHandler("/" + UUID.Random() + "/",
+                    delegate (IOSHttpRequest request, IOSHttpResponse response)
+                    {
+                        HandleSimulatorFeaturesRequest(request, response, agentID);
+                    }));
 
-            if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && !String.IsNullOrEmpty(m_scriptSyntaxXML))
+            if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && m_scriptSyntaxXML != null)
             {
-                IRequestHandler sreqHandler = new RestHTTPHandler(
-                        "GET", "/CAPS/" + UUID.Random(),
-                        x => { return HandleSyntaxRequest(x, agentID); },
-                        "LSLSyntax", agentID.ToString());
-                caps.RegisterHandler("LSLSyntax", sreqHandler);
+                caps.RegisterSimpleHandler("LSLSyntax",
+                    new SimpleStreamHandler("/" + UUID.Random() + "/", HandleSyntaxRequest));
             }
         }
 
@@ -264,9 +263,15 @@ namespace OpenSim.Region.ClientStack.Linden
             return (OSDMap)copy;
         }
 
-        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod, UUID agentID)
+        private void HandleSimulatorFeaturesRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
         {
             //            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+
+            if (request.HttpMethod != "GET")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             OSDMap copy = DeepCopy();
 
@@ -274,26 +279,22 @@ namespace OpenSim.Region.ClientStack.Linden
             if (copy.ContainsKey("OpenSimExtras") && ((OSDMap)(copy["OpenSimExtras"])).ContainsKey("destination-guide-url"))
                 ((OSDMap)copy["OpenSimExtras"])["destination-guide-url"] = Replace(((OSDMap)copy["OpenSimExtras"])["destination-guide-url"], "[USERID]", agentID.ToString());
 
-            SimulatorFeaturesRequestDelegate handlerOnSimulatorFeaturesRequest = OnSimulatorFeaturesRequest;
-
-            if (handlerOnSimulatorFeaturesRequest != null)
-                handlerOnSimulatorFeaturesRequest(agentID, ref copy);
+            OnSimulatorFeaturesRequest?.Invoke(agentID, ref copy);
 
             //Send back data
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "text/plain";
-            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(copy);
-
-            return responsedata;
+            response.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(copy));
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        private Hashtable HandleSyntaxRequest(Hashtable mDhttpMethod, UUID agentID)
+        private void HandleSyntaxRequest(IOSHttpRequest request, IOSHttpResponse response)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200;
-            responsedata["str_response_string"] = m_scriptSyntaxXML;
-            return responsedata;
+            if (request.HttpMethod != "GET" || m_scriptSyntaxXML == null)
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            response.RawBuffer = m_scriptSyntaxXML;
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         /// <summary>
@@ -372,7 +373,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 continue;
                             sb.Append(s);
                         }
-                        m_scriptSyntaxXML = sb.ToString();
+                        m_scriptSyntaxXML = Util.UTF8.GetBytes(sb.ToString());
                         m_scriptSyntaxID = id;
                     }
                 }
@@ -380,7 +381,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     m_log.Error("[SIMULATOR FEATURES MODULE] fail read ScriptSyntax.xml file");
                     m_scriptSyntaxID = UUID.Zero;
-                    m_scriptSyntaxXML = "";
+                    m_scriptSyntaxXML = null;
                 }
             }
         }

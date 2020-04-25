@@ -129,10 +129,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
             caps.RegisterSimpleHandler("EstateChangeInfo",
-                new SimpleStreamHandler("/CAPS/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                     {
                         ProcessRequest(httpRequest, httpResponse, agentID, caps);
                     }));
