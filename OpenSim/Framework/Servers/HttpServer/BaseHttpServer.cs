@@ -622,7 +622,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //                    }
                 //                }
                 string path = request.UriPath;
-                if (!string.IsNullOrWhiteSpace(path) && path!="/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
+                if (path!="/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
@@ -1948,9 +1948,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public byte[] SendHTML404(OSHttpResponse response, string host)
         {
-            // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
             response.StatusCode = 404;
-            response.AddHeader("Content-type", "text/html");
+            response.ContentType = "text/html";
 
             string responseString = GetHTTP404(host);
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
