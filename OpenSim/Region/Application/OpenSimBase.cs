@@ -835,6 +835,7 @@ namespace OpenSim
 
             protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
+                httpResponse.KeepAlive = false;
                 httpResponse.RawBuffer = Util.UTF8.GetBytes("OK");
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
             }
@@ -856,6 +857,7 @@ namespace OpenSim
 
             protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
+                httpResponse.KeepAlive = false;
                 try
                 {
                     httpResponse.RawBuffer = Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
@@ -886,6 +888,7 @@ namespace OpenSim
 
             protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
+                httpResponse.KeepAlive = false;
                 try
                 {
                     httpResponse.RawBuffer = Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
@@ -911,6 +914,7 @@ namespace OpenSim
 
             protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
+                httpResponse.KeepAlive = false;
                 httpResponse.RawBuffer = binmsg;
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 return;

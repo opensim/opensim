@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -35,6 +36,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
 using OpenSim.Region.Framework.Interfaces;
@@ -96,9 +98,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                "Returns a variety of statistics about the current region and/or simulator",
                                DebugMonitors);
 
-            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage);
-            MainServer.Instance.AddHTTPHandler(
-                "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName), StatsPage);
+            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/monitorstats/" + m_scene.RegionInfo.RegionID, StatsPage));
+            MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler(
+                "/monitorstats/" + Uri.EscapeDataString(m_scene.RegionInfo.RegionName), StatsPage));
 
             AddMonitors();
             RegisterStatsManagerRegionStatistics();
@@ -337,14 +339,18 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             }
         }
 
-        public Hashtable StatsPage(Hashtable request)
+        public void StatsPage(IOSHttpRequest request, IOSHttpResponse response)
         {
+            response.KeepAlive = false;
+            if(request.HttpMethod != "GET")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
             // If request was for a specific monitor
             // eg url/?monitor=Monitor.Name
-            if (request.ContainsKey("monitor"))
+            if (request.QueryAsDictionary.TryGetValue("monitor", out string monID))
             {
-                string monID = (string) request["monitor"];
-
                 foreach (IMonitor monitor in m_staticMonitors)
                 {
                     string elemName = monitor.ToString();
@@ -353,13 +359,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
                     if (elemName == monID || monitor.ToString() == monID)
                     {
-                        Hashtable ereply3 = new Hashtable();
-
-                        ereply3["int_response_code"] = 404; // 200 OK
-                        ereply3["str_response_string"] = monitor.GetValue().ToString();
-                        ereply3["content_type"] = "text/plain";
-
-                        return ereply3;
+                        response.RawBuffer = Util.UTF8.GetBytes(monitor.GetValue().ToString());
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        return;
                     }
                 }
 
@@ -367,13 +369,8 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                 // is even doing.  Why are we inspecting the type of the monitor???
 
                 // No monitor with that name
-                Hashtable ereply2 = new Hashtable();
-
-                ereply2["int_response_code"] = 404; // 200 OK
-                ereply2["str_response_string"] = "No such monitor";
-                ereply2["content_type"] = "text/plain";
-
-                return ereply2;
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
             }
 
             string xml = "<data>";
@@ -391,13 +388,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
             xml += "</data>";
 
-            Hashtable ereply = new Hashtable();
-
-            ereply["int_response_code"] = 200; // 200 OK
-            ereply["str_response_string"] = xml;
-            ereply["content_type"] = "text/xml";
-
-            return ereply;
+            response.RawBuffer = Util.UTF8.GetBytes(xml);
+            response.ContentType = "text/xml";
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         void OnTriggerAlert(System.Type reporter, string reason, bool fatal)
