@@ -149,5 +149,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         void RemoveJsonRPCHandler(string method);
 
         string GetHTTP404();
+        void AddIndexPHPMethodHandler(string key, SimpleStreamMethod sh);
+        void RemoveIndexPHPMethodHandler(string key);
+        SimpleStreamMethod TryGetIndexPHPMethodHandler(string key);
     }
 }

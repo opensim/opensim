@@ -221,6 +221,7 @@ namespace OpenSim
             if (userStatsURI != String.Empty)
                 MainServer.Instance.AddSimpleStreamHandler(new UXSimStatusHandler(this));
             MainServer.Instance.AddSimpleStreamHandler(new SimRobotsHandler());
+            MainServer.Instance.AddSimpleStreamHandler(new IndexPHPHandler(MainServer.Instance));
 
             if (managedStatsURI != String.Empty)
             {

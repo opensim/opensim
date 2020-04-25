@@ -870,6 +870,56 @@ namespace OpenSim
             }
         }
 
+        public class IndexPHPHandler : SimpleStreamHandler
+        {
+            BaseHttpServer m_server;
+
+            public IndexPHPHandler(BaseHttpServer server)
+                : base("/index.php")
+            {
+                m_server = server;
+            }
+
+            protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            {
+                httpResponse.KeepAlive = false;
+                if(m_server == null || !m_server.HTTPDRunning)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string methods) || string.IsNullOrWhiteSpace(methods))
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                string[] splited = methods.Split(new char[]{','});
+                string method = splited[0];
+                if (string.IsNullOrWhiteSpace(method))
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                SimpleStreamMethod sh = m_server.TryGetIndexPHPMethodHandler(method);
+                if (sh == null)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+                try
+                {
+                    sh?.Invoke(httpRequest, httpResponse);
+                }
+                catch
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
+            }
+        }
+
         /// <summary>
         /// Handler to supply the current extended status of this sim to a user configured URI
         /// Sends the statistical data in a json serialization

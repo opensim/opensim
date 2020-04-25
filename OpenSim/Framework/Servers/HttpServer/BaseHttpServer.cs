@@ -105,6 +105,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers =
             new ConcurrentDictionary<string, PollServiceEventArgs>();
 
+        protected ConcurrentDictionary<string, SimpleStreamMethod> m_indexPHPmethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
         protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers =
             new Dictionary<string, WebSocketRequestDelegate>();
 
@@ -534,6 +535,24 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_defaultLlsdHandler = handler;
             return true;
         }
+
+        public void AddIndexPHPMethodHandler(string key, SimpleStreamMethod sh)
+        {
+            m_indexPHPmethods.TryAdd(key, sh);
+        }
+
+        public void RemoveIndexPHPMethodHandler(string key)
+        {
+            m_indexPHPmethods.TryRemove(key, out SimpleStreamMethod sh);
+        }
+
+        public SimpleStreamMethod TryGetIndexPHPMethodHandler(string key)
+        {
+            if(m_indexPHPmethods.TryGetValue(key, out SimpleStreamMethod sh))
+                return sh;
+            return null;
+        }
+
 
         public void OnRequest(object source, RequestEventArgs args)
         {
