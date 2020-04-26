@@ -26,15 +26,8 @@
  */
 
 using System;
-using System.Collections;
-using System.IO;
-using System.IO.Compression;
 using System.Reflection;
 using System.Net;
-using System.Text;
-
-using OpenSim.Server.Base;
-using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
@@ -42,7 +35,6 @@ using OpenSim.Framework.Servers.HttpServer;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using Nini.Config;
 using log4net;
 
 
@@ -71,7 +63,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
-            /* this things are ignored
+            /*this things are ignored
             if (!Utils.GetParams(httpRequest.UriPath, out UUID objectID, out UUID regionID, out string action))
             {
                 m_log.InfoFormat("[OBJECT HANDLER]: Invalid parameters for object message {0}", httpRequest.UriPath);
@@ -84,7 +76,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 case "POST":
                 {
-                    OSDMap args = Deserialize(httpRequest);
+                    OSDMap args = Utils.DeserializeOSMap(httpRequest);
                     if (args == null)
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -101,32 +93,8 @@ namespace OpenSim.Server.Handlers.Simulation
                     return;
                 }
             }
-
         }
 
-        private OSDMap Deserialize(IOSHttpRequest httpRequest)
-        {
-            Stream inputStream = httpRequest.InputStream;
-            Stream innerStream = null;
-            try
-            {
-                if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
-                {
-                    innerStream = inputStream;
-                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
-                }
-                return (OSDMap)OSDParser.DeserializeJson(inputStream);
-            }
-            catch
-            {
-                return null;
-            }
-            finally
-            {
-                if (innerStream != null)
-                    innerStream.Dispose();
-            }
-        }
         protected void DoObjectPost(OSDMap args, IOSHttpResponse httpResponse)
         {
             // retrieve the input arguments

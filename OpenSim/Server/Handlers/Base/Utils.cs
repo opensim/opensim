@@ -26,13 +26,12 @@
  */
 
 using System;
-using System.Collections;
-using System.Net;
+using System.IO;
+using System.IO.Compression;
 
-using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Services.Interfaces;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Server.Handlers.Base
 {
@@ -93,5 +92,28 @@ namespace OpenSim.Server.Handlers.Base
             return false;
         }
 
+        public static OSDMap DeserializeOSMap(IOSHttpRequest httpRequest)
+        {
+            Stream inputStream = httpRequest.InputStream;
+            Stream innerStream = null;
+            try
+            {
+                if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
+                {
+                    innerStream = inputStream;
+                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
+                }
+                return (OSDMap)OSDParser.DeserializeJson(inputStream);
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (innerStream != null)
+                    innerStream.Dispose();
+            }
+        }
     }
 }
