@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class RegionStatsHandler : BaseStreamHandler
+    public class RegionSimpleStatsHandler : SimpleStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,22 +55,26 @@ namespace OpenSim.Region.Framework.Scenes
         public string localZone = TimeZone.CurrentTimeZone.StandardName;
         public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
 
-        public RegionStatsHandler(RegionInfo region_info)
-            : base("GET", "/" + Util.SHA1Hash(region_info.regionSecret), "RegionStats", "Region Statistics")
+        public RegionSimpleStatsHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
         {
             regionInfo = region_info;
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
 
-        protected override byte[] ProcessRequest(
-            string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            return Util.UTF8.GetBytes(Report());
-        }
+            if (regionInfo == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
+                return;
+            }
 
-        public override string ContentType
-        {
-            get { return "text/plain"; }
+            if (httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(Report());
         }
 
         private string Report()
