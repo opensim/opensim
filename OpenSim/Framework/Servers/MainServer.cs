@@ -241,28 +241,34 @@ namespace OpenSim.Framework.Servers
                     handlers.AppendFormat(
                         "Registered HTTP Handlers for server at {0}:{1}\n", httpServer.ListenIPAddress, httpServer.Port);
 
-                    handlers.AppendFormat("* XMLRPC:\n");
-                    foreach (String s in httpServer.GetXmlRpcHandlerKeys())
+                    List<string> lst = httpServer.GetXmlRpcHandlerKeys();
+                    handlers.AppendFormat("* XMLRPC methods ({0}):\n",lst.Count);
+                    foreach (String s in lst)
                         handlers.AppendFormat("\t{0}\n", s);
 
-                    handlers.AppendFormat("* HTTP:\n");
-                    foreach (String s in httpServer.GetHTTPHandlerKeys())
+                    lst = httpServer.GetJsonRpcHandlerKeys();
+                    handlers.AppendFormat("* JSONRPC methods ({0}):\n", lst.Count);
+                    foreach (String s in lst)
                         handlers.AppendFormat("\t{0}\n", s);
 
-                    handlers.AppendFormat("* HTTP (poll):\n");
-                    foreach (String s in httpServer.GetPollServiceHandlerKeys())
+                    lst = httpServer.GetIndexPHPHandlerKeys();
+                    handlers.AppendFormat("* index.php methods ({0}):\n", lst.Count);
+                    foreach (String s in lst)
                         handlers.AppendFormat("\t{0}\n", s);
 
-                    handlers.AppendFormat("* JSONRPC:\n");
-                    foreach (String s in httpServer.GetJsonRpcHandlerKeys())
+                    lst = httpServer.GetHTTPHandlerKeys();
+                    handlers.AppendFormat("* HTTP ({0}):\n", lst.Count);
+                    foreach (String s in lst)
                         handlers.AppendFormat("\t{0}\n", s);
 
-//                    handlers.AppendFormat("* Agent:\n");
-//                    foreach (String s in httpServer.GetAgentHandlerKeys())
-//                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetPollServiceHandlerKeys();
+                    handlers.AppendFormat("* HTTP poll ({0}):\n", lst.Count);
+                    foreach (String s in lst)
+                        handlers.AppendFormat("\t{0}\n", s);
 
-                    handlers.AppendFormat("* LLSD:\n");
-                    foreach (String s in httpServer.GetLLSDHandlerKeys())
+                    lst = httpServer.GetLLSDHandlerKeys();
+                    handlers.AppendFormat("* LLSD ({0}):\n", lst.Count);
+                    foreach (String s in lst)
                         handlers.AppendFormat("\t{0}\n", s);
 
                     List<string> shdrs = httpServer.GetStreamHandlerKeys();

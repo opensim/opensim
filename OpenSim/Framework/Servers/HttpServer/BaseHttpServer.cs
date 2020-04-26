@@ -380,6 +380,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return ssh;
         }
 
+        public List<string> GetIndexPHPHandlerKeys()
+        {
+            return new List<string>(m_indexPHPmethods.Keys);
+        }
+
         private static string GetHandlerKey(string httpMethod, string path)
         {
             return httpMethod + ":" + path;
@@ -603,24 +608,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 Culture.SetCurrentCulture();
 
-                //                //  This is the REST agent interface. We require an agent to properly identify
-                //                //  itself. If the REST handler recognizes the prefix it will attempt to
-                //                //  satisfy the request. If it is not recognizable, and no damage has occurred
-                //                //  the request can be passed through to the other handlers. This is a low
-                //                //  probability event; if a request is matched it is normally expected to be
-                //                //  handled
-                //                IHttpAgentHandler agentHandler;
-                //
-                //                if (TryGetAgentHandler(request, response, out agentHandler))
-                //                {
-                //                    if (HandleAgentRequest(agentHandler, request, response))
-                //                    {
-                //                        requestEndTick = Environment.TickCount;
-                //                        return;
-                //                    }
-                //                }
                 string path = request.UriPath;
-                if (path != "/" && (TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr) || TryGetSimpleStreamVarPath(path, out hdr)))
+                if (path != "/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
@@ -674,11 +663,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             //m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
                             headervals[headername] = request.Headers[headername];
                         }
-
-                        //                        if (headervals.Contains("Host"))
-                        //                        {
-                        //                            host = (string)headervals["Host"];
-                        //                        }
 
                         keysvals.Add("requestbody", requestBody);
                         keysvals.Add("headers",headervals);
@@ -1059,11 +1043,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool TryGetSimpleStreamHandler(string uripath, out ISimpleStreamHandler handler)
         {
-            return m_simpleStreamHandlers.TryGetValue(uripath, out handler);
-        }
+            if(m_simpleStreamHandlers.TryGetValue(uripath, out handler))
+                return true;
 
-        private bool TryGetSimpleStreamVarPath(string uripath, out ISimpleStreamHandler handler)
-        {
             handler = null;
             if(uripath.Length < 3)
                 return false;
@@ -1073,25 +1055,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             return m_simpleStreamVarPath.TryGetValue(uripath.Substring(0,indx), out handler);
         }
-
-        //        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
-        //        {
-        //            agentHandler = null;
-        //
-        //            lock (m_agentHandlers)
-        //            {
-        //                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
-        //                {
-        //                    if (handler.Match(request, response))
-        //                    {
-        //                        agentHandler = handler;
-        //                        return true;
-        //                    }
-        //                }
-        //            }
-        //
-        //            return false;
-        //        }
 
         /// <summary>
         /// Try all the registered xmlrpc handlers when an xmlrpc request is received.
@@ -1115,7 +1078,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
                     requestBody = reader.ReadToEnd();
-
             }
             finally
             {
