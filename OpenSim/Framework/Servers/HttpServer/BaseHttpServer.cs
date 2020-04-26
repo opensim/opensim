@@ -607,9 +607,31 @@ namespace OpenSim.Framework.Servers.HttpServer
                  //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Culture.SetCurrentCulture();
-
                 string path = request.UriPath;
-                if (path != "/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
+                if (path == "/")
+                {
+                    if (request.ContentType == "application/json-rpc")
+                    {
+                        if (DebugLevel >= 3)
+                            LogIncomingToContentTypeHandler(request);
+
+                        HandleJsonRpcRequests(request, response);
+                        requestEndTick = Environment.TickCount;
+                        response.Send();
+                        return;
+                    }
+
+                    if (DebugLevel >= 3)
+                        LogIncomingToXmlRpcHandler(request);
+
+                    // generic login request.
+                    HandleXmlRpcRequests(request, response);
+                    requestEndTick = Environment.TickCount;
+                    response.Send();
+                    return;
+                }
+
+                if (TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
@@ -707,17 +729,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                             buffer = HandleLLSDRequests(request, response);
                             break;
 
-                        case "application/json-rpc":
-                            if (DebugLevel >= 3)
-                                LogIncomingToContentTypeHandler(request);
-
-                            buffer = HandleJsonRpcRequests(request, response);
-                            break;
-
                         case "text/xml":
                         case "application/xml":
                         case "application/json":
-
                         default:
                             //m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
                             // Point of note..  the DoWeHaveA methods check for an EXACT path
@@ -740,14 +754,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     LogIncomingToContentTypeHandler(request);
 
                                 buffer = HandleHTTPRequest(request, response);
-                            }
-                            else
-                            {
-                                if (DebugLevel >= 3)
-                                    LogIncomingToXmlRpcHandler(request);
-
-                                // generic login request.
-                                buffer = HandleXmlRpcRequests(request, response);
                             }
 
                             break;
@@ -1062,7 +1068,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        private byte[] HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response)
+        private void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
             String requestBody;
 
@@ -1090,9 +1096,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             //m_log.Debug(requestBody);
             requestBody = requestBody.Replace("<base64></base64>", "");
 
-            string responseString = String.Empty;
-            XmlRpcRequest xmlRprcRequest = null;
-
             bool gridproxy = false;
             if (requestBody.Contains("encoding=\"utf-8"))
             {
@@ -1106,6 +1109,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
+            XmlRpcRequest xmlRprcRequest = null;
             try
             {
                 xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
@@ -1129,128 +1133,119 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
-            if (xmlRprcRequest != null)
+            if(xmlRprcRequest == null)
             {
-                string methodName = xmlRprcRequest.MethodName;
-                if (methodName != null)
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
+            }
+
+            string methodName = xmlRprcRequest.MethodName;
+            if (string.IsNullOrWhiteSpace(methodName))
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
+            }
+
+            XmlRpcMethod method;
+            bool methodWasFound;
+            bool keepAlive = false;
+
+            lock (m_rpcHandlers)
+            {
+                methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
+                if (methodWasFound)
+                    keepAlive = m_rpcHandlersKeepAlive[methodName];
+            }
+
+            XmlRpcResponse xmlRpcResponse;
+            xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
+            if (methodWasFound)
+            {
+                xmlRprcRequest.Params.Add(request.Url); // Param[2]
+
+                string xff = "X-Forwarded-For";
+                string xfflower = xff.ToLower();
+                foreach (string s in request.Headers.AllKeys)
                 {
-                    xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
-                    XmlRpcResponse xmlRpcResponse;
-
-                    XmlRpcMethod method;
-                    bool methodWasFound;
-                    bool keepAlive = false;
-                    lock (m_rpcHandlers)
+                    if (s != null && s.Equals(xfflower))
                     {
-                        methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
-                        if (methodWasFound)
-                            keepAlive = m_rpcHandlersKeepAlive[methodName];
-                    }
-
-                    if (methodWasFound)
-                    {
-                        xmlRprcRequest.Params.Add(request.Url); // Param[2]
-
-                        string xff = "X-Forwarded-For";
-                        string xfflower = xff.ToLower();
-                        foreach (string s in request.Headers.AllKeys)
-                        {
-                            if (s != null && s.Equals(xfflower))
-                            {
-                                xff = xfflower;
-                                break;
-                            }
-                        }
-                        xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
-
-                        if (gridproxy)
-                            xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
-
-                        // reserve this for
-                        // ... by Fumi.Iseki for DTLNSLMoneyServer
-                        // BUT make its presence possible to detect/parse
-                        string rcn = request.IHttpClientContext.SSLCommonName;
-                        if(!string.IsNullOrWhiteSpace(rcn))
-                        {
-                            rcn = "SSLCN:" + rcn;
-                            xmlRprcRequest.Params.Add(rcn); // Param[4] or Param[5]
-                        }
-
-                        try
-                        {
-                            xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
-                        }
-                        catch(Exception e)
-                        {
-                            string errorMessage
-                                = String.Format(
-                                    "Requested method [{0}] from {1} threw exception: {2} {3}",
-                                    methodName, request.RemoteIPEndPoint.Address, e.Message, e.StackTrace);
-
-                            m_log.ErrorFormat("[BASE HTTP SERVER]: {0}", errorMessage);
-
-                            // if the registered XmlRpc method threw an exception, we pass a fault-code along
-                            xmlRpcResponse = new XmlRpcResponse();
-
-                            // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
-                            xmlRpcResponse.SetFault(-32603, errorMessage);
-                        }
-
-                        // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
-                        response.KeepAlive = keepAlive;
-                        response.AddHeader("Access-Control-Allow-Origin", "*");
-                    }
-                    else
-                    {
-                        xmlRpcResponse = new XmlRpcResponse();
-
-                        // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
-                        xmlRpcResponse.SetFault(
-                            XmlRpcErrorCodes.SERVER_ERROR_METHOD,
-                            String.Format("Requested method [{0}] not found", methodName));
-                    }
-
-                    response.ContentType = "text/xml";
-                    using (MemoryStream outs = new MemoryStream())
-                    using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
-                    {
-                        writer.Formatting = Formatting.None;
-                        XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
-                        writer.Flush();
-                        outs.Flush();
-                        outs.Position = 0;
-                        using (StreamReader sr = new StreamReader(outs))
-                        {
-                            responseString = sr.ReadToEnd();
-                        }
+                        xff = xfflower;
+                        break;
                     }
                 }
-                else
-                {
-                    //HandleLLSDRequests(request, response);
-                    response.ContentType = "text/plain";
-                    response.StatusCode = 404;
-                    response.StatusDescription = "Not Found";
-                    responseString = "Not found";
-                    response.KeepAlive = false;
+                xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
 
-                    m_log.ErrorFormat(
-                        "[BASE HTTP SERVER]: Handler not found for http request {0} {1}",
-                        request.HttpMethod, request.Url.PathAndQuery);
+                if (gridproxy)
+                    xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
+
+                // reserve this for
+                // ... by Fumi.Iseki for DTLNSLMoneyServer
+                // BUT make its presence possible to detect/parse
+                string rcn = request.IHttpClientContext.SSLCommonName;
+                if(!string.IsNullOrWhiteSpace(rcn))
+                {
+                    rcn = "SSLCN:" + rcn;
+                    xmlRprcRequest.Params.Add(rcn); // Param[4] or Param[5]
+                }
+
+                try
+                {
+                    xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
+                }
+                catch(Exception e)
+                {
+                    string errorMessage
+                        = String.Format(
+                            "Requested method [{0}] from {1} threw exception: {2} {3}",
+                            methodName, request.RemoteIPEndPoint.Address, e.Message, e.StackTrace);
+
+                    m_log.ErrorFormat("[BASE HTTP SERVER]: {0}", errorMessage);
+
+                    // if the registered XmlRpc method threw an exception, we pass a fault-code along
+                    xmlRpcResponse = new XmlRpcResponse();
+
+                    // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                    xmlRpcResponse.SetFault(-32603, errorMessage);
+                }
+
+                
+                response.AddHeader("Access-Control-Allow-Origin", "*");
+            }
+            else
+            {
+                xmlRpcResponse = new XmlRpcResponse();
+                // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                xmlRpcResponse.SetFault(
+                    XmlRpcErrorCodes.SERVER_ERROR_METHOD,
+                    String.Format("Requested method [{0}] not found", methodName));
+            }
+
+            response.KeepAlive = keepAlive;
+            response.ContentType = "text/xml";
+            //string responseString = String.Empty;
+            using (MemoryStream outs = new MemoryStream())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
+                {
+                    writer.Formatting = Formatting.None;
+                    XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
+                    writer.Flush();
+                    //outs.Seek(0, SeekOrigin.Begin);
+                    //using (StreamReader sr = new StreamReader(outs))
+                    //    responseString = sr.ReadToEnd();
+                    response.RawBuffer = outs.ToArray();
                 }
             }
 
-            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
-
-            response.ContentLength64 = buffer.Length;
-            response.ContentEncoding = Encoding.UTF8;
-
-            return buffer;
+            //response.RawBuffer = Encoding.UTF8.GetBytes(responseString);
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         // JsonRpc (v2.0 only)
         // Batch requests not yet supported
-        private byte[] HandleJsonRpcRequests(OSHttpRequest request, OSHttpResponse response)
+        private void HandleJsonRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
             Stream requestStream = request.InputStream;
             JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
@@ -1326,12 +1321,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
-            string responseData = string.Empty;
-
-            responseData = jsonRpcResponse.Serialize();
-
-            byte[] buffer = Encoding.UTF8.GetBytes(responseData);
-            return buffer;
+            string responseData = jsonRpcResponse.Serialize();
+            response.RawBuffer = Encoding.UTF8.GetBytes(responseData);
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         private byte[] HandleLLSDRequests(OSHttpRequest request, OSHttpResponse response)
