@@ -98,16 +98,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
-        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
-        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
 //        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
-        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers =
-            new ConcurrentDictionary<string, PollServiceEventArgs>();
+        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers = new ConcurrentDictionary<string, PollServiceEventArgs>();
+        protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new Dictionary<string, WebSocketRequestDelegate>();
 
+        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
+        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
+        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamVarPath = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         protected ConcurrentDictionary<string, SimpleStreamMethod> m_indexPHPmethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
-        protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers =
-            new Dictionary<string, WebSocketRequestDelegate>();
 
         protected uint m_port;
         protected bool m_ssl;
@@ -344,10 +343,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_streamHandlers.TryAdd(handler.Path, handler);
         }
 
-        public void AddSimpleStreamHandler(ISimpleStreamHandler handler)
+        public void AddSimpleStreamHandler(ISimpleStreamHandler handler, bool varPath = false)
         {
             // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
-            m_simpleStreamHandlers.TryAdd(handler.Path, handler);
+            if(varPath)
+                m_simpleStreamVarPath.TryAdd(handler.Path, handler);
+            else
+                m_simpleStreamHandlers.TryAdd(handler.Path, handler);
         }
 
         public void AddWebSocketHandler(string servicepath, WebSocketRequestDelegate handler)
@@ -487,30 +489,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             return new List<string>(m_pollHandlers.Keys);
         }
 
-//        // Note that the agent string is provided simply to differentiate
-//        // the handlers - it is NOT required to be an actual agent header
-//        // value.
-//        public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
-//        {
-//            lock (m_agentHandlers)
-//            {
-//                if (!m_agentHandlers.ContainsKey(agent))
-//                {
-//                    m_agentHandlers.Add(agent, handler);
-//                    return true;
-//                }
-//            }
-//
-//            //must already have a handler for that path so return false
-//            return false;
-//        }
-//
-//        public List<string> GetAgentHandlerKeys()
-//        {
-//            lock (m_agentHandlers)
-//                return new List<string>(m_agentHandlers.Keys);
-//        }
-
         public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
             lock (m_llsdHandlers)
@@ -565,12 +543,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     psEvArgs.RequestsReceived++;
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-                    psEvArgs.Request?.Invoke(psreq.RequestID, new OSHttpRequest(context, request));
+                    psEvArgs.Request?.Invoke(psreq.RequestID, new OSHttpRequest(request));
                     m_pollServiceManager.Enqueue(psreq);
                 }
                 else
                 {
-                    OnHandleRequestIOThread(context, request);
+                    OnHandleRequestIOThread(request);
                 }
             }
             catch (Exception e)
@@ -579,9 +557,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        private void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
+        private void OnHandleRequestIOThread(IHttpRequest request)
         {
-            OSHttpRequest req = new OSHttpRequest(context, request);
+            OSHttpRequest req = new OSHttpRequest(request);
             WebSocketRequestDelegate dWebSocketRequestDelegate = null;
             lock (m_WebSocketHandlers)
             {
@@ -590,12 +568,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             if (dWebSocketRequestDelegate != null)
             {
-                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHttpServerHandler(req, context, 8192));
+                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHttpServerHandler(req, request.Context, 8192));
                 return;
             }
 
-            OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request));
-            HandleRequest(req, resp);
+            HandleRequest(req, new OSHttpResponse(req));
         }
 
         /// <summary>
@@ -641,7 +618,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //                    }
                 //                }
                 string path = request.UriPath;
-                if (path!="/" && TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
+                if (path != "/" && (TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr) || TryGetSimpleStreamVarPath(path, out hdr)))
                 {
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
@@ -652,7 +629,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     return;
                 }
 
-                path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
                 byte[] buffer = null;
 
@@ -1083,24 +1059,37 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             return m_simpleStreamHandlers.TryGetValue(uripath, out handler);
         }
-//        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
-//        {
-//            agentHandler = null;
-//
-//            lock (m_agentHandlers)
-//            {
-//                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
-//                {
-//                    if (handler.Match(request, response))
-//                    {
-//                        agentHandler = handler;
-//                        return true;
-//                    }
-//                }
-//            }
-//
-//            return false;
-//        }
+
+        private bool TryGetSimpleStreamVarPath(string uripath, out ISimpleStreamHandler handler)
+        {
+            handler = null;
+            if(uripath.Length < 3)
+                return false;
+            int indx = uripath.IndexOf('/', 2);
+            if(indx < 0 || indx == uripath.Length - 1)
+                return false;
+
+            return m_simpleStreamVarPath.TryGetValue(uripath.Substring(0,indx), out handler);
+        }
+
+        //        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
+        //        {
+        //            agentHandler = null;
+        //
+        //            lock (m_agentHandlers)
+        //            {
+        //                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
+        //                {
+        //                    if (handler.Match(request, response))
+        //                    {
+        //                        agentHandler = handler;
+        //                        return true;
+        //                    }
+        //                }
+        //            }
+        //
+        //            return false;
+        //        }
 
         /// <summary>
         /// Try all the registered xmlrpc handlers when an xmlrpc request is received.
@@ -2127,7 +2116,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemoveSimpleStreamHandler(string path)
         {
-            m_simpleStreamHandlers.TryRemove(path, out ISimpleStreamHandler dummy);
+            if(m_simpleStreamHandlers.TryRemove(path, out ISimpleStreamHandler dummy))
+                return;
+            m_simpleStreamVarPath.TryRemove(path, out ISimpleStreamHandler dummy2);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)
@@ -2280,6 +2271,69 @@ namespace OpenSim.Framework.Servers.HttpServer
                     break;
             }
             return;
+        }
+    }
+
+    public class IndexPHPHandler : SimpleStreamHandler
+    {
+        BaseHttpServer m_server;
+
+        public IndexPHPHandler(BaseHttpServer server)
+            : base("/index.php")
+        {
+            m_server = server;
+        }
+
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            httpResponse.KeepAlive = false;
+            if (m_server == null || !m_server.HTTPDRunning)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            if (httpRequest.QueryString.Count == 0)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.Redirect;
+                httpResponse.AddHeader("Location", "http://opensimulator.org");
+                return;
+            }
+            if (httpRequest.QueryFlags.Contains("about"))
+            {
+
+                httpResponse.StatusCode = (int)HttpStatusCode.Redirect;
+                httpResponse.AddHeader("Location", "http://opensimulator.org/wiki/0.9.2.0_Release");
+                return;
+            }
+            if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string methods) || string.IsNullOrWhiteSpace(methods))
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound; ;
+                return;
+            }
+
+            string[] splited = methods.Split(new char[] { ',' });
+            string method = splited[0];
+            if (string.IsNullOrWhiteSpace(method))
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            SimpleStreamMethod sh = m_server.TryGetIndexPHPMethodHandler(method);
+            if (sh == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            try
+            {
+                sh?.Invoke(httpRequest, httpResponse);
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
         }
     }
 }

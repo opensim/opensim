@@ -214,10 +214,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public OSHttpRequest() {}
 
-        public OSHttpRequest(IHttpClientContext context, IHttpRequest req)
+        public OSHttpRequest(IHttpRequest req)
         {
             m_request = req;
-            m_context = context;
+            m_context = req.Context;
 
             if (null != req.Headers["content-encoding"])
             {
