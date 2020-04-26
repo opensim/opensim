@@ -375,7 +375,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetSimpleStreamHandlerKeys()
         {
-            return new List<string>(m_simpleStreamHandlers.Keys);
+            List<string> ssh = new List<string>(m_simpleStreamHandlers.Keys);
+            ssh.AddRange(new List<string>(m_simpleStreamVarPath.Keys));
+            return ssh;
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
