@@ -236,7 +236,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         private void preprocess(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
         {
-            switch(request.HttpMethod)
+            switch (request.HttpMethod)
             {
                 case "GET":
                     RenderMaterialsGetCap(request, response);
