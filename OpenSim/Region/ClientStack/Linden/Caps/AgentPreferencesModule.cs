@@ -115,7 +115,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void UpdateAgentPreferences(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agent)
         {
-            if(httpRequest.HttpMethod != "POST")
+            if (httpRequest.HttpMethod != "POST")
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 return;

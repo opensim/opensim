@@ -27,17 +27,16 @@
 
 using System;
 using System.Collections;
-using System.Reflection;
+using System.Net;
+using System.Text;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.ClientStack.Linden
@@ -116,36 +115,30 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler
-                = new RestHTTPHandler(
-                    "GET", "/CAPS/" + UUID.Random(), ht => MeshUploadFlag(ht, agentID), "MeshUploadFlag", agentID.ToString());
-
-            caps.RegisterHandler("MeshUploadFlag", reqHandler);
-
+            caps.RegisterSimpleHandler("MeshUploadFlag",
+                    new SimpleStreamHandler("/" + UUID.Random(), MeshUploadFlag));
+                    /* to use when/if we do check on dbs
+                    new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        MeshUploadFlag(httpRequest, httpResponse, agentID);
+                    }));
+                    */
         }
 
-        private Hashtable MeshUploadFlag(Hashtable mDhttpMethod, UUID agentID)
+        //private void MeshUploadFlag(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agentID)
+        private void MeshUploadFlag(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
 //            m_log.DebugFormat("[MESH UPLOAD FLAG MODULE]: MeshUploadFlag request");
+            if(httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             OSDMap data = new OSDMap();
-//    	    ScenePresence sp = m_scene.GetScenePresence(m_agentID);
-//    	    data["username"] = sp.Firstname + "." + sp.Lastname;
-//    	    data["display_name_next_update"] = new OSDDate(DateTime.Now);
-//    	    data["legacy_first_name"] = sp.Firstname;
             data["mesh_upload_status"] = "valid";
-//    	    data["display_name"] = sp.Firstname + " " + sp.Lastname;
-//    	    data["legacy_last_name"] = sp.Lastname;
-//    	    data["id"] = m_agentID;
-//    	    data["is_display_name_default"] = true;
-
-            //Send back data
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(data);
-            return responsedata;
+            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(data));
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
     }
 }
