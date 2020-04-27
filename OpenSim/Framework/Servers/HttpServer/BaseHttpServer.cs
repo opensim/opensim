@@ -610,22 +610,36 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.UriPath;
                 if (path == "/")
                 {
-                    if (request.ContentType == "application/json-rpc")
+                    response.StatusCode =(int)HttpStatusCode.NotFound; // falback
+                    switch (request.ContentType)
                     {
-                        if (DebugLevel >= 3)
-                            LogIncomingToContentTypeHandler(request);
+                        case "application/json-rpc":
+                        {
+                            if (DebugLevel >= 3)
+                                LogIncomingToContentTypeHandler(request);
 
-                        HandleJsonRpcRequests(request, response);
-                        requestEndTick = Environment.TickCount;
-                        response.Send();
-                        return;
+                            HandleJsonRpcRequests(request, response);
+                            break;
+                        }
+
+                        case "application/llsd+xml":
+                        {
+                            HandleLLSDLogin(request, response);
+                            break;
+                        }
+                        default: // not sure about xmlrpc content type coerence at this point
+                        { 
+                            if (DebugLevel >= 3)
+                                LogIncomingToXmlRpcHandler(request);
+
+                            HandleXmlRpcRequests(request, response);
+                            break;
+                        }
                     }
 
-                    if (DebugLevel >= 3)
-                        LogIncomingToXmlRpcHandler(request);
+                    if (request.InputStream != null && request.InputStream.CanRead)
+                        request.InputStream.Dispose();
 
-                    // generic login request.
-                    HandleXmlRpcRequests(request, response);
                     requestEndTick = Environment.TickCount;
                     response.Send();
                     return;
@@ -1209,8 +1223,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
                     xmlRpcResponse.SetFault(-32603, errorMessage);
                 }
-
-                
                 response.AddHeader("Access-Control-Allow-Origin", "*");
             }
             else
@@ -1326,67 +1338,68 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
+        private void HandleLLSDLogin(OSHttpRequest request, OSHttpResponse response)
+        {
+            if(m_defaultLlsdHandler == null)
+                return;
+
+            response.StatusCode = (int)HttpStatusCode.BadRequest;
+            OSD llsdRequest;
+            try
+            {
+                llsdRequest = OSDParser.DeserializeLLSDXml(request.InputStream);
+            }
+            catch
+            {
+                return;
+            }
+
+            if(llsdRequest == null || !(llsdRequest is OSDMap))
+                return;
+
+            OSD llsdResponse = m_defaultLlsdHandler(llsdRequest, request.RemoteIPEndPoint);
+            if(llsdResponse != null)
+            {
+                response.ContentType = "application/llsd+xml";
+                response.RawBuffer = OSDParser.SerializeLLSDXmlBytes(llsdResponse);
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+        }
+
         private byte[] HandleLLSDRequests(OSHttpRequest request, OSHttpResponse response)
         {
             //m_log.Warn("[BASE HTTP SERVER]: We've figured out it's a LLSD Request");
             bool notfound = false;
-            string requestBody;
-            using(StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
-                requestBody= reader.ReadToEnd();
 
             //m_log.DebugFormat("[OGP]: {0}:{1}", request.RawUrl, requestBody);
 
             OSD llsdRequest = null;
             OSD llsdResponse = null;
-
-            bool LegacyLLSDLoginLibOMV = (requestBody.Contains("passwd") && requestBody.Contains("mac") && requestBody.Contains("viewer_digest"));
-
-            if (requestBody.Length == 0)
-            // Get Request
-            {
-                requestBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd><map><key>request</key><string>get</string></map></llsd>";
-            }
             try
             {
-                llsdRequest = OSDParser.Deserialize(requestBody);
+                llsdRequest = OSDParser.Deserialize(request.InputStream);
             }
             catch (Exception ex)
             {
                 m_log.Warn("[BASE HTTP SERVER]: Error - " + ex.Message);
             }
 
-            if (llsdRequest != null)// && m_defaultLlsdHandler != null)
+            if (llsdRequest != null)
             {
-                if (!LegacyLLSDLoginLibOMV && TryGetLLSDHandler(request.RawUrl, out LLSDMethod llsdhandler))
+                if (TryGetLLSDHandler(request.RawUrl, out LLSDMethod llsdhandler))
                 {
                     // we found a registered llsd handler to service this request
                     llsdResponse = llsdhandler(request.RawUrl, llsdRequest, request.RemoteIPEndPoint.ToString());
                 }
                 else
-                {
-                    // we didn't find a registered llsd handler to service this request
-                    // check if we have a default llsd handler
-
-                    if (m_defaultLlsdHandler != null)
-                    {
-                        llsdResponse = m_defaultLlsdHandler(llsdRequest, request.RemoteIPEndPoint);
-                    }
-                    else
-                    {
-                        // Oops, no handler for this..   give em the failed message
-                        notfound = true;
-                    }
-                }
+                    notfound = true;
             }
             else
-            {
                 notfound = true;
-            }
 
             if(notfound)
             {
                 response.StatusCode = (int)HttpStatusCode.NotFound;
-                response.StatusDescription = "Not found";
                 return null;
             }
 
@@ -1395,9 +1408,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (llsdResponse.ToString() == "shutdown404!")
             {
                 response.ContentType = "text/plain";
-                response.StatusCode = 404;
-                response.StatusDescription = "Not Found";
-                buffer = Encoding.UTF8.GetBytes("Not found");
+                response.StatusCode = (int)HttpStatusCode.NotFound;
             }
             else
             {
@@ -1405,6 +1416,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 buffer = BuildLLSDResponse(request, response, llsdResponse);
             }
 
+            response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
 
@@ -1485,13 +1497,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
 
-            // extra kicker to remove the default XMLRPC login case..  just in case..
-            if (path != "/" && bestMatch == "/" && searchquery != "/")
-                return false;
-
-            if (path == "/")
-                return false;
-
             if (String.IsNullOrEmpty(bestMatch))
             {
                 return false;
@@ -1535,10 +1540,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         bestMatch = pattern;
                     }
                 }
-
-                // extra kicker to remove the default XMLRPC login case..  just in case..
-                if (path == "/")
-                    return false;
 
                 if (String.IsNullOrEmpty(bestMatch))
                 {
@@ -1687,42 +1688,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             keysvals.Add("requestvars", requestVars);
 //            keysvals.Add("form", request.Form);
 
-            if (keysvals.Contains("method"))
+            GenericHTTPMethod requestprocessor;
+            bool foundHandler = TryGetHTTPHandlerPathBased(request.RawUrl, out requestprocessor);
+            if (foundHandler)
             {
-//                m_log.Debug("[BASE HTTP SERVER]: Contains Method");
-                string method = (string) keysvals["method"];
-//                m_log.Debug("[BASE HTTP SERVER]: " + requestBody);
-                GenericHTTPMethod requestprocessor;
-                bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
-                if (foundHandler)
-                {
-                    Hashtable responsedata1 = requestprocessor(keysvals);
-                    buffer = DoHTTPGruntWork(responsedata1,response);
+                Hashtable responsedata2 = requestprocessor(keysvals);
+                buffer = DoHTTPGruntWork(responsedata2, response);
 
-                    //SendHTML500(response);
-                }
-                else
-                {
-//                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found");
-                    buffer = SendHTML404(response);
-                }
+                //SendHTML500(response);
             }
             else
             {
-                GenericHTTPMethod requestprocessor;
-                bool foundHandler = TryGetHTTPHandlerPathBased(request.RawUrl, out requestprocessor);
-                if (foundHandler)
-                {
-                    Hashtable responsedata2 = requestprocessor(keysvals);
-                    buffer = DoHTTPGruntWork(responsedata2, response);
-
-                    //SendHTML500(response);
-                }
-                else
-                {
 //                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found2");
-                    buffer = SendHTML404(response);
-                }
+                buffer = SendHTML404(response);
             }
 
             return buffer;
