@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class RegionSimpleStatsHandler : SimpleStreamHandler
+    public class RegionStatsSimpleHandler : SimpleStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string localZone = TimeZone.CurrentTimeZone.StandardName;
         public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
 
-        public RegionSimpleStatsHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
+        public RegionStatsSimpleHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
         {
             regionInfo = region_info;
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
