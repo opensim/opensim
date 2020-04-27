@@ -607,6 +607,17 @@ namespace OpenSim.Framework.Servers.HttpServer
                  //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Culture.SetCurrentCulture();
+
+                if(request.HttpMethod == "OPTIONS")
+                {
+                    //need to check this
+                    response.AddHeader("Access-Control-Allow-Origin", "*");
+                    response.AddHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
+                    response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+                    response.StatusCode = (int)HttpStatusCode.OK;
+                    return;
+                }
+
                 string path = request.UriPath;
                 if (path == "/")
                 {
@@ -1618,18 +1629,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 //                "[BASE HTTP SERVER]: HandleHTTPRequest for request to {0}, method {1}",
 //                request.RawUrl, request.HttpMethod);
 
-            switch (request.HttpMethod)
-            {
-                case "OPTIONS":
-                    response.AddHeader("Access-Control-Allow-Origin", "*");
-                    response.AddHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
-                    response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    return null;
-
-                default:
-                    return HandleContentVerbs(request, response);
-            }
+            return HandleContentVerbs(request, response);
         }
 
         private byte[] HandleContentVerbs(OSHttpRequest request, OSHttpResponse response)
