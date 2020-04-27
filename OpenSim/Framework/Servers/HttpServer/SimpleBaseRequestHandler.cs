@@ -48,6 +48,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             Name = null;
             m_path = path;
         }
+
         protected SimpleBaseRequestHandler(string path, string name)
         {
             Name = name;

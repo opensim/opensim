@@ -266,13 +266,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 //                                                               GetMapLayer);
 
                 m_HostCapsObj.RegisterSimpleHandler("GetObjectPhysicsData",
-                    new SimpleStreamHandler(GetNewCapPath(), GetObjectPhysicsData));
+                    new SimpleOSDMapHandler("POST", GetNewCapPath(), GetObjectPhysicsData));
 
                 m_HostCapsObj.RegisterSimpleHandler("GetObjectCost",
-                    new SimpleStreamHandler(GetNewCapPath(), GetObjectCost));
+                    new SimpleOSDMapHandler("POST", GetNewCapPath(), GetObjectCost));
 
                 m_HostCapsObj.RegisterSimpleHandler("ResourceCostSelected",
-                    new SimpleStreamHandler(GetNewCapPath(), ResourceCostSelected));
+                    new SimpleOSDMapHandler("POST", GetNewCapPath(), ResourceCostSelected));
 
                 IRequestHandler req = new RestStreamHandler(
                         "POST", GetNewCapPath(), ScriptTaskInventory, "UpdateScript", null);
@@ -1599,18 +1599,11 @@ namespace OpenSim.Region.ClientStack.Linden
             return "";
         }
 
-        public void GetObjectPhysicsData(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void GetObjectPhysicsData(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
         {
-            if(httpRequest.HttpMethod != "POST")
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-            OSDMap req;
             OSDArray object_ids;
             try
             {
-                req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
                 object_ids = (OSDArray)req["object_ids"];
             }
             catch
@@ -1651,19 +1644,11 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        public void GetObjectCost(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void GetObjectCost(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
         {
-            if (httpRequest.HttpMethod != "POST")
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-
-            OSDMap req;
             OSDArray object_ids;
             try
             {
-                req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
                 object_ids = (OSDArray)req["object_ids"];
             }
             catch
@@ -1726,25 +1711,8 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        public void ResourceCostSelected(IOSHttpRequest httpRequest,IOSHttpResponse httpResponse)
+        public void ResourceCostSelected(IOSHttpRequest httpRequest,IOSHttpResponse httpResponse, OSDMap req)
         {
-            if (httpRequest.HttpMethod != "POST")
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-
-            OSDMap req;
-            try
-            {
-                req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
-            }
-            catch
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
-
             float phys=0;
             float stream=0;
             float simul=0;
