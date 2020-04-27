@@ -49,6 +49,8 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
@@ -1917,16 +1919,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void EventManagerOnRegisterCaps(UUID agentID, Caps caps)
         {
-
-            string cap = "/CAPS/" + UUID.Random();
-            caps.RegisterHandler(
-                "RemoteParcelRequest",
-                new RestStreamHandler(
-                    "POST", cap,
-                    (request, path, param, httpRequest, httpResponse)
-                        => RemoteParcelRequest(request, path, param, agentID, caps),
-                    "RemoteParcelRequest",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("RemoteParcelRequest", new SimpleOSDMapHandler("POST","/" + UUID.Random(), RemoteParcelRequest));
 
             caps.RegisterSimpleHandler("ParcelPropertiesUpdate", new SimpleStreamHandler("/" + UUID.Random(),
                 delegate (IOSHttpRequest request, IOSHttpResponse response)
@@ -1951,11 +1944,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            OpenMetaverse.StructuredData.OSDMap args;
+            OSDMap args;
             ParcelPropertiesUpdateMessage properties;
             try
             {
-                args = (OpenMetaverse.StructuredData.OSDMap)OSDParser.DeserializeLLSDXml(request.InputStream);
+                args = (OSDMap)OSDParser.DeserializeLLSDXml(request.InputStream);
                 properties = new ParcelPropertiesUpdateMessage();
                 properties.Deserialize(args);
             }
@@ -2051,24 +2044,23 @@ namespace OpenSim.Region.CoreModules.World.Land
         //     <uuid>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</uuid>
         //   </map>
         // </llsd>
-        private string RemoteParcelRequest(string request, string path, string param, UUID agentID, Caps caps)
+        private void RemoteParcelRequest(IOSHttpRequest request, IOSHttpResponse response, OSDMap args)
         {
             UUID parcelID = UUID.Zero;
+            OSD tmp;
             try
             {
-                Hashtable hash = new Hashtable();
-                hash = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));
-                if (hash.ContainsKey("location"))
+                if (args.TryGetValue("location", out tmp) && tmp is OSDArray)
                 {
                     UUID scope = m_scene.RegionInfo.ScopeID;
-                    ArrayList list = (ArrayList)hash["location"];
+                    OSDArray list = (OSDArray)tmp;
                     uint x = (uint)(double)list[0];
                     uint y = (uint)(double)list[1];
-                    if (hash.ContainsKey("region_handle"))
+                    if (args.TryGetValue("region_handle", out tmp) && tmp is OSDBinary)
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
-                        ulong regionHandle = Util.BytesToUInt64Big((byte[])hash["region_handle"]);
+                        ulong regionHandle = Util.BytesToUInt64Big((byte[])tmp);
                         if(regionHandle == m_scene.RegionInfo.RegionHandle)
                             parcelID = Util.BuildFakeParcelID(regionHandle, x, y);
                         else
@@ -2094,9 +2086,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                             }
                         }
                     }
-                    else if(hash.ContainsKey("region_id"))
+                    else if(args.TryGetValue("region_id", out tmp) && tmp is OSDUUID)
                     {
-                        UUID regionID = (UUID)hash["region_id"];
+                        UUID regionID = tmp.AsUUID();
                         if (regionID == m_scene.RegionInfo.RegionID)
                         {
                         // a parcel request for a local parcel => no need to query the grid
@@ -2112,14 +2104,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
-            catch (LLSD.LLSDParseException e)
+            catch
             {
-                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Fetch error: {0}", e.Message);
-                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: ... in request {0}", request);
-            }
-            catch (InvalidCastException)
-            {
-                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Wrong type in request {0}", request);
+                m_log.Error("[LAND MANAGEMENT MODULE]: RemoteParcelRequest failed");
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
             }
 
             //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
@@ -2127,7 +2116,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 LLSDxmlEncode.AddMap(sb);
                   LLSDxmlEncode.AddElem("parcel_id", parcelID,sb);
                 LLSDxmlEncode.AddEndMap(sb);
-            return LLSDxmlEncode.End(sb);
+            response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         #endregion
