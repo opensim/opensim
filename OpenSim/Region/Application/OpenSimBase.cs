@@ -831,7 +831,7 @@ namespace OpenSim
         /// </remarks>
         public class SimStatusHandler : SimpleStreamHandler
         {
-            public SimStatusHandler() : base("/simstatus", "SimStatus", "Simulator Status") {}
+            public SimStatusHandler() : base("/simstatus", "SimStatus") {}
 
             protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
@@ -850,7 +850,7 @@ namespace OpenSim
             OpenSimBase m_opensim;
 
             public XSimStatusHandler(OpenSimBase sim)
-                : base("/" + Util.SHA1Hash(sim.osSecret), "XSimStatus", "Simulator XStatus")
+                : base("/" + Util.SHA1Hash(sim.osSecret), "XSimStatus")
             {
                 m_opensim = sim;
             }
@@ -882,7 +882,7 @@ namespace OpenSim
             OpenSimBase m_opensim;
 
             public UXSimStatusHandler(OpenSimBase sim)
-                : base("/" + sim.userStatsURI, "UXSimStatus", "Simulator UXStatus")
+                : base("/" + sim.userStatsURI, "UXSimStatus")
             {
                 m_opensim = sim;
             }
@@ -908,7 +908,7 @@ namespace OpenSim
         public class SimRobotsHandler : SimpleStreamHandler
         {
             private readonly byte[] binmsg;
-            public SimRobotsHandler() : base("/robots.txt", "SimRobots.txt", "Simulator Robots.txt")
+            public SimRobotsHandler() : base("/robots.txt", "SimRobots")
             {
                 binmsg = Util.UTF8.GetBytes("# go away\nUser-agent: *\nDisallow: /\n");
             }

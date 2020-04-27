@@ -43,28 +43,32 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected IServiceAuth m_Auth;
         protected SimpleStreamMethod m_processRequest;
 
-        public SimpleStreamHandler(string path) : base(path, null, null) { }
-        public SimpleStreamHandler(string path, string name, string description) : base(path, name, description) { }
+        public SimpleStreamHandler(string path) : base(path) { }
+        public SimpleStreamHandler(string path, string name) : base(path, name) { }
 
-        public SimpleStreamHandler(string path, SimpleStreamMethod processRequest) : base(path, null, null)
+        public SimpleStreamHandler(string path, SimpleStreamMethod processRequest) : base(path)
+        {
+            m_processRequest = processRequest;
+        }
+        public SimpleStreamHandler(string path, SimpleStreamMethod processRequest, string name) : base(path, name)
         {
             m_processRequest = processRequest;
         }
 
-        public SimpleStreamHandler(string path, IServiceAuth auth) : base(path, null, null)
+        public SimpleStreamHandler(string path, IServiceAuth auth) : base(path)
         {
             m_Auth = auth;
         }
 
         public SimpleStreamHandler(string path, IServiceAuth auth, SimpleStreamMethod processRequest)
-            : base(path, null, null)
+            : base(path)
         {
             m_Auth = auth;
             m_processRequest = processRequest;
         }
 
-        public SimpleStreamHandler(string path, IServiceAuth auth, SimpleStreamMethod processRequest, string name, string description)
-            : base(path, name, description)
+        public SimpleStreamHandler(string path, IServiceAuth auth, SimpleStreamMethod processRequest, string name)
+            : base(path, name)
         {
             m_Auth = auth;
             m_processRequest = processRequest;

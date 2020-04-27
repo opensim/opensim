@@ -92,7 +92,6 @@ namespace OpenSim.Framework.Servers.HttpServer
     public interface ISimpleStreamHandler
     {
         string Name { get; }
-        string Description { get; }
         string Path { get; }
 
         int RequestsReceived { get; }

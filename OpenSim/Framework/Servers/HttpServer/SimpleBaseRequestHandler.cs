@@ -43,14 +43,14 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public string Name { get; private set; }
 
-        public string Description { get; private set; }
-
-        protected SimpleBaseRequestHandler(string path) : this(path, null, null) { }
-
-        protected SimpleBaseRequestHandler(string path, string name, string description)
+        protected SimpleBaseRequestHandler(string path)
+        {
+            Name = null;
+            m_path = path;
+        }
+        protected SimpleBaseRequestHandler(string path, string name)
         {
             Name = name;
-            Description = description;
             m_path = path;
         }
 
@@ -77,13 +77,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             return path.StartsWith(Path);
-        }
-
-        public string[] SplitParams(string path)
-        {
-            string param = GetParam(path);
-
-            return param.Split(new char[] { '/', '?', '&' }, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
