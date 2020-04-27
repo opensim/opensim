@@ -89,11 +89,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly Object vlock  = new Object();
 
-        // Capability strings
-        private static readonly string m_parcelVoiceInfoRequestPath = "0107/";
-        private static readonly string m_provisionVoiceAccountRequestPath = "0108/";
-        //private static readonly string m_chatSessionRequestPath = "0109/";
-
         // Control info, e.g. vivox server, admin user, admin password
         private static bool   m_pluginEnabled  = false;
         private static bool   m_adminConnected = false;
@@ -427,37 +422,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             m_log.DebugFormat("[VivoxVoice] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
-            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            caps.RegisterSimpleHandler("ProvisionVoiceAccountRequest",
+                    new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ProvisionVoiceAccountRequest(httpRequest, httpResponse, agentID, scene);
+                    }));
 
-            caps.RegisterHandler(
-                "ProvisionVoiceAccountRequest",
-                 new RestStreamHandler(
-                    "POST",
-                    capsBase + m_provisionVoiceAccountRequestPath,
-                    (request, path, param, httpRequest, httpResponse)
-                        => ProvisionVoiceAccountRequest(scene, request, path, param, agentID, caps),
-                    "ProvisionVoiceAccountRequest",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("ParcelVoiceInfoRequest",
+                    new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ParcelVoiceInfoRequest(httpRequest, httpResponse, agentID, scene);
+                    }));
 
-            caps.RegisterHandler(
-                "ParcelVoiceInfoRequest",
-                 new RestStreamHandler(
-                    "POST",
-                    capsBase + m_parcelVoiceInfoRequestPath,
-                    (request, path, param, httpRequest, httpResponse)
-                        => ParcelVoiceInfoRequest(scene, request, path, param, agentID, caps),
-                    "ParcelVoiceInfoRequest",
-                    agentID.ToString()));
-
-            //caps.RegisterHandler(
-            //    "ChatSessionRequest",
-            //     new RestStreamHandler(
-            //        "POST",
-            //        capsBase + m_chatSessionRequestPath,
-            //        (request, path, param, httpRequest, httpResponse)
-            //            => ChatSessionRequest(scene, request, path, param, agentID, caps),
-            //        "ChatSessionRequest",
-            //        agentID.ToString()));
+            //caps.RegisterSimpleHandler("ChatSessionRequest",
+            //      new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            //      {
+            //          ChatSessionRequest(httpRequest, httpResponse, agentID, scene);
+            //      }));
         }
 
         /// <summary>
@@ -470,16 +451,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ProvisionVoiceAccountRequest(Scene scene, string request, string path, string param,
-                                                   UUID agentID, Caps caps)
+        public void ProvisionVoiceAccountRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
+            if(request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            response.StatusCode = (int)HttpStatusCode.OK;
             try
             {
                 ScenePresence avatar = null;
                 string        avatarName = null;
 
                 if (scene == null)
-                    return "<llsd><undef /></llsd>";
+                {
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    return;
+                }
 
                 avatar = scene.GetScenePresence(agentID);
                 int nretries = 10;
@@ -490,7 +480,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 }
 
                 if(avatar == null)
-                    return "<llsd><undef /></llsd>";
+                {
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    return;
+                }
 
                 avatarName = avatar.Name;
 
@@ -592,7 +585,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 if (code != "OK")
                 {
                     m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: Get Account Request failed for \"{0}\"", avatarName);
-                    throw new Exception("Unable to execute request");
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    return;
                 }
 
                 // Unconditionally change the password on each request
@@ -607,14 +601,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LLSDxmlEncode.AddElem("voice_account_server_name", m_vivoxVoiceAccountApi, lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
 
-                return LLSDxmlEncode.End(lsl);
+                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                return;
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[VivoxVoice][PROVISIONVOICE]: : {0}, retry later", e.Message);
                 m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: : {0} failed", e.ToString());
-                return "<llsd><undef /></llsd>";
             }
+            response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
         }
 
         /// <summary>
@@ -627,10 +621,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ParcelVoiceInfoRequest(Scene scene, string request, string path, string param,
-                                             UUID agentID, Caps caps)
+        public void ParcelVoiceInfoRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
+            if (request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+
             ScenePresence avatar = scene.GetScenePresence(agentID);
+            if(avatar == null)
+            {
+                response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                return;
+            }
+
             string        avatarName = avatar.Name;
 
             // - check whether we have a region channel in our cache
@@ -642,9 +649,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             {
                 string channel_uri;
 
-                if (null == scene.LandChannel)
-                    throw new Exception(String.Format("region \"{0}\": avatar \"{1}\": land data not yet available",
-                                                      scene.RegionInfo.RegionName, avatarName));
+                if (scene.LandChannel == null)
+                {
+                    m_log.ErrorFormat("region \"{0}\": avatar \"{1}\": land data not yet available",
+                                                      scene.RegionInfo.RegionName, avatarName);
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    return;
+                }
 
                 // get channel_uri: check first whether estate
                 // settings allow voice, then whether parcel allows
@@ -653,7 +664,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LandData land = scene.GetLandData(avatar.AbsolutePosition);
                 if (land == null)
                 {
-                    return "<llsd><undef /></llsd>";
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+                    return;
                 }
 
                 // m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
@@ -691,17 +703,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 LLSDxmlEncode.AddEndMap(lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
 
-                return LLSDxmlEncode.End(lsl);
+                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                return;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": avatar \"{1}\": {2}, retry later",
                                   scene.RegionInfo.RegionName, avatarName, e.Message);
-                m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": avatar \"{1}\": {2} failed",
-                                  scene.RegionInfo.RegionName, avatarName, e.ToString());
-
-                return "<llsd><undef /></llsd>";
             }
+            response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
         }
 
         /// <summary>
@@ -714,15 +724,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ChatSessionRequest(Scene scene, string request, string path, string param,
-                                         UUID agentID, Caps caps)
+        public void ChatSessionRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
-//            ScenePresence avatar = scene.GetScenePresence(agentID);
-//            string        avatarName = avatar.Name;
+            if (request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            //            ScenePresence avatar = scene.GetScenePresence(agentID);
+            //            string        avatarName = avatar.Name;
 
-//            m_log.DebugFormat("[VivoxVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
-//                              avatarName, request, path, param);
-            return "<llsd>true</llsd>";
+            //            m_log.DebugFormat("[VivoxVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
+            //                              avatarName, request, path, param);
+            response.RawBuffer = Util.UTF8.GetBytes("<llsd>true</llsd>");
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
 
         private string RegionGetOrCreateChannel(Scene scene, LandData land)

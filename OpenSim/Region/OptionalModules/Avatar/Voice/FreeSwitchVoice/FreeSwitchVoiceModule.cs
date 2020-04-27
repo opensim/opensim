@@ -63,8 +63,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Capability string prefixes
-        private static readonly string m_parcelVoiceInfoRequestPath = "0207/";
-        private static readonly string m_provisionVoiceAccountRequestPath = "0208/";
         //private static readonly string m_chatSessionRequestPath = "0209/";
 
         // Control info
@@ -283,26 +281,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 "[FreeSwitchVoice]: OnRegisterCaps() called with agentID {0} caps {1} in scene {2}",
                 agentID, caps, scene.RegionInfo.RegionName);
 
-            string capsBase = "/CAPS/" + caps.CapsObjectPath;
-            caps.RegisterHandler(
-                "ProvisionVoiceAccountRequest",
-                new RestStreamHandler(
-                    "POST",
-                    capsBase + m_provisionVoiceAccountRequestPath,
-                    (request, path, param, httpRequest, httpResponse)
-                        => ProvisionVoiceAccountRequest(scene, request, path, param, agentID, caps),
-                    "ProvisionVoiceAccountRequest",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("ProvisionVoiceAccountRequest",
+                    new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ProvisionVoiceAccountRequest(httpRequest, httpResponse, agentID, scene);
+                    }));
 
-            caps.RegisterHandler(
-                "ParcelVoiceInfoRequest",
-                new RestStreamHandler(
-                    "POST",
-                    capsBase + m_parcelVoiceInfoRequestPath,
-                        (request, path, param, httpRequest, httpResponse)
-                            => ParcelVoiceInfoRequest(scene, request, path, param, agentID, caps),
-                    "ParcelVoiceInfoRequest",
-                    agentID.ToString()));
+            caps.RegisterSimpleHandler("ParcelVoiceInfoRequest",
+                    new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ParcelVoiceInfoRequest(httpRequest, httpResponse, agentID, scene);
+                    }));
 
             //caps.RegisterHandler(
             //    "ChatSessionRequest",
@@ -325,11 +314,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ProvisionVoiceAccountRequest(Scene scene, string request, string path, string param,
-                                                   UUID agentID, Caps caps)
+        public void ProvisionVoiceAccountRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
+            if(request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
             m_log.DebugFormat(
-                "[FreeSwitchVoice][PROVISIONVOICE]: ProvisionVoiceAccountRequest() request: {0}, path: {1}, param: {2}", request, path, param);
+                "[FreeSwitchVoice][PROVISIONVOICE]: ProvisionVoiceAccountRequest() request for {0}", agentID.ToString());
+
+            response.StatusCode = (int)HttpStatusCode.OK;
 
             ScenePresence avatar = scene.GetScenePresence(agentID);
             if (avatar == null)
@@ -338,7 +334,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 avatar = scene.GetScenePresence(agentID);
 
                 if (avatar == null)
-                    return "<llsd>undef</llsd>";
+                {
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
+                    return;
+                }
             }
             string avatarName = avatar.Name;
 
@@ -375,14 +374,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 LLSDxmlEncode.AddElem("voice_sip_uri_hostname", m_freeSwitchRealm, lsl);
                 LLSDxmlEncode.AddElem("voice_account_server_name", accounturl, lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
-                return LLSDxmlEncode.End(lsl);
+                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}, retry later", avatarName, e.Message);
                 m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1} failed", avatarName, e.ToString());
 
-                return "<llsd>undef</llsd>";
+                response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
             }
         }
 
@@ -396,14 +395,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ParcelVoiceInfoRequest(Scene scene, string request, string path, string param,
-                                             UUID agentID, Caps caps)
+        public void ParcelVoiceInfoRequest(IOSHttpRequest request, IOSHttpResponse response, UUID agentID, Scene scene)
         {
+            if (request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+
             m_log.DebugFormat(
                 "[FreeSwitchVoice][PARCELVOICE]: ParcelVoiceInfoRequest() on {0} for {1}",
                 scene.RegionInfo.RegionName, agentID);
 
             ScenePresence avatar = scene.GetScenePresence(agentID);
+            if(avatar == null)
+            {
+                response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
+                return;
+            }
+
             string avatarName = avatar.Name;
 
             // - check whether we have a region channel in our cache
@@ -416,8 +428,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 string channelUri;
 
                 if (null == scene.LandChannel)
-                    throw new Exception(String.Format("region \"{0}\": avatar \"{1}\": land data not yet available",
-                                                      scene.RegionInfo.RegionName, avatarName));
+                {
+                    m_log.ErrorFormat("region \"{0}\": avatar \"{1}\": land data not yet available",
+                                                      scene.RegionInfo.RegionName, avatarName);
+                    response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
+                    return;
+                }
 
                 // get channel_uri: check first whether estate
                 // settings allow voice, then whether parcel allows
@@ -459,7 +475,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 LLSDxmlEncode.AddEndMap(lsl);
                 LLSDxmlEncode.AddEndMap(lsl);
 
-                return LLSDxmlEncode.End(lsl);
+                response.RawBuffer= Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
             }
             catch (Exception e)
             {
@@ -468,7 +484,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": avatar \"{1}\": {2} failed",
                                   scene.RegionInfo.RegionName, avatarName, e.ToString());
 
-                return "<llsd>undef</llsd>";
+                response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
             }
         }
 
