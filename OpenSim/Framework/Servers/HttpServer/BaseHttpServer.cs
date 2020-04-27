@@ -615,6 +615,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.AddHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS");
                     response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
                     response.StatusCode = (int)HttpStatusCode.OK;
+
+                    if (request.InputStream != null && request.InputStream.CanRead)
+                        request.InputStream.Dispose();
+
+                    requestEndTick = Environment.TickCount;
+                    response.Send();
                     return;
                 }
 
