@@ -117,10 +117,18 @@ namespace OpenSim.Framework.Servers.HttpServer
                     return;
                 }
             }
-            if(m_processRequest != null)
-                m_processRequest(httpRequest, httpResponse, args);
-            else
-                ProcessRequest(httpRequest, httpResponse, args);
+            try
+            {
+                if(m_processRequest != null)
+                    m_processRequest(httpRequest, httpResponse, args);
+                else
+                    ProcessRequest(httpRequest, httpResponse, args);
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
+
             RequestsHandled++;
         }
 
