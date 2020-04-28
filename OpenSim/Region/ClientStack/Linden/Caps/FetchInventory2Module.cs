@@ -42,16 +42,16 @@ namespace OpenSim.Region.ClientStack.Linden
     /// This module implements both WebFetchInventoryDescendents and FetchInventoryDescendents2 capabilities.
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FetchInventory2Module")]
-    public class FetchInventory2Module : INonSharedRegionModule
+    public class FetchInventory2Module : ISharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Enabled { get; private set; }
 
-        private Scene m_scene;
+        private int m_nScenes;
 
-        private IInventoryService m_inventoryService;
-        private ILibraryService m_LibraryService;
+        private IInventoryService m_inventoryService = null;
+        private ILibraryService m_LibraryService = null;
         private string m_fetchInventory2Url;
 
         #region ISharedRegionModule Members
@@ -70,10 +70,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void AddRegion(Scene s)
         {
-            if (!Enabled)
-                return;
-
-            m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
@@ -81,8 +77,13 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!Enabled)
                 return;
 
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene = null;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            --m_nScenes;
+            if(m_nScenes <= 0)
+            {
+                m_inventoryService = null;
+                m_LibraryService = null;
+            }
         }
 
         public void RegionLoaded(Scene s)
@@ -90,9 +91,16 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!Enabled)
                 return;
 
-            m_inventoryService = m_scene.InventoryService;
-            m_LibraryService = m_scene.LibraryService;
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            if (m_inventoryService == null)
+                m_inventoryService = s.InventoryService;
+            if(m_LibraryService == null)
+                m_LibraryService = s.LibraryService;
+
+            if (m_inventoryService != null)
+            {
+                s.EventManager.OnRegisterCaps += RegisterCaps;
+                ++m_nScenes;
+            }
         }
 
         public void PostInitialise() {}
@@ -116,7 +124,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 caps.RegisterSimpleHandler("FetchInventory2",
                     new SimpleOSDMapHandler("POST", "/" + UUID.Random(), fetchHandler.FetchInventorySimpleRequest));
             }
-            else if(!string.IsNullOrWhiteSpace(m_fetchInventory2Url))
+            else
             {
                 caps.RegisterHandler("FetchInventory2", m_fetchInventory2Url);
             }
