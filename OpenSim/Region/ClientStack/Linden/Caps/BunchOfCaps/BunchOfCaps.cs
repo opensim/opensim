@@ -216,12 +216,12 @@ namespace OpenSim.Region.ClientStack.Linden
             else
                 m_scopeID = account.ScopeID;
 
-            RegisterHandlers();
-
             AddNewInventoryItem = m_Scene.AddUploadedInventoryItem;
             ItemUpdatedCall = m_Scene.CapsUpdateItemAsset;
             TaskScriptUpdatedCall = m_Scene.CapsUpdateTaskInventoryScriptAsset;
             GetClient = m_Scene.SceneGraph.GetControllingClient;
+
+            RegisterHandlers();
 
             m_FileAgentInventoryState = FileAgentInventoryState.idle;
         }
