@@ -309,6 +309,17 @@ namespace OpenSim.Region.ClientStack.Linden
                     // we have a single "do it all" method
                     var oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateInventoryItemAsset);
 
+                    // first also sets the http handler, others only register the cap, using it
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateNotecardAgentInventory", oreq, true); 
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateNotecardTaskInventory", oreq, false); // a object inv
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateAnimSetAgentInventory", oreq, false);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateScriptAgentInventory", oreq, false);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateScriptAgent", oreq, false);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsAgentInventory", oreq, false);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsTaskInventory", oreq, false); // a object inv
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateGestureAgentInventory", oreq, false);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateGestureTaskInventory", oreq, false);
+                }
 
                 m_HostCapsObj.RegisterSimpleHandler("UpdateAgentInformation",
                     new SimpleStreamHandler(GetNewCapPath(), UpdateAgentInformation));
