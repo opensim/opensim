@@ -312,7 +312,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     asset.Description ="NPC BAKED";
                     asset.Temporary = false;
                     asset.Local = false;
-                    asset.Flags &= ~AssetFlags.AvatarBake; // this can cause issues on older grids
+                    //asset.Flags &= ~AssetFlags.AvatarBake; // this can cause issues on older grids
                     m_scene.AssetService.Store(asset);
                 }
 
@@ -611,7 +611,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
                                 bakedModuleCache[i].TextureAsset.Temporary = true;
                                 bakedModuleCache[i].TextureAsset.Local = true;
-                                bakedModuleCache[i].TextureAsset.Flags = AssetFlags.AvatarBake;
+                                //bakedModuleCache[i].TextureAsset.Flags = AssetFlags.AvatarBake;
                                 cache.Cache(bakedModuleCache[i].TextureAsset);
                             }
                         }
