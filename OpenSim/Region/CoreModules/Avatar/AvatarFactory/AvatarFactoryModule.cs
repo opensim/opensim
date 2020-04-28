@@ -309,8 +309,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // Replace an HG ID with the simple asset ID so that we can persist textures for foreign HG avatars
                     asset.ID = asset.FullID.ToString();
 
+                    asset.Description ="NPC BAKED";
                     asset.Temporary = false;
                     asset.Local = false;
+                    asset.Flags &= ~AssetFlags.AvatarBake; // this can cause issues on older grids
                     m_scene.AssetService.Store(asset);
                 }
 
