@@ -104,4 +104,5 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public delegate void SimpleStreamMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
     public delegate void SimpleOSDMapMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap args);
+    public delegate void SimpleBinaryMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, byte[] data);
 }
