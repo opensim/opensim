@@ -110,30 +110,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            RegisterFetchCap(agentID, caps, "FetchInventory2", m_fetchInventory2Url);
-        }
-
-        private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
-        {
-            string capUrl;
-
-            if (url == "localhost")
+            if (m_fetchInventory2Url == "localhost")
             {
-                capUrl = "/CAPS/" + UUID.Random();
-
                 FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
-
-                IRequestHandler reqHandler
-                    = new RestStreamHandler(
-                        "POST", capUrl, fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
-
-                caps.RegisterHandler(capName, reqHandler);
+                caps.RegisterSimpleHandler("FetchInventory2",
+                    new SimpleOSDMapHandler("POST", "/" + UUID.Random(), fetchHandler.FetchInventorySimpleRequest));
             }
-            else
+            else if(!string.IsNullOrWhiteSpace(m_fetchInventory2Url))
             {
-                capUrl = url;
-
-                caps.RegisterHandler(capName, capUrl);
+                caps.RegisterHandler("FetchInventory2", m_fetchInventory2Url);
             }
 
 //            m_log.DebugFormat(

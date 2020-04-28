@@ -25,12 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
 using System.Reflection;
 using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
@@ -107,5 +107,51 @@ namespace OpenSim.Capabilities.Handlers
             LLSDxmlEncode.AddEndMap(lsl);
             return LLSDxmlEncode.End(lsl);
         }
+
+        public void FetchInventorySimpleRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap requestmap)
+        {
+            //m_log.DebugFormat("[FETCH INVENTORY HANDLER]: Received FetchInventory capability request {0}", request);
+
+            OSDArray itemsRequested = (OSDArray)requestmap["items"];
+
+            UUID[] itemIDs = new UUID[itemsRequested.Count];
+            int i = 0;
+            foreach (OSDMap osdItemId in itemsRequested)
+            {
+                itemIDs[i++] = osdItemId["item_id"].AsUUID();
+            }
+
+            InventoryItemBase[] items = null;
+            try
+            {
+                items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
+            }
+            catch{ }
+
+            StringBuilder lsl = LLSDxmlEncode.Start(4096);
+            LLSDxmlEncode.AddMap(lsl);
+
+            LLSDxmlEncode.AddElem("agent_id", m_agentID, lsl);
+
+            if (items == null || items.Length == 0)
+            {
+                LLSDxmlEncode.AddEmptyArray("items", lsl);
+            }
+            else
+            {
+                LLSDxmlEncode.AddArray("items", lsl);
+                foreach (InventoryItemBase item in items)
+                {
+                    if (item != null)
+                        item.ToLLSDxml(lsl, 0xff);
+                }
+                LLSDxmlEncode.AddEndArray(lsl);
+            }
+
+            LLSDxmlEncode.AddEndMap(lsl);
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+        }
     }
 }
+
