@@ -308,18 +308,20 @@ namespace OpenSim.Region.ClientStack.Linden
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>(
                         "POST", GetNewCapPath(), NewAgentInventoryRequest, "NewFileAgentInventory", null));
 
-                IRequestHandler req = new RestStreamHandler(
-                        "POST",  GetNewCapPath(), UpdateInventoryItemAsset, "Update*", null);
+                // we have a single "do it all" method
+                var oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateInventoryItemAsset);
 
-                m_HostCapsObj.RegisterHandler("UpdateNotecardAgentInventory", req);
-                m_HostCapsObj.RegisterHandler("UpdateNotecardTaskInventory", req); // a object inv
-                m_HostCapsObj.RegisterHandler("UpdateAnimSetAgentInventory", req);
-                m_HostCapsObj.RegisterHandler("UpdateScriptAgentInventory", req);
-                m_HostCapsObj.RegisterHandler("UpdateScriptAgent", req);
-                m_HostCapsObj.RegisterHandler("UpdateSettingsAgentInventory", req);
-                m_HostCapsObj.RegisterHandler("UpdateSettingsTaskInventory", req); // a object inv
-                m_HostCapsObj.RegisterHandler("UpdateGestureAgentInventory", req);
-                m_HostCapsObj.RegisterHandler("UpdateGestureTaskInventory", req);
+                // first also sets the http handler, others only register the cap, using it
+                m_HostCapsObj.RegisterSimpleHandler("UpdateNotecardAgentInventory", oreq, true); 
+                m_HostCapsObj.RegisterSimpleHandler("UpdateNotecardTaskInventory", oreq, false); // a object inv
+                m_HostCapsObj.RegisterSimpleHandler("UpdateAnimSetAgentInventory", oreq, false);
+                m_HostCapsObj.RegisterSimpleHandler("UpdateScriptAgentInventory", oreq, false);
+                m_HostCapsObj.RegisterSimpleHandler("UpdateScriptAgent", oreq, false);
+                m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsAgentInventory", oreq, false);
+                m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsTaskInventory", oreq, false); // a object inv
+                m_HostCapsObj.RegisterSimpleHandler("UpdateGestureAgentInventory", oreq, false);
+                m_HostCapsObj.RegisterSimpleHandler("UpdateGestureTaskInventory", oreq, false);
+
 
                 m_HostCapsObj.RegisterSimpleHandler("UpdateAgentInformation",
                     new SimpleStreamHandler(GetNewCapPath(), UpdateAgentInformation));
@@ -1366,25 +1368,21 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="path"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public string UpdateInventoryItemAsset(string request, string path, string param,
-                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void UpdateInventoryItemAsset(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
         {
-            m_log.Debug("[CAPS]: UpdateInventoryItemAsset Request in region: " + m_regionName + "\n" + request);
+            m_log.Debug("[CAPS]: UpdateInventoryItemAsset Request in region: " + m_regionName + "\n");
+
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             UUID itemID = UUID.Zero;
             UUID objectID = UUID.Zero;
 
             try
             {
-                OSD oreq = OSDParser.DeserializeLLSDXml(request);
-                if(oreq is OSDMap)
-                {
-                    OSDMap map = oreq as OSDMap;
-                    if (map.TryGetValue("item_id", out OSD itmp))
-                        itemID = itmp;
-                    if (map.TryGetValue("task_id", out OSD tmp))
-                        objectID = tmp;
-                }
+                if (map.TryGetValue("item_id", out OSD itmp))
+                    itemID = itmp;
+                if (map.TryGetValue("task_id", out OSD tmp))
+                    objectID = tmp;
             }
             catch { }
 
@@ -1393,7 +1391,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDAssetUploadError error = new LLSDAssetUploadError();
                 error.message = "failed to recode request";
                 error.identifier = UUID.Zero;
-                return LLSDHelpers.SerialiseLLSDReply(error);
+                httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDHelpers.SerialiseLLSDReply(error));
+                return;
             }
 
             if (objectID != UUID.Zero)
@@ -1404,7 +1403,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDAssetUploadError error = new LLSDAssetUploadError();
                     error.message = "object not found";
                     error.identifier = UUID.Zero;
-                    return LLSDHelpers.SerialiseLLSDReply(error);
+                    httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDHelpers.SerialiseLLSDReply(error));
+                    return;
                 }
 
                 if(!m_Scene.Permissions.CanEditObjectInventory(objectID, m_AgentID))
@@ -1412,7 +1412,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDAssetUploadError error = new LLSDAssetUploadError();
                     error.message = "No permissions to edit objec";
                     error.identifier = UUID.Zero;
-                    return LLSDHelpers.SerialiseLLSDReply(error);
+                    httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDHelpers.SerialiseLLSDReply(error));
+                    return;
                 }
             }
 
@@ -1436,13 +1437,13 @@ namespace OpenSim.Region.ClientStack.Linden
             // m_log.InfoFormat("[CAPS]: UpdateAgentInventoryAsset response: {0}",
             //                             LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
-            return LLSDHelpers.SerialiseLLSDReply(uploadResponse);
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDHelpers.SerialiseLLSDReply(uploadResponse));
         }
 
 
         private string CopyInventoryFromNotecardError(IOSHttpResponse response)
         {
-            response.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+            response.StatusCode = (int)HttpStatusCode.NotFound;
             response.StatusDescription = "";
             return "";
         }
