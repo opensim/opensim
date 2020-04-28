@@ -265,25 +265,104 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// <see>CapsUpdatedInventoryItemAsset(IClientAPI, UUID, byte[])</see>
         /// </summary>
-        public UUID CapsUpdateInventoryItemAsset(UUID avatarId, UUID itemID, byte[] data)
+        public UUID CapsUpdateItemAsset(UUID avatarId, UUID itemID, UUID objectID, byte[] data)
         {
-            ScenePresence avatar;
+            if (!TryGetScenePresence(avatarId, out ScenePresence avatar))
+            {
+                m_log.ErrorFormat("[CapsUpdateItemAsset]: Avatar {0} cannot be found to update item asset", avatarId);
+                return UUID.Zero;
+            }
 
-            if (TryGetScenePresence(avatarId, out avatar))
+            if (objectID == UUID.Zero)
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
                     return invAccess.CapsUpdateInventoryItemAsset(avatar.ControllingClient, itemID, data);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: " +
-                    "Avatar {0} cannot be found to update its inventory item asset",
-                    avatarId);
+                else
+                    return UUID.Zero;
             }
 
-            return UUID.Zero;
+            SceneObjectPart sop = GetSceneObjectPart(objectID);
+            if(sop == null || sop.ParentGroup.IsDeleted)
+            {
+                m_log.ErrorFormat("[CapsUpdateItemAsset]: Object {0} cannot be found to update item asset", objectID);
+                return UUID.Zero;
+            }
+
+            TaskInventoryItem item = sop.Inventory.GetInventoryItem(itemID);
+            if (item == null)
+            {
+                m_log.ErrorFormat("[CapsUpdateItemAsset]: Could not find item {0} for asset update", itemID);
+                return UUID.Zero;
+            }
+
+            if (item.OwnerID != avatarId)
+                return UUID.Zero;
+
+            InventoryType itemType = (InventoryType)item.InvType;
+            switch (itemType)
+            {
+                case InventoryType.Notecard:
+                {
+                    if (!Permissions.CanEditNotecard(itemID, objectID, avatarId))
+                    {
+                        avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
+                        return UUID.Zero;
+                    }
+
+                    avatar.ControllingClient.SendAlertMessage("Notecard updated");
+                    break;
+                }
+                case (InventoryType)CustomInventoryType.AnimationSet:
+                {
+                    AnimationSet animSet = new AnimationSet(data);
+                    uint res = animSet.Validate(x => {
+                        const int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
+                        int perms = InventoryService.GetAssetPermissions(avatarId, x);
+                        // enforce previus perm rule
+                        if ((perms & required) != required)
+                            return 0;
+                        return (uint)perms;
+                    });
+                    if (res == 0)
+                    {
+                        avatar.ControllingClient.SendAgentAlertMessage("Not enought permissions on asset(s) referenced by animation set '{0}', update failed", false);
+                        return UUID.Zero;
+                    }
+                    break;
+                }
+                case InventoryType.Gesture:
+                {
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit gesture", false);
+                        return UUID.Zero;
+                    }
+
+                    avatar.ControllingClient.SendAlertMessage("gesture updated");
+                    break;
+                }
+                case InventoryType.Settings:
+                {
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        avatar.ControllingClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
+                        return UUID.Zero;
+                    }
+
+                    avatar.ControllingClient.SendAlertMessage("getting updated");
+                    break;
+                }
+            }
+
+            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)item.Type, data, avatarId);
+            item.AssetID = asset.FullID;
+            AssetService.Store(asset);
+
+            sop.Inventory.UpdateInventoryItem(item);
+
+            // remoteClient.SendInventoryItemCreateUpdate(item);
+            return asset.FullID;
         }
 
         /// <summary>

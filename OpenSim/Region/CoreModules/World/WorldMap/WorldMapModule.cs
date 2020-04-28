@@ -225,8 +225,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             //m_log.DebugFormat("[WORLD MAP]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
-            string capspath =  "/CAPS/" + UUID.Random();
-            caps.RegisterSimpleHandler("MapLayer", new SimpleStreamHandler("/CAPS/" + UUID.Random(), MapLayerRequest));
+            caps.RegisterSimpleHandler("MapLayer", new SimpleStreamHandler("/" + UUID.Random(), MapLayerRequest));
         }
 
         /// <summary>
