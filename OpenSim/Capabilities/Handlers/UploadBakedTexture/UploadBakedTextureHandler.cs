@@ -107,7 +107,7 @@ namespace OpenSim.Capabilities.Handlers
             asset.Data = data;
             asset.Temporary = true;
             asset.Local = true;
-            asset.Flags = AssetFlags.AvatarBake;
+            //asset.Flags = AssetFlags.AvatarBake;
             m_assetService.Store(asset);
         }
     }

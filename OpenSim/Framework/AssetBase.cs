@@ -41,7 +41,7 @@ namespace OpenSim.Framework
         Rewritable = 2,     // Content can be rewritten
         Collectable = 4,     // Can be GC'ed after some time
 
-        AvatarBake = 0x8
+        //AvatarBake = 0x8
     }
 
     /// <summary>

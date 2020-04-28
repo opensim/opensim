@@ -186,9 +186,9 @@ namespace OpenSim.Capabilities.Handlers
                 if(len > 8196)
                 {
                     responsedata["throttle"] = true;
-                    if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
-                        responsedata["prio"] = 1;
-                    else
+                    //if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
+                    //    responsedata["prio"] = 1;
+                    //else
                         responsedata["prio"] = 2;
                 }
                 else
