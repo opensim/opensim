@@ -3693,7 +3693,20 @@ namespace OpenSim.Framework
             return result;
         }
 
-    }
+        public static void SaveAssetToFile(string filename, byte[] data)
+        {
+            string assetPath = "UserAssets";
+            if (!Directory.Exists(assetPath))
+            {
+                Directory.CreateDirectory(assetPath);
+            }
+            FileStream fs = File.Create(Path.Combine(assetPath, filename));
+            BinaryWriter bw = new BinaryWriter(fs);
+            bw.Write(data);
+            bw.Close();
+            fs.Close();
+        }
+        }
 
 /*  don't like this code
     public class DoubleQueue<T> where T:class
@@ -3857,6 +3870,7 @@ namespace OpenSim.Framework
         {
             rng.GetBytes(buff);
         }
+
 
     }
 }
