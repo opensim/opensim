@@ -424,7 +424,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
 
             string result = LLSDHelpers.SerialiseLLSDReply(m_HostCapsObj.GetCapsDetails(true, validCaps));
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(result);
+            httpResponse.RawBuffer = Util.UTF8NBGetbytes(result);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
         }
@@ -1266,7 +1266,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDxmlEncode.AddElem("type", folder.Type, sb);
                     LLSDxmlEncode.AddEndMap(sb);
 
-                    httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+                    httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     return;
                 }
@@ -1514,7 +1514,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
             }
 
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -1581,7 +1581,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddEndMap(lsl);
             }
 
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -1649,7 +1649,7 @@ namespace OpenSim.Region.ClientStack.Linden
             LLSDxmlEncode.AddEndMap(lsl);
 
             // resp["transaction_id"] = "undef";
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -1825,7 +1825,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resp["HomeLocation"] = homeloc;
             }
 
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            httpResponse.RawBuffer = Util.UTF8NBGetbytes(OSDParser.SerializeLLSDXmlString(resp));
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -1964,7 +1964,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 resp["members"] = new OSDMap();
             }
 
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            httpResponse.RawBuffer = Util.UTF8NBGetbytes(OSDParser.SerializeLLSDXmlString(resp));
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -2038,7 +2038,7 @@ namespace OpenSim.Region.ClientStack.Linden
         
             LLSDxmlEncode.AddEndMap(lsl);
 
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
             httpResponse.ContentType = "application/llsd+xml";
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
