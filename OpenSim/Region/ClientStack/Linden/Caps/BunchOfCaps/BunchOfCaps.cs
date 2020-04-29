@@ -252,11 +252,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             try
             {
-                //m_capsHandlers["MapLayer"] =
-                //    new LLSDStreamhandler<OSDMapRequest, OSDMapLayerResponse>("POST",
-                //                                                                GetNewCapPath(),
-                //                                                               GetMapLayer);
-
                 m_HostCapsObj.RegisterSimpleHandler("GetObjectPhysicsData",
                     new SimpleOSDMapHandler("POST", GetNewCapPath(), GetObjectPhysicsData));
 
@@ -265,9 +260,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_HostCapsObj.RegisterSimpleHandler("ResourceCostSelected",
                     new SimpleOSDMapHandler("POST", GetNewCapPath(), ResourceCostSelected));
-
  
-
                 if(m_AllowCapHomeLocation)
                 {
                     m_HostCapsObj.RegisterSimpleHandler("HomeLocation",
@@ -280,12 +273,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         new SimpleStreamHandler(GetNewCapPath(), GroupMemberData));
                 }
 
-
-//                IRequestHandler animSetRequestHandler
-//                    = new RestStreamHandler(
-//                        "POST", capsBase + m_animSetTaskUpdatePath, AnimSetTaskInventory, "UpdateScript", null);
-
-//                m_HostCapsObj.RegisterHandler("UpdateAnimSetTaskInventory", animSetRequestHandler);
             }
             catch (Exception e)
             {
@@ -311,6 +298,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateAnimSetItemAsset);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateAnimSetAgentInventory", oreq, true);
+                    //m_HostCapsObj.RegisterSimpleHandler("UpdateAnimSetTaskInventory", oreq, false);
 
                     oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateScriptItemAsset);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateScriptAgent", oreq, true);
@@ -335,9 +323,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_HostCapsObj.RegisterSimpleHandler("UpdateAgentInformation",
                     new SimpleStreamHandler(GetNewCapPath(), UpdateAgentInformation));
 
-                IRequestHandler CopyInventoryFromNotecardHandler = new RestStreamHandler(
-                        "POST", GetNewCapPath(), CopyInventoryFromNotecard, "CopyInventoryFromNotecard", null);
-                m_HostCapsObj.RegisterHandler("CopyInventoryFromNotecard", CopyInventoryFromNotecardHandler);
+                m_HostCapsObj.RegisterSimpleHandler("CopyInventoryFromNotecard",
+                    new SimpleOSDMapHandler("POST", GetNewCapPath(), CopyInventoryFromNotecard));
 
                 m_HostCapsObj.RegisterSimpleHandler("CreateInventoryCategory",
                     new SimpleStreamHandler(GetNewCapPath(), CreateInventoryCategory));
@@ -1277,14 +1264,6 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
         }
 
-
-        private string CopyInventoryFromNotecardError(IOSHttpResponse response)
-        {
-            response.StatusCode = (int)HttpStatusCode.NotFound;
-            response.StatusDescription = "";
-            return "";
-        }
-
         /// <summary>
         /// Called by the CopyInventoryFromNotecard caps handler.
         /// </summary>
@@ -1292,15 +1271,15 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name="path"></param>
         /// <param name="param"></param>
 
-        public string CopyInventoryFromNotecard(string request, string path, string param,
-                                             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void CopyInventoryFromNotecard(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap content)
         {
             InventoryItemBase copyItem = null;
             IClientAPI client = null;
 
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+
             try
             {
-                OSDMap content = (OSDMap)OSDParser.DeserializeLLSDXml(request);
                 UUID objectID = content["object-id"].AsUUID();
                 UUID notecardID = content["notecard-id"].AsUUID();
                 UUID folderID = content["folder-id"].AsUUID();
@@ -1317,14 +1296,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
                     if(part == null)
-                        throw new Exception("find object with notecard item" + notecardID.ToString());
-
-                    if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, agentID))
-                        return CopyInventoryFromNotecardError(httpResponse);
+                        throw new Exception("failed to find object with notecard item" + notecardID.ToString());
 
                     TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
-                    if(taskItem == null || taskItem.AssetID == UUID.Zero)
+                    if (taskItem == null || taskItem.AssetID == UUID.Zero)
                         throw new Exception("Failed to find notecard item" + notecardID.ToString());
+
+                    if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, agentID))
+                        throw new Exception("No permission to copy notecard from object");
+
                     noteAssetID = taskItem.AssetID;
                 }
                 else
@@ -1341,7 +1321,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0}, FolderID:{1}", copyItem.ID, copyItem.Folder);
                         if (client != null)
                             client.SendBulkUpdateInventory(copyItem);
-                        return "";
+                        return;
                     }
 
                     if (notecardID != UUID.Zero)
@@ -1455,7 +1435,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.InfoFormat("[CAPS]: CopyInventoryFromNotecard, ItemID:{0} FolderID:{1}", item.ID, item.Folder);
                 if (client != null)
                     client.SendBulkUpdateInventory(item);
-                return "";
+                return;
             }
             catch (Exception e)
             {
@@ -1467,10 +1447,8 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (client != null)
                     client.SendAlertMessage("Failed to retrieve item");
-                return CopyInventoryFromNotecardError(httpResponse);
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
             }
-
-            return "";
         }
 
         public void GetObjectPhysicsData(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
