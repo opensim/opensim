@@ -389,6 +389,11 @@ namespace OpenSim.Framework.Console
             System.Console.WriteLine();
         }
 
+        public override void Output(string format)
+        {
+            Output(format, null);
+        }
+
         public override void Output(string format, params object[] components)
         {
             string level = null;

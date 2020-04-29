@@ -84,7 +84,7 @@ namespace OpenSim.Framework.Console
         {
         }
 
-        public void Output(string format)
+        public virtual void Output(string format)
         {
             System.Console.WriteLine(format);
         }
