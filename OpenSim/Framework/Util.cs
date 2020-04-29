@@ -247,6 +247,18 @@ namespace OpenSim.Framework
         public static Encoding UTF8 = Encoding.UTF8;
         public static Encoding UTF8NoBomEncoding = new UTF8Encoding(false);
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static byte[] UTF8Getbytes(string s)
+        {
+            return UTF8.GetBytes(s);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static byte[] UTF8NBGetbytes(string s)
+        {
+            return UTF8NoBomEncoding.GetBytes(s);
+        }
+
         /// <value>
         /// Well known UUID for the blank texture used in the Linden SL viewer version 1.20 (and hopefully onwards)
         /// </value>

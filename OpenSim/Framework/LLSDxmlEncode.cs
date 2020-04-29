@@ -72,6 +72,12 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        public static byte[] EndToNBBytes(StringBuilder sb)
+        {
+            sb.Append("</llsd>");
+            return Util.UTF8NBGetbytes(sb.ToString());
+        }
+
         // map == a list of key value pairs
         public static void AddMap(StringBuilder sb)
         {
