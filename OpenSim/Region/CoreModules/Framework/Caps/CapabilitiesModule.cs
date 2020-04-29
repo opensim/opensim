@@ -339,8 +339,11 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                 {
-                    capsReport.AppendFormat("** Circuit {0}:\n", kvp.Key);
                     Caps caps = kvp.Value;
+                    string name = string.Empty;
+                    if(m_scene.TryGetScenePresence(caps.AgentID, out ScenePresence sp) && sp!=null);
+                        name = sp.Name;
+                    capsReport.AppendFormat("** Circuit {0}; {1} {2}:\n", kvp.Key, caps.AgentID,name);
 
                     for (IDictionaryEnumerator kvp2 = caps.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
                     {
