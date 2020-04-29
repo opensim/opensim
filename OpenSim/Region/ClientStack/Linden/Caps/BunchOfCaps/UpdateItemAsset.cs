@@ -211,8 +211,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 uploadResponse.state = "upload";
 
                 TaskInventoryScriptUpdater uploader = new TaskInventoryScriptUpdater(itemID, objectID, is_script_running,
-                        uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
-                uploader.remoteAdress = httpRequest.RemoteIPEndPoint.Address;
+                        uploaderPath, m_HostCapsObj.HttpListener, httpRequest.RemoteIPEndPoint.Address, m_dumpAssetsToFile);
                 uploader.OnUpLoad += TaskScriptUpdated;
 
                 var uploaderHandler = new SimpleBinaryHandler("POST", uploaderPath, uploader.process);
@@ -305,9 +304,8 @@ namespace OpenSim.Region.ClientStack.Linden
         public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
         {
             m_timeout.Stop();
-            m_timeout.Dispose();
-
             m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
+            m_timeout.Dispose();
 
             if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAdress))
             {
@@ -370,11 +368,11 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_isScriptRunning;
         private IHttpServer m_httpListener;
         private bool m_dumpAssetToFile;
-        public IPAddress remoteAdress;
+        public IPAddress m_remoteAddress;
         private Timer m_timeout;
 
         public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
-                                            string path, IHttpServer httpServer, bool dumpAssetToFile)
+                                            string path, IHttpServer httpServer, IPAddress address, bool dumpAssetToFile)
         {
             m_dumpAssetToFile = dumpAssetToFile;
 
@@ -385,7 +383,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_uploaderPath = path;
             m_httpListener = httpServer;
-
+            m_remoteAddress = address;
             m_timeout = new Timer();
             m_timeout.Elapsed += Timeout;
             m_timeout.Interval = 1000;
@@ -408,10 +406,16 @@ namespace OpenSim.Region.ClientStack.Linden
         public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
         {
             m_timeout.Stop();
+            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
             m_timeout.Dispose();
 
-            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
-            if(OnUpLoad == null)
+            if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAddress))
+            {
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
+            }
+
+            if (OnUpLoad == null)
             {
                 response.StatusCode = (int)HttpStatusCode.Gone;
                 return;
