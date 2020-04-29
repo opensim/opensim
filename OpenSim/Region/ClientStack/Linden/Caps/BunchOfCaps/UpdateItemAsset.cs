@@ -4,6 +4,7 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Timers;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -103,8 +104,8 @@ namespace OpenSim.Region.ClientStack.Linden
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
 
-            ItemUpdater uploader = new ItemUpdater(itemID, objectID, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
-            uploader.remoteAdress = httpRequest.RemoteIPEndPoint.Address;
+            ItemUpdater uploader = new ItemUpdater(itemID, objectID, atype, uploaderPath, m_HostCapsObj.HttpListener, m_dumpAssetsToFile);
+            uploader.m_remoteAdress = httpRequest.RemoteIPEndPoint.Address;
 
             uploader.OnUpLoad += ItemUpdated;
 
@@ -248,6 +249,11 @@ namespace OpenSim.Region.ClientStack.Linden
                     errors.Add(item);
             }
         }
+
+        static public bool ValidateAssetData(byte assetType, byte[] data)
+        {
+            return true;
+        }
     }
 
 
@@ -258,21 +264,35 @@ namespace OpenSim.Region.ClientStack.Linden
     public class ItemUpdater
     {
         public event UpdateItem OnUpLoad = null;
-        private string uploaderPath = String.Empty;
-        private UUID inventoryItemID;
-        private UUID objectID;
-        private IHttpServer httpListener;
+        private string m_uploaderPath = String.Empty;
+        private UUID m_inventoryItemID;
+        private UUID m_objectID;
+        private IHttpServer m_httpListener;
         private bool m_dumpAssetToFile;
-        public IPAddress remoteAdress;
+        public IPAddress m_remoteAdress;
+        private byte m_assetType;
+        private Timer m_timeout;
 
-        public ItemUpdater(UUID inventoryItem, UUID objectid, string path, IHttpServer httpServer, bool dumpAssetToFile)
+        public ItemUpdater(UUID inventoryItem, UUID objectid,byte aType, string path, IHttpServer httpServer, bool dumpAssetToFile)
         {
             m_dumpAssetToFile = dumpAssetToFile;
 
-            inventoryItemID = inventoryItem;
-            objectID = objectid;
-            uploaderPath = path;
-            httpListener = httpServer;
+            m_inventoryItemID = inventoryItem;
+            m_objectID = objectid;
+            m_uploaderPath = path;
+            m_httpListener = httpServer;
+            m_assetType = aType;
+
+            m_timeout = new Timer();
+            m_timeout.Elapsed += Timeout;
+            m_timeout.Interval = 1000;
+            m_timeout.Start();
+        }
+
+        private void Timeout(Object source, ElapsedEventArgs e)
+        {
+            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
+            m_timeout.Dispose();
         }
 
         /// <summary>
@@ -284,9 +304,12 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <returns></returns>
         public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
         {
-            httpListener.RemoveSimpleStreamHandler(uploaderPath);
+            m_timeout.Stop();
+            m_timeout.Dispose();
 
-            if (!request.RemoteIPEndPoint.Address.Equals(remoteAdress))
+            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
+
+            if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAdress))
             {
                 response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 return;
@@ -300,20 +323,26 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            UUID assetID = OnUpLoad(inventoryItemID, objectID, data);
+            if (!BunchOfCaps.ValidateAssetData(m_assetType, data))
+            {
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+
+            UUID assetID = OnUpLoad(m_inventoryItemID, m_objectID, data);
 
             if (assetID == UUID.Zero)
             {
                 LLSDAssetUploadError uperror = new LLSDAssetUploadError();
                 uperror.message = "Failed to update inventory item asset";
-                uperror.identifier = inventoryItemID;
+                uperror.identifier = m_inventoryItemID;
                 res = LLSDHelpers.SerialiseLLSDReply(uperror);
             }
             else
             {
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 uploadComplete.new_asset = assetID.ToString();
-                uploadComplete.new_inventory_item = inventoryItemID;
+                uploadComplete.new_inventory_item = m_inventoryItemID;
                 uploadComplete.state = "complete";
                 res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
             }
@@ -342,6 +371,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IHttpServer m_httpListener;
         private bool m_dumpAssetToFile;
         public IPAddress remoteAdress;
+        private Timer m_timeout;
 
         public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
                                             string path, IHttpServer httpServer, bool dumpAssetToFile)
@@ -355,6 +385,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_uploaderPath = path;
             m_httpListener = httpServer;
+
+            m_timeout = new Timer();
+            m_timeout.Elapsed += Timeout;
+            m_timeout.Interval = 1000;
+            m_timeout.Start();
+        }
+
+        private void Timeout(Object source, ElapsedEventArgs e)
+        {
+            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
+            m_timeout.Dispose();
         }
 
         /// <summary>
@@ -366,10 +407,19 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <returns></returns>
         public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
         {
+            m_timeout.Stop();
+            m_timeout.Dispose();
+
             m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
             if(OnUpLoad == null)
             {
                 response.StatusCode = (int)HttpStatusCode.Gone;
+                return;
+            }
+
+            if (!BunchOfCaps.ValidateAssetData((byte)AssetType.LSLText, data))
+            {
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
