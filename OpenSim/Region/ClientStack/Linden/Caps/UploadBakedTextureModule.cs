@@ -171,7 +171,8 @@ namespace OpenSim.Region.ClientStack.Linden
             m_assetCache = cache;
             m_timeout = new Timer();
             m_timeout.Elapsed += Timeout;
-            m_timeout.Interval = 1000;
+            m_timeout.AutoReset = false;
+            m_timeout.Interval = 30000;
             m_timeout.Start();
         }
 

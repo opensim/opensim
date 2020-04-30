@@ -174,9 +174,9 @@ namespace OpenSim.Framework.Capabilities
         public void Dispose(bool disposing)
         {
             Flags = CapsFlags.None;
-            DeregisterHandlers();
             if (m_capsActive != null)
             {
+                DeregisterHandlers();
                 m_capsActive.Dispose();
                 m_capsActive = null;
             }
