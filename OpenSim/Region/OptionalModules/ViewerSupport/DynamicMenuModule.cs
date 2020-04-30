@@ -26,20 +26,15 @@
  */
 
 using System;
-using System.IO;
+using System.Net;
 using System.Reflection;
-using System.Text;
+
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using OpenSim;
-using OpenSim.Region;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Framework;
-//using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using Nini.Config;
 using log4net;
@@ -210,10 +205,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         private void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
-            capUrl = "/CAPS/" + UUID.Random() + "/";
-            caps.RegisterHandler("CustomMenuAction", new MenuActionHandler(capUrl, "CustomMenuAction", agentID, this, m_scene));
+            caps.RegisterSimpleHandler("CustomMenuAction", new MenuActionHandler("/" + UUID.Random(), "CustomMenuAction", agentID, this, m_scene));
         }
 
         internal void HandleMenuSelection(string action, UUID agentID, List<uint> selection)
@@ -267,7 +259,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         }
     }
 
-    public class MenuActionHandler : BaseStreamHandler
+    public class MenuActionHandler : SimpleOSDMapHandler
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -277,22 +269,17 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         private DynamicMenuModule m_module;
 
         public MenuActionHandler(string path, string name, UUID agentID, DynamicMenuModule module, Scene scene)
-                :base("POST", path, name, agentID.ToString())
+                :base("POST", path)
         {
             m_agentID = agentID;
             m_scene = scene;
             m_module = module;
         }
 
-        protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap osd)
         {
-            StreamReader reader = new StreamReader(request);
-            string requestBody = reader.ReadToEnd();
-
-            OSD osd = OSDParser.DeserializeLLSDXml(requestBody);
-
-            string action = ((OSDMap)osd)["action"].AsString();
-            OSDArray selection = (OSDArray)((OSDMap)osd)["selection"];
+            string action = osd["action"].AsString();
+            OSDArray selection = (OSDArray)osd["selection"];
             List<uint> sel = new List<uint>();
             for (int i = 0 ; i < selection.Count ; i++)
                 sel.Add(selection[i].AsUInteger());
@@ -300,8 +287,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             Util.FireAndForget(
                 x => { m_module.HandleMenuSelection(action, m_agentID, sel); }, null, "DynamicMenuModule.HandleMenuSelection");
 
-            Encoding encoding = Encoding.UTF8;
-            return encoding.GetBytes(OSDParser.SerializeLLSDXmlString(new OSD()));
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            //httpResponse.RawBuffer = Util.UTF8NBGetbytes("<llsd></llsd>");
         }
     }
 }
