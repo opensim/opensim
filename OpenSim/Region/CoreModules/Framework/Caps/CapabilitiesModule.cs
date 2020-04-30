@@ -191,11 +191,11 @@ namespace OpenSim.Region.CoreModules.Framework
 
             lock (m_capsObjects)
             {
-                if (m_capsObjects.ContainsKey(circuitCode))
+                if (m_capsObjects.TryGetValue(circuitCode, out Caps cp))
                 {
-                    m_capsObjects[circuitCode].DeregisterHandlers();
-                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsObjects[circuitCode]);
+                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, cp);
                     m_capsObjects.Remove(circuitCode);
+                    cp.Dispose();
                 }
                 else
                 {
@@ -203,9 +203,9 @@ namespace OpenSim.Region.CoreModules.Framework
                     {
                         if (kvp.Value.AgentID == agentId)
                         {
-                            kvp.Value.DeregisterHandlers();
                             m_scene.EventManager.TriggerOnDeregisterCaps(agentId, kvp.Value);
                             m_capsObjects.Remove(kvp.Key);
+                            kvp.Value.Dispose();
                             return;
                         }
                     }

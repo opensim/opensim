@@ -92,7 +92,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             // m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
-            caps.RegisterSimpleHandler("ObjectAdd", new SimpleOSDMapHandler("POST", "/" + UUID.Random().ToString(),
+            caps.RegisterSimpleHandler("ObjectAdd", new SimpleOSDMapHandler("POST", "/" + UUID.Random(),
                 delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
                 {
                     ProcessAdd(httpRequest, httpResponse, map, agentID);
