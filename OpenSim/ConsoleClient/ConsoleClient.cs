@@ -80,7 +80,7 @@ namespace OpenSim.ConsoleClient
             while (m_Server.Running)
             {
                 System.Threading.Thread.Sleep(500);
-                // MainConsole.Instance.Prompt();
+                MainConsole.Instance.Prompt();
             }
 
             if (pidFile != String.Empty)

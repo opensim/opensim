@@ -274,6 +274,7 @@ namespace OpenSim.Framework.Monitoring
                 if(LogLevel >= 1)
                     m_log.DebugFormat("[{0}]: Processed job {1}",LoggingName,m_currentJob.Name);
 
+                m_currentJob.Action = null;
                 m_currentJob = null;
             }
         }
@@ -300,7 +301,7 @@ namespace OpenSim.Framework.Monitoring
             /// <summary>
             /// Action to perform when this job is processed.
             /// </summary>
-            public Action Action { get; private set; }
+            public Action Action { get; set; }
 
             private Job(string name, string commonId, Action action)
             {
