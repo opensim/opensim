@@ -131,7 +131,15 @@ namespace OpenSim.Framework.Monitoring
                 finally
                 {
                     if(m_cancelSource != null)
+                    {
                         m_cancelSource.Dispose();
+                        m_cancelSource = null;
+                    }
+                    if (m_jobQueue != null)
+                    {
+                        m_jobQueue .Dispose();
+                        m_jobQueue = null;
+                    }
                 }
             }
         }
