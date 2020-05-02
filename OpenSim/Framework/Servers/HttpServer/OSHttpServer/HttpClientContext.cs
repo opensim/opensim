@@ -25,11 +25,15 @@ namespace OSHttpServer
 
         static private int basecontextID;
 
+        Queue<HttpRequest> m_requests;
+        object m_requestsLock = new object();
+        public int m_maxRequests = MAXREQUESTS;
+        public bool m_waitingResponse; 
+
         private readonly byte[] m_ReceiveBuffer;
         private int m_ReceiveBytesLeft;
         private ILogWriter m_log;
         private readonly IHttpRequestParser m_parser;
-        private HashSet<uint> requestsInServiceIDs;
         private Socket m_sock;
 
         public bool Available = true;
@@ -43,8 +47,6 @@ namespace OSHttpServer
 
         public int TimeoutMaxIdle = 180000; // 3 minutes
         public int m_TimeoutKeepAlive = 60000;
-
-        public int m_maxRequests = MAXREQUESTS;
 
         public bool FirstRequestLineReceived;
         public bool FullRequestReceived;
@@ -126,7 +128,7 @@ namespace OSHttpServer
             m_sock = sock;
 
             m_ReceiveBuffer = new byte[16384];
-            requestsInServiceIDs = new HashSet<uint>();
+            m_requests = new Queue<HttpRequest>();
 
             SSLCommonName = "";
             if (secured)
@@ -179,9 +181,9 @@ namespace OSHttpServer
         {
             if (string.Compare(e.Name, "expect", true) == 0 && e.Value.Contains("100-continue"))
             {
-                lock (requestsInServiceIDs)
+                lock (m_requestsLock)
                 {
-                    if (requestsInServiceIDs.Count == 0)
+                    if (m_maxRequests == MAXREQUESTS)
                         Respond("HTTP/1.1", HttpStatusCode.Continue, null);
                 }
             }
@@ -237,7 +239,8 @@ namespace OSHttpServer
             m_currentRequest = null;
             m_currentResponse?.Clear();
             m_currentResponse = null;
-            requestsInServiceIDs.Clear();
+            m_requests.Clear();
+            m_requests = null;
             m_parser.Clear();
 
             FirstRequestLineReceived = false;
@@ -464,27 +467,23 @@ namespace OSHttpServer
 
             m_currentRequest.Body.Seek(0, SeekOrigin.Begin);
 
-            int nreqs;
-            lock (requestsInServiceIDs)
+            bool donow = true;
+            lock (m_requestsLock)
             {
-                nreqs = requestsInServiceIDs.Count;
-                requestsInServiceIDs.Add(m_currentRequest.ID);
+                if(m_waitingResponse)
+                {
+                    m_requests.Enqueue(m_currentRequest);
+                    donow = false;
+                }
+                else
+                    m_waitingResponse = true;
             }
 
             // for now pipeline requests need to be serialized by opensim
-            RequestReceived?.Invoke(this, new RequestEventArgs(m_currentRequest));
+            if(donow)
+                RequestReceived?.Invoke(this, new RequestEventArgs(m_currentRequest));
 
             m_currentRequest = new HttpRequest(this);
-
-            int nreqsnow;
-            lock (requestsInServiceIDs)
-            {
-                nreqsnow = requestsInServiceIDs.Count;
-            }
-            if (nreqs != nreqsnow)
-            {
-                // request was not done by us
-            }
         }
 
         public void StartSendResponse(HttpResponse response)
@@ -524,27 +523,17 @@ namespace OSHttpServer
             m_currentResponse = null;
 
             bool doclose = ctype == ConnectionType.Close;
-            lock (requestsInServiceIDs)
-            {
-                requestsInServiceIDs.Remove(requestID);
-                if (requestsInServiceIDs.Count > 1)
-                {
-                }
-            }
-
-            if (doclose)
+             if (doclose)
             {
                 m_isClosing = true;
-                lock (requestsInServiceIDs)
-                    requestsInServiceIDs.Clear();
-
+                m_requests.Clear();
                 TriggerKeepalive = true;
                 return;
             }
             else
             {
                 LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
-                if(Stream!=null && Stream.CanWrite)
+                if (Stream != null && Stream.CanWrite)
                 {
                     ContextTimeoutManager.ContextEnterActiveSend();
                     try
@@ -557,10 +546,22 @@ namespace OSHttpServer
                     ContextTimeoutManager.ContextLeaveActiveSend();
                 }
 
-                lock (requestsInServiceIDs)
+                if (Stream == null || !Stream.CanWrite)
+                    return;
+
+                TriggerKeepalive = true;
+                lock (m_requestsLock)
                 {
-                    if (requestsInServiceIDs.Count == 0)
-                        TriggerKeepalive = true;
+                    m_waitingResponse = false;
+                    if (m_requests != null && m_requests.Count > 0)
+                    {
+                        HttpRequest nextRequest = m_requests.Dequeue();
+                        if (nextRequest != null)
+                        {
+                            m_waitingResponse = true;
+                            RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
+                        }
+                    }
                 }
             }
         }
