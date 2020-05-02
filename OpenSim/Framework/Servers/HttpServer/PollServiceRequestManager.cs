@@ -41,7 +41,6 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<int, Queue<PollServiceHttpRequest>> m_bycontext;
         private BlockingCollection<PollServiceHttpRequest> m_requests = new BlockingCollection<PollServiceHttpRequest>();
         private ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
 
@@ -59,7 +58,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
 
-            m_bycontext = new Dictionary<int, Queue<PollServiceHttpRequest>>(256);
             /*
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.IdleTimeout = 30000;
@@ -111,61 +109,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Enqueue(PollServiceHttpRequest req)
         {
-            Queue<PollServiceHttpRequest> ctxQeueue;
-            int rhash = req.contextHash;
-            lock (m_bycontext)
-            {
-                if (m_bycontext.TryGetValue(rhash, out ctxQeueue))
-                {
-                    ctxQeueue.Enqueue(req);
-                }
-                else
-                {
-                    ctxQeueue = new Queue<PollServiceHttpRequest>();
-                    m_bycontext[rhash] = ctxQeueue;
-                    EnqueueInt(req);
-                }
-            }
-        }
-
-        public void byContextDequeue(PollServiceHttpRequest req)
-        {
-            Queue<PollServiceHttpRequest> ctxQeueue;
-            int rhash = req.contextHash;
-            lock (m_bycontext)
-            {
-                if (m_bycontext.TryGetValue(rhash, out ctxQeueue))
-                {
-                    if (ctxQeueue.Count > 0)
-                    {
-                        PollServiceHttpRequest newreq = ctxQeueue.Dequeue();
-                        EnqueueInt(newreq);
-                    }
-                    else
-                    {
-                        m_bycontext.Remove(rhash);
-                    }
-                }
-            }
-        }
-
-        public void DropByContext(PollServiceHttpRequest req)
-        {
-            Queue<PollServiceHttpRequest> ctxQeueue;
-            int rhash = req.contextHash;
-            lock (m_bycontext)
-            {
-                if (m_bycontext.TryGetValue(rhash, out ctxQeueue))
-                {
-                    ctxQeueue.Clear();
-                    m_bycontext.Remove(rhash);
-                }
-            }
-        }
-
-        public void EnqueueInt(PollServiceHttpRequest req)
-        {
-            if (m_running)
+            if(m_running)
                 m_requests.Add(req);
         }
 
@@ -197,14 +141,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             // any entry in m_bycontext should have a active request on the other queues
             // so just delete contents to easy GC
-            foreach (Queue<PollServiceHttpRequest> qu in m_bycontext.Values)
-                qu.Clear();
-            m_bycontext.Clear();
-
             PollServiceHttpRequest req;
             try
             {
-                while(m_retryRequests.TryDequeue(out req))
+                while (m_retryRequests.TryDequeue(out req))
                     req.DoHTTPstop();
             }
             catch
@@ -219,9 +159,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch
             {
             }
-
             m_requests.Dispose();
-
         }
 
         // work threads
@@ -245,7 +183,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (!req.HttpContext.CanSend())
                     {
                         req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
-                        byContextDequeue(req);
                         continue;
                     }
 
@@ -254,7 +191,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
                             req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
-                            byContextDequeue(req);
                         }
                         else
                             ReQueueEvent(req);
@@ -274,7 +210,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             catch (ObjectDisposedException) { }
                             finally
                             {
-                                byContextDequeue(nreq);
                                 nreq = null;
                             }
                             //return null;
@@ -294,7 +229,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 catch (ObjectDisposedException) { }
                                 finally
                                 {
-                                    byContextDequeue(nreq);
                                     nreq = null;
                                 }
                                 //return null;
