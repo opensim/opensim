@@ -246,13 +246,13 @@ namespace OpenSim.Framework.Monitoring
                         break;
                     }
                 }
-                catch(ObjectDisposedException)
+                catch (OperationCanceledException)
                 {
-                    m_log.DebugFormat("[JobEngine] {0} stopping ignoring {1} jobs in queue",
-                        Name,m_jobQueue.Count);
+                    m_log.DebugFormat("[JobEngine] {0} Canceled ignoring {1} jobs in queue",
+                        Name, m_jobQueue.Count);
                     break;
                 }
-                catch(OperationCanceledException)
+                catch
                 {
                     break;
                 }
