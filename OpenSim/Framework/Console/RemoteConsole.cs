@@ -190,6 +190,11 @@ namespace OpenSim.Framework.Console
             m_Server.AddHTTPHandler("/SessionCommand/", HandleHttpSessionCommand);
         }
 
+        public override void Output(string format)
+        {
+            Output(format, null);
+        }
+
         public override void Output(string format, params object[] components)
         {
             string level = null;
