@@ -239,6 +239,14 @@ namespace OSHttpServer
             m_currentRequest = null;
             m_currentResponse?.Clear();
             m_currentResponse = null;
+            if(m_requests != null)
+            {
+                while(m_requests.Count > 0)
+                {
+                    HttpRequest req = m_requests.Dequeue();
+                    req.Clear();
+                }
+            }
             m_requests.Clear();
             m_requests = null;
             m_parser.Clear();
