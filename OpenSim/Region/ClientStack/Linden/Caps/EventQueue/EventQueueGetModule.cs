@@ -516,11 +516,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
             totalSize += EventHeader.Length;
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(1024);
             LLSDxmlEncode.AddEndArray(sb); // events array
                 LLSDxmlEncode.AddElem("id", thisID, sb);
             LLSDxmlEncode.AddEndMap(sb);
-            element = Encoding.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+            element = LLSDxmlEncode.EndToNBBytes(sb);
             elements.Add(element);
             totalSize += element.Length;
 
@@ -531,8 +531,9 @@ namespace OpenSim.Region.ClientStack.Linden
             //temporary
             byte[] finalData = new byte[totalSize];
             int dst = 0;
-            foreach(byte[] src in elements)
+            for(int i = 0; i < elements.Count; ++i)
             {
+                byte[] src = elements[i];
                 Array.Copy(src, 0, finalData, dst, src.Length);
                 dst += src.Length;
             }

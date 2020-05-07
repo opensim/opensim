@@ -606,22 +606,22 @@ namespace OpenSim.Groups
                     if (eq != null)
                     {
                         eq.ChatterboxInvitation(
-                        GroupID
-                        , groupInfo.GroupName
-                        , fromAgent
-                        , msg.message
-                        , AgentID
-                        , msg.fromAgentName
-                        , msg.dialog
-                        , msg.timestamp
-                        , msg.offline == 1
-                        , (int)msg.ParentEstateID
-                        , msg.Position
-                        , 1
-                        , new UUID(msg.imSessionID)
-                        , msg.fromGroup
-                        , OpenMetaverse.Utils.StringToBytes(groupInfo.GroupName)
-                        );
+                            GroupID
+                            , groupInfo.GroupName
+                            , fromAgent
+                            , msg.message
+                            , AgentID
+                            , msg.fromAgentName
+                            , msg.dialog
+                            , msg.timestamp
+                            , msg.offline == 1
+                            , (int)msg.ParentEstateID
+                            , msg.Position
+                            , 1
+                            , new UUID(msg.imSessionID)
+                            , msg.fromGroup
+                            , OpenMetaverse.Utils.StringToBytes(groupInfo.GroupName)
+                            );
 
                         var update = new GroupChatListAgentUpdateData(AgentID);
                         var updates = new List<GroupChatListAgentUpdateData> { update };

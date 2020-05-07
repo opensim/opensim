@@ -169,12 +169,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     if (req.HttpContext.IsSending())
                     {
-                        if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                        {
-                            req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
-                        }
-                        else
-                            ReQueueEvent(req);
+                        ReQueueEvent(req);
                         continue;
                     }
 
