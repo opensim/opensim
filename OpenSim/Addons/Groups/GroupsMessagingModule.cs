@@ -252,7 +252,7 @@ namespace OpenSim.Groups
 
             m_debugEnabled = verbose;
 
-            MainConsole.Instance.Output("{0} verbose logging set to {1}", null, Name, m_debugEnabled);
+            MainConsole.Instance.Output("{0} verbose logging set to {1}", Name, m_debugEnabled);
         }
 
         /// <summary>
@@ -599,13 +599,16 @@ namespace OpenSim.Groups
                 {
                     if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Sending chatterbox invite instant message");
 
+                    UUID fromAgent = new UUID(msg.fromAgentID);
                     // Force? open the group session dialog???
                     // and simultanously deliver the message, so we don't need to do a seperate client.SendInstantMessage(msg);
                     IEventQueue eq = activeClient.Scene.RequestModuleInterface<IEventQueue>();
-                    eq.ChatterboxInvitation(
+                    if (eq != null)
+                    {
+                        eq.ChatterboxInvitation(
                         GroupID
                         , groupInfo.GroupName
-                        , new UUID(msg.fromAgentID)
+                        , fromAgent
                         , msg.message
                         , AgentID
                         , msg.fromAgentName
@@ -620,15 +623,10 @@ namespace OpenSim.Groups
                         , OpenMetaverse.Utils.StringToBytes(groupInfo.GroupName)
                         );
 
-                    eq.ChatterBoxSessionAgentListUpdates(
-                        new UUID(GroupID)
-                        , AgentID
-                        , new UUID(msg.toAgentID)
-                        , false //canVoiceChat
-                        , false //isModerator
-                        , false //text mute
-                        , true // Enter
-                        );
+                        var update = new GroupChatListAgentUpdateData(AgentID);
+                        var updates = new List<GroupChatListAgentUpdateData> { update };
+                        eq.ChatterBoxSessionAgentListUpdates(GroupID, new UUID(msg.toAgentID), updates);
+                    }
                 }
             }
         }
@@ -663,15 +661,12 @@ namespace OpenSim.Groups
                     ChatterBoxSessionStartReplyViaCaps(remoteClient, groupInfo.GroupName, GroupID);
 
                     IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-                    queue.ChatterBoxSessionAgentListUpdates(
-                        GroupID
-                        , AgentID
-                        , new UUID(im.toAgentID)
-                        , false //canVoiceChat
-                        , false //isModerator
-                        , false //text mute
-                        , true
-                        );
+                    if (queue != null)
+                    {
+                        var update = new GroupChatListAgentUpdateData(AgentID);
+                        var updates = new List<GroupChatListAgentUpdateData> { update };
+                        queue.ChatterBoxSessionAgentListUpdates(GroupID, remoteClient.AgentId, updates);
+                    }
                 }
             }
 
@@ -713,11 +708,7 @@ namespace OpenSim.Groups
             bodyMap.Add("session_info", sessionMap);
 
             IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-
-            if (queue != null)
-            {
-                queue.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
-            }
+            queue?.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
         }
 
         private void DebugGridInstantMessage(GridInstantMessage im)
