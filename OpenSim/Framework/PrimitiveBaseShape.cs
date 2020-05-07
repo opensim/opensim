@@ -1242,7 +1242,7 @@ namespace OpenSim.Framework
 
             byte extraParamCount = data[0];
             int i = 1;
-            for (int k = 0; k < extraParamCount; k++)
+            for (int k = 0; k < extraParamCount; ++k)
             {
                 byte epType = data[i];
                 i += 6;
