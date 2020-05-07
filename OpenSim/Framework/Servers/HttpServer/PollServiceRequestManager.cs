@@ -50,25 +50,11 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool m_running = false;
 
-        //private SmartThreadPool m_threadPool;
-
         public PollServiceRequestManager(
             bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
         {
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
-
-            /*
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.IdleTimeout = 30000;
-            startInfo.MaxWorkerThreads = 20;
-            startInfo.MinWorkerThreads = 1;
-            startInfo.ThreadPriority = ThreadPriority.Normal;
-            startInfo.StartSuspended = true;
-            startInfo.ThreadPoolName = "PoolService";
-
-            m_threadPool = new SmartThreadPool(startInfo);
-            */
         }
 
         public void Start()
@@ -76,7 +62,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_running)
                 return;
             m_running = true;
-            //m_threadPool.Start();
             //startup worker threads
             for (uint i = 0; i < m_WorkerThreadCount; i++)
             {
@@ -137,10 +122,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (Thread t in m_workerThreads)
                 Watchdog.AbortThread(t.ManagedThreadId);
 
-            //m_threadPool.Shutdown();
-
-            // any entry in m_bycontext should have a active request on the other queues
-            // so just delete contents to easy GC
             PollServiceHttpRequest req;
             try
             {
@@ -199,40 +180,22 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
-                        PollServiceHttpRequest nreq = req;
-                        //m_threadPool.QueueWorkItem(x =>
-                        //{
-                            try
-                            {
-                                Hashtable responsedata = nreq.PollServiceArgs.GetEvents(nreq.RequestID, nreq.PollServiceArgs.Id);
-                                nreq.DoHTTPGruntWork(responsedata);
-                            }
-                            catch (ObjectDisposedException) { }
-                            finally
-                            {
-                                nreq = null;
-                            }
-                            //return null;
-                        //}, null);
+                        try
+                        {
+                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+                            req.DoHTTPGruntWork(responsedata);
+                        }
+                        catch (ObjectDisposedException) { }
                     }
                     else
                     {
                         if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                         {
-                            PollServiceHttpRequest nreq = req;
-                            //m_threadPool.QueueWorkItem(x =>
-                            //{
-                                try
-                                {
-                                    nreq.DoHTTPGruntWork(nreq.PollServiceArgs.NoEvents(nreq.RequestID, nreq.PollServiceArgs.Id));
-                                }
-                                catch (ObjectDisposedException) { }
-                                finally
-                                {
-                                    nreq = null;
-                                }
-                                //return null;
-                            //}, null);
+                            try
+                            {
+                                req.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
+                            }
+                            catch (ObjectDisposedException) { }
                         }
                         else
                         {

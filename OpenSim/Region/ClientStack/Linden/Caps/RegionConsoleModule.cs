@@ -57,7 +57,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private Commands m_commands = new Commands();
         public ICommands Commands { get { return m_commands; } }
 
-        ConcurrentDictionary<UUID,OnOutputDelegate> currentConsoles = new ConcurrentDictionary<UUID, OnOutputDelegate>();
+        ConcurrentDictionary<UUID, OnOutputDelegate> currentConsoles = new ConcurrentDictionary<UUID, OnOutputDelegate>();
 
         public event ConsoleMessage OnConsoleMessage;
 
@@ -101,7 +101,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             //if (!m_scene.RegionInfo.EstateSettings.IsEstateManagerOrOwner(agentID) && !m_scene.Permissions.IsGod(agentID))
             //    return;
-            //m_log.DebugFormat("[REGION CONSOLE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
             caps.RegisterSimpleHandler("SimConsoleAsync",
                     new ConsoleHandler("/" + UUID.Random(), "SimConsoleAsync", agentID, this, m_scene));
         }
@@ -125,14 +124,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 RemoveConsole(agentID);
                 return;
             }
-            OSD osd = OSD.FromString(message);
 
-            m_eventQueue.Enqueue(EventQueueHelper.BuildEvent("SimConsoleResponse", osd), agentID);
-
-            ConsoleMessage handlerConsoleMessage = OnConsoleMessage;
-
-            if (handlerConsoleMessage != null)
-                handlerConsoleMessage( agentID, message);
+            m_eventQueue.Enqueue(m_eventQueue.BuildEvent("SimConsoleResponse", OSD.FromString(message)), agentID);
+            OnConsoleMessage?.Invoke( agentID, message);
         }
 
         public bool RunCommand(string command, UUID invokerID)
