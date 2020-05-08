@@ -35,6 +35,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -66,6 +67,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // private UUID EconomyBaseAccount = UUID.Zero;
 
         private Dictionary<string, XmlRpcMethod> m_rpcHandlers;
+        private string m_economyURL;
 
         private float EnergyEfficiency = 1f;
         // private ObjectPaid handerOnObjectPaid;
@@ -140,12 +142,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 {
                     if (m_scenel.Count == 0)
                     {
-                        // XMLRPCHandler = scene;
-
-                        // To use the following you need to add:
-                        // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER>
-                        // to the command line parameters you use to start up your client
-                        // This commonly looks like -helperuri http://127.0.0.1:9000/
+                        m_economyURL = scene.RegionInfo.ServerURI;
 
                         m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
 
@@ -174,7 +171,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 scene.EventManager.OnClientClosed += ClientClosed;
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-                scene.EventManager.OnClientClosed += ClientLoggedOut;
                 scene.EventManager.OnValidateLandBuy += ValidateLandBuy;
                 scene.EventManager.OnLandBuy += processLandBuy;
             }
@@ -186,6 +182,14 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(m_economyURL))
+            {
+                ISimulatorFeaturesModule fm = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+                fm?.AddOpenSimExtraFeature("currency-base-uri", m_economyURL);
+            }
         }
 
         public void processPHP(IOSHttpRequest request, IOSHttpResponse response)
@@ -313,7 +317,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             client.OnMoneyBalanceRequest += SendMoneyBalance;
             client.OnRequestPayPrice += requestPayPrice;
             client.OnObjectBuy += ObjectBuy;
-            client.OnLogout += ClientClosed;
+            client.OnLogout += ClientLoggedOut;
         }
 
         /// <summary>
@@ -768,7 +772,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// Event Handler for when the client logs out.
         /// </summary>
         /// <param name="AgentId"></param>
-        private void ClientLoggedOut(UUID AgentId, Scene scene)
+        private void ClientLoggedOut(IClientAPI client)
         {
 
         }
