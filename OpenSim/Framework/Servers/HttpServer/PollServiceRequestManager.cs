@@ -180,7 +180,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
                             req.DoHTTPGruntWork(responsedata);
                         }
-                        catch (ObjectDisposedException) { }
+                        catch { }
                     }
                     else
                     {
@@ -190,7 +190,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             {
                                 req.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                             }
-                            catch (ObjectDisposedException) { }
+                            catch { }
                         }
                         else
                         {
