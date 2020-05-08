@@ -65,6 +65,8 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// </summary>
         // private UUID EconomyBaseAccount = UUID.Zero;
 
+        private Dictionary<string, XmlRpcMethod> m_rpcHandlers;
+
         private float EnergyEfficiency = 1f;
         // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
@@ -145,12 +147,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                         // to the command line parameters you use to start up your client
                         // This commonly looks like -helperuri http://127.0.0.1:9000/
 
+                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
 
-                        // Local Server..  enables functionality only.
-                        httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
-                        httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
-                        httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                        httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
+                        m_rpcHandlers.Add("getCurrencyQuote", quote_func);
+                        m_rpcHandlers.Add("buyCurrency", buy_func);
+                        m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        m_rpcHandlers.Add("buyLandPrep", landBuy_func);
 
                         // add php
                         MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
@@ -188,7 +190,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public void processPHP(IOSHttpRequest request, IOSHttpResponse response)
         {
-            MainServer.Instance.HandleXmlRpcRequests((OSHttpRequest)request, (OSHttpResponse)response);
+            MainServer.Instance.HandleXmlRpcRequests((OSHttpRequest)request, (OSHttpResponse)response, m_rpcHandlers);
         }
 
         // Please do not refactor these to be just one method

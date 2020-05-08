@@ -1104,7 +1104,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="response"></param>
         public void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
-            String requestBody;
+            String requestBody = null;
 
             Stream requestStream = request.InputStream;
             Stream innerStream = null;
@@ -1119,12 +1119,23 @@ namespace OpenSim.Framework.Servers.HttpServer
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
                     requestBody = reader.ReadToEnd();
             }
+            catch
+            {
+                requestBody = null;
+            }
             finally
             {
                 if (innerStream != null && innerStream.CanRead)
                     innerStream.Dispose();
                 if (requestStream.CanRead)
                     requestStream.Dispose();
+            }
+
+            if (string.IsNullOrWhiteSpace(requestBody))
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
             }
 
             //m_log.Debug(requestBody);
@@ -1274,9 +1285,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        public void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response, Dictionary<string, XmlRpcMethod> rpchandlers)
+        public void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response, Dictionary<string, XmlRpcMethod> rpcHandlers)
         {
-            String requestBody;
+            String requestBody = null;
 
             Stream requestStream = request.InputStream;
             Stream innerStream = null;
@@ -1291,12 +1302,23 @@ namespace OpenSim.Framework.Servers.HttpServer
                 using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
                     requestBody = reader.ReadToEnd();
             }
+            catch
+            {
+                requestBody = null;
+            }
             finally
             {
                 if (innerStream != null && innerStream.CanRead)
                     innerStream.Dispose();
                 if (requestStream.CanRead)
                     requestStream.Dispose();
+            }
+
+            if (string.IsNullOrWhiteSpace(requestBody))
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
             }
 
             //m_log.Debug(requestBody);
@@ -1357,7 +1379,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             XmlRpcMethod method;
             bool methodWasFound;
 
-            methodWasFound = rpchandlers.TryGetValue(methodName, out method);
+            methodWasFound = rpcHandlers.TryGetValue(methodName, out method);
 
             XmlRpcResponse xmlRpcResponse;
             if (methodWasFound)
