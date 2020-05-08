@@ -143,9 +143,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     if (m_scenel.Count == 0)
                     {
                         m_economyURL = scene.RegionInfo.ServerURI;
+                        if(!string.IsNullOrWhiteSpace(m_economyURL) && m_economyURL[m_economyURL.Length - 1] == '/')
+                            m_economyURL = m_economyURL.Substring(0, m_economyURL.Length - 1);
 
                         m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-
                         m_rpcHandlers.Add("getCurrencyQuote", quote_func);
                         m_rpcHandlers.Add("buyCurrency", buy_func);
                         m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
