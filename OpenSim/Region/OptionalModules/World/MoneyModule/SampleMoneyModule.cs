@@ -152,6 +152,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                         httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
                         httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
 
+                        // add php
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
                     }
 
                     if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
@@ -183,6 +186,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
         }
 
+        public void processPHP(IOSHttpRequest request, IOSHttpResponse response)
+        {
+            MainServer.Instance.HandleXmlRpcRequests((OSHttpRequest)request, (OSHttpResponse)response);
+        }
 
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
@@ -316,9 +323,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <returns></returns>
         private bool doMoneyTransfer(UUID Sender, UUID Receiver, int amount, int transactiontype, string description)
         {
-            bool result = true;
-
-            return result;
+            return true;
         }
 
 
@@ -472,26 +477,27 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public XmlRpcResponse quote_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            // Hashtable requestData = (Hashtable) request.Params[0];
             // UUID agentId = UUID.Zero;
             int amount = 0;
-            Hashtable quoteResponse = new Hashtable();
-            XmlRpcResponse returnval = new XmlRpcResponse();
-
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+                amount = (int)requestData["currencyBuy"];
+            }
+            catch{ }
 
             Hashtable currencyResponse = new Hashtable();
             currencyResponse.Add("estimatedCost", 0);
             currencyResponse.Add("currencyBuy", amount);
 
+            Hashtable quoteResponse = new Hashtable();
             quoteResponse.Add("success", true);
             quoteResponse.Add("currency", currencyResponse);
             quoteResponse.Add("confirm", "asdfad9fj39ma9fj");
 
+            XmlRpcResponse returnval = new XmlRpcResponse();
             returnval.Value = quoteResponse;
             return returnval;
-
-
-
         }
 
         public XmlRpcResponse buy_func(XmlRpcRequest request, IPEndPoint remoteClient)
