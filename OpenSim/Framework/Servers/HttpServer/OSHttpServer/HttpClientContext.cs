@@ -719,6 +719,21 @@ namespace OSHttpServer
             m_parser.BodyBytesReceived -= OnBodyBytesReceived;
             m_parser.Clear();
 
+            m_currentRequest?.Clear();
+            m_currentRequest = null;
+            m_currentResponse?.Clear();
+            m_currentResponse = null;
+            if (m_requests != null)
+            {
+                while (m_requests.Count > 0)
+                {
+                    HttpRequest req = m_requests.Dequeue();
+                    req.Clear();
+                }
+            }
+            m_requests.Clear();
+            m_requests = null;
+
             return new HTTPNetworkContext() { Socket = m_sock, Stream = m_stream as NetworkStream };
         }
 
