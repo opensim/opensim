@@ -235,6 +235,22 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features[name] = value;
         }
 
+        public void AddOpenSimExtraFeature(string name, OSD value)
+        {
+            lock (m_features)
+            {
+                OSDMap extrasMap;
+                if (m_features.TryGetValue("OpenSimExtras", out OSD extra))
+                    extrasMap = extra as OSDMap;
+                else
+                {
+                    extrasMap = new OSDMap();
+                }
+                extrasMap[name] = value;
+                m_features["OpenSimExtras"] = extrasMap;
+            }
+        }
+
         public bool RemoveFeature(string name)
         {
             lock (m_features)
@@ -315,9 +331,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
             lock (m_features)
             {
-                OSDMap extrasMap = new OSDMap();
+                OSDMap extrasMap;
+                if (m_features.TryGetValue("OpenSimExtras", out OSD extra))
+                    extrasMap = extra as OSDMap;
+                else
+                {
+                    extrasMap = new OSDMap();
+                }
 
-                foreach(string key in extraFeatures.Keys)
+                foreach (string key in extraFeatures.Keys)
                 {
                     extrasMap[key] = (string)extraFeatures[key];
 
@@ -327,7 +349,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
                 m_features["OpenSimExtras"] = extrasMap;
-
             }
         }
 

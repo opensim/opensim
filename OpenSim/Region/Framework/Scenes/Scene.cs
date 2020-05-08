@@ -1255,23 +1255,14 @@ namespace OpenSim.Region.Framework.Scenes
             ISimulatorFeaturesModule fm = RequestModuleInterface<ISimulatorFeaturesModule>();
             if (fm != null)
             {
-                OSD openSimExtras;
-                OSDMap openSimExtrasMap;
-
-                if (!fm.TryGetFeature("OpenSimExtras", out openSimExtras))
-                    openSimExtras = new OSDMap();
-
                 float statisticsFPSfactor = 1.0f;
                 if(Normalized55FPS)
                     statisticsFPSfactor = 55.0f * FrameTime;
 
-                openSimExtrasMap = (OSDMap)openSimExtras;
-                openSimExtrasMap["SimulatorFPS"] = OSD.FromReal(1.0f / FrameTime);
-                openSimExtrasMap["SimulatorFPSFactor"] = OSD.FromReal(statisticsFPSfactor);
-                openSimExtrasMap["SimulatorFPSWarnPercent"] = OSD.FromInteger(FrameTimeWarnPercent);
-                openSimExtrasMap["SimulatorFPSCritPercent"] = OSD.FromInteger(FrameTimeCritPercent);
-
-                fm.AddFeature("OpenSimExtras", openSimExtrasMap);
+                fm.AddOpenSimExtraFeature("SimulatorFPS", OSD.FromReal(1.0f / FrameTime));
+                fm.AddOpenSimExtraFeature("SimulatorFPSFactor", OSD.FromReal(statisticsFPSfactor));
+                fm.AddOpenSimExtraFeature("SimulatorFPSWarnPercent", OSD.FromInteger(FrameTimeWarnPercent));
+                fm.AddOpenSimExtraFeature("SimulatorFPSCritPercent", OSD.FromInteger(FrameTimeCritPercent));
             }
         }
 
