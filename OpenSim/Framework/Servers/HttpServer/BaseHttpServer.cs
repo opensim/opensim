@@ -1194,9 +1194,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             XmlRpcResponse xmlRpcResponse;
-            xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
             if (methodWasFound)
             {
+                xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
                 xmlRprcRequest.Params.Add(request.Url); // Param[2]
 
                 string xff = "X-Forwarded-For";
@@ -1272,6 +1272,172 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             response.RawBuffer = Util.UTF8NBGetbytes(responseString);
             response.StatusCode = (int)HttpStatusCode.OK;
+        }
+
+        public void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response, Dictionary<string, XmlRpcMethod> rpchandlers)
+        {
+            String requestBody;
+
+            Stream requestStream = request.InputStream;
+            Stream innerStream = null;
+            try
+            {
+                if ((request.Headers["Content-Encoding"] == "gzip") || (request.Headers["X-Content-Encoding"] == "gzip"))
+                {
+                    innerStream = requestStream;
+                    requestStream = new GZipStream(innerStream, System.IO.Compression.CompressionMode.Decompress);
+                }
+
+                using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
+                    requestBody = reader.ReadToEnd();
+            }
+            finally
+            {
+                if (innerStream != null && innerStream.CanRead)
+                    innerStream.Dispose();
+                if (requestStream.CanRead)
+                    requestStream.Dispose();
+            }
+
+            //m_log.Debug(requestBody);
+            requestBody = requestBody.Replace("<base64></base64>", "");
+
+            bool gridproxy = false;
+            if (requestBody.Contains("encoding=\"utf-8"))
+            {
+                int channelindx = -1;
+                int optionsindx = requestBody.IndexOf(">options<");
+                if (optionsindx > 0)
+                {
+                    channelindx = requestBody.IndexOf(">channel<");
+                    if (optionsindx < channelindx)
+                        gridproxy = true;
+                }
+            }
+
+            XmlRpcRequest xmlRprcRequest = null;
+            try
+            {
+                xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+            }
+            catch (XmlException e)
+            {
+                if (DebugLevel >= 1)
+                {
+                    if (DebugLevel >= 2)
+                        m_log.Warn(
+                            string.Format(
+                                "[BASE HTTP SERVER]: Got XMLRPC request with invalid XML from {0}.  XML was '{1}'.  Sending blank response.  Exception ",
+                                request.RemoteIPEndPoint, requestBody),
+                            e);
+                    else
+                    {
+                        m_log.WarnFormat(
+                            "[BASE HTTP SERVER]: Got XMLRPC request with invalid XML from {0}, length {1}.  Sending blank response.",
+                            request.RemoteIPEndPoint, requestBody.Length);
+                    }
+                }
+            }
+
+            if (xmlRprcRequest == null)
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
+            }
+
+            string methodName = xmlRprcRequest.MethodName;
+            if (string.IsNullOrWhiteSpace(methodName))
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
+                return;
+            }
+
+            XmlRpcMethod method;
+            bool methodWasFound;
+
+            methodWasFound = rpchandlers.TryGetValue(methodName, out method);
+
+            XmlRpcResponse xmlRpcResponse;
+            if (methodWasFound)
+            {
+                xmlRprcRequest.Params.Add(request.RemoteIPEndPoint); // Param[1]
+                xmlRprcRequest.Params.Add(request.Url); // Param[2]
+
+                string xff = "X-Forwarded-For";
+                string xfflower = xff.ToLower();
+                foreach (string s in request.Headers.AllKeys)
+                {
+                    if (s != null && s.Equals(xfflower))
+                    {
+                        xff = xfflower;
+                        break;
+                    }
+                }
+                xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
+
+                if (gridproxy)
+                    xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
+
+                // reserve this for
+                // ... by Fumi.Iseki for DTLNSLMoneyServer
+                // BUT make its presence possible to detect/parse
+                string rcn = request.IHttpClientContext.SSLCommonName;
+                if (!string.IsNullOrWhiteSpace(rcn))
+                {
+                    rcn = "SSLCN:" + rcn;
+                    xmlRprcRequest.Params.Add(rcn); // Param[4] or Param[5]
+                }
+
+                try
+                {
+                    xmlRpcResponse = method(xmlRprcRequest, request.RemoteIPEndPoint);
+                }
+                catch (Exception e)
+                {
+                    string errorMessage
+                        = String.Format(
+                            "Requested method [{0}] from {1} threw exception: {2} {3}",
+                            methodName, request.RemoteIPEndPoint.Address, e.Message, e.StackTrace);
+
+                    m_log.ErrorFormat("[BASE HTTP SERVER]: {0}", errorMessage);
+
+                    // if the registered XmlRpc method threw an exception, we pass a fault-code along
+                    xmlRpcResponse = new XmlRpcResponse();
+
+                    // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                    xmlRpcResponse.SetFault(-32603, errorMessage);
+                }
+                response.AddHeader("Access-Control-Allow-Origin", "*");
+            }
+            else
+            {
+                xmlRpcResponse = new XmlRpcResponse();
+                // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
+                xmlRpcResponse.SetFault(
+                    XmlRpcErrorCodes.SERVER_ERROR_METHOD,
+                    String.Format("Requested method [{0}] not found", methodName));
+            }
+
+            string responseString = String.Empty;
+            using (MemoryStream outs = new MemoryStream())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
+                {
+                    writer.Formatting = Formatting.None;
+                    XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
+                    writer.Flush();
+                    outs.Seek(0, SeekOrigin.Begin);
+                    using (StreamReader sr = new StreamReader(outs))
+                        responseString = sr.ReadToEnd();
+                }
+            }
+
+            response.StatusCode = (int)HttpStatusCode.OK;
+            response.ContentType = "text/xml";
+            response.KeepAlive = false;
+            response.RawBuffer = Util.UTF8NBGetbytes(responseString);
         }
 
         // JsonRpc (v2.0 only)
