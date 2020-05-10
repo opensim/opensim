@@ -111,13 +111,13 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
 
 
             caps.RegisterSimpleHandler("ObjectMedia",
-                new SimpleStreamHandler("/" + UUID.Random() + "/", delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                 {
                     HandleObjectMediaMessage(httpRequest, httpResponse, agentID);
                 }));
 
             caps.RegisterSimpleHandler("ObjectMediaNavigate",
-                new SimpleStreamHandler("/" + UUID.Random() + "/", delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
                 {
                     HandleObjectMediaNavigateMessage(httpRequest, httpResponse, agentID);
                 }));

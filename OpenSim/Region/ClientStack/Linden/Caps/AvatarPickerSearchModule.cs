@@ -120,7 +120,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 // m_log.DebugFormat("[AVATAR PICKER SEARCH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 if(m_People != null)
                     caps.RegisterSimpleHandler("AvatarPickerSearch",
-                        new SimpleStreamHandler("/" + UUID.Random() + "/", ProcessRequest));
+                        new SimpleStreamHandler("/" + UUID.Random(), ProcessRequest));
             }
             else
             {

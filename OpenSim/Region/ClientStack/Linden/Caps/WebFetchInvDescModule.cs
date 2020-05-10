@@ -380,7 +380,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // handled by the simulator
             else if (url == "localhost")
             {
-                capUrl = "/CAPS/" + UUID.Random() + "/";
+                capUrl = "/" + UUID.Random();
 
                 // Register this as a poll service
                 PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, capUrl, agentID);

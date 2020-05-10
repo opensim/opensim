@@ -672,10 +672,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     return;
                 }
 
-                // workaround for Lumiya and others that append a extra /
-                int len = path.Length - 1;
-                if (len > 1 && path[len] == '/' && path[len - 1] == '/')
-                    path = path.Substring(0, len);
+                path = Util.TrimEndSlash(path);
 
                 if (TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {

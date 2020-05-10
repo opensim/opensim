@@ -216,7 +216,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public void RegisterCaps(UUID agentID, Caps caps)
         {
             caps.RegisterSimpleHandler("SimulatorFeatures",
-                new SimpleStreamHandler("/" + UUID.Random() + "/",
+                new SimpleStreamHandler("/" + UUID.Random(),
                     delegate (IOSHttpRequest request, IOSHttpResponse response)
                     {
                         HandleSimulatorFeaturesRequest(request, response, agentID);
@@ -225,7 +225,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && m_scriptSyntaxXML != null)
             {
                 caps.RegisterSimpleHandler("LSLSyntax",
-                    new SimpleStreamHandler("/" + UUID.Random() + "/", HandleSyntaxRequest));
+                    new SimpleStreamHandler("/" + UUID.Random(), HandleSyntaxRequest));
             }
         }
 

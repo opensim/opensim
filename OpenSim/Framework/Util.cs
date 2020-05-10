@@ -2451,7 +2451,27 @@ namespace OpenSim.Framework
             return found.ToArray();
         }
 
-        public static string ServerURI(string uri)
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static string AppendEndSlash(string path)
+        {
+            int len = path.Length;
+            --len;
+            if (len > 0 && path[len] != '/')
+                return path + '/';
+            return path;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static string TrimEndSlash(string path)
+        {
+            int len = path.Length;
+            --len;
+            if (len > 0 && path[len] == '/')
+                return path.Substring(0, len);
+            return path;
+        }
+
+        public static string ServerURIasIP(string uri)
         {
             if (uri == string.Empty)
                 return string.Empty;

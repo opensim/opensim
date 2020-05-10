@@ -429,7 +429,7 @@ namespace OpenSim.Framework.Console
             }
 
             // This call is a CAP. The URL is the authentication.
-            string uri = "/ReadResponses/" + sessionID.ToString() + "/";
+            string uri = "/ReadResponses/" + sessionID.ToString();
 
             m_Server.AddPollServiceHTTPHandler(new PollServiceEventArgs(null, uri, HasEvents, GetEvents, NoEvents, null, sessionID,25000)); // 25 secs timeout
 
