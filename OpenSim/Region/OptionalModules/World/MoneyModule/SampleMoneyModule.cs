@@ -494,8 +494,8 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             Hashtable currencyResponse = new Hashtable();
             currencyResponse.Add("estimatedCost", 0);
-            currencyResponse.Add("estimatedLocalCost", " 0 Euros");
-            
+            //currencyResponse.Add("estimatedLocalCost", " 0 Euros");
+
             currencyResponse.Add("currencyBuy", amount);
 
             Hashtable quoteResponse = new Hashtable();
