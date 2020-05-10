@@ -84,6 +84,8 @@ namespace OpenSim.Region.ClientStack.Linden
         static private UUID m_scriptSyntaxID = UUID.Zero;
         static private byte[] m_scriptSyntaxXML = null;
 
+        static private string m_economyURL = null;
+
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
@@ -114,6 +116,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
                 m_doScriptSyntax = config.GetBoolean("ScriptSyntax", m_doScriptSyntax);
             }
+
+            m_economyURL = Util.GetConfigVarFromSections<string>(source, "economy", new string[] { "Economy", "GridInfo" });
 
             ReadScriptSyntax();
             AddDefaultFeatures();
@@ -197,17 +201,18 @@ namespace OpenSim.Region.ClientStack.Linden
                 extrasMap["AnimationSet"] = true;
 
                 // TODO: Take these out of here into their respective modules, like map-server-url
-                if (m_SearchURL != string.Empty)
+                if (!string.IsNullOrWhiteSpace(m_SearchURL))
                     extrasMap["search-server-url"] = m_SearchURL;
                 if (!string.IsNullOrEmpty(m_DestinationGuideURL))
                     extrasMap["destination-guide-url"] = m_DestinationGuideURL;
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
-                if (m_GridURL != string.Empty)
+                if (!string.IsNullOrWhiteSpace(m_GridURL))
                     extrasMap["GridURL"] = m_GridURL;
-                if (m_GridName != string.Empty)
+                if (!string.IsNullOrWhiteSpace(m_GridName))
                     extrasMap["GridName"] = m_GridName;
-
+                if(!string.IsNullOrWhiteSpace(m_economyURL))
+                    extrasMap["currency-base-uri"] = Util.AppendEndSlash(m_economyURL);
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
             }
@@ -261,6 +266,19 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock (m_features)
                 return m_features.TryGetValue(name, out value);
+        }
+
+        public bool TryGetOpenSimExtraFeature(string name, out OSD value)
+        {
+            value = null;
+            lock (m_features)
+            {
+                if (!m_features.TryGetValue("OpenSimExtras", out OSD extra))
+                    return false;
+                if(!(extra is OSDMap))
+                    return false;
+                return (extra as OSDMap).TryGetValue(name, out value);
+            }
         }
 
         public OSDMap GetFeatures()

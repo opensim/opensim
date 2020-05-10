@@ -67,7 +67,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // private UUID EconomyBaseAccount = UUID.Zero;
 
         private Dictionary<string, XmlRpcMethod> m_rpcHandlers;
-        private string m_economyURL;
+        private string m_localEconomyURL;
 
         private float EnergyEfficiency = 1f;
         // private ObjectPaid handerOnObjectPaid;
@@ -142,10 +142,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 {
                     if (m_scenel.Count == 0)
                     {
-                        m_economyURL = scene.RegionInfo.ServerURI;
-                        if(!string.IsNullOrWhiteSpace(m_economyURL) && m_economyURL[m_economyURL.Length - 1] == '/')
-                            m_economyURL = m_economyURL.Substring(0, m_economyURL.Length - 1);
-
+                        m_localEconomyURL = scene.RegionInfo.ServerURI;
                         m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
                         m_rpcHandlers.Add("getCurrencyQuote", quote_func);
                         m_rpcHandlers.Add("buyCurrency", buy_func);
@@ -186,10 +183,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             if (!m_enabled)
                 return;
 
-            if (!string.IsNullOrWhiteSpace(m_economyURL))
+            ISimulatorFeaturesModule fm = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+            if (fm != null && !string.IsNullOrWhiteSpace(m_localEconomyURL))
             {
-                ISimulatorFeaturesModule fm = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
-                fm?.AddOpenSimExtraFeature("currency-base-uri", m_economyURL);
+                if(fm.TryGetOpenSimExtraFeature("currency-base-uri", out OSD tmp))
+                    return;
+                fm.AddOpenSimExtraFeature("currency-base-uri", Util.AppendEndSlash(m_localEconomyURL));
             }
         }
 
@@ -278,7 +277,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 m_enabled = false;
                 return;
             }
-            
+
             if(economyConfig == null)
                 return;
 
@@ -495,6 +494,8 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             Hashtable currencyResponse = new Hashtable();
             currencyResponse.Add("estimatedCost", 0);
+            currencyResponse.Add("estimatedLocalCost", " 0 Euros");
+            
             currencyResponse.Add("currencyBuy", amount);
 
             Hashtable quoteResponse = new Hashtable();
@@ -502,6 +503,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             quoteResponse.Add("currency", currencyResponse);
             quoteResponse.Add("confirm", "asdfad9fj39ma9fj");
 
+            //quoteResponse.Add("success", false);
+            //quoteResponse.Add("errorMessage", "There is currency");
+            //quoteResponse.Add("errorURI", "http://opensimulator.org");
             XmlRpcResponse returnval = new XmlRpcResponse();
             returnval.Value = quoteResponse;
             return returnval;

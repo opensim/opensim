@@ -916,6 +916,10 @@
     ; To use other modules you need to override this setting
     ; economymodule = BetaGridLikeMoneyModule
 
+    ; the url of the economy service.
+    ; this must match the grid economy setting (also known as helperURI or CurrencyServer, etc)
+    ; economy = https://the.currency.machine.fdqn:port/folder/folder...
+
     ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
