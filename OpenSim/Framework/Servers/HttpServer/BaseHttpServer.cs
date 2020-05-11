@@ -556,7 +556,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 IHttpClientContext context = (IHttpClientContext)source;
                 IHttpRequest request = args.Request;
-                if (TryGetPollServiceHTTPHandler(request.UriPath, out PollServiceEventArgs psEvArgs))
+                if (TryGetPollServiceHTTPHandler(Util.TrimEndSlash(request.UriPath), out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
@@ -976,39 +976,35 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        private readonly string HANDLER_SEPARATORS = "/?&#-";
-
         private bool TryGetStreamHandler(string handlerKey, out IRequestHandler streamHandler)
         {
             if(m_streamHandlers.TryGetValue(handlerKey, out streamHandler))
                 return true;
 
             string bestMatch = null;
+            bool hasbest=false;
 
             lock (m_streamHandlers)
             {
                 foreach (string pattern in m_streamHandlers.Keys)
                 {
-                    if (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0))
+                    if (handlerKey.StartsWith(pattern))
                     {
-                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                        if (!hasbest || pattern.Length > bestMatch.Length)
                         {
                             bestMatch = pattern;
+                            hasbest = true;
                         }
                     }
                 }
-
-                if (String.IsNullOrEmpty(bestMatch))
-                {
-                    streamHandler = null;
-                    return false;
-                }
-                else
-                {
-                    streamHandler = m_streamHandlers[bestMatch];
-                    return true;
-                }
             }
+            if (hasbest)
+            {
+                streamHandler = m_streamHandlers[bestMatch];
+                return true;
+            }
+            streamHandler = null;
+            return false;
         }
 
         private bool TryGetPollServiceHTTPHandler(string handlerKey, out PollServiceEventArgs oServiceEventArgs)
@@ -1016,66 +1012,42 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_pollHandlers.TryGetValue(handlerKey, out oServiceEventArgs))
                 return true;
 
-            string bestMatch = null;
-
-            lock (m_pollHandlers)
-            {
-                foreach (string pattern in m_pollHandlers.Keys)
-                {
-                    if ((handlerKey == pattern)
-                        || (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0)))
-                    {
-                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
-                        {
-                            bestMatch = pattern;
-                        }
-                    }
-                }
-
-                if (String.IsNullOrEmpty(bestMatch))
-                {
-                    oServiceEventArgs = null;
-                    return false;
-                }
-                else
-                {
-                    oServiceEventArgs = m_pollHandlers[bestMatch];
-                    return true;
-                }
-            }
+            oServiceEventArgs = null;
+            return false;
         }
 
         private bool TryGetHTTPHandler(string handlerKey, out GenericHTTPMethod HTTPHandler)
         {
 //            m_log.DebugFormat("[BASE HTTP HANDLER]: Looking for HTTP handler for {0}", handlerKey);
 
+            if(m_HTTPHandlers.TryGetValue(handlerKey, out HTTPHandler))
+                return true;
+
             string bestMatch = null;
+            bool hasmatch = false;
 
             lock (m_HTTPHandlers)
             {
                 foreach (string pattern in m_HTTPHandlers.Keys)
                 {
-                    if ((handlerKey == pattern)
-                        || (handlerKey.StartsWith(pattern) && (HANDLER_SEPARATORS.IndexOf(handlerKey[pattern.Length]) >= 0)))
+                    if (handlerKey.StartsWith(pattern))
                     {
-                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                        if (!hasmatch || pattern.Length > bestMatch.Length)
                         {
                             bestMatch = pattern;
+                            hasmatch = true;
                         }
                     }
                 }
-
-                if (String.IsNullOrEmpty(bestMatch))
-                {
-                    HTTPHandler = null;
-                    return false;
-                }
-                else
-                {
-                    HTTPHandler = m_HTTPHandlers[bestMatch];
-                    return true;
-                }
             }
+            if (hasmatch)
+            {
+                HTTPHandler = m_HTTPHandlers[bestMatch];
+                return true;
+            }
+
+            HTTPHandler = null;
+            return false;
         }
 
         private bool TryGetSimpleStreamHandler(string uripath, out ISimpleStreamHandler handler)
@@ -1083,6 +1055,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_simpleStreamHandlers.TryGetValue(uripath, out handler))
                 return true;
 
+            // look only for keyword before second slash ( /keyword/someparameter/... )
             handler = null;
             if(uripath.Length < 3)
                 return false;
