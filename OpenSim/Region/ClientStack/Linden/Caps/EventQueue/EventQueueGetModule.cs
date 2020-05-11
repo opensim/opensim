@@ -319,7 +319,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <param name='eqgUuid'></param>
         private string GenerateEqgCapPath(UUID eqgUuid)
         {
-            return string.Format("/CE/{0}/", eqgUuid);
+            return string.Format("/CE/{0}", eqgUuid);
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)
