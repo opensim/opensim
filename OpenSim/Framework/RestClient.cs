@@ -404,36 +404,34 @@ namespace OpenSim.Framework
                 {
                     await dst.WriteAsync(src, 0, src.Length).ConfigureAwait(false);
                 }
-                _response = (HttpWebResponse)await _request.GetResponseAsync().ConfigureAwait(false);
+
+                using(HttpWebResponse response = (HttpWebResponse)await _request.GetResponseAsync().ConfigureAwait(false))
+                {
+                    if (WebUtil.DebugLevel >= 5)
+                    {
+                        using (Stream responseStream = response.GetResponseStream())
+                        {
+                            using (StreamReader reader = new StreamReader(responseStream))
+                            {
+                                string responseStr = await reader.ReadToEndAsync().ConfigureAwait(false);
+                                WebUtil.LogResponseDetail(reqnum, responseStr);
+                            }
+                        }
+                    }
+                }
             }
             catch (WebException e)
             {
-                m_log.WarnFormat("[REST]: Request {0} {1} failed with status {2} and message {3}",
-                                  RequestMethod, _request.RequestUri, e.Status, e.Message);
+                m_log.WarnFormat("[REST]: AsyncPOST {0} failed with status {1} and message {2}",
+                                  _request.RequestUri, e.Status, e.Message);
                 return;
             }
             catch (Exception e)
             {
-                m_log.WarnFormat(
-                    "[REST]: Request {0} {1} failed with exception {2} {3}",
-                    RequestMethod, _request.RequestUri, e.Message, e.StackTrace);
+                m_log.WarnFormat("[REST]: AsyncPOST {0} failed with exception {1} {2}",
+                                _request.RequestUri, e.Message, e.StackTrace);
                 return;
             }
-
-            if (WebUtil.DebugLevel >= 5)
-            {
-                using (Stream responseStream = _response.GetResponseStream())
-                {
-                    using (StreamReader reader = new StreamReader(responseStream))
-                    {
-                        string responseStr = await reader.ReadToEndAsync().ConfigureAwait(false);
-                        WebUtil.LogResponseDetail(reqnum, responseStr);
-                    }
-                }
-            }
-
-            if (_response != null)
-                _response.Close();
         }
 
         #region Async Invocation
