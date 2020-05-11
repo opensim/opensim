@@ -35,6 +35,7 @@ using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.ServiceAuth;
@@ -187,13 +188,13 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
         {
         }
 
-        public void Store(UUID agentId, WearableCacheItem[] data)
+        public async Task Store(UUID agentId, WearableCacheItem[] data)
         {
             if (m_URL == String.Empty)
                 return;
 
             int numberWears = 0;
-            MemoryStream reqStream;
+            byte[] uploadData;
 
             using (MemoryStream bakeStream = new MemoryStream())
             using (XmlTextWriter bakeWriter = new XmlTextWriter(bakeStream, null))
@@ -236,25 +237,20 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 bakeWriter.WriteEndElement();
                 bakeWriter.Flush();
 
-                reqStream = new MemoryStream(bakeStream.ToArray());
+                uploadData = bakeStream.ToArray();
             }
-
-            Util.FireAndForget(
-                delegate
-                {
+            //Util.FireAndForget(
+            //  delegate
+            //  {
                     using(RestClient rc = new RestClient(m_URL))
                     {
-                        rc.AddResourcePath("bakes");
-                        rc.AddResourcePath(agentId.ToString());
-                        rc.RequestMethod = "POST";
-
-                        rc.Request(reqStream, m_Auth);
+                        rc.AddResourcePath("bakes/" + agentId.ToString());
+                        await rc.AsyncPOSTRequest(uploadData, m_Auth).ConfigureAwait(false);
                         m_log.DebugFormat("[XBakes]: stored {0} textures for user {1}", numberWears, agentId);
                     }
-                    if(reqStream != null)
-                        reqStream.Dispose();
-                }, null, "XBakesModule.Store"
-            );
+                    uploadData = null;
+            //    }, null, "XBakesModule.Store"
+            //);
         }
     }
 }
