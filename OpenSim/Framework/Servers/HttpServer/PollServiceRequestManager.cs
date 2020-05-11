@@ -161,13 +161,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     Watchdog.UpdateThread();
 
-                    if (!req.HttpContext.CanSend())
+                    if (!req.Request.Context.CanSend())
                     {
                         req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
                         continue;
                     }
 
-                    if (req.HttpContext.IsSending())
+                    if (req.Request.Context.IsSending())
                     {
                         ReQueueEvent(req);
                         continue;

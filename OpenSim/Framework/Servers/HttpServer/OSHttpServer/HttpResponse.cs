@@ -35,14 +35,14 @@ namespace OSHttpServer
         /// <param name="context">Client that send the <see cref="IHttpRequest"/>.</param>
         /// <param name="request">Contains information of what the client want to receive.</param>
         /// <exception cref="ArgumentException"><see cref="IHttpRequest.HttpVersion"/> cannot be empty.</exception>
-        public HttpResponse(IHttpClientContext context, IHttpRequest request)
+        public HttpResponse(IHttpRequest request)
         {
             m_httpVersion = request.HttpVersion;
             if (string.IsNullOrEmpty(m_httpVersion))
                 m_httpVersion = "HTTP/1.1";
 
             Status = HttpStatusCode.OK;
-            m_context = context;
+            m_context = request.Context;
             m_Connetion = request.Connection;
             requestID = request.ID;
             RawBufferStart = -1;

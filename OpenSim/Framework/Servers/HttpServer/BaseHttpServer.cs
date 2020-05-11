@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
 //        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
         protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers = new ConcurrentDictionary<string, PollServiceEventArgs>();
-        protected Dictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new Dictionary<string, WebSocketRequestDelegate>();
+        protected ConcurrentDictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new ConcurrentDictionary<string, WebSocketRequestDelegate>();
 
         protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
         protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
@@ -354,18 +354,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void AddWebSocketHandler(string servicepath, WebSocketRequestDelegate handler)
         {
-            lock (m_WebSocketHandlers)
-            {
-                if (!m_WebSocketHandlers.ContainsKey(servicepath))
-                    m_WebSocketHandlers.Add(servicepath, handler);
-            }
+            m_WebSocketHandlers.TryAdd(servicepath, handler);
         }
 
         public void RemoveWebSocketHandler(string servicepath)
         {
-            lock (m_WebSocketHandlers)
-                if (m_WebSocketHandlers.ContainsKey(servicepath))
-                    m_WebSocketHandlers.Remove(servicepath);
+            m_WebSocketHandlers.TryRemove(servicepath, out WebSocketRequestDelegate dummy);
         }
 
         public List<string> GetStreamHandlerKeys()
@@ -548,48 +542,36 @@ namespace OpenSim.Framework.Servers.HttpServer
             return null;
         }
 
-
         public void OnRequest(object source, RequestEventArgs args)
         {
             RequestNumber++;
             try
             {
-                IHttpClientContext context = (IHttpClientContext)source;
                 IHttpRequest request = args.Request;
+                OSHttpRequest osRequest = new OSHttpRequest(request);
+
+                if(m_WebSocketHandlers.TryGetValue(osRequest.RawUrl, out WebSocketRequestDelegate dWebSocketRequestDelegate))
+                {
+                    dWebSocketRequestDelegate?.Invoke(osRequest.Url.AbsolutePath, new WebSocketHttpServerHandler(osRequest, 8192));
+                    return;
+                }
+
                 if (TryGetPollServiceHTTPHandler(Util.TrimEndSlash(request.UriPath), out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
-                    PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-                    psEvArgs.Request?.Invoke(psreq.RequestID, new OSHttpRequest(request));
+                    PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, request);
+                    psEvArgs.Request?.Invoke(psreq.RequestID, osRequest);
                     m_pollServiceManager.Enqueue(psreq);
                 }
                 else
                 {
-                    OnHandleRequestIOThread(request);
+                    HandleRequest(osRequest, new OSHttpResponse(osRequest));
                 }
             }
             catch (Exception e)
             {
                 m_log.Error(String.Format("[BASE HTTP SERVER]: OnRequest() failed: {0} ", e.Message), e);
             }
-        }
-
-        private void OnHandleRequestIOThread(IHttpRequest request)
-        {
-            OSHttpRequest req = new OSHttpRequest(request);
-            WebSocketRequestDelegate dWebSocketRequestDelegate = null;
-            lock (m_WebSocketHandlers)
-            {
-                if (m_WebSocketHandlers.ContainsKey(req.RawUrl))
-                    dWebSocketRequestDelegate = m_WebSocketHandlers[req.RawUrl];
-            }
-            if (dWebSocketRequestDelegate != null)
-            {
-                dWebSocketRequestDelegate(req.Url.AbsolutePath, new WebSocketHttpServerHandler(req, request.Context, 8192));
-                return;
-            }
-
-            HandleRequest(req, new OSHttpResponse(req));
         }
 
         /// <summary>

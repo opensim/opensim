@@ -309,8 +309,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// replying</param>
         public OSHttpResponse(OSHttpRequest req)
         {
-            _httpResponse = new HttpResponse(req.IHttpClientContext, req.IHttpRequest);
-
+            _httpResponse = new HttpResponse(req.IHttpRequest);
         }
 
         public OSHttpResponse(HttpResponse resp)

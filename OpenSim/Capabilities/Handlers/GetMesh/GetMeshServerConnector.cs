@@ -68,7 +68,7 @@ namespace OpenSim.Capabilities.Handlers
             IRequestHandler reqHandler
                 = new RestHTTPHandler(
                     "GET",
-                    "/CAPS/" + UUID.Random(),
+                    "/" + UUID.Random(),
                     httpMethod => gmeshHandler.ProcessGetMesh(httpMethod, UUID.Zero, null),
                     "GetMesh",
                     null);
