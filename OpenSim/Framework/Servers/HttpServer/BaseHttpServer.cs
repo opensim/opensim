@@ -333,7 +333,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if(path == "/")
             {
-                if(httpMethod == "GET" && (handler is IStreamedRequestHandler || handler is ISimpleStreamHandler))
+                if(httpMethod == "GET")
                     m_RootDefaultGET = handler;
 
                 return;
@@ -356,8 +356,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void AddSimpleStreamHandler(ISimpleStreamHandler handler, bool varPath = false)
         {
-            // m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
-            if(varPath)
+            if (varPath)
                 m_simpleStreamVarPath.TryAdd(handler.Path, handler);
             else
                 m_simpleStreamHandlers.TryAdd(handler.Path, handler);
@@ -639,11 +638,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             IStreamedRequestHandler isrh = m_RootDefaultGET as IStreamedRequestHandler;
                             response.RawBuffer = isrh.Handle(path, request.InputStream, request, response);
                             response.StatusCode = (int)HttpStatusCode.OK;
-                        }
-                        else if (m_RootDefaultGET is ISimpleStreamHandler)
-                        {
-                            ISimpleStreamHandler issh = m_RootDefaultGET as ISimpleStreamHandler;
-                            issh.Handle(request, response);
                         }
                         if (request.InputStream != null && request.InputStream.CanRead)
                             request.InputStream.Dispose();
