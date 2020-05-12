@@ -342,7 +342,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             SceneObjectPart[] parts = sceneObject.Parts;
-            for (int i = 0; i < parts.Length; i++)
+            for (int i = 0; i < parts.Length; ++i)
             {
                 SceneObjectPart part = parts[i];
 
@@ -399,10 +399,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     List<TaskInventoryItem> items = part.TaskInventory.GetItems();
                     // Now analyze this prim's inventory items to preserve all the uuids that they reference
-                    for(i = 0; i < items.Count; ++i)
+                    for(int j = 0; j < items.Count; ++j)
                     {
-                        TaskInventoryItem tii = items[i];
-                        items[i] = null; // gc is stupid
+                        TaskInventoryItem tii = items[j];
+                        items[j] = null; // gc is stupid
                         AddForInspection(tii.AssetID, (sbyte)tii.Type);
                     }
 
