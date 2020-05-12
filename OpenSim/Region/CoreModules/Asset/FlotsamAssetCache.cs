@@ -906,16 +906,14 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.GatherAll();
 
             // windows does not update access time :(
-            int nofile = 0;
             foreach(UUID id in gatherer.GatheredUuids.Keys)
             {
-                if(!UpdateFileLastAccessTime(GetFileName(id.ToString())))
-                    nofile++;
+                string idstr = id.ToString();
+                if(!UpdateFileLastAccessTime(GetFileName(idstr)))
+                    m_AssetService.Get(idstr);
             }
-            if(gatherer.FailedUUIDs.Count > 0)
-                m_log.WarnFormat("[FLOTSAM ASSET CACHE] expire files IDs not found as asset:{0}", gatherer.FailedUUIDs.Count + nofile);
 
-            int count = gatherer.GatheredUuids.Count - nofile;
+            int count = gatherer.GatheredUuids.Count;
             gatherer.GatheredUuids.Clear();
             gatherer.FailedUUIDs.Clear();
             gatherer.UncertainAssetsUUIDs.Clear();
