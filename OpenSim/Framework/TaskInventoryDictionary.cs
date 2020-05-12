@@ -267,12 +267,8 @@ namespace OpenSim.Framework
 
         public List<TaskInventoryItem> GetItems()
         {
-            var ret = new List<TaskInventoryItem>(this.Count);
             m_itemLock.EnterReadLock();
-            foreach (TaskInventoryItem it in Values)
-            {
-                ret.Add(it);
-            }
+            var ret = new List<TaskInventoryItem>(Values);
             m_itemLock.ExitReadLock();
             return ret;
         }

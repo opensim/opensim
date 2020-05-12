@@ -397,14 +397,12 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
-
+                    List<TaskInventoryItem> items = part.TaskInventory.GetItems();
                     // Now analyze this prim's inventory items to preserve all the uuids that they reference
-                    foreach (TaskInventoryItem tii in taskDictionary.Values)
+                    for(i = 0; i < items.Count; ++i)
                     {
-                        //                        m_log.DebugFormat(
-                        //                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}",
-                        //                            tii.Name, tii.Type, part.Name, part.UUID);
+                        TaskInventoryItem tii = items[i];
+                        items[i] = null; // gc is stupid
                         AddForInspection(tii.AssetID, (sbyte)tii.Type);
                     }
 
@@ -413,7 +411,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // inventory transfer.  There needs to be a way for a module to register a method without assuming a
                     // Scene.EventManager is present.
                     //                    part.ParentGroup.Scene.EventManager.TriggerGatherUuids(part, assetUuids);
-
 
                     // still needed to retrieve textures used as materials for any parts containing legacy materials stored in DynAttrs
                     RecordMaterialsUuids(part);
