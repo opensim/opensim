@@ -244,7 +244,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public unsafe void GetPatchBlock(float[] _block, int px, int py, float sub, float premult)
+        public unsafe void GetPatchBlock(float* block, int px, int py, float sub, float premult)
         {
             int k = 0;
             int stride = m_heightmap.GetLength(1);
@@ -252,7 +252,7 @@ namespace OpenSim.Framework
             int startX = px * 16 * stride;
             int endX = (px + 1) * 16 * stride;
             int startY = py * 16;
-            fixed(float* block = _block, map = m_heightmap)
+            fixed(float* map = m_heightmap)
             {
                 for (int y = startY; y < startY + 16; y++)
                 {
