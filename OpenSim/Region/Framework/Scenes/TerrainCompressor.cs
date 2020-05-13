@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return layer;
         }
 
-        public static void CreatePatchtStandardSize(BitPack output, float[] patchData, int x, int y)
+        public unsafe static void CreatePatchtStandardSize(BitPack output, float[] patchData, int x, int y)
         {
             TerrainPatch.Header header = PrescanPatch(patchData);
             header.QuantWBits = 136;
@@ -103,7 +103,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             header.PatchIDs += (x << 5);
 
             int wbits;
-            int[] patch = CompressPatch(patchData, header, 10, out wbits);
+            int* patch = stackalloc int[256];
+            CompressPatch(patchData, header, 10, out wbits, patch);
             EncodePatchHeader(output, header, false, ref wbits);
             EncodePatch(output, patch, 0, wbits);
         }
@@ -127,9 +128,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return header;
         }
 
-        private static int[] CompressPatch(float[] patchData, TerrainPatch.Header header, int prequant, out int wbits)
+        private unsafe static void CompressPatch(float[] patchData, TerrainPatch.Header header, int prequant, out int wbits, int* iout)
         {
-            float[] block = new float[256];
+            float* block = stackalloc float[256];
             float oozrange = 1.0f / header.Range;
             float range = (1 << prequant);
             float premult = oozrange * range;
@@ -148,11 +149,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             wbits = (prequant >> 1);
-            int[] iout = new int[256];
 
             dct16x16(block, iout, ref wbits);
-
-            return iout;
         }
 
 /*
@@ -216,7 +214,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 */
 
-        public static void CreatePatchFromTerrainData(BitPack output, TerrainData terrData, int patchX, int patchY)
+        public unsafe static void CreatePatchFromTerrainData(BitPack output, TerrainData terrData, int patchX, int patchY)
         {
             float frange;
 
@@ -255,7 +253,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             int wbits;
-            int[] patch = CompressPatch(terrData, patchX, patchY, header, 10, out wbits);
+            int* patch = stackalloc int[256];
+            CompressPatch(terrData, patchX, patchY, header, 10, out wbits, patch);
             EncodePatchHeader(output, header, largeRegion, ref wbits);
             EncodePatch(output, patch, 0, wbits);
         }
@@ -295,7 +294,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 output.PackBits(header.PatchIDs, 10);
         }
 
-        private unsafe static void EncodePatch(BitPack output, int[] _patch, int postquant, int wbits)
+        private unsafe static void EncodePatch(BitPack output, int* patch, int postquant, int wbits)
         {
             int maxwbitssize = (1 << wbits) - 1;
 
@@ -307,71 +306,67 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int lastZeroindx = 256 - postquant;
 
-            fixed(int * patch = _patch)
+            if (lastZeroindx != 256)
+                patch[lastZeroindx] = 0;
+
+            int i = 0;
+            while(i < 256)
             {
-                if (lastZeroindx != 256)
-                    patch[lastZeroindx] = 0;
+                int temp = patch[i];
 
-                int i = 0;
-                while(i < 256)
+                if (temp == 0)
                 {
-                    int temp = patch[i];
-
-                    if (temp == 0)
+                    int j = i + 1;
+                    while(j < lastZeroindx)
                     {
-                        int j = i + 1;
-                        while(j < lastZeroindx)
-                        {
-                            if (patch[j] != 0)
-                                break;
-                            ++j;
-                        }
-
-                        if (j == lastZeroindx)
-                        {
-                            output.PackBits(ZERO_EOB, 2);
-                            return;
-                        }
-
-                        i = j - i;
-                        while(i > 8)
-                        {
-                            output.PackBitsFromByte(ZERO_CODE);
-                            i -= 8;
-                        }
-                        if( i > 0)
-                            output.PackBitsFromByte(ZERO_CODE, i);
-                        i = j;
-                        continue;
+                        if (patch[j] != 0)
+                            break;
+                        ++j;
                     }
 
-                    if (temp < 0)
+                    if (j == lastZeroindx)
                     {
-                        temp *= -1;
-                        if (temp > maxwbitssize)
-                            temp = maxwbitssize;
-
-                        output.PackBits(NEGATIVE_VALUE, 3);
-                        output.PackBits(temp, wbits);
+                        output.PackBits(ZERO_EOB, 2);
+                        return;
                     }
-                    else
+
+                    i = j - i;
+                    while(i > 8)
                     {
-                        if (temp > maxwbitssize)
-                            temp = maxwbitssize;
-
-                        output.PackBits(POSITIVE_VALUE, 3);
-                        output.PackBits(temp, wbits);
+                        output.PackBitsFromByte(ZERO_CODE);
+                        i -= 8;
                     }
-                    ++i;
+                    if( i > 0)
+                        output.PackBitsFromByte(ZERO_CODE, i);
+                    i = j;
+                    continue;
                 }
+
+                if (temp < 0)
+                {
+                    temp *= -1;
+                    if (temp > maxwbitssize)
+                        temp = maxwbitssize;
+
+                    output.PackBits(NEGATIVE_VALUE, 3);
+                    output.PackBits(temp, wbits);
+                }
+                else
+                {
+                    if (temp > maxwbitssize)
+                        temp = maxwbitssize;
+
+                    output.PackBits(POSITIVE_VALUE, 3);
+                    output.PackBits(temp, wbits);
+                }
+                ++i;
             }
         }
 
-        private static int[] CompressPatch(TerrainData terrData, int patchX, int patchY, TerrainPatch.Header header,
-                                                               int prequant, out int wbits)
+        private unsafe static void CompressPatch(TerrainData terrData, int patchX, int patchY, TerrainPatch.Header header,
+                                                               int prequant, out int wbits, int* iout)
         {
-            float[] block = new float[256];
-            int[] iout = new int[256];
+            float* block = stackalloc float[256];
 
             float oozrange = 1.0f / header.Range;
             float invprequat = (1 << prequant);
@@ -388,7 +383,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             wbits = (prequant >> 1);
 
             dct16x16(block, iout, ref wbits);
-            return iout;
         }
 
         #region Initialization
@@ -523,9 +517,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         const float W16_8R = 0.70710678118654752440f;
 
 
-        unsafe static void dct16x16(float[] _a, int[] _iout, ref int wbits)
+        unsafe static void dct16x16(float* a, int* iout, ref int wbits)
         {
-            float[] _tmp = new float[256];
+            float* tmp = stackalloc float[256];
 
             float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
             float x4r, x4i, x5r, x5i, x6r, x6i, x7r, x7i;
@@ -540,8 +534,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int wbitsMaxValue = 1 << wbits;
             bool dowbits = wbits < 17;
 
-            fixed (float* a = _a, tmp = _tmp, fQuantizeTable16 = QuantizeTable16)
-            fixed (int* iout = _iout, fCopyMatrix16 = CopyMatrix16)
+            fixed (float*  fQuantizeTable16 = QuantizeTable16)
+            fixed (int* fCopyMatrix16 = CopyMatrix16)
             {
                 for (j = 0, k = 0; j < 256; j += 16, k++)
                 {
