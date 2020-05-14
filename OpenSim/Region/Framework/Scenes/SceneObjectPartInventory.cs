@@ -782,7 +782,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForRead(true);
             if (m_scripts == null || m_scripts.Count == 0)
             {
-                m_items.LockItemsForWrite(false);
+                m_items.LockItemsForRead(false);
                 return;
             }
 
