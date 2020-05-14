@@ -2795,7 +2795,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // use this to mean also full delete
             if (removeScripts)
-                group.Clear();
+                group.Dispose();
             partList = null;
             // m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);
         }

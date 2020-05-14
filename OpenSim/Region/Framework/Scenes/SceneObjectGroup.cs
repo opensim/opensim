@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// A scene object group is conceptually an object in the scene.  The object is constituted of SceneObjectParts
     /// (often known as prims), one of which is considered the root part.
     /// </summary>
-    public partial class SceneObjectGroup : EntityBase, ISceneObject
+    public partial class SceneObjectGroup : EntityBase, ISceneObject, IDisposable
     {
         // Axis selection bitmask used by SetAxisRotation()
         // Just happen to be the same bits used by llSetStatus() and defined in ScriptBaseClass.
@@ -907,7 +907,7 @@ namespace OpenSim.Region.Framework.Scenes
                 avsToCrossFar.Clear();
                 avsToCross.Clear();
                 sog.RemoveScriptInstances(true);
-                sog.Clear();
+                sog.Dispose();
                 return sog;
             }
             else
@@ -1361,6 +1361,42 @@ namespace OpenSim.Region.Framework.Scenes
             : this(ownerID, pos, Quaternion.Identity, shape)
         {
         }
+
+        ~SceneObjectGroup()
+        {
+            Dispose(false);
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!disposed)
+            {
+                IsDeleted = true;
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for(int i= 0; i < parts.Length; ++i)
+                    parts[i].Dispose();
+
+                m_parts.Clear();
+                m_sittingAvatars.Clear();
+                //            m_rootPart = null;
+
+                m_targets.Clear();
+                m_partsNameToLinkMap.Clear();
+
+                disposed = true;
+            }
+        }
+
+
 
         public void LoadScriptState(XmlDocument doc)
         {
@@ -2412,7 +2448,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         });
 
-                        backup_group.Clear();
+                        backup_group.Dispose();
                         backup_group = null;
                     }
                 }
@@ -5275,17 +5311,6 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ResetOwnerChangeFlag();
             });
             InvalidateEffectivePerms();
-        }
-
-        // clear some references to easy cg
-        public void Clear()
-        {
-            m_parts.Clear();
-            m_sittingAvatars.Clear();
-//            m_rootPart = null;
-
-            m_targets.Clear();
-            m_partsNameToLinkMap.Clear();
         }
 
         private Dictionary<string,int> m_partsNameToLinkMap = new Dictionary<string, int>();
