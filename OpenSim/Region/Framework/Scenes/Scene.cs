@@ -3794,7 +3794,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.RemoveScenePresence(agentID);
                         m_clientManager.Remove(agentID);
 
-                        avatar.Close();
+                        avatar.Dispose();
                     }
                     catch (Exception e)
                     {

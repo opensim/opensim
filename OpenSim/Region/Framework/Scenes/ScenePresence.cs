@@ -74,7 +74,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void SendCoarseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
-    public class ScenePresence : EntityBase, IScenePresence
+    public class ScenePresence : EntityBase, IScenePresence, IDisposable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1075,8 +1075,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructor(s)
 
-        public ScenePresence(
-            IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
+        public ScenePresence(IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
             m_scene = world;
             AttachmentsSyncLock = new Object();
@@ -1165,6 +1164,55 @@ namespace OpenSim.Region.Framework.Scenes
             }
             m_bandwidthBurst = m_bandwidth / 5;
             ControllingClient.RefreshGroupMembership();
+        }
+
+        ~ScenePresence()
+        {
+            Dispose(false);
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!disposed)
+            {
+                IsDeleted = true;
+                if (m_updateAgentReceivedAfterTransferEvent != null)
+                {
+                    m_updateAgentReceivedAfterTransferEvent.Dispose();
+                    m_updateAgentReceivedAfterTransferEvent = null;
+                }
+
+                RemoveFromPhysicalScene();
+
+                // Clear known regions
+                KnownRegions = null;
+
+                m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
+                RemoveClientEvents();
+
+                Animator = null;
+                Appearance = null;
+                if(m_attachments != null)
+                {
+                    foreach(SceneObjectGroup sog in m_attachments)
+                        sog.Dispose();
+                    m_attachments = null;
+                }
+
+                scriptedcontrols.Clear();
+                ControllingClient = null;
+                LifecycleState = ScenePresenceState.Removed;
+
+                disposed = true;
+            }
         }
 
         private float lastHealthSent = 0;
@@ -1687,6 +1735,7 @@ namespace OpenSim.Region.Framework.Scenes
                 pa.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 pa.UnSubscribeEvents();
                 m_scene.PhysicsScene.RemoveAvatar(pa);
+                pa = null;
             }
 //            else
 //            {
@@ -5391,31 +5440,6 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.SendHealth(Health);
         }
 
-        protected internal void Close()
-        {
-            // Clear known regions
-            KnownRegions = new Dictionary<ulong, string>();
-
-            // I don't get it but mono crashes when you try to dispose of this timer,
-            // unsetting the elapsed callback should be enough to allow for cleanup however.
-            // m_reprioritizationTimer.Dispose();
-
-            RemoveFromPhysicalScene();
-
-            m_scene.EventManager.OnRegionHeartbeatEnd -= RegionHeartbeatEnd;
-            RemoveClientEvents();
-
-//            if (Animator != null)
-//                Animator.Close();
-            Animator = null;
-
-            scriptedcontrols.Clear();
-            ControllingClient = null;
-            LifecycleState = ScenePresenceState.Removed;
-            IsDeleted = true;
-            m_updateAgentReceivedAfterTransferEvent.Dispose();
-            m_updateAgentReceivedAfterTransferEvent = null;
-        }
 
         public void AddAttachment(SceneObjectGroup gobj)
         {
