@@ -420,6 +420,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("[UUID GATHERER]: Failed to get part - {0}", e);
                 }
             }
+            if(sceneObject.TemporaryInstance)
+                sceneObject.Dispose();
         }
 
         /// <summary>
@@ -782,14 +784,20 @@ namespace OpenSim.Region.Framework.Scenes
             if (CoalescedSceneObjectsSerializer.TryFromXml(xml, out coa))
             {
                 foreach (SceneObjectGroup sog in coa.Objects)
+                {
+                    sog.TemporaryInstance = true;
                     AddForInspection(sog);
+                }
             }
             else
             {
                 SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
 
                 if (null != sog)
+                {
+                    sog.TemporaryInstance = true;
                     AddForInspection(sog);
+                }
             }
         }
 

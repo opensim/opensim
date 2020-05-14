@@ -195,6 +195,8 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_hasGroupChanged; }
         }
 
+        public bool TemporaryInstance = false;
+
         private bool m_groupContainsForeignPrims = false;
 
         /// <summary>
@@ -3294,9 +3296,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Now that we've aquired all of the old SOG's parts, remove the old SOG from the scene.
             m_scene.UnlinkSceneObject(objectGroup, true);
-            objectGroup.IsDeleted = true;
-
-            objectGroup.m_parts.Clear();
+            objectGroup.m_parts.Clear(); // do not dispose the parts moved to new group
+            objectGroup.Dispose();
 
             // Can't do this yet since backup still makes use of the root part without any synchronization
 //            objectGroup.m_rootPart = null;
