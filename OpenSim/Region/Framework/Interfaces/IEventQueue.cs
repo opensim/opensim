@@ -106,6 +106,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
         void WindlightRefreshEvent(int interpolate, UUID avatarID);
         StringBuilder StartEvent(string eventName);
+        StringBuilder StartEvent(string eventName, int cap);
         string EndEvent(StringBuilder sb);
         byte[] EndEventToBytes(StringBuilder sb);
     }

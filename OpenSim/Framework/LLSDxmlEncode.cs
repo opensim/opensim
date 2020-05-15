@@ -153,17 +153,17 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void AddElem(byte[] e, int start, int lenght, StringBuilder sb)
+        public static void AddElem(byte[] e, int start, int length, StringBuilder sb)
         {
-            if (start + lenght >= e.Length)
-                lenght = e.Length - start;
+            if (start + length >= e.Length)
+                length = e.Length - start;
 
-            if (e == null || e.Length == 0 || lenght <= 0)
+            if (e == null || e.Length == 0 || length <= 0)
                 sb.Append("binary />");
             else
             {
                 sb.Append("<binary>"); // encode64 is default
-                base64Encode(e, start, lenght, sb);
+                base64Encode(e, start, length, sb);
                 sb.Append("</binary>");
             }
         }
@@ -476,21 +476,21 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void AddElem(string name, byte[] e, int start, int lenght, StringBuilder sb)
+        public static void AddElem(string name, byte[] e, int start, int length, StringBuilder sb)
         {
             sb.Append("<key>");
             sb.Append(name);
             sb.Append("</key>");
 
-            if (start + lenght >= e.Length)
-                lenght = e.Length - start;
+            if (start + length >= e.Length)
+                length = e.Length - start;
 
-            if (e == null || e.Length == 0 || lenght <= 0)
+            if (e == null || e.Length == 0 || length <= 0)
                 sb.Append("binary />");
             else
             {
                 sb.Append("<binary>"); // encode64 is default
-                base64Encode(e, start, lenght, sb);
+                base64Encode(e, start, length, sb);
                 sb.Append("</binary>");
             }
         }
@@ -870,10 +870,10 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe void base64Encode(byte[] data, int start, int lenght, StringBuilder sb)
+        public static unsafe void base64Encode(byte[] data, int start, int length, StringBuilder sb)
         {
-            int lenMod3 = lenght % 3;
-            int len = start + (lenght - lenMod3);
+            int lenMod3 = length % 3;
+            int len = start + (length - lenMod3);
 
             fixed (byte* d = data)
             {
