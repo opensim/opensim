@@ -6548,7 +6548,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LandData landData = lo.LandData;
             IPrimCounts pc = lo.PrimCounts;
 
-            StringBuilder sb = eq.StartEvent("ParcelProperties");
+            int cap = 4 * landData.Bitmap.Length / 3 + 2048;
+            StringBuilder sb = eq.StartEvent("ParcelProperties", cap);
 
             LLSDxmlEncode.AddArrayAndMap("ParcelData", sb);
 

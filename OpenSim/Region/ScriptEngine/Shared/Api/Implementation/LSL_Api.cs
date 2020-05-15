@@ -6586,90 +6586,97 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
-            if (agent.IsChildAgent)
+            if (agent.IsChildAgent || agent.IsDeleted)
                 return 0; // Fail if they are not in the same region
 
-            // note: in OpenSim, sitting seems to cancel AGENT_ALWAYS_RUN, unlike SL
-            if (agent.SetAlwaysRun)
+            try
             {
-                flags |= ScriptBaseClass.AGENT_ALWAYS_RUN;
-            }
+                // note: in OpenSim, sitting seems to cancel AGENT_ALWAYS_RUN, unlike SL
+                if (agent.SetAlwaysRun)
+                {
+                    flags |= ScriptBaseClass.AGENT_ALWAYS_RUN;
+                }
 
-            if (agent.HasAttachments())
-            {
-                flags |= ScriptBaseClass.AGENT_ATTACHMENTS;
-                if (agent.HasScriptedAttachments())
-                    flags |= ScriptBaseClass.AGENT_SCRIPTED;
-            }
+                if (agent.HasAttachments())
+                {
+                    flags |= ScriptBaseClass.AGENT_ATTACHMENTS;
+                    if (agent.HasScriptedAttachments())
+                        flags |= ScriptBaseClass.AGENT_SCRIPTED;
+                }
 
-            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
-            {
-                flags |= ScriptBaseClass.AGENT_FLYING;
-                flags |= ScriptBaseClass.AGENT_IN_AIR; // flying always implies in-air, even if colliding with e.g. a wall
-            }
+                if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+                {
+                    flags |= ScriptBaseClass.AGENT_FLYING;
+                    flags |= ScriptBaseClass.AGENT_IN_AIR; // flying always implies in-air, even if colliding with e.g. a wall
+                }
 
-            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AWAY) != 0)
-            {
-                flags |= ScriptBaseClass.AGENT_AWAY;
-            }
+                if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AWAY) != 0)
+                {
+                    flags |= ScriptBaseClass.AGENT_AWAY;
+                }
 
-            UUID busy = new UUID("efcf670c-2d18-8128-973a-034ebc806b67");
-            UUID[] anims = agent.Animator.GetAnimationArray();
-            if (Array.Exists<UUID>(anims, a => { return a == busy; }))
-            {
-                flags |= ScriptBaseClass.AGENT_BUSY;
-            }
+                UUID busy = new UUID("efcf670c-2d18-8128-973a-034ebc806b67");
+                UUID[] anims = agent.Animator.GetAnimationArray();
+                if (Array.Exists<UUID>(anims, a => { return a == busy; }))
+                {
+                    flags |= ScriptBaseClass.AGENT_BUSY;
+                }
 
-            // seems to get unset, even if in mouselook, when avatar is sitting on a prim???
-            if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
-            {
-                flags |= ScriptBaseClass.AGENT_MOUSELOOK;
-            }
+                // seems to get unset, even if in mouselook, when avatar is sitting on a prim???
+                if ((agent.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+                {
+                    flags |= ScriptBaseClass.AGENT_MOUSELOOK;
+                }
 
-            if ((agent.State & (byte)AgentState.Typing) != (byte)0)
-            {
-                flags |= ScriptBaseClass.AGENT_TYPING;
-            }
+                if ((agent.State & (byte)AgentState.Typing) != (byte)0)
+                {
+                    flags |= ScriptBaseClass.AGENT_TYPING;
+                }
 
-            string agentMovementAnimation = agent.Animator.CurrentMovementAnimation;
+                string agentMovementAnimation = agent.Animator.CurrentMovementAnimation;
 
-            if (agentMovementAnimation == "CROUCH")
-            {
-                flags |= ScriptBaseClass.AGENT_CROUCHING;
-            }
+                if (agentMovementAnimation == "CROUCH")
+                {
+                    flags |= ScriptBaseClass.AGENT_CROUCHING;
+                }
 
-            if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")
-            {
-                flags |= ScriptBaseClass.AGENT_WALKING;
-            }
+                if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")
+                {
+                    flags |= ScriptBaseClass.AGENT_WALKING;
+                }
 
-            // not colliding implies in air. Note: flying also implies in-air, even if colliding (see above)
+                // not colliding implies in air. Note: flying also implies in-air, even if colliding (see above)
 
-            // note: AGENT_IN_AIR and AGENT_WALKING seem to be mutually exclusive states in SL.
+                // note: AGENT_IN_AIR and AGENT_WALKING seem to be mutually exclusive states in SL.
 
-            // note: this may need some tweaking when walking downhill. you "fall down" for a brief instant
-            // and don't collide when walking downhill, which instantly registers as in-air, briefly. should
-            // there be some minimum non-collision threshold time before claiming the avatar is in-air?
-            if ((flags & ScriptBaseClass.AGENT_WALKING) == 0 && !agent.IsColliding )
-            {
-                    flags |= ScriptBaseClass.AGENT_IN_AIR;
-            }
+                // note: this may need some tweaking when walking downhill. you "fall down" for a brief instant
+                // and don't collide when walking downhill, which instantly registers as in-air, briefly. should
+                // there be some minimum non-collision threshold time before claiming the avatar is in-air?
+                if ((flags & ScriptBaseClass.AGENT_WALKING) == 0 && !agent.IsColliding )
+                {
+                        flags |= ScriptBaseClass.AGENT_IN_AIR;
+                }
 
-             if (agent.ParentPart != null)
-             {
-                 flags |= ScriptBaseClass.AGENT_ON_OBJECT;
-                 flags |= ScriptBaseClass.AGENT_SITTING;
+                 if (agent.ParentPart != null)
+                 {
+                     flags |= ScriptBaseClass.AGENT_ON_OBJECT;
+                     flags |= ScriptBaseClass.AGENT_SITTING;
+                 }
+
+                 if (agent.Animator.Animations.ImplicitDefaultAnimation.AnimID
+                    == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
+                 {
+                     flags |= ScriptBaseClass.AGENT_SITTING;
+                 }
+
+                 if (agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] > 0)
+                 {
+                     flags |= ScriptBaseClass.AGENT_MALE;
+                 }
              }
-
-             if (agent.Animator.Animations.ImplicitDefaultAnimation.AnimID
-                == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
+             catch
              {
-                 flags |= ScriptBaseClass.AGENT_SITTING;
-             }
-
-             if (agent.Appearance.VisualParams[(int)AvatarAppearance.VPElement.SHAPE_MALE] > 0)
-             {
-                 flags |= ScriptBaseClass.AGENT_MALE;
+                return 0;
              }
 
             return flags;
