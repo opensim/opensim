@@ -197,6 +197,7 @@ namespace OSHttpServer
             m_currentRequest.UriPath = e.UriPath;
             m_currentRequest.AddHeader("remote_addr", LocalIPEndPoint.Address.ToString());
             m_currentRequest.AddHeader("remote_port", LocalIPEndPoint.Port.ToString());
+            m_currentRequest.ArrivalTS = ContextTimeoutManager.GetTimeStamp();
 
             FirstRequestLineReceived = true;
             TriggerKeepalive = false;

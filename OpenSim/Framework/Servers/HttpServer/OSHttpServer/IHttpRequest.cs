@@ -138,5 +138,6 @@ namespace OSHttpServer
 
         IPEndPoint LocalIPEndPoint { get; }
         IPEndPoint RemoteIPEndPoint { get; }
+        double ArrivalTS { get; set; }
     }
 }

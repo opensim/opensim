@@ -187,6 +187,7 @@ namespace OpenSim.Tests.Common
 
         public Uri Url { get; set; }
         public string UriPath { get;}
+        public double ArrivalTS { get; }
 
         public string UserAgent
         {

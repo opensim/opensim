@@ -38,6 +38,7 @@ namespace OSHttpServer
         int RawBufferStart { get; set; }
         int RawBufferLen { get; set; }
         uint requestID { get; }
+        double RequestTS { get;}
 
         /// <summary>
         /// Defines the version of the HTTP Response for applications where it's required

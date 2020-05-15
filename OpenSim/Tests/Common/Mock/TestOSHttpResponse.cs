@@ -117,6 +117,8 @@ namespace OpenSim.Tests.Common
         /// </summary>
         public string StatusDescription { get; set; }
 
+        public double RequestTS { get; }
+
         /// <summary>
         /// Add a header field and content to the response.
         /// </summary>

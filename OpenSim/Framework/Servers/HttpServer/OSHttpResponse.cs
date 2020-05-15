@@ -275,6 +275,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public double RequestTS
+        {
+            get {return _httpResponse.RequestTS; }
+        }
 
         /// <summary>
         /// HTTP status description.

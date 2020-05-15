@@ -192,6 +192,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         private string m_userAgent;
 
+        public double ArrivalTS
+        {
+            get { return m_request.ArrivalTS;}
+        }
+
         internal IHttpRequest IHttpRequest
         {
             get { return m_request; }

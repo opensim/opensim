@@ -26,6 +26,7 @@ namespace OSHttpServer
         public byte[] RawBuffer { get; set; }
         public int RawBufferStart { get; set; }
         public int RawBufferLen { get; set; }
+        public double RequestTS { get; private set; }
 
         internal byte[] m_headerBytes = null;
 
@@ -45,6 +46,7 @@ namespace OSHttpServer
             m_context = request.Context;
             m_Connetion = request.Connection;
             requestID = request.ID;
+            RequestTS = request.ArrivalTS;
             RawBufferStart = -1;
             RawBufferLen = -1;
         }

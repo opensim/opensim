@@ -204,6 +204,7 @@ namespace OSHttpServer
         /// </summary>
         public RequestCookies Cookies { get; private set; }
 
+        public double ArrivalTS { get; set;}
         ///<summary>
         ///Creates a new object that is a copy of the current instance.
         ///</summary>
