@@ -117,6 +117,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         string StatusDescription { get; set; }
 
+        double RequestTS { get; }
+
         /// <summary>
         /// Add a header field and content to the response.
         /// </summary>

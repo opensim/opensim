@@ -60,5 +60,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         Uri Url { get; }
         string UriPath { get; }
         string UserAgent { get; }
+        double ArrivalTS { get; }
     }
 }
