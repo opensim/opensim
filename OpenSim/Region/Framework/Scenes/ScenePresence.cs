@@ -5109,7 +5109,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SetAlwaysRun = cAgent.AlwaysRun;
 
-            Appearance = new AvatarAppearance(cAgent.Appearance);
+            Appearance = new AvatarAppearance(cAgent.Appearance, true, true);
 /*
             bool isFlying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
 
