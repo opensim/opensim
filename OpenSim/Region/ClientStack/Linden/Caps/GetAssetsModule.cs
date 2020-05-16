@@ -65,15 +65,12 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public PollServiceAssetEventArgs thepoll;
             public UUID reqID;
-            //public Hashtable request;
             public OSHttpRequest request;
         }
 
         public class APollResponse
         {
-            public Hashtable response;
-            public int bytes;
-            public bool throttle;
+            public OSHttpResponse osresponse;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -241,7 +238,6 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_scene = scene;
 
-
                 HasEvents = (requestID, agentID) =>
                 {
                     lock (responses)
@@ -254,9 +250,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
                             if (m_presence == null || m_presence.IsDeleted)
                                 return true;
-                            if(response.throttle)
-                                return m_presence.CapCanSendAsset(1, response.bytes);
-                            return m_presence.CapCanSendAsset(2, response.bytes);
+
+                            OSHttpResponse resp = response.osresponse;
+
+                            if(Util.GetTimeStamp() - resp.RequestTS > (resp.RawBufferLen > 2000000 ? 200 : 90))
+                                return m_presence.CapCanSendAsset(2, resp.RawBufferLen);
+
+                            if (resp.Priority > 1)
+                                return m_presence.CapCanSendAsset(1, resp.RawBufferLen);
+                            return m_presence.CapCanSendAsset(2, resp.RawBufferLen);
                         }
                         return false;
                     }
@@ -278,7 +280,13 @@ namespace OpenSim.Region.ClientStack.Linden
                     {
                         try
                         {
-                            return responses[requestID].response;
+                            OSHttpResponse response = responses[requestID].osresponse;
+                            if (response.Priority < 0)
+                                response.Priority = 0;
+
+                            Hashtable lixo = new Hashtable(1);
+                            lixo["h"] = response;
+                            return lixo;
                         }
                         finally
                         {
@@ -319,8 +327,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
             public void Process(APollRequest requestinfo)
             {
-                Hashtable curresponse;
-
                 UUID requestID = requestinfo.reqID;
 
                 if(m_scene.ShuttingDown)
@@ -350,8 +356,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
 */
                 }
-
-                curresponse = m_getAssetHandler.Handle(requestinfo.request);
+                OSHttpResponse response = new OSHttpResponse(requestinfo.request);
+                m_getAssetHandler.Handle(requestinfo.request, response);
 
                 lock(responses)
                 {
@@ -366,11 +372,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
                     APollResponse preq= new APollResponse()
                     {
-                        bytes = (int)curresponse["int_bytes"],
-                        response = curresponse
+                        osresponse = response
                     };
-                    if(curresponse.Contains("throttle"))
-                        preq.throttle = true;
                     responses[requestID] = preq;
                 }
             }
