@@ -122,7 +122,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static bool TryFromXml(string xml, out CoalescedSceneObjects coa)
         {
-//            m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
+            //            m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
 
             coa = null;
 
@@ -137,9 +137,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                         if (reader.Name != "CoalescedObject")
                         {
-    //                        m_log.DebugFormat(
-    //                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false",
-    //                            reader.Name);
+                            //                        m_log.DebugFormat(
+                            //                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false",
+                            //                            reader.Name);
 
                             return false;
                         }
@@ -178,8 +178,69 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
             catch (Exception e)
             {
-                m_log.Error("[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml failed ",  e);
+                m_log.Error("[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml failed ", e);
                 Util.LogFailedXML("[COALESCED SCENE OBJECTS SERIALIZER]:", xml);
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool TryFromXmlData(byte[] data, out CoalescedSceneObjects coa)
+        {
+            // m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
+
+            coa = null;
+            try
+            {
+                // Quickly check if this is a coalesced object, without fully parsing the XML
+                using (MemoryStream ms = new MemoryStream(data))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(ms))
+                    {
+                        reader.MoveToContent(); // skip possible xml declaration
+
+                        if (reader.Name != "CoalescedObject")
+                        {
+                            return false;
+                        }
+                    }
+
+                    ms.Seek(0, SeekOrigin.Begin);
+                    XmlDocument doc = new XmlDocument();
+                    doc.Load(ms);
+                    XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+                    if (e == null)
+                        return false;
+
+                    coa = new CoalescedSceneObjects(UUID.Zero);
+
+                    XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                    int i = 0;
+
+                    foreach (XmlNode n in groups)
+                    {
+                        SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                        if (so != null)
+                        {
+                            coa.Add(so);
+                        }
+                        else
+                        {
+                            // XXX: Possibly we should fail outright here rather than continuing if a particular component of the
+                            // coalesced object fails to load.
+                            m_log.WarnFormat(
+                                "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.",
+                                i);
+                        }
+
+                        i++;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of binary xml failed ", e);
                 return false;
             }
 

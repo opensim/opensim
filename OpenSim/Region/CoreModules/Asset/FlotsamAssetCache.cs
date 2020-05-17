@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.Asset
         private ulong m_MemoryHits;
         private ulong m_weakRefHits;
 
-        private HashSet<string> m_CurrentlyWriting = new HashSet<string>();
+        private static HashSet<string> m_CurrentlyWriting = new HashSet<string>();
 
         private bool m_FileCacheEnabled = true;
 
@@ -170,8 +170,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_HitRateDisplay = (ulong)assetConfig.GetLong("HitRateDisplay", (long)m_HitRateDisplay);
 
                         m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));
-                        m_FileExpirationCleanupTimer
-                            = TimeSpan.FromHours(
+                        m_FileExpirationCleanupTimer = TimeSpan.FromHours(
                                 assetConfig.GetDouble("FileCleanupTimer", m_FileExpirationCleanupTimer.TotalHours));
 
                         m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", m_CacheDirectoryTiers);
@@ -749,7 +748,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         /// <param name="filename"></param>
         /// <param name="asset"></param>
-        private void WriteFileCache(string filename, AssetBase asset, bool replace)
+        private static void WriteFileCache(string filename, AssetBase asset, bool replace)
         {
              // Make sure the target cache directory exists
             string directory = Path.GetDirectoryName(filename);
@@ -791,9 +790,6 @@ namespace OpenSim.Region.CoreModules.Asset
                     if(replace)
                         File.Delete(filename);
                     File.Move(tempname, filename);
-
-                    if (m_LogLevel >= 2)
-                        m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Cache Stored :: {0}", asset.ID);
                 }
                 catch (IOException)
                 {
@@ -870,47 +866,59 @@ namespace OpenSim.Region.CoreModules.Asset
         /// to update the access time of all assets present in the scene or referenced by assets
         /// in the scene.
         /// </summary>
-        /// <param name="storeUncached">
+        /// <param name="tryGetUncached">
         /// If true, then assets scanned which are not found in cache are added to the cache.
         /// </param>
         /// <returns>Number of distinct asset references found in the scene.</returns>
-        private int TouchAllSceneAssets(bool storeUncached)
+        private int TouchAllSceneAssets(bool tryGetUncached)
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
-            Dictionary<UUID, bool> assetsFound = new Dictionary<UUID, bool>();
-
+            int cooldown = 0;
             foreach (Scene s in m_Scenes)
             {
                 StampRegionStatusFile(s.RegionInfo.RegionID);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture1, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture2, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture3, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture4, (sbyte)AssetType.Texture);
+                gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainImageID, (sbyte)AssetType.Texture);
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
                 {
-                    if(!m_timerRunning && !storeUncached)
+                    if(!m_timerRunning && !tryGetUncached)
                         return;
 
                     gatherer.AddForInspection(e);
                     gatherer.GatherAll();
 
-                    if(!m_timerRunning && !storeUncached)
-                        return;
-
-                    if(!storeUncached)
+                    if (++cooldown > 100)
+                    {
                         Thread.Sleep(50);
+                        cooldown = 0;
+                    }
                 });
-                if(!m_timerRunning && !storeUncached)
+                if(!m_timerRunning && !tryGetUncached)
                     break;
-                gatherer.GatherAll();
             }
 
             gatherer.GatherAll();
 
+            cooldown = 0;
             // windows does not update access time :(
             foreach(UUID id in gatherer.GatheredUuids.Keys)
             {
                 string idstr = id.ToString();
-                if(!UpdateFileLastAccessTime(GetFileName(idstr)))
+                if(!UpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
+                {
+                    cooldown += 50;
                     m_AssetService.Get(idstr);
+                }
+                if (++cooldown > 1000)
+                {
+                    Thread.Sleep(50);
+                    cooldown = 0;
+                }
             }
 
             int count = gatherer.GatheredUuids.Count;
@@ -918,7 +926,6 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.FailedUUIDs.Clear();
             gatherer.UncertainAssetsUUIDs.Clear();
 
-            GC.Collect();
             return count;
         }
 
@@ -1164,7 +1171,11 @@ namespace OpenSim.Region.CoreModules.Asset
                             con.Output("{0} is not a valid date & time", cmd);
                             break;
                         }
-
+                        if (expirationDate >= DateTime.Now)
+                        {
+                            con.Output("{0} date & time must be in past", cmd);
+                            break;
+                        }
                         if (m_FileCacheEnabled)
                             CleanExpiredFiles(m_CacheDirectory, expirationDate);
                         else
