@@ -676,11 +676,11 @@ namespace OpenSim.Framework
                         ulong handle = 0;
                         string seed = "";
                         OSDMap pair = (OSDMap)o;
-                        if (pair["handle"] != null)
-                            if (!UInt64.TryParse(pair["handle"].AsString(), out handle))
+                        if (pair.TryGetValue("handle", out tmp))
+                            if (!UInt64.TryParse(tmp.AsString(), out handle))
                                 continue;
-                        if (pair["seed"] != null)
-                            seed = pair["seed"].AsString();
+                        if (pair.TryGetValue("seed", out tmp))
+                            seed = tmp.AsString();
                         if (!ChildrenCapSeeds.ContainsKey(handle))
                             ChildrenCapSeeds.Add(handle, seed);
                     }
