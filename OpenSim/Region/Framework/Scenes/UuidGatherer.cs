@@ -808,7 +808,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(Utils.BytesToString(sceneObjectAsset.Data));
+                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlData(sceneObjectAsset.Data);
                 if (null != sog)
                 {
                     sog.TemporaryInstance = true;

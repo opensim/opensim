@@ -193,8 +193,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             coa = null;
             try
             {
+                int len = data.Length;
+                if (len < 32)
+                    return false;
+                if (data[len - 1] == 0)
+                    --len;
                 // Quickly check if this is a coalesced object, without fully parsing the XML
-                using (MemoryStream ms = new MemoryStream(data))
+                using (MemoryStream ms = new MemoryStream(data, 0, len, false))
                 {
                     using (XmlTextReader reader = new XmlTextReader(ms))
                     {

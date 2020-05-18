@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                 {
                     try
                     {
@@ -73,6 +73,31 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     {
                         m_log.Error("[SERIALIZER]: Deserialization of xml failed ", e);
                         Util.LogFailedXML("[SERIALIZER]:", fixedData);
+                        return null;
+                    }
+                }
+            }
+        }
+
+        public static SceneObjectGroup FromOriginalXmlData(byte[] data)
+        {
+            int len = data.Length;
+            if(len < 32)
+                return null;
+            if(data[len -1 ] == 0)
+                --len;
+            using (MemoryStream ms = new MemoryStream(data,0, len, false))
+            {
+                using (XmlReader reader = XmlReader.Create(ms, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                {
+                    try
+                    {
+                        return FromOriginalXmlFormat(reader);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[SERIALIZER]: Deserialization of xml data failed ", e);
+                        string s = Utils.BytesToString(data);
                         return null;
                     }
                 }
