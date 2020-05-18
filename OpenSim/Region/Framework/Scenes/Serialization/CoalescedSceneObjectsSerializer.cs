@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -129,20 +130,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             try
             {
                 // Quickly check if this is a coalesced object, without fully parsing the XML
-                using (StringReader sr = new StringReader(xml))
+                using (XmlTextReader reader = new XmlTextReader(new StringReader(xml)))
                 {
-                    using (XmlTextReader reader = new XmlTextReader(sr))
+                    reader.MoveToContent(); // skip possible xml declaration
+
+                    if (reader.Name != "CoalescedObject")
                     {
-                        reader.MoveToContent(); // skip possible xml declaration
+                        // m_log.DebugFormat(
+                        //     "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false",
+                        //     reader.Name);
 
-                        if (reader.Name != "CoalescedObject")
-                        {
-                            //                        m_log.DebugFormat(
-                            //                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false",
-                            //                            reader.Name);
-
-                            return false;
-                        }
+                        return false;
                     }
                 }
 
@@ -199,48 +197,48 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (data[len - 1] == 0)
                     --len;
                 // Quickly check if this is a coalesced object, without fully parsing the XML
-                using (MemoryStream ms = new MemoryStream(data, 0, len, false))
+                MemoryStream ms = new MemoryStream(data, 0, len, false);
+                StreamReader sr = new StreamReader(ms, Encoding.UTF8);
+                using (XmlTextReader reader = new XmlTextReader(sr))
                 {
-                    using (XmlTextReader reader = new XmlTextReader(ms))
+                    reader.MoveToContent(); // skip possible xml declaration
+
+                    if (reader.Name != "CoalescedObject")
                     {
-                        reader.MoveToContent(); // skip possible xml declaration
-
-                        if (reader.Name != "CoalescedObject")
-                        {
-                            return false;
-                        }
-                    }
-
-                    ms.Seek(0, SeekOrigin.Begin);
-                    XmlDocument doc = new XmlDocument();
-                    doc.Load(ms);
-                    XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
-                    if (e == null)
                         return false;
-
-                    coa = new CoalescedSceneObjects(UUID.Zero);
-
-                    XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
-                    int i = 0;
-
-                    foreach (XmlNode n in groups)
-                    {
-                        SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
-                        if (so != null)
-                        {
-                            coa.Add(so);
-                        }
-                        else
-                        {
-                            // XXX: Possibly we should fail outright here rather than continuing if a particular component of the
-                            // coalesced object fails to load.
-                            m_log.WarnFormat(
-                                "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.",
-                                i);
-                        }
-
-                        i++;
                     }
+                }
+
+                XmlDocument doc = new XmlDocument();
+                using (ms = new MemoryStream(data, 0, len, false))
+                    doc.Load(ms);
+
+                XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
+                if (e == null)
+                    return false;
+
+                coa = new CoalescedSceneObjects(UUID.Zero);
+
+                XmlNodeList groups = e.SelectNodes("SceneObjectGroup");
+                int i = 0;
+
+                foreach (XmlNode n in groups)
+                {
+                    SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(n.OuterXml);
+                    if (so != null)
+                    {
+                        coa.Add(so);
+                    }
+                    else
+                    {
+                        // XXX: Possibly we should fail outright here rather than continuing if a particular component of the
+                        // coalesced object fails to load.
+                        m_log.WarnFormat(
+                            "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml for component {0} failed.  Continuing.",
+                            i);
+                    }
+
+                    i++;
                 }
             }
             catch (Exception e)

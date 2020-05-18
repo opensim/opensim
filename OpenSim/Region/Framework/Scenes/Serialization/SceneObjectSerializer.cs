@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -86,7 +86,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 return null;
             if(data[len -1 ] == 0)
                 --len;
-            using (MemoryStream ms = new MemoryStream(data,0, len, false))
+
+            MemoryStream ms = new MemoryStream(data,0, len, false);
+            using(StreamReader sr = new StreamReader(ms, Encoding.UTF8))
             {
                 using (XmlReader reader = XmlReader.Create(ms, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                 {
@@ -97,7 +99,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     catch (Exception e)
                     {
                         m_log.Error("[SERIALIZER]: Deserialization of xml data failed ", e);
-                        string s = Utils.BytesToString(data);
                         return null;
                     }
                 }
