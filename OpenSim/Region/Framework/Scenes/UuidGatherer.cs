@@ -798,6 +798,28 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="sceneObjectAsset"></param>
         private void RecordSceneObjectAssetUuids(AssetBase sceneObjectAsset)
         {
+            string xml = Utils.BytesToString(sceneObjectAsset.Data);
+
+            CoalescedSceneObjects coa;
+            if (CoalescedSceneObjectsSerializer.TryFromXml(xml, out coa))
+            {
+                foreach (SceneObjectGroup sog in coa.Objects)
+                {
+                    sog.TemporaryInstance = true;
+                    AddForInspection(sog);
+                }
+            }
+            else
+            {
+                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
+                if (null != sog)
+                {
+                    sog.TemporaryInstance = true;
+                    AddForInspection(sog);
+                }
+            }
+
+            /*
             if (CoalescedSceneObjectsSerializer.TryFromXmlData(sceneObjectAsset.Data, out CoalescedSceneObjects coa))
             {
                 foreach (SceneObjectGroup sog in coa.Objects)
@@ -815,6 +837,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AddForInspection(sog);
                 }
             }
+            */
         }
 
         /// <summary>
