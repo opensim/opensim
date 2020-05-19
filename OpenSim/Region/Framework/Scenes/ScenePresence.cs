@@ -3166,8 +3166,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void MoveToTargetHandle(Vector3 pos, bool noFly, bool landAtTarget)
         {
-            MoveToTarget(pos, noFly, landAtTarget);
+            MoveToTarget(pos, noFly, false, landAtTarget);
         }
+
         /// <summary>
         /// Move to the given target over time.
         /// </summary>
@@ -3180,7 +3181,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="landAtTarget">
         /// If true and the avatar starts flying during the move then land at the target.
         /// </param>
-        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget, float tau = -1f)
+        public void MoveToTarget(Vector3 pos, bool noFly, bool landAtTarget, bool running, float tau = -1f)
         { 
             m_delayedStop = -1;
 
@@ -3218,19 +3219,14 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
 //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            terrainHeight += Appearance.AvatarHeight; // so 1.5 * AvatarHeight above ground at target
-            bool shouldfly = Flying;
-            if (noFly)
-                shouldfly = false;
-            else if (pos.Z > terrainHeight || Flying)
-                shouldfly = true;
+            bool shouldfly = noFly ? false : (Flying || (pos.Z > terrainHeight + Appearance.AvatarHeight));
 
             Vector3 localVectorToTarget3D = pos - AbsolutePosition;
 
 //            m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0},[1}", localVectorToTarget3D.X,localVectorToTarget3D.Y);
  
             m_movingToTarget = true;
-            LandAtTarget = landAtTarget;
+            LandAtTarget = landAtTarget & shouldfly;
             m_moveToPositionTarget = pos;
             if(tau > 0)
             {
@@ -3245,7 +3241,10 @@ namespace OpenSim.Region.Framework.Scenes
                 SetAlwaysRun = false;
             }
             else
+            {
                 m_moveToSpeed = 4.096f * m_speedModifier;
+                SetAlwaysRun = running;
+            }
 
             Flying = shouldfly;
 

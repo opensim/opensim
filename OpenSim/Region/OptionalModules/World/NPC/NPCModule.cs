@@ -259,8 +259,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                                sp.Name, pos, scene.RegionInfo.RegionName,
 //                                noFly, landAtTarget);
 
-                        sp.MoveToTarget(pos, noFly, landAtTarget);
-                        sp.SetAlwaysRun = running;
+                        sp.MoveToTarget(pos, noFly, landAtTarget, running);
 
                         return true;
                     }
