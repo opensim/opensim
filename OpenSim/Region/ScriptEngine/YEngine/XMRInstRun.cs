@@ -874,6 +874,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ReleaseControlsOrPermissions(true);
             m_Part.CollisionSound = UUID.Zero;
 
+            if (m_XMRLSLApi != null)
+                m_XMRLSLApi.llResetTime();
+
             m_RunOnePhase = "ResetLocked: removing script";
             IUrlModule urlModule = m_Engine.World.RequestModuleInterface<IUrlModule>();
             if(urlModule != null)

@@ -529,9 +529,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             XmlElement doGblInitN = (XmlElement)scriptStateN.SelectSingleNode("DoGblInit");
             doGblInit = bool.Parse(doGblInitN.InnerText);
 
+            if (m_XMRLSLApi != null)
+            {
+                XmlElement scpttimeN = (XmlElement)scriptStateN.SelectSingleNode("scrpTime");
+                if (scpttimeN != null && Double.TryParse(scpttimeN.InnerText, out double t))
+                {
+                    m_XMRLSLApi.SetLSLTimer(Util.GetTimeStampMS() - t);
+                }
+            }
+
             double minEventDelay = 0.0;
             XmlElement minEventDelayN = (XmlElement)scriptStateN.SelectSingleNode("mEvtDly");
-            if(minEventDelayN != null)
+            if (minEventDelayN != null)
                 minEventDelay = Double.Parse(minEventDelayN.InnerText);
 
             // get values used by stuff like llDetectedGrab, etc.
