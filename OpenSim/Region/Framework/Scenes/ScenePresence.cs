@@ -3215,11 +3215,13 @@ namespace OpenSim.Region.Framework.Scenes
             if(terrainHeight > pos.Z)
                 pos.Z = terrainHeight;
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
-//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+            //            m_log.DebugFormat(
+            //                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
+            //                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            bool shouldfly = noFly ? false : (Flying || (pos.Z > terrainHeight + Appearance.AvatarHeight));
+            bool shouldfly = true;;
+            if (!Flying)
+                shouldfly = noFly ? false : (pos.Z > terrainHeight + Appearance.AvatarHeight);
 
             Vector3 localVectorToTarget3D = pos - AbsolutePosition;
 
