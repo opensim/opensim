@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sp.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = startPos + new Vector3(0, 10, 0);
-            sp.MoveToTarget(targetPos, false, false);
+            sp.MoveToTarget(targetPos, false, false, false);
 
             Assert.That(sp.AbsolutePosition, Is.EqualTo(startPos));
             Assert.That(
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Try a second movement
             startPos = sp.AbsolutePosition;
             targetPos = startPos + new Vector3(10, 0, 0);
-            sp.MoveToTarget(targetPos, false, false);
+            sp.MoveToTarget(targetPos, false, false, false);
 
             Assert.That(sp.AbsolutePosition, Is.EqualTo(startPos));
             Assert.That(
