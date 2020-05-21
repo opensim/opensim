@@ -2526,7 +2526,7 @@ namespace OpenSim.Framework
             if (String.IsNullOrEmpty(str))
                 return Utils.EmptyBytes;
 
-            byte[] data = new byte[256];
+            byte[] data = new byte[255];
             int r = osUTF8Getbytes(str, data, 255, true); // real use limit is 255 not 256
             if (r != 255)
                 Array.Resize<byte>(ref data, r);
@@ -2619,12 +2619,12 @@ namespace OpenSim.Framework
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public static int osUTF8Getbytes(string srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = false)
+        public static int osUTF8Getbytes(string srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = true)
         {
             return osUTF8Getbytes(srcstr, dstarray, 0, maxdstlen, NullTerm);
         }
 
-        public static unsafe int osUTF8Getbytes(string srcstr, byte* dstarray, int maxdstlen, bool NullTerm = false)
+        public static unsafe int osUTF8Getbytes(string srcstr, byte* dstarray, int maxdstlen, bool NullTerm = true)
         {
             if (string.IsNullOrEmpty(srcstr))
                 return 0;
@@ -2635,7 +2635,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe int osUTF8Getbytes(string srcstr, byte[] dstarray, int pos, int maxdstlen, bool NullTerm = false)
+        public static unsafe int osUTF8Getbytes(string srcstr, byte[] dstarray, int pos, int maxdstlen, bool NullTerm = true)
         {
             if (string.IsNullOrEmpty(srcstr))
                 return 0;
@@ -2652,7 +2652,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe int osUTF8Getbytes(char* srcarray, int srclenght, byte* dstarray, int maxdstlen, bool NullTerm = false)
+        public static unsafe int osUTF8Getbytes(char* srcarray, int srclenght, byte* dstarray, int maxdstlen, bool NullTerm = true)
         {
             int dstlen = NullTerm ? maxdstlen - 1 : maxdstlen;
             int srclen = srclenght >= dstlen ? dstlen : srclenght;
