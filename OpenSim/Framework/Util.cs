@@ -2526,25 +2526,10 @@ namespace OpenSim.Framework
             if (String.IsNullOrEmpty(str))
                 return Utils.EmptyBytes;
 
-            if (!str.EndsWith("\0"))
-                str += "\0";
-
-            // Because this is UTF-8 encoding and not ASCII, it's possible we
-            // might have gotten an oversized array even after the string trim
-            byte[] data = UTF8.GetBytes(str);
-
-            if (data.Length > 255) //play safe
-            {
-                int cut = 254;
-                if((data[cut] & 0x80 ) != 0 )
-                    {
-                    while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
-                        cut--;
-                    }
-                Array.Resize<byte>(ref data, cut + 1);
-                data[cut] = 0;
-            }
-
+            byte[] data = new byte[256];
+            int r = osUTF8Getbytes(str, data, 255, true); // real use limit is 255 not 256
+            if (r != 255)
+                Array.Resize<byte>(ref data, r);
             return data;
         }
 
@@ -2577,25 +2562,10 @@ namespace OpenSim.Framework
             if (String.IsNullOrEmpty(str))
                 return Utils.EmptyBytes;
 
-            if (!str.EndsWith("\0"))
-                 str += "\0";
-
-            // Because this is UTF-8 encoding and not ASCII, it's possible we
-            // might have gotten an oversized array even after the string trim
-            byte[] data = UTF8.GetBytes(str);
-
-            if (data.Length > 1024)
-            {
-                int cut = 1023;
-                if((data[cut] & 0x80 ) != 0 )
-                    {
-                    while(cut > 0 && (data[cut] & 0xc0) != 0xc0)
-                        cut--;
-                    }
-                Array.Resize<byte>(ref data, cut + 1);
-                data[cut] = 0;
-            }
-
+            byte[] data = new byte[1024];
+            int r = osUTF8Getbytes(str, data, 1024, true);
+            if (r != 1024)
+                Array.Resize<byte>(ref data, r);
             return data;
         }
 
@@ -2628,25 +2598,10 @@ namespace OpenSim.Framework
             if (String.IsNullOrEmpty(str))
                 return Utils.EmptyBytes;
 
-            if (!str.EndsWith("\0"))
-                str += "\0";
-
-            // Because this is UTF-8 encoding and not ASCII, it's possible we
-            // might have gotten an oversized array even after the string trim
-            byte[] data = UTF8.GetBytes(str);
-
-            if (data.Length > MaxLength)
-            {
-                int cut = MaxLength - 1;
-                if ((data[cut] & 0x80) != 0)
-                {
-                    while (cut > 0 && (data[cut] & 0xc0) != 0xc0)
-                        cut--;
-                }
-                Array.Resize<byte>(ref data, cut + 1);
-                data[cut] = 0;
-            }
-
+            byte[] data = new byte[MaxLength];
+            int r = osUTF8Getbytes(str, data, MaxLength, true);
+            if (r != MaxLength)
+                Array.Resize<byte>(ref data, r);
             return data;
         }
 
@@ -2655,23 +2610,129 @@ namespace OpenSim.Framework
             if (String.IsNullOrEmpty(str))
                 return Utils.EmptyBytes;
 
-            // Because this is UTF-8 encoding and not ASCII, it's possible we
-            // might have gotten an oversized array even after the string trim
-            byte[] data = UTF8.GetBytes(str);
-
-            if (data.Length > MaxLength)
-            {
-                int cut = MaxLength - 1;
-                if ((data[cut] & 0x80) != 0)
-                {
-                    while (cut > 0 && (data[cut] & 0xc0) != 0xc0)
-                        cut--;
-                }
-                Array.Resize<byte>(ref data, cut);
-            }
+            byte[] data = new byte[MaxLength];
+            int r = osUTF8Getbytes(str, data, MaxLength, false);
+            if (r != MaxLength)
+                Array.Resize<byte>(ref data, r);
 
             return data;
         }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static int osUTF8Getbytes(string srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = false)
+        {
+            return osUTF8Getbytes(srcstr, dstarray, 0, maxdstlen, NullTerm);
+        }
+
+        public static unsafe int osUTF8Getbytes(string srcstr, byte* dstarray, int maxdstlen, bool NullTerm = false)
+        {
+            if (string.IsNullOrEmpty(srcstr))
+                return 0;
+
+            fixed (char* srcbase = srcstr)
+            {
+                return osUTF8Getbytes(srcbase, srcstr.Length, dstarray, maxdstlen, NullTerm);
+            }
+        }
+
+        public static unsafe int osUTF8Getbytes(string srcstr, byte[] dstarray, int pos, int maxdstlen, bool NullTerm = false)
+        {
+            if (string.IsNullOrEmpty(srcstr))
+                return 0;
+
+            if (pos + maxdstlen > dstarray.Length)
+                return 0;
+
+            fixed (char* srcbase = srcstr)
+            {
+                fixed (byte* dstbase = &dstarray[pos])
+                {
+                    return osUTF8Getbytes(srcbase, srcstr.Length, dstbase, maxdstlen, NullTerm);
+                }
+            }
+        }
+
+        public static unsafe int osUTF8Getbytes(char* srcarray, int srclenght, byte* dstarray, int maxdstlen, bool NullTerm = false)
+        {
+            int dstlen = NullTerm ? maxdstlen - 1 : maxdstlen;
+            int srclen = srclenght >= dstlen ? dstlen : srclenght;
+
+            char c;
+            char* src = srcarray;
+            char* srcend = src + srclen;
+            byte* dst = dstarray;
+            byte* dstend = dst + dstlen;
+
+            while (src < srcend && dst < dstend)
+            {
+                c = *src;
+                ++src;
+
+                if (c <= 0x7f)
+                {
+                    *dst = (byte)c;
+                    ++dst;
+                    continue;
+                }
+
+                if (c < 0x800)
+                {
+                    if (dst + 1 >= dstend)
+                        break;
+                    *dst = (byte)(0xC0 | (c >> 6));
+                    ++dst;
+                    *dst = (byte)(0x80 | (c & 0x3F));
+                    ++dst;
+                    continue;
+                }
+
+                if (c >= 0xD800 && c < 0xE000)
+                {
+                    if (c >= 0xDC00)
+                        continue; // ignore invalid
+                    if (src + 1 >= srcend || dst + 3 >= dstend)
+                        break;
+
+                    int a = c;
+
+                    c = *src;
+                    ++src;
+                    if (c < 0xDC00 || c > 0xDFFF)
+                        continue; // ignore invalid
+
+                    a = (a << 10) + c - 0x35fdc00;
+
+                    *dst = (byte)(0xF0 | (a >> 18));
+                    ++dst;
+                    *dst = (byte)(0x80 | ((a >> 12) & 0x3f));
+                    ++dst;
+                    *dst = (byte)(0x80 | ((a >> 6) & 0x3f));
+                    ++dst;
+                    *dst = (byte)(0x80 | (a & 0x3f));
+                    ++dst;
+                    continue;
+                }
+                if (dst + 2 >= dstend)
+                    break;
+
+                *dst = (byte)(0xE0 | (c >> 12));
+                ++dst;
+                *dst = (byte)(0x80 | ((c >> 6) & 0x3f));
+                ++dst;
+                *dst = (byte)(0x80 | (c & 0x3f));
+                ++dst;
+            }
+
+            int ret = (int)(dst - dstarray);
+            if (NullTerm && ret > 0 && *(dst - 1) != 0)
+            {
+                *dst = 0;
+                ++ret;
+            }
+
+            return ret;
+        }
+
         /// <summary>
         /// Pretty format the hashtable contents to a single line.
         /// </summary>
@@ -3282,7 +3343,7 @@ namespace OpenSim.Framework
 
         // returns a timestamp in ms as double
         // using the time resolution avaiable to StopWatch
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]  
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStamp()
         {
             return Stopwatch.GetTimestamp() * TimeStampClockPeriod;

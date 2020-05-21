@@ -135,6 +135,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public unsafe void AddBytes(byte* src, int srclen)
+        {
+            for (int i = 0; i < srclen; ++i)
+            {
+                if (src[i] == 0x00)
+                {
+                    zerocount++;
+                    if (zerocount == 0)
+                    {
+                        m_dest[pos++] = 0x00;
+                        m_dest[pos++] = 0xff;
+                        zerocount++;
+                    }
+                }
+                else
+                {
+                    if (zerocount != 0)
+                    {
+                        m_dest[pos++] = 0x00;
+                        m_dest[pos++] = (byte)zerocount;
+                        zerocount = 0;
+                    }
+
+                    m_dest[pos++] = src[i];
+                }
+            }
+        }
+
         public unsafe void AddByte(byte v)
         {
             if (v == 0x00)
@@ -278,7 +306,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // maxlen <= 255 and includes null termination byte
-        public void AddShortString(string str, int maxlen)
+        public unsafe void AddShortString(string str, int maxlen)
         {
             if (String.IsNullOrEmpty(str))
             {
@@ -286,75 +314,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            --maxlen; // account for null term
-            bool NullTerm = str.EndsWith("\0");
+            byte* data = stackalloc byte[maxlen];
+            int len = Util.osUTF8Getbytes(str, data, maxlen, true);
 
-            byte[] data = Util.UTF8.GetBytes(str);
-            int len = data.Length;
-            if(NullTerm)
-                --len;
-
-            if(len <= maxlen)
+            if (len == 0)
             {
-                AddByte((byte)(len + 1));
-                AddBytes(data, len);
                 AddZeros(1);
                 return;
             }
 
-            if ((data[maxlen] & 0x80) != 0)
-            {
-                while (maxlen > 0 && (data[maxlen] & 0xc0) != 0xc0)
-                    maxlen--;
-            }
-            AddByte((byte)(maxlen + 1));
-            AddBytes(data, maxlen);
-            AddZeros(1);
+            AddByte((byte)(len));
+            AddBytes(data, len);
         }
-        // maxlen <= 255 and includes null termination byte, maxchars == max len of utf8 source
-        public void AddShortString(string str, int maxchars, int maxlen)
+
+        // maxlen <= 255 and includes null termination byte, maxchars == max len of utf16 source
+        public unsafe void AddShortString(string str, int maxchars, int maxlen)
         {
             if (String.IsNullOrEmpty(str))
             {
                 AddZeros(1);
                 return;
             }
-
-            --maxlen; // account for null term
-            bool NullTerm = false;
-            byte[] data;
 
             if (str.Length > maxchars)
-            {
-                data = Util.UTF8.GetBytes(str.Substring(0,maxchars));
-            }
-            else
-            {
-                NullTerm = str.EndsWith("\0");
-                data = Util.UTF8.GetBytes(str);
-            }
+                str = str.Substring(0, maxchars);
 
-            int len = data.Length;
-            if (NullTerm)
-                --len;
+            byte* data = stackalloc byte[maxlen];
+            int len = Util.osUTF8Getbytes(str, data, maxlen, true);
 
-            if (len <= maxlen)
+            if (len == 0)
             {
-                AddByte((byte)(len + 1));
-                AddBytes(data, len);
                 AddZeros(1);
                 return;
             }
 
-            if ((data[maxlen] & 0x80) != 0)
-            {
-                while (maxlen > 0 && (data[maxlen] & 0xc0) != 0xc0)
-                    maxlen--;
-            }
-
-            AddByte((byte)(maxlen + 1));
-            AddBytes(data, maxlen);
-            AddZeros(1);
+            AddByte((byte)(len));
+            AddBytes(data, len);
         }
 
     }
