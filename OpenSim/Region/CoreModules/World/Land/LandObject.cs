@@ -635,6 +635,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsEitherBannedOrRestricted(UUID avatar)
         {
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return false;
+
             if (IsBannedFromLand(avatar))
             {
                 return true;
@@ -648,6 +651,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool CanBeOnThisLand(UUID avatar, float posHeight)
         {
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return true;
+
             if (posHeight < m_scene.LandChannel.BanLineSafeHeight && IsBannedFromLand(avatar))
             {
                 return false;
