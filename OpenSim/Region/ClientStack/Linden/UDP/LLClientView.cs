@@ -1045,17 +1045,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //setup header
             Buffer.BlockCopy(ChatFromSimulatorHeader, 0, data, 0, 10);
 
-            byte[] fname = Util.StringToBytes256(fromName);
-            int len = fname.Length;
             int pos = 11;
-            if (len == 0)
-                data[10] = 0;
-            else
-            {
-                data[10] = (byte)len;
-                Buffer.BlockCopy(fname, 0, data, 11, len);
+            int len = Util.osUTF8Getbytes(fromName, data, 11, 255, true);
+            data[10] = (byte)len;
+            if (len > 0)
                 pos += len;
-            }
 
             sourceID.ToBytes(data, pos); pos += 16;
             ownerID.ToBytes(data, pos); pos += 16;
@@ -1133,14 +1127,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Utils.UIntToBytesSafepos(im.timestamp, data, pos); pos += 4;
 
-            byte[] tmp = Util.StringToBytes256(im.fromAgentName);
-            int len = tmp.Length;
+            int len = Util.osUTF8Getbytes(im.fromAgentName, data, pos + 1, 255, true);
             data[pos++] = (byte)len;
-            if(len > 0)
-                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+            if (len > 0)
+                pos += len;
 
-            tmp = Util.StringToBytes1024(im.message);
-            len = tmp.Length;
+            len = Util.osUTF8Getbytes(im.message, data, pos + 2, 1024, true);
             if (len == 0)
             {
                 data[pos++] = 0;
@@ -1150,10 +1142,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[pos++] = (byte)len;
                 data[pos++] = (byte)(len >> 8);
-                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+                pos += len;
             }
 
-            tmp = im.binaryBucket;
+            byte[] tmp = im.binaryBucket;
             if(tmp == null)
             {
                 data[pos++] = 0;
@@ -1210,11 +1202,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int pos = 58;
 
             //method block
-            byte[] tmp = Util.StringToBytes256(method);
-            int len = tmp.Length;
+            int len = Util.osUTF8Getbytes(method, data, pos + 1, 255, true);
             data[pos++] = (byte)len;
             if (len > 0)
-                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+                pos += len;
+
             invoice.ToBytes(data, pos); pos += 16;
 
             //ParamList block
@@ -1233,10 +1225,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int count = 0;
             for(int indx = 0; indx < message.Count; ++indx)
             {
-                tmp = Util.StringToBytes256(message[indx]);
-                len = tmp.Length;
+                len = Util.osUTF8Getbytes(message[indx], data, pos + 1, 255, true);
+                data[pos++] = (byte)len;
+                if (len > 0)
+                    pos += len;
 
-                if (pos + len >= LLUDPServer.MAXPAYLOAD)
+                if (pos > LLUDPServer.MAXPAYLOAD - 100)
                 {
                     data[countpos] = (byte)count;
                     buf.DataLength = pos;
@@ -1252,10 +1246,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                     ++count;
-
-                data[pos++] = (byte)len;
-                if (len > 0)
-                    Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
             }
             if (count > 0)
             {
@@ -1282,11 +1272,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int pos = 58;
 
             //method block
-            byte[] tmp = Util.StringToBytes256(method);
-            int len = tmp.Length;
+            int len = Util.osUTF8Getbytes(method, data, pos + 1, 255, true);
             data[pos++] = (byte)len;
             if (len > 0)
-                Buffer.BlockCopy(tmp, 0, data, pos, len); pos += len;
+                pos += len;
+
             invoice.ToBytes(data, pos); pos += 16;
 
             //ParamList block
@@ -1957,10 +1947,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 mr.id.ToBytes(data, pos); pos += 16;
                 Utils.IntToBytesSafepos(mr.Extra, data, pos); pos += 4;
                 Utils.IntToBytesSafepos(mr.Extra2, data, pos); pos += 4;
-                byte[] itemName = Util.StringToBytes256(mr.name);
-                data[pos++] = (byte)itemName.Length;
-                if (itemName.Length > 0)
-                    Buffer.BlockCopy(itemName, 0, data, pos, itemName.Length); pos += itemName.Length;
+
+                int len = Util.osUTF8Getbytes(mr.name, data, pos + 1, 255, true);
+                data[pos++] = (byte)len;
+                if (len > 0)
+                    pos += len;
 
                 if (pos < capacity)
                     ++count;
@@ -2053,10 +2044,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 Utils.UInt16ToBytes(md.X, data, pos); pos += 2;
                 Utils.UInt16ToBytes(md.Y, data, pos); pos += 2;
-                byte[] regionName = Util.StringToBytes256(md.Name);
-                data[pos++] = (byte)regionName.Length;
-                if(regionName.Length > 0)
-                    Buffer.BlockCopy(regionName, 0, data, pos, regionName.Length); pos += regionName.Length;
+
+                int len = Util.osUTF8Getbytes(md.Name, data, pos + 1, 255, true);
+                data[pos++] = (byte)len;
+                if (len > 0)
+                    pos += len;
+
                 data[pos++] = md.Access;
                 Utils.UIntToBytesSafepos(md.RegionFlags, data, pos); pos += 4;
                 data[pos++] = md.WaterHeight;
@@ -13021,7 +13014,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             locy = (float)(Convert.ToDouble(args[1]) - (double)regionY);
             locz = Convert.ToSingle(args[2]);
 
-            OnAutoPilotGo?.Invoke(new Vector3(locx, locy, locz), false, false);
+            OnAutoPilotGo?.Invoke(new Vector3(locx, locy, locz), false, true);
         }
 
         /// <summary>
