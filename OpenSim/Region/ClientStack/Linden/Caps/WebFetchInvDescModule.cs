@@ -330,17 +330,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
 
-                Hashtable response = new Hashtable();
-
-                response["int_response_code"] = 200;
-                response["content_type"] = "text/plain";
-
-                response["bin_response_data"] = Encoding.UTF8.GetBytes(
-                        m_webFetchHandler.FetchInventoryDescendentsRequest(
-                                    requestinfo.request.InputStream,
-                                    String.Empty, String.Empty, null, null)
-                        );
-
+                OSHttpResponse osresponse = new OSHttpResponse(requestinfo.request);
+                m_webFetchHandler.FetchInventoryDescendentsRequest(requestinfo.request, osresponse);
                 requestinfo.request.InputStream.Dispose();
 
                 lock (responses)
@@ -350,16 +341,16 @@ namespace OpenSim.Region.ClientStack.Linden
                         if(dropedResponses.Contains(requestID))
                         {
                             dropedResponses.Remove(requestID);
-                            WebFetchInvDescModule.ProcessedRequestsCount++;
+                            ProcessedRequestsCount++;
                             return;
                         }
                     }
 
-                    if (responses.ContainsKey(requestID))
-                        m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
+                    Hashtable response = new Hashtable();
+                    response["h"] = osresponse;
                     responses[requestID] = response;
                 }
-                WebFetchInvDescModule.ProcessedRequestsCount++;
+                ProcessedRequestsCount++;
             }
         }
 

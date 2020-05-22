@@ -68,15 +68,9 @@ namespace OpenSim.Capabilities.Handlers
                     ServerUtils.LoadPlugin<ILibraryService>(libService, args);
 
             FetchInvDescHandler webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, null);
-            IRequestHandler reqHandler
-                = new RestStreamHandler(
-                    "POST",
-                    "/CAPS/WebFetchInvDesc/" /*+ UUID.Random()*/,
-                    webFetchHandler.FetchInventoryDescendentsRequest,
-                    "FetchInvDescendents",
-                    null);
-            server.AddStreamHandler(reqHandler);
+            ISimpleStreamHandler reqHandler
+                = new SimpleStreamHandler( "/CAPS/WebFetchInvDesc/", webFetchHandler.FetchInventoryDescendentsRequest);
+            server.AddSimpleStreamHandler(reqHandler);
         }
-
     }
 }
