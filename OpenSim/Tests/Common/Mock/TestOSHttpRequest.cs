@@ -105,13 +105,7 @@ namespace OpenSim.Tests.Common
             }
         }
 
-        public Stream InputStream
-        {
-            get
-            {
-                throw new NotImplementedException ();
-            }
-        }
+        public Stream InputStream { get; set;}
 
         public bool IsSecured
         {
