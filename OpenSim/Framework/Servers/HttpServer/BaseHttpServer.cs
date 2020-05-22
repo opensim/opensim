@@ -107,6 +107,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamVarPath = new ConcurrentDictionary<string, ISimpleStreamHandler>();
         protected ConcurrentDictionary<string, SimpleStreamMethod> m_indexPHPmethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
+        protected ConcurrentDictionary<string, SimpleStreamMethod> m_globalMethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
 
         protected IRequestHandler m_RootDefaultGET = null; // default method for root path. does override rpc xml and json, and old llsd login
 
@@ -389,6 +390,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return new List<string>(m_indexPHPmethods.Keys);
         }
 
+        public List<string> GetGLobalMethodsKeys()
+        {
+            return new List<string>(m_globalMethods.Keys);
+        }
+
         private static string GetHandlerKey(string httpMethod, string path)
         {
             return httpMethod + ":" + path;
@@ -547,9 +553,29 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public SimpleStreamMethod TryGetIndexPHPMethodHandler(string key)
         {
-            if(m_indexPHPmethods.TryGetValue(key, out SimpleStreamMethod sh))
+            if (!string.IsNullOrWhiteSpace(key) && m_indexPHPmethods.TryGetValue(key, out SimpleStreamMethod sh))
                 return sh;
             return null;
+        }
+
+        public void AddGloblaMethodHandler(string key, SimpleStreamMethod sh)
+        {
+            m_globalMethods.TryAdd(key, sh);
+        }
+
+        public void RemoveGlobalPMethodHandler(string key)
+        {
+            m_globalMethods.TryRemove(key, out SimpleStreamMethod sh);
+        }
+
+        public bool TryGetGlobalMethodHandler(string key, out SimpleStreamMethod sh)
+        {
+            if(string.IsNullOrWhiteSpace(key))
+            {
+                sh = null;
+                return false;
+            }
+            return m_globalMethods.TryGetValue(key, out sh);
         }
 
         public void OnRequest(object source, RequestEventArgs args)
@@ -665,6 +691,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         default: // not sure about xmlrpc content type coerence at this point
                         { 
+                            // let legacy datasnapshot work
+                            if(request.QueryString.Count > 0 && request.QueryAsDictionary.TryGetValue("method", out string method))
+                            {
+                                if(TryGetGlobalMethodHandler(method, out SimpleStreamMethod sm))
+                                {
+                                    sm?.Invoke(request, response);
+                                    break;
+                                }
+                            }
+
                             if (DebugLevel >= 3)
                                 LogIncomingToXmlRpcHandler(request);
 
