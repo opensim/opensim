@@ -309,7 +309,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Exception e = null;
 
                  // Maybe it has been Disposed()
-                if(m_Part == null)
+                if(m_Part == null || m_Part.Inventory == null)
                 {
                     m_RunOnePhase = "runone saw it disposed";
                     return XMRInstState.DISPOSED;
@@ -534,10 +534,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             eventCode = ScriptEventCode.None;
             stackFrames = null;
 
+            if(m_Part == null || m_Part.Inventory == null)
+            {
+                //we are gone and don't know it still
+                m_SleepUntil = DateTime.MaxValue;
+                return;
+            }
+
             if (e is ScriptDeleteException)
             {
-                 // Script did something like llRemoveInventory(llGetScriptName());
-                 // ... to delete itself from the object.
+                // Script did something like llRemoveInventory(llGetScriptName());
+                // ... to delete itself from the object.
                 m_SleepUntil = DateTime.MaxValue;
                 Verbose("[YEngine]: script self-delete {0}", m_ItemID);
                 m_Part.Inventory.RemoveInventoryItem(m_ItemID);
