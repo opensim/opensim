@@ -161,12 +161,12 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
-        public void SuspendScript(UUID itemID)
+        public bool SuspendScript(UUID itemID)
         {
             throw new System.NotImplementedException ();
         }
 
-        public void ResumeScript(UUID itemID)
+        public bool ResumeScript(UUID itemID)
         {
             throw new System.NotImplementedException ();
         }
