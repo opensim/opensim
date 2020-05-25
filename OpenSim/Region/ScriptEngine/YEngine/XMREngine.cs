@@ -1898,31 +1898,35 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         /**
          * @brief Block script from dequeuing events.
          */
-        public void SuspendScript(UUID itemID)
+        public bool SuspendScript(UUID itemID)
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
             {
                 TraceCalls("[YEngine]: YEngine.SuspendScript({0})", itemID.ToString());
                 instance.SuspendIt();
+                return true;
             }
+            return false;
         }
 
         /**
          * @brief Allow script to dequeue events.
          */
-        public void ResumeScript(UUID itemID)
+        public bool ResumeScript(UUID itemID)
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
             {
                 TraceCalls("[YEngine]: YEngine.ResumeScript({0})", itemID.ToString());
                 instance.ResumeIt();
+                return true;
             }
             else
             {
                 // probably an XEngine script
             }
+            return false;
         }
 
         /**
