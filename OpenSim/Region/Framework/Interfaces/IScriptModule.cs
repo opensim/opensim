@@ -70,13 +70,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Suspends a script.
         /// </summary>
         /// <param name="itemID">The item ID of the script.</param>
-        void SuspendScript(UUID itemID);
+        bool SuspendScript(UUID itemID);
 
         /// <summary>
         /// Resumes a script.
         /// </summary>
         /// <param name="itemID">The item ID of the script.</param>
-        void ResumeScript(UUID itemID);
+        bool ResumeScript(UUID itemID);
 
         ArrayList GetScriptErrors(UUID itemID);
 

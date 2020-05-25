@@ -388,10 +388,13 @@ namespace OpenSim.Region.Framework.Scenes
                         if (textureEntry.FaceTextures != null)
                         {
                             // Loop through the rest of the texture faces (a non-null face means the face is different from DefaultTexture)
+                            int nsides = part.GetNumberOfSides();
                             foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
                             {
                                 if (texture != null)
                                     RecordTextureEntryAssetUuids(texture);
+                                if(--nsides <= 0)
+                                    break;
                             }
                         }
                     }
@@ -646,7 +649,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void RecordTextureEntryAssetUuids(Primitive.TextureEntryFace texture)
         {
-            GatheredUuids[texture.TextureID] = (sbyte)AssetType.Texture;
+            if (texture.TextureID != UUID.Zero)
+                GatheredUuids[texture.TextureID] = (sbyte)AssetType.Texture;
 
             if (texture.MaterialID != UUID.Zero)
                 AddForInspection(texture.MaterialID);

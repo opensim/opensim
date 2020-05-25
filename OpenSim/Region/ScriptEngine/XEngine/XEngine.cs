@@ -2460,38 +2460,31 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return (float)si.ExecutionTime.GetSumTime().TotalMilliseconds;
         }
 
-        public void SuspendScript(UUID itemID)
+        public bool SuspendScript(UUID itemID)
         {
-//            m_log.DebugFormat("[XEngine]: Received request to suspend script with ID {0}", itemID);
-
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance != null)
-                instance.Suspend();
-//            else
-//                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
+            //            m_log.DebugFormat("[XEngine]: Received request to suspend script with ID {0}", itemID);
             m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return false;
+
+           instance.Suspend();
+           return true;
         }
 
-        public void ResumeScript(UUID itemID)
+        public bool ResumeScript(UUID itemID)
         {
-//            m_log.DebugFormat("[XEngine]: Received request to resume script with ID {0}", itemID);
+            //            m_log.DebugFormat("[XEngine]: Received request to resume script with ID {0}", itemID);
+
+            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
 
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
+            {
                 instance.Resume();
-//            else
-//                m_log.DebugFormat("[XEngine]: Could not find script with ID {0} to resume", itemID);
-
-            // Send the new number of threads that are in use by the thread
-            // pool, I believe that by adding them to the locations where the
-            // script is changing states that I will catch all changes to the
-            // thread pool
-            m_Scene.setThreadCount(m_ThreadPool.InUseThreads);
+                return true;
+            }
+            return false;
         }
 
         public bool HasScript(UUID itemID, out bool running)

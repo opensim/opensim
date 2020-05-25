@@ -1466,6 +1466,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osClearObjectAnimations();
         }
-        
     }
 }
