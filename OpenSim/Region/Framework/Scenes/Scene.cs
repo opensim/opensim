@@ -3984,7 +3984,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to ensure that we are not already removing the scene presence before we ask it not to be
                 // closed.
-                if (sp != null && sp.IsChildAgent
+                if (sp != null && !sp.IsDeleted && sp.IsChildAgent
                     && (sp.LifecycleState == ScenePresenceState.Running
                         || sp.LifecycleState == ScenePresenceState.PreRemove))
                 {
@@ -4033,28 +4033,38 @@ namespace OpenSim.Region.Framework.Scenes
                 const int pollInterval = 1000;
                 int pollsLeft = polls;
 
-                while (sp.LifecycleState == ScenePresenceState.Removing && pollsLeft-- > 0)
-                    Thread.Sleep(pollInterval);
-
-                if (sp.LifecycleState == ScenePresenceState.Removing)
+                try
                 {
-                    m_log.WarnFormat(
-                        "[SCENE]: Agent {0} in {1} was still being removed after {2}s.  Aborting NewUserConnection.",
-                        sp.Name, Name, polls * pollInterval / 1000);
+                    while (!sp.IsDeleted && sp.LifecycleState == ScenePresenceState.Removing && pollsLeft-- > 0)
+                        Thread.Sleep(pollInterval);
 
-                    return false;
+                    if (!sp.IsDeleted && sp.LifecycleState == ScenePresenceState.Removing)
+                    {
+                        m_log.WarnFormat(
+                            "[SCENE]: Agent {0} in {1} was still being removed after {2}s.  Aborting NewUserConnection.",
+                            sp.Name, Name, polls * pollInterval / 1000);
+
+                        return false;
+                    }
+                    else if (polls != pollsLeft)
+                    {
+                        m_log.DebugFormat(
+                            "[SCENE]: NewUserConnection for agent {0} in {1} had to wait {2}s for in-progress removal to complete on an old presence.",
+                            sp.Name, Name, polls * pollInterval / 1000);
+                    }
                 }
-                else if (polls != pollsLeft)
+                catch
                 {
-                    m_log.DebugFormat(
-                        "[SCENE]: NewUserConnection for agent {0} in {1} had to wait {2}s for in-progress removal to complete on an old presence.",
-                        sp.Name, Name, polls * pollInterval / 1000);
+                    sp = null;
                 }
             }
 
             // TODO: can we remove this lock?
             lock (m_newUserConnLock)
             {
+                if(sp != null && sp.IsDeleted)
+                    sp = null; 
+
                 if (sp != null && !sp.IsChildAgent)
                 {
                     // We have a root agent. Is it in transit?
