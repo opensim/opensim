@@ -87,20 +87,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             if(data[len -1 ] == 0)
                 --len;
 
-            MemoryStream ms = new MemoryStream(data,0, len, false);
-            using(StreamReader sr = new StreamReader(ms, Encoding.UTF8))
+            XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
+            XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
+            xpc.Encoding = Util.UTF8NoBomEncoding;
+            MemoryStream ms = new MemoryStream(data, 0, len, false);
+            using (XmlReader reader = XmlReader.Create(ms, xset, xpc))
             {
-                using (XmlReader reader = XmlReader.Create(ms, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                try
                 {
-                    try
-                    {
-                        return FromOriginalXmlFormat(reader);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[SERIALIZER]: Deserialization of xml data failed ", e);
-                        return null;
-                    }
+                    return FromOriginalXmlFormat(reader);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[SERIALIZER]: Deserialization of xml data failed ", e);
+                    return null;
                 }
             }
         }
@@ -1572,7 +1572,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
-            WriteVector(writer, "StandTarget", sop.StandOffset);
+            if(sop.StandOffset != Vector3.Zero);
+                WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
             writer.WriteElementString("Category", sop.Category.ToString());
@@ -1661,8 +1662,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if(data != null && data.Length > 0)
                     writer.WriteElementString("SOPAnims", Convert.ToBase64String(data));
             }
-
-            writer.WriteElementString("SitActRange", sop.SitActiveRange.ToString(Culture.FormatProvider));
+            if(Math.Abs(sop.SitActiveRange) > 1e-5)
+                writer.WriteElementString("SitActRange", sop.SitActiveRange.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 
