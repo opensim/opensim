@@ -1572,7 +1572,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
-            if(sop.StandOffset != Vector3.Zero);
+            if(sop.StandOffset != Vector3.Zero)
                 WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
