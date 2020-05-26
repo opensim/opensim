@@ -226,7 +226,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     groupmask = (uint)PermissionMask.AllAndExport;
                     everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
                 }
-/*
                 if(assetType == (byte)AssetType.Settings)
                 {
                     if(data == null)
@@ -244,9 +243,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     flags = subType;
                 }
-                else
-*/			
-				if( assetType == (byte)AssetType.Clothing ||
+                else if( assetType == (byte)AssetType.Clothing ||
                          assetType == (byte)AssetType.Bodypart)
                     flags = subType;
 
