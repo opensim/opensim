@@ -26,11 +26,15 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IEnvironmentModule
     {
         void ResetEnvironmentSettings(UUID regionUUID);
+        //void FromLightShare(RegionLightShareData wl);
+        //RegionLightShareData ToLightShare();
+        //byte[] GetDefaultAssetData(string name);
     }
 }

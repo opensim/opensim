@@ -228,6 +228,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
                 if(assetType == (byte)AssetType.Settings)
                 {
+                    /* this is wrong subtype may need to be checked
                     if(data == null)
                     {
                         IEnvironmentModule envModule = m_Scene.RequestModuleInterface<IEnvironmentModule>();
@@ -241,6 +242,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             return;
                         }
                     }
+                    */
                     flags = subType;
                 }
                 else if( assetType == (byte)AssetType.Clothing ||
