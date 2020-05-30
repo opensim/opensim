@@ -51,9 +51,9 @@ namespace OpenSim.Framework
         public const string LLSDEmpty = "<llsd><map /></llsd>";
 
         // got tired of creating a stringbuilder all the time;
-        public static StringBuilder Start(int size = 256, bool addxmlversion = false)
+        public static StringBuilder Start(int size = 4096, bool addxmlversion = false)
         {
-            StringBuilder sb = new StringBuilder(size);
+            StringBuilder sb = osStringBuilderCache.Acquire(size);
             if(addxmlversion)
                 sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd>"); // legacy llsd xml name still valid
             else
@@ -69,13 +69,13 @@ namespace OpenSim.Framework
         public static string End(StringBuilder sb)
         {
             sb.Append("</llsd>");
-            return sb.ToString();
+            return osStringBuilderCache.GetStringAndRelease(sb);
         }
 
         public static byte[] EndToNBBytes(StringBuilder sb)
         {
             sb.Append("</llsd>");
-            return Util.UTF8NBGetbytes(sb.ToString());
+            return Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         // map == a list of key value pairs
@@ -316,7 +316,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<uuid>");
-                EscapeToXML(e.ToString(), sb);     
+                EscapeToXML(e.ToString(), sb);
                 sb.Append("</uuid>");
             }
         }
@@ -338,7 +338,7 @@ namespace OpenSim.Framework
             if(String.IsNullOrEmpty(e))
                 return;
 
-            sb.Append(e);     
+            sb.Append(e);
         }
 
         public static void AddElem(Uri e, StringBuilder sb)
@@ -764,11 +764,8 @@ namespace OpenSim.Framework
 
         public static void EscapeToXML(string s, StringBuilder sb)
         {
-            int i;
             char c;
-            int len = s.Length;
-
-            for (i = 0; i < len; i++)
+            for (int i = 0; i < s.Length; ++i)
             {
                 c = s[i];
                 switch (c)

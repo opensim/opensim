@@ -211,8 +211,8 @@ namespace OpenSim.Framework
             {"animatn", AssetType.Animation},
             {"gesture", AssetType.Gesture},
             {"simstate", AssetType.Simstate},
-            {"mesh", AssetType.Mesh}
-//            "settings", AssetType.Settings}
+            {"mesh", AssetType.Mesh},
+            {"settings", AssetType.Settings}
         };
         private static Dictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
         {
@@ -237,7 +237,7 @@ namespace OpenSim.Framework
             {"outfit", FolderType.Outfit},
             {"myoutfits", FolderType.MyOutfits},
             {"mesh", FolderType.Mesh},
-//            "settings", FolderType.Settings},
+            {"settings", FolderType.Settings},
             {"suitcase", FolderType.Suitcase}
         };
 

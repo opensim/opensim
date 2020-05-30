@@ -432,7 +432,6 @@ namespace OpenSim.Region.Framework.Scenes
                     for(int j = 0; j < items.Count; ++j)
                     {
                         TaskInventoryItem tii = items[j];
-                        items[j] = null; // gc is stupid
                         AddForInspection(tii.AssetID, (sbyte)tii.Type);
                     }
 
@@ -521,7 +520,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            // avoid infinite loops
             if (GatheredUuids.ContainsKey(assetUuid))
                 return;
 
@@ -777,21 +775,83 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private static byte[] wearableSeps = new byte[]{(byte)' ', (byte)'\t'};
         /// <summary>
         /// Record the uuids referenced by the given wearable asset
         /// </summary>
-        /// <param name="assetBase"></param>
-        private void RecordWearableAssetUuids(AssetBase assetBase)
+        /// <param name="asset"></param>
+        private void RecordWearableAssetUuids(AssetBase asset)
         {
-            //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
-            AssetWearable wearableAsset = new AssetBodypart(assetBase.FullID, assetBase.Data);
-            wearableAsset.Decode();
+            if (asset.Data == null || asset.Data.Length < 64)
+                return;
+            try
+            {
+                osUTF8 ostmp = new osUTF8(asset.Data);
+                if (!ostmp.SkipLine()) // version
+                    return;
+                if (!ostmp.SkipLine()) // name
+                    return;
+                if (!ostmp.SkipLine()) // description
+                    return;
+                if (!ostmp.SkipLine())
+                    return;
 
-            //m_log.DebugFormat(
-            //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
+                while(ostmp.ReadLine(out osUTF8 line))
+                {
+                    line.SelfTrim(wearableSeps);
+                    osUTF8[] parts = line.Split(wearableSeps);
+                    if(parts[0].Lenght == 0)
+                        continue;
+                    parts[0].SelfTrim(wearableSeps);
+                    if(parts[0].ToString() == "textures")
+                    {
+                        if(parts[1].Lenght == 0)
+                            return;
+                        parts[1].SelfTrim(wearableSeps);
+                        if(!int.TryParse(parts[1].ToString(), out int count) || count == 0)
+                            return;
+                        for(int i = 0; i < count; ++i)
+                        {
+                            if(!ostmp.ReadLine(out osUTF8 texline))
+                                return;
+                            texline.SelfTrim(wearableSeps);
+                            osUTF8[] texparts = texline.Split(wearableSeps);
+                            if(texparts.Length <2 || texparts[1].Lenght < 36)
+                                continue;
+                            texparts[1].SelfTrim(wearableSeps);
+                            if (UUID.TryParse(texparts[1].ToString(), out UUID id) && id != UUID.Zero)
+                                GatheredUuids[id] = (sbyte)AssetType.Texture;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
 
-            foreach (UUID uuid in wearableAsset.Textures.Values)
-                GatheredUuids[uuid] = (sbyte)AssetType.Texture;
+        private int getxmlheader(osUTF8 data, out osUTF8 h)
+        {
+            h = data;
+            int st = -1;
+            while ((st = data.IndexOf('<')) >= 0)
+            {
+                break;
+            }
+            if (st < 0)
+                return -1;
+            ++st;
+            int ed = -1;
+            while ((ed = data.IndexOf('>')) >= 0)
+            {
+                break;
+            }
+            if (ed < 0)
+                return -1;
+
+            h = data.osUTF8SubString(st, ed - st);
+            h.SelfTrim();
+            return ed + 1;
         }
 
         /// <summary>
@@ -850,8 +910,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="gestureAsset"></param>
         private void RecordGestureAssetUuids(AssetBase gestureAsset)
         {
-            using (MemoryStream ms = new MemoryStream(gestureAsset.Data))
-                using (StreamReader sr = new StreamReader(ms))
+            using (StreamReader sr = new StreamReader(new MemoryStream(gestureAsset.Data)))
             {
                 sr.ReadLine(); // Unknown (Version?)
                 sr.ReadLine(); // Unknown
