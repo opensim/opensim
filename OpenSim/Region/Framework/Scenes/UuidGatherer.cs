@@ -849,6 +849,8 @@ namespace OpenSim.Region.Framework.Scenes
             int st = -1;
             while ((st = data.IndexOf('<')) >= 0)
             {
+                if (st > 0 && data[st - 1] == (byte)'\\')
+                    data.osUTF8SubStringSelf(st + 1);
                 break;
             }
             if (st < 0)
@@ -857,6 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
             int ed = -1;
             while ((ed = data.IndexOf('>')) >= 0)
             {
+                if (data[st - 1] == (byte)'\\')
+                    data.osUTF8SubStringSelf(st + 1);
                 break;
             }
             if (ed < 0)
@@ -984,24 +988,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void RecordMaterialAssetUuids(AssetBase materialAsset)
         {
-            OSDMap mat;
-            try
+            osUTF8 data = new osUTF8(materialAsset.Data);
+            int next;
+            while ((next = getxmlheader(data, out osUTF8 header)) > 0)
             {
-                mat = (OSDMap)OSDParser.DeserializeLLSDXml(materialAsset.Data);
+                data.osUTF8SubStringSelf(next);
+                if (header.StartsWith("/"))
+                    continue;
+                if (header.StartsWith("uuid"))
+                {
+                    if(header.EndsWith((byte)'/'))
+                        continue;
+                    int indx = data.IndexOf((byte)'<');
+                    if(indx < 0)
+                        continue;
+                    osUTF8 tmp = data.osUTF8SubString(0, indx);
+                    tmp.SelfTrim();
+                    if(UUID.TryParse(tmp.ToString(), out UUID id) && id != UUID.Zero)
+                        GatheredUuids[id] = (sbyte)AssetType.Texture;
+                    data.osUTF8SubStringSelf(indx + 1);
+                }
             }
-            catch (Exception e)
-            {
-               m_log.WarnFormat("[Materials]: cannot decode material asset {0}: {1}", materialAsset.ID, e.Message);
-               return;
-            }
-
-            UUID normMap = mat["NormMap"].AsUUID();
-            if (normMap != UUID.Zero)
-                GatheredUuids[normMap] = (sbyte)AssetType.Texture;
-
-            UUID specMap = mat["SpecMap"].AsUUID();
-            if (specMap != UUID.Zero)
-                GatheredUuids[specMap] = (sbyte)AssetType.Texture;
         }
     }
 
