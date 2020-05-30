@@ -62,12 +62,14 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void AddRegion(Scene scene)
         {
-            lock (m_scenes) m_scenes.Add(scene);
+            lock (m_scenes)
+                m_scenes.Add(scene);
         }
 
         public void RemoveRegion(Scene scene)
         {
-            lock (m_scenes) m_scenes.Remove(scene);
+            lock (m_scenes)
+                m_scenes.Remove(scene);
             scene.EventManager.OnRegisterCaps -= RegisterCaps;
             scene = null;
         }
@@ -121,18 +123,8 @@ namespace OpenSim.Region.ClientStack.LindenCaps
                 return;
             }
 
-            httpResponse.KeepAlive = false;
-            // if there is no preference service,
-            // we'll return a null llsd block for debugging purposes. This may change if someone knows what the
-            // correct server response would be here.
-            if (m_scenes[0].AgentPreferencesService == null)
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-            m_log.DebugFormat("[AgentPrefs]: UpdateAgentPreferences for {0}", agent.ToString());
+            //m_log.DebugFormat("[AgentPrefs]: UpdateAgentPreferences for {0}", agent.ToString());
             OSDMap req;
-
             try
             {
                 req = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
@@ -143,45 +135,48 @@ namespace OpenSim.Region.ClientStack.LindenCaps
                 return;
             }
 
-            AgentPrefs data = m_scenes[0].AgentPreferencesService.GetAgentPreferences(agent);
+            IAgentPreferencesService aps = m_scenes[0].AgentPreferencesService;
+            AgentPrefs data = null;
+            if(aps != null)
+                data = aps.GetAgentPreferences(agent);
+
             if (data == null)
-            {
                 data = new AgentPrefs(agent);
-            }
 
             bool changed = false;
-            if (req.ContainsKey("access_prefs"))
+            OSD tmp;
+            if (req.TryGetValue("access_prefs", out tmp) && tmp is OSDMap)
             {
-                OSDMap accessPrefs = (OSDMap)req["access_prefs"];  // We could check with ContainsKey...
+                OSDMap accessPrefs = (OSDMap)tmp;  // We could check with ContainsKey...
                 data.AccessPrefs = accessPrefs["max"].AsString();
                 changed = true;
             }
-            if (req.ContainsKey("default_object_perm_masks"))
+            if (req.TryGetValue("default_object_perm_masks", out tmp) && tmp is OSDMap)
             {
-                OSDMap permsMap = (OSDMap)req["default_object_perm_masks"];
+                OSDMap permsMap = (OSDMap)tmp;
                 data.PermEveryone = permsMap["Everyone"].AsInteger();
                 data.PermGroup = permsMap["Group"].AsInteger();
                 data.PermNextOwner = permsMap["NextOwner"].AsInteger();
                 changed = true;
             }
-            if (req.ContainsKey("hover_height"))
+            if (req.TryGetValue("hover_height", out tmp))
             {
-                data.HoverHeight = (float)req["hover_height"].AsReal();
+                data.HoverHeight = (float)tmp.AsReal();
                 changed = true;
             }
-            if (req.ContainsKey("language"))
+            if (req.TryGetValue("language", out tmp))
             {
-                data.Language = req["language"].AsString();
+                data.Language = tmp.AsString();
                 changed = true;
             }
-            if (req.ContainsKey("language_is_public"))
+            if (req.TryGetValue("language_is_public", out tmp))
             {
-                data.LanguageIsPublic = req["language_is_public"].AsBoolean();
+                data.LanguageIsPublic = tmp.AsBoolean();
                 changed = true;
             }
 
             if(changed)
-                m_scenes[0].AgentPreferencesService.StoreAgentPreferences(data);
+                aps?.StoreAgentPreferences(data);
 
             IAvatarFactoryModule afm = m_scenes[0].RequestModuleInterface<IAvatarFactoryModule>();
             afm?.SetPreferencesHoverZ(agent, (float)data.HoverHeight);
@@ -202,8 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             resp["language"] = data.Language;
             resp["language_is_public"] = data.LanguageIsPublic;
 
-            string response = OSDParser.SerializeLLSDXmlString(resp);
-            httpResponse.RawBuffer = Encoding.UTF8.GetBytes(response);
+            httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlBytes(resp);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
         #endregion Region module
