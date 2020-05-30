@@ -796,19 +796,32 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!ostmp.SkipLine())
                     return;
 
-                while(ostmp.ReadLine(out osUTF8 line))
+                while (ostmp.ReadLine(out osUTF8 line))
                 {
                     line.SelfTrim(wearableSeps);
                     osUTF8[] parts = line.Split(wearableSeps);
                     if(parts[0].Lenght == 0)
                         continue;
                     parts[0].SelfTrim(wearableSeps);
-                    if(parts[0].ToString() == "textures")
+                    if (parts[0].ToString() == "parameters")
+                    {
+                        if (parts[1].Lenght == 0)
+                            return;
+                        parts[1].SelfTrim(wearableSeps);
+                        if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
+                            return;
+                        for (int i = 0; i < count; ++i)
+                        {
+                            if (!ostmp.SkipLine())
+                                return;
+                        }
+                    }
+                    else if (parts[0].ToString() == "textures")
                     {
                         if(parts[1].Lenght == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
-                        if(!int.TryParse(parts[1].ToString(), out int count) || count == 0)
+                        if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
                             return;
                         for(int i = 0; i < count; ++i)
                         {
@@ -910,34 +923,58 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="gestureAsset"></param>
         private void RecordGestureAssetUuids(AssetBase gestureAsset)
         {
-            using (StreamReader sr = new StreamReader(new MemoryStream(gestureAsset.Data)))
+            osUTF8 osdata = new osUTF8(gestureAsset.Data);
+
+            if (!osdata.SkipLine()) // version
+                return;
+            if (!osdata.SkipLine()) // key
+                return;
+            if (!osdata.SkipLine()) // mask
+                return;
+            if (!osdata.SkipLine()) // trigger
+                return;
+            if (!osdata.SkipLine()) // replace
+                return;
+
+            if (!osdata.ReadLine(out osUTF8 line))
+                return;
+
+            if(!osUTF8.TryParseInt(line, out int scount) || scount == 0)
+                return;
+
+            for(int i = 0; i < scount; ++i)
             {
-                sr.ReadLine(); // Unknown (Version?)
-                sr.ReadLine(); // Unknown
-                sr.ReadLine(); // Unknown
-                sr.ReadLine(); // Name
-                sr.ReadLine(); // Comment ?
-                int count = Convert.ToInt32(sr.ReadLine()); // Item count
+                if (!osdata.ReadLine(out osUTF8 typeline)) // type
+                    return;
+                typeline.SelfTrim();
+                if (!osUTF8.TryParseInt(typeline, out int type))
+                    return;
 
-                for (int i = 0 ; i < count ; i++)
+                osUTF8 id;
+                UUID uid;
+                switch(type)
                 {
-                    string type = sr.ReadLine();
-                    if (type == null)
+                    case 0: // animation
+                    case 1: // sound
+                        if (!osdata.SkipLine()) // name
+                            return;
+                        if (!osdata.ReadLine(out id)) // uuid
+                            return;
+                        id.SelfTrim();
+                        if (UUID.TryParse(id.ToString(), out uid) && uid != UUID.Zero)
+                            GatheredUuids[uid] = type == 0 ? (sbyte)AssetType.Animation : (sbyte)AssetType.Sound;
+                        if (!osdata.SkipLine()) // flags 
+                            return;
                         break;
-                    string name = sr.ReadLine();
-                    if (name == null)
+                    case 2: // chat
+                    case 3: // wait
+                        if (!osdata.SkipLine()) // chat text or wait time
+                            return;
+                        if (!osdata.SkipLine()) // flags 
+                            return;
                         break;
-                    string id = sr.ReadLine();
-                    if (id == null)
-                        break;
-                    string unknown = sr.ReadLine();
-                    if (unknown == null)
-                        break;
-
-                    // If it can be parsed as a UUID, it is an asset ID
-                    UUID uuid;
-                    if (UUID.TryParse(id, out uuid))
-                        GatheredUuids[uuid] = (sbyte)AssetType.Animation;    // the asset is either an Animation or a Sound, but this distinction isn't important
+                    default:
+                        return; // no idea
                 }
             }
         }
