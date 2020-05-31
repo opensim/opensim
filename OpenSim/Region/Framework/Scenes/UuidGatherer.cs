@@ -822,12 +822,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     line.SelfTrim(wearableSeps);
                     osUTF8[] parts = line.Split(wearableSeps);
-                    if(parts[0].Lenght == 0)
+                    if(parts[0].Length == 0)
                         continue;
                     parts[0].SelfTrim(wearableSeps);
                     if (parts[0].ToString() == "parameters")
                     {
-                        if (parts[1].Lenght == 0)
+                        if (parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
                         if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
@@ -840,7 +840,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else if (parts[0].ToString() == "textures")
                     {
-                        if(parts[1].Lenght == 0)
+                        if(parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
                         if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
@@ -851,7 +851,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 return;
                             texline.SelfTrim(wearableSeps);
                             osUTF8[] texparts = texline.Split(wearableSeps);
-                            if(texparts.Length <2 || texparts[1].Lenght < 36)
+                            if(texparts.Length <2 || texparts[1].Length < 36)
                                 continue;
                             texparts[1].SelfTrim(wearableSeps);
                             if (UUID.TryParse(texparts[1].ToString(), out UUID id) && id != UUID.Zero)
@@ -940,7 +940,7 @@ namespace OpenSim.Region.Framework.Scenes
             data.osUTF8SubStringSelf(indx + 1);
 
             tmp.SelfTrim();
-            if(tmp.Lenght == 0)
+            if(tmp.Length == 0)
                 return false;
             try
             {
