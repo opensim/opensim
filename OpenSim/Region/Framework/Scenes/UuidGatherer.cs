@@ -908,10 +908,11 @@ namespace OpenSim.Region.Framework.Scenes
                 int indx = data.IndexOf((byte)'<');
                 if (indx < 0)
                     return false;
+
                 osUTF8 tmp = data.osUTF8SubString(0, indx);
-                tmp.SelfTrim();
                 data.osUTF8SubStringSelf(indx + 1);
-                return UUID.TryParse(tmp.ToString(), out id);
+
+                return osUTF8.TryParseUUID(tmp, out id);
             }
 
             if (h.StartsWith(uuidB))
@@ -921,9 +922,11 @@ namespace OpenSim.Region.Framework.Scenes
                 int indx = data.IndexOf((byte)'<');
                 if (indx < 0)
                     return false;
+
                 osUTF8 tmp = data.osUTF8SubString(0, indx);
-                tmp.SelfTrim();
-                return UUID.TryParse(tmp.ToString(), out id);
+                data.osUTF8SubStringSelf(indx + 1);
+
+                return osUTF8.TryParseUUID(tmp, out id);
             }
 
             return false;
@@ -1184,8 +1187,7 @@ namespace OpenSim.Region.Framework.Scenes
                             return;
                         if (!osdata.ReadLine(out id)) // uuid
                             return;
-                        id.SelfTrim();
-                        if (UUID.TryParse(id.ToString(), out uid) && uid != UUID.Zero)
+                        if (osUTF8.TryParseUUID(id, out uid) && uid != UUID.Zero)
                             GatheredUuids[uid] = type == 0 ? (sbyte)AssetType.Animation : (sbyte)AssetType.Sound;
                         if (!osdata.SkipLine()) // flags 
                             return;
@@ -1212,7 +1214,6 @@ namespace OpenSim.Region.Framework.Scenes
             int next;
             while ((next = getxmlNode(ref data, out osUTF8 header)) > 0)
             {
-                
                 if (header.StartsWith((byte)'/'))
                     continue;
                 if (header.StartsWith(uuidB))
@@ -1223,8 +1224,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if(indx < 0)
                         continue;
                     osUTF8 tmp = data.osUTF8SubString(0, indx);
-                    tmp.SelfTrim();
-                    if(UUID.TryParse(tmp.ToString(), out UUID id) && id != UUID.Zero)
+                    if(osUTF8.TryParseUUID(tmp, out UUID id) && id != UUID.Zero)
                         GatheredUuids[id] = (sbyte)AssetType.Texture;
                     data.osUTF8SubStringSelf(indx + 1);
                 }
