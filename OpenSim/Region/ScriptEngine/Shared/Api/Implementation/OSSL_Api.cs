@@ -3023,7 +3023,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="avatar"></param>
         /// <param name="notecard">The name of the notecard to which to save the appearance.</param>
         /// <returns>The asset ID of the notecard saved.</returns>
-        public LSL_Key osNpcSaveAppearance(LSL_Key npc, string notecard)
+
+        public LSL_Key osNpcSaveAppearance(LSL_Key npc, LSL_String notecard)
+        {
+            return NpcSaveAppearance(npc, notecard, true);
+        }
+
+        public LSL_Key osNpcSaveAppearance(LSL_Key npc, LSL_String notecard, LSL_Integer includeHuds)
+        {
+            return NpcSaveAppearance(npc, notecard, includeHuds == 0);
+        }
+
+        protected LSL_Key NpcSaveAppearance(LSL_Key npc, string notecard, bool NoHUds)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSaveAppearance");
 
@@ -3031,14 +3042,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (npcModule != null)
             {
-                UUID npcId;
-                if (!UUID.TryParse(npc.m_string, out npcId))
+                if (!UUID.TryParse(npc.m_string, out UUID npcId))
                     return new LSL_Key(UUID.Zero.ToString());
 
                 if (!npcModule.CheckPermissions(npcId, m_host.OwnerID))
                     return new LSL_Key(UUID.Zero.ToString());
 
-                return SaveAppearanceToNotecard(npcId, notecard);
+                return SaveAppearanceToNotecard(npcId, notecard, NoHUds);
             }
 
             return new LSL_Key(UUID.Zero.ToString());
@@ -3522,32 +3532,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="notecard">The name of the notecard to which to save the appearance.</param>
         /// <returns>The asset ID of the notecard saved.</returns>
-        public LSL_Key osOwnerSaveAppearance(string notecard)
+        public LSL_Key osOwnerSaveAppearance(LSL_String notecard)
         {
             CheckThreatLevel(ThreatLevel.High, "osOwnerSaveAppearance");
 
-            return SaveAppearanceToNotecard(m_host.OwnerID, notecard);
+            return SaveAppearanceToNotecard(m_host.OwnerID, notecard, false);
         }
 
-        public LSL_Key osAgentSaveAppearance(LSL_Key avatarKey, string notecard)
+        public LSL_Key osOwnerSaveAppearance(LSL_String notecard, LSL_Integer includeHuds)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osOwnerSaveAppearance");
+
+            return SaveAppearanceToNotecard(m_host.OwnerID, notecard, includeHuds == 0);
+        }
+
+        public LSL_Key osAgentSaveAppearance(LSL_Key avatarKey, LSL_String notecard)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osAgentSaveAppearance");
 
-            UUID avatarId;
-            if (!UUID.TryParse(avatarKey, out avatarId))
+            if (!UUID.TryParse(avatarKey, out UUID avatarId))
                 return new LSL_Key(UUID.Zero.ToString());
 
-            return SaveAppearanceToNotecard(avatarId, notecard);
+            return SaveAppearanceToNotecard(avatarId, notecard, false);
         }
 
-        protected LSL_Key SaveAppearanceToNotecard(ScenePresence sp, string notecard)
+        public LSL_Key osAgentSaveAppearance(LSL_Key avatarKey, LSL_String notecard, LSL_Integer includeHuds)
+        {
+            CheckThreatLevel(ThreatLevel.VeryHigh, "osAgentSaveAppearance");
+
+            if (!UUID.TryParse(avatarKey, out UUID avatarId))
+                return new LSL_Key(UUID.Zero.ToString());
+
+            return SaveAppearanceToNotecard(avatarId, notecard, includeHuds == 0);
+        }
+
+        protected LSL_Key SaveAppearanceToNotecard(UUID avatarId, string notecard, bool NoHuds)
+        {
+            ScenePresence sp = World.GetScenePresence(avatarId);
+            if (sp == null || sp.IsChildAgent)
+                return new LSL_Key(UUID.Zero.ToString());
+
+            return SaveAppearanceToNotecard(sp, notecard, NoHuds);
+        }
+
+        protected LSL_Key SaveAppearanceToNotecard(ScenePresence sp, string notecard, bool NoHuds)
         {
             IAvatarFactoryModule appearanceModule = World.RequestModuleInterface<IAvatarFactoryModule>();
 
             if (appearanceModule != null)
             {
                 appearanceModule.SaveBakedTextures(sp.UUID);
-                OSDMap appearancePacked = sp.Appearance.PackForNotecard();
+                OSDMap appearancePacked = sp.Appearance.PackForNotecard(NoHuds);
 
                 TaskInventoryItem item
                     = SaveNotecard(notecard, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);
@@ -3558,16 +3593,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return new LSL_Key(UUID.Zero.ToString());
             }
-        }
-
-        protected LSL_Key SaveAppearanceToNotecard(UUID avatarId, string notecard)
-        {
-            ScenePresence sp = World.GetScenePresence(avatarId);
-
-            if (sp == null || sp.IsChildAgent)
-                return new LSL_Key(UUID.Zero.ToString());
-
-            return SaveAppearanceToNotecard(sp, notecard);
         }
 
         /// <summary>
