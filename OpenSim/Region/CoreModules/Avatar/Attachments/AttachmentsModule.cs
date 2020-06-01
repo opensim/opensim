@@ -237,6 +237,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 ct.AddRow("Item ID", attachmentObject.UUID);
                 ct.AddRow("From Item ID", attachmentObject.FromItemID);
                 ct.AddRow("Attach Point", ((AttachmentPoint)attachmentObject.AttachmentPoint));
+                ct.AddRow("Prims", attachmentObject.PrimCount);
                 ct.AddRow("Position", attachmentObject.RootPart.AttachedPos + "\n\n");
             }
 
