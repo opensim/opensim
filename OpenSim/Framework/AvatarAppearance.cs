@@ -817,7 +817,7 @@ namespace OpenSim.Framework
             return data;
         }
 
-        public OSDMap PackForNotecard()
+        public OSDMap PackForNotecard(bool NoHuds = true)
         {
             OSDMap data = new OSDMap();
 
@@ -868,7 +868,13 @@ namespace OpenSim.Framework
                 // Attachments
                 OSDArray attachs = new OSDArray(m_attachments.Count);
                 foreach (AvatarAttachment attach in GetAttachments())
+                {
+                    if (NoHuds &&
+                            attach.AttachPoint >= (uint)AttachmentPoint.HUDCenter2 &&
+                            attach.AttachPoint <= (uint)AttachmentPoint.HUDBottomRight)
+                        continue;
                     attachs.Add(attach.Pack());
+                }
                 data["attachments"] = attachs;
             }
 
