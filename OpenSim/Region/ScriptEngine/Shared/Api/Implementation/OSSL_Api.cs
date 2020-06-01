@@ -3026,7 +3026,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key osNpcSaveAppearance(LSL_Key npc, LSL_String notecard)
         {
-            return NpcSaveAppearance(npc, notecard, true);
+            return NpcSaveAppearance(npc, notecard, false);
         }
 
         public LSL_Key osNpcSaveAppearance(LSL_Key npc, LSL_String notecard, LSL_Integer includeHuds)
