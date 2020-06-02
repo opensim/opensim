@@ -94,7 +94,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //            m_log.DebugFormat(
 //                "[AVATAR ANIMATIONS]: Looking for default avatar animation with name {0}", name);
             UUID id;
-            if (AnimsUUIDbyName.TryGetValue(name, out id))
+            if (AnimsUUIDbyName.TryGetValue(name.ToUpper(), out id))
             {
 //                m_log.DebugFormat(
 //                    "[AVATAR ANIMATIONS]: Found {0} {1} in GetDefaultAvatarAnimation()", AnimsUUID[name], name);
