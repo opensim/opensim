@@ -4195,14 +4195,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Do NOT try to parse UUID, animations cannot be triggered by ID
             UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
             if (animID == UUID.Zero)
-                return;
-            m_host.AddAnimation(animID, anim);
+                animID = DefaultAvatarAnimations.GetDefaultAnimation(anim);
+            if (animID != UUID.Zero)
+                m_host.AddAnimation(animID, anim);
         }
 
         public void llStopObjectAnimation(string anim)
         {
             m_host.AddScriptLPS(1);
             UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim, AssetType.Animation);
+            if (animID == UUID.Zero)
+                animID = DefaultAvatarAnimations.GetDefaultAnimation(anim);
             if (animID != UUID.Zero)
                 m_host.RemoveAnimation(animID);
         }
