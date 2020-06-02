@@ -345,7 +345,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (ad.AttachmentObjects != null && ad.AttachmentObjects.Count > 0)
             {
                 lock (sp.AttachmentsSyncLock)
-                    sp.ClearAttachments();
+                    DeleteAttachmentsFromScene(sp, true); // delete
 
                 int i = 0;
                 for (int indx = 0; indx < ad.AttachmentObjects.Count; ++indx)
