@@ -397,8 +397,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             else
                                 m_IState = XMRInstState.IDLE;
                         }
-                        else if(m_SuspendCount != 0)
-                            m_IState = XMRInstState.IDLE;
+                        //else if(m_SuspendCount != 0)
+                        //    m_IState = XMRInstState.IDLE;
                     }
                     else
                     {

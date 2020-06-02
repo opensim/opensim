@@ -1020,6 +1020,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             lock(m_QueueLock)
             {
+                m_SuspendCount = 0;
                 m_Suspended = false;
                 m_DetachQuantum = 0;
                 m_DetachReady.Set();
@@ -1041,6 +1042,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             lock(m_QueueLock)
             {
+                m_SuspendCount = 1;
                 m_Suspended = true;
             }
         }
