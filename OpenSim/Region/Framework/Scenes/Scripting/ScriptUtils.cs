@@ -64,22 +64,20 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier)
         {
-            UUID key;
-
             // if we can parse the string as a key, use it.
             // else try to locate the name in inventory of object. found returns key,
             // not found returns UUID.Zero
-            if (!UUID.TryParse(identifier, out key))
+            if (UUID.TryParse(identifier, out UUID key))
+                return key;
+
+            if (part.Inventory != null)
             {
                 TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-
                 if (item != null)
-                    key = item.AssetID;
-                else
-                    key = UUID.Zero;
+                    return item.AssetID;
             }
 
-            return key;
+            return UUID.Zero;
         }
 
         /// <summary>
@@ -92,28 +90,33 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier, AssetType type)
         {
-            UUID key;
-            if (UUID.TryParse(identifier, out key))
+            if (UUID.TryParse(identifier, out UUID key))
                 return key;
 
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-            if (item != null && item.Type == (int)type)
-                return item.AssetID;
+            if (part.Inventory != null)
+            {
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
+                if (item != null && item.Type == (int)type)
+                    return item.AssetID;
+            }
 
             return UUID.Zero;
         }
 
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, SceneObjectPart host, string identifier, AssetType type)
         {
-            UUID key;
-            if (UUID.TryParse(identifier, out key))
+            if (UUID.TryParse(identifier, out UUID key))
                 return key;
 
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(identifier);
-            if (item != null && item.Type == (int)type)
-                return item.AssetID;
+            TaskInventoryItem item;
+            if (part.Inventory != null)
+            {
+                item = part.Inventory.GetInventoryItem(identifier);
+                if (item != null && item.Type == (int)type)
+                    return item.AssetID;
+            }
 
-            if (part.LocalId != host.LocalId)
+            if (part.LocalId != host.LocalId && host.Inventory != null)
             {
                 item = host.Inventory.GetInventoryItem(identifier);
                 if (item != null && item.Type == (int)type)
