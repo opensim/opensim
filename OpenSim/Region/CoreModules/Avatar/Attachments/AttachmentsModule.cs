@@ -227,6 +227,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             ConsoleDisplayList ct = new ConsoleDisplayList();
 
+            int totalprims = 0;
             List<SceneObjectGroup> attachmentObjects = sp.GetAttachments();
             for (int i = 0; i < attachmentObjects.Count; ++i)
             {
@@ -238,8 +239,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 ct.AddRow("From Item ID", attachmentObject.FromItemID);
                 ct.AddRow("Attach Point", ((AttachmentPoint)attachmentObject.AttachmentPoint));
                 ct.AddRow("Prims", attachmentObject.PrimCount);
-                ct.AddRow("Position", attachmentObject.RootPart.AttachedPos + "\n\n");
+                ct.AddRow("Position", attachmentObject.RootPart.AttachedPos + "\n");
+                totalprims += attachmentObject.PrimCount;
             }
+            sb.AppendFormat("--Total Attachment prims for {0} : {1}\n\n", sp.Name, totalprims);
 
             ct.AddToStringBuilder(sb);
         }
