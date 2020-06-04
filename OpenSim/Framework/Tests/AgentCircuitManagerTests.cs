@@ -150,7 +150,7 @@ namespace OpenSim.Framework.Tests
             agentCircuitManager.AddNewCircuit(circuitcode2, m_agentCircuitData2);
             bool result = false;
 
-            result = agentCircuitManager.TryChangeCiruitCode(circuitcode1, 393930);
+            result = agentCircuitManager.TryChangeCircuitCode(circuitcode1, 393930);
 
             AgentCircuitData agent = agentCircuitManager.GetAgentCircuitData(393930);
             AgentCircuitData agent2 = agentCircuitManager.GetAgentCircuitData(circuitcode1);

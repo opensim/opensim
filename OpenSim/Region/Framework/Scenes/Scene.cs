@@ -4463,7 +4463,7 @@ Label_GroupsDone:
         /// <returns>True if we successfully changed it.  False if we did not</returns>
         public bool ChangeCircuitCode(uint oldcc, uint newcc)
         {
-            return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
+            return m_authenticateHandler.TryChangeCircuitCode(oldcc, newcc);
         }
 
 //        /// <summary>
