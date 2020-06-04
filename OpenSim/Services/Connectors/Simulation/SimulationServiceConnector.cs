@@ -469,7 +469,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap args = new OSDMap(2);
+                OSDMap args = new OSDMap(16);
 
                 args["sog"] = OSD.FromString(sog.ToXml2());
                 args["extra"] = OSD.FromString(sog.ExtraToXmlString());

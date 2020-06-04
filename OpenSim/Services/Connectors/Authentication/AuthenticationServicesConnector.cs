@@ -148,8 +148,7 @@ namespace OpenSim.Services.Connectors
                     m_ServerURI + "/auth/plain",
                     ServerUtils.BuildQueryString(sendData), m_Auth);
 
-            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
-                    reply);
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
             if (replyData["Result"].ToString() != "Success")
                 return false;
