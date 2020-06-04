@@ -457,6 +457,7 @@ namespace OpenSim.Server.Base
             return sb.ToString();
         }
 
+
         public static string BuildXmlResponse(Dictionary<string, object> data)
         {
             XmlDocument doc = new XmlDocument();
@@ -466,8 +467,7 @@ namespace OpenSim.Server.Base
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse","");
 
             doc.AppendChild(rootElement);
 
@@ -506,53 +506,62 @@ namespace OpenSim.Server.Base
             }
         }
 
-        public static Dictionary<string, object> ParseXmlResponse(string data)
+        private static Dictionary<string, object> ScanXmlResponse(XmlReader xr)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
-
             Dictionary<string, object> ret = new Dictionary<string, object>();
-
-            XmlDocument doc = new XmlDocument();
-
-            try
+            xr.Read();
+            while (!xr.EOF && xr.NodeType != XmlNodeType.EndElement)
             {
-                doc.LoadXml(data);
-                XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
-
-                if (rootL.Count != 1)
-                    return ret;
-
-                XmlNode rootNode = rootL[0];
-
-                ret = ParseElement(rootNode);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0} \n --- string: {1} - ",e.Message, data);
+                if (xr.IsStartElement())
+                {
+                    string type = xr.GetAttribute("type");
+                    if (type != "List")
+                    {
+                        if (xr.IsEmptyElement)
+                        {
+                            ret[XmlConvert.DecodeName(xr.Name)] = "";
+                            xr.Read();
+                        }
+                        else
+                            ret[XmlConvert.DecodeName(xr.Name)] = xr.ReadElementContentAsString();
+                    }
+                    else
+                    {
+                        string name = XmlConvert.DecodeName(xr.Name);
+                        if (xr.IsEmptyElement)
+                            ret[name] = new Dictionary<string, object>();
+                        else
+                            ret[name] = ScanXmlResponse(xr);
+                        xr.Read();
+                    }
+                }
+                else
+                    xr.Read();
             }
             return ret;
         }
 
-        private static Dictionary<string, object> ParseElement(XmlNode element)
+        public static Dictionary<string, object> ParseXmlResponse(string data)
         {
-            Dictionary<string, object> ret = new Dictionary<string, object>();
+            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
 
-            XmlNodeList partL = element.ChildNodes;
-
-            foreach (XmlNode part in partL)
+            try
             {
-                XmlNode type = part.Attributes.GetNamedItem("type");
-                if (type == null || type.Value != "List")
+                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
+                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
+                xpc.Encoding = Util.UTF8NoBomEncoding;
+                using (XmlReader xr = XmlReader.Create(new StringReader(data), xset, xpc))
                 {
-                    ret[XmlConvert.DecodeName(part.Name)] = part.InnerText;
-                }
-                else
-                {
-                    ret[XmlConvert.DecodeName(part.Name)] = ParseElement(part);
+                     if(!xr.ReadToFollowing("ServerResponse"))
+                            return new Dictionary<string, object>();
+                    return ScanXmlResponse(xr);
                 }
             }
-
-            return ret;
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}\n --string:\n{1}\n", e.Message, data);
+            }
+            return new Dictionary<string, object>();
         }
 
         public static IConfig GetConfig(string configFile, string configName)
