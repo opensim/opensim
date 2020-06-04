@@ -4097,10 +4097,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (cache != null)
 //                        cache.Remove(acd.firstname + " " + acd.lastname);
                         cache.Remove(acd.AgentID);
-
-                    // Remove any preexisting circuit - we don't want duplicates
-                    // This is a stab at preventing avatar "ghosting"
-                    m_authenticateHandler.RemoveCircuit(acd.AgentID);
                 }
 
                 m_authenticateHandler.AddNewCircuit(acd.circuitcode, acd);
@@ -4774,8 +4770,10 @@ Label_GroupsDone:
                     // and since they don't get cleaned up they will stick
                     // around until region restart. So, if there is no SP,
                     // remove the client as well.
-                    IClientAPI client = null;
-                    if (m_clientManager.TryGetValue(agentID, out client))
+                    if (m_authenticateHandler != null)
+                        m_authenticateHandler.RemoveCircuit(agentID);
+
+                    if (m_clientManager.TryGetValue(agentID, out IClientAPI client))
                     {
                         m_clientManager.Remove(agentID);
                         if (CapsModule != null)
