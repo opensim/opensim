@@ -221,7 +221,7 @@ namespace OpenSim.Framework
     public delegate void AddNewPrim(
         UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart,
         UUID RayTargetID,
-        byte RayEndIsIntersection);
+        byte RayEndIsIntersection, uint addflags);
 
     public delegate void AgentDataUpdate(IClientAPI remoteClient, UUID itemID, UUID ownerID);
 

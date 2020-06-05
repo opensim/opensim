@@ -351,6 +351,5 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddByte((byte)(len));
             AddBytes(data, len);
         }
-
     }
 }

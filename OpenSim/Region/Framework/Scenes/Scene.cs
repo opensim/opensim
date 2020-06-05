@@ -2512,7 +2512,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="RayEndIsIntersection"></param>
         public virtual void AddNewPrim(UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
                                        byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
-                                       byte RayEndIsIntersection)
+                                       byte RayEndIsIntersection, uint addFlags)
         {
             Vector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new Vector3(0.5f, 0.5f, 0.5f), false);
 
@@ -2521,7 +2521,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // rez ON the ground, not IN the ground
                 // pos.Z += 0.25F; The rez point should now be correct so that its not in the ground
 
-                AddNewPrim(ownerID, groupID, pos, rot, shape);
+                AddNewPrim(ownerID, groupID, pos, rot, shape, addFlags);
             }
             else
             {
@@ -2531,8 +2531,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public virtual SceneObjectGroup AddNewPrim(
-            UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
+        public virtual SceneObjectGroup AddNewPrim(UUID ownerID, UUID groupID,
+            Vector3 pos, Quaternion rot, PrimitiveBaseShape shape, uint addFlags = 0)
         {
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() pcode {0} called for {1} in {2}", shape.PCode, ownerID, RegionInfo.RegionName);
@@ -2566,6 +2566,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (UserManagementModule != null)
                 sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
+
+            if((addFlags & (uint)PrimFlags.CreateSelected) != 0)
+            {
+                sceneObject.IsSelected = true;
+                sceneObject.RootPart.CreateSelected = true;
+            }
 
             sceneObject.InvalidateDeepEffectivePerms();;
             sceneObject.ScheduleGroupForFullAnimUpdate();

@@ -444,7 +444,7 @@ namespace OpenSim.Region.Framework.Scenes
             Acceleration = Vector3.Zero;
             APIDActive = false;
             Flags = 0;
-            CreateSelected = true;
+            CreateSelected = false;
             TrimPermissions();
             AggregateInnerPerms();
         }

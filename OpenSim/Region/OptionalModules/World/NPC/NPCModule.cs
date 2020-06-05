@@ -220,8 +220,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
                     scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
-                    ScenePresence sp;
-                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out ScenePresence sp))
                     {
                         npcAvatar.Born = born;
                         npcAvatar.ActiveGroupId = groupID;

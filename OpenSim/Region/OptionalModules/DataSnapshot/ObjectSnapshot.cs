@@ -66,7 +66,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
             client.OnAddPrim += delegate (UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot,
                 PrimitiveBaseShape shape, byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
-                byte RayEndIsIntersection) { this.Stale = true; };
+                byte RayEndIsIntersection, uint addFlags) { this.Stale = true; };
             client.OnLinkObjects += delegate (IClientAPI remoteClient, uint parent, List<uint> children)
                 { this.Stale = true; };
             client.OnDelinkObjects += delegate(List<uint> primIds, IClientAPI clientApi) { this.Stale = true; };

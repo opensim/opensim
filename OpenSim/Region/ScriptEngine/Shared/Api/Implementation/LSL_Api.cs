@@ -4506,7 +4506,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-            parentPrim.RootPart.CreateSelected = true;
+            parentPrim.RootPart.CreateSelected = false;
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
 

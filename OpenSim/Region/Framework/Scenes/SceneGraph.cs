@@ -1938,7 +1938,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // occur on link to invoke this elsewhere (such as object selection)
                 if (childGroups.Count > 0)
                 {
-                    parentGroup.RootPart.CreateSelected = true;
+                    //parentGroup.RootPart.CreateSelected = true;
                     parentGroup.TriggerScriptChangedEvent(Changed.LINK);
                 }
             }
