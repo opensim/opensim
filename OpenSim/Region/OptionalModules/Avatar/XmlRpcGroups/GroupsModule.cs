@@ -39,7 +39,6 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using System.Text;
-using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
@@ -695,13 +694,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (noticeID == UUID.Zero)
                     return;
 
-                InventoryFolderBase trash = scene.InventoryService.GetFolderForType(remoteAgentID, FolderType.Trash);
-                if(trash == null)
-                {
-                    m_log.DebugFormat("[xmlGROUPS]: failed to find trash folder for {0} ", remoteAgentID);
-                    return;
-                }
-
                 GroupNoticeInfo notice = m_groupData.GetGroupNotice(remoteAgentID, noticeID);
                 if (notice == null)
                 {
@@ -734,6 +726,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 InventoryItemBase itemCopy = scene.InventoryService.GetItem(remoteAgentID, attachmentUUID);
                 if (itemCopy == null)
                     return;
+
+                InventoryFolderBase trash = scene.InventoryService.GetFolderForType(remoteAgentID, FolderType.Trash);
+                if (trash == null)
+                {
+                    m_log.DebugFormat("[xmlGROUPS]: failed to find trash folder for {0} ", remoteAgentID);
+                    return;
+                }
 
                 if (itemCopy.Folder == trash.ID || remoteAgentID == giver)
                     return;
