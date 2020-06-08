@@ -405,7 +405,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.DebugFormat("[xmlGROUPS]: OnInstantMessage called for {0}, message type {1}",
                          remoteClient.Name, (InstantMessageDialog)im.dialog);
 
-            if (!m_groupNoticesEnabled || remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId == UUID.Zero)
+            if (remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId == UUID.Zero)
                 return;
 
             Scene scene = (Scene)remoteClient.Scene;
@@ -481,6 +481,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // Group notices
             if ((im.dialog == (byte)InstantMessageDialog.GroupNotice))
             {
+                if (!m_groupNoticesEnabled)
+                    return;
+
                 UUID GroupID = new UUID(im.toAgentID);
                 GroupMembershipData grpMemberData = m_groupData.GetAgentGroupMembership(remoteAgentID, remoteAgentID, GroupID);
                 if (grpMemberData == null)
@@ -613,6 +616,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             else if (im.dialog == (byte)InstantMessageDialog.GroupNoticeInventoryAccepted)
             {
+                if (!m_groupNoticesEnabled)
+                    return;
+
                 UUID noticeID = new UUID(im.imSessionID);
 
                 if (m_debugEnabled)
@@ -678,6 +684,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             else if (im.dialog == (byte)InstantMessageDialog.GroupNoticeInventoryDeclined)
             {
+                if (!m_groupNoticesEnabled)
+                    return;
+
                 UUID noticeID = new UUID(im.imSessionID);
 
                 if (m_debugEnabled)
