@@ -45,8 +45,6 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.ServiceAuth;
-using XMLResponseHelper = OpenSim.Framework.SynchronousRestObjectRequester.XMLResponseHelper;
-
 
 namespace OpenSim.Framework
 {
@@ -93,7 +91,6 @@ namespace OpenSim.Framework
         /// This is also used to truncate messages when using DebugLevel 5.
         /// </remarks>
         public const int MaxRequestDiagLength = 200;
-
 
         public static bool ValidateServerCertificateNoChecks(
             object sender,
@@ -201,9 +198,6 @@ namespace OpenSim.Framework
 
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
-            int tickdata = 0;
-            int tickcompressdata = 0;
-            int tickJsondata = 0;
             int compsize = 0;
             string strBuffer = null;
 
@@ -222,8 +216,6 @@ namespace OpenSim.Framework
                 {
                     strBuffer = OSDParser.SerializeJsonString(data);
 
-                    tickJsondata = Util.EnvironmentTickCountSubtract(tickstart);
-
                     if (DebugLevel >= 5)
                         LogOutgoingDetail("SEND", reqnum, strBuffer);
 
@@ -240,13 +232,8 @@ namespace OpenSim.Framework
                             using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress, true))
                             {
                                 comp.Write(buffer, 0, buffer.Length);
-                                // We need to close the gzip stream before we write it anywhere
-                                // because apparently something important related to gzip compression
-                                // gets written on the stream upon Dispose()
-                            }
+                             }
                             byte[] buf = ms.ToArray();
-
-                            tickcompressdata = Util.EnvironmentTickCountSubtract(tickstart);
 
                             request.ContentLength = buf.Length;   //Count bytes to send
                             compsize = buf.Length;
@@ -263,10 +250,6 @@ namespace OpenSim.Framework
                             requestStream.Write(buffer, 0, buffer.Length);         //Send it
                     }
                 }
-
-                // capture how much time was spent writing, this may seem silly
-                // but with the number concurrent requests, this often blocks
-                tickdata = Util.EnvironmentTickCountSubtract(tickstart);
 
                 using (WebResponse response = request.GetResponse())
                 {
@@ -302,14 +285,11 @@ namespace OpenSim.Framework
                 if (tickdiff > LongCallTime)
                 {
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4}ms writing({5} at Json; {6} at comp), {7} bytes ({8} uncomp): {9}",
+                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {7} bytes ({8} uncomp): {9}",
                         reqnum,
                         method,
                         url,
                         tickdiff,
-                        tickdata,
-                        tickJsondata,
-                        tickcompressdata,
                         compsize,
                         strBuffer != null ? strBuffer.Length : 0,
 
@@ -319,8 +299,8 @@ namespace OpenSim.Framework
                 }
                 else if (DebugLevel >= 4)
                 {
-                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms, {2}ms writing",
-                        reqnum, tickdiff, tickdata);
+                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms",
+                        reqnum, tickdiff);
                 }
             }
 
@@ -816,6 +796,7 @@ namespace OpenSim.Framework
             request.Method = verb;
 
             MemoryStream buffer = null;
+            byte[] data = null;
 
             try
             {
@@ -827,17 +808,16 @@ namespace OpenSim.Framework
 
                     XmlWriterSettings settings = new XmlWriterSettings();
                     settings.Encoding = Encoding.UTF8;
-
                     using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                     {
                         XmlSerializer serializer = new XmlSerializer(type);
                         serializer.Serialize(writer, obj);
                         writer.Flush();
+                        data = buffer.ToArray();
                     }
 
-                    int length = (int)buffer.Length;
+                    int length = data.Length;
                     request.ContentLength = length;
-                    byte[] data = buffer.ToArray();
 
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
@@ -949,9 +929,9 @@ namespace OpenSim.Framework
                 {
                     string originalRequest = null;
 
-                    if (buffer != null)
+                    if (data != null)
                     {
-                        originalRequest = Encoding.UTF8.GetString(buffer.ToArray());
+                        originalRequest = Encoding.UTF8.GetString(data);
 
                         if (originalRequest.Length > WebUtil.MaxRequestDiagLength)
                             originalRequest = originalRequest.Remove(WebUtil.MaxRequestDiagLength);
@@ -970,7 +950,7 @@ namespace OpenSim.Framework
             }
             finally
             {
-                if (buffer != null)
+                if (buffer != null && buffer.CanRead)
                     buffer.Dispose();
             }
         }
@@ -1017,62 +997,53 @@ namespace OpenSim.Framework
 
             int tickset = Util.EnvironmentTickCountSubtract(tickstart);
 
-            using (MemoryStream buffer = new MemoryStream())
+            if ((verb == "POST") || (verb == "PUT"))
             {
-                if ((verb == "POST") || (verb == "PUT"))
-                {
-                    request.ContentType = "application/x-www-form-urlencoded";
+                request.ContentType = "application/x-www-form-urlencoded";
 
-                    int length = 0;
-                    using (StreamWriter writer = new StreamWriter(buffer))
-                    {
-                        writer.Write(obj);
-                        writer.Flush();
-                    }
+                byte[] data = Util.UTF8NBGetbytes(obj);
+                int length = data.Length;
+                request.ContentLength = length;
 
-                    length = (int)obj.Length;
-                    request.ContentLength = length;
-                    byte[] data = buffer.ToArray();
-
-                    if (WebUtil.DebugLevel >= 5)
-                        WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
-
-                    try
-                    {
-                        using(Stream requestStream = request.GetRequestStream())
-                            requestStream.Write(data,0,length);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.InfoFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
-                            obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
-                        throw e;
-                    }
-                    finally
-                    {
-                        // capture how much time was spent writing
-                        tickdata = Util.EnvironmentTickCountSubtract(tickstart);
-                    }
-                }
+                if (WebUtil.DebugLevel >= 5)
+                    WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
 
                 try
                 {
-                    using (WebResponse resp = request.GetResponse())
-                    {
-                        if (resp.ContentLength != 0)
-                        {
-                            using (Stream respStream = resp.GetResponseStream())
-                                using (StreamReader reader = new StreamReader(respStream))
-                                    respstring = reader.ReadToEnd();
-                        }
-                    }
+                    using(Stream requestStream = request.GetRequestStream())
+                        requestStream.Write(data,0,length);
                 }
                 catch (Exception e)
                 {
-                    m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    m_log.InfoFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
                         obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
                     throw e;
                 }
+                finally
+                {
+                    // capture how much time was spent writing
+                    tickdata = Util.EnvironmentTickCountSubtract(tickstart);
+                    data = null;
+                }
+            }
+
+            try
+            {
+                using (WebResponse resp = request.GetResponse())
+                {
+                    if (resp.ContentLength != 0)
+                    {
+                        using (Stream respStream = resp.GetResponseStream())
+                            using (StreamReader reader = new StreamReader(respStream))
+                                respstring = reader.ReadToEnd();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                throw e;
             }
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
@@ -1100,9 +1071,96 @@ namespace OpenSim.Framework
             return respstring;
         }
 
+
         public static string MakeRequest(string verb, string requestUrl, string obj, IServiceAuth auth)
         {
             return MakeRequest(verb, requestUrl, obj, -1, auth);
+        }
+
+        public static string MakePostRequest(string requestUrl, string obj,
+                 IServiceAuth auth = null, int timeoutsecs = -1, bool keepalive = true)
+        {
+            int reqnum = WebUtil.RequestNumber++;
+
+            if (WebUtil.DebugLevel >= 3)
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SynchronousRestForms POST to {1}",
+                    reqnum, requestUrl);
+
+            int tickstart = Util.EnvironmentTickCount();
+
+            WebRequest request = WebRequest.Create(requestUrl);
+            request.Method = "POST";
+            if (timeoutsecs > 0)
+                request.Timeout = timeoutsecs * 1000;
+            if (!keepalive && request is HttpWebRequest)
+                ((HttpWebRequest)request).KeepAlive = false;
+
+            if (auth != null)
+                auth.AddAuthorization(request.Headers);
+
+            string respstring = String.Empty;
+
+            request.ContentType = "application/x-www-form-urlencoded";
+
+            byte[] data = Util.UTF8NBGetbytes(obj);
+            int length = data.Length;
+            request.ContentLength = length;
+
+            if (WebUtil.DebugLevel >= 5)
+                WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
+
+            try
+            {
+                using (Stream requestStream = request.GetRequestStream())
+                    requestStream.Write(data, 0, length);
+                data = null;
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[FORMS]: Error sending request to {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                throw e;
+            }
+
+            try
+            {
+                using (WebResponse resp = request.GetResponse())
+                {
+                    if (resp.ContentLength != 0)
+                    {
+                        using (Stream respStream = resp.GetResponseStream())
+                        using (StreamReader reader = new StreamReader(respStream))
+                            respstring = reader.ReadToEnd();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.InfoFormat("[FORMS]: Error receiving response from {0}: {1}. Request: {2}", requestUrl, e.Message,
+                    obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+                throw e;
+            }
+
+            int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+            if (tickdiff > WebUtil.LongCallTime)
+            {
+                m_log.InfoFormat(
+                    "[FORMS]: Slow request {0} POST {1} took {2}ms {3}",
+                    reqnum,
+                    requestUrl,
+                    tickdiff,
+                    obj.Length > WebUtil.MaxRequestDiagLength ? obj.Remove(WebUtil.MaxRequestDiagLength) : obj);
+            }
+            else if (WebUtil.DebugLevel >= 4)
+            {
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms",
+                    reqnum, tickdiff);
+            }
+
+            if (WebUtil.DebugLevel >= 5)
+                WebUtil.LogResponseDetail(reqnum, respstring);
+
+            return respstring;
         }
     }
 
@@ -1218,21 +1276,19 @@ namespace OpenSim.Framework
                 {
                     request.ContentType = "text/xml";
 
-                    buffer = new MemoryStream();
-
-                    XmlWriterSettings settings = new XmlWriterSettings();
-                    settings.Encoding = Encoding.UTF8;
-
-                    using (XmlWriter writer = XmlWriter.Create(buffer, settings))
+                    byte[] data;
+                    XmlWriterSettings settings = new XmlWriterSettings(){CloseOutput = true, Encoding = Util.UTF8};
+                    MemoryStream ms = new MemoryStream();
+                    using (XmlWriter writer = XmlWriter.Create(ms, settings))
                     {
                         XmlSerializer serializer = new XmlSerializer(type);
                         serializer.Serialize(writer, obj);
                         writer.Flush();
+                        data = ms.ToArray();
                     }
 
-                    int length = (int)buffer.Length;
+                    int length = data.Length;
                     request.ContentLength = length;
-                    byte[] data = buffer.ToArray();
 
                     if (WebUtil.DebugLevel >= 5)
                         WebUtil.LogOutgoingDetail("SEND", reqnum, System.Text.Encoding.UTF8.GetString(data));
@@ -1351,57 +1407,56 @@ namespace OpenSim.Framework
 
             return deserial;
         }
+    }
 
-        public static class XMLResponseHelper
+    public static class XMLResponseHelper
+    {
+        public static TResponse LogAndDeserialize<TRequest, TResponse>(int reqnum, Stream respStream, long contentLength)
         {
-            public static TResponse LogAndDeserialize<TRequest, TResponse>(int reqnum, Stream respStream, long contentLength)
+            XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+            if (WebUtil.DebugLevel >= 5)
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                if (WebUtil.DebugLevel >= 5)
+                const int blockLength = 4096;
+                byte[] dataBuffer = new byte[blockLength];
+                int curcount;
+                using (MemoryStream ms = new MemoryStream(4 * blockLength))
                 {
-                    const int blockLength = 4096;
-                    byte[] dataBuffer = new byte[blockLength];
-                    int curcount;
-                    using (MemoryStream ms = new MemoryStream(4 * blockLength))
+                    if(contentLength == -1)
                     {
-                        if(contentLength == -1)
+                        while (true)
                         {
-                            while (true)
-                            {
-                                curcount = respStream.Read(dataBuffer, 0, blockLength);
-                                if (curcount <= 0)
-                                    break;
-                                ms.Write(dataBuffer, 0, curcount);
-                            }
+                            curcount = respStream.Read(dataBuffer, 0, blockLength);
+                            if (curcount <= 0)
+                                break;
+                            ms.Write(dataBuffer, 0, curcount);
                         }
-                        else
-                        {
-                            int remaining = (int)contentLength;
-                            while (remaining > 0)
-                            {
-                                curcount = respStream.Read(dataBuffer, 0, remaining);
-                                if (curcount <= 0)
-                                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
-                                ms.Write(dataBuffer, 0, curcount);
-                                remaining -= curcount;
-                            }
-                        }
-
-                        dataBuffer = ms.ToArray();
-                        WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(dataBuffer));
-
-                        ms.Position = 0;
-                        return (TResponse)deserializer.Deserialize(ms);
                     }
+                    else
+                    {
+                        int remaining = (int)contentLength;
+                        while (remaining > 0)
+                        {
+                            curcount = respStream.Read(dataBuffer, 0, remaining);
+                            if (curcount <= 0)
+                                throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                            ms.Write(dataBuffer, 0, curcount);
+                            remaining -= curcount;
+                        }
+                    }
+
+                    dataBuffer = ms.ToArray();
+                    WebUtil.LogResponseDetail(reqnum, System.Text.Encoding.UTF8.GetString(dataBuffer));
+
+                    ms.Position = 0;
+                    return (TResponse)deserializer.Deserialize(ms);
                 }
-                else
-                {
-                    return (TResponse)deserializer.Deserialize(respStream);
-                }
+            }
+            else
+            {
+                return (TResponse)deserializer.Deserialize(respStream);
             }
         }
     }
-
 
     public static class XMLRPCRequester
     {
@@ -1436,11 +1491,12 @@ namespace OpenSim.Framework
 
                 try
                 {
-                    responseStr = Resp.ToString();
-                    responseStr = XElement.Parse(responseStr).ToString(SaveOptions.DisableFormatting);
-
                     if (WebUtil.DebugLevel >= 5)
+                    {
+                        responseStr = Resp.ToString();
+                        responseStr = XElement.Parse(responseStr).ToString(SaveOptions.DisableFormatting);
                         WebUtil.LogResponseDetail(reqnum, responseStr);
+                    }
                 }
                 catch (Exception e)
                 {
