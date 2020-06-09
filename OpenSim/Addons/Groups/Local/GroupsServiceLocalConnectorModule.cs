@@ -173,7 +173,7 @@ namespace OpenSim.Groups
             return null;
         }
 
-        public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
+        public List<DirGroupsReplyData> FindGroups(UUID RequestingAgentID, string search)
         {
             return m_GroupsService.FindGroups(RequestingAgentID, search);
         }

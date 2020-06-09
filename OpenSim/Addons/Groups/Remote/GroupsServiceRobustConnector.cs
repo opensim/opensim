@@ -769,7 +769,7 @@ namespace OpenSim.Groups
             if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("Query"))
                 NullResult(result, "Bad network data");
 
-            List<DirGroupsReplyData> hits = m_GroupsService.FindGroups(request["RequestingAgentID"].ToString(), request["Query"].ToString());
+            List<DirGroupsReplyData> hits = m_GroupsService.FindGroups(new UUID(request["RequestingAgentID"].ToString()), request["Query"].ToString());
 
             if (hits == null || (hits != null && hits.Count == 0))
                 NullResult(result, "No hits");

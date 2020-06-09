@@ -110,9 +110,8 @@ namespace OpenSim.OfflineIM
                 {
                     m_serializer.Serialize(writer, im);
                     writer.Flush();
+                    imXml = Util.UTF8NoBomEncoding.GetString(mstream.ToArray());
                 }
-
-                imXml = Util.UTF8NoBomEncoding.GetString(mstream.ToArray());
             }
 
             OfflineIMData data = new OfflineIMData();
