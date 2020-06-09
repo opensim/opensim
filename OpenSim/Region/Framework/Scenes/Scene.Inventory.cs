@@ -339,7 +339,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return UUID.Zero;
                     }
 
-                    avatar.ControllingClient.SendAlertMessage("gesture updated");
+                    avatar.ControllingClient.SendAlertMessage("Gesture updated");
                     break;
                 }
                 case InventoryType.Settings:
@@ -350,7 +350,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return UUID.Zero;
                     }
 
-                    avatar.ControllingClient.SendAlertMessage("getting updated");
+                    avatar.ControllingClient.SendAlertMessage("Setting updated");
                     break;
                 }
             }
