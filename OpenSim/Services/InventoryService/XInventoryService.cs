@@ -456,7 +456,8 @@ namespace OpenSim.Services.InventoryService
             //
             foreach (UUID id in folderIDs)
             {
-                if (onlyIfTrash && !ParentIsTrash(id))
+                //if (onlyIfTrash && !ParentIsTrash(id))
+                if (onlyIfTrash && !ParentIsTrashOrLost(id))
                     continue;
                 //m_log.InfoFormat("[XINVENTORY SERVICE]: Delete folder {0}", id);
                 InventoryFolderBase f = new InventoryFolderBase();
@@ -478,7 +479,8 @@ namespace OpenSim.Services.InventoryService
             if (!m_AllowDelete)
                 return false;
 
-            if (onlyIfTrash && !ParentIsTrash(folder.ID))
+            //if (onlyIfTrash && !ParentIsTrash(folder.ID))
+            if (onlyIfTrash && !ParentIsTrashOrLost(folder.ID))
                 return false;
 
             XInventoryFolder[] subFolders = m_Database.GetFolders(
@@ -781,5 +783,33 @@ namespace OpenSim.Services.InventoryService
             }
             return false;
         }
+
+        private bool ParentIsTrashOrLost(UUID folderID)
+        {
+            XInventoryFolder[] folder = m_Database.GetFolders(new string[] { "folderID" }, new string[] { folderID.ToString() });
+            if (folder.Length < 1)
+                return false;
+
+            if (folder[0].type == (int)FolderType.Trash || folder[0].type == (int)FolderType.LostAndFound)
+                return true;
+
+            UUID parentFolder = folder[0].parentFolderID;
+
+            while (parentFolder != UUID.Zero)
+            {
+                XInventoryFolder[] parent = m_Database.GetFolders(new string[] { "folderID" }, new string[] { parentFolder.ToString() });
+                if (parent.Length < 1)
+                    return false;
+
+                if (parent[0].type == (int)FolderType.Trash || folder[0].type == (int)FolderType.LostAndFound)
+                    return true;
+                if (parent[0].type == (int)FolderType.Root)
+                    return false;
+
+                parentFolder = parent[0].parentFolderID;
+            }
+            return false;
+        }
+
     }
 }
