@@ -598,6 +598,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, request);
                     psEvArgs.Request?.Invoke(psreq.RequestID, osRequest);
                     m_pollServiceManager.Enqueue(psreq);
+                    psreq = null;
                 }
                 else
                 {

@@ -741,10 +741,10 @@ namespace OpenSim.Framework.Servers
         /// <returns></returns>
         protected string GetUptimeReport()
         {
-            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
-            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
-            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
-
+            StringBuilder sb = new StringBuilder(512);
+            sb.AppendFormat("Time now is {0}\n", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            sb.AppendFormat("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime.ToString("yyyy-MM-dd HH:mm:ss"));
+            sb.AppendFormat("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime);
             return sb.ToString();
         }
 
