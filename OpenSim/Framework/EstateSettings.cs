@@ -237,7 +237,12 @@ namespace OpenSim.Framework
             set { m_DenyMinors = value; }
         }
 
-        public bool AllowEnviromentOverride {get; set;} = false;
+        private bool m_AllowEnviromentOverride = false;
+        public bool AllowEnviromentOverride
+        {
+            get { return m_AllowEnviromentOverride; }
+            set { m_AllowEnviromentOverride = value; }
+        }
 
         // All those lists...
         //

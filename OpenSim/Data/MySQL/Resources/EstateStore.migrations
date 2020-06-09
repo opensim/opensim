@@ -76,3 +76,8 @@ ALTER TABLE `estateban`
     ADD COLUMN `banTime` int(11) NOT NULL DEFAULT 0;
 COMMIT;
 
+:VERSION 36
+BEGIN;
+ALTER TABLE `estate_settings`
+    ADD COLUMN `AllowEnviromentOverride` tinyint(4) NOT NULL DEFAULT '0';
+COMMIT;

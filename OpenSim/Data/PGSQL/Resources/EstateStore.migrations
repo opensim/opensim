@@ -133,3 +133,9 @@ ALTER TABLE "public"."estateban"
     ADD COLUMN "banningUUID" uuid NOT NULL,
     ADD COLUMN "banTime" int4 NOT NULL DEFAULT 0;
 COMMIT;
+
+:VERSION 15
+BEGIN TRANSACTION;
+ALTER TABLE "public"."estate_settings"
+    ADD COLUMN "AllowEnviromentOverride" bool NOT NULL;
+COMMIT;
