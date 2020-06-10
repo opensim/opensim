@@ -453,10 +453,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                                 }
                                 try
                                 {
-                                    OSD oenv = OSDParser.DeserializeLLSDXml(asset.Data);
+                                    OSD oenv = OSDParser.Deserialize(asset.Data);
                                     VEnv.CycleFromOSD(oenv);
                                 }
-                                catch (Exception e)
+                                catch
                                 {
                                     httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                                     return;
