@@ -40,8 +40,6 @@ namespace OpenSim.Framework.Tests
     public class MundaneFrameworkTests : OpenSimTestCase
     {
         private bool m_RegionSettingsOnSaveEventFired;
-        private bool m_RegionLightShareDataOnSaveEventFired;
-
 
         [Test]
         public void ChildAgentDataUpdate01()
@@ -187,24 +185,6 @@ namespace OpenSim.Framework.Tests
             Assert.That(assetMetadata.ID.ToLower() == rndID.ToString().ToLower(), "assetMetadata.ID Setter/Getter not Consistent");
             DateTime fixedTime = DateTime.Now;
             assetMetadata.CreationDate = fixedTime;
-        }
-
-        [Test]
-        public void RegionLightShareDataCloneSaveTest01()
-        {
-            RegionLightShareData rlsd = new RegionLightShareData();
-            rlsd.OnSave += RegionLightShareDataSaveFired;
-            rlsd.Save();
-            rlsd.OnSave -= RegionLightShareDataSaveFired;
-            Assert.IsTrue(m_RegionLightShareDataOnSaveEventFired, "OnSave Event Never Fired");
-
-            object o = rlsd.Clone();
-            RegionLightShareData dupe = (RegionLightShareData) o;
-            Assert.IsTrue(rlsd.sceneGamma == dupe.sceneGamma, "Memberwise Clone of RegionLightShareData failed");
-        }
-        public void RegionLightShareDataSaveFired(RegionLightShareData settings)
-        {
-            m_RegionLightShareDataOnSaveEventFired = true;
         }
 
         [Test]
