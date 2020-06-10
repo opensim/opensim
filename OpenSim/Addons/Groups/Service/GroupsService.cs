@@ -216,7 +216,7 @@ namespace OpenSim.Groups
             return _GroupDataToRecord(data);
         }
 
-        public List<DirGroupsReplyData> FindGroups(UUID RequestingAgentID, string search)
+        public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
         {
             List<DirGroupsReplyData> groups = new List<DirGroupsReplyData>();
 
