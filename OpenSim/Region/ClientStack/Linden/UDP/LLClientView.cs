@@ -3227,29 +3227,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
-        public void SendSunPos(Vector3 Position, Vector3 Velocity, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition)
+        public void SendSunPos(Vector3 Position, Vector3 Velocity, float sunphase)
         {
             // Viewers based on the Linden viwer code, do wacky things for oribital positions from Midnight to Sunrise
             // So adjust for that
             // Contributed by: Godfrey
 
-            if (OrbitalPosition > m_sunPainDaHalfOrbitalCutoff) // things get weird from midnight to sunrise
-            {
-                OrbitalPosition = (OrbitalPosition - m_sunPainDaHalfOrbitalCutoff) * 0.6666666667f + m_sunPainDaHalfOrbitalCutoff;
-            }
-
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             viewertime.TimeInfo.SunDirection = Position;
             viewertime.TimeInfo.SunAngVelocity = Velocity;
 
-            // Sun module used to add 6 hours to adjust for linden sun hour, adding here
-            // to prevent existing code from breaking if it assumed that 6 hours were included.
-            // 21600 == 6 hours * 60 minutes * 60 Seconds
-            viewertime.TimeInfo.UsecSinceStart = CurrentTime + 21600;
+            viewertime.TimeInfo.UsecSinceStart = Util.UnixTimeSinceEpoch_uS();
 
-            viewertime.TimeInfo.SecPerDay = SecondsPerSunCycle;
-            viewertime.TimeInfo.SecPerYear = SecondsPerYear;
-            viewertime.TimeInfo.SunPhase = OrbitalPosition;
+            viewertime.TimeInfo.SecPerDay = 14400; // legacy
+            viewertime.TimeInfo.SecPerYear = 158400; // legacy
+            viewertime.TimeInfo.SunPhase = sunphase;
             viewertime.Header.Reliable = false;
             viewertime.Header.Zerocoded = true;
             OutPacket(viewertime, ThrottleOutPacketType.Task);

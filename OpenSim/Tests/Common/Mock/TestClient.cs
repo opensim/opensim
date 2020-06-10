@@ -989,7 +989,8 @@ namespace OpenSim.Tests.Common
 
         }
 
-        public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
+        //public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
+        public void SendSunPos(Vector3 sunPos, Vector3 sunVel, float sunAngle)
         {
         }
 

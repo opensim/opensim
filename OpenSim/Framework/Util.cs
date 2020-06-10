@@ -1058,7 +1058,14 @@ namespace OpenSim.Framework
 
         public static int UnixTimeSinceEpoch()
         {
-            return ToUnixTime(DateTime.UtcNow);
+            TimeSpan t = DateTime.UtcNow - UnixEpoch;
+            return (int)t.TotalSeconds;
+        }
+
+        public static ulong UnixTimeSinceEpoch_uS()
+        {
+            TimeSpan t = DateTime.UtcNow - UnixEpoch;
+            return (uint)(t.TotalMilliseconds * 1000);
         }
 
         public static int ToUnixTime(DateTime stamp)

@@ -66,6 +66,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private int m_regionEnvVersion = -1;
 
+        private int m_frame;
+        private float m_currentTime;
+        private float m_dayLen;
+        private float m_dayOffset;
+        private float m_sunAngle;
+        private Vector3 m_sunVel = new Vector3();
+        private Vector3 m_sunDir = new Vector3();
+
         #region INonSharedRegionModule
         public void Initialise(IConfigSource source)
         {
@@ -170,20 +178,25 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     scene.RegionEnviroment = VEnv;
                     m_regionEnvVersion = VEnv.version;
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     m_log.ErrorFormat("[Enviroment {0}] failed to load initial enviroment {1}", m_scene.Name, e.Message);
                     scene.RegionEnviroment = null;
                     m_regionEnvVersion = -1;
                 }
+                m_frame = -1;
+                UpdateEnvTime();
             }
             else
             {
                 scene.RegionEnviroment = null;
                 m_regionEnvVersion = -1;
+                m_frame = -1;
+                UpdateEnvTime();
             }
 
             scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            scene.EventManager.OnFrame += UpdateEnvTime;
         }
 
         public void RemoveRegion(Scene scene)
@@ -571,6 +584,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDXmlString(env));
                     m_scene.RegionEnviroment = VEnv;
                 }
+                m_frame = -1;
+                UpdateEnvTime();
             }
             catch (Exception e)
             {
@@ -728,6 +743,66 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 client.SendGenericMessage("WindlightReset", UUID.Random(), new List<byte[]>());
             else
                 client.SendGenericMessage("Windlight", UUID.Random(), param);
+        }
+
+        public int DayLength
+        {
+            get { return (int)m_dayLen; }
+        }
+
+        public int DayOffset
+        {
+            get { return (int)m_dayOffset; }
+        }
+
+        private void UpdateEnvTime()
+        {
+            ViewerEnviroment env = m_scene.RegionEnviroment;
+            if(env == null)
+                env = m_DefaultEnv;
+            if(env == null)
+            {
+                m_dayOffset = 57600f;
+                m_dayOffset = 14400f;
+            }
+            else
+            {
+                m_dayOffset = env.DayOffset;
+                m_dayLen = env.DayLength;
+            }
+
+            m_currentTime = Util.UnixTimeSinceEpoch() + m_dayOffset;
+            float dayFrac = (m_currentTime % m_dayLen) / m_dayLen;
+            dayFrac = Utils.Clamp(dayFrac, 0f, 1f);
+
+            m_sunAngle = Utils.TWO_PI * dayFrac;
+
+            bool r = env.getPositions(0, dayFrac, out m_sunDir, out Vector3 moondir, out m_sunVel,
+                out Quaternion sunrot, out Quaternion moonrot);
+
+            ++m_frame;
+            if(m_frame % 50 == 0)
+                UpdateClientsSunTime();
+        }
+
+        private void UpdateClientsSunTime()
+        {
+            m_scene.ForEachClient(delegate (IClientAPI client)
+            {
+                if (!client.IsActive)
+                    return;
+
+                /*
+                uint vflags = client.GetViewerCaps();
+
+                if ((vflags & 0x8000) != 0)
+                    m_estateModule.HandleRegionInfoRequest(client);
+
+                else if ((vflags & 0x4000) != 0)
+                    m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
+                */
+                client.SendSunPos(m_sunDir, m_sunVel, m_sunAngle);
+            });
         }
     }
 }

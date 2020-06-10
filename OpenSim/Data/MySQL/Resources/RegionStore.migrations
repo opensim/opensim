@@ -539,3 +539,8 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `pseudocrc` int DEFAULT '0';
 ALTER TABLE `regionsettings` ADD COLUMN `cacheID` char(36) DEFAULT NULL;
 COMMIT;
+
+:VERSION 62         #----- increase size of enviroment settings
+BEGIN;
+ALTER TABLE `regionenvironment` MODIFY `llsd_settings` MEDIUMTEXT;
+COMMIT;

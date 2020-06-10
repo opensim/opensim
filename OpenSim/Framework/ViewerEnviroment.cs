@@ -1229,5 +1229,61 @@ namespace OpenSim.Framework
             top["success"] = true;
             return top;
         }
+
+        public bool getPositions(float altitude, float dayfrac, out Vector3 sundir, out Vector3 moondir, out Vector3 sunvel,
+                out Quaternion sunrot, out Quaternion moonrot)
+        {
+            sundir = Vector3.Zero;
+            moondir = Vector3.Zero;
+            sunvel = Vector3.Zero;
+            sunrot = Quaternion.Identity;
+            moonrot = Quaternion.Identity;
+
+            List<DayCycle.TrackEntry> track = null;
+            if(altitude < Altitudes[0])
+                track = Cycle.skyTrack0;
+            else
+            {
+                int altindx = 2;
+                for(;altindx > 0; --altindx)
+                {
+                    if(Altitudes[altindx] < altitude)
+                        break;
+                }
+
+                while(altindx >= 0)
+                {
+                    switch(altindx)
+                    {
+                        case 2:
+                            track = Cycle.skyTrack3;
+                            break;
+                        case 1:
+                            track = Cycle.skyTrack2;
+                            break;
+                        case 0:
+                            track = Cycle.skyTrack1;
+                            break;
+                    }
+                    if(track != null)
+                        break;
+                    --altindx;
+                }
+            }
+
+            if(track == null || track.Count == 0)
+                return false;
+
+            if(track.Count == 1)
+            {
+                if(!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
+                    return false;
+                moonrot = sky.moon_rotation;
+                moondir = Xrot(moonrot);
+                sunrot = sky.sun_rotation;
+                sundir = Xrot(sunrot);
+            }
+            return true;
+        }
     }
 }
