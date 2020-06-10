@@ -1,0 +1,9 @@
+<Nini>
+  <Section Name="Default Daycycle">
+    <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a91" />
+    <Key Name="name" Value="Default Daycycle" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="DefaultDaycycle.xml" />
+  </Section>
+
+</Nini>

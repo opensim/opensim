@@ -2123,17 +2123,17 @@ namespace OpenSim.Region.Framework.Scenes
                 SimulationDataService.StoreBakedTerrain(Bakedmap.GetTerrainData(), RegionInfo.RegionID);
         }
 
-        public void StoreWindlightProfile(RegionLightShareData wl)
+        private ViewerEnviroment m_regionEnviroment;
+        public ViewerEnviroment RegionEnviroment
         {
-            RegionInfo.WindlightSettings = wl;
-            SimulationDataService.StoreRegionWindlightSettings(wl);
-            m_eventManager.TriggerOnSaveNewWindlightProfile();
-        }
-
-        public void LoadWindlightProfile()
-        {
-            RegionInfo.WindlightSettings = SimulationDataService.LoadRegionWindlightSettings(RegionInfo.RegionID);
-            m_eventManager.TriggerOnSaveNewWindlightProfile();
+            get
+            {
+                return m_regionEnviroment;
+            }
+            set
+            {
+                m_regionEnviroment = value;
+            }
         }
 
         /// <summary>

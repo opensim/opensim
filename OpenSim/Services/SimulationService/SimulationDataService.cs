@@ -154,20 +154,6 @@ namespace OpenSim.Services.SimulationService
             return m_database.LoadRegionSettings(regionUUID);
         }
 
-        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
-        {
-            return m_database.LoadRegionWindlightSettings(regionUUID);
-        }
-
-        public void StoreRegionWindlightSettings(RegionLightShareData wl)
-        {
-            m_database.StoreRegionWindlightSettings(wl);
-        }
-        public void RemoveRegionWindlightSettings(UUID regionID)
-        {
-            m_database.RemoveRegionWindlightSettings(regionID);
-        }
-
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
             return m_database.LoadRegionEnvironmentSettings(regionUUID);

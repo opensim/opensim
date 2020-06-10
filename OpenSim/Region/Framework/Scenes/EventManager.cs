@@ -720,9 +720,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
-        public delegate void OnSaveNewWindlightProfileDelegate();
-        public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
-
         /// <summary>
         /// Triggered after the grunt work for adding a root agent to a
         /// scene has been performed (resuming attachment scripts, physics,
@@ -738,9 +735,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// and <see cref="ScenePresence.CompleteMovement"/>
         /// </remarks>
         public event Action<ScenePresence> OnMakeRootAgent;
-
-        public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
-        public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
         /// <summary>
         /// Triggered when an object or attachment enters a scene
@@ -2157,24 +2151,6 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }
-        }
-
-        public void TriggerOnSendNewWindlightProfileTargeted(RegionLightShareData wl, UUID user)
-        {
-            OnSendNewWindlightProfileTargetedDelegate handlerSendNewWindlightProfileTargeted = OnSendNewWindlightProfileTargeted;
-            if (handlerSendNewWindlightProfileTargeted != null)
-            {
-                handlerSendNewWindlightProfileTargeted(wl, user);
-            }
-        }
-
-        public void TriggerOnSaveNewWindlightProfile()
-        {
-            OnSaveNewWindlightProfileDelegate handlerSaveNewWindlightProfile = OnSaveNewWindlightProfile;
-            if (handlerSaveNewWindlightProfile != null)
-            {
-                handlerSaveNewWindlightProfile();
             }
         }
 

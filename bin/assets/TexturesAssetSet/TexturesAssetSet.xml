@@ -855,6 +855,13 @@
      <Key Name="assetType" Value="0" />
      <Key Name="fileName" Value="FALLBACK_BAKED_AUX3_32X32.j2k"/>
   </Section>
+  <Section Name="DefaultCloud">
+     <Key Name="assetID" Value="1dc1368f-e8fe-f02d-a08d-9d9f11c1af6b"/>
+     <Key Name="name" Value="DefaultCloud"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="DefaultClouds.j2c"/>
+  </Section>
+
 
 
 </Nini>
