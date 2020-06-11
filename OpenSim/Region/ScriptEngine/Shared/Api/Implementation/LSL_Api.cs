@@ -128,6 +128,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
 
         protected IMaterialsModule m_materialsModule = null;
+        protected IEnvironmentModule m_envModule = null;
 
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
@@ -312,6 +313,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
             m_materialsModule = m_ScriptEngine.World.RequestModuleInterface<IMaterialsModule>();
+
+            m_envModule = m_ScriptEngine.World.RequestModuleInterface< IEnvironmentModule>();
 
             AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
         }
@@ -5692,14 +5695,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Update the object flags
             m_host.ParentGroup.RootPart.aggregateScriptEvents();
-        }
-
-        public LSL_Vector llGetSunDirection()
-        {
-            m_host.AddScriptLPS(1);
-
-            Vector3 sun = World.RegionInfo.RegionSettings.SunVector;
-            return new LSL_Vector(sun);
         }
 
         public LSL_Vector llGetTextureOffset(int face)
@@ -17432,6 +17427,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetAnimationOverride(LSL_String animState)
         {
+            m_host.AddScriptLPS(1);
+
             ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
             if (presence == null)
                 return String.Empty;
@@ -17483,9 +17480,139 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
+        public LSL_Integer llGetDayLength()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return 14400;
+
+            return m_envModule.GetRegionDayLength();
+        }
+
+        public LSL_Integer llGetRegionDayLength()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return 14400;
+
+            return m_envModule.GetRegionDayLength();
+        }
+
+        public LSL_Integer llGetDayOffset()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return 57600;
+
+            return m_envModule.GetRegionDayOffset();
+        }
+
+        public LSL_Integer llGetRegionDayOffset()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return 57600;
+
+            return m_envModule.GetRegionDayOffset();
+        }
+
+        public LSL_Vector llGetSunDirection()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Vector3.Zero;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionSunDir(z);
+        }
+
+        public LSL_Vector llGetRegionSunDirection()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Vector3.Zero;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionSunDir(z);
+        }
+
+        public LSL_Vector llGetMoonDirection()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Vector3.Zero;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionMoonDir(z);
+        }
+
+        public LSL_Vector llGetRegionMoonDirection()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Vector3.Zero;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionMoonDir(z);
+        }
+
+        public LSL_Rotation llGetSunRotation()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Quaternion.Identity;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionSunRot(z);
+        }
+
+        public LSL_Rotation llGetRegionSunRotation()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Quaternion.Identity;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionSunRot(z);
+        }
+
+        public LSL_Rotation llGetMoonRotation()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Quaternion.Identity;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionMoonRot(z);
+        }
+
+        public LSL_Rotation llGetRegionMoonRotation()
+        {
+            m_host.AddScriptLPS(1);
+
+            if (m_envModule == null)
+                return Quaternion.Identity;
+
+            float z = m_host.GetWorldPosition().Z;
+            return m_envModule.GetRegionMoonRot(z);
+        }
+
         public LSL_List llJson2List(LSL_String json)
         {
-            if(String.IsNullOrEmpty(json))
+            m_host.AddScriptLPS(1);
+
+            if (String.IsNullOrEmpty(json))
                 return new LSL_List();
             if(json == "[]")
                 return new LSL_List();
@@ -18372,5 +18499,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
+
     }
 }
