@@ -1240,20 +1240,20 @@ namespace OpenSim.Framework
             moonrot = Quaternion.Identity;
 
             List<DayCycle.TrackEntry> track = null;
-            if(altitude < Altitudes[0])
+            if (altitude < Altitudes[0])
                 track = Cycle.skyTrack0;
             else
             {
                 int altindx = 2;
-                for(;altindx > 0; --altindx)
+                for (; altindx > 0; --altindx)
                 {
-                    if(Altitudes[altindx] < altitude)
+                    if (Altitudes[altindx] < altitude)
                         break;
                 }
 
-                while(altindx >= 0)
+                while (altindx >= 0)
                 {
-                    switch(altindx)
+                    switch (altindx)
                     {
                         case 2:
                             track = Cycle.skyTrack3;
@@ -1265,24 +1265,194 @@ namespace OpenSim.Framework
                             track = Cycle.skyTrack1;
                             break;
                     }
-                    if(track != null)
+                    if (track != null)
                         break;
                     --altindx;
                 }
             }
 
-            if(track == null || track.Count == 0)
+            if (track == null || track.Count == 0)
                 return false;
 
-            if(track.Count == 1)
+            if (track.Count == 1 || track[0].time < 0)
             {
-                if(!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
+                if (!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
                     return false;
                 moonrot = sky.moon_rotation;
                 moondir = Xrot(moonrot);
                 sunrot = sky.sun_rotation;
                 sundir = Xrot(sunrot);
+                return true;
             }
+            int i = 0;
+            while (i < track.Count)
+            {
+                if (track[i].time > dayfrac)
+                    break;
+                ++i;
+            }
+
+            float firstFrac;
+            float secondFrac;
+            string first;
+            string second;
+            int ntracks = track.Count;
+            if (i == 0 || i == ntracks)
+            {
+                --ntracks;
+                firstFrac = track[ntracks].time;
+                secondFrac = track[0].time + 1f;
+                first = track[ntracks].frameName;
+                second = track[0].frameName;
+            }
+            else
+            {
+                secondFrac = track[i].time;
+                second = track[i].frameName;
+                --i;
+                firstFrac = track[i].time;
+                first = track[i].frameName;
+            }
+
+            if (!Cycle.skyframes.TryGetValue(first, out SkyData sky1) || sky1 == null)
+                firstFrac = -1;
+            if (!Cycle.skyframes.TryGetValue(second, out SkyData sky2) || sky2 == null)
+                secondFrac = -1;
+
+            if (firstFrac < 0)
+            {
+                if (secondFrac < 0)
+                    return false;
+                moonrot = sky2.moon_rotation;
+                moondir = Xrot(moonrot);
+                sunrot = sky2.sun_rotation;
+                sundir = Xrot(sunrot);
+                return true;
+            }
+            if (secondFrac < 0 || secondFrac == firstFrac)
+            {
+                moonrot = sky1.moon_rotation;
+                moondir = Xrot(moonrot);
+                sunrot = sky1.sun_rotation;
+                sundir = Xrot(sunrot);
+                return true;
+            }
+
+            dayfrac -= firstFrac;
+            secondFrac -= firstFrac;
+            dayfrac /= secondFrac;
+
+            moonrot = Quaternion.Slerp(sky1.moon_rotation, sky2.moon_rotation, dayfrac);
+            moondir = Xrot(moonrot);
+
+            sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
+            sundir = Xrot(sunrot);
+            return true;
+        }
+        public bool getWLPositions(float altitude, float dayfrac, out Vector3 sundir)
+        {
+            sundir = Vector3.Zero;
+
+            List<DayCycle.TrackEntry> track = null;
+            if (altitude < Altitudes[0])
+                track = Cycle.skyTrack0;
+            else
+            {
+                int altindx = 2;
+                for (; altindx > 0; --altindx)
+                {
+                    if (Altitudes[altindx] < altitude)
+                        break;
+                }
+
+                while (altindx >= 0)
+                {
+                    switch (altindx)
+                    {
+                        case 2:
+                            track = Cycle.skyTrack3;
+                            break;
+                        case 1:
+                            track = Cycle.skyTrack2;
+                            break;
+                        case 0:
+                            track = Cycle.skyTrack1;
+                            break;
+                    }
+                    if (track != null)
+                        break;
+                    --altindx;
+                }
+            }
+
+            if (track == null || track.Count == 0)
+                return false;
+
+            Quaternion sunrot;
+            if (track.Count == 1 || track[0].time < 0)
+            {
+                if (!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
+                    return false;
+                sunrot = sky.sun_rotation;
+                sundir = Xrot(sunrot);
+                return true;
+            }
+            int i = 0;
+            while (i < track.Count)
+            {
+                if (track[i].time > dayfrac)
+                    break;
+                ++i;
+            }
+
+            float firstFrac;
+            float secondFrac;
+            string first;
+            string second;
+            int ntracks = track.Count;
+            if (i == 0 || i == ntracks)
+            {
+                --ntracks;
+                firstFrac = track[ntracks].time;
+                secondFrac = track[0].time + 1f;
+                first = track[ntracks].frameName;
+                second = track[0].frameName;
+            }
+            else
+            {
+                secondFrac = track[i].time;
+                second = track[i].frameName;
+                --i;
+                firstFrac = track[i].time;
+                first = track[i].frameName;
+            }
+
+            if (!Cycle.skyframes.TryGetValue(first, out SkyData sky1) || sky1 == null)
+                firstFrac = -1;
+            if (!Cycle.skyframes.TryGetValue(second, out SkyData sky2) || sky2 == null)
+                secondFrac = -1;
+
+            if (firstFrac < 0)
+            {
+                if (secondFrac < 0)
+                    return false;
+                sunrot = sky2.sun_rotation;
+                sundir = Xrot(sunrot);
+                return true;
+            }
+            if (secondFrac < 0 || secondFrac == firstFrac)
+            {
+                sunrot = sky1.sun_rotation;
+                sundir = Xrot(sunrot);
+                return true;
+            }
+
+            dayfrac -= firstFrac;
+            secondFrac -= firstFrac;
+            dayfrac /= secondFrac;
+
+            sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
+            sundir = Xrot(sunrot);
             return true;
         }
     }

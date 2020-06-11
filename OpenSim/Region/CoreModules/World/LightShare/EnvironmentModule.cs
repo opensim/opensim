@@ -144,7 +144,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 return;
             }
 
-            if(m_DefaultEnv == null)
+            if (m_DefaultEnv == null)
             {
                 AssetBase defEnv = m_assetService.Get(m_defaultDayAssetID);
                 if(defEnv != null)
@@ -163,6 +163,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     }
                 }
             }
+            if (m_DefaultEnv == null)
+                m_DefaultEnv = new ViewerEnviroment();
 
             string senv = scene.SimulationDataService.LoadRegionEnvironmentSettings(scene.RegionInfo.RegionID);
             if(!string.IsNullOrEmpty(senv))
@@ -385,7 +387,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             ViewerEnviroment VEnv = m_scene.RegionEnviroment;
             if (VEnv == null)
-                VEnv = m_DefaultEnv == null ? new ViewerEnviroment() : m_DefaultEnv;
+                VEnv = m_DefaultEnv;
 
             OSDMap map = new OpenMetaverse.StructuredData.OSDMap();
             map["environment"] = VEnv.ToOSD();
@@ -453,7 +455,16 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                         {
                             ViewerEnviroment VEnv = m_scene.RegionEnviroment;
                             if (VEnv == null)
+                            {
                                 VEnv = new ViewerEnviroment();
+                                if (m_DefaultEnv != null)
+                                {
+                                    OSD otmp = m_DefaultEnv.ToOSD();
+                                    byte[] btmp = OSDParser.SerializeLLSDXmlToBytes(otmp);
+                                    otmp = OSDParser.DeserializeLLSDXml(btmp);
+                                    VEnv.FromOSD(otmp);
+                                }
+                            }
                             OSDMap evmap = (OSDMap)env;
                             if(evmap.TryGetValue("day_asset", out OSD tmp) && !evmap.ContainsKey("day_cycle"))
                             {
@@ -539,16 +550,12 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             // m_log.DebugFormat("[{0}]: Environment GET handle for agentID {1} in region {2}",
             //      Name, agentID, caps.RegionName);
 
-            string env = String.Empty;
             ViewerEnviroment VEnv = m_scene.RegionEnviroment;
             if (VEnv == null)
                 VEnv = m_DefaultEnv;
-
-            if (VEnv != null)
-            {
-                OSD d = VEnv.ToWLOSD(UUID.Zero, regionID);
-                env = OSDParser.SerializeLLSDXmlString(d);
-            }
+ 
+            OSD d = VEnv.ToWLOSD(UUID.Zero, regionID);
+            string env = OSDParser.SerializeLLSDXmlString(d);
 
             if (String.IsNullOrEmpty(env))
             {
@@ -760,16 +767,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             ViewerEnviroment env = m_scene.RegionEnviroment;
             if(env == null)
                 env = m_DefaultEnv;
-            if(env == null)
-            {
-                m_dayOffset = 57600f;
-                m_dayOffset = 14400f;
-            }
-            else
-            {
-                m_dayOffset = env.DayOffset;
-                m_dayLen = env.DayLength;
-            }
+
+            m_dayOffset = env.DayOffset;
+            m_dayLen = env.DayLength;
 
             m_currentTime = Util.UnixTimeSinceEpoch() + m_dayOffset;
             float dayFrac = (m_currentTime % m_dayLen) / m_dayLen;
@@ -777,31 +777,45 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             m_sunAngle = Utils.TWO_PI * dayFrac;
 
-            bool r = env.getPositions(0, dayFrac, out m_sunDir, out Vector3 moondir, out m_sunVel,
-                out Quaternion sunrot, out Quaternion moonrot);
-
             ++m_frame;
             if(m_frame % 50 == 0)
-                UpdateClientsSunTime();
+                UpdateClientsSunTime(env, dayFrac);
         }
 
-        private void UpdateClientsSunTime()
+        private void UpdateClientsSunTime(ViewerEnviroment env, float dayFrac)
         {
-            m_scene.ForEachClient(delegate (IClientAPI client)
+            float wldayFrac = dayFrac;
+            if (wldayFrac < 0.25f)
+                wldayFrac += 1.5f;
+            else if (wldayFrac > 0.75)
+                wldayFrac += 0.5f;
+            else if (wldayFrac > 0.33)
+                wldayFrac = 3 * wldayFrac - 1;
+            else
+                wldayFrac = 3 * wldayFrac + 1;
+
+            wldayFrac = Utils.Clamp(wldayFrac, 0, 2);
+            wldayFrac *= Utils.PI;
+
+            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
             {
-                if (!client.IsActive)
+                if(sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
                     return;
 
-                /*
+                IClientAPI client = sp.ControllingClient;
                 uint vflags = client.GetViewerCaps();
 
                 if ((vflags & 0x8000) != 0)
-                    m_estateModule.HandleRegionInfoRequest(client);
+                {
+                    client.SendSunPos(Vector3.Zero, Vector3.Zero, m_sunAngle);
+                    return;
+                }
 
-                else if ((vflags & 0x4000) != 0)
-                    m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
-                */
-                client.SendSunPos(m_sunDir, m_sunVel, m_sunAngle);
+                float z = sp.AbsolutePosition.Z;
+                if (z < 0)
+                    z = 0;
+                env.getWLPositions(z, dayFrac, out m_sunDir);
+                client.SendSunPos(m_sunDir, Vector3.Zero, wldayFrac);
             });
         }
     }
