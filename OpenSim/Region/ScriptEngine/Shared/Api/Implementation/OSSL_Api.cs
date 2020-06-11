@@ -157,6 +157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal TaskInventoryItem m_item;
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
+        protected IEnvironmentModule m_envModule = null;
 
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
@@ -167,6 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
+            m_envModule = m_ScriptEngine.World.RequestModuleInterface<IEnvironmentModule>();
 
             //private init
             lock (m_OSSLLock)
@@ -1567,22 +1569,89 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Return the current Sun Hour 0...24, with 0 being roughly sun-rise
         /// </summary>
         /// <returns></returns>
-        public double osGetCurrentSunHour()
+        public LSL_Float osGetCurrentSunHour()
         {
             CheckThreatLevel();
 
-            // Must adjust for the fact that Region Sun Settings are still LL offset
-            double sunHour = World.RegionInfo.RegionSettings.SunPosition - 6;
+            if (m_envModule == null)
+                return 0;
 
-            // See if the sun module has registered itself, if so it's authoritative
-            ISunModule module = World.RequestModuleInterface<ISunModule>();
-            if (module != null)
+            float frac = m_envModule.GetRegionDayFractionTime();
+            return 24 * frac;
+        }
+
+        public LSL_Float osGetApparentTime()
+        {
+            CheckThreatLevel();
+
+            if (m_envModule == null)
+                return 0;
+
+            float frac = m_envModule.GetRegionDayFractionTime();
+            return 86400 * frac;
+        }
+
+        private string timeToString(float frac, bool format24)
+        {
+            int h = (int)frac;
+            frac -= h;
+            frac *= 60;
+            int m = (int)frac;
+            frac -= m;
+            frac *= 60;
+            int s = (int)frac;
+
+            if (format24)
             {
-                sunHour = module.GetCurrentSunHour();
+                return string.Format("{0:00}:{1:00}:{2:00}", h, m, s);
+            }
+            if (h > 12)
+                return string.Format("{0}:{1:00}:{2:00} PM", h - 12, m, s);
+            return string.Format("{0}:{1:00}:{2:00} AM", h, m, s);
+        }
+
+        public LSL_String osGetApparentTimeString(LSL_Integer format24)
+        {
+            CheckThreatLevel();
+
+            if (m_envModule == null)
+            {
+                if (format24 != 0)
+                    return "00:00:00";
+                return "0:00:00 AM";
             }
 
-            return sunHour;
+            float frac = 24 * m_envModule.GetRegionDayFractionTime();
+            return timeToString(frac, format24 != 0);
         }
+
+        public LSL_Float osGetApparentRegionTime()
+        {
+            CheckThreatLevel();
+
+            if (m_envModule == null)
+                return 0;
+
+            float frac = m_envModule.GetRegionDayFractionTime();
+            return 86400 * frac;
+        }
+
+        public LSL_String osGetApparentRegionTimeString(LSL_Integer format24)
+        {
+            CheckThreatLevel();
+
+            if (m_envModule == null)
+            {
+                if (format24 != 0)
+                    return "00:00:00";
+                return "0:00:00 AM";
+            }
+
+            float frac = 24 * m_envModule.GetRegionDayFractionTime();
+
+            return timeToString(frac, format24 != 0);
+        }
+
 
         public double osSunGetParam(string param)
         {

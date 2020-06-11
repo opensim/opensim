@@ -1481,5 +1481,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osClearObjectAnimations();
         }
+
+        public LSL_Float osGetApparentTime()
+        {
+            return m_OSSL_Functions.osGetApparentTime();
+        }
+
+        public LSL_String osGetApparentTimeString(LSL_Integer format24)
+        {
+            return m_OSSL_Functions.osGetApparentTimeString(format24);
+        }
+
+        public LSL_Float osGetApparentRegionTime()
+        {
+            return m_OSSL_Functions.osGetApparentRegionTime();
+        }
+
+        public LSL_String osGetApparentRegionTimeString(LSL_Integer format24)
+        {
+            return m_OSSL_Functions.osGetApparentRegionTimeString(format24);
+        }
+
     }
 }

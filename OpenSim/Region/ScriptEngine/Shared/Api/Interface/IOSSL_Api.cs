@@ -249,7 +249,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetRegionWaterHeight(double height);
         void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour);
         void osSetEstateSunSettings(bool sunFixed, double sunHour);
-        double osGetCurrentSunHour();
+        LSL_Float osGetCurrentSunHour();
         double osGetSunParam(string param);
         double osSunGetParam(string param); // Deprecated
         void osSetSunParam(string param, double value);
@@ -573,5 +573,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         vector osGetStandTarget();
         vector osGetLinkStandTarget(LSL_Integer linkNumber);
         LSL_Integer osClearObjectAnimations();
+
+        LSL_Float osGetApparentTime();
+        LSL_String osGetApparentTimeString(LSL_Integer format24);
+        LSL_Float osGetApparentRegionTime();
+        LSL_String osGetApparentRegionTimeString(LSL_Integer format24);
     }
 }
