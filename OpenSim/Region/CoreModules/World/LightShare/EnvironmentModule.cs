@@ -67,7 +67,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private int m_regionEnvVersion = -1;
 
         private double m_framets;
-        private float m_dayFrac;
 
         #region INonSharedRegionModule
         public void Initialise(IConfigSource source)
@@ -448,6 +447,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                             if (VEnv == null)
                             {
                                 // need a proper clone
+                                VEnv = new ViewerEnviroment();
                                 OSD otmp = m_DefaultEnv.ToOSD();
                                 byte[] btmp = OSDParser.SerializeLLSDXmlToBytes(otmp);
                                 otmp = OSDParser.DeserializeLLSDXml(btmp);
@@ -800,6 +800,12 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             float dayfrac = env.DayLength;
             dayfrac = ((Util.UnixTimeSinceEpoch() + env.DayOffset) % dayfrac) / dayfrac;
             return Utils.Clamp(dayfrac, 0f, 1f);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public float GetRegionDayFractionTime()
+        {
+            return GetDayFractionTime(GetRegionEnviroment());
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
