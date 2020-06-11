@@ -36,5 +36,12 @@ namespace OpenSim.Region.Framework.Interfaces
         void FromLightShare(RegionLightShareData wl);
         RegionLightShareData ToLightShare();
         byte[] GetDefaultAssetData(int type);
+
+        int GetRegionDayLength();
+        int GetRegionDayOffset();
+        Vector3 GetRegionSunDir(float altitude);
+        Quaternion GetRegionSunRot(float altitude);
+        Vector3    GetRegionMoonDir(float altitude);
+        Quaternion GetRegionMoonRot(float altitude);
     }
 }

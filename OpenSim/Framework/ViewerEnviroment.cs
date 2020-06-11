@@ -1230,12 +1230,11 @@ namespace OpenSim.Framework
             return top;
         }
 
-        public bool getPositions(float altitude, float dayfrac, out Vector3 sundir, out Vector3 moondir, out Vector3 sunvel,
+        public bool getPositions(float altitude, float dayfrac, out Vector3 sundir, out Vector3 moondir,
                 out Quaternion sunrot, out Quaternion moonrot)
         {
             sundir = Vector3.Zero;
             moondir = Vector3.Zero;
-            sunvel = Vector3.Zero;
             sunrot = Quaternion.Identity;
             moonrot = Quaternion.Identity;
 
@@ -1301,8 +1300,8 @@ namespace OpenSim.Framework
             {
                 --ntracks;
                 firstFrac = track[ntracks].time;
-                secondFrac = track[0].time + 1f;
                 first = track[ntracks].frameName;
+                secondFrac = track[0].time + 1f;
                 second = track[0].frameName;
             }
             else
@@ -1349,6 +1348,7 @@ namespace OpenSim.Framework
             sundir = Xrot(sunrot);
             return true;
         }
+
         public bool getWLPositions(float altitude, float dayfrac, out Vector3 sundir)
         {
             sundir = Vector3.Zero;
@@ -1379,7 +1379,7 @@ namespace OpenSim.Framework
                             track = Cycle.skyTrack1;
                             break;
                     }
-                    if (track != null)
+                    if (track != null && track.Count > 0)
                         break;
                     --altindx;
                 }
@@ -1414,8 +1414,8 @@ namespace OpenSim.Framework
             {
                 --ntracks;
                 firstFrac = track[ntracks].time;
-                secondFrac = track[0].time + 1f;
                 first = track[ntracks].frameName;
+                secondFrac = track[0].time + 1f;
                 second = track[0].frameName;
             }
             else
