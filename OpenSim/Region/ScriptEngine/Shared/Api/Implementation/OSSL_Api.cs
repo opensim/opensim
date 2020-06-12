@@ -1607,6 +1607,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (h > 12)
                 return string.Format("{0}:{1:00}:{2:00} PM", h - 12, m, s);
+            if (h == 12)
+                return string.Format("{0}:{1:00}:{2:00} PM", h, m, s);
             return string.Format("{0}:{1:00}:{2:00} AM", h, m, s);
         }
 

@@ -76,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetEstateSunSettings(sunFixed, sunHour);
         }
 
-        public double osGetCurrentSunHour()
+        public LSL_Float osGetCurrentSunHour()
         {
             return m_OSSL_Functions.osGetCurrentSunHour();
         }
