@@ -191,8 +191,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             try
             {
                 string url = "";
-                if(port != 0)
-                    url = "http://" + region.ExternalHostName + ":" + port + "/";
+                if(region.HttpPort != 0)
+                    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
                 else
                     url = region.ServerURI;
 
