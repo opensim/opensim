@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -1208,46 +1209,40 @@ namespace OpenSim.Framework
             return top;
         }
 
-        public bool getPositions(float altitude, float dayfrac, out Vector3 sundir, out Vector3 moondir,
-                out Quaternion sunrot, out Quaternion moonrot)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public List<DayCycle.TrackEntry> FindTrack(float altitude)
         {
-            sundir = Vector3.Zero;
-            moondir = Vector3.Zero;
-            sunrot = Quaternion.Identity;
-            moonrot = Quaternion.Identity;
-
-            List<DayCycle.TrackEntry> track = null;
             if (altitude < Altitudes[0])
-                track = Cycle.skyTrack0;
-            else
-            {
-                int altindx = 2;
-                for (; altindx > 0; --altindx)
-                {
-                    if (Altitudes[altindx] < altitude)
-                        break;
-                }
+                return Cycle.skyTrack0;
 
-                while (altindx >= 0)
-                {
-                    track = Cycle.skyTracks[altindx];
-                    if (track != null && track.Count > 0)
-                        break;
-                    --altindx;
-                }
+            int altindx = 1;
+            for (; altindx < Altitudes.Length; ++altindx)
+            {
+                if (Altitudes[altindx] > altitude)
+                    break;
             }
 
-            if (track == null || track.Count == 0)
-                return false;
+            List<DayCycle.TrackEntry> track = null;
+            while (--altindx >= 0)
+            {
+                track = Cycle.skyTracks[altindx];
+                if (track != null && track.Count > 0)
+                    break;
+            }
+            return track;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool FindSkies(List<DayCycle.TrackEntry> track, float dayfrac, out float skyfrac, out SkyData sky1, out SkyData sky2)
+        {
+            sky1 = null;
+            sky2 = null;
+            skyfrac = dayfrac;
 
             if (track.Count == 1 || track[0].time < 0)
             {
-                if (!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
+                if (!Cycle.skyframes.TryGetValue(track[0].frameName, out sky1) || sky1 == null)
                     return false;
-                moonrot = sky.moon_rotation;
-                moondir = Xrot(moonrot);
-                sunrot = sky.sun_rotation;
-                sundir = Xrot(sunrot);
                 return true;
             }
 
@@ -1263,6 +1258,7 @@ namespace OpenSim.Framework
             float secondFrac;
             string first;
             string second;
+
             int ntracks = track.Count;
             if (i == 0 || i == ntracks)
             {
@@ -1281,22 +1277,50 @@ namespace OpenSim.Framework
                 first = track[i].frameName;
             }
 
-            if (!Cycle.skyframes.TryGetValue(first, out SkyData sky1) || sky1 == null)
+            if (!Cycle.skyframes.TryGetValue(first, out sky1) || sky1 == null)
                 firstFrac = -1;
-            if (!Cycle.skyframes.TryGetValue(second, out SkyData sky2) || sky2 == null)
+            if (!Cycle.skyframes.TryGetValue(second, out sky2) || sky2 == null)
                 secondFrac = -1;
 
             if (firstFrac < 0)
             {
                 if (secondFrac < 0)
                     return false;
-                moonrot = sky2.moon_rotation;
-                moondir = Xrot(moonrot);
-                sunrot = sky2.sun_rotation;
-                sundir = Xrot(sunrot);
+
+                sky1 = sky2;
+                sky2 = null;
                 return true;
             }
+
             if (secondFrac < 0 || secondFrac == firstFrac)
+            {
+                sky2 = null;
+                return true;
+            }
+
+            dayfrac -= firstFrac;
+            secondFrac -= firstFrac;
+            dayfrac /= secondFrac;
+            skyfrac = Utils.Clamp(dayfrac, 0, 1f);
+            return true;
+        }
+
+        public bool getPositions(float altitude, float dayfrac, out Vector3 sundir, out Vector3 moondir,
+                out Quaternion sunrot, out Quaternion moonrot)
+        {
+            sundir = Vector3.Zero;
+            moondir = Vector3.Zero;
+            sunrot = Quaternion.Identity;
+            moonrot = Quaternion.Identity;
+
+            List<DayCycle.TrackEntry> track = FindTrack(altitude);
+            if (track == null || track.Count == 0)
+                return false;
+
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
+            if (sky2 == null)
             {
                 moonrot = sky1.moon_rotation;
                 moondir = Xrot(moonrot);
@@ -1304,10 +1328,6 @@ namespace OpenSim.Framework
                 sundir = Xrot(sunrot);
                 return true;
             }
-
-            dayfrac -= firstFrac;
-            secondFrac -= firstFrac;
-            dayfrac /= secondFrac;
 
             moonrot = Quaternion.Slerp(sky1.moon_rotation, sky2.moon_rotation, dayfrac);
             moondir = Xrot(moonrot);
@@ -1321,92 +1341,20 @@ namespace OpenSim.Framework
         {
             sundir = Vector3.Zero;
 
-            List<DayCycle.TrackEntry> track = null;
-            if (altitude < Altitudes[0])
-                track = Cycle.skyTrack0;
-            else
-            {
-                int altindx = 2;
-                for (; altindx > 0; --altindx)
-                {
-                    if (Altitudes[altindx] < altitude)
-                        break;
-                }
-
-                while (altindx >= 0)
-                {
-                    track = Cycle.skyTracks[altindx];
-                    if (track != null && track.Count > 0)
-                        break;
-                    --altindx;
-                }
-            }
-
+            List<DayCycle.TrackEntry> track = track = FindTrack(altitude);
             if (track == null || track.Count == 0)
                 return false;
 
+            if (!FindSkies(track, dayfrac, out dayfrac, out SkyData sky1, out SkyData sky2))
+                return false;
+
             Quaternion sunrot;
-            if (track.Count == 1 || track[0].time < 0)
-            {
-                if (!Cycle.skyframes.TryGetValue(track[0].frameName, out SkyData sky) || sky == null)
-                    return false;
-                sunrot = sky.sun_rotation;
-                sundir = Xrot(sunrot);
-                return true;
-            }
-            int i = 0;
-            while (i < track.Count)
-            {
-                if (track[i].time > dayfrac)
-                    break;
-                ++i;
-            }
-
-            float firstFrac;
-            float secondFrac;
-            string first;
-            string second;
-            int ntracks = track.Count;
-            if (i == 0 || i == ntracks)
-            {
-                --ntracks;
-                firstFrac = track[ntracks].time;
-                first = track[ntracks].frameName;
-                secondFrac = track[0].time + 1f;
-                second = track[0].frameName;
-            }
-            else
-            {
-                secondFrac = track[i].time;
-                second = track[i].frameName;
-                --i;
-                firstFrac = track[i].time;
-                first = track[i].frameName;
-            }
-
-            if (!Cycle.skyframes.TryGetValue(first, out SkyData sky1) || sky1 == null)
-                firstFrac = -1;
-            if (!Cycle.skyframes.TryGetValue(second, out SkyData sky2) || sky2 == null)
-                secondFrac = -1;
-
-            if (firstFrac < 0)
-            {
-                if (secondFrac < 0)
-                    return false;
-                sunrot = sky2.sun_rotation;
-                sundir = Xrot(sunrot);
-                return true;
-            }
-            if (secondFrac < 0 || secondFrac == firstFrac)
+            if (sky2 == null)
             {
                 sunrot = sky1.sun_rotation;
                 sundir = Xrot(sunrot);
                 return true;
             }
-
-            dayfrac -= firstFrac;
-            secondFrac -= firstFrac;
-            dayfrac /= secondFrac;
 
             sunrot = Quaternion.Slerp(sky1.sun_rotation, sky2.sun_rotation, dayfrac);
             sundir = Xrot(sunrot);

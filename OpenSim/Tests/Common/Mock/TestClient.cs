@@ -981,24 +981,17 @@ namespace OpenSim.Tests.Common
 
         public void SendAdminResponse(UUID Token, uint AdminLevel)
         {
-
         }
 
         public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
-
         }
 
-        //public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
-        public void SendSunPos(Vector3 sunPos, Vector3 sunVel, float sunAngle)
+        public void SendViewerTime(Vector3 sunDir, float sunphase)
         {
         }
 
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
-        {
-        }
-
-        public void SendViewerTime(int phase)
         {
         }
 

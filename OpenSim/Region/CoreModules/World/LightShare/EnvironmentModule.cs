@@ -46,6 +46,8 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
+using MethodImplOptions = System.Runtime.CompilerServices.MethodImplOptions;
+
 namespace OpenSim.Region.CoreModules.World.LightShare
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EnvironmentModule")]
@@ -539,7 +541,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             //      Name, agentID, caps.RegionName);
 
             ViewerEnviroment VEnv = GetRegionEnviroment();
- 
+
             OSD d = VEnv.ToWLOSD(UUID.Zero, regionID);
             string env = OSDParser.SerializeLLSDXmlString(d);
 
@@ -750,24 +752,27 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void UpdateClientsSunTime()
         {
+            if(m_scene.GetNumberOfClients() == 0)
+                return;
+
             ViewerEnviroment env = GetRegionEnviroment();
             float dayFrac = GetDayFractionTime(env);
 
-            // don't ask me what this mess is, just is
             float wldayFrac = dayFrac;
-            if (wldayFrac < 0.25f)
-                wldayFrac += 1.5f;
-            else if (wldayFrac > 0.75)
-                wldayFrac += 0.5f;
-            else if (wldayFrac > 0.33)
-                wldayFrac = 3 * wldayFrac - 1;
-            else
-                wldayFrac = 3 * wldayFrac + 1;
 
-            wldayFrac = Utils.Clamp(wldayFrac, 0, 2);
+            if (wldayFrac <= 0.25f)
+                wldayFrac += 1.5f;
+            else if (wldayFrac > 0.75f)
+                wldayFrac += 0.5f;
+            else if (wldayFrac >= 0.333333f)
+                wldayFrac = 3f * wldayFrac - 1f;
+            else
+                wldayFrac = 3f * wldayFrac + 1f;
+
+            wldayFrac = Utils.Clamp(wldayFrac, 0, 2f);
             wldayFrac *= Utils.PI;
 
-            dayFrac *= Utils.TWO_PI;
+            float eepDayFrac = dayFrac * Utils.TWO_PI;
 
             m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
             {
@@ -779,12 +784,12 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
                 if ((vflags & 0x8000) != 0)
                 {
-                    client.SendSunPos(Vector3.Zero, Vector3.Zero, dayFrac);
+                    client.SendViewerTime(Vector3.Zero, eepDayFrac);
                     return;
                 }
 
                 env.getWLPositions(sp.AbsolutePosition.Z, dayFrac, out Vector3 m_sunDir);
-                client.SendSunPos(m_sunDir, Vector3.Zero, wldayFrac);
+                client.SendViewerTime(m_sunDir, wldayFrac);
             });
         }
 
@@ -848,37 +853,37 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             return moonrot;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetRegionDayLength()
         {
             return GetRegionEnviroment().DayLength;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetRegionDayOffset()
         {
             return GetRegionEnviroment().DayOffset;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 GetRegionSunDir(float altitude)
         {
             return GetSunDir(GetRegionEnviroment(), altitude);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Quaternion GetRegionSunRot(float altitude)
         {
             return GetSunRot(GetRegionEnviroment(), altitude);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 GetRegionMoonDir(float altitude)
         {
             return GetMoonDir(GetRegionEnviroment(), altitude);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Quaternion GetRegionMoonRot(float altitude)
         {
             return GetMoonRot(GetRegionEnviroment(), altitude);
