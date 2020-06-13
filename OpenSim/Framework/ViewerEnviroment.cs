@@ -913,9 +913,6 @@ namespace OpenSim.Framework
                 Cycle = new DayCycle();
                 Cycle.FromWLOSD(array);
                 IsLegacy = true;
-                Altitudes[0] = 3980f;
-                Altitudes[1] = 3990f;
-                Altitudes[2] = 4000f;
             }
         }
 
@@ -933,6 +930,12 @@ namespace OpenSim.Framework
             {
                 az *= 0.5f;
                 return new Quaternion(0, 0, (float)Math.Sin(az), (float)Math.Cos(az));
+            }
+
+            if(az == 0)
+            {
+                al *= 0.5f;
+                return new Quaternion(0, -(float)Math.Sin(al), 0, (float)Math.Cos(al));
             }
 
             float sT = (float)Math.Sin(az);
@@ -1035,10 +1038,6 @@ namespace OpenSim.Framework
             Cycle.skyframes.Add(sky.Name, sky);
             track = new DayCycle.TrackEntry(-1, sky.Name);
             Cycle.skyTrack0.Add(track);
-
-            Altitudes[0] = 3980f;
-            Altitudes[1] = 3990f;
-            Altitudes[2] = 4000f;
         }
 
         public RegionLightShareData ToLightShare()
