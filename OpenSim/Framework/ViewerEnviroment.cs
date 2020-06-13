@@ -926,13 +926,13 @@ namespace OpenSim.Framework
 
         private static Quaternion AzAlToRot(float az, float al)
         {
-            if (al == 0)
+            if (Utils.ApproxEqual(al, 0, 1e-3f) || Utils.ApproxEqual(Math.Abs(al), Utils.TWO_PI, 1e-3f))
             {
                 az *= 0.5f;
                 return new Quaternion(0, 0, (float)Math.Sin(az), (float)Math.Cos(az));
             }
 
-            if(az == 0)
+            if (Utils.ApproxEqual(az, 0, 1e-3f) || Utils.ApproxEqual(Math.Abs(az), Utils.TWO_PI, 1e-3f))
             {
                 al *= 0.5f;
                 return new Quaternion(0, -(float)Math.Sin(al), 0, (float)Math.Cos(al));
