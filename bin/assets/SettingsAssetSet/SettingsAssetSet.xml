@@ -6,4 +6,33 @@
     <Key Name="fileName" Value="DefaultDaycycle.xml" />
   </Section>
 
+  <Section Name="Sunrise">
+    <Key Name="assetID" Value="01e41537-ff51-2f1f-8ef7-17e4df760bfb" />
+    <Key Name="name" Value="Sunrise" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="Sunrise.dat" />
+  </Section>
+
+  <Section Name="Midday">
+    <Key Name="assetID" Value="6c83e853-e7f8-cad7-8ee6-5f31c453721c" />
+    <Key Name="name" Value="Midday" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="Midday.dat" />
+  </Section>
+
+  <Section Name="Sunset">
+    <Key Name="assetID" Value="084e26cd-a900-28e8-08d0-64a9de5c15e2" />
+    <Key Name="name" Value="Sunset" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="Sunset.dat" />
+  </Section>
+
+  <Section Name="Midnight">
+    <Key Name="assetID" Value="8a01b97a-cb20-c1ea-ac63-f7ea84ad0090" />
+    <Key Name="name" Value="Midnight" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="Midnight.dat" />
+  </Section>
+
 </Nini>
+
