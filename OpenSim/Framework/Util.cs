@@ -1056,6 +1056,12 @@ namespace OpenSim.Framework
             return true;
         }
 
+        public static double UnixTimeSinceEpochSecs()
+        {
+            TimeSpan t = DateTime.UtcNow - UnixEpoch;
+            return t.TotalSeconds;
+        }
+
         public static int UnixTimeSinceEpoch()
         {
             TimeSpan t = DateTime.UtcNow - UnixEpoch;

@@ -800,9 +800,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public float GetDayFractionTime(ViewerEnviroment env)
         {
-            float dayfrac = env.DayLength;
-            dayfrac = ((Util.UnixTimeSinceEpoch() + env.DayOffset) % dayfrac) / dayfrac;
-            return Utils.Clamp(dayfrac, 0f, 1f);
+            double dayfrac = env.DayLength;
+            dayfrac = ((Util.UnixTimeSinceEpochSecs() + env.DayOffset) % dayfrac) / dayfrac;
+            return (float)Utils.Clamp(dayfrac, 0, 1);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
