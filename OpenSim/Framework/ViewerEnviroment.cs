@@ -680,6 +680,8 @@ namespace OpenSim.Framework
             track = new TrackEntry(-1f, "WLWater");
             waterTrack.Add(track);
 
+            Name = "WLDaycycle";
+
             if (skyTrack0.Count == 1 && skyTrack0[0].time == -1f)
                 IsStaticDayCycle = true;
         }
@@ -912,7 +914,6 @@ namespace OpenSim.Framework
             {
                 Cycle = new DayCycle();
                 Cycle.FromWLOSD(array);
-                IsLegacy = true;
             }
         }
 
@@ -938,16 +939,16 @@ namespace OpenSim.Framework
                 return new Quaternion(0, -(float)Math.Sin(al), 0, (float)Math.Cos(al));
             }
 
-            float sT = (float)Math.Sin(az);
-            float cT = (float)Math.Cos(az);
-            float sP = (float)Math.Sin(al);
-            float cP = (float)Math.Cos(al);
+            az *= 0.5f;
+            float sz = (float)Math.Sin(az);
+            float cz = (float)Math.Cos(az);
+            al *= 0.5f;
+            float sl = (float)Math.Sin(al);
+            float cl = (float)Math.Cos(al);
 
-            float angle = (float)Math.Acos(cT * cP);
-            Vector3 axis = new Vector3( 0, -sP, sT * cP);
-            axis.Normalize();
-
-            return Quaternion.CreateFromAxisAngle(axis, angle);
+            Quaternion rot = new Quaternion(sl * sz, -sl * cz, cl * sz, cl * cz);
+            rot.Normalize();
+            return rot;
         }
 
         public static void convertFromAngles(SkyData sky, float sun_angle, float east_angle)

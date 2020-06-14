@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     byte[] envData = defEnv.Data;
                     try
                     {
-                        OSD oenv = OSDParser.DeserializeLLSDXml(envData);
+                        OSD oenv = OSDParser.Deserialize(envData);
                         m_DefaultEnv = new ViewerEnviroment();
                         m_DefaultEnv.CycleFromOSD(oenv);
                     }
@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 try
                 {
-                    OSD oenv = OSDParser.DeserializeLLSDXml(senv);
+                    OSD oenv = OSDParser.Deserialize(senv);
                     ViewerEnviroment VEnv = new ViewerEnviroment();
                     if(oenv is OSDArray)
                         VEnv.FromWLOSD(oenv);
@@ -206,6 +206,34 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         #endregion
 
         #region IEnvironmentModule
+        private void StoreOnRegion(ViewerEnviroment VEnv)
+        {
+            try
+            {
+                if (VEnv == null)
+                {
+                    m_scene.SimulationDataService.RemoveRegionEnvironmentSettings(regionID);
+                    m_scene.RegionEnviroment = null;
+                    m_regionEnvVersion = -1;
+                }
+                else
+                {
+                    m_regionEnvVersion++;
+                    VEnv.version = m_regionEnvVersion;
+                    OSD env = VEnv.ToOSD();
+                    //m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDXmlString(env));
+                    m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDNotationFull(env));
+                    m_scene.RegionEnviroment = VEnv;
+                }
+                m_framets = 0;
+                UpdateEnvTime();
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[Enviroment {0}] failed to store enviroment {1}", m_scene.Name, e.Message);
+            }
+        }
+
         public void ResetEnvironmentSettings(UUID regionUUID)
         {
             if (!Enabled)
@@ -375,17 +403,17 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     Int32.TryParse((string)httpRequest.Query["parcelid"], out parcel);
                 }
                 OSD oenv = ViewerEnviroment.DefaultToOSD(regionID, parcel);
-                httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(oenv));
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(OSDParser.SerializeLLSDXmlString(oenv));
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
             }
 
             ViewerEnviroment VEnv = GetRegionEnviroment();
 
-            OSDMap map = new OpenMetaverse.StructuredData.OSDMap();
+            OSDMap map = new OSDMap();
             map["environment"] = VEnv.ToOSD();
+
             string env = OSDParser.SerializeLLSDXmlString(map);
 
-            // only the presence of enviroment seems to matter
             if (String.IsNullOrEmpty(env))
             {
                 StringBuilder sb = LLSDxmlEncode.Start();
@@ -439,7 +467,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 try
                 {
-                    OSD req = OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                    OSD req = OSDParser.Deserialize(httpRequest.InputStream);
                     if(req is OpenMetaverse.StructuredData.OSDMap)
                     {
                         OpenMetaverse.StructuredData.OSDMap map = req as OpenMetaverse.StructuredData.OSDMap;
@@ -451,8 +479,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                                 // need a proper clone
                                 VEnv = new ViewerEnviroment();
                                 OSD otmp = m_DefaultEnv.ToOSD();
-                                byte[] btmp = OSDParser.SerializeLLSDXmlToBytes(otmp);
-                                otmp = OSDParser.DeserializeLLSDXml(btmp);
+                                string tmpstr = OSDParser.SerializeLLSDXmlString(otmp);
+                                otmp = OSDParser.DeserializeLLSDXml(tmpstr);
                                 VEnv.FromOSD(otmp);
                             }
                             OSDMap evmap = (OSDMap)env;
@@ -488,10 +516,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     }
                     else if (req is OSDArray)
                     {
-                        ViewerEnviroment VEnv = m_scene.RegionEnviroment;
-                        if (VEnv == null)
-                            VEnv = new ViewerEnviroment();
-
+                        ViewerEnviroment VEnv = new ViewerEnviroment();
                         VEnv.FromWLOSD(req);
                         StoreOnRegion(VEnv);
                         success = true;
@@ -506,7 +531,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                         LLSDxmlEncode.AddElem("regionID", regionID, sb);
                         LLSDxmlEncode.AddElem("success", success, sb);
                         LLSDxmlEncode.AddEndMap(sb);
-                        httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+                        httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDxmlEncode.End(sb));
                         httpResponse.StatusCode = (int)HttpStatusCode.OK;
                         return;
                     }
@@ -531,7 +556,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             LLSDxmlEncode.AddEndMap(sb);
             response = LLSDxmlEncode.End(sb);
 
-            httpResponse.RawBuffer = Util.UTF8.GetBytes(response);
+            httpResponse.RawBuffer = Util.UTF8NBGetbytes(response);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -561,32 +586,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        private void StoreOnRegion(ViewerEnviroment VEnv)
-        {
-            try
-            {
-                if (VEnv == null)
-                {
-                    m_scene.SimulationDataService.RemoveRegionEnvironmentSettings(regionID);
-                    m_scene.RegionEnviroment = null;
-                    m_regionEnvVersion = -1;
-                }
-                else
-                {
-                    m_regionEnvVersion++;
-                    VEnv.version = m_regionEnvVersion;
-                    OSD env = VEnv.ToOSD();
-                    m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDXmlString(env));
-                    m_scene.RegionEnviroment = VEnv;
-                }
-                m_framets = 0;
-                UpdateEnvTime();
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[Enviroment {0}] failed to store enviroment {1}", m_scene.Name, e.Message);
-            }
-        }
 
         private void SetEnvironmentSettings(IOSHttpRequest request, IOSHttpResponse response, UUID agentID)
         {
@@ -605,7 +604,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 try
                 {
                     ViewerEnviroment VEnv = new ViewerEnviroment();
-                    OSD env = OSDParser.DeserializeLLSDXml(request.InputStream);
+                    OSD env = OSDParser.Deserialize(request.InputStream);
                     VEnv.FromWLOSD(env);
                     StoreOnRegion(VEnv);
                     success = true;
@@ -633,7 +632,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     if(!success)
                         LLSDxmlEncode.AddElem("fail_reason", fail_reason, sb);
                 LLSDxmlEncode.AddEndMap(sb);
-            response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+            response.RawBuffer = Util.UTF8NBGetbytes(LLSDxmlEncode.End(sb));
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -676,8 +675,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 default:
                     return null;
             }
-            string sdata = OSDParser.SerializeLLSDXmlString(osddata);
-            return Util.UTF8NBGetbytes(sdata);
+            return OSDParser.SerializeLLSDNotationToBytes(osddata,true);
         }
 
         public List<byte[]> MakeLightShareData()
