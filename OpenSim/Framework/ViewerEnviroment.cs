@@ -272,7 +272,6 @@ namespace OpenSim.Framework
             float east_angle;
             Vector4 lightnorm;
             ViewerEnviroment.convertToAngles(this, out sun_angle, out east_angle, out lightnorm);
-
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);
             map["blue_density"] = new Vector4(blue_density.X, blue_density.Y, blue_density.Z, 1);
             map["blue_horizon"] = new Vector4(blue_horizon.X, blue_horizon.Y, blue_horizon.Z, 1);
@@ -973,7 +972,8 @@ namespace OpenSim.Framework
         public static void convertToAngles(SkyData sky, out float sun_angle, out float east_angle, out Vector4 lightnorm)
         {
             Vector3 v = Xrot(sky.sun_rotation);
-            lightnorm = new Vector4(v.X, v.Y, v.Z,1);
+            v.Normalize();
+            lightnorm = new Vector4(v.X, v.Y, v.Z, 1);
             sun_angle = (float)Math.Asin(v.Z);
             east_angle = -(float)Math.Atan2(v.Y, v.X);
 
@@ -1337,6 +1337,7 @@ namespace OpenSim.Framework
             return true;
         }
 
+        /* not needed for wl viewers
         public bool getWLPositions(float altitude, float dayfrac, out Vector3 sundir)
         {
             sundir = Vector3.Zero;
@@ -1360,5 +1361,6 @@ namespace OpenSim.Framework
             sundir = Xrot(sunrot);
             return true;
         }
+        */
     }
 }
