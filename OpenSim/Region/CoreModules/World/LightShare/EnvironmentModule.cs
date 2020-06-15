@@ -786,8 +786,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     return;
                 }
 
-                env.getWLPositions(sp.AbsolutePosition.Z, dayFrac, out Vector3 m_sunDir);
-                client.SendViewerTime(m_sunDir, wldayFrac);
+                client.SendViewerTime(Vector3.Zero, wldayFrac);
+                //env.getWLPositions(sp.AbsolutePosition.Z, dayFrac, out Vector3 m_sunDir);
+                //client.SendViewerTime(m_sunDir, wldayFrac);
             });
         }
 
