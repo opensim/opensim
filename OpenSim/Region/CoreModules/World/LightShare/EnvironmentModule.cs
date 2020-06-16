@@ -250,21 +250,16 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 if(!client.IsActive)
                     return;
-
-                uint vflags = client.GetViewerCaps();
-
-                if ((vflags & 0x8000) != 0)
-                    m_estateModule.HandleRegionInfoRequest(client);
-
-                else if ((vflags & 0x4000) != 0)
-                    m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
-
+ 
+                m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
+                /*
                 else
                 {
                     if(ls == null)
                         ls = MakeLightShareData();
                     SendLightShare(client, ls);
                 }
+                */
             });
         }
 
