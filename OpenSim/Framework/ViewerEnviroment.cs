@@ -992,11 +992,13 @@ namespace OpenSim.Framework
                 east_angle = Utils.TWO_PI + east_angle;
 
             // this is just a case on one example daycyles, as wrong as any
+            /*
             if (Utils.ApproxEqual(east_angle, Utils.PI, 1e-4f))
             {
                 east_angle = 0;
                 sun_angle = Utils.PI - sun_angle;
             }
+            */
             if (Math.Abs(sun_angle) < 1e-6)
                 sun_angle = 0;
             else if (sun_angle < 0)

@@ -741,7 +741,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private void UpdateEnvTime()
         {
             double now = Util.GetTimeStamp();
-            if (now - m_framets < 10.0)
+            if (now - m_framets < 2.5) // this will be a conf option
                 return;
 
             m_framets = now;
