@@ -961,28 +961,47 @@ namespace OpenSim.Framework
 
         public static Vector3 Xrot(Quaternion rot)
         {
-            Vector3 vec;
             rot.Normalize(); // just in case
-            vec.X = 2 * (rot.X * rot.X + rot.W * rot.W) - 1;
-            vec.Y = 2 * (rot.X * rot.Y + rot.Z * rot.W);
-            vec.Z = 2 * (rot.X * rot.Z - rot.Y * rot.W);
-            return vec;
+            return new Vector3(2 * (rot.X * rot.X + rot.W * rot.W) - 1,
+                               2 * (rot.X * rot.Y + rot.Z * rot.W),
+                               2 * (rot.X * rot.Z - rot.Y * rot.W));
         }
 
         public static void convertToAngles(SkyData sky, out float sun_angle, out float east_angle, out Vector4 lightnorm)
         {
             Vector3 v = Xrot(sky.sun_rotation);
             v.Normalize();
-            lightnorm = new Vector4(v.X, v.Y, v.Z, 1);
+            if(v.Z >= 0)
+                lightnorm = new Vector4(v.Y, v.Z, v.X, 1);
+            else if (v.Z > -0.12)
+            {
+                float m = v.Y * v.Y + v.Z * v.Z;
+                m = 1/(float)Math.Sqrt(m);
+                lightnorm = new Vector4(v.Y * m, 0, v.X * m, 1);
+            }
+            else
+                lightnorm = new Vector4(-v.Y, -v.Z, -v.X, 1);
+
             sun_angle = (float)Math.Asin(v.Z);
             east_angle = -(float)Math.Atan2(v.Y, v.X);
 
-            if (Math.Abs(sun_angle) < 1e-6)
-                sun_angle = 0;
+
             if (Math.Abs(east_angle) < 1e-6)
                 east_angle = 0;
             else if (east_angle < 0)
-                east_angle = 2f * (float)Math.PI + east_angle;
+                east_angle = Utils.TWO_PI + east_angle;
+
+            // this is just a case on one example daycyles, as wrong as any
+            if (Utils.ApproxEqual(east_angle, Utils.PI, 1e-4f))
+            {
+                east_angle = 0;
+                sun_angle = Utils.PI - sun_angle;
+            }
+            if (Math.Abs(sun_angle) < 1e-6)
+                sun_angle = 0;
+            else if (sun_angle < 0)
+                sun_angle = Utils.TWO_PI + sun_angle;
+
         }
 
         public void FromLightShare(RegionLightShareData ls)
