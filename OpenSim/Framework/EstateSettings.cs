@@ -115,25 +115,28 @@ namespace OpenSim.Framework
 
         // Used by the sim
         //
-        private bool m_UseGlobalTime = true;
+        private bool m_UseGlobalTime = false;
         public bool UseGlobalTime
         {
             get { return m_UseGlobalTime; }
-            set { m_UseGlobalTime = value; }
+            //set { m_UseGlobalTime = value; }
+            set { m_UseGlobalTime = false; }
         }
 
         private bool m_FixedSun = false;
         public bool FixedSun
         {
             get { return m_FixedSun; }
-            set { m_FixedSun = value; }
+            // set { m_FixedSun = value; }
+            set { m_FixedSun = false; }
         }
 
         private double m_SunPosition = 0.0;
         public double SunPosition
         {
             get { return m_SunPosition; }
-            set { m_SunPosition = value; }
+            //set { m_SunPosition = value; }
+            set { m_SunPosition = 0; }
         }
 
         private bool m_AllowVoice = true;

@@ -1210,6 +1210,15 @@ namespace OpenSim.Framework
             return env;
         }
 
+        public ViewerEnviroment Clone()
+        {
+            // im lazy need to proper clone later
+            OSD osd = ToOSD();
+            ViewerEnviroment VEnv = new ViewerEnviroment();
+            VEnv.FromOSD(osd);
+            return VEnv;
+        }
+
         public static OSD DefaultToOSD(UUID regionID, int parcel)
         {
             OSDMap top = new OSDMap();
