@@ -1984,6 +1984,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void StoreEnviroment(ViewerEnviroment VEnv)
         {
+            int lastVersion = LandData.EnviromentVersion;
             LandData.Enviroment = VEnv;
             if (VEnv == null)
                 LandData.EnviromentVersion = -1;
@@ -1992,8 +1993,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 ++LandData.EnviromentVersion;
                 VEnv.version = LandData.EnviromentVersion;
             }
-            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
-            SendLandUpdateToAvatarsOverMe();
+            if(lastVersion != LandData.EnviromentVersion)
+            {
+                m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
+                SendLandUpdateToAvatarsOverMe();
+            }
         }
     }
 }

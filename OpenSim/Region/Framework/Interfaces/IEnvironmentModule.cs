@@ -36,6 +36,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void FromLightShare(RegionLightShareData wl);
         RegionLightShareData ToLightShare();
         byte[] GetDefaultAssetData(int type);
+        void WindlightRefresh(int interpolate, bool notforparcel = true);
 
         float GetRegionDayFractionTime();
         int GetRegionDayLength();

@@ -5884,16 +5884,22 @@ Environment.Exit(1);
             IEstateDataService estateDataService = EstateDataService;
             if (estateDataService != null)
             {
+                bool parcelEnvOvr = RegionInfo.EstateSettings.AllowEnviromentOverride;
                 RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
-                TriggerEstateSunUpdate();
+                if(parcelEnvOvr && !RegionInfo.EstateSettings.AllowEnviromentOverride)
+                    ClearAllParcelEnviroments();
             }
         }
 
-        public void TriggerEstateSunUpdate()
+        public void ClearAllParcelEnviroments()
         {
-            EventManager.TriggerEstateToolsSunUpdate(RegionInfo.RegionHandle);
+            IEnvironmentModule envM = RequestModuleInterface<IEnvironmentModule>();
+            if(LandChannel != null && envM != null)
+            {
+                LandChannel.ClearAllEnviroments();
+                envM.WindlightRefresh(1,false);
+            }
         }
-
         private void HandleReloadEstate(string module, string[] cmd)
         {
             if (MainConsole.Instance.ConsoleScene == null ||

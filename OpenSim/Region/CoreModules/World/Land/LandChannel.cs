@@ -254,6 +254,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.sendClientInitialLandInfo(remoteClient, overlay);
             }
         }
+
+        public void ClearAllEnviroments()
+        {
+            List<ILandObject> parcels = AllParcels();
+            for(int i=0; i< parcels.Count; ++i)
+                parcels[i].StoreEnviroment(null);
+        }
         #endregion
     }
 }

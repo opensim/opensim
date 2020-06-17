@@ -1095,8 +1095,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.CacheID = UUID.Random();
             currentRegionSettings.Save();
 
-            scene.TriggerEstateSunUpdate();
-
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
             if (estateModule != null)
                 estateModule.sendRegionHandshakeToAll();

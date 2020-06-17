@@ -119,10 +119,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void RegionLoaded(Scene scene)
         {
-            // Sets up the sun module based no the saved Estate and Region Settings
-            // DO NOT REMOVE or the sun will stop working
-            scene.TriggerEstateSunUpdate();
-
             UserManager = scene.RequestModuleInterface<IUserManagement>();
 
             scene.RegionInfo.EstateSettings.DoDenyMinors = !m_ignoreEstateMinorAccessControl;
@@ -604,8 +600,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (Scene.PhysicsEnabled && Scene.PhysicsScene != null && lastwaterlevel != WaterHeight)
                 Scene.PhysicsScene.SetWaterLevel(WaterHeight);
-
-            Scene.TriggerEstateSunUpdate();
 
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
@@ -1529,6 +1523,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
         {
+            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
+
             if ((parms1 & 0x00008000) != 0)
                 Scene.RegionInfo.EstateSettings.PublicAccess = true;
             else
@@ -1578,6 +1574,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 Scene.RegionInfo.EstateSettings.DenyMinors = false;
 
             Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
+
+            if (lastallowEnvOvr && Scene.LandChannel != null && !Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+            {
+                Scene.ClearAllParcelEnviroments();
+            }
+
             TriggerEstateInfoChange();
 
             sendDetailedEstateData(remoteClient, invoice);
@@ -1590,6 +1592,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             bool alloVoiceChat, bool overridePublicAccess,
             bool allowEnviromentOverride)
         {
+            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
 
             Scene.RegionInfo.EstateSettings.PublicAccess = externallyVisible;
             Scene.RegionInfo.EstateSettings.AllowDirectTeleport = allowDirectTeleport;
@@ -1603,6 +1606,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = allowEnviromentOverride;
 
             Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
+            if(lastallowEnvOvr && !allowEnviromentOverride)
+                Scene.ClearAllParcelEnviroments();
+
             TriggerEstateInfoChange();
 
             return true;
