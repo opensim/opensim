@@ -172,6 +172,8 @@ namespace OpenSim.Framework
 
         void SetParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void SetSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
+        
+        void StoreEnviroment(ViewerEnviroment VEnv);
 
         /// <summary>
         /// Set the media url for this land parcel

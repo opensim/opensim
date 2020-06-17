@@ -1981,5 +1981,19 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (delete.Count > 0)
                 m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
         }
+
+        public void StoreEnviroment(ViewerEnviroment VEnv)
+        {
+            LandData.Enviroment = VEnv;
+            if (VEnv == null)
+                LandData.EnviromentVersion = -1;
+            else
+            {
+                ++LandData.EnviromentVersion;
+                VEnv.version = LandData.EnviromentVersion;
+            }
+            m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
+            SendLandUpdateToAvatarsOverMe();
+        }
     }
 }

@@ -178,7 +178,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             dispList.AddRow("Restrict pushing", rs.RestrictPushing);
             dispList.AddRow("Fixed sun", rs.FixedSun);
             dispList.AddRow("Sun position", rs.SunPosition);
-            dispList.AddRow("Sun vector", rs.SunVector);
             dispList.AddRow("Use estate sun", rs.UseEstateSun);
             dispList.AddRow("Telehub UUID", rs.TelehubObject);
             dispList.AddRow("Terrain lower limit", string.Format("{0} m", rs.TerrainLowerLimit));
