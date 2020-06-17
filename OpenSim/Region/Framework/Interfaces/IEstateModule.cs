@@ -68,9 +68,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Returns whether the transfer ID is being used for a terrain transfer.
         /// </summary>
         bool IsTerrainXfer(ulong xferID);
-        bool handleEstateChangeInfoCap(string estateName, UUID invoice, int sunHour, bool sunFixed,
-        bool externallyVisible, bool allowDirectTeleport, bool denyAnonymous, bool denyAgeUnverified,
-        bool alloVoiceChat, bool overridePublicAccess, bool allowEnviromentOverride);
+        bool handleEstateChangeInfoCap(string estateName, UUID invoice,
+            bool externallyVisible, bool allowDirectTeleport, bool denyAnonymous, bool denyAgeUnverified,
+            bool alloVoiceChat, bool overridePublicAccess, bool allowEnviromentOverride);
         void HandleRegionInfoRequest(IClientAPI remote_client);
     }
 }
