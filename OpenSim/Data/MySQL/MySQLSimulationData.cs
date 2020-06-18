@@ -35,6 +35,7 @@ using System.Threading;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -824,7 +825,7 @@ namespace OpenSim.Data.MySQL
                             "UserLookAtX, UserLookAtY, UserLookAtZ, " +
                             "AuthbuyerID, OtherCleanTime, Dwell, MediaType, MediaDescription, " +
                             "MediaSize, MediaLoop, ObscureMusic, ObscureMedia, " +
-                            "SeeAVs, AnyAVSounds, GroupAVSounds, enviroment) values (" +
+                            "SeeAVs, AnyAVSounds, GroupAVSounds, environment) values (" +
                             "?UUID, ?RegionUUID, " +
                             "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
                             "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
@@ -836,7 +837,7 @@ namespace OpenSim.Data.MySQL
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
                             "?AuthbuyerID, ?OtherCleanTime, ?Dwell, ?MediaType, ?MediaDescription, "+
                             "CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia, " +
-                            "?SeeAVs, ?AnyAVSounds, ?GroupAVSounds, ?enviroment)";
+                            "?SeeAVs, ?AnyAVSounds, ?GroupAVSounds, ?environment)";
 
                         FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
 
@@ -1407,6 +1408,8 @@ namespace OpenSim.Data.MySQL
 
             if (!(row["cacheID"] is DBNull))
                 newSettings.CacheID = DBGuid.FromDB(row["cacheID"]);
+
+
             return newSettings;
         }
 
@@ -1490,33 +1493,33 @@ namespace OpenSim.Data.MySQL
             if (!(row["GroupAVSounds"] is System.DBNull))
                 newData.GroupAVSounds = Convert.ToInt32(row["GroupAVSounds"]) != 0 ? true : false;
 
-            if (row["enviroment"] is DBNull)
+            if (row["environment"] is DBNull)
             {
-                newData.Enviroment = null;
-                newData.EnviromentVersion = -1;
+                newData.Environment = null;
+                newData.EnvironmentVersion = -1;
             }
             else
             {
-                string env = (string)row["enviroment"];
+                string env = (string)row["environment"];
                 if(string.IsNullOrEmpty(env))
                 {
-                    newData.Enviroment = null;
-                    newData.EnviromentVersion = -1;
+                    newData.Environment = null;
+                    newData.EnvironmentVersion = -1;
                 }
                 else
                 {
                     try
                     {
                         OSD oenv = OSDParser.Deserialize(env);
-                        ViewerEnviroment VEnv = new ViewerEnviroment();
+                        ViewerEnvironment VEnv = new ViewerEnvironment();
                         VEnv.FromOSD(oenv);
-                        newData.Enviroment = VEnv;
-                        newData.EnviromentVersion = VEnv.version;
+                        newData.Environment = VEnv;
+                        newData.EnvironmentVersion = VEnv.version;
                     }
                     catch
                     {
-                        newData.Enviroment = null;
-                        newData.EnviromentVersion = -1;
+                        newData.Environment = null;
+                        newData.EnvironmentVersion = -1;
                     }
                 }
             }
@@ -1866,19 +1869,19 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("SeeAVs", land.SeeAVs ? 1 : 0);
             cmd.Parameters.AddWithValue("AnyAVSounds", land.AnyAVSounds ? 1 : 0);
             cmd.Parameters.AddWithValue("GroupAVSounds", land.GroupAVSounds ? 1 : 0);
-            if (land.Enviroment == null)
-                cmd.Parameters.AddWithValue("enviroment", "");
+            if (land.Environment == null)
+                cmd.Parameters.AddWithValue("environment", "");
             else
             {
                 try
                 {
-                    OSD oenv = land.Enviroment.ToOSD();
+                    OSD oenv = land.Environment.ToOSD();
                     string env = OSDParser.SerializeLLSDNotationFull(oenv);
-                    cmd.Parameters.AddWithValue("enviroment", env);
+                    cmd.Parameters.AddWithValue("environment", env);
                 }
                 catch
                 {
-                    cmd.Parameters.AddWithValue("enviroment", "");
+                    cmd.Parameters.AddWithValue("environment", "");
                 }
             }
         }

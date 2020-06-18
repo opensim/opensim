@@ -732,10 +732,10 @@ namespace OpenSim.Framework
             }
         }
 
-        public int EnviromentVersion = -1;
+        public int EnvironmentVersion = -1;
 
         [XmlIgnore] //this needs to be added by hand
-        public ViewerEnviroment Enviroment { get; set;}
+        public ViewerEnvironment Environment { get; set;}
 
         public LandData()
         {
@@ -744,8 +744,8 @@ namespace OpenSim.Framework
             AnyAVSounds = true;
             GroupAVSounds = true;
             LastDwellTimeMS = Util.GetTimeStampMS();
-            EnviromentVersion = -1;
-            Enviroment = null;
+            EnvironmentVersion = -1;
+            Environment = null;
         }
 
         /// <summary>
@@ -811,15 +811,15 @@ namespace OpenSim.Framework
                 landData._parcelAccessList.Add(newEntry);
             }
 
-            if (Enviroment == null)
+            if (Environment == null)
             {
-                landData.Enviroment = null;
-                landData.EnviromentVersion = -1;
+                landData.Environment = null;
+                landData.EnvironmentVersion = -1;
             }
             else
             {
-                landData.Enviroment = Enviroment.Clone();
-                landData.EnviromentVersion = EnviromentVersion;
+                landData.Environment = Environment.Clone();
+                landData.EnvironmentVersion = EnvironmentVersion;
             }
 
             return landData;

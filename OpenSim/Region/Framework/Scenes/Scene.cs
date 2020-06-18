@@ -5896,7 +5896,7 @@ Environment.Exit(1);
             IEnvironmentModule envM = RequestModuleInterface<IEnvironmentModule>();
             if(LandChannel != null && envM != null)
             {
-                LandChannel.ClearAllEnviroments();
+                LandChannel.ClearAllEnvironments();
                 envM.WindlightRefresh(1,false);
             }
         }

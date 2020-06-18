@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private IAssetService m_assetService;
         private ILandChannel m_landChannel;
 
-        private static ViewerEnviroment m_DefaultEnv = null;
+        private static ViewerEnvironment m_DefaultEnv = null;
         private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";
 
         private int m_regionEnvVersion = -1;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     try
                     {
                         OSD oenv = OSDParser.Deserialize(envData);
-                        m_DefaultEnv = new ViewerEnviroment();
+                        m_DefaultEnv = new ViewerEnvironment();
                         m_DefaultEnv.CycleFromOSD(oenv);
                     }
                     catch ( Exception e)
@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
             if (m_DefaultEnv == null)
-                m_DefaultEnv = new ViewerEnviroment();
+                m_DefaultEnv = new ViewerEnvironment();
 
             string senv = scene.SimulationDataService.LoadRegionEnvironmentSettings(scene.RegionInfo.RegionID);
             if(!string.IsNullOrEmpty(senv))
@@ -176,7 +176,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 try
                 {
                     OSD oenv = OSDParser.Deserialize(senv);
-                    ViewerEnviroment VEnv = new ViewerEnviroment();
+                    ViewerEnvironment VEnv = new ViewerEnvironment();
                     if(oenv is OSDArray)
                         VEnv.FromWLOSD(oenv);
                     else
@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         #endregion
 
         #region IEnvironmentModule
-        private void StoreOnRegion(ViewerEnviroment VEnv)
+        private void StoreOnRegion(ViewerEnvironment VEnv)
         {
             try
             {
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             if (!Enabled)
                 return;
 
-            ViewerEnviroment VEnv = new ViewerEnviroment();
+            ViewerEnvironment VEnv = new ViewerEnvironment();
             VEnv.FromLightShare(ls);
 
             StoreOnRegion(VEnv);
@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             RegionLightShareData ls = null;
             try
             {
-                ViewerEnviroment VEnv = m_scene.RegionEnviroment;
+                ViewerEnvironment VEnv = m_scene.RegionEnviroment;
                 if(VEnv == null)
                     return new RegionLightShareData();
                 ls = VEnv.ToLightShare();
@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 ILandObject land = m_scene.LandChannel.GetLandObject(parcel);
                 if (land != null && land.LandData != null)
                 {
-                    land.StoreEnviroment(null);
+                    land.StoreEnvironment(null);
                     WindlightRefresh(0, false);
                 }
             }
@@ -422,14 +422,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            ViewerEnviroment VEnv;
+            ViewerEnvironment VEnv;
             if (parcel == -1)
                 VEnv = GetRegionEnviroment();
             else
             {
                 ILandObject land = m_scene.LandChannel.GetLandObject(parcel);
-                if (land != null && land.LandData != null && land.LandData.Enviroment != null)
-                    VEnv = land.LandData.Enviroment;
+                if (land != null && land.LandData != null && land.LandData.Environment != null)
+                    VEnv = land.LandData.Environment;
                 else
                     VEnv = GetRegionEnviroment();
             }
@@ -496,7 +496,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            ViewerEnviroment VEnv = m_scene.RegionEnviroment;
+            ViewerEnvironment VEnv = m_scene.RegionEnviroment;
             ILandObject lchannel;
             if (parcel == -1)
             {
@@ -522,7 +522,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     message = "No permission to change parcel enviroment";
                     goto Error;
                 }
-                VEnv = lchannel.LandData.Enviroment;
+                VEnv = lchannel.LandData.Environment;
             }
 
             try
@@ -567,7 +567,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                         }
                         else
                         {
-                            lchannel.StoreEnviroment(VEnv);
+                            lchannel.StoreEnvironment(VEnv);
                             m_log.InfoFormat("[{0}]: ExtEnviroment parcel {1} of region {2}  settings from agentID {3} saved",
                                 Name, parcel, caps.RegionName, agentID);
                         }
@@ -578,7 +578,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
                 else if (req is OSDArray)
                 {
-                    VEnv = new ViewerEnviroment();
+                    VEnv = new ViewerEnvironment();
                     VEnv.FromWLOSD(req);
                     StoreOnRegion(VEnv);
                     success = true;
@@ -633,10 +633,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 return;
             }
 
-            ViewerEnviroment VEnv;
+            ViewerEnvironment VEnv;
             ILandObject land = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
-            if (land != null && land.LandData != null && land.LandData.Enviroment != null)
-                VEnv = land.LandData.Enviroment;
+            if (land != null && land.LandData != null && land.LandData.Environment != null)
+                VEnv = land.LandData.Environment;
             else
                 VEnv = GetRegionEnviroment();
 
@@ -681,14 +681,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
 
             ILandObject land = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
-            if (land != null && land.LandData != null && land.LandData.Enviroment != null)
+            if (land != null && land.LandData != null && land.LandData.Environment != null)
             {
                 fail_reason = "The parcel where you are has own enviroment set. You need a updated viewer to change enviroment";
                 goto Error;
             }
             try
             {
-                ViewerEnviroment VEnv = new ViewerEnviroment();
+                ViewerEnvironment VEnv = new ViewerEnvironment();
                 OSD env = OSDParser.Deserialize(request.InputStream);
                 VEnv.FromWLOSD(env);
                 StoreOnRegion(VEnv);
@@ -848,7 +848,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             if(m_scene.GetNumberOfClients() == 0)
                 return;
 
-            ViewerEnviroment env = GetRegionEnviroment();
+            ViewerEnvironment env = GetRegionEnviroment();
             float dayFrac = GetDayFractionTime(env);
 
             float wldayFrac = dayFrac;
@@ -889,13 +889,13 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public ViewerEnviroment GetRegionEnviroment()
+        public ViewerEnvironment GetRegionEnviroment()
         {
             return m_scene.RegionEnviroment == null ? m_DefaultEnv : m_scene.RegionEnviroment;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public float GetDayFractionTime(ViewerEnviroment env)
+        public float GetDayFractionTime(ViewerEnvironment env)
         {
             double dayfrac = env.DayLength;
             dayfrac = ((Util.UnixTimeSinceEpochSecs() + env.DayOffset) % dayfrac) / dayfrac;
@@ -909,39 +909,39 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public int GetDayLength(ViewerEnviroment env)
+        public int GetDayLength(ViewerEnvironment env)
         {
             return env.DayLength;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public int GetDayOffset(ViewerEnviroment env)
+        public int GetDayOffset(ViewerEnvironment env)
         {
             return env.DayOffset;
         }
 
-        public Vector3 GetSunDir(ViewerEnviroment env, float altitude)
+        public Vector3 GetSunDir(ViewerEnvironment env, float altitude)
         {
             env.getPositions(altitude, GetDayFractionTime(env), out Vector3 sundir, out Vector3 moondir,
                 out Quaternion sunrot, out Quaternion moonrot);
             return sundir;
         }
 
-        public Quaternion GetSunRot(ViewerEnviroment env, float altitude)
+        public Quaternion GetSunRot(ViewerEnvironment env, float altitude)
         {
             env.getPositions(altitude, GetDayFractionTime(env), out Vector3 sundir, out Vector3 moondir,
                 out Quaternion sunrot, out Quaternion moonrot);
             return sunrot;
         }
 
-        public Vector3 GetMoonDir(ViewerEnviroment env, float altitude)
+        public Vector3 GetMoonDir(ViewerEnvironment env, float altitude)
         {
             env.getPositions(altitude, GetDayFractionTime(env), out Vector3 sundir, out Vector3 moondir,
                 out Quaternion sunrot, out Quaternion moonrot);
             return moondir;
         }
 
-        public Quaternion GetMoonRot(ViewerEnviroment env, float altitude)
+        public Quaternion GetMoonRot(ViewerEnvironment env, float altitude)
         {
             env.getPositions(altitude, GetDayFractionTime(env), out Vector3 sundir, out Vector3 moondir,
                 out Quaternion sunrot, out Quaternion moonrot);

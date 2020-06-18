@@ -1982,18 +1982,18 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
         }
 
-        public void StoreEnviroment(ViewerEnviroment VEnv)
+        public void StoreEnvironment(ViewerEnvironment VEnv)
         {
-            int lastVersion = LandData.EnviromentVersion;
-            LandData.Enviroment = VEnv;
+            int lastVersion = LandData.EnvironmentVersion;
+            LandData.Environment = VEnv;
             if (VEnv == null)
-                LandData.EnviromentVersion = -1;
+                LandData.EnvironmentVersion = -1;
             else
             {
-                ++LandData.EnviromentVersion;
-                VEnv.version = LandData.EnviromentVersion;
+                ++LandData.EnvironmentVersion;
+                VEnv.version = LandData.EnvironmentVersion;
             }
-            if(lastVersion != LandData.EnviromentVersion)
+            if(lastVersion != LandData.EnvironmentVersion)
             {
                 m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
                 SendLandUpdateToAvatarsOverMe();

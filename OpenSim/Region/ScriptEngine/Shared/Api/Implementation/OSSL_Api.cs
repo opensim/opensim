@@ -1549,8 +1549,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="sunHour">The "Sun Hour" that is desired, 0...24, with 0 just after SunRise</param>
         public void osSetEstateSunSettings(bool sunFixed, double sunHour)
         {
+            /*
             CheckThreatLevel(ThreatLevel.High, "osSetEstateSunSettings");
-
+            
             while (sunHour > 24.0)
                 sunHour -= 24.0;
 
@@ -1563,6 +1564,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.EstateDataService.StoreEstateSettings(World.RegionInfo.EstateSettings);
 
             World.EventManager.TriggerEstateToolsSunUpdate(World.RegionInfo.RegionHandle);
+            */
         }
 
         /// <summary>

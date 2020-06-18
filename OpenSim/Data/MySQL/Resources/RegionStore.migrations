@@ -540,13 +540,13 @@ ALTER TABLE `prims` ADD COLUMN `pseudocrc` int DEFAULT '0';
 ALTER TABLE `regionsettings` ADD COLUMN `cacheID` char(36) DEFAULT NULL;
 COMMIT;
 
-:VERSION 62         #----- increase size of enviroment settings
+:VERSION 62         #----- increase size of environment settings
 BEGIN;
 ALTER TABLE `regionenvironment` MODIFY `llsd_settings` MEDIUMTEXT;
 COMMIT;
 
-:VERSION 63         #----- parcel enviroment store
+:VERSION 63         #----- parcel environment store
 BEGIN;
-ALTER TABLE `land` ADD COLUMN `enviroment` MEDIUMTEXT default NULL;
+ALTER TABLE `land` ADD COLUMN `environment` MEDIUMTEXT default NULL;
 COMMIT;
 

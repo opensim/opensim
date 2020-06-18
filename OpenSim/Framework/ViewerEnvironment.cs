@@ -260,7 +260,7 @@ namespace OpenSim.Framework
 
             sunlight_color = map["sunlight_color"];
 
-            ViewerEnviroment.convertFromAngles(this, map["sun_angle"], map["east_angle"]);
+            ViewerEnvironment.convertFromAngles(this, map["sun_angle"], map["east_angle"]);
             Name = name;
         }
 
@@ -271,7 +271,7 @@ namespace OpenSim.Framework
             float sun_angle;
             float east_angle;
             Vector4 lightnorm;
-            ViewerEnviroment.convertToAngles(this, out sun_angle, out east_angle, out lightnorm);
+            ViewerEnvironment.convertToAngles(this, out sun_angle, out east_angle, out lightnorm);
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);
             map["blue_density"] = new Vector4(blue_density.X, blue_density.Y, blue_density.Z, 1);
             map["blue_horizon"] = new Vector4(blue_horizon.X, blue_horizon.Y, blue_horizon.Z, 1);
@@ -891,7 +891,7 @@ namespace OpenSim.Framework
         }
     }
 
-    public class ViewerEnviroment
+    public class ViewerEnvironment
     {
         DayCycle Cycle = new DayCycle();
         public int DayLength = 14400;
@@ -1210,11 +1210,11 @@ namespace OpenSim.Framework
             return env;
         }
 
-        public ViewerEnviroment Clone()
+        public ViewerEnvironment Clone()
         {
             // im lazy need to proper clone later
             OSD osd = ToOSD();
-            ViewerEnviroment VEnv = new ViewerEnviroment();
+            ViewerEnvironment VEnv = new ViewerEnvironment();
             VEnv.FromOSD(osd);
             return VEnv;
         }

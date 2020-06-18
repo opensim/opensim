@@ -255,11 +255,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        public void ClearAllEnviroments()
+        public void ClearAllEnvironments()
         {
             List<ILandObject> parcels = AllParcels();
             for(int i=0; i< parcels.Count; ++i)
-                parcels[i].StoreEnviroment(null);
+                parcels[i].StoreEnvironment(null);
         }
         #endregion
     }

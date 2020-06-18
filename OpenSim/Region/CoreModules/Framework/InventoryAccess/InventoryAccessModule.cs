@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
-            if (transactionID != UUID.Zero)
+            if (transactionID != UUID.Zero && assetType != (byte)AssetType.Settings)
             {
                 IAgentAssetTransactions agentTransactions = m_Scene.AgentTransactionsModule;
                 if (agentTransactions != null)
@@ -228,13 +228,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
                 if(assetType == (byte)AssetType.Settings)
                 {
-                    /* this is wrong subtype may need to be checked
                     if(data == null)
                     {
                         IEnvironmentModule envModule = m_Scene.RequestModuleInterface<IEnvironmentModule>();
                         if(envModule == null)
                             return;
-                        data = envModule.GetDefaultAssetData(name);
+                        data = envModule.GetDefaultAssetData(subType);
                         if(data == null)
                         {
                             m_log.ErrorFormat(
@@ -242,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             return;
                         }
                     }
-                    */
+
                     flags = subType;
                 }
                 else if( assetType == (byte)AssetType.Clothing ||
@@ -1057,14 +1056,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (!attachment)
                 {
-                    // If it's rezzed in world, select it. Much easier to
-                    // find small items.
-                    //
-                    foreach (SceneObjectPart part in group.Parts)
+                    if(RezSelected)
                     {
-                        part.CreateSelected = true;
+                        group.IsSelected = true;
+                        group.RootPart.CreateSelected = true;
                     }
-
                     if (rootPart.Shape.PCode == (byte)PCode.Prim)
                         group.ClearPartAttachmentData();
                 }
