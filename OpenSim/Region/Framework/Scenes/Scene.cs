@@ -2123,16 +2123,16 @@ namespace OpenSim.Region.Framework.Scenes
                 SimulationDataService.StoreBakedTerrain(Bakedmap.GetTerrainData(), RegionInfo.RegionID);
         }
 
-        private ViewerEnviroment m_regionEnviroment;
-        public ViewerEnviroment RegionEnviroment
+        private ViewerEnvironment m_regionEnvironment;
+        public ViewerEnvironment RegionEnvironment
         {
             get
             {
-                return m_regionEnviroment;
+                return m_regionEnvironment;
             }
             set
             {
-                m_regionEnviroment = value;
+                m_regionEnvironment = value;
             }
         }
 
