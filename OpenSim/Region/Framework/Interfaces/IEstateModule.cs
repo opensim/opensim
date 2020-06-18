@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool IsTerrainXfer(ulong xferID);
         bool handleEstateChangeInfoCap(string estateName, UUID invoice,
             bool externallyVisible, bool allowDirectTeleport, bool denyAnonymous, bool denyAgeUnverified,
-            bool alloVoiceChat, bool overridePublicAccess, bool allowEnviromentOverride);
+            bool alloVoiceChat, bool overridePublicAccess, bool allowEnvironmentOverride);
         void HandleRegionInfoRequest(IClientAPI remote_client);
     }
 }

@@ -5884,14 +5884,14 @@ Environment.Exit(1);
             IEstateDataService estateDataService = EstateDataService;
             if (estateDataService != null)
             {
-                bool parcelEnvOvr = RegionInfo.EstateSettings.AllowEnviromentOverride;
+                bool parcelEnvOvr = RegionInfo.EstateSettings.AllowEnvironmentOverride;
                 RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
-                if(parcelEnvOvr && !RegionInfo.EstateSettings.AllowEnviromentOverride)
-                    ClearAllParcelEnviroments();
+                if(parcelEnvOvr && !RegionInfo.EstateSettings.AllowEnvironmentOverride)
+                    ClearAllParcelEnvironments();
             }
         }
 
-        public void ClearAllParcelEnviroments()
+        public void ClearAllParcelEnvironments()
         {
             IEnvironmentModule envM = RequestModuleInterface<IEnvironmentModule>();
             if(LandChannel != null && envM != null)

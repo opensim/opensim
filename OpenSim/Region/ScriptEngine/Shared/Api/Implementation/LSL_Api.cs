@@ -17487,7 +17487,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return 14400;
 
-            return m_envModule.GetRegionDayLength();
+            return m_envModule.GetDayLength(m_host.GetWorldPosition());
         }
 
         public LSL_Integer llGetRegionDayLength()
@@ -17507,7 +17507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return 57600;
 
-            return m_envModule.GetRegionDayOffset();
+            return m_envModule.GetDayOffset(m_host.GetWorldPosition());
         }
 
         public LSL_Integer llGetRegionDayOffset()
@@ -17527,8 +17527,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return Vector3.Zero;
 
-            float z = m_host.GetWorldPosition().Z;
-            return m_envModule.GetRegionSunDir(z);
+            return m_envModule.GetSunDir(m_host.GetWorldPosition());
         }
 
         public LSL_Vector llGetRegionSunDirection()
@@ -17549,8 +17548,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return Vector3.Zero;
 
-            float z = m_host.GetWorldPosition().Z;
-            return m_envModule.GetRegionMoonDir(z);
+            return m_envModule.GetMoonDir(m_host.GetWorldPosition());
         }
 
         public LSL_Vector llGetRegionMoonDirection()
@@ -17571,8 +17569,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return Quaternion.Identity;
 
-            float z = m_host.GetWorldPosition().Z;
-            return m_envModule.GetRegionSunRot(z);
+            return m_envModule.GetSunRot(m_host.GetWorldPosition());
         }
 
         public LSL_Rotation llGetRegionSunRotation()
@@ -17593,8 +17590,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_envModule == null)
                 return Quaternion.Identity;
 
-            float z = m_host.GetWorldPosition().Z;
-            return m_envModule.GetRegionMoonRot(z);
+            return m_envModule.GetMoonRot(m_host.GetWorldPosition());
         }
 
         public LSL_Rotation llGetRegionMoonRotation()

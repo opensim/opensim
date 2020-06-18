@@ -43,7 +43,13 @@ namespace OpenSim.Region.Framework.Interfaces
         int GetRegionDayOffset();
         Vector3 GetRegionSunDir(float altitude);
         Quaternion GetRegionSunRot(float altitude);
-        Vector3    GetRegionMoonDir(float altitude);
+        Vector3 GetRegionMoonDir(float altitude);
         Quaternion GetRegionMoonRot(float altitude);
+        int GetDayLength(Vector3 pos);
+        int GetDayOffset(Vector3 pos);
+        Vector3 GetSunDir(Vector3 pos);
+        Quaternion GetSunRot(Vector3 pos);
+        Vector3 GetMoonDir(Vector3 pos);
+        Quaternion GetMoonRot(Vector3 pos);
     }
 }
