@@ -544,3 +544,9 @@ COMMIT;
 BEGIN;
 ALTER TABLE `regionenvironment` MODIFY `llsd_settings` MEDIUMTEXT;
 COMMIT;
+
+:VERSION 63         #----- parcel enviroment store
+BEGIN;
+ALTER TABLE `land` ADD COLUMN `enviroment` MEDIUMTEXT default NULL;
+COMMIT;
+
