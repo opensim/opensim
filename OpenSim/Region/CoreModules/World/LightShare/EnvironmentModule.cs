@@ -181,19 +181,19 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                         VEnv.FromWLOSD(oenv);
                     else
                         VEnv.FromOSD(oenv);
-                    scene.RegionEnviroment = VEnv;
+                    scene.RegionEnvironment = VEnv;
                     m_regionEnvVersion = VEnv.version;
                 }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[Enviroment {0}] failed to load initial enviroment {1}", m_scene.Name, e.Message);
-                    scene.RegionEnviroment = null;
+                    scene.RegionEnvironment = null;
                     m_regionEnvVersion = -1;
                 }
             }
             else
             {
-                scene.RegionEnviroment = null;
+                scene.RegionEnvironment = null;
                 m_regionEnvVersion = -1;
             }
 
@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 if (VEnv == null)
                 {
                     m_scene.SimulationDataService.RemoveRegionEnvironmentSettings(regionID);
-                    m_scene.RegionEnviroment = null;
+                    m_scene.RegionEnvironment = null;
                     m_regionEnvVersion = -1;
                 }
                 else
@@ -232,7 +232,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     OSD env = VEnv.ToOSD();
                     //m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDXmlString(env));
                     m_scene.SimulationDataService.StoreRegionEnvironmentSettings(regionID, OSDParser.SerializeLLSDNotationFull(env));
-                    m_scene.RegionEnviroment = VEnv;
+                    m_scene.RegionEnvironment = VEnv;
                 }
                 m_framets = 0;
                 UpdateEnvTime();
@@ -297,7 +297,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             RegionLightShareData ls = null;
             try
             {
-                ViewerEnvironment VEnv = m_scene.RegionEnviroment;
+                ViewerEnvironment VEnv = m_scene.RegionEnvironment;
                 if(VEnv == null)
                     return new RegionLightShareData();
                 ls = VEnv.ToLightShare();
@@ -496,7 +496,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            ViewerEnvironment VEnv = m_scene.RegionEnviroment;
+            ViewerEnvironment VEnv = m_scene.RegionEnvironment;
             ILandObject lchannel;
             if (parcel == -1)
             {
@@ -505,7 +505,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     message = "Insufficient estate permissions, settings has not been saved.";
                     goto Error;
                 }
-                VEnv = m_scene.RegionEnviroment;
+                VEnv = m_scene.RegionEnvironment;
                 lchannel = null;
             }
             else
@@ -765,7 +765,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         public List<byte[]> MakeLightShareData()
         {
-            if(m_scene.RegionEnviroment == null)
+            if(m_scene.RegionEnvironment == null)
                 return null;
 
             RegionLightShareData wl = ToLightShare();
@@ -868,6 +868,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             float eepDayFrac = dayFrac * Utils.TWO_PI;
 
+            //m_log.DebugFormat("{0} {1} {2} {3}", dayFrac, eepDayFrac, wldayFrac, Util.UnixTimeSinceEpoch_uS());
+
             m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
             {
                 if(sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
@@ -891,7 +893,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public ViewerEnvironment GetRegionEnviroment()
         {
-            return m_scene.RegionEnviroment == null ? m_DefaultEnv : m_scene.RegionEnviroment;
+            return m_scene.RegionEnvironment == null ? m_DefaultEnv : m_scene.RegionEnvironment;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
