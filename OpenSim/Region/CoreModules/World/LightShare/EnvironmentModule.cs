@@ -491,7 +491,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
                 if (track != -1)
                 {
-                    message = "Environment Track not suported";
+                    message = "Environment Track not supported";
                     goto Error;
                 }
             }
@@ -517,7 +517,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     goto Error;
                 }
 
-                if (!m_scene.Permissions.CanEditParcelProperties(agentID, lchannel, 0, true)) // wrong
+                if (!m_scene.Permissions.CanEditParcelProperties(agentID, lchannel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true)) // wrong
                 {
                     message = "No permission to change parcel environment";
                     goto Error;

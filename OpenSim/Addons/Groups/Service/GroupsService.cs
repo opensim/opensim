@@ -68,6 +68,7 @@ namespace OpenSim.Groups
             GroupPowers.LandDeed |
             GroupPowers.LandDivideJoin |
             GroupPowers.LandEdit |
+            GroupPowers.AllowEnvironment |
             GroupPowers.LandEjectAndFreeze |
             GroupPowers.LandGardening |
             GroupPowers.LandManageAllowed |
