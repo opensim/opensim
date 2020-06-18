@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
             if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
-                flags |= RegionFlags.AllowEnviromentOverride;
+                flags |= RegionFlags.AllowEnvironmentOverride;
 
             // TODO: SkipUpdateInterestList
 
@@ -1707,7 +1707,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.DenyAgeUnverified;
 
             if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
-                flags |= RegionFlags.AllowEnviromentOverride;
+                flags |= RegionFlags.AllowEnvironmentOverride;
 
             return (uint)flags;
         }

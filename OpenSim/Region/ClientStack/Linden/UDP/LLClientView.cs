@@ -868,7 +868,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 flags |= RegionFlags.DenyAgeUnverified;
             
             if(Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
-                flags |= RegionFlags.AllowEnviromentOverride;
+                flags |= RegionFlags.AllowEnvironmentOverride;
             return (uint)flags;
         }
 
@@ -6564,7 +6564,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
-            bool allowenvovr = (regionFlags & (uint)RegionFlags.AllowEnviromentOverride) != 0;
+            bool allowenvovr = (regionFlags & (uint)RegionFlags.AllowEnvironmentOverride) != 0;
             LLSDxmlEncode.AddArrayAndMap("ParcelEnvironmentBlock", sb);
             LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", allowenvovr ? -1: landData.EnvironmentVersion, sb);
             LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", allowenvovr, sb);
