@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
-            if (Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+            if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
                 flags |= RegionFlags.AllowEnviromentOverride;
 
             // TODO: SkipUpdateInterestList
@@ -1523,7 +1523,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
         {
-            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
+            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride;
 
             if ((parms1 & 0x00008000) != 0)
                 Scene.RegionInfo.EstateSettings.PublicAccess = true;
@@ -1537,9 +1537,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 Scene.RegionInfo.EstateSettings.TaxFree = true;
 
             if ((parms1 & 0x00000200) != 0)
-                Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = true;
+                Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride = true;
             else
-                Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = false;
+                Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride = false;
 
             if ((parms1 & 0x00100000) != 0)
                 Scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
@@ -1575,9 +1575,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
 
-            if (lastallowEnvOvr && Scene.LandChannel != null && !Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+            if (lastallowEnvOvr && Scene.LandChannel != null && !Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
             {
-                Scene.ClearAllParcelEnviroments();
+                Scene.ClearAllParcelEnvironments();
             }
 
             TriggerEstateInfoChange();
@@ -1590,9 +1590,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             bool allowDirectTeleport,
             bool denyAnonymous, bool denyAgeUnverified,
             bool alloVoiceChat, bool overridePublicAccess,
-            bool allowEnviromentOverride)
+            bool allowEnvironmentOverride)
         {
-            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnviromentOverride;
+            bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride;
 
             Scene.RegionInfo.EstateSettings.PublicAccess = externallyVisible;
             Scene.RegionInfo.EstateSettings.AllowDirectTeleport = allowDirectTeleport;
@@ -1603,11 +1603,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
             // taxfree is now !AllowAccessOverride
             Scene.RegionInfo.EstateSettings.TaxFree = overridePublicAccess;
             Scene.RegionInfo.EstateSettings.DenyMinors = denyAgeUnverified;
-            Scene.RegionInfo.EstateSettings.AllowEnviromentOverride = allowEnviromentOverride;
+            Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride = allowEnvironmentOverride;
 
             Scene.EstateDataService.StoreEstateSettings(Scene.RegionInfo.EstateSettings);
-            if(lastallowEnvOvr && !allowEnviromentOverride)
-                Scene.ClearAllParcelEnviroments();
+            if(lastallowEnvOvr && !allowEnvironmentOverride)
+                Scene.ClearAllParcelEnvironments();
 
             TriggerEstateInfoChange();
 
@@ -1706,7 +1706,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.DenyMinors)
                 flags |= RegionFlags.DenyAgeUnverified;
 
-            if (Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+            if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
                 flags |= RegionFlags.AllowEnviromentOverride;
 
             return (uint)flags;

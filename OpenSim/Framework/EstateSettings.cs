@@ -240,8 +240,8 @@ namespace OpenSim.Framework
             set { m_DenyMinors = value; }
         }
 
-        private bool m_AllowEnviromentOverride = false;
-        public bool AllowEnviromentOverride
+        private bool m_AllowEnviromentOverride = false; //keep the mispell so not to go change the dbs
+        public bool AllowEnvironmentOverride
         {
             get { return m_AllowEnviromentOverride; }
             set { m_AllowEnviromentOverride = value; }

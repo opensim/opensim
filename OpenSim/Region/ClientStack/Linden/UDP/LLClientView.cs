@@ -867,7 +867,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (Scene.RegionInfo.EstateSettings.DenyMinors)
                 flags |= RegionFlags.DenyAgeUnverified;
             
-            if(Scene.RegionInfo.EstateSettings.AllowEnviromentOverride)
+            if(Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
                 flags |= RegionFlags.AllowEnviromentOverride;
             return (uint)flags;
         }
