@@ -85,7 +85,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         public int EnvironmentVersion = -1;
-        private ViewerEnvironment m_environment;
+        private ViewerEnvironment m_environment = null;
         public ViewerEnvironment Environment
         {
             get
