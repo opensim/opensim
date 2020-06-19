@@ -483,10 +483,13 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     VEnv = land.LandData.Environment;
                 else
                 {
+                    /* not working for some reason
                     OSD def = ViewerEnvironment.DefaultToOSD(regionID, parcel);
                     httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(def);
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     return;
+                    */
+                    VEnv = GetRegionEnvironment();
                 }
             }
 

@@ -5886,9 +5886,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String environment)
         {
             m_host.AddScriptLPS(1);
-//            if(!string.IsNullOrEmpty(CheckThreatLevelTest(ThreatLevel.Moderate, "osReplaceAgentEnvironment")))
-//                return -2;
-
+            if(!string.IsNullOrEmpty(CheckThreatLevelTest(ThreatLevel.Moderate, "osReplaceAgentEnvironment")))
+                return -2;
 
             if (!UUID.TryParse(agentkey, out UUID agentid))
                 return -4;
