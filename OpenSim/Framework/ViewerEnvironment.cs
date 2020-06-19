@@ -1179,18 +1179,19 @@ namespace OpenSim.Framework
             IsLegacy = false;
         }
 
-        public void CycleFromOSD(OSD osd)
+        public bool CycleFromOSD(OSD osd)
         {
             OSDMap map = osd as OSDMap;
             if (map == null)
-                return;
+                return false;
             if(!map.TryGetValue("type", out OSD tmp))
-                return;
+                return false;
             string type = tmp.AsString();
             if(type != "daycycle")
-                return;
+                return false;
             Cycle = new DayCycle();
             Cycle.FromOSD(map);
+            return true;
         }
 
         public OSD ToOSD()

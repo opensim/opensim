@@ -83,6 +83,31 @@ namespace OpenSim.Region.Framework.Scenes
         //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
         //        }
 
+
+        public int EnvironmentVersion = -1;
+        private ViewerEnvironment m_environment;
+        public ViewerEnvironment Environment
+        {
+            get
+            {
+                return m_environment;
+            }
+            set
+            {
+                m_environment = value;
+                if (value == null)
+                    EnvironmentVersion = -1;
+                else
+                {
+                    if(EnvironmentVersion <= 0)
+                        EnvironmentVersion = 0x7000000;
+                    else
+                        ++EnvironmentVersion;
+                    m_environment.version = EnvironmentVersion;
+                }
+            }
+        }
+
         public void TriggerScenePresenceUpdated()
         {
             if (m_scene != null)

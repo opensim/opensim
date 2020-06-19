@@ -5882,5 +5882,52 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             return m_host.ClearObjectAnimations();
         }
+
+        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String environment)
+        {
+            m_host.AddScriptLPS(1);
+//            if(!string.IsNullOrEmpty(CheckThreatLevelTest(ThreatLevel.Moderate, "osReplaceAgentEnvironment")))
+//                return -2;
+
+
+            if (!UUID.TryParse(agentkey, out UUID agentid))
+                return -4;
+
+            ScenePresence sp = World.GetScenePresence(agentid);
+            if(sp == null || sp.IsChildAgent || sp.IsNPC || sp.IsInTransit)
+                return -4;
+
+            if(string.IsNullOrEmpty(environment) || environment == UUID.Zero.ToString())
+            {
+                sp.Environment = null;
+                m_envModule.WindlightRefresh(sp, transition);
+                return 1;
+            }
+
+            UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, environment);
+            if (envID == UUID.Zero)
+                return -3;
+
+            AssetBase asset = World.AssetService.Get(envID.ToString());
+            if(asset == null || asset.Type != (byte)AssetType.Settings)
+                return -3;
+            // cant use stupid broken asset flags for subtype
+            try
+            {
+                OSD oenv = OSDParser.Deserialize(asset.Data);
+                ViewerEnvironment VEnv = m_envModule.GetRegionEnvironment().Clone();
+                if(!VEnv.CycleFromOSD(oenv))
+                    return -3;
+                sp.Environment = VEnv;
+                m_envModule.WindlightRefresh(sp, transition);
+            }
+            catch
+            {
+                sp.Environment = null;
+                m_envModule.WindlightRefresh(sp, transition);
+                return -9;
+            }
+            return 1;
+        }
     }
 }
