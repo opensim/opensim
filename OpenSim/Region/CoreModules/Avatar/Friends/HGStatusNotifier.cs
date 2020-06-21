@@ -40,7 +40,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (ids.Count == 0)
                         continue; // no one to notify. caller don't do this
 
-                    m_log.DebugFormat("[HG STATUS NOTIFIER]: Notifying {0} friends in {1}", ids.Count, kvp.Key);
+                    //m_log.DebugFormat("[HG STATUS NOTIFIER]: Notifying {0} friends in {1}", ids.Count, kvp.Key);
                     // ASSUMPTION: we assume that all users for one home domain
                     // have exactly the same set of service URLs.
                     // If this is ever not true, we need to change this.
