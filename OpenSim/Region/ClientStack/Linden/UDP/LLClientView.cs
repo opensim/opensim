@@ -6569,8 +6569,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(allowenvovr)
             {
                 ScenePresence sp = SceneAgent as ScenePresence;
-                if(sp != null && sp .EnvironmentVersion > 0)
-                    envVersion = sp.EnvironmentVersion;
+                if(sp != null && sp.EnvironmentVersion > 0)
+                    envVersion = -1;
                 else
                     envVersion = landData.EnvironmentVersion;
             }

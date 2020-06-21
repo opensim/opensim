@@ -296,16 +296,15 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             if ((vflags & 0x8000) != 0)
             {
                 ScenePresence sp = isp as ScenePresence;
-                if(sp.Environment != null)
-                    m_estateModule.HandleRegionInfoRequest(client);
-                else
+                ILandObject lo = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
+                if (lo != null && lo.LandData != null && lo.LandData.Environment != null)
                 {
-                    ILandObject lo = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
-                    if (lo != null && lo.LandData != null && lo.LandData.Environment != null)
-                        lo.SendLandUpdateToClient(client);
-                    else
+                    lo.SendLandUpdateToClient(client);
+                    if (sp.Environment != null)
                         m_estateModule.HandleRegionInfoRequest(client);
                 }
+                else
+                    m_estateModule.HandleRegionInfoRequest(client);
             }
 
             else if ((vflags & 0x4000) != 0)
@@ -468,9 +467,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             ScenePresence sp = m_scene.GetScenePresence(agentID);
 
             if(sp != null && sp.Environment != null)
-            {
                 VEnv = sp.Environment;
-            }
             else if (parcelid == -1)
                 VEnv = GetRegionEnvironment();
             else
