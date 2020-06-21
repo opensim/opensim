@@ -32,6 +32,7 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IEnvironmentModule
     {
+        void StoreOnRegion(ViewerEnvironment VEnv);
         void ResetEnvironmentSettings(UUID regionUUID);
         void FromLightShare(RegionLightShareData wl);
         RegionLightShareData ToLightShare();
