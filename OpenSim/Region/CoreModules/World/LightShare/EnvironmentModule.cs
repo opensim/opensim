@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             });
         }
 
-        public void WindlightRefresh(IScenePresence isp, int interpolate)
+        public void WindlightRefreshForced(IScenePresence isp, int interpolate)
         {
             List<byte[]> ls = null;
 
@@ -298,18 +298,11 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 ScenePresence sp = isp as ScenePresence;
                 ILandObject lo = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
                 if (lo != null && lo.LandData != null && lo.LandData.Environment != null)
-                {
                     lo.SendLandUpdateToClient(client);
-                    if (sp.Environment != null)
-                        m_estateModule.HandleRegionInfoRequest(client);
-                }
-                else
-                    m_estateModule.HandleRegionInfoRequest(client);
+                m_estateModule.HandleRegionInfoRequest(client);
             }
-
             else if ((vflags & 0x4000) != 0)
                 m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
-
             else
             {
                 if (ls == null)

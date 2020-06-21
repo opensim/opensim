@@ -5899,7 +5899,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrEmpty(daycycle) || daycycle == UUID.Zero.ToString())
             {
                 sp.Environment = null;
-                m_envModule.WindlightRefresh(sp, transition);
+                m_envModule.WindlightRefreshForced(sp, transition);
                 return 1;
             }
 
@@ -5918,14 +5918,181 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(!VEnv.CycleFromOSD(oenv))
                     return -3;
                 sp.Environment = VEnv;
-                m_envModule.WindlightRefresh(sp, transition);
+                m_envModule.WindlightRefreshForced(sp, transition);
             }
             catch
             {
                 sp.Environment = null;
-                m_envModule.WindlightRefresh(sp, transition);
+                m_envModule.WindlightRefreshForced(sp, transition);
                 return -9;
             }
+            return 1;
+        }
+
+        public LSL_Integer osReplaceParcelEnvironment(LSL_Integer transition, LSL_String daycycle)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (!World.RegionInfo.EstateSettings.AllowEnvironmentOverride)
+                return -1;
+
+            ILandObject parcel = World.LandChannel.GetLandObject(m_host.GetWorldPosition().X, m_host.GetWorldPosition().Y);
+            if (parcel == null)
+                return -2;
+
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true))
+                return -3;
+
+            ViewerEnvironment VEnv;
+            if (parcel.LandData.Environment == null)
+                VEnv = m_envModule.GetRegionEnvironment().Clone();
+            else
+                VEnv = parcel.LandData.Environment;
+
+            bool changed = false;
+            if (!string.IsNullOrEmpty(daycycle) || !(daycycle == UUID.Zero.ToString()))
+            {
+
+                UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
+                if (envID == UUID.Zero)
+                    return -4;
+
+                AssetBase asset = World.AssetService.Get(envID.ToString());
+                if (asset == null || asset.Type != (byte)AssetType.Settings)
+                    return -4;
+                // cant use stupid broken asset flags for subtype
+                try
+                {
+                    OSD oenv = OSDParser.Deserialize(asset.Data);
+                    if (!VEnv.CycleFromOSD(oenv))
+                        return -5;
+                    changed = true;
+                }
+                catch
+                {
+                    return -5;
+                }
+            }
+
+            if (changed)
+            {
+                parcel.StoreEnvironment(VEnv);
+                m_envModule.WindlightRefresh(transition, false);
+            }
+
+            return 1;
+        }
+
+        public LSL_Integer osReplaceRegionEnvironment(LSL_Integer transition, LSL_String daycycle,
+            LSL_Float daylen, LSL_Float dayoffset,
+            LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, true))
+                return -3;
+
+            ViewerEnvironment VEnv = m_envModule.GetRegionEnvironment().Clone();
+
+            bool changed = false;
+            if (!string.IsNullOrEmpty(daycycle) || !(daycycle == UUID.Zero.ToString()))
+            {
+
+                UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
+                if (envID == UUID.Zero)
+                    return -4;
+
+                AssetBase asset = World.AssetService.Get(envID.ToString());
+                if (asset == null || asset.Type != (byte)AssetType.Settings)
+                    return -4;
+                // cant use stupid broken asset flags for subtype
+                try
+                {
+                    OSD oenv = OSDParser.Deserialize(asset.Data);
+                    if (!VEnv.CycleFromOSD(oenv))
+                        return -5;
+                    changed = true;
+                }
+                catch
+                {
+                    return -5;
+                }
+            }
+
+            if (daylen >= 4 && daylen <= 24 * 7)
+            {
+                int ll = VEnv.DayLength;
+                VEnv.DayLength = (int)(daylen * 3600f);
+                changed = ll != VEnv.DayLength;
+            }
+
+            if (dayoffset >= -11.5 && dayoffset <= 11.5)
+            {
+                int lo = VEnv.DayLength;
+                if (dayoffset <= 0)
+                    dayoffset+= 24;
+                VEnv.DayLength = (int)(dayoffset * 3600f);
+                changed = lo != VEnv.DayOffset;
+            }
+
+            bool needSort = false;
+            if (altitude1 > 0 && altitude1 < 4000 && VEnv.Altitudes[0] != (float)altitude1)
+            {
+                VEnv.Altitudes[0] = (float)altitude1;
+                needSort = true;
+            }
+            if (altitude2 > 0 && altitude2 < 4000 && VEnv.Altitudes[1] != (float)altitude2)
+            {
+                VEnv.Altitudes[1] = (float)altitude2;
+                needSort = true;
+            }
+            if (altitude3 > 0 && altitude2 < 4000 && VEnv.Altitudes[2] != (float)altitude3)
+            {
+                VEnv.Altitudes[2] = (float)altitude3;
+                needSort = true;
+            }
+            if(needSort)
+            {
+                VEnv.SortAltitudes();
+                changed = true;
+            }
+
+            if(changed)
+            {
+                m_envModule.StoreOnRegion(VEnv);
+                m_envModule.WindlightRefresh(transition);
+            }
+            return 1;
+        }
+
+        public LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (parcelOrRegion > 0)
+            {
+                if (!World.RegionInfo.EstateSettings.AllowEnvironmentOverride)
+                    return -1;
+
+                ILandObject parcel = World.LandChannel.GetLandObject(m_host.GetWorldPosition().X, m_host.GetWorldPosition().Y);
+                if (parcel == null)
+                    return -2;
+
+                if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true))
+                    return -3;
+                if (parcel.LandData.Environment == null)
+                    return 1;
+
+                parcel.StoreEnvironment(null);
+                m_envModule.WindlightRefresh(transition, false);
+                return 1;
+            }
+
+            if (!World.Permissions.CanIssueEstateCommand(m_host.OwnerID, true))
+                return -3;
+
+            m_envModule.StoreOnRegion(null);
+            m_envModule.WindlightRefresh(transition);
             return 1;
         }
     }

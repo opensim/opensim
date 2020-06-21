@@ -580,5 +580,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String osGetApparentRegionTimeString(LSL_Integer format24);
 
         LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle);
+        LSL_Integer osReplaceParcelEnvironment(LSL_Integer transition, LSL_String daycycle);
+        LSL_Integer osReplaceRegionEnvironment(LSL_Integer transition, LSL_String daycycle,
+           LSL_Float daylen, LSL_Float dayoffset, LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3);
+        LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition);
     }
 }

@@ -100,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     if(EnvironmentVersion <= 0)
-                        EnvironmentVersion = 0x7000000;
+                        EnvironmentVersion = 0x7000000 | Util.RandomClass.Next();
                     else
                         ++EnvironmentVersion;
                     m_environment.version = EnvironmentVersion;

@@ -1506,5 +1506,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osReplaceAgentEnvironment(agentkey, transition, daycycle);
         }
+
+        public LSL_Integer osReplaceParcelEnvironment(LSL_Integer transition, LSL_String daycycle)
+        {
+            return m_OSSL_Functions.osReplaceParcelEnvironment(transition, daycycle);
+        }
+
+        public LSL_Integer osReplaceRegionEnvironment(LSL_Integer transition, LSL_String daycycle,
+           LSL_Float daylen, LSL_Float dayoffset, LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3)
+        {
+            return m_OSSL_Functions.osReplaceRegionEnvironment(transition, daycycle, daylen,
+                        dayoffset, altitude1, altitude2, altitude3);
+        }
+
+        public LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition)
+        {
+            return m_OSSL_Functions.osResetEnvironment(parcelOrRegion, transition);
+        }
     }
 }
