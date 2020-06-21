@@ -467,7 +467,17 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             ScenePresence sp = m_scene.GetScenePresence(agentID);
 
             if(sp != null && sp.Environment != null)
-                VEnv = sp.Environment;
+            {
+                if (parcelid == -1)
+                    VEnv = sp.Environment;
+                else
+                {
+                    OSD def = ViewerEnvironment.DefaultToOSD(regionID, parcelid);
+                    httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(def);
+                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                    return;
+                }
+            }
             else if (parcelid == -1)
                 VEnv = GetRegionEnvironment();
             else
