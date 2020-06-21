@@ -65,7 +65,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private ILandChannel m_landChannel;
 
         private static ViewerEnvironment m_DefaultEnv = null;
-        private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";
+        // 1/1 night day ratio
+        //private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";
+        // 3/1 night day ratio
+        private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a92";
 
         private int m_regionEnvVersion = -1;
 
