@@ -1502,9 +1502,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetApparentRegionTimeString(format24);
         }
 
-        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String environment)
+        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle)
         {
-            return m_OSSL_Functions.osReplaceAgentEnvironment(agentkey, transition, environment);
+            return m_OSSL_Functions.osReplaceAgentEnvironment(agentkey, transition, daycycle);
         }
     }
 }

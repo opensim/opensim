@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         #endregion
 
         #region IEnvironmentModule
-        private void StoreOnRegion(ViewerEnvironment VEnv)
+        public void StoreOnRegion(ViewerEnvironment VEnv)
         {
             try
             {
@@ -455,46 +455,48 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void GetExtEnvironmentSettings(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agentID)
         {
-            int parcel = -1;
+            int parcelid = -1;
             if (httpRequest.Query.Count > 0)
             {
                 if (httpRequest.Query.ContainsKey("parcelid"))
                 {
-                    Int32.TryParse((string)httpRequest.Query["parcelid"], out parcel);
+                    Int32.TryParse((string)httpRequest.Query["parcelid"], out parcelid);
                 }
             }
 
+            ViewerEnvironment VEnv = null;
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if (sp == null || sp.IsChildAgent || sp.IsNPC)
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
 
-            ViewerEnvironment VEnv;
-            if(sp.Environment != null)
+            if(sp != null && sp.Environment != null)
+            {
                 VEnv = sp.Environment;
-            else if (parcel == -1)
+            }
+            else if (parcelid == -1)
                 VEnv = GetRegionEnvironment();
             else
             {
-                ILandObject land = m_scene.LandChannel.GetLandObject(parcel);
-                if (land != null && land.LandData != null && land.LandData.Environment != null)
-                    VEnv = land.LandData.Environment;
-                else
+                if (m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
                 {
-                    /* not working for some reason
-                    OSD def = ViewerEnvironment.DefaultToOSD(regionID, parcel);
+                    ILandObject land = m_scene.LandChannel.GetLandObject(parcelid);
+                    if(land != null && land.LandData != null && land.LandData.Environment != null)
+                        VEnv = land.LandData.Environment;
+                }
+                if(VEnv == null)
+                {
+                    OSD def = ViewerEnvironment.DefaultToOSD(regionID, parcelid);
                     httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(def);
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     return;
-                    */
-                    VEnv = GetRegionEnvironment();
                 }
             }
 
             OSDMap map = new OSDMap();
-            map["environment"] = VEnv.ToOSD();
+            OSDMap cenv = (OSDMap)VEnv.ToOSD();
+            cenv["parcel_id"] = parcelid;
+            cenv["region_id"] = regionID;
+            map["environment"] = cenv;
+            map["parcel_id"] = parcelid;
+            map["success"] = true;
 
             string env = OSDParser.SerializeLLSDXmlString(map);
 
@@ -560,7 +562,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             ILandObject lchannel;
             if (parcel == -1)
             {
-                if (!m_scene.Permissions.CanIssueEstateCommand(agentID, false))
+                if (!m_scene.Permissions.CanIssueEstateCommand(agentID, true))
                 {
                     message = "Insufficient estate permissions, settings has not been saved.";
                     goto Error;
@@ -686,22 +688,19 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             // m_log.DebugFormat("[{0}]: Environment GET handle for agentID {1} in region {2}",
             //      Name, agentID, caps.RegionName);
 
+            ViewerEnvironment VEnv = null;
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if (sp == null || sp.IsChildAgent || sp.IsNPC)
-            {
-                response.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
-            }
-
-            ViewerEnvironment VEnv;
-            if (sp.Environment != null)
+            if (sp != null && sp.Environment != null)
                 VEnv = sp.Environment;
             else
             {
+                if(m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
+                {
                 ILandObject land = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
                 if (land != null && land.LandData != null && land.LandData.Environment != null)
                     VEnv = land.LandData.Environment;
-                else
+                }
+                if(VEnv == null)
                     VEnv = GetRegionEnvironment();
             }
 

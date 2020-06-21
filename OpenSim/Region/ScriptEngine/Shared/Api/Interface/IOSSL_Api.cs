@@ -579,6 +579,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Float osGetApparentRegionTime();
         LSL_String osGetApparentRegionTimeString(LSL_Integer format24);
 
-        LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String environment);
+        LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle);
     }
 }

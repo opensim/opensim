@@ -6565,8 +6565,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLSDxmlEncode.AddEndMapAndArray(sb);
 
             bool allowenvovr = (regionFlags & (uint)RegionFlags.AllowEnvironmentOverride) != 0;
+            int envVersion;
+            if(allowenvovr)
+            {
+                ScenePresence sp = SceneAgent as ScenePresence;
+                if(sp != null && sp .EnvironmentVersion > 0)
+                    envVersion = sp.EnvironmentVersion;
+                else
+                    envVersion = landData.EnvironmentVersion;
+            }
+            else
+                envVersion = -1;
+
             LLSDxmlEncode.AddArrayAndMap("ParcelEnvironmentBlock", sb);
-            LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", allowenvovr ? landData.EnvironmentVersion : -1, sb);
+            LLSDxmlEncode.AddElem("ParcelEnvironmentVersion", envVersion, sb);
             LLSDxmlEncode.AddElem("RegionAllowEnvironmentOverride", allowenvovr, sb);
             LLSDxmlEncode.AddEndMapAndArray(sb);
 

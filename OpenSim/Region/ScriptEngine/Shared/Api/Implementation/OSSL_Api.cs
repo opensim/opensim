@@ -5883,7 +5883,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.ClearObjectAnimations();
         }
 
-        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String environment)
+        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle)
         {
             m_host.AddScriptLPS(1);
             if(!string.IsNullOrEmpty(CheckThreatLevelTest(ThreatLevel.Moderate, "osReplaceAgentEnvironment")))
@@ -5896,14 +5896,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(sp == null || sp.IsChildAgent || sp.IsNPC || sp.IsInTransit)
                 return -4;
 
-            if(string.IsNullOrEmpty(environment) || environment == UUID.Zero.ToString())
+            if(string.IsNullOrEmpty(daycycle) || daycycle == UUID.Zero.ToString())
             {
                 sp.Environment = null;
                 m_envModule.WindlightRefresh(sp, transition);
                 return 1;
             }
 
-            UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, environment);
+            UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
             if (envID == UUID.Zero)
                 return -3;
 

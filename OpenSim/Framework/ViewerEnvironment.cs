@@ -898,7 +898,7 @@ namespace OpenSim.Framework
         public int DayOffset = 57600;
         public int Flags = 0;
  
-        float[] Altitudes = new float[3] {1000f, 2000f, 3000f };
+        public float[] Altitudes = new float[3] {1000f, 2000f, 3000f };
 
         //DayHash;
         public bool IsLegacy = false;
@@ -1158,25 +1158,30 @@ namespace OpenSim.Framework
                 for(int i = 0; i < alt.Count && i < 3; ++i)
                     Altitudes[i] = alt[i];
 
-                for(int i = 0; i < 2; ++i)
-                {
-                    float h = Altitudes[i];
-                    for(int j = i + 1; j < 3; ++j)
-                    {
-                        if(h > Altitudes[j])
-                        {
-                            Altitudes[i] = Altitudes[j];
-                            Altitudes[j] = h;
-                            List<DayCycle.TrackEntry> tet = Cycle.skyTracks[i];
-                            Cycle.skyTracks[i] = Cycle.skyTracks[j];
-                            Cycle.skyTracks[j] = tet;
-                            h = Altitudes[i];
-                        }
-                    }
-                }
+                SortAltitudes();
             }
 
             IsLegacy = false;
+        }
+
+        public void SortAltitudes()
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                float h = Altitudes[i];
+                for (int j = i + 1; j < 3; ++j)
+                {
+                    if (h > Altitudes[j])
+                    {
+                        Altitudes[i] = Altitudes[j];
+                        Altitudes[j] = h;
+                        List<DayCycle.TrackEntry> tet = Cycle.skyTracks[i];
+                        Cycle.skyTracks[i] = Cycle.skyTracks[j];
+                        Cycle.skyTracks[j] = tet;
+                        h = Altitudes[i];
+                    }
+                }
+            }
         }
 
         public bool CycleFromOSD(OSD osd)
