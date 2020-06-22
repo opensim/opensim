@@ -1051,7 +1051,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     settingsPath, e);
                 return false;
             }
-            scene.RegionEnvironment = regionEnv;
+
+            IEnvironmentModule mEnv = scene.RequestModuleInterface<IEnvironmentModule>();
+            if(mEnv != null)
+                mEnv.StoreOnRegion(regionEnv);
+
             RegionSettings currentRegionSettings = scene.RegionInfo.RegionSettings;
 
             currentRegionSettings.AgentLimit = loadedRegionSettings.AgentLimit;
