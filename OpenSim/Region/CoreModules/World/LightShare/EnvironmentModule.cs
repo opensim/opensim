@@ -699,9 +699,9 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 if(m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
                 {
-                ILandObject land = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
-                if (land != null && land.LandData != null && land.LandData.Environment != null)
-                    VEnv = land.LandData.Environment;
+                    ILandObject land = m_scene.LandChannel.GetLandObject(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
+                    if (land != null && land.LandData != null && land.LandData.Environment != null)
+                        VEnv = land.LandData.Environment;
                 }
                 if(VEnv == null)
                     VEnv = GetRegionEnvironment();
@@ -836,6 +836,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
             return OSDParser.SerializeLLSDNotationToBytes(osddata,true);
         }
+
 
         public List<byte[]> MakeLightShareData()
         {

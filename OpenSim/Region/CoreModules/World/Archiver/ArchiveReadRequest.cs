@@ -1039,10 +1039,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private bool LoadRegionSettings(Scene scene, string settingsPath, byte[] data, DearchiveScenesInfo dearchivedScenes)
         {
             RegionSettings loadedRegionSettings;
-
+            ViewerEnvironment regionEnv = null;
             try
             {
-                loadedRegionSettings = RegionSettingsSerializer.Deserialize(data);
+                loadedRegionSettings = RegionSettingsSerializer.Deserialize(data, out regionEnv);
             }
             catch (Exception e)
             {
@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     settingsPath, e);
                 return false;
             }
-
+            scene.RegionEnvironment = regionEnv;
             RegionSettings currentRegionSettings = scene.RegionInfo.RegionSettings;
 
             currentRegionSettings.AgentLimit = loadedRegionSettings.AgentLimit;

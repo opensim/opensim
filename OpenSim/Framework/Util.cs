@@ -3381,6 +3381,14 @@ namespace OpenSim.Framework
             return ticks * TimeStampClockPeriodMS;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static void AddToGatheredIds(Dictionary<UUID, sbyte> uuids, UUID id, sbyte type)
+        {
+            if (id == UUID.Zero)
+                return;
+            uuids[id] = type;
+        }
+
         /// <summary>
         /// Formats a duration (given in milliseconds).
         /// </summary>
@@ -3976,7 +3984,5 @@ namespace OpenSim.Framework
         {
             rng.GetBytes(buff);
         }
-
-
     }
 }

@@ -484,6 +484,16 @@ namespace OpenSim.Framework
                 sunlight_color = otmp;
             Name = name;
         }
+
+        public void GatherAssets(Dictionary<UUID, sbyte> uuids)
+        {
+            Util.AddToGatheredIds(uuids, bloom_id, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, cloud_id, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, halo_id, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, moon_id, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, rainbow_id, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, sun_id, (sbyte)AssetType.Texture);
+        }
     }
 
     public class WaterData
@@ -598,6 +608,12 @@ namespace OpenSim.Framework
             map["type"] ="water";
 
             return map;
+        }
+
+        public void GatherAssets(Dictionary<UUID, sbyte> uuids)
+        {
+            Util.AddToGatheredIds(uuids, normalMap, (sbyte)AssetType.Texture);
+            Util.AddToGatheredIds(uuids, transpTexture, (sbyte)AssetType.Texture);
         }
     }
 
@@ -888,6 +904,18 @@ namespace OpenSim.Framework
             cycle["type"] = "daycycle";
 
             return cycle;
+        }
+
+        public void GatherAssets(Dictionary<UUID, sbyte> uuids)
+        {
+            foreach (WaterData wd in waterframes.Values)
+            {
+                wd.GatherAssets(uuids);
+            }
+            foreach (SkyData sd in skyframes.Values)
+            {
+                sd.GatherAssets(uuids);
+            }
         }
     }
 
@@ -1216,6 +1244,35 @@ namespace OpenSim.Framework
             return env;
         }
 
+        public static ViewerEnvironment FromOSDString(string s)
+        {
+            try
+            {
+                OSD eosd = OSDParser.Deserialize(s);
+                ViewerEnvironment VEnv = new ViewerEnvironment();
+                VEnv.FromOSD(eosd);
+                return VEnv;
+            }
+            catch
+            {
+            }
+            return null;
+        }
+
+        public static string ToOSDString(ViewerEnvironment VEnv, bool xml = false)
+        {
+            try
+            {
+                OSD  eosd= VEnv.ToOSD();
+                if(xml)
+                    return OSDParser.SerializeLLSDXmlString(eosd);
+                else
+                    return OSDParser.SerializeLLSDNotationFull(eosd);
+            }
+            catch {}
+            return String.Empty;
+        }
+
         public ViewerEnvironment Clone()
         {
             // im lazy need to proper clone later
@@ -1398,5 +1455,11 @@ namespace OpenSim.Framework
             return true;
         }
         */
+
+        public void GatherAssets(Dictionary<UUID, sbyte> uuids)
+        {
+            if (Cycle != null)
+                Cycle.GatherAssets(uuids);
+        }
     }
 }

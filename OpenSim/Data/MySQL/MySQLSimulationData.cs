@@ -29,17 +29,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Reflection;
-using System.Threading;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
@@ -1510,9 +1506,7 @@ namespace OpenSim.Data.MySQL
                 {
                     try
                     {
-                        OSD oenv = OSDParser.Deserialize(env);
-                        ViewerEnvironment VEnv = new ViewerEnvironment();
-                        VEnv.FromOSD(oenv);
+                        ViewerEnvironment VEnv = ViewerEnvironment.FromOSDString(env);
                         newData.Environment = VEnv;
                         newData.EnvironmentVersion = VEnv.version;
                     }
@@ -1875,9 +1869,7 @@ namespace OpenSim.Data.MySQL
             {
                 try
                 {
-                    OSD oenv = land.Environment.ToOSD();
-                    string env = OSDParser.SerializeLLSDNotationFull(oenv);
-                    cmd.Parameters.AddWithValue("environment", env);
+                    cmd.Parameters.AddWithValue("environment", ViewerEnvironment.ToOSDString(land.Environment));
                 }
                 catch
                 {

@@ -285,14 +285,13 @@ namespace OpenSim.Framework
                 if (tickdiff > LongCallTime)
                 {
                     m_log.InfoFormat(
-                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {7} bytes ({8} uncomp): {9}",
+                        "[WEB UTIL]: Slow ServiceOSD request {0} {1} {2} took {3}ms, {4} bytes ({5} uncomp): {6}",
                         reqnum,
                         method,
                         url,
                         tickdiff,
                         compsize,
                         strBuffer != null ? strBuffer.Length : 0,
-
                         strBuffer != null
                             ? (strBuffer.Length > MaxRequestDiagLength ? strBuffer.Remove(MaxRequestDiagLength) : strBuffer)
                             : "");

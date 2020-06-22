@@ -321,6 +321,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
                 assetUuids[regionSettings.TerrainTexture4] = (sbyte)AssetType.Texture;
 
+            if(scene.RegionEnvironment != null)
+                scene.RegionEnvironment.GatherAssets(assetUuids);
+
+            List<ILandObject> landObjects = scene.LandChannel.AllParcels();
+            foreach (ILandObject lo in landObjects)
+            {
+                if(lo.LandData != null && lo.LandData.Environment != null)
+                    lo.LandData.Environment.GatherAssets(assetUuids);
+            }
+
             Save(scene, sceneObjects, regionDir);
             GC.Collect();
         }
@@ -572,7 +582,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Write out region settings
             string settingsPath = String.Format("{0}{1}{2}.xml",
                 regionDir, ArchiveConstants.SETTINGS_PATH, scene.RegionInfo.RegionName);
-            m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(scene.RegionInfo.RegionSettings));
+            m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(scene.RegionInfo.RegionSettings, scene.RegionEnvironment));
 
             m_log.InfoFormat("[ARCHIVER]: Adding parcel settings to archive.");
 
