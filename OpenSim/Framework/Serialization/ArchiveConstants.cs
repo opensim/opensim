@@ -149,6 +149,8 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]             = (sbyte)OpenSimAssetType.Material;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "settings.dat"]             = (sbyte)AssetType.Settings;
+            // a previus definition
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "settings.bin"]             = (sbyte)AssetType.Settings;
         }
 
         public static string CreateOarLandDataPath(LandData ld)
