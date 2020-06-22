@@ -1815,7 +1815,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
+
                 FinalizeLandPrimCountUpdate(); // update simarea information
+
+                lock (m_landList)
+                {
+                    foreach(LandObject lo in m_landList.Values)
+                        lo.SendLandUpdateToAvatarsOverMe();
+                }
             }
         }
 
@@ -1825,7 +1832,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             new_land.SetLandBitmapFromByteArray();
             AddLandObject(new_land);
-//            new_land.SendLandUpdateToAvatarsOverMe();
         }
 
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)

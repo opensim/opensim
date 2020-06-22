@@ -1054,7 +1054,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             IEnvironmentModule mEnv = scene.RequestModuleInterface<IEnvironmentModule>();
             if(mEnv != null)
+            {
                 mEnv.StoreOnRegion(regionEnv);
+                mEnv.WindlightRefresh(0);
+            }
 
             RegionSettings currentRegionSettings = scene.RegionInfo.RegionSettings;
 

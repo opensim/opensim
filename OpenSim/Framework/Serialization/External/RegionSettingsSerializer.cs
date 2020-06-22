@@ -194,36 +194,46 @@ namespace OpenSim.Framework.Serialization.External
 
             if (xtr.IsStartElement("Telehub"))
             {
-                xtr.ReadStartElement("Telehub");
-
-                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                if (xtr.IsEmptyElement)
+                    xtr.Read();
+                else
                 {
-                    switch (xtr.Name)
+                    xtr.ReadStartElement("Telehub");
+                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
                     {
-                        case "TelehubObject":
-                            settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
-                            break;
-                        case "SpawnPoint":
-                            string str = xtr.ReadElementContentAsString();
-                            SpawnPoint sp = SpawnPoint.Parse(str);
-                            settings.AddSpawnPoint(sp);
-                            break;
+                        switch (xtr.Name)
+                        {
+                            case "TelehubObject":
+                                settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
+                                break;
+                            case "SpawnPoint":
+                                string str = xtr.ReadElementContentAsString();
+                                SpawnPoint sp = SpawnPoint.Parse(str);
+                                settings.AddSpawnPoint(sp);
+                                break;
+                        }
                     }
+                    xtr.ReadEndElement();
                 }
             }
 
             if (xtr.IsStartElement("Environment"))
             {
-                xtr.ReadStartElement("Environment");
-
-                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                if (xtr.IsEmptyElement)
+                    xtr.Read();
+                else
                 {
-                    switch (xtr.Name)
+                    xtr.ReadStartElement("Environment");
+                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
                     {
-                        case "data":
-                            regionEnv = ViewerEnvironment.FromOSDString(xtr.ReadElementContentAsString());
-                            break;
+                        switch (xtr.Name)
+                        {
+                            case "data":
+                                regionEnv = ViewerEnvironment.FromOSDString(xtr.ReadElementContentAsString());
+                                break;
+                        }
                     }
+                    xtr.ReadEndElement();
                 }
             }
 
