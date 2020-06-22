@@ -140,6 +140,7 @@ namespace OpenSim.Framework.Serialization.External
         {
             string senv = xtr.ReadElementString("Environment");
             ld.Environment = ViewerEnvironment.FromOSDString(senv);
+            ld.EnvironmentVersion = ld.Environment.version;
         }
 
         public static void ProcessParcelAccessList(LandData ld, XmlReader xtr)
