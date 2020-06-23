@@ -223,7 +223,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         private void GetAttachmentsReport(ScenePresence sp, StringBuilder sb)
         {
-            sb.AppendFormat("Attachments for {0}\n\n", sp.Name);
+            sb.AppendFormat("Attachments for {0}\n", sp.Name);
 
             ConsoleDisplayList ct = new ConsoleDisplayList();
 

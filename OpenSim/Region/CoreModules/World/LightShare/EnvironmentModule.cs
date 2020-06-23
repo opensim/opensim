@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             WindlightRefresh(0);
         }
 
-        public void WindlightRefresh(int interpolate, bool notforparcel = true)
+        public void WindlightRefresh(int interpolate, bool forRegion = true)
         {
             List<byte[]> ls = null;
             m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
@@ -270,9 +270,11 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
                 uint vflags = client.GetViewerCaps();
 
-                if (notforparcel && (vflags & 0x8000) != 0)
-                    m_estateModule.HandleRegionInfoRequest(client);
-
+                if ((vflags & 0x8000) != 0)
+                {
+                    if (forRegion)
+                        m_estateModule.HandleRegionInfoRequest(client);
+                }
                 else if ((vflags & 0x4000) != 0)
                     m_eventQueue.WindlightRefreshEvent(interpolate, client.AgentId);
 
@@ -434,7 +436,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 if (land != null && land.LandData != null)
                 {
                     land.StoreEnvironment(null);
-                    WindlightRefresh(0);
+                    WindlightRefresh(0, false);
                 }
             }
 

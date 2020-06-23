@@ -183,14 +183,14 @@ CREATE TABLE IF NOT EXISTS land(
        UserLookAtY float,
        UserLookAtZ float,
        AuthbuyerID varchar(36) NOT NULL default  '00000000-0000-0000-0000-000000000000', 
-	   OtherCleanTime INTEGER NOT NULL default 0, 
-	   Dwell INTEGER NOT NULL default 0, 
-	   `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none', 
-	   `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '', 
-	   `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0', 
-	   `MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE, 
-	   `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE, 
-	   `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE);
+       OtherCleanTime INTEGER NOT NULL default 0, 
+       Dwell INTEGER NOT NULL default 0, 
+       `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none', 
+       `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '', 
+       `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0', 
+        MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE, 
+       `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE, 
+       `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE);
 
 CREATE TABLE IF NOT EXISTS landaccesslist(
        LandUUID varchar(255),
@@ -393,4 +393,9 @@ COMMIT;
 BEGIN;
 ALTER TABLE `prims` ADD COLUMN `pseudocrc` integer DEFAULT '0';
 ALTER TABLE `regionsettings` ADD COLUMN `cacheID` char(36) DEFAULT NULL;
+COMMIT;
+
+:VERSION 39         #----- parcel environment store
+BEGIN;
+ALTER TABLE `land` ADD COLUMN `environment` TEXT default NULL;
 COMMIT;

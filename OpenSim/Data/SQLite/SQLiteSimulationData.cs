@@ -1399,6 +1399,7 @@ namespace OpenSim.Data.SQLite
             createCol(land, "SeeAVs", typeof(Boolean));
             createCol(land, "AnyAVSounds", typeof(Boolean));
             createCol(land, "GroupAVSounds", typeof(Boolean));
+            createCol(land, "environment", typeof(string));
 
             land.PrimaryKey = new DataColumn[] { land.Columns["UUID"] };
 
@@ -1917,6 +1918,36 @@ namespace OpenSim.Data.SQLite
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
 
+            if (row["environment"] is DBNull)
+            {
+                newData.Environment = null;
+                newData.EnvironmentVersion = -1;
+            }
+            else
+            {
+                string env = (string)row["environment"];
+                if (string.IsNullOrEmpty(env))
+                {
+                    newData.Environment = null;
+                    newData.EnvironmentVersion = -1;
+                }
+                else
+                {
+                    try
+                    {
+                        ViewerEnvironment VEnv = ViewerEnvironment.FromOSDString(env);
+                        newData.Environment = VEnv;
+                        newData.EnvironmentVersion = VEnv.version;
+                    }
+                    catch
+                    {
+                        newData.Environment = null;
+                        newData.EnvironmentVersion = -1;
+                    }
+                }
+            }
+
+
             return newData;
         }
 
@@ -2254,6 +2285,20 @@ namespace OpenSim.Data.SQLite
             row["SeeAVs"] = land.SeeAVs;
             row["AnyAVSounds"] = land.AnyAVSounds;
             row["GroupAVSounds"] = land.GroupAVSounds;
+
+            if (land.Environment == null)
+                row["environment"] = "";
+            else
+            {
+                try
+                {
+                    row["environment"] = ViewerEnvironment.ToOSDString(land.Environment);
+                }
+                catch
+                {
+                    row["environment"] = "";
+                }
+            }
 
         }
 
