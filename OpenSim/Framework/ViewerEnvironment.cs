@@ -189,6 +189,7 @@ namespace OpenSim.Framework
         public float max_y = 1605;
         public float star_brightness = 0f;
 
+        //this is a vector3 now, but al viewers expect a vector4, so keeping like this for now
         public Vector4 sunlight_color = new Vector4(0.7342f, 0.7815f, 0.9f, 0.3f);
         public string Name = "Default";
 
@@ -480,8 +481,18 @@ namespace OpenSim.Framework
                 sun_rotation = otmp;
             if (map.TryGetValue("sun_scale", out otmp))
                 sun_scale = otmp;
-            if (map.TryGetValue("sunlight_color", out otmp))
-                sunlight_color = otmp;
+
+            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray)
+            {
+                tmpArray = otmp as OSDArray;
+                if(tmpArray.Count == 4)
+                    sunlight_color = otmp;
+                else
+                {
+                    Vector3 tv = otmp;
+                    sunlight_color = new Vector4(tv.X, tv.Y, tv.Z, 0);
+                }
+            }
             Name = name;
         }
 
