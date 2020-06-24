@@ -1250,3 +1250,8 @@ BEGIN;
 ALTER TABLE `prims` ADD COLUMN `pseudocrc` integer DEFAULT '0';
 ALTER TABLE `regionsettings` ADD COLUMN `cacheID` uuid DEFAULT NULL;
 COMMIT;
+
+:VERSION 51         #----- parcel environment store
+BEGIN;
+ALTER TABLE `land` ADD COLUMN `environment` varchar default NULL;
+COMMIT;

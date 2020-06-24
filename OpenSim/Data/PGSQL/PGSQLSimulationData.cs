@@ -770,13 +770,14 @@ namespace OpenSim.Data.PGSQL
                 (""UUID"",""RegionUUID"",""LocalLandID"",""Bitmap"",""Name"",""Description"",""OwnerUUID"",""IsGroupOwned"",""Area"",""AuctionID"",""Category"",""ClaimDate"",""ClaimPrice"",
                  ""GroupUUID"",""SalePrice"",""LandStatus"",""LandFlags"",""LandingType"",""MediaAutoScale"",""MediaTextureUUID"",""MediaURL"",""MusicURL"",""PassHours"",""PassPrice"",
                  ""SnapshotUUID"",""UserLocationX"",""UserLocationY"",""UserLocationZ"",""UserLookAtX"",""UserLookAtY"",""UserLookAtZ"",""AuthbuyerID"",""OtherCleanTime"",""Dwell"",
-                 ""MediaType"",""MediaDescription"",""MediaSize"",""MediaLoop"",""ObscureMusic"",""ObscureMedia"",""SeeAVs"",""AnyAVSounds"",""GroupAVSounds"")
+                 ""MediaType"",""MediaDescription"",""MediaSize"",""MediaLoop"",""ObscureMusic"",""ObscureMedia"",""SeeAVs"",""AnyAVSounds"",""GroupAVSounds"",
+                 ""environment"")
                 VALUES
                 (:UUID,:RegionUUID,:LocalLandID,:Bitmap,:Name,:Description,:OwnerUUID,:IsGroupOwned,:Area,:AuctionID,:Category,:ClaimDate,:ClaimPrice,
                  :GroupUUID,:SalePrice,:LandStatus,:LandFlags,:LandingType,:MediaAutoScale,:MediaTextureUUID,:MediaURL,:MusicURL,:PassHours,:PassPrice,
                  :SnapshotUUID,:UserLocationX,:UserLocationY,:UserLocationZ,:UserLookAtX,:UserLookAtY,:UserLookAtZ,:AuthbuyerID,:OtherCleanTime,:Dwell,
                  :MediaType,:MediaDescription,:MediaWidth::text || ',' || :MediaHeight::text,:MediaLoop,:ObscureMusic,:ObscureMedia,:SeeAVs::int::smallint,
-                 :AnyAVSounds::int::smallint,:GroupAVSounds::int::smallint)";
+                 :AnyAVSounds::int::smallint,:GroupAVSounds::int::smallint,:environment)";
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -1137,7 +1138,6 @@ namespace OpenSim.Data.PGSQL
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
             newData.Dwell = Convert.ToSingle(row["Dwell"]);
 
-
             try
             {
                 newData.UserLocation =
@@ -1166,6 +1166,35 @@ namespace OpenSim.Data.PGSQL
             newData.SeeAVs = Convert.ToBoolean(row["SeeAVs"]);
             newData.AnyAVSounds = Convert.ToBoolean(row["AnyAVSounds"]);
             newData.GroupAVSounds = Convert.ToBoolean(row["GroupAVSounds"]);
+
+            if (row["environment"] is DBNull)
+            {
+                newData.Environment = null;
+                newData.EnvironmentVersion = -1;
+            }
+            else
+            {
+                string env = (string)row["environment"];
+                if (string.IsNullOrEmpty(env))
+                {
+                    newData.Environment = null;
+                    newData.EnvironmentVersion = -1;
+                }
+                else
+                {
+                    try
+                    {
+                        ViewerEnvironment VEnv = ViewerEnvironment.FromOSDString(env);
+                        newData.Environment = VEnv;
+                        newData.EnvironmentVersion = VEnv.version;
+                    }
+                    catch
+                    {
+                        newData.Environment = null;
+                        newData.EnvironmentVersion = -1;
+                    }
+                }
+            }
 
             return newData;
         }
@@ -1617,6 +1646,20 @@ namespace OpenSim.Data.PGSQL
             parameters.Add(_Database.CreateParameter("SeeAVs", land.SeeAVs));
             parameters.Add(_Database.CreateParameter("AnyAVSounds", land.AnyAVSounds));
             parameters.Add(_Database.CreateParameter("GroupAVSounds", land.GroupAVSounds));
+
+            if (land.Environment == null)
+                parameters.Add(_Database.CreateParameter("environment", ""));
+            else
+            {
+                try
+                {
+                    parameters.Add(_Database.CreateParameter("environment", ViewerEnvironment.ToOSDString(land.Environment)));
+                }
+                catch
+                {
+                    parameters.Add(_Database.CreateParameter("environment", ""));
+                }
+            }
 
             return parameters.ToArray();
         }
