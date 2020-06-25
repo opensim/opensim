@@ -869,7 +869,6 @@ namespace OpenSim.Data.Tests
             double terrainlower = random.Next();
             Vector3 sunvector = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
             UUID terimgid = UUID.Random();
-            double sunpos = random.Next();
             UUID cov = UUID.Random();
 
             RegionSettings r1 = db.LoadRegionSettings(region1);
@@ -903,10 +902,8 @@ namespace OpenSim.Data.Tests
             r1.TerrainLowerLimit = terrainlower;
             r1.UseEstateSun = false;
             r1.Sandbox = true;
-            r1.SunVector = sunvector;
             r1.TerrainImageID = terimgid;
             r1.FixedSun = true;
-            r1.SunPosition = sunpos;
             r1.Covenant = cov;
 
             db.StoreRegionSettings(r1);
@@ -941,12 +938,8 @@ namespace OpenSim.Data.Tests
             Assert.That(r1a.WaterHeight,Is.EqualTo(waterh), "Assert.That(r1a.WaterHeight,Is.EqualTo(waterh))");
             Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise), "Assert.That(r1a.TerrainRaiseLimit,Is.EqualTo(terrainraise))");
             Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower), "Assert.That(r1a.TerrainLowerLimit,Is.EqualTo(terrainlower))");
-            Assert.That(r1a.UseEstateSun,Is.False);
             Assert.That(r1a.Sandbox,Is.True);
-            Assert.That(r1a.SunVector,Is.EqualTo(sunvector), "Assert.That(r1a.SunVector,Is.EqualTo(sunvector))");
             //Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid), "Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid))");
-            Assert.That(r1a.FixedSun,Is.True);
-            Assert.That(r1a.SunPosition, Is.EqualTo(sunpos), "Assert.That(r1a.SunPosition, Is.EqualTo(sunpos))");
             Assert.That(r1a.Covenant, Is.EqualTo(cov), "Assert.That(r1a.Covenant, Is.EqualTo(cov))");
         }
 
