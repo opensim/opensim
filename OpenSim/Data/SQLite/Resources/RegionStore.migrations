@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS land(
        `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none', 
        `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '', 
        `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0', 
-        MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE, 
+       `MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE, 
        `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE, 
        `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE);
 

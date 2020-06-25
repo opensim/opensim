@@ -1247,6 +1247,8 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "PassCollisions", typeof(bool));
             createCol(prims, "Vehicle", typeof(string));
 
+            createCol(prims, "RotationAxisLocks", typeof(byte));
+
             createCol(prims, "PhysInertia", typeof(string));
 
             createCol(prims, "standtargetx", typeof(float));
@@ -1298,6 +1300,7 @@ namespace OpenSim.Data.SQLite
             createCol(shapes, "ProfileCurve", typeof(Int32));
             createCol(shapes, "ProfileHollow", typeof(Int32));
             createCol(shapes, "State", typeof(Int32));
+            createCol(shapes, "LastAttachPoint", typeof(Int32));
             // text TODO: this isn't right, but I'm not sure the right
             // way to specify this as a blob atm
             createCol(shapes, "Texture", typeof(Byte[]));
