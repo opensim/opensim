@@ -189,7 +189,7 @@ namespace OpenSim.Framework
         public float max_y = 1605;
         public float star_brightness = 0f;
 
-        //this is a vector3 now, but al viewers expect a vector4, so keeping like this for now
+        //this is a vector3 now, but all viewers expect a vector4, so keeping like this for now
         public Vector4 sunlight_color = new Vector4(0.7342f, 0.7815f, 0.9f, 0.3f);
         public string Name = "Default";
 
