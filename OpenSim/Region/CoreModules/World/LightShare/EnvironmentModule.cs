@@ -930,26 +930,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             if(m_scene.GetNumberOfClients() == 0)
                 return;
 
-            ViewerEnvironment env = GetRegionEnvironment();
-            float dayFrac = GetDayFractionTime(env);
-
-            float wldayFrac = dayFrac;
-
-            if (wldayFrac <= 0.25f)
-                wldayFrac += 1.5f;
-            else if (wldayFrac > 0.75f)
-                wldayFrac += 0.5f;
-            else if (wldayFrac >= 0.333333f)
-                wldayFrac = 3f * wldayFrac - 1f;
-            else
-                wldayFrac = 3f * wldayFrac + 1f;
-
-            wldayFrac = Utils.Clamp(wldayFrac, 0, 2f);
-            wldayFrac *= Utils.PI;
-
-
-            float eepDayFrac = dayFrac * Utils.TWO_PI;
-
             //m_log.DebugFormat("{0} {1} {2} {3}", dayFrac, eepDayFrac, wldayFrac, Util.UnixTimeSinceEpoch_uS());
 
             m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
@@ -957,18 +937,36 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 if(sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
                     return;
 
+                ViewerEnvironment VEnv;
+                if(sp.Environment != null)
+                    VEnv = sp.Environment;
+                else
+                    VEnv = GetEnvironment(sp.AbsolutePosition.X, sp.AbsolutePosition.Y);
+
+                float dayFrac = GetDayFractionTime(VEnv);
+
                 IClientAPI client = sp.ControllingClient;
                 uint vflags = client.GetViewerCaps();
 
                 if ((vflags & 0x8000) != 0)
                 {
-                    client.SendViewerTime(Vector3.Zero, eepDayFrac);
+                    client.SendViewerTime(Vector3.Zero, dayFrac * Utils.TWO_PI);
                     return;
                 }
 
-                client.SendViewerTime(Vector3.Zero, wldayFrac);
-                //env.getWLPositions(sp.AbsolutePosition.Z, dayFrac, out Vector3 m_sunDir);
-                //client.SendViewerTime(m_sunDir, wldayFrac);
+                if (dayFrac <= 0.25f)
+                    dayFrac += 1.5f;
+                else if (dayFrac > 0.75f)
+                    dayFrac += 0.5f;
+                else if (dayFrac >= 0.333333f)
+                    dayFrac = 3f * dayFrac - 1f;
+                else
+                    dayFrac = 3f * dayFrac + 1f;
+
+                dayFrac = Utils.Clamp(dayFrac, 0, 2f);
+                dayFrac *= Utils.PI;
+
+                client.SendViewerTime(Vector3.Zero, dayFrac);
             });
         }
 
