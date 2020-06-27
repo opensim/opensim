@@ -995,7 +995,7 @@ namespace OpenSim.Framework
             float al = sun_angle;
 
             sky.sun_rotation = AzAlToRot(az, al);
-            sky.moon_rotation = AzAlToRot(az + (float)Math.PI, -al);
+            sky.moon_rotation = AzAlToRot(az, al + (float)Math.PI);
         }
 
         public static Vector3 Xrot(Quaternion rot)

@@ -237,7 +237,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         if(data == null)
                         {
                             m_log.ErrorFormat(
-                            "[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default enviroment setting asset {0} for agent {1}", name, remoteClient.AgentId);
+                            "[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default environment setting asset {0} for agent {1}", name, remoteClient.AgentId);
                             return;
                         }
                     }
