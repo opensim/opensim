@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         public static readonly string OBJECT_CODE_MAGIC = "YObjectCode";
         // reserve positive version values for original xmr
-        public static int COMPILED_VERSION_VALUE = -6;  // decremented when compiler or object file changes
+        public static int COMPILED_VERSION_VALUE = -7;  // decremented when compiler or object file changes
 
         public static readonly int CALL_FRAME_MEMUSE = 64;
         public static readonly int STRING_LEN_TO_MEMUSE = 2;
@@ -1384,13 +1384,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Output code body.
             GenerateStmtBlock(curDeclFunc.body);
 
+            /*
             if (doheap)
             {
                 PushXMRInst();
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, curHeapSize);
                 ilGen.Emit(curDeclFunc, OpCodes.Stfld, heapUsedFieldInfo);
             }
-
+            */
             // If code falls through to this point, means they are missing 
             // a return statement.  And that is legal only if the function 
             // returns 'void'.
@@ -1468,6 +1469,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Output the 'real' return opcode.
             // push return value
             ilGen.MarkLabel(retLabel);
+
+            if (doheap)
+            {
+                PushXMRInst();
+                ilGen.Emit(curDeclFunc, OpCodes.Ldloc, curHeapSize);
+                ilGen.Emit(curDeclFunc, OpCodes.Stfld, heapUsedFieldInfo);
+            }
+
             if (!(curDeclFunc.retType is TokenTypeVoid))
             {
                 ilGen.Emit(curDeclFunc, OpCodes.Ldloc, retValue);
