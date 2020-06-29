@@ -180,6 +180,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
+            if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
+                flags |= RegionFlags.AllowEnvironmentOverride;
 
             // TODO: SkipUpdateInterestList
 
