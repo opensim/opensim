@@ -794,19 +794,16 @@ namespace OpenSim.Framework
 
             request.Method = verb;
 
-            MemoryStream buffer = null;
             byte[] data = null;
-
             try
             {
                 if (verb == "POST")
                 {
                     request.ContentType = "text/xml";
 
-                    buffer = new MemoryStream();
-
                     XmlWriterSettings settings = new XmlWriterSettings();
                     settings.Encoding = Encoding.UTF8;
+                    using (MemoryStream buffer = new MemoryStream())
                     using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                     {
                         XmlSerializer serializer = new XmlSerializer(type);
@@ -947,11 +944,7 @@ namespace OpenSim.Framework
                         reqnum, tickdiff, tickdata);
                 }
             }
-            finally
-            {
-                if (buffer != null && buffer.CanRead)
-                    buffer.Dispose();
-            }
+            catch { }
         }
     }
 
@@ -1010,7 +1003,7 @@ namespace OpenSim.Framework
                 try
                 {
                     using(Stream requestStream = request.GetRequestStream())
-                        requestStream.Write(data,0,length);
+                        requestStream.Write(data, 0, length);
                 }
                 catch (Exception e)
                 {
@@ -1276,8 +1269,8 @@ namespace OpenSim.Framework
                     request.ContentType = "text/xml";
 
                     byte[] data;
-                    XmlWriterSettings settings = new XmlWriterSettings(){CloseOutput = true, Encoding = Util.UTF8};
-                    MemoryStream ms = new MemoryStream();
+                    XmlWriterSettings settings = new XmlWriterSettings(){Encoding = Util.UTF8};
+                    using (MemoryStream ms = new MemoryStream())
                     using (XmlWriter writer = XmlWriter.Create(ms, settings))
                     {
                         XmlSerializer serializer = new XmlSerializer(type);

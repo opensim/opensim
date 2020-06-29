@@ -180,8 +180,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
-            if (Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)
-                flags |= RegionFlags.AllowEnvironmentOverride;
 
             // TODO: SkipUpdateInterestList
 
@@ -426,8 +424,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             //uint sun = 0;
 
-            //if (Scene.RegionInfo.EstateSettings.FixedSun)
-            //    sun = (uint)(Scene.RegionInfo.EstateSettings.SunPosition * 1024.0) + 0x1800;
             UUID estateOwner;
             estateOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
 
