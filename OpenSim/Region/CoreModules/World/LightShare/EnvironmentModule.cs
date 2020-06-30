@@ -567,7 +567,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             ILandObject lchannel;
             if (parcel == -1)
             {
-                if (!m_scene.Permissions.CanIssueEstateCommand(agentID, true))
+                if (!m_scene.Permissions.CanIssueEstateCommand(agentID, false))
                 {
                     message = "Insufficient estate permissions, settings has not been saved.";
                     goto Error;
