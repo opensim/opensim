@@ -424,8 +424,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
-            //uint sun = 0;
-
             UUID estateOwner;
             estateOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
 
