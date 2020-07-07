@@ -373,9 +373,13 @@ namespace OpenSim.Region.CoreModules.Asset
                 File.SetLastAccessTime(filename, DateTime.Now);
                 return true;
             }
-            catch
+            catch (FileNotFoundException)
             {
                 return false;
+            }
+            catch
+            {
+                return true; // ignore other errors
             }
         }
 
@@ -685,8 +689,10 @@ namespace OpenSim.Region.CoreModules.Asset
                 if(!Directory.Exists(dir))
                     return;
 
+                int dirSize = 0;
                 foreach (string file in Directory.GetFiles(dir))
                 {
+                    ++dirSize;
                     if (File.GetLastAccessTime(file) < purgeLine)
                     {
                         File.Delete(file);
@@ -702,11 +708,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 // Recurse into lower tiers
                 foreach (string subdir in Directory.GetDirectories(dir))
                 {
+                    ++dirSize;
                     CleanExpiredFiles(subdir, purgeLine);
                 }
 
                 // Check if a tier directory is empty, if so, delete it
-                int dirSize = Directory.GetFiles(dir).Length + Directory.GetDirectories(dir).Length;
                 if (dirSize == 0)
                 {
                     Directory.Delete(dir);
@@ -903,16 +909,23 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 s.ForEachSOG(delegate(SceneObjectGroup e)
                 {
-                    if(!m_timerRunning && !tryGetUncached)
+                    if(!m_timerRunning && !tryGetUncached || e.IsDeleted)
                         return;
 
                     gatherer.AddForInspection(e);
                     gatherer.GatherAll();
 
-                    if (++cooldown > 100)
+                    if (++cooldown > 200)
                     {
+                        GC.Collect();
+                        gatherer.AssetGetCount = 0;
                         Thread.Sleep(50);
                         cooldown = 0;
+                    }
+                    else if(gatherer.AssetGetCount > 200)
+                    {
+                        GC.Collect();
+                        gatherer.AssetGetCount = 0;
                     }
                 });
                 if(!m_timerRunning && !tryGetUncached)
@@ -931,8 +944,10 @@ namespace OpenSim.Region.CoreModules.Asset
                     cooldown += 50;
                     m_AssetService.Get(idstr);
                 }
-                if (++cooldown > 1000)
+                if (++cooldown > 500)
                 {
+                    if(tryGetUncached)
+                        GC.Collect();
                     Thread.Sleep(50);
                     cooldown = 0;
                 }
@@ -943,6 +958,7 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.FailedUUIDs.Clear();
             gatherer.UncertainAssetsUUIDs.Clear();
 
+            GC.Collect();
             return count;
         }
 
@@ -1149,7 +1165,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 }
                             }
                             int assetReferenceTotal = TouchAllSceneAssets(true);
-                            GC.Collect();
+
                             lock(timerLock)
                             {
                                 if(wasRunning)
@@ -1194,7 +1210,10 @@ namespace OpenSim.Region.CoreModules.Asset
                             break;
                         }
                         if (m_FileCacheEnabled)
+                        {
+                            TouchAllSceneAssets(false);
                             CleanExpiredFiles(m_CacheDirectory, expirationDate);
+                        }
                         else
                             con.Output("File cache not active, not clearing.");
 
