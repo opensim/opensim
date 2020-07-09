@@ -520,7 +520,7 @@ namespace OpenSim.Framework
         public float scaleBelow = 0.2f;
         public float underWaterFogMod = 0.25f;
         public Vector3 waterFogColor = new Vector3(0.0156f, 0.149f, 0.2509f);
-        public float waterFogDensity = 2;
+        public float waterFogDensity = 10;
         public Vector2 wave1Dir = new Vector2(1.05f, -0.42f);
         public Vector2 wave2Dir = new Vector2(1.11f, -1.16f);
         public string Name;
