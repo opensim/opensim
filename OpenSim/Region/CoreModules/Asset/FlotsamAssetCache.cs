@@ -60,8 +60,7 @@ namespace OpenSim.Region.CoreModules.Asset
         private bool m_cleanupRunning;
 
         private const string m_ModuleName = "FlotsamAssetCache";
-        private const string m_DefaultCacheDirectory = "./assetcache";
-        private string m_CacheDirectory = m_DefaultCacheDirectory;
+        private string m_CacheDirectory = "assetcache";
         private string m_assetLoader;
         private string m_assetLoaderArgs;
 
@@ -154,7 +153,8 @@ namespace OpenSim.Region.CoreModules.Asset
                     else
                     {
                         m_FileCacheEnabled = assetConfig.GetBoolean("FileCacheEnabled", m_FileCacheEnabled);
-                        m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
+                        m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_CacheDirectory);
+                        m_CacheDirectory = Path.GetFullPath(m_CacheDirectory);
 
                         m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", m_MemoryCacheEnabled);
                         m_MemoryExpiration = assetConfig.GetDouble("MemoryCacheTimeout", m_MemoryExpiration);
@@ -593,20 +593,20 @@ namespace OpenSim.Region.CoreModules.Asset
                 lock (weakAssetReferencesLock)
                     weakAssetReferences.Remove(id);
 
+                if (m_MemoryCacheEnabled)
+                    m_MemoryCache.Remove(id);
+
                 if (m_FileCacheEnabled)
                 {
                     string filename = GetFileName(id);
                     File.Delete(filename);
                 }
-
-                if (m_MemoryCacheEnabled)
-                    m_MemoryCache.Remove(id);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat(
-                    "[FLOTSAM ASSET CACHE]: Failed to expire cached file {0}.  Exception {1} {2}",
-                    id, e.Message, e.StackTrace);
+                if (m_LogLevel >= 2)
+                    m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Failed to expire cached file {0}.  Exception {1} {2}",
+                        id, e.Message, e.StackTrace);
             }
         }
 
@@ -671,7 +671,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 heap = GC.GetTotalMemory(false) - heap;
                 double fheap = Math.Round((double)(heap / (1024 * 1024)),3);
                 m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Finished automatic Check for expired files heap delta: {0}MB.", fheap);
-                heap = GC.GetTotalMemory(false);
             }
         }
 
@@ -731,8 +730,7 @@ namespace OpenSim.Region.CoreModules.Asset
             }
             catch (Exception e)
             {
-                m_log.Warn(
-                    string.Format("[FLOTSAM ASSET CACHE]: Could not complete clean of expired files in {0}, exception  ", dir), e);
+                m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Could not complete clean of expired files in {0}, exception {1}", dir, e.Message);
             }
         }
 
@@ -743,26 +741,34 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <returns></returns>
         private string GetFileName(string id)
         {
+            StringBuilder sb = osStringBuilderCache.Acquire();
             int indx = id.IndexOfAny(m_InvalidChars);
             if (indx >= 0)
             {
                 int sublen = id.Length - indx;
-                StringBuilder sb = new StringBuilder(id);
                 for(int i = 0; i < m_InvalidChars.Length; ++i)
                 {
                     sb.Replace(m_InvalidChars[i], '_', indx, sublen);
                 }
                 id = sb.ToString();
+                sb.Clear();
             }
-
-            string path = m_CacheDirectory;
-            for (int p = 1; p <= m_CacheDirectoryTiers; p++)
+            if(m_CacheDirectoryTiers == 1)
             {
-                string pathPart = id.Substring((p - 1) * m_CacheDirectoryTierLen, m_CacheDirectoryTierLen);
-                path = Path.Combine(path, pathPart);
+                sb.Append(id.Substring(0, m_CacheDirectoryTierLen));
+                sb.Append(Path.DirectorySeparatorChar);
             }
+            else
+            {
+                for (int p = 0; p < m_CacheDirectoryTiers * m_CacheDirectoryTierLen; p += m_CacheDirectoryTierLen)
+                {
+                    sb.Append(id.Substring(p, m_CacheDirectoryTierLen));
+                    sb.Append(Path.DirectorySeparatorChar);
+                }
+            }
+            sb.Append(id);
 
-            return Path.Combine(path, id);
+            return Path.Combine(m_CacheDirectory, osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         /// <summary>
@@ -876,11 +882,8 @@ namespace OpenSim.Region.CoreModules.Asset
             }
             catch (Exception e)
             {
-                m_log.Warn(
-                    string.Format(
-                        "[FLOTSAM ASSET CACHE]: Could not stamp region status file for region {0}.  Exception  ",
-                        regionID),
-                    e);
+                m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Could not stamp region status file for region {0}.  Exception {1}",
+                        regionID, e. Message);
             }
         }
 
