@@ -64,7 +64,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Effects
 
             for (int i = 0; i < rounds; i++)
             {
-                smoothFunction.FloodEffect(map, bitmap, -1f, 1.0f, 0, map.Width - 1, 0, map.Height - 1);
+                //mantis 8725
+                //smoothFunction.FloodEffect(map, bitmap, -1f, 1.0f, 0, map.Width - 1, 0, map.Height - 1);
+                smoothFunction.FloodEffect(map, bitmap, -1f, 110.0f, 0, map.Width - 1, 0, map.Height - 1);
             }
         }
 
