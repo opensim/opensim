@@ -745,6 +745,7 @@ namespace OpenSim.Region.CoreModules.Asset
             int indx = id.IndexOfAny(m_InvalidChars);
             if (indx >= 0)
             {
+                sb.Append(id);
                 int sublen = id.Length - indx;
                 for(int i = 0; i < m_InvalidChars.Length; ++i)
                 {
