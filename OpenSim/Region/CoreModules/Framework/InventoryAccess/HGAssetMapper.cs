@@ -70,23 +70,29 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (string.IsNullOrEmpty(url))
                 return null;
 
-            if (!url.EndsWith("/") && !url.EndsWith("="))
-                url = url + "/";
+            string assetIDstr = assetID.ToString();
+            // Test if it's already here
+            AssetMetadata meta = m_scene.AssetService.GetMetadata(assetIDstr);
+            if (meta == null)
+            {
+                if (!url.EndsWith("/") && !url.EndsWith("="))
+                    url = url + "/";
 
-            AssetMetadata meta = m_scene.AssetService.GetMetadata(url + assetID.ToString());
+                meta = m_scene.AssetService.GetMetadata(url + assetIDstr);
 
-            if (meta != null)
-                m_log.DebugFormat("[HG ASSET MAPPER]: Fetched metadata for asset {0} of type {1} from {2} ", assetID, meta.Type, url);
-            else
-                m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetched metadata for asset {0} from {1} ", assetID, url);
-
+                if (meta != null)
+                    m_log.DebugFormat("[HG ASSET MAPPER]: Fetched metadata for asset {0} of type {1} from {2} ", assetIDstr, meta.Type, url);
+                else
+                    m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetched metadata for asset {0} from {1} ", assetIDstr, url);
+            }
             return meta;
         }
 
         private AssetBase FetchAsset(string url, UUID assetID)
         {
+            string assetIDstr = assetID.ToString();
             // Test if it's already here
-            AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
+            AssetBase asset = m_scene.AssetService.Get(assetIDstr);
             if (asset == null)
             {
                 if (string.IsNullOrEmpty(url))
@@ -95,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (!url.EndsWith("/") && !url.EndsWith("="))
                     url = url + "/";
 
-                asset = m_scene.AssetService.Get(url + assetID.ToString());
+                asset = m_scene.AssetService.Get(url + assetIDstr);
 
                 //if (asset != null)
                 //    m_log.DebugFormat("[HG ASSET MAPPER]: Fetched asset {0} of type {1} from {2} ", assetID, asset.Metadata.Type, url);
