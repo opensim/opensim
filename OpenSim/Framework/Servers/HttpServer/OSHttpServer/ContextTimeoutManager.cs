@@ -121,8 +121,7 @@ namespace OSHttpServer
                 SocketError disconnectError = SocketError.HostDown;
                 for (int i = 0; i < m_contexts.Count; i++)
                 {
-                    HttpClientContext context = null;
-                    if (m_contexts.TryDequeue(out context))
+                    if (m_contexts.TryDequeue(out HttpClientContext context))
                     {
                         try
                         {

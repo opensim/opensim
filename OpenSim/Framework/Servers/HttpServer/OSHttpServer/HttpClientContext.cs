@@ -91,11 +91,6 @@ namespace OSHttpServer
 
         public bool StopMonitoring;
 
-        /// <summary>
-        /// Context have been started (a new client have connected)
-        /// </summary>
-        public event EventHandler Started;
-
         public IPEndPoint LocalIPEndPoint {get; set;}
 
         /// <summary>
@@ -213,8 +208,8 @@ namespace OSHttpServer
         /// </remarks>
         public virtual void Start()
         {
-            ReceiveLoop();
-            Started?.Invoke(this, EventArgs.Empty);
+            Task tk = new Task(() => ReceiveLoop());
+            tk.Start();
         }
 
         /// <summary>
@@ -488,7 +483,6 @@ namespace OSHttpServer
                     m_waitingResponse = true;
             }
 
-            // for now pipeline requests need to be serialized by opensim
             if(donow)
                 RequestReceived?.Invoke(this, new RequestEventArgs(m_currentRequest));
 
@@ -530,9 +524,14 @@ namespace OSHttpServer
             isSendingResponse = false;
             m_currentResponse?.Clear();
             m_currentResponse = null;
+            lock (m_requestsLock)
+                m_waitingResponse = false;
+
+            if(contextID < 0)
+                return;
 
             bool doclose = ctype == ConnectionType.Close;
-             if (doclose)
+            if (doclose)
             {
                 m_isClosing = true;
                 m_requests.Clear();
@@ -559,19 +558,16 @@ namespace OSHttpServer
                     return;
 
                 TriggerKeepalive = true;
+                HttpRequest nextRequest = null;
                 lock (m_requestsLock)
                 {
-                    m_waitingResponse = false;
                     if (m_requests != null && m_requests.Count > 0)
-                    {
-                        HttpRequest nextRequest = m_requests.Dequeue();
-                        if (nextRequest != null)
-                        {
-                            m_waitingResponse = true;
-                            RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
-                        }
-                    }
+                        nextRequest = m_requests.Dequeue();
+                    if (nextRequest != null && RequestReceived != null)
+                        m_waitingResponse = true;
                 }
+                if (nextRequest != null)
+                    RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
             }
         }
 
