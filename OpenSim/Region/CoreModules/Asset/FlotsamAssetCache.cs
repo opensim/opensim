@@ -911,28 +911,31 @@ namespace OpenSim.Region.CoreModules.Asset
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture4, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainImageID, (sbyte)AssetType.Texture);
 
-                s.ForEachSOG(delegate(SceneObjectGroup e)
+                EntityBase[] entities = s.Entities.GetEntities();
+                for (int i = 0; i < entities.Length; ++i)
                 {
-                    if(!m_timerRunning && !tryGetUncached || e.IsDeleted)
-                        return;
+                    if (!m_timerRunning && !tryGetUncached)
+                        break;
 
-                    gatherer.AddForInspection(e);
-                    gatherer.GatherAll();
+                    EntityBase entity = entities[i];
+                    if(entity is SceneObjectGroup)
+                    {
+                        SceneObjectGroup e = entity as SceneObjectGroup;
+                        if(e.IsDeleted)
+                            continue;
 
-                    if (++cooldown > 200)
-                    {
-                        GC.Collect();
-                        gatherer.AssetGetCount = 0;
-                        Thread.Sleep(50);
-                        cooldown = 0;
+                        gatherer.AddForInspection(e);
+                        gatherer.GatherAll();
+
+                        if (++cooldown > 200)
+                        {
+                            Thread.Sleep(50);
+                            cooldown = 0;
+                        }
                     }
-                    else if(gatherer.AssetGetCount > 200)
-                    {
-                        GC.Collect();
-                        gatherer.AssetGetCount = 0;
-                    }
-                });
-                if(!m_timerRunning && !tryGetUncached)
+                }
+                entities = null;
+                if (!m_timerRunning && !tryGetUncached)
                     break;
             }
 
@@ -961,8 +964,8 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.GatheredUuids.Clear();
             gatherer.FailedUUIDs.Clear();
             gatherer.UncertainAssetsUUIDs.Clear();
+            gatherer = null;
 
-            GC.Collect();
             return count;
         }
 
