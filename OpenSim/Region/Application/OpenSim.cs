@@ -848,7 +848,8 @@ namespace OpenSim
                     break;
 
                 case "restart":
-                    SceneManager.RestartCurrentScene();
+                    MainConsole.Instance.Output("Restart command disabled, because currently it is unreliable.");
+                    //SceneManager.RestartCurrentScene();
                     break;
             }
         }
