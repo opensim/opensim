@@ -28,9 +28,8 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
@@ -40,7 +39,6 @@ using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -53,6 +51,12 @@ namespace OpenSim.Region.CoreModules.Asset
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FlotsamAssetCache")]
     public class FlotsamAssetCache : ISharedRegionModule, IAssetCache, IAssetService
     {
+        private struct WriteAssetInfo
+        {
+            public string filename;
+            public AssetBase asset;
+        }
+
         private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled;
@@ -76,6 +80,8 @@ namespace OpenSim.Region.CoreModules.Asset
         private ulong m_weakRefHits;
 
         private static HashSet<string> m_CurrentlyWriting = new HashSet<string>();
+        private static BlockingCollection<WriteAssetInfo> m_assetFileWriteQueue = null;
+        private static CancellationTokenSource m_cancelSource;
 
         private bool m_FileCacheEnabled = true;
 
@@ -115,8 +121,6 @@ namespace OpenSim.Region.CoreModules.Asset
             invalidChars.AddRange(Path.GetInvalidFileNameChars());
             m_InvalidChars = invalidChars.ToArray();
         }
-
-        private static JobEngine m_DiskWriterEngine = null;
 
         public Type ReplaceableInterface
         {
@@ -219,6 +223,19 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Close()
         {
+            if(m_Scenes.Count <= 0)
+            {
+                if (m_assetFileWriteQueue != null)
+                {
+                    m_assetFileWriteQueue.Dispose();
+                    m_assetFileWriteQueue = null;
+                }
+                if(m_cancelSource != null)
+                {
+                    m_cancelSource.Dispose();
+                    m_cancelSource = null;
+                }
+            }
         }
 
         public void AddRegion(Scene scene)
@@ -238,13 +255,16 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_Scenes.Remove(scene);
                 lock(timerLock)
                 {
-                    if(m_timerRunning && m_Scenes.Count <= 0)
+                    if(m_Scenes.Count <= 0)
                     {
-                        m_timerRunning = false;
-                        m_CacheCleanTimer.Stop();
-                        m_CacheCleanTimer.Close();
-                        if (m_FileCacheEnabled && m_DiskWriterEngine != null && m_DiskWriterEngine.IsRunning)
-                            m_DiskWriterEngine.Stop();
+                        if (m_timerRunning)
+                        {
+                            m_timerRunning = false;
+                            m_CacheCleanTimer.Stop();
+                            m_CacheCleanTimer.Close();
+                        }
+                        if (m_FileCacheEnabled && m_assetFileWriteQueue != null)
+                            m_cancelSource.Cancel();
                     }
                 }
             }
@@ -270,13 +290,29 @@ namespace OpenSim.Region.CoreModules.Asset
                         }
                     }
 
-                    if(m_DiskWriterEngine == null)
+                    if (m_FileCacheEnabled && m_assetFileWriteQueue == null)
                     {
-                        m_DiskWriterEngine = new JobEngine("FlotsamWriter", "FlotsamWriter");
-                        m_DiskWriterEngine.Start();
+                        m_assetFileWriteQueue = new BlockingCollection<WriteAssetInfo>();
+                        m_cancelSource = new CancellationTokenSource();
+                        WorkManager.RunInThreadPool(processWrites, null, "FloatsamCacheWriter", false);
                     }
                 }
             }
+        }
+
+        private void processWrites(object o)
+        {
+            try
+            {
+                while(true)
+                {
+                    if(m_assetFileWriteQueue.TryTake(out WriteAssetInfo wai,-1, m_cancelSource.Token))
+                    {
+                        WriteFileCache(wai.filename,wai.asset,false);
+                    }
+                }
+            }
+            catch{ }
         }
 
         ////////////////////////////////////////////////////////////
@@ -302,6 +338,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private void UpdateFileCache(string key, AssetBase asset, bool replace = false)
         {
+            if(m_assetFileWriteQueue == null)
+                return;
+
             string filename = GetFileName(key);
 
             try
@@ -323,8 +362,11 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_CurrentlyWriting.Add(filename);
                 }
 
-                // weakreferences should hold and return the asset while async write happens
-                m_DiskWriterEngine?.QueueJob("", delegate { WriteFileCache(filename, asset, replace); });
+                WriteAssetInfo wai = new WriteAssetInfo();
+                wai.filename = filename;
+                wai.asset = asset;
+                if (m_assetFileWriteQueue != null)
+                    m_assetFileWriteQueue.Add(wai);
             }
             catch (Exception e)
             {

@@ -232,7 +232,6 @@ namespace OpenSim.Region.ClientStack.Linden
             private HashSet<UUID> dropedResponses = new HashSet<UUID>();
 
             private Scene m_scene;
-            private ScenePresence m_presence;
             public PollServiceAssetEventArgs(string uri, UUID pId, Scene scene) :
                 base(null, uri, null, null, null, null, pId, int.MaxValue)
             {
@@ -245,20 +244,19 @@ namespace OpenSim.Region.ClientStack.Linden
                         APollResponse response;
                         if (responses.TryGetValue(requestID, out response))
                         {
-                            if (m_presence == null)
-                                m_presence = m_scene.GetScenePresence(pId);
+                            ScenePresence sp = m_scene.GetScenePresence(pId);
 
-                            if (m_presence == null || m_presence.IsDeleted)
+                            if (sp == null || sp.IsDeleted)
                                 return true;
 
                             OSHttpResponse resp = response.osresponse;
 
                             if(Util.GetTimeStamp() - resp.RequestTS > (resp.RawBufferLen > 2000000 ? 200 : 90))
-                                return m_presence.CapCanSendAsset(2, resp.RawBufferLen);
+                                return sp.CapCanSendAsset(2, resp.RawBufferLen);
 
                             if (resp.Priority > 1)
-                                return m_presence.CapCanSendAsset(1, resp.RawBufferLen);
-                            return m_presence.CapCanSendAsset(2, resp.RawBufferLen);
+                                return sp.CapCanSendAsset(1, resp.RawBufferLen);
+                            return sp.CapCanSendAsset(2, resp.RawBufferLen);
                         }
                         return false;
                     }

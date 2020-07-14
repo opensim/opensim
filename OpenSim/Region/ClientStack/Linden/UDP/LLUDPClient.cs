@@ -748,9 +748,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
 
                 // Asynchronously run the callback
-                if (m_udpServer.OqrEngine.IsRunning)
-                    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
-                else
+                // avoid stupid memory leak
+                //if (m_udpServer.OqrEngine.IsRunning)
+                //    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
+                //else
                     Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
             }
         }
@@ -764,16 +765,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// signature</param>
         public void FireQueueEmpty(object o)
         {
-            ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
             QueueEmpty callback = OnQueueEmpty;
-
             if (callback != null)
             {
-                // if (m_udpServer.IsRunningOutbound)
-                // {
+                ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
                 try { callback(categories); }
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
-                // }
             }
 
             m_isQueueEmptyRunning = false;

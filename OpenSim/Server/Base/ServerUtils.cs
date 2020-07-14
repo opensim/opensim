@@ -564,6 +564,29 @@ namespace OpenSim.Server.Base
             return new Dictionary<string, object>();
         }
 
+        public static Dictionary<string, object> ParseXmlResponse(Stream src)
+        {
+            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
+
+            try
+            {
+                XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, IgnoreComments = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
+                XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
+                xpc.Encoding = Util.UTF8NoBomEncoding;
+                using (XmlReader xr = XmlReader.Create(src, xset, xpc))
+                {
+                    if (!xr.ReadToFollowing("ServerResponse"))
+                        return new Dictionary<string, object>();
+                    return ScanXmlResponse(xr);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[serverUtils.ParseXmlResponse]: failed error: {0}", e.Message);
+            }
+            return new Dictionary<string, object>();
+        }
+
         public static IConfig GetConfig(string configFile, string configName)
         {
             IConfig config;

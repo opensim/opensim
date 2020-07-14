@@ -147,7 +147,7 @@ namespace OpenSim.Framework
 
         //this is a vector3 now, but all viewers expect a vector4, so keeping like this for now
         public Vector4 sunlight_color = new Vector4(0.7342f, 0.7815f, 0.9f, 0.3f);
-        public string Name = "Default";
+        public string Name = "DefaultSky";
 
         public float cloud_variance = 0;
         public float dome_offset = 0.96f;

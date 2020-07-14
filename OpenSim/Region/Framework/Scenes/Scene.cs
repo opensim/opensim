@@ -1664,20 +1664,24 @@ namespace OpenSim.Region.Framework.Scenes
 */
                     if (Frame % (m_update_coarse_locations) == 0 && !m_sendingCoarseLocations)
                     {
-                        m_sendingCoarseLocations = true;
-                        WorkManager.RunInThreadPool(
-                            delegate
-                            {
-                                List<Vector3> coarseLocations;
-                                List<UUID> avatarUUIDs;
-                                SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                                // Send coarse locations to clients
-                                ForEachScenePresence(delegate(ScenePresence presence)
+                        if(GetNumberOfClients() > 0)
+                        {
+                            m_sendingCoarseLocations = true;
+                            WorkManager.RunInThreadPool(
+                                delegate
                                 {
-                                    presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                                });
-                                m_sendingCoarseLocations = false; 
-                            }, null, string.Format("SendCoarseLocations ({0})", Name));
+                                    List<Vector3> coarseLocations;
+                                    List<UUID> avatarUUIDs;
+                                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                                    // Send coarse locations to clients
+                                    ForEachScenePresence(delegate(ScenePresence presence)
+                                    {
+                                        if(!presence.IsNPC)
+                                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                                    });
+                                    m_sendingCoarseLocations = false; 
+                                }, null, string.Format("SendCoarseLocations ({0})", Name));
+                        }
                     }
 
                     // Get the simulation frame time that the avatar force input

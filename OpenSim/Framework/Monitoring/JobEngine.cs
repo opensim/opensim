@@ -137,7 +137,7 @@ namespace OpenSim.Framework.Monitoring
                     }
                     if (m_jobQueue != null)
                     {
-                        m_jobQueue .Dispose();
+                        m_jobQueue.Dispose();
                         m_jobQueue = null;
                     }
                 }

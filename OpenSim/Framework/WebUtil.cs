@@ -53,9 +53,7 @@ namespace OpenSim.Framework
     /// </summary>
     public static class WebUtil
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Control the printing of certain debug messages.
