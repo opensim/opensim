@@ -77,12 +77,7 @@ namespace OpenSim
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            if(Util.IsWindows())
-                ServicePointManager.DefaultConnectionLimit = 32;
-            else
-            {
-                ServicePointManager.DefaultConnectionLimit = 12;
-            }
+            ServicePointManager.DefaultConnectionLimit = 64;
 
             try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
             ServicePointManager.Expect100Continue = false;
@@ -127,14 +122,12 @@ namespace OpenSim
             int iocpThreadsMin = 1000;
             int iocpThreadsMax = 2000; // may need further adjustment to match other CLR
 
-            int currentMinWorkerThreads, currentMinIocpThreads;
-            System.Threading.ThreadPool.GetMinThreads(out currentMinWorkerThreads, out currentMinIocpThreads);
+            System.Threading.ThreadPool.GetMinThreads(out int currentMinWorkerThreads, out int currentMinIocpThreads);
             m_log.InfoFormat(
                 "[OPENSIM MAIN]: Runtime gave us {0} min worker threads and {1} min IOCP threads",
                 currentMinWorkerThreads, currentMinIocpThreads);
 
-            int workerThreads, iocpThreads;
-            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+            System.Threading.ThreadPool.GetMaxThreads(out int workerThreads, out int iocpThreads);
             m_log.InfoFormat("[OPENSIM MAIN]: Runtime gave us {0} max worker threads and {1} max IOCP threads", workerThreads, iocpThreads);
 
             if (workerThreads < workerThreadsMin)

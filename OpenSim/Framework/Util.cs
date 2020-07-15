@@ -169,12 +169,12 @@ namespace OpenSim.Framework
         }
 
         private static uint nextXferID = 5000;
-        private static Random randomClass = new ThreadSafeRandom();
+        private static readonly Random randomClass = new ThreadSafeRandom();
 
         // Get a list of invalid file characters (OS dependent)
-        private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
-        private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
-        private static object XferLock = new object();
+        private static readonly string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
+        private static readonly string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
+        private static readonly object XferLock = new object();
 
         /// <summary>
         /// Thread pool used for Util.FireAndForget if FireAndForgetMethod.SmartThreadPool is used
@@ -703,8 +703,10 @@ namespace OpenSim.Framework
             StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
 
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
+            XmlTextWriter xtw = new XmlTextWriter(sw)
+            {
+                Formatting = Formatting.Indented
+            };
 
             try
             {
@@ -1316,8 +1318,7 @@ namespace OpenSim.Framework
             if(String.IsNullOrWhiteSpace(dnsAddress))
                 return null;
 
-            IPAddress ia = null;
-            if(dnscache.TryGetValue(dnsAddress, out ia) && ia != null)
+            if(dnscache.TryGetValue(dnsAddress, out IPAddress ia) && ia != null)
             {
                 dnscache.AddOrUpdate(dnsAddress, ia, 300);
                 return ia;
@@ -1384,9 +1385,8 @@ namespace OpenSim.Framework
         {
             if(String.IsNullOrWhiteSpace(hostname))
                 return null;
-            
-            IPAddress ia = null;
-            if(dnscache.TryGetValue(hostname, out ia) && ia != null)
+
+            if(dnscache.TryGetValue(hostname, out IPAddress ia) && ia != null)
             {
                 dnscache.AddOrUpdate(hostname, ia, 300);
                 return getEndPoint(ia, port);
@@ -1497,8 +1497,7 @@ namespace OpenSim.Framework
             url = String.Empty;
             assetID = String.Empty;
 
-            UUID uuid;
-            if (UUID.TryParse(id, out uuid))
+            if (UUID.TryParse(id, out UUID uuid))
             {
                 assetID = uuid.ToString();
                 return false;
@@ -1507,25 +1506,11 @@ namespace OpenSim.Framework
             if ((id.Length == 0) || (id[0] != 'h' && id[0] != 'H'))
                 return false;
 
-            Uri assetUri;
-            if (!Uri.TryCreate(id, UriKind.Absolute, out assetUri) || assetUri.Scheme != Uri.UriSchemeHttp)
+            if (!Uri.TryCreate(id, UriKind.Absolute, out Uri assetUri) || assetUri.Scheme != Uri.UriSchemeHttp)
                 return false;
 
-            // Simian
-            if (assetUri.Query != string.Empty)
-            {
-                NameValueCollection qscoll = HttpUtility.ParseQueryString(assetUri.Query);
-                assetID = qscoll["id"];
-                if (assetID != null)
-                    url = id.Replace(assetID, ""); // Malformed again, as simian expects
-                else
-                    url = id; // !!! best effort
-            }
-            else // robust
-            {
-                url = "http://" + assetUri.Authority;
-                assetID = assetUri.LocalPath.Trim(new char[] { '/' });
-            }
+            url = "http://" + assetUri.Authority;
+            assetID = assetUri.LocalPath.Trim(new char[] { '/' });
 
             if (!UUID.TryParse(assetID, out uuid))
                 return false;
@@ -1538,7 +1523,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="path">path</param>
         /// <returns>safe path</returns>
-        public static string safePath(string path)
+        public static string SafePath(string path)
         {
             return Regex.Replace(path, regexInvalidPathChars, String.Empty);
         }
@@ -1548,7 +1533,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="path">filename</param>
         /// <returns>safe filename</returns>
-        public static string safeFileName(string filename)
+        public static string SafeFileName(string filename)
         {
             return Regex.Replace(filename, regexInvalidFileChars, String.Empty);
             ;
@@ -1600,7 +1585,7 @@ namespace OpenSim.Framework
             return "./OpenSim.log";
         }
 
-        public static string statsLogFile()
+        public static string StatsLogFile()
         {
             foreach (IAppender appender in LogManager.GetRepository().GetAppenders())
             {
@@ -2102,9 +2087,11 @@ namespace OpenSim.Framework
         public static XmlRpcResponse CreateUnknownUserErrorResponse()
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable responseData = new Hashtable();
-            responseData["error_type"] = "unknown_user";
-            responseData["error_desc"] = "The user requested is not in the database";
+            Hashtable responseData = new Hashtable()
+            {
+                ["error_type"] = "unknown_user",
+                ["error_desc"] = "The user requested is not in the database"
+            };
 
             response.Value = responseData;
             return response;
@@ -2172,11 +2159,8 @@ namespace OpenSim.Framework
 
         public static void FakeParcelIDToGlobalPosition(UUID parcelID, out uint x, out uint y)
         {
-            ulong regionHandle;
-            uint rx, ry;
-
-            ParseFakeParcelID(parcelID, out regionHandle, out x, out y);
-            Utils.LongToUInts(regionHandle, out rx, out ry);
+            ParseFakeParcelID(parcelID, out ulong regionHandle, out x, out y);
+            Utils.LongToUInts(regionHandle, out uint rx, out uint ry);
 
             x += rx;
             y += ry;
@@ -2837,11 +2821,13 @@ namespace OpenSim.Framework
                 return;
             }
 
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.ThreadPoolName = "Util";
-            startInfo.IdleTimeout = 20000;
-            startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = minThreads;
+            STPStartInfo startInfo = new STPStartInfo()
+            {
+                ThreadPoolName = "Util",
+                IdleTimeout = 20000,
+                MaxWorkerThreads = maxThreads,
+                MinWorkerThreads = minThreads
+            };
 
             m_ThreadPool = new SmartThreadPool(startInfo);
             m_threadPoolWatchdog = new Timer(ThreadPoolWatchdog, null, 0, 1000);
@@ -2877,7 +2863,7 @@ namespace OpenSim.Framework
         {
             public long ThreadFuncNum { get; set; }
             public string StackTrace { get; set; }
-            private string context;
+            private readonly string context;
             public bool LogThread { get; set; }
 
             public IWorkItemResult WorkItem { get; set; }
@@ -2948,7 +2934,6 @@ namespace OpenSim.Framework
         private static long numQueuedThreadFuncs = 0;
         private static long numRunningThreadFuncs = 0;
         private static long numTotalThreadFuncsCalled = 0;
-        private static Int32 threadFuncOverloadMode = 0;
 
         public static long TotalQueuedFireAndForgetCalls { get { return numQueuedThreadFuncs; } }
         public static long TotalRunningFireAndForgetCalls { get { return numRunningThreadFuncs; } }
@@ -2971,8 +2956,7 @@ namespace OpenSim.Framework
                     m_log.WarnFormat("Timeout in threadfunc {0} ({1}) {2}", t.ThreadFuncNum, t.Thread.Name, t.GetStackTrace());
                     t.Abort();
 
-                    ThreadInfo dummy;
-                    activeThreads.TryRemove(entry.Key, out dummy);
+                    activeThreads.TryRemove(entry.Key, out ThreadInfo dummy);
 
                     // It's possible that the thread won't abort. To make sure the thread pool isn't
                     // depleted, increase the pool size.
@@ -2988,14 +2972,14 @@ namespace OpenSim.Framework
             return new Dictionary<string, int>(m_fireAndForgetCallsMade);
         }
 
-        private static Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
+        private static readonly Dictionary<string, int> m_fireAndForgetCallsMade = new Dictionary<string, int>();
 
         public static Dictionary<string, int> GetFireAndForgetCallsInProgress()
         {
             return new Dictionary<string, int>(m_fireAndForgetCallsInProgress);
         }
 
-        private static Dictionary<string, int> m_fireAndForgetCallsInProgress = new Dictionary<string, int>();
+        private static readonly Dictionary<string, int> m_fireAndForgetCallsInProgress = new Dictionary<string, int>();
 
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
@@ -3041,7 +3025,7 @@ namespace OpenSim.Framework
 
                     try
                     {
-                        if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
+                        if (loggingEnabled  && threadInfo.LogThread)
                             m_log.DebugFormat("Run threadfunc {0} (Queued {1}, Running {2})", threadFuncNum, numQueued1, numRunning1);
 
                         Culture.SetCurrentCulture();
@@ -3059,7 +3043,7 @@ namespace OpenSim.Framework
                         Interlocked.Decrement(ref numRunningThreadFuncs);
                         threadInfo.Ended();
                         activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
-                        if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
+                        if (loggingEnabled && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
                         callback = null;
                         o = null;
@@ -3266,18 +3250,19 @@ namespace OpenSim.Framework
             if (m_ThreadPool == null)
                 return null;
 
-            STPInfo stpi = new STPInfo();
-            stpi.Name = m_ThreadPool.Name;
-            stpi.STPStartInfo = m_ThreadPool.STPStartInfo;
-            stpi.IsIdle = m_ThreadPool.IsIdle;
-            stpi.IsShuttingDown = m_ThreadPool.IsShuttingdown;
-            stpi.MaxThreads = m_ThreadPool.MaxThreads;
-            stpi.MinThreads = m_ThreadPool.MinThreads;
-            stpi.InUseThreads = m_ThreadPool.InUseThreads;
-            stpi.ActiveThreads = m_ThreadPool.ActiveThreads;
-            stpi.WaitingCallbacks = m_ThreadPool.WaitingCallbacks;
-            stpi.MaxConcurrentWorkItems = m_ThreadPool.Concurrency;
-
+            STPInfo stpi = new STPInfo()
+            {
+                Name = m_ThreadPool.Name,
+                STPStartInfo = m_ThreadPool.STPStartInfo,
+                IsIdle = m_ThreadPool.IsIdle,
+                IsShuttingDown = m_ThreadPool.IsShuttingdown,
+                MaxThreads = m_ThreadPool.MaxThreads,
+                MinThreads = m_ThreadPool.MinThreads,
+                InUseThreads = m_ThreadPool.InUseThreads,
+                ActiveThreads = m_ThreadPool.ActiveThreads,
+                WaitingCallbacks = m_ThreadPool.WaitingCallbacks,
+                MaxConcurrentWorkItems = m_ThreadPool.Concurrency
+            };
             return stpi;
         }
 
@@ -3524,7 +3509,6 @@ namespace OpenSim.Framework
 
         public static UUID ReadUUID(XmlReader reader, string name)
         {
-            UUID id;
             string idStr;
 
             reader.ReadStartElement(name);
@@ -3535,7 +3519,8 @@ namespace OpenSim.Framework
                 idStr = reader.ReadElementString("UUID");
             else // no leading tag
                 idStr = reader.ReadContentAsString();
-            UUID.TryParse(idStr, out id);
+
+            UUID.TryParse(idStr, out UUID id);
             reader.ReadEndElement();
 
             return id;
