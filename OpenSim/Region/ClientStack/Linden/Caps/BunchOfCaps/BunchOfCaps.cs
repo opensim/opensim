@@ -2185,7 +2185,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 Directory.CreateDirectory(assetPath);
             }
-            FileStream fs = File.Create(Path.Combine(assetPath, Util.safeFileName(filename)));
+            FileStream fs = File.Create(Path.Combine(assetPath, Util.SafeFileName(filename)));
             BinaryWriter bw = new BinaryWriter(fs);
             bw.Write(data);
             bw.Close();

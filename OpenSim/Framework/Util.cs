@@ -1536,7 +1536,6 @@ namespace OpenSim.Framework
         public static string SafeFileName(string filename)
         {
             return Regex.Replace(filename, regexInvalidFileChars, String.Empty);
-            ;
         }
 
         //
