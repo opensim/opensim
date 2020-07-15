@@ -137,6 +137,59 @@ namespace OpenSim.Framework
                 array[3] = new OSDMap();
         }
 
+        public bool replaceWaterFromOSD(string name, OSDMap map)
+        {
+            WaterData water = new WaterData();
+            if(string.IsNullOrWhiteSpace(name))
+                name = "Water";
+            try
+            {
+                water.FromOSD(name, map);
+            }
+            catch
+            {
+                return false;
+            }
+            waterframes.Clear();
+            waterframes[name] = water;
+            waterTrack.Clear();
+            TrackEntry t = new TrackEntry()
+            {
+                time = -1,
+                frameName = name
+            };
+            waterTrack.Add(t);
+            return true;
+        }
+
+        public bool replaceSkyFromOSD(string name, OSDMap map)
+        {
+            SkyData sky = new SkyData();
+            if (string.IsNullOrWhiteSpace(name))
+                name = "Sky";
+            try
+            {
+                sky.FromOSD(name, map);
+            }
+            catch
+            {
+                return false;
+            }
+            skyframes.Clear();
+            skyframes[name] = sky;
+
+            TrackEntry t = new TrackEntry()
+            {
+                time = -1,
+                frameName = name
+            };
+            skyTrack0.Clear();
+            skyTrack0.Add(t);
+            skyTracks = new List<TrackEntry>[3];
+
+            return true;
+        }
+
         public void FromOSD(OSDMap map)
         {
             CompareTrackEntries cte = new CompareTrackEntries();
@@ -188,9 +241,11 @@ namespace OpenSim.Framework
                             {
                                 if (d.TryGetValue("key_name", out OSD dname))
                                 {
-                                    TrackEntry t = new TrackEntry();
-                                    t.time = dtime;
-                                    t.frameName = dname;
+                                    TrackEntry t = new TrackEntry()
+                                    {
+                                        time = dtime,
+                                        frameName = dname
+                                    };
                                     waterTrack.Add(t);
                                 }
                             }

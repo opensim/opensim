@@ -373,14 +373,50 @@ namespace OpenSim.Framework
             OSDMap map = osd as OSDMap;
             if (map == null)
                 return false;
-            if(!map.TryGetValue("type", out OSD tmp))
+            if (!map.TryGetValue("type", out OSD tmp))
                 return false;
             string type = tmp.AsString();
-            if(type != "daycycle")
+            if (type != "daycycle")
                 return false;
             Cycle = new DayCycle();
             Cycle.FromOSD(map);
             return true;
+        }
+
+        public bool FromAssetOSD(string name, OSD osd)
+        {
+            OSDMap map = osd as OSDMap;
+            if (map == null)
+                return false;
+            if (!map.TryGetValue("type", out OSD tmp))
+                return false;
+            string type = tmp.AsString();
+
+            bool ok = false;
+            if (type == "water")
+            {
+                if (Cycle == null)
+                    Cycle = new DayCycle();
+                ok = Cycle.replaceWaterFromOSD(name, map);
+            }
+            else
+            {
+                if (type == "daycycle")
+                {
+                    Cycle = new DayCycle();
+                    Cycle.FromOSD(map);
+                    ok = true;
+                }
+                else if(type == "sky")
+                {
+                    if (Cycle == null)
+                        Cycle = new DayCycle();
+                    ok = Cycle.replaceSkyFromOSD(name, map);
+                }
+            }
+            if(ok && !string.IsNullOrWhiteSpace(name))
+                Cycle.Name = name;
+            return ok;
         }
 
         public OSD ToOSD()
