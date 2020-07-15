@@ -150,8 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (options.ContainsKey("noassets") && (bool)options["noassets"])
                 SaveAssets = false;
 
-            Object temp;
-            if (options.TryGetValue("checkPermissions", out temp))
+            if (options.TryGetValue("checkPermissions", out Object temp))
                 FilterContent = (string)temp;
 
 
@@ -243,7 +242,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (entity is SceneObjectGroup)
                 {
-                    SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                    SceneObjectGroup sceneObject = entity as SceneObjectGroup;
 
                     if (!sceneObject.IsDeleted && !sceneObject.IsAttachment && !sceneObject.IsTemporary && !sceneObject.inTransit)
                     {
@@ -528,15 +527,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             for (uint y = (uint)scenesGroup.Rect.Top; y < scenesGroup.Rect.Bottom; ++y)
             {
-                SortedDictionary<uint, Scene> row;
-                if (scenesGroup.Regions.TryGetValue(y, out row))
+                if (scenesGroup.Regions.TryGetValue(y, out SortedDictionary<uint, Scene> row))
                 {
                     xtw.WriteStartElement("row");
 
                     for (uint x = (uint)scenesGroup.Rect.Left; x < scenesGroup.Rect.Right; ++x)
                     {
-                        Scene scene;
-                        if (row.TryGetValue(x, out scene))
+                        if (row.TryGetValue(x, out Scene scene))
                         {
                             xtw.WriteStartElement("region");
                             xtw.WriteElementString("id", scene.RegionInfo.RegionID.ToString());

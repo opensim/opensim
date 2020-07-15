@@ -108,10 +108,10 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private IAssetService m_AssetService;
         private List<Scene> m_Scenes = new List<Scene>();
-        private object timerLock = new object();
+        private readonly object timerLock = new object();
 
         private Dictionary<string,WeakReference> weakAssetReferences = new Dictionary<string, WeakReference>();
-        private object weakAssetReferencesLock = new object();
+        private readonly object weakAssetReferencesLock = new object();
         private bool m_updateFileTimeOnCacheHit = false;
 
         public FlotsamAssetCache()
@@ -282,8 +282,10 @@ namespace OpenSim.Region.CoreModules.Asset
                     {
                         if (m_FileCacheEnabled && (m_FileExpiration > TimeSpan.Zero) && (m_FileExpirationCleanupTimer > TimeSpan.Zero))
                         {
-                            m_CacheCleanTimer = new System.Timers.Timer(m_FileExpirationCleanupTimer.TotalMilliseconds);
-                            m_CacheCleanTimer.AutoReset = false;
+                            m_CacheCleanTimer = new System.Timers.Timer(m_FileExpirationCleanupTimer.TotalMilliseconds)
+                            {
+                                AutoReset = false
+                            };
                             m_CacheCleanTimer.Elapsed += CleanupExpiredFiles;
                             m_CacheCleanTimer.Start();
                             m_timerRunning = true;
@@ -294,13 +296,13 @@ namespace OpenSim.Region.CoreModules.Asset
                     {
                         m_assetFileWriteQueue = new BlockingCollection<WriteAssetInfo>();
                         m_cancelSource = new CancellationTokenSource();
-                        WorkManager.RunInThreadPool(processWrites, null, "FloatsamCacheWriter", false);
+                        WorkManager.RunInThreadPool(ProcessWrites, null, "FloatsamCacheWriter", false);
                     }
                 }
             }
         }
 
-        private void processWrites(object o)
+        private void ProcessWrites(object o)
         {
             try
             {
@@ -309,6 +311,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     if(m_assetFileWriteQueue.TryTake(out WriteAssetInfo wai,-1, m_cancelSource.Token))
                     {
                         WriteFileCache(wai.filename,wai.asset,false);
+                        wai.asset = null;
                     }
                 }
             }
@@ -320,10 +323,9 @@ namespace OpenSim.Region.CoreModules.Asset
         //
         private void UpdateWeakReference(string key, AssetBase asset)
         {
-            WeakReference aref;
             lock(weakAssetReferencesLock)
             {
-                if(weakAssetReferences.TryGetValue(key , out aref))
+                if(weakAssetReferences.TryGetValue(key , out WeakReference aref))
                     aref.Target = asset;
                 else
                     weakAssetReferences[key] = new WeakReference(asset);
@@ -362,9 +364,12 @@ namespace OpenSim.Region.CoreModules.Asset
                         m_CurrentlyWriting.Add(filename);
                 }
 
-                WriteAssetInfo wai = new WriteAssetInfo();
-                wai.filename = filename;
-                wai.asset = asset;
+                WriteAssetInfo wai = new WriteAssetInfo()
+                {
+                    filename = filename,
+                    asset = asset
+                };
+
                 if (m_assetFileWriteQueue != null)
                     m_assetFileWriteQueue.Add(wai);
             }
@@ -450,12 +455,12 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <returns></returns>
         private AssetBase GetFromMemoryCache(string id)
         {
-            AssetBase asset = null;
-
-            if (m_MemoryCache.TryGetValue(id, out asset))
+            if (m_MemoryCache.TryGetValue(id, out AssetBase asset))
+            {
                 m_MemoryHits++;
-
-            return asset;
+                return asset;
+            }
+            return null;
         }
 
         private bool CheckFromMemoryCache(string id)
@@ -550,8 +555,7 @@ namespace OpenSim.Region.CoreModules.Asset
         // For IAssetService
         public AssetBase Get(string id)
         {
-            AssetBase asset;
-            Get(id, out asset);
+            Get(id, out AssetBase asset);
             return asset;
         }
 
@@ -561,8 +565,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             m_Requests++;
 
-            object dummy;
-            if (m_negativeCache.TryGetValue(id, out dummy))
+            if (m_negativeCache.TryGetValue(id, out object dummy))
             {
                 return false;
             }
@@ -620,8 +623,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public AssetBase GetCached(string id)
         {
-            AssetBase asset;
-            Get(id, out asset);
+            Get(id, out AssetBase asset);
             return asset;
         }
 
@@ -1295,8 +1297,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public AssetMetadata GetMetadata(string id)
         {
-            AssetBase asset;
-            Get(id, out asset);
+            Get(id, out AssetBase asset);
             if (asset == null)
                 return null;
             return asset.Metadata;
@@ -1304,8 +1305,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public byte[] GetData(string id)
         {
-            AssetBase asset;
-            Get(id, out asset);
+            Get(id, out AssetBase asset);
             if (asset == null)
                 return null;
             return asset.Data;
@@ -1313,8 +1313,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public bool Get(string id, object sender, AssetRetrieved handler)
         {
-            AssetBase asset;
-            if (!Get(id, out asset))
+            if (!Get(id, out AssetBase asset))
                 return false;
             handler(id, sender, asset);
             return true;
@@ -1346,8 +1345,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public bool UpdateContent(string id, byte[] data)
         {
-            AssetBase asset;
-            if (!Get(id, out asset))
+            if (!Get(id, out AssetBase asset))
                 return false;
             asset.Data = data;
             Cache(asset, true);
