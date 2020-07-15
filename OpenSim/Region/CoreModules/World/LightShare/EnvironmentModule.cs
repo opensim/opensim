@@ -583,7 +583,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     goto Error;
                 }
 
-                if (!m_scene.Permissions.CanEditParcelProperties(agentID, lchannel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true)) // wrong
+                if (!m_scene.Permissions.CanEditParcelProperties(agentID, lchannel, GroupPowers.AllowEnvironment, true)) // wrong
                 {
                     message = "No permission to change parcel environment";
                     goto Error;

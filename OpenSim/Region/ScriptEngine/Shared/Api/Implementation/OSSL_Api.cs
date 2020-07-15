@@ -5940,7 +5940,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parcel == null)
                 return -2;
 
-            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true))
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment), true))
                 return -3;
 
             ViewerEnvironment VEnv;
@@ -6078,7 +6078,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (parcel == null)
                     return -2;
 
-                if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment | GroupPowers.LandEdit), true))
+                if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, parcel, (GroupPowers.AllowEnvironment), true))
                     return -3;
                 if (parcel.LandData.Environment == null)
                     return 1;
