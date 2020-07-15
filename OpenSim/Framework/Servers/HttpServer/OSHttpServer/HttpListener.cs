@@ -140,6 +140,11 @@ namespace OSHttpServer
                 m_listener.BeginAcceptSocket(OnAccept, null);
                 beginAcceptCalled = true;
                 Socket socket = m_listener.EndAcceptSocket(ar);
+                if (!socket.Connected)
+                {
+                    socket.Dispose();
+                    return;
+                }
 
                 if (!OnAcceptingSocket(socket))
                 {
@@ -147,12 +152,18 @@ namespace OSHttpServer
                     return;
                 }
 
-                m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
+                if(socket.Connected)
+                {
 
-                if (m_certificate != null)
-                    m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocol, m_clientCertValCallback);
+                    m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
+
+                    if (m_certificate != null)
+                        m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocol, m_clientCertValCallback);
+                    else
+                        m_contextFactory.CreateContext(socket);
+                }
                 else
-                    m_contextFactory.CreateContext(socket);
+                    socket.Dispose();
             }
             catch (Exception err)
             {
