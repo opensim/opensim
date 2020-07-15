@@ -3058,10 +3058,12 @@ namespace OpenSim.Framework
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
                         threadInfo.Ended();
-                        ThreadInfo dummy;
-                        activeThreads.TryRemove(threadFuncNum, out dummy);
+                        activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
                         if ((loggingEnabled || (threadFuncOverloadMode == 1)) && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
+                        callback = null;
+                        o = null;
+                        threadInfo = null;
                     }
                 };
             }
@@ -3083,10 +3085,10 @@ namespace OpenSim.Framework
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)
                             InitThreadPool(2, 15);
-                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem((cb, o) => cb(o), realCallback, obj);
+                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem((cb, o) => {cb(o); cb = null;}, realCallback, obj);
                         break;
                     case FireAndForgetMethod.Thread:
-                        Thread thread = new Thread(delegate(object o) { realCallback(o); });
+                        Thread thread = new Thread(delegate(object o) { realCallback(o); realCallback = null;});
                         thread.Start(obj);
                         break;
                     default:
@@ -3096,8 +3098,7 @@ namespace OpenSim.Framework
             catch (Exception)
             {
                 Interlocked.Decrement(ref numQueuedThreadFuncs);
-                ThreadInfo dummy;
-                activeThreads.TryRemove(threadFuncNum, out dummy);
+                activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
                 throw;
             }
         }
