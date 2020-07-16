@@ -861,6 +861,12 @@
      <Key Name="assetType" Value="0" />
      <Key Name="fileName" Value="DefaultClouds.j2c"/>
   </Section>
+  <Section Name="DefaultRainbow">
+     <Key Name="assetID" Value="11b4c57c-56b3-04ed-1f82-2004363882e4"/>
+     <Key Name="name" Value="DefaultRainbow"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="rainbow.j2c"/>
+  </Section>
 
 
 
