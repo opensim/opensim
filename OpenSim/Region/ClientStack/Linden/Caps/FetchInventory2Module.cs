@@ -28,7 +28,9 @@
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Capabilities.Handlers;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -53,6 +55,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private IInventoryService m_inventoryService = null;
         private ILibraryService m_LibraryService = null;
         private string m_fetchInventory2Url;
+        private ExpiringKey<UUID> m_badRequests;
 
         #region ISharedRegionModule Members
 
@@ -83,6 +86,8 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_inventoryService = null;
                 m_LibraryService = null;
+                m_badRequests.Dispose();
+                m_badRequests = null;
             }
         }
 
@@ -95,6 +100,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_inventoryService = s.InventoryService;
             if(m_LibraryService == null)
                 m_LibraryService = s.LibraryService;
+
+            if(m_badRequests == null)
+                m_badRequests = new ExpiringKey<UUID>(30000);
 
             if (m_inventoryService != null)
             {
@@ -122,7 +130,11 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
                 caps.RegisterSimpleHandler("FetchInventory2",
-                    new SimpleOSDMapHandler("POST", "/" + UUID.Random(), fetchHandler.FetchInventorySimpleRequest));
+                    new SimpleOSDMapHandler("POST", "/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+                    {
+                        fetchHandler.FetchInventorySimpleRequest(httpRequest, httpResponse, map, m_badRequests);
+                    }
+                 ));
             }
             else
             {

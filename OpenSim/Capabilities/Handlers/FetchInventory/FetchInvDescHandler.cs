@@ -62,11 +62,12 @@ namespace OpenSim.Capabilities.Handlers
             m_Scene = s;
         }
 
-        public void FetchInventoryDescendentsRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void FetchInventoryDescendentsRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, ExpiringKey<UUID> BadRequests)
         {
             //m_log.DebugFormat("[XXX]: FetchInventoryDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
 
             List<LLSDFetchInventoryDescendents> folders = null;
+            List<UUID> bad_folders = new List<UUID>();
             try
             {
                 OSDArray foldersrequested = null;
@@ -84,22 +85,30 @@ namespace OpenSim.Capabilities.Handlers
                 folders = new List<LLSDFetchInventoryDescendents>(foldersrequested.Count);
                 for (int i = 0; i < foldersrequested.Count; i++)
                 {
-                    LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
-                    try
+                    OSDMap mfolder = foldersrequested[i] as OSDMap;
+                    UUID id = mfolder["folder_id"].AsUUID();
+                    if(BadRequests.ContainsKey(id))
                     {
-                        OSDMap mfolder = (OSDMap)foldersrequested[i];
-                        llsdRequest.folder_id = mfolder["folder_id"].AsUUID();
-                        llsdRequest.owner_id = mfolder["owner_id"].AsUUID();
-                        llsdRequest.sort_order = mfolder["sort_order"].AsInteger();
-                        llsdRequest.fetch_folders = mfolder["fetch_folders"].AsBoolean();
-                        llsdRequest.fetch_items = mfolder["fetch_items"].AsBoolean();
+                        bad_folders.Add(id);
                     }
-                    catch (Exception e)
+                    else
                     {
-                        m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e.Message);
-                        continue;
+                        LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                        try
+                        {
+                            llsdRequest.folder_id = id;
+                            llsdRequest.owner_id = mfolder["owner_id"].AsUUID();
+                            llsdRequest.sort_order = mfolder["sort_order"].AsInteger();
+                            llsdRequest.fetch_folders = mfolder["fetch_folders"].AsBoolean();
+                            llsdRequest.fetch_items = mfolder["fetch_items"].AsBoolean();
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e.Message);
+                            continue;
+                        }
+                        folders.Add(llsdRequest);
                     }
-                    folders.Add(llsdRequest);
                 }
                 foldersrequested = null;
                 tmp = null;
@@ -113,11 +122,22 @@ namespace OpenSim.Capabilities.Handlers
 
             if (folders == null || folders.Count == 0)
             {
-                httpResponse.RawBuffer = EmptyResponse;
-                return;
+                if(bad_folders.Count == 0)
+                {
+                    httpResponse.RawBuffer = EmptyResponse;
+                    return;
+                }
+                StringBuilder sb = osStringBuilderCache.Acquire();
+                sb.Append("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
+                foreach (UUID bad in bad_folders)
+                {
+                    sb.Append("<map><key>folder_id</key><uuid>");
+                    sb.Append(bad.ToString());
+                    sb.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                }
+                sb.Append("</array></map></llsd>");
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
             }
-
-            List<UUID> bad_folders = new List<UUID>();
 
             int total_folders = 0;
             int total_items = 0;
@@ -206,6 +226,7 @@ namespace OpenSim.Capabilities.Handlers
                 lastresponse.Append("<map><key>bad_folders</key><array>");
                 foreach (UUID bad in bad_folders)
                 {
+                    BadRequests.Add(bad);
                     lastresponse.Append("<map><key>folder_id</key><uuid>");
                     lastresponse.Append(bad.ToString());
                     lastresponse.Append("</uuid><key>error</key><string>Unknown</string></map>");

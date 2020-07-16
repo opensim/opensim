@@ -131,10 +131,11 @@ namespace OpenSim.Capabilities.Handlers.FetchInventory.Tests
         {
             TestOSHttpRequest req = new TestOSHttpRequest();
             TestOSHttpResponse resp = new TestOSHttpResponse();
+            using(ExpiringKey<UUID> bad = new ExpiringKey<UUID>(5000)) // bad but this is test
             using (MemoryStream ms = new MemoryStream(Utils.StringToBytes(request), false))
             {
                 req.InputStream = ms;
-                handler.FetchInventoryDescendentsRequest(req, resp);
+                handler.FetchInventoryDescendentsRequest(req, resp, bad);
             }
             return Util.UTF8.GetString(resp.RawBuffer);
         }

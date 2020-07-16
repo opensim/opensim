@@ -108,9 +108,15 @@ namespace OpenSim.Capabilities.Handlers
             return LLSDxmlEncode.End(lsl);
         }
 
-        public void FetchInventorySimpleRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap requestmap)
+        public void FetchInventorySimpleRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap requestmap, ExpiringKey<UUID> BadRequests)
         {
             //m_log.DebugFormat("[FETCH INVENTORY HANDLER]: Received FetchInventory capability request {0}", request);
+
+            if(BadRequests == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             OSDArray itemsRequested = (OSDArray)requestmap["items"];
 
@@ -118,12 +124,15 @@ namespace OpenSim.Capabilities.Handlers
             int i = 0;
             foreach (OSDMap osdItemId in itemsRequested)
             {
-                itemIDs[i++] = osdItemId["item_id"].AsUUID();
+                UUID id = osdItemId["item_id"].AsUUID();
+                if(!BadRequests.ContainsKey(id))
+                    itemIDs[i++] = id;
             }
 
             InventoryItemBase[] items = null;
             try
             {
+                // badrequests still not filled
                 items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
             }
             catch{ }
