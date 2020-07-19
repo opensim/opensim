@@ -132,7 +132,7 @@ namespace OpenSim.Framework
         public Vector3 blue_horizon = new Vector3(0.4954f, 0.4954f, 0.64f);
         public Vector3 cloud_color = new Vector3(0.41f, 0.41f, 0.41f);
         public Vector3 cloud_pos_density1 = new Vector3(1, 0.5260f, 1);
-        public Vector3 cloud_pos_density2 = new Vector3(1, 0.5260f, 1);
+        public Vector3 cloud_pos_density2 = new Vector3(1, 0.5260f, .12f);
         public float cloud_scale = 0.42f;
         public Vector2 cloud_scroll_rate = new Vector2(0.2f, 0.011f);
         public float cloud_shadow = 0.27f;
