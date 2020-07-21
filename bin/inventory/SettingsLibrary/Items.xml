@@ -12,19 +12,6 @@
 
 <Nini>
 
-<!--
-  <Section Name="Example Library Item">
-    <Key Name="inventoryID" Value="30000000-0000-2222-4444-000000000001" />
-    <Key Name="assetID" Value="30000000-0000-2222-3333-000000000001" />
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba003"/>
-    <Key Name="description" Value="Example Library Item" />
-    <Key Name="name" Value="Example Library Item" />
-    <Key Name="assetType" Value="7" />
-    <Key Name="inventoryType" Value="7" />
-  </Section>
---> 
-
-
   <Section Name="Default Daycycle">
     <Key Name="inventoryID" Value="25210112-000f-0000-0000-000100bba025" />
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a91" />
@@ -47,5 +34,48 @@
 	<Key Name="flags" Value="2" />
   </Section>
 
+  <Section Name="Midday">
+    <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba225" />
+    <Key Name="assetID" Value="6c83e853-e7f8-cad7-8ee6-5f31c453721c" />
+    <Key Name="folderID" Value="25100112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="Sky at noon" />
+    <Key Name="name" Value="Midday" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="0" />
+  </Section>
+
+  <Section Name="Midnight">
+    <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba325" />
+    <Key Name="assetID" Value="8a01b97a-cb20-c1ea-ac63-f7ea84ad0090" />
+    <Key Name="folderID" Value="25100112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="Sky at midnight" />
+    <Key Name="name" Value="Midnight" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="0" />
+  </Section>
+
+  <Section Name="Sunrise">
+    <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba425" />
+    <Key Name="assetID" Value="01e41537-ff51-2f1f-8ef7-17e4df760bfb" />
+    <Key Name="folderID" Value="25100112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="Sky at Sunrise" />
+    <Key Name="name" Value="Sunrise" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="0" />
+  </Section>
+
+  <Section Name="Sunset">
+    <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba525" />
+    <Key Name="assetID" Value="084e26cd-a900-28e8-08d0-64a9de5c15e2" />
+    <Key Name="folderID" Value="25100112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="Sky at Sunset" />
+    <Key Name="name" Value="Sunset" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="0" />
+  </Section>
 
 </Nini>
