@@ -127,12 +127,12 @@ namespace OpenSim.Framework
         UUID rainbow_id = new UUID("11b4c57c-56b3-04ed-1f82-2004363882e4");
         UUID sun_id = UUID.Zero;
 
-        public Vector3 ambient = new Vector3(0.25f, 0.25f, 0.25f); //?
+        public Vector3 ambient = new Vector3(1.047f, 1.047f, 1.047f); //?
         public Vector3 blue_density = new Vector3(0.2447f, 0.4487f, 0.76f);
         public Vector3 blue_horizon = new Vector3(0.4954f, 0.4954f, 0.64f);
         public Vector3 cloud_color = new Vector3(0.41f, 0.41f, 0.41f);
         public Vector3 cloud_pos_density1 = new Vector3(1, 0.5260f, 1);
-        public Vector3 cloud_pos_density2 = new Vector3(1, 0.5260f, .12f);
+        public Vector3 cloud_pos_density2 = new Vector3(1, 0.5260f, 0.12f);
         public float cloud_scale = 0.42f;
         public Vector2 cloud_scroll_rate = new Vector2(0.2f, 0.011f);
         public float cloud_shadow = 0.27f;
