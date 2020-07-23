@@ -642,12 +642,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!so.IsAttachmentCheckFull())
                 return base.HandleIncomingSceneObject(so, newPosition);
 
+            UUID OwnerID = so.OwnerID;
             // Equally, we can't use so.AttachedAvatar here.
-            if (so.OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(so.OwnerID))
+            if (OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // foreign user
-            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(so.OwnerID);
+            AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(OwnerID);
             if (aCircuit != null)
             {
                 if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) == 0)
@@ -659,8 +660,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     if (aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                     {
+                        SceneObjectGroup defso = so;
                         m_incomingSceneObjectEngine.QueueJob(
-                            string.Format("HG UUID Gather for attachment {0} for {1}", so.Name, aCircuit.Name),
+                            string.Format("HG UUID Gather for attachment {0} for {1}", defso.Name, aCircuit.Name),
                             () =>
                             {
                                 string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
@@ -669,15 +671,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     //                                so.Name, so.AttachedAvatar, url);
 
                                 IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                                HGUuidGatherer uuidGatherer
-                                    = new HGUuidGatherer(Scene.AssetService, url, ids);
-                                uuidGatherer.AddForInspection(so);
+                                HGUuidGatherer uuidGatherer = new HGUuidGatherer(Scene.AssetService, url, ids);
+                                uuidGatherer.AddForInspection(defso);
 
                                 while (!uuidGatherer.Complete)
                                 {
                                     int tickStart = Util.EnvironmentTickCount();
-
-                                    UUID? nextUuid = uuidGatherer.NextUuidToInspect;
                                     uuidGatherer.GatherNext();
 
     //                                m_log.DebugFormat(
@@ -692,8 +691,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                             "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as gather of {1} from {2} took {3} ms to respond (> {4} ms)",
                                             so.OwnerID, so.Name, url, ticksElapsed, 30000);
 
-                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
-
+                                        RemoveIncomingSceneObjectJobs(OwnerID.ToString());
                                         return;
                                     }
                                 }
@@ -702,11 +700,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     //                                "[HG ENTITY TRANSFER]: Fetching {0} assets for attachment {1} for HG user {2} with asset service {3}",
     //                                ids.Count, so.Name, so.OwnerID, url);
 
-                                foreach (KeyValuePair<UUID, sbyte> kvp in ids)
+                                foreach (UUID id in ids.Keys)
                                 {
                                     int tickStart = Util.EnvironmentTickCount();
 
-                                    uuidGatherer.FetchAsset(kvp.Key);
+                                    uuidGatherer.FetchAsset(id);
 
                                     int ticksElapsed = Util.EnvironmentTickCountSubtract(tickStart);
 
@@ -714,21 +712,24 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                     {
                                         m_log.WarnFormat(
                                             "[HG ENTITY TRANSFER]: Removing incoming scene object jobs for HG user {0} as fetch of {1} from {2} took {3} ms to respond (> {4} ms)",
-                                            so.OwnerID, kvp.Key, url, ticksElapsed, 30000);
+                                            so.OwnerID, id, url, ticksElapsed, 30000);
 
-                                        RemoveIncomingSceneObjectJobs(so.OwnerID.ToString());
-
+                                        RemoveIncomingSceneObjectJobs(OwnerID.ToString());
                                         return;
                                     }
                                 }
 
-                                base.HandleIncomingSceneObject(so, newPosition);
+                                base.HandleIncomingSceneObject(defso, newPosition);
+
+                                defso = null;
+                                aCircuit = null;
+                                uuidGatherer = null;
 
     //                            m_log.DebugFormat(
     //                                "[HG ENTITY TRANSFER MODULE]: Completed incoming attachment {0} for HG user {1} with asset server {2}",
     //                                so.Name, so.OwnerID, url);
                             },
-                            so.OwnerID.ToString());
+                            OwnerID.ToString());
                     }
                 }
             }
