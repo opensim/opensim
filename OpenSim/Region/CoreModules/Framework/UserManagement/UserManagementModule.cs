@@ -206,6 +206,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         }
                     }
                 }
+            }
 
             if(m_ServiceThrottle == null)
                 return;
