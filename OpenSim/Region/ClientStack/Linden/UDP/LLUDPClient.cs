@@ -726,7 +726,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         const double MIN_CALLBACK_MS = 20.0;
-        private bool m_isQueueEmptyRunning;
+        public bool QueueEmptyRunning;
 
         /// <summary>
         /// Does an early check to see if this queue empty callback is already
@@ -735,23 +735,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="categories">Throttle categories to fire the callback for</param>
         private void BeginFireQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
-            if (!m_isQueueEmptyRunning)
+            if (!QueueEmptyRunning && HasUpdates(categories) && OnQueueEmpty != null)
             {
-                if (!HasUpdates(categories))
-                    return;
-
                 double start = Util.GetTimeStampMS();
                 if (start < m_nextOnQueueEmpty)
                     return;
 
-                m_isQueueEmptyRunning = true;
+                QueueEmptyRunning = true;
                 m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
 
                 // Asynchronously run the callback
-                // avoid stupid memory leak
-                //if (m_udpServer.OqrEngine.IsRunning)
-                //    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => FireQueueEmpty(categories));
-                //else
+                if (m_udpServer.OqrEngine.IsRunning)
+                {
+                    LLUDPClient udpcli = this;
+                    ThrottleOutPacketTypeFlags cats = categories;
+                    Action<LLUDPClient, ThrottleOutPacketTypeFlags> act = delegate
+                    {
+                        QueueEmpty callback = udpcli.OnQueueEmpty;
+                        if (callback != null)
+                        {
+                            try
+                            {
+                                callback(cats);
+                            }
+                            catch { }
+
+                            if (callback != null)
+                                udpcli.QueueEmptyRunning = false;
+                        }
+                        udpcli = null;
+                        callback = null;
+                    };
+
+                    m_udpServer.OqrEngine.QueueJob(AgentID.ToString(), () => act(udpcli, cats));
+                }
+                else
                     Util.FireAndForget(FireQueueEmpty, categories, "LLUDPClient.BeginFireQueueEmpty");
             }
         }
@@ -773,7 +791,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
             }
 
-            m_isQueueEmptyRunning = false;
+            QueueEmptyRunning = false;
         }
 
         internal void ForceThrottleSetting(int throttle, int setting)
