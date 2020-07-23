@@ -992,13 +992,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 string idstr = id.ToString();
                 if(!UpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
                 {
-                    cooldown += 50;
+                    cooldown += 10;
                     m_AssetService.Get(idstr);
                 }
-                if (++cooldown > 500)
+                if (++cooldown > 100)
                 {
-                    if(tryGetUncached)
-                        GC.Collect();
                     Thread.Sleep(50);
                     cooldown = 0;
                 }
