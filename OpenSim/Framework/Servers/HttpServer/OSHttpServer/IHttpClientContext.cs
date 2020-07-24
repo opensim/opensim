@@ -96,7 +96,7 @@ namespace OSHttpServer
 
         void StartSendResponse(HttpResponse response);
         void ContinueSendResponse(bool notThrottled);
-        Task EndSendResponse(uint requestID, ConnectionType connection);
+        void EndSendResponse(uint requestID, ConnectionType connection);
         bool TrySendResponse(int limit);
     }
 

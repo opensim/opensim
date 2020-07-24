@@ -516,7 +516,7 @@ namespace OSHttpServer
             ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, notThrottled);
         }
 
-        public async Task EndSendResponse(uint requestID, ConnectionType ctype)
+        public void EndSendResponse(uint requestID, ConnectionType ctype)
         {
             isSendingResponse = false;
             m_currentResponse?.Clear();

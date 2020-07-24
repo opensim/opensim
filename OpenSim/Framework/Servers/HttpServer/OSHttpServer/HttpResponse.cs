@@ -469,7 +469,7 @@ namespace OSHttpServer
             if (m_body != null)
                 m_body.Dispose();
             Sent = true;
-            await m_context.EndSendResponse(requestID, Connection).ConfigureAwait(false);
+            m_context.EndSendResponse(requestID, Connection);
         }
 
         private int CheckBandwidth(int request, int bytesLimit)
