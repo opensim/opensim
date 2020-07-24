@@ -364,20 +364,18 @@ namespace OSHttpServer
                         continue;
 
                     m_ReceiveBytesLeft += bytesRead;
-                    if (m_ReceiveBytesLeft > m_ReceiveBuffer.Length)
-                        throw new BadRequestException("HTTP header Too large: " + m_ReceiveBytesLeft);
 
                     int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
                     if (m_stream == null)
                         return; // "Connection: Close" in effect.
 
-                    // try again to see if we can parse another message (check parser to see if it is looking for a new message)
-                    int nextOffset;
-                    int nextBytesleft = m_ReceiveBytesLeft - offset;
-
-                    while (offset != 0 && nextBytesleft > 0)
+                    while (offset != 0)
                     {
-                        nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
+                        int nextBytesleft = m_ReceiveBytesLeft - offset;
+                        if(nextBytesleft <= 0)
+                            break;
+
+                        int nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
 
                         if (m_stream == null)
                             return; // "Connection: Close" in effect.
@@ -386,7 +384,6 @@ namespace OSHttpServer
                             break;
 
                         offset = nextOffset;
-                        nextBytesleft = m_ReceiveBytesLeft - offset;
                     }
 
                     // copy unused bytes to the beginning of the array
