@@ -276,22 +276,24 @@ namespace OSHttpServer
             if (context.TriggerKeepalive)
             {
                 context.TriggerKeepalive = false;
-                context.MonitorKeepaliveStartMS = nowMS + 1;
+                context.MonitorKeepaliveStartMS = nowMS + 500;
                 return false;
             }
 
             if (context.MonitorKeepaliveStartMS != 0)
             {
+                if (context.IsClosing)
+                {
+                    disconnectError = SocketError.Success;
+                    return true;
+                }
+
                 if (EnvironmentTickCountAdd(context.TimeoutKeepAlive, context.MonitorKeepaliveStartMS) < nowMS)
                 {
-                    if(context.IsClosing)
-                        disconnectError = SocketError.Success;
-                    else
-                        disconnectError = SocketError.TimedOut;
+                    disconnectError = SocketError.TimedOut;
                     context.MonitorKeepaliveStartMS = 0;
                     return true;
                 }
-                return false;
             }
 
             if (EnvironmentTickCountAdd(context.TimeoutMaxIdle, context.LastActivityTimeMS) < nowMS)
