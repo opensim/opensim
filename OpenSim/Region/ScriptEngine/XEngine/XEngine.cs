@@ -110,7 +110,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_ScriptFailCount; // Number of script fails since compile queue was last empty
         private string m_ScriptErrorMessage;
         private bool m_AppDomainLoading;
-        private bool m_CompactMemOnLoad;
+        private bool m_AttachmentsDomainLoading;
         private Dictionary<UUID,ArrayList> m_ScriptErrors =
                 new Dictionary<UUID,ArrayList>();
 
@@ -308,7 +308,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_StackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
             m_SleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
             m_AppDomainLoading = m_ScriptConfig.GetBoolean("AppDomainLoading", false);
-            m_CompactMemOnLoad = m_ScriptConfig.GetBoolean("CompactMemOnLoad", false);
+            m_AttachmentsDomainLoading = m_ScriptConfig.GetBoolean("AttachmentsDomainLoading", false);
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
             m_SaveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
@@ -1295,22 +1295,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            // optionaly do not load a assembly on top of a lot of to release memory
-            // only if logins disable since causes a lot of rubber banding
-            if(m_CompactMemOnLoad && !m_Scene.LoginsEnabled)
-                GC.Collect(2);
-
             ScriptInstance instance = null;
             lock (m_Scripts)
             {
                 // Create the object record
-                if ((!m_Scripts.ContainsKey(itemID)) ||
-                    (m_Scripts[itemID].AssetID != assetID))
+                if ((!m_Scripts.ContainsKey(itemID)) || (m_Scripts[itemID].AssetID != assetID))
                 {
-//                    UUID appDomain = assetID;
 
-//                    if (part.ParentGroup.IsAttachment)
-//                        appDomain = part.ParentGroup.RootPart.UUID;
+                    bool attachDomains = m_AttachmentsDomainLoading && part.ParentGroup.IsAttachmentCheckFull();
                     UUID appDomain = part.ParentGroup.RootPart.UUID;
 
                     if (!m_AppDomains.ContainsKey(appDomain))
@@ -1318,7 +1310,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         try
                         {
                             AppDomain sandbox;
-                            if (m_AppDomainLoading)
+                            if (m_AppDomainLoading || attachDomains)
                             {
                                 AppDomainSetup appSetup = new AppDomainSetup();
                                 appSetup.PrivateBinPath = Path.Combine(
@@ -1349,7 +1341,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             //sandbox.SetAppDomainPolicy(sandboxPolicy);
 
                             m_AppDomains[appDomain] = sandbox;
-
                             m_DomainScripts[appDomain] = new List<UUID>();
                         }
                         catch (Exception e)
@@ -1366,6 +1357,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             return false;
                         }
                     }
+
                     m_DomainScripts[appDomain].Add(itemID);
 
                     IScript scriptObj = null;
@@ -1616,13 +1608,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 UnloadAppDomain(instance.AppDomain);
             }
 
-            ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
-            if (handlerObjectRemoved != null)
-                handlerObjectRemoved(instance.ObjectID);
-
-            ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
-            if (handlerScriptRemoved != null)
-                handlerScriptRemoved(itemID);
+            OnObjectRemoved?.Invoke(instance.ObjectID);
+            OnScriptRemoved?.Invoke(itemID);
         }
 
         public void OnScriptReset(uint localID, UUID itemID)
