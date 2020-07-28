@@ -679,7 +679,7 @@ namespace OpenSim.Region.CoreModules.Asset
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
         {
             long heap = 0;
-            if (m_LogLevel >= 2)
+            //if (m_LogLevel >= 2)
             {
                 m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Start automatic Check for expired files older then {0}.", m_FileExpiration);
                 heap = GC.GetTotalMemory(false);
@@ -697,9 +697,11 @@ namespace OpenSim.Region.CoreModules.Asset
             // An asset cache may contain local non-temporary assets that are not in the asset service.  Therefore,
             // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
             // such local assets if they have not been recently accessed.
+            m_log.Info("[FLOTSAM ASSET CACHE] start touch files of assets in use");
             TouchAllSceneAssets(false);
             int cooldown = 0;
-            if(Directory.Exists(m_CacheDirectory))
+            m_log.Info("[FLOTSAM ASSET CACHE] asset files expire");
+            if (Directory.Exists(m_CacheDirectory))
             {
                 foreach (string dir in Directory.GetDirectories(m_CacheDirectory))
                     CleanExpiredFiles(dir, purgeLine, ref cooldown);
@@ -711,7 +713,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     m_CacheCleanTimer.Start();
                 m_cleanupRunning = false;
             }
-            if (m_LogLevel >= 2)
+            //if (m_LogLevel >= 2)
             {
                 heap = GC.GetTotalMemory(false) - heap;
                 double fheap = Math.Round((double)(heap / (1024 * 1024)),3);
@@ -976,12 +978,13 @@ namespace OpenSim.Region.CoreModules.Asset
                             continue;
 
                         gatherer.AddForInspection(e);
-                        gatherer.GatherAll();
-
-                        if (++cooldown > 100)
+                        while(gatherer.GatherNext())
                         {
-                            Thread.Sleep(50);
-                            cooldown = 0;
+                            if (++cooldown > 100)
+                            {
+                                Thread.Sleep(50);
+                                cooldown = 0;
+                            }
                         }
                     }
                 }
