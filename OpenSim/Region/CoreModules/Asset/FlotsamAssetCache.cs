@@ -698,10 +698,11 @@ namespace OpenSim.Region.CoreModules.Asset
             // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
             // such local assets if they have not been recently accessed.
             TouchAllSceneAssets(false);
+            int cooldown = 0;
             if(Directory.Exists(m_CacheDirectory))
             {
                 foreach (string dir in Directory.GetDirectories(m_CacheDirectory))
-                    CleanExpiredFiles(dir, purgeLine);
+                    CleanExpiredFiles(dir, purgeLine, ref cooldown);
             }
 
             lock(timerLock)
@@ -725,7 +726,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         /// <param name="dir"></param>
         /// <param name="purgeLine"></param>
-        private void CleanExpiredFiles(string dir, DateTime purgeLine)
+        private void CleanExpiredFiles(string dir, DateTime purgeLine, ref int cooldown)
         {
             try
             {
@@ -739,6 +740,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     if (File.GetLastAccessTime(file) < purgeLine)
                     {
                         File.Delete(file);
+                        cooldown += 5;
                         string id = Path.GetFileName(file);
                         if(!String.IsNullOrEmpty(id))
                         {
@@ -746,13 +748,18 @@ namespace OpenSim.Region.CoreModules.Asset
                                 weakAssetReferences.Remove(id);
                         }
                     }
+                    if(++cooldown >= 100)
+                    {
+                        Thread.Sleep(50);
+                        cooldown = 0;
+                    }
                 }
 
                 // Recurse into lower tiers
                 foreach (string subdir in Directory.GetDirectories(dir))
                 {
                     ++dirSize;
-                    CleanExpiredFiles(subdir, purgeLine);
+                    CleanExpiredFiles(subdir, purgeLine, ref cooldown);
                 }
 
                 // Check if a tier directory is empty, if so, delete it
@@ -971,7 +978,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         gatherer.AddForInspection(e);
                         gatherer.GatherAll();
 
-                        if (++cooldown > 200)
+                        if (++cooldown > 100)
                         {
                             Thread.Sleep(50);
                             cooldown = 0;
@@ -1261,7 +1268,8 @@ namespace OpenSim.Region.CoreModules.Asset
                         if (m_FileCacheEnabled)
                         {
                             TouchAllSceneAssets(false);
-                            CleanExpiredFiles(m_CacheDirectory, expirationDate);
+                            int cooldown = 0;
+                            CleanExpiredFiles(m_CacheDirectory, expirationDate, ref cooldown);
                         }
                         else
                             con.Output("File cache not active, not clearing.");
