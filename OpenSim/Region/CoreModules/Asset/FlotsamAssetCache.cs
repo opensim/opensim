@@ -678,6 +678,13 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
         {
+            lock (timerLock)
+            {
+                if(!m_timerRunning || m_cleanupRunning)
+                    return;
+                m_cleanupRunning = true;
+            }
+
             long heap = 0;
             //if (m_LogLevel >= 2)
             {
@@ -685,19 +692,12 @@ namespace OpenSim.Region.CoreModules.Asset
                 heap = GC.GetTotalMemory(false);
             }
 
-            lock (timerLock)
-            {
-                if(!m_timerRunning || m_cleanupRunning)
-                    return;
-                m_cleanupRunning = true;
-            }
             // Purge all files last accessed prior to this point
             DateTime purgeLine = DateTime.Now - m_FileExpiration;
 
             // An asset cache may contain local non-temporary assets that are not in the asset service.  Therefore,
             // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
             // such local assets if they have not been recently accessed.
-            m_log.Info("[FLOTSAM ASSET CACHE] start touch files of assets in use");
             TouchAllSceneAssets(false);
             int cooldown = 0;
             m_log.Info("[FLOTSAM ASSET CACHE] asset files expire");
@@ -742,7 +742,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     if (File.GetLastAccessTime(file) < purgeLine)
                     {
                         File.Delete(file);
-                        cooldown += 5;
+                        cooldown += 2;
                         string id = Path.GetFileName(file);
                         if(!String.IsNullOrEmpty(id))
                         {
@@ -750,7 +750,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                 weakAssetReferences.Remove(id);
                         }
                     }
-                    if(++cooldown >= 100)
+                    if(++cooldown >= 30)
                     {
                         Thread.Sleep(50);
                         cooldown = 0;
@@ -952,6 +952,8 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <returns>Number of distinct asset references found in the scene.</returns>
         private int TouchAllSceneAssets(bool tryGetUncached)
         {
+            m_log.Info("[FLOTSAM ASSET CACHE] start touch files of assets in use");
+
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
             int cooldown = 0;
@@ -980,7 +982,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         gatherer.AddForInspection(e);
                         while(gatherer.GatherNext())
                         {
-                            if (++cooldown > 100)
+                            if (++cooldown > 50)
                             {
                                 Thread.Sleep(50);
                                 cooldown = 0;
@@ -996,16 +998,15 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.GatherAll();
 
             cooldown = 0;
-            // windows does not update access time :(
             foreach(UUID id in gatherer.GatheredUuids.Keys)
             {
                 string idstr = id.ToString();
                 if(!UpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
                 {
-                    cooldown += 10;
+                    cooldown += 5;
                     m_AssetService.Get(idstr);
                 }
-                if (++cooldown > 100)
+                if (++cooldown > 50)
                 {
                     Thread.Sleep(50);
                     cooldown = 0;
