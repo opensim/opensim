@@ -696,7 +696,7 @@ namespace OpenSim.Region.CoreModules.Asset
             long heap = 0;
             //if (m_LogLevel >= 2)
             {
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Start Check for expired files older then {0}.", m_FileExpiration);
+                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Start Check for expired files older then {0}.", m_FileExpiration);
                 heap = GC.GetTotalMemory(false);
             }
 
@@ -708,7 +708,7 @@ namespace OpenSim.Region.CoreModules.Asset
             int cooldown = 0;
             m_log.Info("[FLOTSAM ASSET CACHE] do asset files expire");
             foreach (string subdir in Directory.GetDirectories(m_CacheDirectory))
-                CleanExpiredFiles(subdir, gids, purgeLine, ref cooldown);
+                cooldown = await CleanExpiredFiles(subdir, gids, purgeLine, cooldown);
 
             lock (timerLock)
             {
@@ -720,7 +720,7 @@ namespace OpenSim.Region.CoreModules.Asset
             {
                 heap = GC.GetTotalMemory(false) - heap;
                 double fheap = Math.Round((double)(heap / (1024 * 1024)), 3);
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Finished Check for expired files, heap delta: {0}MB.", fheap);
+                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Finished Check for expired files, heap delta: {0}MB.", fheap);
             }
         }
 
@@ -731,78 +731,19 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         /// <param name="dir"></param>
         /// <param name="purgeLine"></param>
-        private void CleanExpiredFiles(string dir, DateTime purgeLine, ref int cooldown)
-        {
-            try
-            {
-                if(!Directory.Exists(dir))
-                    return;
-
-                int dirSize = 0;
-                foreach (string file in Directory.GetFiles(dir))
-                {
-                    ++dirSize;
-                    if (File.GetLastAccessTime(file) < purgeLine)
-                    {
-                        File.Delete(file);
-                        cooldown += 2;
-                        string id = Path.GetFileName(file);
-                        if(!String.IsNullOrEmpty(id))
-                        {
-                            lock (weakAssetReferencesLock)
-                                weakAssetReferences.Remove(id);
-                        }
-                    }
-                    if(++cooldown >= 30)
-                    {
-                        Thread.Sleep(50);
-                        cooldown = 0;
-                    }
-                }
-
-                // Recurse into lower tiers
-                foreach (string subdir in Directory.GetDirectories(dir))
-                {
-                    ++dirSize;
-                    CleanExpiredFiles(subdir, purgeLine, ref cooldown);
-                }
-
-                // Check if a tier directory is empty, if so, delete it
-                if (dirSize == 0)
-                {
-                    Directory.Delete(dir);
-                }
-                else if (dirSize >= m_CacheWarnAt)
-                {
-                    m_log.WarnFormat(
-                        "[FLOTSAM ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration",
-                        dir, dirSize);
-                }
-            }
-            catch (DirectoryNotFoundException)
-            {
-                // If we get here, another node on the same box has
-                // already removed the directory. Continue with next.
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Could not complete clean of expired files in {0}, exception {1}", dir, e.Message);
-            }
-        }
-
-        private void CleanExpiredFiles(string dir, Dictionary<UUID, sbyte> gids, DateTime purgeLine, ref int cooldown)
+        private async Task<int> CleanExpiredFiles(string dir, Dictionary<UUID, sbyte> gids, DateTime purgeLine, int cooldown)
         {
             try
             {
                 if (!Directory.Exists(dir))
-                    return;
+                    return cooldown;
 
                 int dirSize = 0;
                 foreach (string file in Directory.GetFiles(dir))
                 {
 
                     if (!m_cleanupRunning)
-                        return;
+                        return cooldown;
 
                     ++dirSize;
                     string id = Path.GetFileName(file);
@@ -819,9 +760,9 @@ namespace OpenSim.Region.CoreModules.Asset
                         lock (weakAssetReferencesLock)
                             weakAssetReferences.Remove(id);
                     }
-                    if (++cooldown >= 30)
+                    if (++cooldown >= 20)
                     {
-                        Thread.Sleep(50);
+                        await Task.Delay(60).ConfigureAwait(false);
                         cooldown = 0;
                     }
                 }
@@ -830,10 +771,10 @@ namespace OpenSim.Region.CoreModules.Asset
                 foreach (string subdir in Directory.GetDirectories(dir))
                 {
                     if (!m_cleanupRunning)
-                        return;
+                        return cooldown;
 
                     ++dirSize;
-                    CleanExpiredFiles(subdir, gids, purgeLine, ref cooldown);
+                    cooldown = await CleanExpiredFiles(subdir, gids, purgeLine, cooldown);
                 }
 
                 // Check if a tier directory is empty, if so, delete it
@@ -857,6 +798,7 @@ namespace OpenSim.Region.CoreModules.Asset
             {
                 m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Could not complete clean of expired files in {0}, exception {1}", dir, e.Message);
             }
+            return cooldown;
         }
 
         /// <summary>
@@ -1059,7 +1001,6 @@ namespace OpenSim.Region.CoreModules.Asset
             int cooldown = 0;
             foreach (Scene s in m_Scenes)
             {
-                StampRegionStatusFile(s.RegionInfo.RegionID);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture1, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture2, (sbyte)AssetType.Texture);
                 gatherer.AddGathered(s.RegionInfo.RegionSettings.TerrainTexture3, (sbyte)AssetType.Texture);
@@ -1111,6 +1052,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 entities = null;
                 if (!m_cleanupRunning)
                     break;
+
+                StampRegionStatusFile(s.RegionInfo.RegionID);
             }
 
             gatherer.GatherAll();
