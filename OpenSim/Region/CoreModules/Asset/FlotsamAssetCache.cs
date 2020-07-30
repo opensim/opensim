@@ -1124,7 +1124,8 @@ namespace OpenSim.Region.CoreModules.Asset
             gatherer.UncertainAssetsUUIDs.Clear();
             gatherer = null;
 
-            m_log.InfoFormat("[FLOTSAM ASSET CACHE]     found {0} possible assets in use ( plus {1} default )", gatheredids.Count, m_defaultAssets.Count);
+            m_log.InfoFormat("[FLOTSAM ASSET CACHE]     found {0} possible assets in use (including {1} default assets)",
+                    gatheredids.Count + m_defaultAssets.Count, m_defaultAssets.Count);
             return gatheredids;
         }
 
