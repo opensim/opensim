@@ -756,11 +756,11 @@ namespace OpenSim.Region.CoreModules.Asset
                     if (File.GetLastAccessTime(file) < purgeLine)
                     {
                         File.Delete(file);
-                        cooldown += 2;
+                        cooldown += 5;
                         lock (weakAssetReferencesLock)
                             weakAssetReferences.Remove(id);
                     }
-                    if (++cooldown >= 20)
+                    if (++cooldown >= 30)
                     {
                         await Task.Delay(60).ConfigureAwait(false);
                         cooldown = 0;
