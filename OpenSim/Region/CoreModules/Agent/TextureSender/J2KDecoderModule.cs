@@ -334,7 +334,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
             if (Cache != null)
             {
-                string assetID = "j2kCache_" + AssetId.ToString();
+                string assetID = "j2k" + AssetId.ToString();
 
                 AssetBase layerDecodeAsset = new AssetBase(assetID, assetID, (sbyte)AssetType.Notecard, m_CreatorID.ToString());
                 layerDecodeAsset.Local = true;
