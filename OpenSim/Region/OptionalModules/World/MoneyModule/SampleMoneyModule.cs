@@ -850,23 +850,35 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             // Validate that the object exists in the scene the user is in
             SceneObjectPart part = s.GetSceneObjectPart(localID);
-            if (part == null)
+            if(!part.IsRoot) // silent ignore non root parts
+                return;
+
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
             {
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
+                return;
+            }
+
+            if (part.ObjectSaleType == 0)
+            {
+                string e = string.Format("Object {0} is not for sale", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 
             // Validate that the client sent the price that the object is being sold for
             if (part.SalePrice != salePrice)
             {
-                remoteClient.SendAgentAlertMessage("Cannot buy at this price. Buy Failed. If you continue to get this relog.", false);
+                string e = string.Format("Object {0} price does not match selected price", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 
             // Validate that the client sent the proper sale type the object has set
             if (part.ObjectSaleType != saleType)
             {
-                remoteClient.SendAgentAlertMessage("Cannot buy this way. Buy Failed. If you continue to get this relog.", false);
+                string e = string.Format("Object {0} sell type does not match selected one", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 
