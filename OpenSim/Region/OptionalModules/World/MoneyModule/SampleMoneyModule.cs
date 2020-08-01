@@ -859,7 +859,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 return;
             }
 
-            if (part.ObjectSaleType == 0)
+            if (part.ObjectSaleType == (byte)SaleType.Not)
             {
                 string e = string.Format("Object {0} is not for sale", part.Name);
                 remoteClient.SendAgentAlertMessage(e, false);
@@ -877,7 +877,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             // Validate that the client sent the proper sale type the object has set
             if (part.ObjectSaleType != saleType)
             {
-                string e = string.Format("Object {0} sell type does not match selected one", part.Name);
+                string e = string.Format("Object {0} sell type does not match selected type", part.Name);
                 remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
