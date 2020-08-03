@@ -768,9 +768,6 @@ namespace OpenSim.Framework.Servers
             string gitDir = "../.git/";
             string gitRefPointerPath = gitDir + "HEAD";
 
-            string inputLine;
-            int strcmp;
-
             if (File.Exists(manualVersionFileName))
             {
                 using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
