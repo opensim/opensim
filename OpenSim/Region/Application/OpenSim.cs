@@ -1065,28 +1065,33 @@ namespace OpenSim
 
         private void HandleShowCircuits()
         {
-            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
-            cdt.AddColumn("Region", 20);
-            cdt.AddColumn("Avatar name", 24);
-            cdt.AddColumn("Type", 5);
-            cdt.AddColumn("Code", 10);
-            cdt.AddColumn("IP", 16);
-            cdt.AddColumn("Viewer Name", 24);
-
             SceneManager.ForEachScene(
                 s =>
                 {
-                    foreach (AgentCircuitData aCircuit in s.AuthenticateHandler.GetAgentCircuits().Values)
-                        cdt.AddRow(
-                            s.Name,
+                    ICollection<AgentCircuitData> circuits = s.AuthenticateHandler.GetAgentCircuits().Values;
+                    int n = circuits.Count;
+
+                    MainConsole.Instance.Output("- Circuits in region {0}: {1}", s.Name, n);
+                    if(n > 0)
+                    {
+                        ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+                        cdt.AddColumn("Avatar name", 24);
+                        cdt.AddColumn("Type", 5);
+                        cdt.AddColumn("Code", 10);
+                        cdt.AddColumn("IP", 16);
+                        cdt.AddColumn("Viewer Name", 24);
+
+                        foreach (AgentCircuitData aCircuit in circuits)
+                            cdt.AddRow(
                             aCircuit.Name,
                             aCircuit.child ? "child" : "root",
                             aCircuit.circuitcode.ToString(),
                             aCircuit.IPAddress != null ? aCircuit.IPAddress.ToString() : "not set",
                             Util.GetViewerName(aCircuit));
-                });
 
-            MainConsole.Instance.Output(cdt.ToString());
+                        MainConsole.Instance.Output(cdt.ToString());
+                    }
+                });
         }
 
         private void HandleShowConnections()
