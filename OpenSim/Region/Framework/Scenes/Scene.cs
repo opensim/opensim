@@ -2553,7 +2553,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // Otherwise, use this default creation code;
                 sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
                 sceneObject.SetGroup(groupID, null);
-                AddNewSceneObject(sceneObject, true);
+
+                if ((addFlags & (uint)PrimFlags.CreateSelected) != 0)
+                {
+                    sceneObject.IsSelected = true;
+                    sceneObject.RootPart.CreateSelected = true;
+                }
 
                 if (AgentPreferencesService != null) // This will override the brave new full perm world!
                 {
@@ -2566,16 +2571,13 @@ namespace OpenSim.Region.Framework.Scenes
                         sceneObject.RootPart.NextOwnerMask = (uint)prefs.PermNextOwner;
                     }
                 }
+
+                AddNewSceneObject(sceneObject, true, false);
             }
 
             if (UserManagementModule != null)
                 sceneObject.RootPart.CreatorIdentification = UserManagementModule.GetUserUUI(ownerID);
 
-            if((addFlags & (uint)PrimFlags.CreateSelected) != 0)
-            {
-                sceneObject.IsSelected = true;
-                sceneObject.RootPart.CreateSelected = true;
-            }
 
             sceneObject.InvalidateDeepEffectivePerms();;
             sceneObject.ScheduleGroupForFullAnimUpdate();
@@ -6128,7 +6130,7 @@ Environment.Exit(1);
 
             // We may be called before there is a presence or a client.
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
-            if (client == null)
+            if (aCircuit == null)
             {
                 aCircuit = new AgentCircuitData();
                 aCircuit.AgentID = agentID;
