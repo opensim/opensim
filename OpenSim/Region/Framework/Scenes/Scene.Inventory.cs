@@ -2698,7 +2698,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 group.RezzerID = sourcePart.UUID;
 
-                if( i == 0)
+                if (rezSelected)
+                {
+                    group.IsSelected = true;
+                    group.RootPart.CreateSelected = true;
+                }
+
+                if ( i == 0)
                     AddNewSceneObject(group, true, curpos, rot, vel);
                 else
                 {
@@ -2710,11 +2716,6 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewSceneObject(group, true, curpos, crot, vel);
                 }
 
-                if(rezSelected)
-                {
-                    group.IsSelected = true;
-                    group.RootPart.CreateSelected = true;
-                }
 
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
