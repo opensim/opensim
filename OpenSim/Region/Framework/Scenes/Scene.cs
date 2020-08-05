@@ -4116,7 +4116,7 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (!VerifyUserPresence(acd, out reason))
                             {
-                                m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                                m_authenticateHandler.RemoveCircuit(acd);
                                 return false;
                             }
                         }
@@ -4125,7 +4125,7 @@ namespace OpenSim.Region.Framework.Scenes
                             m_log.ErrorFormat(
                                 "[SCENE]: Exception verifying presence {0}{1}", e.Message, e.StackTrace);
 
-                            m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                            m_authenticateHandler.RemoveCircuit(acd);
                             return false;
                         }
                     }
@@ -4134,7 +4134,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (!AuthorizeUser(acd, (vialogin ? false : SeeIntoRegion), out reason))
                         {
-                            m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                            m_authenticateHandler.RemoveCircuit(acd);
                             return false;
                         }
                     }
@@ -4143,7 +4143,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.ErrorFormat(
                             "[SCENE]: Exception authorizing user {0}{1}", e.Message, e.StackTrace);
 
-                        m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                        m_authenticateHandler.RemoveCircuit(acd);
                         return false;
                     }
 
@@ -4225,7 +4225,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, acd.startpos, out reason))
                 {
-                    m_authenticateHandler.RemoveCircuit(acd.circuitcode);
+                    m_authenticateHandler.RemoveCircuit(acd);
                     return false;
                 }
             }

@@ -117,6 +117,14 @@ namespace OpenSim.Framework
             }
         }
 
+        public virtual void RemoveCircuit(AgentCircuitData ac)
+        {
+            m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData dummy);
+            m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData dummyb);
+            if (dummy.circuitcode != ac.circuitcode) //??
+                m_agentCircuits.TryRemove(dummy.circuitcode, out AgentCircuitData dummyc);
+        }
+
         public AgentCircuitData GetAgentCircuitData(uint circuitCode)
         {
             if(m_agentCircuits.TryGetValue(circuitCode, out AgentCircuitData agentCircuit))
@@ -168,7 +176,7 @@ namespace OpenSim.Framework
             if (m_agentCircuits.TryRemove(circuitcode, out AgentCircuitData agentData))
             {
                 agentData.circuitcode = newcircuitcode;
-                m_agentCircuits.TryAdd(newcircuitcode, agentData);
+                m_agentCircuits[newcircuitcode] = agentData;
                 m_agentCircuitsByUUID[agentData.AgentID] = agentData;
                 return true;
             }
