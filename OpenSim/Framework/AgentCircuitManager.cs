@@ -87,6 +87,13 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="agentData"></param>
+        public virtual void AddNewCircuit(AgentCircuitData agentData)
+        {
+            RemoveCircuit(agentData.AgentID); // no duplications
+            m_agentCircuits[agentData.circuitcode] = agentData;
+            m_agentCircuitsByUUID[agentData.AgentID] = agentData;
+        }
+
         public virtual void AddNewCircuit(uint circuitCode, AgentCircuitData agentData)
         {
             RemoveCircuit(agentData.AgentID); // no duplications
