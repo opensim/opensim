@@ -359,16 +359,16 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPart m_rootPart;
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
-        private SortedDictionary<int, scriptPosTarget> m_targets = new SortedDictionary<int, scriptPosTarget>();
-        private SortedDictionary<int, scriptRotTarget> m_rotTargets = new SortedDictionary<int, scriptRotTarget>();
+        private Dictionary<int, scriptPosTarget> m_targets = new Dictionary<int, scriptPosTarget>();
+        private Dictionary<int, scriptRotTarget> m_rotTargets = new Dictionary<int, scriptRotTarget>();
         private Dictionary<UUID, List<int>> m_targetsByScript = new Dictionary<UUID, List<int>>();
 
-        public SortedDictionary<int, scriptPosTarget> AtTargets
+        public Dictionary<int, scriptPosTarget> AtTargets
         {
             get { return m_targets; }
         }
 
-        public SortedDictionary<int, scriptRotTarget> RotTargets
+        public Dictionary<int, scriptRotTarget> RotTargets
         {
             get { return m_rotTargets; }
         }
@@ -1392,6 +1392,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //            m_rootPart = null;
 
                 m_targets.Clear();
+                m_rotTargets.Clear();
+                m_targetsByScript.Clear();
                 m_partsNameToLinkMap.Clear();
 
                 disposed = true;
@@ -2517,6 +2519,10 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
 
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
+
+            dupe.m_targets = new Dictionary<int, scriptPosTarget>();
+            dupe.m_rotTargets = new Dictionary<int, scriptRotTarget>();
+            dupe.m_targetsByScript = new Dictionary<UUID, List<int>>();
 
             // a copy isnt backedup
             dupe.Backup = false;
@@ -4837,7 +4843,7 @@ namespace OpenSim.Region.Framework.Scenes
             int handle = m_scene.AllocateIntId();
             waypoint.handle = handle;
 
-            lock (m_rotTargets)
+            lock (m_targets)
             {
                 if(m_targetsByScript.TryGetValue(scriptID, out List<int> handles))
                 {
@@ -4845,7 +4851,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         int todel = handles[0];
                         handles.RemoveAt(0);
-                        m_rotTargets.Remove(todel);
+                        if(!m_rotTargets.Remove(todel))
+                            m_targets.Remove(todel);
                     }
                     handles.Add(handle);
                 }
@@ -4853,8 +4860,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_targetsByScript[scriptID] = new List<int>(){handle};
 
                 m_rotTargets.Add(handle, waypoint);
+                m_scene.AddGroupTarget(this);
             }
-            m_scene.AddGroupTarget(this);
             return handle;
         }
 
@@ -4894,7 +4901,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         int todel = handles[0];
                         handles.RemoveAt(0);
-                        m_rotTargets.Remove(todel);
+                        if(!m_targets.Remove(todel))
+                            m_rotTargets.Remove(todel);
                     }
                     handles.Add(handle);
                 }
@@ -4902,8 +4910,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_targetsByScript[scriptID] = new List<int>() { handle };
 
                 m_targets.Add(handle, waypoint);
+                m_scene.AddGroupTarget(this);
             }
-            m_scene.AddGroupTarget(this);
             return handle;
         }
 
@@ -4921,6 +4929,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     m_targets.Remove(handle);
                 }
+
                 if (m_targets.Count == 0 && m_rotTargets.Count == 0)
                     m_scene.RemoveGroupTarget(this);
             }
@@ -4932,18 +4941,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(m_targetsByScript.TryGetValue(scriptID, out List<int> toremove))
                 {
+                    m_targetsByScript.Remove(scriptID);
                     if (toremove.Count > 0)
                     {
                         for (int i = 0; i < toremove.Count; ++i)
                         {
-                            m_targets.Remove(toremove[i]);
-                            m_rotTargets.Remove(toremove[i]);
+                            if(!m_targets.Remove(toremove[i]))
+                                m_rotTargets.Remove(toremove[i]);
                         }
                     }
-                    m_targetsByScript.Remove(scriptID);
                 }
-                if (m_targets.Count == 0 && m_rotTargets.Count == 0)
-                    m_scene.RemoveGroupTarget(this);
+                m_scene.RemoveGroupTarget(this);
             }
         }
 
@@ -4997,7 +5005,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<scriptRotTarget> atRotTargets = new List<scriptRotTarget>(targetsCount);
                 HashSet<UUID> notatRotTargets = new HashSet<UUID>();
                 Quaternion rot = m_rootPart.RotationOffset;
-                lock (m_rotTargets)
+                lock (m_targets)
                 {
                     foreach (scriptRotTarget target in m_rotTargets.Values)
                     {
