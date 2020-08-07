@@ -450,18 +450,20 @@ namespace OpenSim.Region.Framework.Scenes
             Dispose(false);
         }
 
-        private bool disposed = false;
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        private bool disposed = false;
         protected void Dispose(bool disposing)
         {
-            // Check to see if Dispose has already been called.
             if (!disposed)
             {
+                disposed = true;
+                IsDeleted = true;
+
                 if (KeyframeMotion != null)
                 {
                     KeyframeMotion.Delete();
@@ -475,7 +477,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_inventory.Dispose();
                     m_inventory = null;
                 }
-                disposed = true;
             }
         }
 

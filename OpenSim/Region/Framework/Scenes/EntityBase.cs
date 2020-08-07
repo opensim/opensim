@@ -113,8 +113,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_velocity = value; }
         }
 
-        protected Vector3 m_rotationalvelocity;
-
         /// <summary>
         /// Creates a new Entity (should not occur on it's own)
         /// </summary>
