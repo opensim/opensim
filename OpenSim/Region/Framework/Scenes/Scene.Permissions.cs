@@ -115,82 +115,79 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
         }
 
-        #region Events
-        public event GenerateClientFlagsHandler OnGenerateClientFlags;
-        public event SetBypassPermissionsHandler OnSetBypassPermissions;
-        public event BypassPermissionsHandler OnBypassPermissions;
-        public event PropagatePermissionsHandler OnPropagatePermissions;
-        public event RezObjectHandler OnRezObject;
-        public event DeleteObjectHandlerByIDs OnDeleteObjectByIDs;
-        public event DeleteObjectHandler OnDeleteObject;
-        public event TransferObjectHandler OnTransferObject;
-        public event TakeObjectHandler OnTakeObject;
+        #region delegate handlers
+        public GenerateClientFlagsHandler OnGenerateClientFlags;
+        public SetBypassPermissionsHandler OnSetBypassPermissions;
+        public BypassPermissionsHandler OnBypassPermissions;
+        public PropagatePermissionsHandler OnPropagatePermissions;
+        public RezObjectHandler OnRezObject;
+        public DeleteObjectHandlerByIDs OnDeleteObjectByIDs;
+        public DeleteObjectHandler OnDeleteObject;
+        public TransferObjectHandler OnTransferObject;
+        public TakeObjectHandler OnTakeObject;
 
-        public event SellGroupObjectHandler OnSellGroupObject;
-        public event SellObjectHandlerByUserID OnSellObjectByUserID;
-        public event SellObjectHandler OnSellObject;
+        public SellGroupObjectHandler OnSellGroupObject;
+        public SellObjectHandlerByUserID OnSellObjectByUserID;
+        public SellObjectHandler OnSellObject;
 
-        public event TakeCopyObjectHandler OnTakeCopyObject;
-        public event DuplicateObjectHandler OnDuplicateObject;
-        public event EditObjectByIDsHandler OnEditObjectByIDs;
-        public event EditObjectHandler OnEditObject;
-        public event EditObjectPermsHandler OnEditObjectPerms;
-        public event EditObjectInventoryHandler OnEditObjectInventory;
-        public event MoveObjectHandler OnMoveObject;
-        public event ObjectEntryHandler OnObjectEntry;
-        public event ObjectEnterWithScriptsHandler OnObjectEnterWithScripts;
-        public event ReturnObjectsHandler OnReturnObjects;
-        public event InstantMessageHandler OnInstantMessage;
-        public event InventoryTransferHandler OnInventoryTransfer;
-        public event ViewScriptHandler OnViewScript;
-        public event ViewNotecardHandler OnViewNotecard;
-        public event EditScriptHandler OnEditScript;
-        public event EditNotecardHandler OnEditNotecard;
-        public event RunScriptHandlerByIDs OnRunScriptByIDs;
-        public event RunScriptHandler OnRunScript;
-        public event CompileScriptHandler OnCompileScript;
-        public event StartScriptHandler OnStartScript;
-        public event StopScriptHandler OnStopScript;
-        public event ResetScriptHandler OnResetScript;
-        public event TerraformLandHandler OnTerraformLand;
-        public event RunConsoleCommandHandler OnRunConsoleCommand;
-        public event IssueEstateCommandHandler OnIssueEstateCommand;
-        public event IsGridGodHandler OnIsGridGod;
-        public event IsAdministratorHandler OnIsAdministrator;
-        public event IsEstateManagerHandler OnIsEstateManager;
-//        public event EditParcelHandler OnEditParcel;
-        public event EditParcelPropertiesHandler OnEditParcelProperties;
-        public event SellParcelHandler OnSellParcel;
-        public event AbandonParcelHandler OnAbandonParcel;
-        public event ReclaimParcelHandler OnReclaimParcel;
-        public event DeedParcelHandler OnDeedParcel;
-        public event DeedObjectHandler OnDeedObject;
-        public event BuyLandHandler OnBuyLand;
-        public event LinkObjectHandler OnLinkObject;
-        public event DelinkObjectHandler OnDelinkObject;
-        public event CreateObjectInventoryHandler OnCreateObjectInventory;
-        public event CopyObjectInventoryHandler OnCopyObjectInventory;
-        public event DoObjectInvToObjectInv OnDoObjectInvToObjectInv;
-        public event DoDropInObjectInv OnDropInObjectInv;
-        public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
-        public event TransferObjectInventoryHandler OnTransferObjectInventory;
-        public event CreateUserInventoryHandler OnCreateUserInventory;
-        public event EditUserInventoryHandler OnEditUserInventory;
-        public event CopyUserInventoryHandler OnCopyUserInventory;
-        public event DeleteUserInventoryHandler OnDeleteUserInventory;
-        public event TransferUserInventoryHandler OnTransferUserInventory;
-        public event TeleportHandler OnTeleport;
-        public event ControlPrimMediaHandler OnControlPrimMedia;
-        public event InteractWithPrimMediaHandler OnInteractWithPrimMedia;
+        public TakeCopyObjectHandler OnTakeCopyObject;
+        public DuplicateObjectHandler OnDuplicateObject;
+        public EditObjectByIDsHandler OnEditObjectByIDs;
+        public EditObjectHandler OnEditObject;
+        public EditObjectPermsHandler OnEditObjectPerms;
+        public EditObjectInventoryHandler OnEditObjectInventory;
+        public MoveObjectHandler OnMoveObject;
+        public ObjectEntryHandler OnObjectEntry;
+        public ObjectEnterWithScriptsHandler OnObjectEnterWithScripts;
+        public ReturnObjectsHandler OnReturnObjects;
+        public InstantMessageHandler OnInstantMessage;
+        public InventoryTransferHandler OnInventoryTransfer;
+        public ViewScriptHandler OnViewScript;
+        public ViewNotecardHandler OnViewNotecard;
+        public EditScriptHandler OnEditScript;
+        public EditNotecardHandler OnEditNotecard;
+        public RunScriptHandlerByIDs OnRunScriptByIDs;
+        public RunScriptHandler OnRunScript;
+        public CompileScriptHandler OnCompileScript;
+        public StartScriptHandler OnStartScript;
+        public StopScriptHandler OnStopScript;
+        public ResetScriptHandler OnResetScript;
+        public TerraformLandHandler OnTerraformLand;
+        public RunConsoleCommandHandler OnRunConsoleCommand;
+        public IssueEstateCommandHandler OnIssueEstateCommand;
+        public IsGridGodHandler OnIsGridGod;
+        public IsAdministratorHandler OnIsAdministrator;
+        public IsEstateManagerHandler OnIsEstateManager;
+//        public EditParcelHandler OnEditParcel;
+        public EditParcelPropertiesHandler OnEditParcelProperties;
+        public SellParcelHandler OnSellParcel;
+        public AbandonParcelHandler OnAbandonParcel;
+        public ReclaimParcelHandler OnReclaimParcel;
+        public DeedParcelHandler OnDeedParcel;
+        public DeedObjectHandler OnDeedObject;
+        public BuyLandHandler OnBuyLand;
+        public LinkObjectHandler OnLinkObject;
+        public DelinkObjectHandler OnDelinkObject;
+        public CreateObjectInventoryHandler OnCreateObjectInventory;
+        public CopyObjectInventoryHandler OnCopyObjectInventory;
+        public DoObjectInvToObjectInv OnDoObjectInvToObjectInv;
+        public DoDropInObjectInv OnDropInObjectInv;
+        public DeleteObjectInventoryHandler OnDeleteObjectInventory;
+        public TransferObjectInventoryHandler OnTransferObjectInventory;
+        public CreateUserInventoryHandler OnCreateUserInventory;
+        public EditUserInventoryHandler OnEditUserInventory;
+        public CopyUserInventoryHandler OnCopyUserInventory;
+        public DeleteUserInventoryHandler OnDeleteUserInventory;
+        public TransferUserInventoryHandler OnTransferUserInventory;
+        public TeleportHandler OnTeleport;
+        public ControlPrimMediaHandler OnControlPrimMedia;
+        public InteractWithPrimMediaHandler OnInteractWithPrimMedia;
         #endregion
 
         #region Object Permission Checks
 
         public uint GenerateClientFlags( SceneObjectPart part, ScenePresence sp)
         {
-            // libomv will moan about PrimFlags.ObjectYouOfficer being
-            // obsolete...
-#pragma warning disable 0612
             const PrimFlags DEFAULT_FLAGS =
                 PrimFlags.ObjectModify |
                 PrimFlags.ObjectCopy |
@@ -199,7 +196,6 @@ namespace OpenSim.Region.Framework.Scenes
                 PrimFlags.ObjectYouOwner |
                 PrimFlags.ObjectAnyOwner |
                 PrimFlags.ObjectOwnerModify;
-#pragma warning restore 0612
 
             if (part == null)
                 return 0;
