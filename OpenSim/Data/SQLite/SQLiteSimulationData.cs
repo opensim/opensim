@@ -1195,10 +1195,6 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "TextureAnimation", typeof(String));
             createCol(prims, "ParticleSystem", typeof(String));
 
-            createCol(prims, "OmegaX", typeof(Double));
-            createCol(prims, "OmegaY", typeof(Double));
-            createCol(prims, "OmegaZ", typeof(Double));
-
             createCol(prims, "CameraEyeOffsetX", typeof(Double));
             createCol(prims, "CameraEyeOffsetY", typeof(Double));
             createCol(prims, "CameraEyeOffsetZ", typeof(Double));
