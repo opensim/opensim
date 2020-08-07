@@ -4817,7 +4817,7 @@ namespace OpenSim.Region.Framework.Scenes
             return 0;
         }
 
-        public int registerRotTargetWaypoint(UUID scriptID, Quaternion target, float tolerance)
+        public int RegisterRotTargetWaypoint(UUID scriptID, Quaternion target, float tolerance)
         {
             int handle = m_scene.AllocateIntId();
             scriptRotTarget waypoint = new scriptRotTarget()
@@ -4850,7 +4850,7 @@ namespace OpenSim.Region.Framework.Scenes
             return handle;
         }
 
-        public void unregisterRotTargetWaypoint(int handle)
+        public void UnRegisterRotTargetWaypoint(int handle)
         {
             lock (m_targets)
             {
@@ -4869,7 +4869,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public int registerTargetWaypoint(UUID scriptID, Vector3 target, float tolerance)
+        public int RegisterTargetWaypoint(UUID scriptID, Vector3 target, float tolerance)
         {
             int handle = m_scene.AllocateIntId();
             scriptPosTarget waypoint = new scriptPosTarget()
@@ -4902,7 +4902,7 @@ namespace OpenSim.Region.Framework.Scenes
             return handle;
         }
 
-        public void unregisterTargetWaypoint(int handle)
+        public void UnregisterTargetWaypoint(int handle)
         {
             lock (m_targets)
             {

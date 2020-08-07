@@ -2974,25 +2974,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llTarget(LSL_Vector position, double range)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerTargetWaypoint(m_item.ItemID, position, (float)range);
+            return m_host.ParentGroup.RegisterTargetWaypoint(m_item.ItemID, position, (float)range);
         }
 
         public void llTargetRemove(int number)
         {
             m_host.AddScriptLPS(1);
-            m_host.ParentGroup.unregisterTargetWaypoint(number);
+            m_host.ParentGroup.UnregisterTargetWaypoint(number);
         }
 
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.registerRotTargetWaypoint(m_item.ItemID, rot, (float)error);
+            return m_host.ParentGroup.RegisterRotTargetWaypoint(m_item.ItemID, rot, (float)error);
         }
 
         public void llRotTargetRemove(int number)
         {
             m_host.AddScriptLPS(1);
-            m_host.ParentGroup.unregisterRotTargetWaypoint(number);
+            m_host.ParentGroup.UnRegisterRotTargetWaypoint(number);
         }
 
         public void llMoveToTarget(LSL_Vector target, double tau)
