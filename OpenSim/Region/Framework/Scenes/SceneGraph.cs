@@ -56,7 +56,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region Events
 
         protected internal event PhysicsCrash UnRecoverableError;
-        private PhysicsCrash handlerPhysicsCrash = null;
         public event AttachToBackupDelegate OnAttachToBackup;
         public event DetachFromBackupDelegate OnDetachFromBackup;
         public event ChangedBackupDelegate OnChangeBackup;
@@ -957,8 +956,9 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePresencesLock.EnterReadLock();
                     entered = true;
                 }
-                m_scenePresenceMap.TryGetValue(agentID, out ScenePresence presence);
-                return presence;
+                if(m_scenePresenceMap.TryGetValue(agentID, out ScenePresence presence))
+                    return presence;
+                return null;
             }
             catch
             {
