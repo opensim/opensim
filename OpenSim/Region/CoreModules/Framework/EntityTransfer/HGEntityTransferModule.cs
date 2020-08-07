@@ -290,8 +290,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     else
                         connector = new UserAgentServiceConnector(userAgentDriver);
 
-                    GridRegion source = new GridRegion(Scene.RegionInfo);
-                    source.RawServerURI = m_GatekeeperURI;
+                    GridRegion source = new GridRegion(Scene.RegionInfo)
+                    {
+                        RawServerURI = m_GatekeeperURI
+                    };
 
                     bool success = connector.LoginAgentToGrid(source, agentCircuit, reg, finalDestination, false, out reason);
                     logout = success; // flag for later logout from this grid; this is an HG TP
@@ -578,8 +580,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
 
-                string message;
-                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), remoteClient.AgentId, homeURI, out message);
+                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), remoteClient.AgentId, homeURI, out string message);
 
                 if (finalDestination != null)
                 {
@@ -793,19 +794,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private GridRegion MakeGateKeeperRegion(string wantedURI)
         {
-            Uri uri;
-            if(!Uri.TryCreate(wantedURI, UriKind.Absolute, out uri))
+            if(!Uri.TryCreate(wantedURI, UriKind.Absolute, out Uri uri))
                 return null;
 
-            GridRegion region = new GridRegion();
-
-            region.ExternalHostName = uri.Host;
-            region.HttpPort = (uint)uri.Port;
-            region.ServerURI = wantedURI;  //uri.AbsoluteUri for some reason default ports are needed
-            region.RegionName = string.Empty;
-            region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0);
-            region.RegionFlags = OpenSim.Framework.RegionFlags.Hyperlink;
-            return region;
+            return new GridRegion()
+            {
+                ExternalHostName = uri.Host,
+                HttpPort = (uint)uri.Port,
+                ServerURI = wantedURI,  //uri.AbsoluteUri for some reason default ports are needed
+                RegionName = string.Empty,
+                InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0),
+                RegionFlags = OpenSim.Framework.RegionFlags.Hyperlink
+            };
         }
     }
 }

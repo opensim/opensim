@@ -315,7 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private UndoRedoState m_UndoRedo = null;
-        private object m_UndoLock = new object();
+        private readonly object m_UndoLock = new object();
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -1178,7 +1178,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private object UpdateFlagLock = new object();
+        private readonly object UpdateFlagLock = new object();
 
         /// <summary>
         /// Used for media on a prim.
@@ -2494,7 +2494,7 @@ namespace OpenSim.Region.Framework.Scenes
         public uint AggregatedInnerOwnerPerms {get; private set; }
         public uint AggregatedInnerGroupPerms {get; private set; }
         public uint AggregatedInnerEveryonePerms {get; private set; }
-        private object InnerPermsLock = new object();
+        private readonly object InnerPermsLock = new object();
 
         public void AggregateInnerPerms()
         {
@@ -2676,59 +2676,55 @@ namespace OpenSim.Region.Framework.Scenes
 
         private DetectedObject CreateDetObject(SceneObjectPart obj)
         {
-            DetectedObject detobj = new DetectedObject();
-            detobj.keyUUID = obj.UUID;
-            detobj.nameStr = obj.Name;
-            detobj.ownerUUID = obj.OwnerID;
-            detobj.posVector = obj.AbsolutePosition;
-            detobj.rotQuat = obj.GetWorldRotation();
-            detobj.velVector = obj.Velocity;
-            detobj.colliderType = 0;
-            detobj.groupUUID = obj.GroupID;
-            // allow detector link number to be seen, unlike spec
-            //if (VolumeDetectActive)
-            //    detobj.linkNumber = 0;
-            //else
-                detobj.linkNumber = LinkNum;
-            return detobj;
+            return new DetectedObject()
+            {
+                keyUUID = obj.UUID,
+                nameStr = obj.Name,
+                ownerUUID = obj.OwnerID,
+                posVector = obj.AbsolutePosition,
+                rotQuat = obj.GetWorldRotation(),
+                velVector = obj.Velocity,
+                colliderType = 0,
+                groupUUID = obj.GroupID,
+                linkNumber = LinkNum
+            };
         }
 
         private DetectedObject CreateDetObject(ScenePresence av)
         {
-            DetectedObject detobj = new DetectedObject();
-            detobj.keyUUID = av.UUID;
-            detobj.nameStr = av.ControllingClient.Name;
-            detobj.ownerUUID = av.UUID;
-            detobj.posVector = av.AbsolutePosition;
-            detobj.rotQuat = av.Rotation;
-            detobj.velVector = av.Velocity;
-            detobj.colliderType = av.IsNPC ? 0x20 : 0x1; // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+            DetectedObject detobj = new DetectedObject()
+            {
+                keyUUID = av.UUID,
+                nameStr = av.ControllingClient.Name,
+                ownerUUID = av.UUID,
+                posVector = av.AbsolutePosition,
+                rotQuat = av.Rotation,
+                velVector = av.Velocity,
+                colliderType = av.IsNPC ? 0x20 : 0x1, // OpenSim\Region\ScriptEngine\Shared\Helpers.cs
+                groupUUID = av.ControllingClient.ActiveGroupId,
+                linkNumber = LinkNum
+            };
             if(av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
             else if(detobj.velVector != Vector3.Zero)
                 detobj.colliderType |= 0x2; //active
-            detobj.groupUUID = av.ControllingClient.ActiveGroupId;
-            //if (VolumeDetectActive)
-            //    detobj.linkNumber = 0;
-            //else
-                detobj.linkNumber = LinkNum;
-
             return detobj;
         }
 
         private DetectedObject CreateDetObjectForGround()
         {
-            DetectedObject detobj = new DetectedObject();
-            detobj.keyUUID = UUID.Zero;
-            detobj.nameStr = "";
-            detobj.ownerUUID = UUID.Zero;
-            detobj.posVector = ParentGroup.RootPart.AbsolutePosition;
-            detobj.rotQuat = Quaternion.Identity;
-            detobj.velVector = Vector3.Zero;
-            detobj.colliderType = 0;
-            detobj.groupUUID = UUID.Zero;
-            detobj.linkNumber = LinkNum;
-            return detobj;
+            return new DetectedObject()
+            {
+                keyUUID = UUID.Zero,
+                nameStr = "",
+                ownerUUID = UUID.Zero,
+                posVector = ParentGroup.RootPart.AbsolutePosition,
+                rotQuat = Quaternion.Identity,
+                velVector = Vector3.Zero,
+                colliderType = 0,
+                groupUUID = UUID.Zero,
+                linkNumber = LinkNum
+            };
         }
 
         private ColliderArgs CreateColliderArgs(SceneObjectPart dest, List<uint> colliders)
@@ -2801,9 +2797,8 @@ namespace OpenSim.Region.Framework.Scenes
             bool sendToRoot = true;
 
             ColliderArgs LandCollidingMessage = new ColliderArgs();
-            List<DetectedObject> colliding = new List<DetectedObject>();
+            List<DetectedObject> colliding = new List<DetectedObject>(){CreateDetObjectForGround()};
 
-            colliding.Add(CreateDetObjectForGround());
             LandCollidingMessage.Colliders = colliding;
 
             if (Inventory.ContainsScripts())
@@ -2873,10 +2868,12 @@ namespace OpenSim.Region.Framework.Scenes
                                 curcontact = collissionswith[id];
                                 if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
                                 {
-                                    soundinfo = new CollisionForSoundInfo();
-                                    soundinfo.colliderID = id;
-                                    soundinfo.position = curcontact.Position;
-                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                    soundinfo = new CollisionForSoundInfo()
+                                    {
+                                        colliderID = id,
+                                        position = curcontact.Position,
+                                        relativeVel = curcontact.RelativeSpeed
+                                    };
                                     soundinfolist.Add(soundinfo);
                                 }
                             }
@@ -2891,10 +2888,12 @@ namespace OpenSim.Region.Framework.Scenes
                                 curcontact = collissionswith[id];
                                 if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
                                 {
-                                    soundinfo = new CollisionForSoundInfo();
-                                    soundinfo.colliderID = id;
-                                    soundinfo.position = curcontact.Position;
-                                    soundinfo.relativeVel = curcontact.RelativeSpeed;
+                                    soundinfo = new CollisionForSoundInfo()
+                                    {
+                                        colliderID = id,
+                                        position = curcontact.Position,
+                                        relativeVel = curcontact.RelativeSpeed
+                                    };
                                     soundinfolist.Add(soundinfo);
                                 }
                             }
@@ -4353,9 +4352,11 @@ namespace OpenSim.Region.Framework.Scenes
                 //distance[i] = (normals[i].X * AmBa.X + normals[i].Y * AmBa.Y + normals[i].Z * AmBa.Z) * -1;
             }
 
-            EntityIntersection result = new EntityIntersection();
+            EntityIntersection result = new EntityIntersection()
+            {
+                distance = 1024
+            };
 
-            result.distance = 1024;
             float c = 0;
             float a = 0;
             float d = 0;
@@ -5485,9 +5486,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Quaternion dR = currRot / APIDTarget;
 
                     // find axis and angle of rotation to rotate to desired orientation
-                    Vector3 axis = Vector3.UnitX;
-                    float angle;
-                    dR.GetAxisAngle(out axis, out angle);
+                    dR.GetAxisAngle(out Vector3 axis, out float angle);
                     axis = axis * currRot;
 
                     // clamp strength to avoid overshoot
@@ -5669,7 +5668,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private object animsLock = new object();
+        private readonly object animsLock = new object();
         public Dictionary<UUID, int> Animations = null;
         public Dictionary<UUID, string> AnimationsNames = null;
 

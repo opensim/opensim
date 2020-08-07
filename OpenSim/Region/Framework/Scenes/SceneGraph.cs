@@ -96,8 +96,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
         /// conditions can occur.
         /// </remarks>
-        private Object m_updateLock = new Object();
-        private Object m_linkLock = new Object();
+        private readonly Object m_updateLock = new Object();
+        private readonly  Object m_linkLock = new Object();
         private System.Threading.ReaderWriterLockSlim m_scenePresencesLock;
         private System.Threading.ReaderWriterLockSlim m_scenePartsLock;
 
@@ -526,8 +526,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE GRAPH]: Deleting scene object with uuid {0}, resultOfObjectLinked = {1}",
 //                uuid, resultOfObjectLinked);
 
-            EntityBase entity;
-            if (!Entities.TryGetValue(uuid, out entity) || (!(entity is SceneObjectGroup)))
+            if (!Entities.TryGetValue(uuid, out EntityBase entity) || (!(entity is SceneObjectGroup)))
                 return false;
 
             SceneObjectGroup grp = (SceneObjectGroup)entity;
@@ -608,26 +607,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void FireAttachToBackup(SceneObjectGroup obj)
         {
-            if (OnAttachToBackup != null)
-            {
-                OnAttachToBackup(obj);
-            }
+            OnAttachToBackup?.Invoke(obj);
         }
 
         public void FireDetachFromBackup(SceneObjectGroup obj)
         {
-            if (OnDetachFromBackup != null)
-            {
-                OnDetachFromBackup(obj);
-            }
+            OnDetachFromBackup?.Invoke(obj);
         }
 
         public void FireChangeBackup(SceneObjectGroup obj)
         {
-            if (OnChangeBackup != null)
-            {
-                OnChangeBackup(obj);
-            }
+            OnChangeBackup?.Invoke(obj);
         }
 
         /// <summary>
@@ -728,8 +718,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ++m_numChildAgents;
 
                 uint localid = presence.LocalId;
-                ScenePresence oldref;
-                if (m_scenePresenceMap.TryGetValue(id, out oldref))
+                if (m_scenePresenceMap.TryGetValue(id, out ScenePresence oldref))
                 {
                     uint oldLocalID = oldref.LocalId;
                     if (localid != oldLocalID)
@@ -769,8 +758,7 @@ namespace OpenSim.Region.Framework.Scenes
                     entered = true;
                 }
                 // Remove the presence reference from the dictionary
-                ScenePresence oldref;
-                if(m_scenePresenceMap.TryGetValue(agentID, out oldref))
+                if(m_scenePresenceMap.TryGetValue(agentID, out ScenePresence oldref))
                 {
                     m_scenePresenceMap.Remove(agentID);
                     // Find the index in the list where the old ref was stored and remove the reference
@@ -903,8 +891,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePresencesLock.EnterReadLock();
                     entered = true;
                 }
-                ScenePresence presence;
-                if (m_scenePresenceMap.TryGetValue(agentId, out presence))
+                if (m_scenePresenceMap.TryGetValue(agentId, out ScenePresence presence))
                     return presence.ControllingClient;
                 return null;
             }
@@ -970,8 +957,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePresencesLock.EnterReadLock();
                     entered = true;
                 }
-                ScenePresence presence;
-                m_scenePresenceMap.TryGetValue(agentID, out presence);
+                m_scenePresenceMap.TryGetValue(agentID, out ScenePresence presence);
                 return presence;
             }
             catch
@@ -1019,8 +1005,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePresencesLock.EnterReadLock();
                     entered = true;
                 }
-                ScenePresence sp;
-                if (m_scenePresenceLocalIDMap.TryGetValue(localID, out sp))
+                if (m_scenePresenceLocalIDMap.TryGetValue(localID, out ScenePresence sp))
                     return sp;
             }
             finally
@@ -1087,8 +1072,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                SceneObjectPart sop;
-                if(m_scenePartsByLocalID.TryGetValue(localID, out sop))
+                if(m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop))
                     return sop.ParentGroup;
                 return null;
             }
@@ -1115,8 +1099,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                SceneObjectPart sop;
-                if (m_scenePartsByID.TryGetValue(fullID, out sop))
+                if (m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop))
                     return sop.ParentGroup;
                 return null;
             }
@@ -1137,7 +1120,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    SceneObjectGroup reportingG = (SceneObjectGroup)ent;
+                    SceneObjectGroup reportingG = ent as SceneObjectGroup;
                     EntityIntersection inter = reportingG.TestIntersection(hray, frontFacesOnly, faceCenters);
                     if (inter.HitTF && inter.distance < closestDistance)
                     {
@@ -1163,7 +1146,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < entities.Length; ++i)
             {
                 if(entities[i] is SceneObjectGroup)
-                    ret.Add((SceneObjectGroup)entities[i]);
+                    ret.Add(entities[i] as SceneObjectGroup);
             }
             return ret;
         }
@@ -1175,9 +1158,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no such group was found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(UUID fullID)
         {
-            EntityBase entity;
-            if (Entities.TryGetValue(fullID, out entity) && (entity is SceneObjectGroup))
-                return (SceneObjectGroup)entity;
+            if (Entities.TryGetValue(fullID, out EntityBase entity) && (entity is SceneObjectGroup))
+                return entity as SceneObjectGroup;
             return null;
         }
 
@@ -1187,9 +1169,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no such group was found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(uint localID)
         {
-            EntityBase entity;
-            if (Entities.TryGetValue(localID, out entity) && (entity is SceneObjectGroup))
-                return (SceneObjectGroup)entity;
+            if (Entities.TryGetValue(localID, out EntityBase entity) && (entity is SceneObjectGroup))
+                return entity as SceneObjectGroup;
             return null;
         }
 
@@ -1228,8 +1209,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                SceneObjectPart sop;
-                if (m_scenePartsByLocalID.TryGetValue(localID, out sop))
+                if (m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop))
                 {
                     if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
                         return null;
@@ -1259,8 +1239,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterReadLock();
                     entered = true;
                 }
-                SceneObjectPart sop;
-                if (m_scenePartsByID.TryGetValue(fullID, out sop))
+                if (m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop))
                 {
                     if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
                         return null;
@@ -1336,11 +1315,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void physicsBasedCrash()
         {
-            handlerPhysicsCrash = UnRecoverableError;
-            if (handlerPhysicsCrash != null)
-            {
-                handlerPhysicsCrash();
-            }
+            UnRecoverableError?.Invoke();
         }
 
         /// <summary>
@@ -1846,27 +1821,28 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, agentID))
                 {
-                    ObjectShapePacket.ObjectDataBlock shapeData = new ObjectShapePacket.ObjectDataBlock();
-                    shapeData.ObjectLocalID = shapeBlock.ObjectLocalID;
-                    shapeData.PathBegin = shapeBlock.PathBegin;
-                    shapeData.PathCurve = shapeBlock.PathCurve;
-                    shapeData.PathEnd = shapeBlock.PathEnd;
-                    shapeData.PathRadiusOffset = shapeBlock.PathRadiusOffset;
-                    shapeData.PathRevolutions = shapeBlock.PathRevolutions;
-                    shapeData.PathScaleX = shapeBlock.PathScaleX;
-                    shapeData.PathScaleY = shapeBlock.PathScaleY;
-                    shapeData.PathShearX = shapeBlock.PathShearX;
-                    shapeData.PathShearY = shapeBlock.PathShearY;
-                    shapeData.PathSkew = shapeBlock.PathSkew;
-                    shapeData.PathTaperX = shapeBlock.PathTaperX;
-                    shapeData.PathTaperY = shapeBlock.PathTaperY;
-                    shapeData.PathTwist = shapeBlock.PathTwist;
-                    shapeData.PathTwistBegin = shapeBlock.PathTwistBegin;
-                    shapeData.ProfileBegin = shapeBlock.ProfileBegin;
-                    shapeData.ProfileCurve = shapeBlock.ProfileCurve;
-                    shapeData.ProfileEnd = shapeBlock.ProfileEnd;
-                    shapeData.ProfileHollow = shapeBlock.ProfileHollow;
-
+                    ObjectShapePacket.ObjectDataBlock shapeData = new ObjectShapePacket.ObjectDataBlock()
+                    {
+                        ObjectLocalID = shapeBlock.ObjectLocalID,
+                        PathBegin = shapeBlock.PathBegin,
+                        PathCurve = shapeBlock.PathCurve,
+                        PathEnd = shapeBlock.PathEnd,
+                        PathRadiusOffset = shapeBlock.PathRadiusOffset,
+                        PathRevolutions = shapeBlock.PathRevolutions,
+                        PathScaleX = shapeBlock.PathScaleX,
+                        PathScaleY = shapeBlock.PathScaleY,
+                        PathShearX = shapeBlock.PathShearX,
+                        PathShearY = shapeBlock.PathShearY,
+                        PathSkew = shapeBlock.PathSkew,
+                        PathTaperX = shapeBlock.PathTaperX,
+                        PathTaperY = shapeBlock.PathTaperY,
+                        PathTwist = shapeBlock.PathTwist,
+                        PathTwistBegin = shapeBlock.PathTwistBegin,
+                        ProfileBegin = shapeBlock.ProfileBegin,
+                        ProfileCurve = shapeBlock.ProfileCurve,
+                        ProfileEnd = shapeBlock.ProfileEnd,
+                        ProfileHollow = shapeBlock.ProfileHollow
+                    };
                     group.UpdateShape(shapeData, primLocalID);
                 }
             }

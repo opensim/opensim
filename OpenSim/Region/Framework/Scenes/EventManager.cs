@@ -577,7 +577,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Triggered by <see cref="TriggerAtTargetEvent"/>
-        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// in <see cref="SceneObjectGroup.CheckAtTargets"/>
         /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
         /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
         /// </remarks>
@@ -591,7 +591,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Triggered by <see cref="TriggerNotAtTargetEvent"/>
-        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// in <see cref="SceneObjectGroup.CheckAtTargets"/>
         /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
         /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
         /// </remarks>
@@ -605,7 +605,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Triggered by <see cref="TriggerAtRotTargetEvent"/>
-        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// in <see cref="SceneObjectGroup.CheckAtTargets"/>
         /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
         /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
         /// </remarks>
@@ -619,7 +619,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <remarks>
         /// Triggered by <see cref="TriggerNotAtRotTargetEvent"/>
-        /// in <see cref="SceneObjectGroup.checkAtTargets"/>
+        /// in <see cref="SceneObjectGroup.CheckAtTargets"/>
         /// via <see cref="SceneObjectGroup.ScheduleGroupForFullUpdate"/>,
         /// <see cref="Scene.CheckAtTargets"/> via <see cref="Scene.Update"/>
         /// </remarks>
@@ -3344,11 +3344,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerThrottleUpdate(ScenePresence scenePresence)
         {
-            ThrottleUpdate handler = OnThrottleUpdate;
-            if (handler != null)
-            {
-                handler(scenePresence);
-            }
+            OnThrottleUpdate?.Invoke(scenePresence);
         }
 
 //        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)

@@ -220,9 +220,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetBypassPermissions(bool value)
         {
-            SetBypassPermissionsHandler handler = OnSetBypassPermissions;
-            if (handler != null)
-                handler(value);
+            OnSetBypassPermissions?.Invoke(value);
         }
 
         public bool BypassPermissions()

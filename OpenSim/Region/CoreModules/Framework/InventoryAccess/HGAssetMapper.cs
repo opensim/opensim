@@ -323,7 +323,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     // debugging we may want to simply report the failure if we can tell this is due to a failure
                     // with a particular asset and not a destination network failure where all asset posts will fail (and
                     // generate large amounts of log spam).
-                    throw e;
+                    throw;
                 }
             }
             StringBuilder sb = null;

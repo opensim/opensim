@@ -663,8 +663,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // We remove the object here
                     try
                     {
-                        List<uint> localIDs = new List<uint>();
-                        localIDs.Add(root.LocalId);
+                        List<uint> localIDs = new List<uint>(){root.LocalId};
                         sogScene.AddReturn(sog.OwnerID, sog.Name, sog.AbsolutePosition,
                             "Returned at region cross");
                         sogScene.DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return, UUID.Zero, false);
@@ -1092,14 +1091,15 @@ namespace OpenSim.Region.Framework.Scenes
                 return -1;
             }
 
-            TeleportObjectData tdata = new TeleportObjectData();
-            tdata.flags = flags;
-            tdata.vel = vel;
-            tdata.avel = avel;
-            tdata.acc = acc;
-            tdata.ori = ori;
-            tdata.sourceID = sourceID;
-
+            TeleportObjectData tdata = new TeleportObjectData()
+            {
+                flags = flags,
+                vel = vel,
+                avel = avel,
+                acc = acc,
+                ori = ori,
+                sourceID = sourceID
+            };
 
             SOGCrossDelegate d = CrossAsync;
             d.BeginInvoke(this, targetPosition, tdata, CrossAsyncCompleted, d);
@@ -1365,7 +1365,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Dispose(false);
         }
-
         private bool disposed = false;
         public void Dispose()
         {
@@ -1379,6 +1378,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!disposed)
             {
                 IsDeleted = true;
+                disposed = true;
 
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for(int i= 0; i < parts.Length; ++i)
@@ -1386,18 +1386,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_parts.Clear();
                 m_sittingAvatars.Clear();
-                //            m_rootPart = null;
+                // m_rootPart = null;
 
                 m_targets.Clear();
                 m_rotTargets.Clear();
                 m_targetsByScript.Clear();
                 m_partsNameToLinkMap.Clear();
-
-                disposed = true;
             }
         }
-
-
 
         public void LoadScriptState(XmlDocument doc)
         {
@@ -1709,14 +1705,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Vector3 GetAxisAlignedBoundingBox(out float offsetHeight)
         {
-            float minX;
-            float maxX;
-            float minY;
-            float maxY;
-            float minZ;
-            float maxZ;
-
-            GetAxisAlignedBoundingBoxRaw(out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+            GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ);
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
 
             offsetHeight = 0;
@@ -3089,9 +3078,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if a part with the primID was not found</returns>
         public SceneObjectPart GetPart(UUID primID)
         {
-            SceneObjectPart childPart;
-            m_parts.TryGetValue(primID, out childPart);
-            return childPart;
+            if(m_parts.TryGetValue(primID, out SceneObjectPart childPart))
+                return childPart;
+            return null;
         }
 
         /// <summary>
@@ -3102,7 +3091,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart GetPart(uint localID)
         {
             SceneObjectPart sop = m_scene.GetSceneObjectPart(localID);
-            if(sop.ParentGroup.Equals(this))
+            if(sop.ParentGroup.LocalId == LocalId)
                 return sop;
             return null;
         }
@@ -3794,9 +3783,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // compute difference between previous old rotation and new incoming rotation
                         Quaternion minimalRotationFromQ1ToQ2 = newOrientation * Quaternion.Inverse(old);
 
-                        float rotationAngle;
-                        Vector3 spinforce;
-                        minimalRotationFromQ1ToQ2.GetAxisAngle(out spinforce, out rotationAngle);
+                        minimalRotationFromQ1ToQ2.GetAxisAngle(out Vector3 spinforce, out float rotationAngle);
                         if(Math.Abs(rotationAngle)< 0.001)
                             return;
 
@@ -4044,8 +4031,7 @@ namespace OpenSim.Region.Framework.Scenes
             HasGroupChanged = true;
 
             // Send the group's properties to all clients once all parts are updated
-            IClientAPI client;
-            if (Scene.TryGetClient(AgentID, out client))
+            if (Scene.TryGetClient(AgentID, out IClientAPI client))
                 SendPropertiesToClient(client);
         }
 
@@ -4833,12 +4819,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int registerRotTargetWaypoint(UUID scriptID, Quaternion target, float tolerance)
         {
-            scriptRotTarget waypoint = new scriptRotTarget();
-            waypoint.targetRot = target;
-            waypoint.tolerance = tolerance;
-            waypoint.scriptID = scriptID;
             int handle = m_scene.AllocateIntId();
-            waypoint.handle = handle;
+            scriptRotTarget waypoint = new scriptRotTarget()
+            {
+                targetRot = target,
+                tolerance = tolerance,
+                scriptID = scriptID,
+                handle = handle
+            };
 
             lock (m_targets)
             {
@@ -4883,12 +4871,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int registerTargetWaypoint(UUID scriptID, Vector3 target, float tolerance)
         {
-            scriptPosTarget waypoint = new scriptPosTarget();
-            waypoint.targetPos = target;
-            waypoint.tolerance = tolerance * tolerance;
-            waypoint.scriptID = scriptID;
             int handle = m_scene.AllocateIntId();
-            waypoint.handle = handle;
+            scriptPosTarget waypoint = new scriptPosTarget()
+            {
+                targetPos = target,
+                tolerance = tolerance * tolerance,
+                scriptID = scriptID,
+                handle = handle
+            };
 
             lock (m_targets)
             {
@@ -4952,7 +4942,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void checkAtTargets()
+        public void CheckAtTargets()
         {
             int targetsCount = m_targets.Count;
             if (targetsCount > 0 && (m_scriptListens_atTarget || m_scriptListens_notAtTarget))
@@ -5139,20 +5129,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetInertiaData(float TotalMass, Vector3 CenterOfMass, Vector3 Inertia, Vector4 aux )
         {
-            PhysicsInertiaData inertia = new PhysicsInertiaData();
-            inertia.TotalMass = TotalMass;
-            inertia.CenterOfMass = CenterOfMass;
-            inertia.Inertia = Inertia;
-            inertia.InertiaRotation = aux;
+            PhysicsInertiaData inertiaData = new PhysicsInertiaData()
+            {
+                TotalMass = TotalMass,
+                CenterOfMass = CenterOfMass,
+                Inertia = Inertia,
+                InertiaRotation = aux
+            };
 
             if(TotalMass < 0)
                 RootPart.PhysicsInertia = null;
             else
-                RootPart.PhysicsInertia = new PhysicsInertiaData(inertia);
+                RootPart.PhysicsInertia = inertiaData;
 
             PhysicsActor pa = RootPart.PhysActor;
             if(pa !=null)
-                pa.SetInertiaData(inertia);
+                pa.SetInertiaData(inertiaData);
         }
 
         /// <summary>

@@ -241,8 +241,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat.Tests
             sceneSouth.Update(4);
             sp1.DrawDistance += 64;
             sp2.DrawDistance += 64;
-            sceneNorth.Update(2);
-            sceneSouth.Update(2);
+            sceneNorth.Update(4);
+            sceneSouth.Update(4);
 
             // Check child positions are correct.
             Assert.AreEqual(
