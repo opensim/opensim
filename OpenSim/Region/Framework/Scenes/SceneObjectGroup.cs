@@ -500,8 +500,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Does this group contain the given part?
-        /// should be able to remove these methods once we have a entity index in scene
-        /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
         public bool ContainsPart(uint localID)
@@ -612,7 +610,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // this is needed because physics may not have linksets but just loose SOPs in world
 
                 SceneObjectPart[] parts = m_parts.GetArray();
-
                 foreach (SceneObjectPart part in parts)
                 {
                     if (part != m_rootPart)

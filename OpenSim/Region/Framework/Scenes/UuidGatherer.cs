@@ -401,7 +401,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    // If the prim is a sculpt then preserve this information too
                     if (part.Shape.SculptTexture != UUID.Zero)
                         GatheredUuids[part.Shape.SculptTexture] = (sbyte)AssetType.Texture;
 

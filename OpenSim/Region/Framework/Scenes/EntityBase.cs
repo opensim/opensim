@@ -37,30 +37,28 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public abstract class EntityBase : ISceneEntity
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The scene to which this entity belongs
         /// </summary>
+        protected Scene m_scene;
         public Scene Scene
         {
             get { return m_scene; }
         }
-        protected Scene m_scene;
 
         protected UUID m_uuid;
-
         public virtual UUID UUID
         {
             get { return m_uuid; }
             set { m_uuid = value; }
         }
 
-        protected string m_name;
-
         /// <summary>
         /// The name of this entity
         /// </summary>
+        protected string m_name;
         public virtual string Name
         {
             get { return m_name; }
@@ -68,61 +66,69 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// id local to scene
+        /// </summary>
+        protected uint m_localId;
+        public virtual uint LocalId
+        {
+            get
+            {
+                return m_localId;
+            }
+            set
+            {
+                m_localId = value;
+                // m_log.DebugFormat("[ENTITY BASE]: Set part {0} to local id {1}", Name, m_localId);
+            }
+        }
+
+        /// <summary>
         /// Signals whether this entity was in a scene but has since been removed from it.
         /// </summary>
         public bool IsDeleted { get; protected internal set; }
 
-        protected Vector3 m_pos;
-
         /// <summary>
         /// Absolute position of this entity in a scene.
         /// </summary>
+        protected Vector3 m_pos;
         public virtual Vector3 AbsolutePosition
         {
-            get { return m_pos; }
+            get
+            {
+                return m_pos;
+            }
             set
             {
                 m_pos = value;
             }
         }
 
-        protected Vector3 m_velocity;
-        protected Vector3 m_rotationalvelocity;
-
         /// <summary>
         /// Current velocity of the entity.
         /// </summary>
+        protected Vector3 m_velocity;
         public virtual Vector3 Velocity
         {
             get { return m_velocity; }
             set { m_velocity = value; }
         }
 
-        protected uint m_localId;
-
-        public virtual uint LocalId
-        {
-            get { return m_localId; }
-            set
-            {
-                m_localId = value;
-//                m_log.DebugFormat("[ENTITY BASE]: Set part {0} to local id {1}", Name, m_localId);
-            }
-        }
+        protected Vector3 m_rotationalvelocity;
 
         /// <summary>
         /// Creates a new Entity (should not occur on it's own)
         /// </summary>
         public EntityBase()
         {
-            m_name = "(basic entity)";
         }
 
         /// <summary>
         /// Performs any updates that need to be done at each frame, as opposed to immediately.
         /// These included scheduled updates and updates that occur due to physics processing.
         /// </summary>
-        public abstract void Update();
+        public virtual void Update()
+        {
+        }
 
         /// <summary>
         /// Copies the entity

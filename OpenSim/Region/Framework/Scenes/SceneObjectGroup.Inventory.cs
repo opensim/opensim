@@ -100,7 +100,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StopScriptInstances()
         {
-            Array.ForEach<SceneObjectPart>(m_parts.GetArray(), p => p.Inventory.StopScriptInstances());
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for(int i = 0; i < parts.Length; ++i)
+                parts[i].Inventory.StopScriptInstances();
         }
 
         public void SendReleaseScriptsControl()

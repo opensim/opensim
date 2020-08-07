@@ -93,7 +93,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     #endregion Enumerations
 
-    public class SceneObjectPart : ISceneEntity, IDisposable
+    public class SceneObjectPart : EntityBase, IDisposable
     {
         /// <value>
         /// Denote all sides of the prim
@@ -325,9 +325,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected Vector3 m_groupPosition;
-        protected uint m_localId;
         protected Material m_material = OpenMetaverse.Material.Wood;
-        protected string m_name;
         protected Vector3 m_offsetPosition;
 
         protected SceneObjectGroup m_parentGroup;
@@ -335,8 +333,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected ulong m_regionHandle;
         protected Quaternion m_rotationOffset = Quaternion.Identity;
         protected PrimitiveBaseShape m_shape;
-        protected UUID m_uuid;
-        protected Vector3 m_velocity;
 
         protected Vector3 m_lastPosition;
         protected Quaternion m_lastRotation;
@@ -611,7 +607,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { Flags = (PrimFlags)value; }
         }
 
-        public UUID UUID
+        public override UUID UUID
         {
             get { return m_uuid; }
             set
@@ -623,18 +619,8 @@ namespace OpenSim.Region.Framework.Scenes
                     Inventory.ResetObjectID();
             }
         }
-
-        public uint LocalId
-        {
-            get { return m_localId; }
-            set
-            {
-                m_localId = value;
-//                m_log.DebugFormat("[SCENE OBJECT PART]: Set part {0} to local id {1}", Name, m_localId);
-            }
-        }
-
-        public virtual string Name
+ 
+        public override string Name
         {
             get { return m_name; }
             set
@@ -644,7 +630,6 @@ namespace OpenSim.Region.Framework.Scenes
                     ParentGroup.InvalidatePartsLinkMaps();
 
                 PhysicsActor pa = PhysActor;
-
                 if (pa != null)
                     pa.SOPName = value;
             }
@@ -708,13 +693,11 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_APIDTarget = value; }
         }
 
-
         protected float APIDDamp
         {
             get { return m_APIDDamp; }
             set { m_APIDDamp = value; }
         }
-
 
         protected float APIDStrength
         {
@@ -955,7 +938,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary></summary>
-        public Vector3 Velocity
+        public override Vector3 Velocity
         {
             get
             {
@@ -1232,7 +1215,7 @@ namespace OpenSim.Region.Framework.Scenes
 //---------------
 #region Public Properties with only Get
 
-        public Vector3 AbsolutePosition
+        public override Vector3 AbsolutePosition
         {
             get
             {
@@ -1468,7 +1451,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sitAnimation = value; }
         }
 
-        public UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        public readonly UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
         // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
         // runtime thing.. do not persist
