@@ -346,7 +346,7 @@ namespace OpenSim.Data.PGSQL
             ""SitTargetOrientZ"" = :SitTargetOrientZ, ""RegionUUID"" = :RegionUUID, ""CreatorID"" = :CreatorID, ""OwnerID"" = :OwnerID, ""GroupID"" = :GroupID,
             ""LastOwnerID"" = :LastOwnerID, ""SceneGroupID"" = :SceneGroupID, ""PayPrice"" = :PayPrice, ""PayButton1"" = :PayButton1, ""PayButton2"" = :PayButton2,
             ""PayButton3"" = :PayButton3, ""PayButton4"" = :PayButton4, ""LoopedSound"" = :LoopedSound, ""LoopedSoundGain"" = :LoopedSoundGain,
-            ""TextureAnimation"" = :TextureAnimation, ""OmegaX"" = :OmegaX, ""OmegaY"" = :OmegaY, ""OmegaZ"" = :OmegaZ, ""CameraEyeOffsetX"" = :CameraEyeOffsetX,
+            ""TextureAnimation"" = :TextureAnimation, ""CameraEyeOffsetX"" = :CameraEyeOffsetX,
             ""CameraEyeOffsetY"" = :CameraEyeOffsetY, ""CameraEyeOffsetZ"" = :CameraEyeOffsetZ, ""CameraAtOffsetX"" = :CameraAtOffsetX,
             ""CameraAtOffsetY"" = :CameraAtOffsetY, ""CameraAtOffsetZ"" = :CameraAtOffsetZ, ""ForceMouselook"" = :ForceMouselook,
             ""ScriptAccessPin"" = :ScriptAccessPin, ""AllowedDrop"" = :AllowedDrop, ""DieAtEdge"" = :DieAtEdge, ""SalePrice"" = :SalePrice,
@@ -366,8 +366,8 @@ namespace OpenSim.Data.PGSQL
             ""VelocityY"", ""VelocityZ"", ""AngularVelocityX"", ""AngularVelocityY"", ""AngularVelocityZ"", ""AccelerationX"", ""AccelerationY"", ""AccelerationZ"",
             ""RotationX"", ""RotationY"", ""RotationZ"", ""RotationW"", ""SitTargetOffsetX"", ""SitTargetOffsetY"", ""SitTargetOffsetZ"", ""SitTargetOrientW"",
             ""SitTargetOrientX"", ""SitTargetOrientY"", ""SitTargetOrientZ"", ""RegionUUID"", ""CreatorID"", ""OwnerID"", ""GroupID"", ""LastOwnerID"", ""SceneGroupID"",
-            ""PayPrice"", ""PayButton1"", ""PayButton2"", ""PayButton3"", ""PayButton4"", ""LoopedSound"", ""LoopedSoundGain"", ""TextureAnimation"", ""OmegaX"",
-            ""OmegaY"", ""OmegaZ"", ""CameraEyeOffsetX"", ""CameraEyeOffsetY"", ""CameraEyeOffsetZ"", ""CameraAtOffsetX"", ""CameraAtOffsetY"", ""CameraAtOffsetZ"",
+            ""PayPrice"", ""PayButton1"", ""PayButton2"", ""PayButton3"", ""PayButton4"", ""LoopedSound"", ""LoopedSoundGain"", ""TextureAnimation"",
+            ""CameraEyeOffsetX"", ""CameraEyeOffsetY"", ""CameraEyeOffsetZ"", ""CameraAtOffsetX"", ""CameraAtOffsetY"", ""CameraAtOffsetZ"",
             ""ForceMouselook"", ""ScriptAccessPin"", ""AllowedDrop"", ""DieAtEdge"", ""SalePrice"", ""SaleType"", ""ColorR"", ""ColorG"", ""ColorB"", ""ColorA"",
             ""ParticleSystem"", ""ClickAction"", ""Material"", ""CollisionSound"", ""CollisionSoundVolume"", ""PassTouches"", ""LinkNumber"", ""MediaURL"", ""DynAttrs"",
             ""PhysicsShapeType"", ""Density"", ""GravityModifier"", ""Friction"", ""Restitution"", ""PassCollisions"", ""RotationAxisLocks"", ""RezzerID"" , ""Vehicle"", ""PhysInertia"",
@@ -378,8 +378,8 @@ namespace OpenSim.Data.PGSQL
             :VelocityY, :VelocityZ, :AngularVelocityX, :AngularVelocityY, :AngularVelocityZ, :AccelerationX, :AccelerationY, :AccelerationZ,
             :RotationX, :RotationY, :RotationZ, :RotationW, :SitTargetOffsetX, :SitTargetOffsetY, :SitTargetOffsetZ, :SitTargetOrientW,
             :SitTargetOrientX, :SitTargetOrientY, :SitTargetOrientZ, :RegionUUID, :CreatorID, :OwnerID, :GroupID, :LastOwnerID, :SceneGroupID,
-            :PayPrice, :PayButton1, :PayButton2, :PayButton3, :PayButton4, :LoopedSound, :LoopedSoundGain, :TextureAnimation, :OmegaX,
-            :OmegaY, :OmegaZ, :CameraEyeOffsetX, :CameraEyeOffsetY, :CameraEyeOffsetZ, :CameraAtOffsetX, :CameraAtOffsetY, :CameraAtOffsetZ,
+            :PayPrice, :PayButton1, :PayButton2, :PayButton3, :PayButton4, :LoopedSound, :LoopedSoundGain, :TextureAnimation,
+            :CameraEyeOffsetX, :CameraEyeOffsetY, :CameraEyeOffsetZ, :CameraAtOffsetX, :CameraAtOffsetY, :CameraAtOffsetZ,
             :ForceMouselook, :ScriptAccessPin, :AllowedDrop, :DieAtEdge, :SalePrice, :SaleType, :ColorR, :ColorG, :ColorB, :ColorA,
             :ParticleSystem, :ClickAction, :Material, :CollisionSound, :CollisionSoundVolume, :PassTouches, :LinkNumber, :MediaURL, :DynAttrs,
             :PhysicsShapeType, :Density, :GravityModifier, :Friction, :Restitution, :PassCollisions, :RotationAxisLocks, :RezzerID, :Vehicle, :PhysInertia,
@@ -1324,11 +1324,6 @@ namespace OpenSim.Data.PGSQL
             if (!(primRow["ParticleSystem"] is DBNull))
                 prim.ParticleSystem = (Byte[])primRow["ParticleSystem"];
 
-            prim.AngularVelocity = new Vector3(
-                                        Convert.ToSingle(primRow["OmegaX"]),
-                                        Convert.ToSingle(primRow["OmegaY"]),
-                                        Convert.ToSingle(primRow["OmegaZ"]));
-
             prim.SetCameraEyeOffset(new Vector3(
                                         Convert.ToSingle(primRow["CameraEyeOffsetX"]),
                                         Convert.ToSingle(primRow["CameraEyeOffsetY"]),
@@ -1780,10 +1775,6 @@ namespace OpenSim.Data.PGSQL
 
             parameters.Add(_Database.CreateParameter("TextureAnimation", prim.TextureAnimation));
             parameters.Add(_Database.CreateParameter("ParticleSystem", prim.ParticleSystem));
-
-            parameters.Add(_Database.CreateParameter("OmegaX", prim.AngularVelocity.X));
-            parameters.Add(_Database.CreateParameter("OmegaY", prim.AngularVelocity.Y));
-            parameters.Add(_Database.CreateParameter("OmegaZ", prim.AngularVelocity.Z));
 
             parameters.Add(_Database.CreateParameter("CameraEyeOffsetX", prim.GetCameraEyeOffset().X));
             parameters.Add(_Database.CreateParameter("CameraEyeOffsetY", prim.GetCameraEyeOffset().Y));

@@ -165,7 +165,6 @@ namespace OpenSim.Data.MySQL
                                     "PayButton2, PayButton3, " +
                                     "PayButton4, LoopedSound, " +
                                     "LoopedSoundGain, TextureAnimation, " +
-                                    "OmegaX, OmegaY, OmegaZ, " +
                                     "CameraEyeOffsetX, CameraEyeOffsetY, " +
                                     "CameraEyeOffsetZ, CameraAtOffsetX, " +
                                     "CameraAtOffsetY, CameraAtOffsetZ, " +
@@ -203,7 +202,6 @@ namespace OpenSim.Data.MySQL
                                     "?PayPrice, ?PayButton1, ?PayButton2, " +
                                     "?PayButton3, ?PayButton4, ?LoopedSound, " +
                                     "?LoopedSoundGain, ?TextureAnimation, " +
-                                    "?OmegaX, ?OmegaY, ?OmegaZ, " +
                                     "?CameraEyeOffsetX, ?CameraEyeOffsetY, " +
                                     "?CameraEyeOffsetZ, ?CameraAtOffsetX, " +
                                     "?CameraAtOffsetY, ?CameraAtOffsetZ, " +
@@ -1190,12 +1188,6 @@ namespace OpenSim.Data.MySQL
             if (!(row["ParticleSystem"] is DBNull))
                 prim.ParticleSystem = (byte[])row["ParticleSystem"];
 
-            prim.AngularVelocity = new Vector3(
-                (float)row["OmegaX"],
-                (float)row["OmegaY"],
-                (float)row["OmegaZ"]
-                );
-
             prim.SetCameraEyeOffset(new Vector3(
                 (float)row["CameraEyeOffsetX"],
                 (float)row["CameraEyeOffsetY"],
@@ -1628,10 +1620,6 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("TextureAnimation", prim.TextureAnimation);
             cmd.Parameters.AddWithValue("ParticleSystem", prim.ParticleSystem);
-
-            cmd.Parameters.AddWithValue("OmegaX", prim.AngularVelocity.X);
-            cmd.Parameters.AddWithValue("OmegaY", prim.AngularVelocity.Y);
-            cmd.Parameters.AddWithValue("OmegaZ", prim.AngularVelocity.Z);
 
             cmd.Parameters.AddWithValue("CameraEyeOffsetX", prim.GetCameraEyeOffset().X);
             cmd.Parameters.AddWithValue("CameraEyeOffsetY", prim.GetCameraEyeOffset().Y);
