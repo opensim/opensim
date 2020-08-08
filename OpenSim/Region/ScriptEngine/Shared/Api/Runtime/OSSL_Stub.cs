@@ -235,12 +235,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osConsoleCommand(Command);
         }
 
-	public void osSetParcelMusicURL(string url)
+        public void osSetParcelMusicURL(LSL_String url)
         {
             m_OSSL_Functions.osSetParcelMusicURL(url);
         }
 
-        public void osSetParcelMediaURL(string url)
+        public void osSetParcelMediaURL(LSL_String url)
         {
             m_OSSL_Functions.osSetParcelMediaURL(url);
         }

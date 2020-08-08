@@ -1984,22 +1984,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMusicURL");
 
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+            if (land != null)
+                land.SetMusicUrl(url);
+        }
 
-            land.SetMusicUrl(url);
-			
-	}
-	public void osSetParcelMediaURL(string url)
+        public void osSetParcelMediaURL(LSL_String url)
         {
-            // What actually is the difference to the LL function?
-            //
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
 
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-
-            if (land.LandData.OwnerID != m_host.OwnerID)
-                return;
-
-            land.SetMediaUrl(url);
+            if (land != null)
+                land.SetMediaUrl(url);
         }
 
         public void osSetParcelSIPAddress(string SIPAddress)
