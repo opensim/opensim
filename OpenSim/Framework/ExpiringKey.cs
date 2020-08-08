@@ -88,7 +88,7 @@ namespace OpenSim.Framework
             GC.SuppressFinalize(this);
         }
 
-        public void Dispose(bool disposing)
+        protected void Dispose(bool disposing)
         {
             if (m_rwLock != null)
             {

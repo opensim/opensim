@@ -3,68 +3,68 @@
 // Smart Thread Pool
 // 7 Aug 2004 - Initial release
 //
-// 14 Sep 2004 - Bug fixes
+// 14 Sep 2004 - Bug fixes 
 //
 // 15 Oct 2004 - Added new features
-//		- Work items return result.
-//		- Support waiting synchronization for multiple work items.
-//		- Work items can be cancelled.
-//		- Passage of the caller thread’s context to the thread in the pool.
-//		- Minimal usage of WIN32 handles.
-//		- Minor bug fixes.
+//        - Work items return result.
+//        - Support waiting synchronization for multiple work items.
+//        - Work items can be cancelled.
+//        - Passage of the caller thread’s context to the thread in the pool.
+//        - Minimal usage of WIN32 handles.
+//        - Minor bug fixes.
 //
 // 26 Dec 2004 - Changes:
-//		- Removed static constructors.
+//        - Removed static constructors.
 //      - Added finalizers.
-//		- Changed Exceptions so they are serializable.
-//		- Fixed the bug in one of the SmartThreadPool constructors.
-//		- Changed the SmartThreadPool.WaitAll() so it will support any number of waiters.
+//        - Changed Exceptions so they are serializable.
+//        - Fixed the bug in one of the SmartThreadPool constructors.
+//        - Changed the SmartThreadPool.WaitAll() so it will support any number of waiters. 
 //        The SmartThreadPool.WaitAny() is still limited by the .NET Framework.
-//		- Added PostExecute with options on which cases to call it.
+//        - Added PostExecute with options on which cases to call it.
 //      - Added option to dispose of the state objects.
 //      - Added a WaitForIdle() method that waits until the work items queue is empty.
 //      - Added an STPStartInfo class for the initialization of the thread pool.
-//      - Changed exception handling so if a work item throws an exception it
+//      - Changed exception handling so if a work item throws an exception it 
 //        is rethrown at GetResult(), rather then firing an UnhandledException event.
 //        Note that PostExecute exception are always ignored.
 //
 // 25 Mar 2005 - Changes:
-//		- Fixed lost of work items bug
+//        - Fixed lost of work items bug
 //
 // 3 Jul 2005: Changes.
-//      - Fixed bug where Enqueue() throws an exception because PopWaiter() returned null, hardly reconstructed.
+//      - Fixed bug where Enqueue() throws an exception because PopWaiter() returned null, hardly reconstructed. 
 //
 // 16 Aug 2005: Changes.
-//		- Fixed bug where the InUseThreads becomes negative when canceling work items.
+//        - Fixed bug where the InUseThreads becomes negative when canceling work items. 
 //
 // 31 Jan 2006 - Changes:
-//		- Added work items priority
-//		- Removed support of chained delegates in callbacks and post executes (nobody really use this)
-//		- Added work items groups
-//		- Added work items groups idle event
-//		- Changed SmartThreadPool.WaitAll() behavior so when it gets empty array
-//		  it returns true rather then throwing an exception.
-//		- Added option to start the STP and the WIG as suspended
-//		- Exception behavior changed, the real exception is returned by an
-//		  inner exception
-//		- Added option to keep the Http context of the caller thread. (Thanks to Steven T.)
-//		- Added performance counters
-//		- Added priority to the threads in the pool
+//        - Added work items priority
+//        - Removed support of chained delegates in callbacks and post executes (nobody really use this)
+//        - Added work items groups
+//        - Added work items groups idle event
+//        - Changed SmartThreadPool.WaitAll() behavior so when it gets empty array
+//          it returns true rather then throwing an exception.
+//        - Added option to start the STP and the WIG as suspended
+//        - Exception behavior changed, the real exception is returned by an 
+//          inner exception
+//        - Added option to keep the Http context of the caller thread. (Thanks to Steven T.)
+//        - Added performance counters
+//        - Added priority to the threads in the pool
 //
 // 13 Feb 2006 - Changes:
-//		- Added a call to the dispose of the Performance Counter so
-//		  their won't be a Performance Counter leak.
-//		- Added exception catch in case the Performance Counters cannot
-//		  be created.
+//        - Added a call to the dispose of the Performance Counter so
+//          their won't be a Performance Counter leak.
+//        - Added exception catch in case the Performance Counters cannot 
+//          be created.
 //
 // 17 May 2008 - Changes:
 //      - Changed the dispose behavior and removed the Finalizers.
 //      - Enabled the change of the MaxThreads and MinThreads at run time.
-//      - Enabled the change of the Concurrency of a IWorkItemsGroup at run
-//        time If the IWorkItemsGroup is a SmartThreadPool then the Concurrency
-//        refers to the MaxThreads.
+//      - Enabled the change of the Concurrency of a IWorkItemsGroup at run 
+//        time If the IWorkItemsGroup is a SmartThreadPool then the Concurrency 
+//        refers to the MaxThreads. 
 //      - Improved the cancel behavior.
-//      - Added events for thread creation and termination.
+//      - Added events for thread creation and termination. 
 //      - Fixed the HttpContext context capture.
 //      - Changed internal collections so they use generic collections
 //      - Added IsIdle flag to the SmartThreadPool and IWorkItemsGroup
@@ -83,7 +83,7 @@
 //
 // 20 August 2012 - Changes:
 //      - Added set name to threads
-//      - Fixed the WorkItemsQueue.Dequeue.
+//      - Fixed the WorkItemsQueue.Dequeue. 
 //        Replaced while (!Monitor.TryEnter(this)); with lock(this) { ... }
 //      - Fixed SmartThreadPool.Pipe
 //      - Added IsBackground option to threads
@@ -92,7 +92,7 @@
 //
 // 24 August 2012 - Changes:
 //      - Enabled cancel abort after cancel. See: http://smartthreadpool.codeplex.com/discussions/345937 by alecswan
-//      - Added option to set MaxStackSize of threads
+//      - Added option to set MaxStackSize of threads 
 
 #endregion
 
@@ -129,7 +129,7 @@ namespace Amib.Threading
         /// <summary>
         /// Default idle timeout in milliseconds. (One minute)
         /// </summary>
-        public const int DefaultIdleTimeout = 60*1000; // One minute
+        public const int DefaultIdleTimeout = 60 * 1000; // One minute
 
         /// <summary>
         /// Indicate to copy the security context of the caller and then use it in the call. (false)
@@ -203,8 +203,8 @@ namespace Amib.Threading
 
 #if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
         /// <summary>
-        /// The default apartment state of a thread in the thread pool.
-        /// The default is ApartmentState.Unknown which means the STP will not
+        /// The default apartment state of a thread in the thread pool. 
+        /// The default is ApartmentState.Unknown which means the STP will not 
         /// set the apartment of the thread. It will use the .NET default.
         /// </summary>
         public const ApartmentState DefaultApartmentState = ApartmentState.Unknown;
@@ -242,7 +242,7 @@ namespace Amib.Threading
         private STPStartInfo _stpStartInfo;
 
         /// <summary>
-        /// Total number of work items that are stored in the work items queue
+        /// Total number of work items that are stored in the work items queue 
         /// plus the work items that the threads in the pool are working on.
         /// </summary>
         private int _currentWorkItemsCount;
@@ -282,7 +282,7 @@ namespace Amib.Threading
         private bool _isDisposed;
 
         /// <summary>
-        /// Holds all the WorkItemsGroup instaces that have at least one
+        /// Holds all the WorkItemsGroup instaces that have at least one 
         /// work item int the SmartThreadPool
         /// This variable is used in case of Shutdown
         /// </summary>
@@ -305,7 +305,7 @@ namespace Amib.Threading
         private ISTPInstancePerformanceCounters _localPCs = NullSTPInstancePerformanceCounters.Instance;
 
 
-#if (WINDOWS_PHONE)
+#if (WINDOWS_PHONE) 
         private static readonly Dictionary<int, ThreadEntry> _threadEntries = new Dictionary<int, ThreadEntry>();
 #elif (_WINDOWS_CE)
         private static LocalDataStoreSlot _threadEntrySlot = Thread.AllocateDataSlot();
@@ -316,13 +316,13 @@ namespace Amib.Threading
 #endif
 
         /// <summary>
-        /// An event to call after a thread is created, but before
+        /// An event to call after a thread is created, but before 
         /// it's first use.
         /// </summary>
         private event ThreadInitializationHandler _onThreadInitialization;
 
         /// <summary>
-        /// An event to call when a thread is about to exit, after
+        /// An event to call when a thread is about to exit, after 
         /// it is no longer belong to the pool.
         /// </summary>
         private event ThreadTerminationHandler _onThreadTermination;
@@ -332,7 +332,7 @@ namespace Amib.Threading
         #region Per thread properties
 
         /// <summary>
-        /// A reference to the current work item a thread from the thread pool
+        /// A reference to the current work item a thread from the thread pool 
         /// is executing.
         /// </summary>
         internal static ThreadEntry CurrentThreadEntry
@@ -528,7 +528,7 @@ namespace Amib.Threading
 
         private static void ValidateCallback(Delegate callback)
         {
-            if(callback.GetInvocationList().Length > 1)
+            if (callback.GetInvocationList().Length > 1)
             {
                 throw new NotSupportedException("SmartThreadPool doesn't support delegates chains");
             }
@@ -628,7 +628,7 @@ namespace Amib.Threading
         /// </summary>
         private void InformCompleted()
         {
-            // There is no need to lock the two methods together
+            // There is no need to lock the two methods together 
             // since only the current thread removes itself
             // and the _workerThreads is a synchronized dictionary
             if (_workerThreads.Contains(Thread.CurrentThread))
@@ -650,7 +650,7 @@ namespace Amib.Threading
                 return;
             }
 
-            lock(_workerThreads.SyncRoot)
+            lock (_workerThreads.SyncRoot)
             {
                 // Don't start threads on shut down
                 if (_shutdown)
@@ -658,7 +658,7 @@ namespace Amib.Threading
                     return;
                 }
 
-                for(int i = 0; i < threadsCount; ++i)
+                for (int i = 0; i < threadsCount; ++i)
                 {
                     // Don't create more threads then the upper limit
                     if (_workerThreads.Count >= _stpStartInfo.MaxWorkerThreads)
@@ -719,7 +719,7 @@ namespace Amib.Threading
                 bool bInUseWorkerThreadsWasIncremented = false;
 
                 // Process until shutdown.
-                while(!_shutdown)
+                while (!_shutdown)
                 {
                     // Update the last time this thread was seen alive.
                     // It's good for debugging.
@@ -757,7 +757,7 @@ namespace Amib.Threading
                         // Double lock for quit.
                         if (_workerThreads.Count > _stpStartInfo.MinWorkerThreads)
                         {
-                            lock(_workerThreads.SyncRoot)
+                            lock (_workerThreads.SyncRoot)
                             {
                                 if (_workerThreads.Count > _stpStartInfo.MinWorkerThreads)
                                 {
@@ -784,19 +784,19 @@ namespace Amib.Threading
                         bInUseWorkerThreadsWasIncremented = false;
 
                         // Set the Current Work Item of the thread.
-                        // Store the Current Work Item  before the workItem.StartingWorkItem() is called,
-                        // so WorkItem.Cancel can work when the work item is between InQueue and InProgress
+                        // Store the Current Work Item  before the workItem.StartingWorkItem() is called, 
+                        // so WorkItem.Cancel can work when the work item is between InQueue and InProgress 
                         // states.
-                        // If the work item has been cancelled BEFORE the workItem.StartingWorkItem()
+                        // If the work item has been cancelled BEFORE the workItem.StartingWorkItem() 
                         // (work item is in InQueue state) then workItem.StartingWorkItem() will return false.
                         // If the work item has been cancelled AFTER the workItem.StartingWorkItem() then
                         // (work item is in InProgress state) then the thread will be aborted
                         CurrentThreadEntry.CurrentWorkItem = workItem;
 
                         // Change the state of the work item to 'in progress' if possible.
-                        // We do it here so if the work item has been canceled we won't
+                        // We do it here so if the work item has been canceled we won't 
                         // increment the _inUseWorkerThreads.
-                        // The cancel mechanism doesn't delete items from the queue,
+                        // The cancel mechanism doesn't delete items from the queue,  
                         // it marks the work item as canceled, and when the work item
                         // is dequeued, we just skip it.
                         // If the post execute of work item is set to always or to
@@ -821,7 +821,7 @@ namespace Amib.Threading
 
                         ExecuteWorkItem(workItem);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         ex.GetHashCode();
                         // Do nothing
@@ -830,11 +830,11 @@ namespace Amib.Threading
                     {
                         workItem.DisposeOfState();
 
-                        // Set the CurrentWorkItem to null, since we
+                        // Set the CurrentWorkItem to null, since we 
                         // no longer run user's code.
                         CurrentThreadEntry.CurrentWorkItem = null;
 
-                        // Decrement the _inUseWorkerThreads only if we had
+                        // Decrement the _inUseWorkerThreads only if we had 
                         // incremented it. Note the cancelled work items don't
                         // increment _inUseWorkerThreads.
                         if (bInUseWorkerThreadsWasIncremented)
@@ -848,13 +848,13 @@ namespace Amib.Threading
                         // WorkItemsGroup may enqueue their next work item.
                         workItem.FireWorkItemCompleted();
 
-                        // Decrement the number of work items here so the idle
+                        // Decrement the number of work items here so the idle 
                         // ManualResetEvent won't fluctuate.
                         DecrementWorkItemsCount();
                     }
                 }
             }
-            catch(ThreadAbortException tae)
+            catch (ThreadAbortException tae)
             {
                 tae.GetHashCode();
                 // Handle the abort exception gracfully.
@@ -862,7 +862,7 @@ namespace Amib.Threading
                 Thread.ResetAbort();
 #endif
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.Assert(null != e);
             }
@@ -964,8 +964,8 @@ namespace Amib.Threading
                 pcs.Dispose();
             }
 
-            Thread [] threads;
-            lock(_workerThreads.SyncRoot)
+            Thread[] threads;
+            lock (_workerThreads.SyncRoot)
             {
                 // Shutdown the work items queue
                 _workItemsQueue.Dispose();
@@ -975,7 +975,7 @@ namespace Amib.Threading
                 _shuttingDownEvent.Set();
 
                 // Make a copy of the threads' references in the pool
-                threads = new Thread [_workerThreads.Count];
+                threads = new Thread[_workerThreads.Count];
                 _workerThreads.Keys.CopyTo(threads, 0);
             }
 
@@ -986,7 +986,7 @@ namespace Amib.Threading
             bool timeout = false;
 
             // Each iteration we update the time left for the timeout.
-            foreach(Thread thread in threads)
+            foreach (Thread thread in threads)
             {
                 // Join don't work with negative numbers
                 if (!waitInfinitely && (millisecondsLeft < 0))
@@ -997,13 +997,13 @@ namespace Amib.Threading
 
                 // Wait for the thread to terminate
                 bool success = thread.Join(millisecondsLeft);
-                if(!success)
+                if (!success)
                 {
                     timeout = true;
                     break;
                 }
 
-                if(!waitInfinitely)
+                if (!waitInfinitely)
                 {
                     // Update the time left to wait
                     //TimeSpan ts = DateTime.UtcNow - start;
@@ -1014,27 +1014,27 @@ namespace Amib.Threading
             if (timeout && forceAbort)
             {
                 // Abort the threads in the pool
-                foreach(Thread thread in threads)
+                foreach (Thread thread in threads)
                 {
 
                     if ((thread != null)
 #if !(_WINDOWS_CE)
                         && thread.IsAlive
-#endif
+#endif                        
                         )
                     {
                         try
                         {
                             thread.Abort(); // Shutdown
                         }
-                        catch(SecurityException e)
+                        catch (SecurityException e)
                         {
                             e.GetHashCode();
                         }
-                        catch(ThreadStateException ex)
+                        catch (ThreadStateException ex)
                         {
                             ex.GetHashCode();
-                            // In case the thread has been terminated
+                            // In case the thread has been terminated 
                             // after the check if it is alive.
                         }
                     }
@@ -1050,7 +1050,7 @@ namespace Amib.Threading
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
         public static bool WaitAll(
-            IWaitableResult [] waitableResults)
+            IWaitableResult[] waitableResults)
         {
             return WaitAll(waitableResults, Timeout.Infinite, true);
         }
@@ -1061,13 +1061,13 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="timeout">The number of milliseconds to wait, or a TimeSpan that represents -1 milliseconds to wait indefinitely. </param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
         public static bool WaitAll(
-            IWaitableResult [] waitableResults,
+            IWaitableResult[] waitableResults,
             TimeSpan timeout,
             bool exitContext)
         {
@@ -1080,7 +1080,7 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="timeout">The number of milliseconds to wait, or a TimeSpan that represents -1 milliseconds to wait indefinitely. </param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
@@ -1101,13 +1101,13 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
         public static bool WaitAll(
-            IWaitableResult [] waitableResults,
+            IWaitableResult[] waitableResults,
             int millisecondsTimeout,
             bool exitContext)
         {
@@ -1120,7 +1120,7 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
@@ -1144,7 +1144,7 @@ namespace Amib.Threading
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if any of the work items has been canceled.
         /// </returns>
         public static int WaitAny(
-            IWaitableResult [] waitableResults)
+            IWaitableResult[] waitableResults)
         {
             return WaitAny(waitableResults, Timeout.Infinite, true);
         }
@@ -1155,7 +1155,7 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="timeout">The number of milliseconds to wait, or a TimeSpan that represents -1 milliseconds to wait indefinitely. </param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
@@ -1174,14 +1174,14 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="timeout">The number of milliseconds to wait, or a TimeSpan that represents -1 milliseconds to wait indefinitely. </param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
         public static int WaitAny(
-            IWaitableResult [] waitableResults,
+            IWaitableResult[] waitableResults,
             TimeSpan timeout,
             bool exitContext,
             WaitHandle cancelWaitHandle)
@@ -1195,13 +1195,13 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
         public static int WaitAny(
-            IWaitableResult [] waitableResults,
+            IWaitableResult[] waitableResults,
             int millisecondsTimeout,
             bool exitContext)
         {
@@ -1214,14 +1214,14 @@ namespace Amib.Threading
         /// <param name="waitableResults">Array of work item result objects</param>
         /// <param name="millisecondsTimeout">The number of milliseconds to wait, or Timeout.Infinite (-1) to wait indefinitely.</param>
         /// <param name="exitContext">
-        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false.
+        /// true to exit the synchronization domain for the context before the wait (if in a synchronized context), and reacquire it; otherwise, false. 
         /// </param>
         /// <param name="cancelWaitHandle">A cancel wait handle to interrupt the wait if needed</param>
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
         public static int WaitAny(
-            IWaitableResult [] waitableResults,
+            IWaitableResult[] waitableResults,
             int millisecondsTimeout,
             bool exitContext,
             WaitHandle cancelWaitHandle)
@@ -1447,7 +1447,7 @@ namespace Amib.Threading
 
         public bool IsShuttingdown
         {
-            get { return _shutdown;  }
+            get { return _shutdown; }
         }
 
         /// <summary>
@@ -1464,6 +1464,12 @@ namespace Amib.Threading
         #region IDisposable Members
 
         public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
         {
             if (!_isDisposed)
             {
@@ -1494,7 +1500,7 @@ namespace Amib.Threading
 
         private void ValidateNotDisposed()
         {
-            if(_isDisposed)
+            if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().ToString(), "The SmartThreadPool has been shutdown");
             }
@@ -1612,12 +1618,10 @@ namespace Amib.Threading
         {
             add
             {
-                throw new NotImplementedException("This event is not implemented in the SmartThreadPool class. Please create a WorkItemsGroup in order to use this feature.");
                 //_onIdle += value;
             }
             remove
             {
-                throw new NotImplementedException("This event is not implemented in the SmartThreadPool class. Please create a WorkItemsGroup in order to use this feature.");
                 //_onIdle -= value;
             }
         }
