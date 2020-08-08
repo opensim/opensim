@@ -970,8 +970,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string IMG_USE_BAKED_AUX1    = "9742065b-19b5-297c-858a-29711d539043";
         public const string IMG_USE_BAKED_AUX2    = "03642e83-2bd1-4eb9-34b4-4c47ed586d2d";
         public const string IMG_USE_BAKED_AUX3    = "edd51b77-fc10-ce7a-4b3d-011dfc349e4f";
-		
+
         // llTargetedEmail
+        public const int TARGETED_EMAIL_ROOT_CREATOR = 1;
         public const int TARGETED_EMAIL_OBJECT_OWNER = 2;
     }
 }

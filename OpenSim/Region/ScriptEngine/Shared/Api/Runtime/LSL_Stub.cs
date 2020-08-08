@@ -1921,7 +1921,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llTargetRemove(number);
         }
 
-        public void llTargetedEmail(LSL_Integer target, string subject, string message)
+        public void llTargetedEmail(LSL_Integer target, LSL_String subject, LSL_String message)
         {
             m_LSL_Functions.llTargetedEmail(target, subject, message);
         }
