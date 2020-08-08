@@ -4084,6 +4084,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             World.RegionInfo.ScopeID,
                             parent.RootPart.CreatorID);
                 }
+                else
+                    return;
             }
             else
                 return;
