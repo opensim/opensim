@@ -1979,7 +1979,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-	public void osSetParcelMusicURL(string url)
+        public void osSetParcelMusicURL(LSL_String url)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMusicURL");
 
