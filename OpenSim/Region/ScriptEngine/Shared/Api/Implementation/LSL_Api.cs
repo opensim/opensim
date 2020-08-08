@@ -4066,9 +4066,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            string address;
             UserAccount account = null;
-
             if (target == ScriptBaseClass.TARGETED_EMAIL_OBJECT_OWNER)
             {
                 if(parent.OwnerID == parent.GroupID)
@@ -4080,7 +4078,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             else if (target == ScriptBaseClass.TARGETED_EMAIL_ROOT_CREATOR)
             {
                 // non standard avoid creator spam
-                if(((parent.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0) || m_item.CreatorID == parent.RootPart.CreatorID)
+                if(m_item.CreatorID == parent.RootPart.CreatorID)
                 {
                     account = World.UserAccountService.GetUserAccount(
                             World.RegionInfo.ScopeID,
@@ -4096,7 +4094,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            address = account.Email;
+            string address = account.Email;
             if (String.IsNullOrEmpty(address))
             {
                 Error("llTargetedEmail", "User account has not registered an email address.");
