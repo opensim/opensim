@@ -4046,6 +4046,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
+        public void llTargetedEmail(LSL_Integer target, string subject, string message)
+        {
+            m_host.AddScriptLPS(1);
+            IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
+            if (emailModule == null)
+            {
+                Error("llTargetedEmail", "Email module not configured");
+                return;
+            }
+
+            string address;
+
+            if(target == ScriptBaseClass.TARGETED_EMAIL_OBJECT_OWNER)
+            {
+                UserAccount account =
+                        World.UserAccountService.GetUserAccount(
+                            World.RegionInfo.ScopeID,
+                            m_host.OwnerID);
+
+                if (account == null)
+                {
+                    Error("llEmail", "Can't find user account for '" + m_host.OwnerID.ToString() + "'");
+                    return;
+                }
+
+                if (String.IsNullOrEmpty(account.Email))
+                {
+                    Error("llEmail", "User account has not registered an email address.");
+                    return;
+                }
+
+                address = account.Email;
+            }
+            else return;
+
+            emailModule.SendEmail(m_host.UUID, address, subject, message);
+            ScriptSleep(m_sleepMsOnEmail);
+        }
+
         public LSL_Key llGetKey()
         {
             m_host.AddScriptLPS(1);
