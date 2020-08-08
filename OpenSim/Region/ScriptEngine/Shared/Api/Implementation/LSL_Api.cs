@@ -13252,6 +13252,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (UUID.TryParse((LSL_String)commandList.Data[i + 1], out agentID))
                                 {
                                     presence = World.GetScenePresence(agentID);
+                                    if(presence == null || presence.IsNPC)
+                                        return;
                                 }
                             }
                             else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_AGENT must be a key");
@@ -13292,6 +13294,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (commandList.Data[i + 1] is LSL_String)
                             {
                                 url = (LSL_String)commandList.Data[i + 1];
+                                try
+                                {
+                                    Uri dummy = new Uri(url, UriKind.Absolute);
+                                }
+                                catch
+                                {
+                                    Error("llParcelMediaCommandList", "invalid PARCEL_MEDIA_COMMAND_URL");
+                                    return;
+                                }
                                 update = true;
                             }
                             else Error("llParcelMediaCommandList", "The argument of PARCEL_MEDIA_COMMAND_URL must be a string");
