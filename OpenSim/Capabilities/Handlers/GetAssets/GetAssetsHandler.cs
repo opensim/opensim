@@ -77,7 +77,7 @@ namespace OpenSim.Capabilities.Handlers
             m_assetService = assService;
         }
 
-        public void Handle(OSHttpRequest req, OSHttpResponse response)
+        public void Handle(OSHttpRequest req, OSHttpResponse response, string serviceURL = null)
         {
             response.ContentType = "text/plain";
 
@@ -122,11 +122,24 @@ namespace OpenSim.Capabilities.Handlers
                 return;
 
             AssetBase asset = m_assetService.Get(assetID.ToString());
-            if(asset == null)
+            if (asset == null)
             {
+                if (String.IsNullOrWhiteSpace(serviceURL))
+                {
+                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                string newid = serviceURL + "/" + assetID.ToString();
+                asset = m_assetService.Get(newid);
+                if (asset == null)
+                {
+                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
                 // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
-                response.StatusCode = (int)HttpStatusCode.NotFound;
-                return;
             }
 
             if (asset.Type != (sbyte)type)
