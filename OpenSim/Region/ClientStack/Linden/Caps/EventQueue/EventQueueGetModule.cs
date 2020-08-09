@@ -139,9 +139,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         protected void HandleDebugEq(string module, string[] args)
         {
-            int debugLevel;
 
-            if (!(args.Length == 3 && int.TryParse(args[2], out debugLevel)))
+            if (!(args.Length == 3 && int.TryParse(args[2], out int debugLevel)))
             {
                 MainConsole.Instance.Output("Usage: debug eq [0|1|2]");
             }
@@ -175,10 +174,9 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock (queues)
             {
-                Queue<byte[]> queue;
-                if (queues.TryGetValue(agentId, out queue))
+                if (queues.TryGetValue(agentId, out Queue<byte[]> queue))
                     return queue;
-                    
+
                 if (DebugLevel > 0)
                     m_log.DebugFormat(
                        "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}",
@@ -481,8 +479,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     thisID = -thisID;
                 }
 
-                elements = new List<byte[]>(queue.Count + 2);
-                elements.Add(EventHeader);
+                elements = new List<byte[]>(queue.Count + 2) {EventHeader};
 
                 while (queue.Count > 0)
                 {
@@ -524,9 +521,11 @@ namespace OpenSim.Region.ClientStack.Linden
             elements.Add(element);
             totalSize += element.Length;
 
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200;
-            responsedata["content_type"] = "application/xml";
+            Hashtable responsedata = new Hashtable
+            {
+                ["int_response_code"] = 200,
+                ["content_type"] = "application/xml"
+            };
 
             //temporary
             byte[] finalData = new byte[totalSize];
@@ -559,8 +558,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public Hashtable NoAgent(UUID requestID, UUID agentID)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = (int)HttpStatusCode.NotFound;
+            Hashtable responsedata = new Hashtable
+            {
+                ["int_response_code"] = (int)HttpStatusCode.NotFound
+            };
             return responsedata;
         }
     }

@@ -55,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void InitXMRLSLApi(XMRInstance i)
         {
-            acm = AsyncCommands;
+            acm = m_AsyncCommands;
             inst = i;
         }
 

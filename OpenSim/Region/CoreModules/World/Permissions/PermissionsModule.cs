@@ -458,9 +458,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (args.Length > 2)
             {
-                bool val;
-
-                if (!bool.TryParse(args[2], out val))
+                if (!bool.TryParse(args[2], out bool val))
                     return;
 
                 m_bypassPermissions = val;
@@ -487,9 +485,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (args.Length > 2)
             {
-                bool val;
-
-                if (!bool.TryParse(args[2], out val))
+                if (!bool.TryParse(args[2], out bool val))
                     return;
 
                 m_bypassPermissionsValue = val;
@@ -508,9 +504,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (args.Length > 2)
             {
-                bool val;
-
-                if (!bool.TryParse(args[2], out val))
+                if (!bool.TryParse(args[2], out bool val))
                     return;
 
                 m_debugPermissions = val;
