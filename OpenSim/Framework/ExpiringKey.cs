@@ -25,44 +25,44 @@
  */
 
 using System;
-using System.Timers;
 using System.Threading;
 using System.Collections.Generic;
-using Timer = System.Timers.Timer;
+using Timer = System.Threading.Timer ;
 
 namespace OpenSim.Framework
 {
-    public class ExpiringKey<Tkey1> : IDisposable
+    public sealed class ExpiringKey<Tkey1> : IDisposable
     {
-        private Dictionary<Tkey1, int> m_dictionary;
+        private const int MINEXPIRE = 500;
 
-        private ReaderWriterLockSlim m_rwLock = new ReaderWriterLockSlim();
-        private readonly double m_startTS;
-        private readonly int expire;
         private Timer m_purgeTimer;
+        private ReaderWriterLockSlim m_rwLock;
+        private readonly Dictionary<Tkey1, int> m_dictionary;
+        private readonly double m_startTS;
+        private readonly int m_expire;
+
+        public ExpiringKey()
+        {
+            m_dictionary = new Dictionary<Tkey1, int>();
+            m_rwLock = new ReaderWriterLockSlim();
+            m_expire = MINEXPIRE;
+            m_startTS = Util.GetTimeStampMS();
+        }
 
         public ExpiringKey(int expireTimeinMS)
         {
             m_dictionary = new Dictionary<Tkey1, int>();
+            m_rwLock = new ReaderWriterLockSlim();
             m_startTS = Util.GetTimeStampMS();
-            expire = expireTimeinMS;
-            if(expire < 500)
-                expire = 500;
+            m_expire = (expireTimeinMS > MINEXPIRE) ? m_expire = expireTimeinMS : MINEXPIRE;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private void SetTimer()
+        private void CheckTimer()
         {
             if (m_purgeTimer == null)
             {
-                m_purgeTimer = new Timer()
-                {
-                    Interval = expire,
-                    AutoReset = false // time drift is not a issue.
-
-                };
-                m_purgeTimer.Elapsed += Purge;
-                m_purgeTimer.Start();
+                m_purgeTimer = new Timer(Purge, null, m_expire, Timeout.Infinite);
             }
         }
 
@@ -71,7 +71,6 @@ namespace OpenSim.Framework
         {
             if (m_purgeTimer != null)
             {
-                m_purgeTimer.Stop();
                 m_purgeTimer.Dispose();
                 m_purgeTimer = null;
             }
@@ -88,24 +87,18 @@ namespace OpenSim.Framework
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (m_rwLock != null)
             {
+                DisposeTimer();
                 m_rwLock.Dispose();
                 m_rwLock = null;
-                DisposeTimer();
             }
         }
 
-        private void Purge(object source, ElapsedEventArgs e)
+        private void Purge(object ignored)
         {
-            if (m_dictionary.Count == 0)
-            {
-                DisposeTimer();
-                return;
-            }
-
             bool gotLock = false;
             int now = (int)(Util.GetTimeStampMS() - m_startTS);
 
@@ -117,6 +110,13 @@ namespace OpenSim.Framework
                     m_rwLock.EnterWriteLock();
                     gotLock = true;
                 }
+
+                if (m_dictionary.Count == 0)
+                {
+                    DisposeTimer();
+                    return;
+                }
+
                 List<Tkey1> expired = new List<Tkey1>(m_dictionary.Count);
                 foreach(KeyValuePair<Tkey1,int> kvp in m_dictionary)
                 {
@@ -128,7 +128,7 @@ namespace OpenSim.Framework
                 if(m_dictionary.Count == 0)
                     DisposeTimer();
                 else
-                    m_purgeTimer.Start();
+                    m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
             finally
             {
@@ -140,13 +140,10 @@ namespace OpenSim.Framework
         public void Add(Tkey1 key)
         {
             bool gotLock = false;
-            int now = (int)(Util.GetTimeStampMS() - m_startTS) + expire;
+            int now = (int)(Util.GetTimeStampMS() - m_startTS) + m_expire;
 
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
                 try { }
                 finally
                 {
@@ -155,7 +152,7 @@ namespace OpenSim.Framework
                 }
 
                 m_dictionary[key] = now;
-                SetTimer();
+                CheckTimer();
             }
             finally
             {
@@ -167,17 +164,11 @@ namespace OpenSim.Framework
         public void Add(Tkey1 key, int expireMS)
         {
             bool gotLock = false;
-            int now;
-            if (expireMS > 500)
-                now = (int)(Util.GetTimeStampMS() - m_startTS) + expire;
-            else
-                now = (int)(Util.GetTimeStampMS() - m_startTS) + 500;
+            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+            int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
 
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
                 try { }
                 finally
                 {
@@ -186,7 +177,7 @@ namespace OpenSim.Framework
                 }
 
                 m_dictionary[key] = now;
-                SetTimer();
+                CheckTimer();
             }
             finally
             {
@@ -202,9 +193,6 @@ namespace OpenSim.Framework
 
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
                 try {}
                 finally
                 {
@@ -224,24 +212,20 @@ namespace OpenSim.Framework
             return success;
         }
 
-
         public void Clear()
         {
             bool gotLock = false;
 
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
                 try {}
                 finally
                 {
                     m_rwLock.EnterWriteLock();
                     gotLock = true;
-                    m_dictionary.Clear();
-                    DisposeTimer();
                 }
+                m_dictionary.Clear();
+                DisposeTimer();
             }
             finally
             {
@@ -257,7 +241,22 @@ namespace OpenSim.Framework
 
         public bool ContainsKey(Tkey1 key)
         {
-            return m_dictionary.ContainsKey(key);
+            bool gotLock = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    m_rwLock.EnterReadLock();
+                    gotLock = true;
+                }
+                return m_dictionary.ContainsKey(key);
+            }
+            finally
+            {
+                if (gotLock)
+                    m_rwLock.ExitReadLock();
+            }
         }
 
         public bool TryGetValue(Tkey1 key, out int value)
@@ -267,9 +266,6 @@ namespace OpenSim.Framework
 
             try
             {
-                // Avoid an asynchronous Thread.Abort() from possibly never existing an acquired lock by placing
-                // the acquision inside the main try.  The inner finally block is needed because thread aborts cannot
-                // interrupt code in these blocks (hence gotLock is guaranteed to be set correctly).
                 try {}
                 finally
                 {
