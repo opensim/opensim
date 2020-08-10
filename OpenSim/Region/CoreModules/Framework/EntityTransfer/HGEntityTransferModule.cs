@@ -183,13 +183,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        protected override void OnNewClient(IClientAPI client)
-        {
-            client.OnTeleportHomeRequest += TriggerTeleportHome;
-            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
-            client.OnConnectionClosed += new Action<IClientAPI>(OnConnectionClosed);
-        }
-
         public override void RegionLoaded(Scene scene)
         {
             base.RegionLoaded(scene);
@@ -639,11 +632,20 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public override bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition)
         {
+            UUID OwnerID = so.OwnerID;
+            if (Scene.RegionInfo.EstateSettings.IsBanned(OwnerID))
+            {
+                m_log.DebugFormat(
+                    "[HG TRANSFER MODULE]: Denied prim crossing of {0} {1} into {2} for banned avatar {3}",
+                    so.Name, so.UUID, Scene.Name, so.OwnerID);
+
+                return false;
+            }
+
             // FIXME: We must make it so that we can use SOG.IsAttachment here.  At the moment it is always null!
             if (!so.IsAttachmentCheckFull())
                 return base.HandleIncomingSceneObject(so, newPosition);
 
-            UUID OwnerID = so.OwnerID;
             // Equally, we can't use so.AttachedAvatar here.
             if (OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
                 return base.HandleIncomingSceneObject(so, newPosition);
@@ -760,7 +762,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-        void OnConnectionClosed(IClientAPI obj)
+        public override void OnConnectionClosed(IClientAPI obj)
         {
             if (obj.SceneAgent.IsChildAgent)
                 return;
@@ -788,6 +790,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                     m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: HomeURI not found for agent {0} logout", obj.AgentId);
             }
+            base.OnConnectionClosed(obj);
         }
 
         #endregion

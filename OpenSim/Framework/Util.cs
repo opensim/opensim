@@ -1296,7 +1296,7 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
-        private static ExpiringCache<string,IPAddress> dnscache = new ExpiringCache<string, IPAddress>();
+        private static ExpiringCacheOS<string, IPAddress> dnscache = new ExpiringCacheOS<string, IPAddress>(10000);
 
         /// <summary>
         /// Converts a URL to a IPAddress
