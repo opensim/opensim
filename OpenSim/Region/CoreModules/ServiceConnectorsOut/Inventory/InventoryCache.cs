@@ -38,32 +38,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
     /// </summary>
     public class InventoryCache
     {
-        private const double CACHE_EXPIRATION_SECONDS = 60.0; // 1 minute
+        private const int CACHE_EXPIRATION = 60000; // 1 minute
 
-        private static ExpiringCache<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCache<UUID, InventoryFolderBase>();
-        private static ExpiringCache<UUID, Dictionary<FolderType, InventoryFolderBase>> m_FolderTypes = new ExpiringCache<UUID, Dictionary<FolderType, InventoryFolderBase>>();
-        private static ExpiringCache<UUID, InventoryCollection> m_Inventories = new ExpiringCache<UUID, InventoryCollection>();
-
+        private static ExpiringCacheOS<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCacheOS<UUID, InventoryFolderBase>();
+        private static ExpiringCacheOS<UUID, Dictionary<FolderType, InventoryFolderBase>> m_FolderTypes = new ExpiringCacheOS<UUID, Dictionary<FolderType, InventoryFolderBase>>();
+        private static ExpiringCacheOS<UUID, InventoryCollection> m_Inventories = new ExpiringCacheOS<UUID, InventoryCollection>();
 
         public void RemoveAll(UUID userID)
         {
-            if(m_RootFolders.Contains(userID))
-                m_RootFolders.Remove(userID);
-            if(m_FolderTypes.Contains(userID))
-                m_FolderTypes.Remove(userID);
-            if(m_Inventories.Contains(userID))
-                m_Inventories.Remove(userID);
+            m_RootFolders.Remove(userID);
+            m_FolderTypes.Remove(userID);
+            m_Inventories.Remove(userID);
         }
 
         public void Cache(UUID userID, InventoryFolderBase root)
         {
-            m_RootFolders.AddOrUpdate(userID, root, CACHE_EXPIRATION_SECONDS);
+            m_RootFolders.AddOrUpdate(userID, root, CACHE_EXPIRATION);
         }
 
         public InventoryFolderBase GetRootFolder(UUID userID)
         {
-            InventoryFolderBase root = null;
-            if (m_RootFolders.TryGetValue(userID, out root))
+            if (m_RootFolders.TryGetValue(userID, out InventoryFolderBase root))
                 return root;
 
             return null;
@@ -71,11 +66,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void Cache(UUID userID, FolderType type, InventoryFolderBase folder)
         {
-            Dictionary<FolderType, InventoryFolderBase> ff = null;
-            if (!m_FolderTypes.TryGetValue(userID, out ff))
+            if (!m_FolderTypes.TryGetValue(userID, out Dictionary<FolderType, InventoryFolderBase> ff))
             {
                 ff = new Dictionary<FolderType, InventoryFolderBase>();
-                m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION_SECONDS);
+                m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION);
             }
 
             // We need to lock here since two threads could potentially retrieve the same dictionary
@@ -90,14 +84,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public InventoryFolderBase GetFolderForType(UUID userID, FolderType type)
         {
-            Dictionary<FolderType, InventoryFolderBase> ff = null;
-            if (m_FolderTypes.TryGetValue(userID, out ff))
+            if (m_FolderTypes.TryGetValue(userID, out Dictionary<FolderType, InventoryFolderBase> ff))
             {
-                InventoryFolderBase f = null;
-
                 lock (ff)
                 {
-                    if (ff.TryGetValue(type, out f))
+                    if (ff.TryGetValue(type, out InventoryFolderBase f))
                         return f;
                 }
             }
@@ -112,9 +103,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
-            InventoryCollection inv = null;
             InventoryCollection c;
-            if (m_Inventories.TryGetValue(userID, out inv))
+            if (m_Inventories.TryGetValue(userID, out InventoryCollection inv))
             {
                 c = new InventoryCollection();
                 c.OwnerID = userID;
@@ -134,8 +124,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            InventoryCollection inv = null;
-            if (m_Inventories.TryGetValue(userID, out inv))
+            if (m_Inventories.TryGetValue(userID, out InventoryCollection inv))
             {
                 List<InventoryItemBase> items = inv.Items.FindAll(delegate(InventoryItemBase i)
                 {
