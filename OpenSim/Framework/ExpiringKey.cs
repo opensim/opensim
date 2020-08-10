@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 {
     public sealed class ExpiringKey<Tkey1> : IDisposable
     {
-        private const int MINEXPIRE = 500;
+        private const int MINEXPIRECHECK = 500;
 
         private Timer m_purgeTimer;
         private ReaderWriterLockSlim m_rwLock;
@@ -45,16 +45,16 @@ namespace OpenSim.Framework
         {
             m_dictionary = new Dictionary<Tkey1, int>();
             m_rwLock = new ReaderWriterLockSlim();
-            m_expire = MINEXPIRE;
+            m_expire = MINEXPIRECHECK;
             m_startTS = Util.GetTimeStampMS();
         }
 
-        public ExpiringKey(int expireTimeinMS)
+        public ExpiringKey(int expireCheckTimeinMS)
         {
             m_dictionary = new Dictionary<Tkey1, int>();
             m_rwLock = new ReaderWriterLockSlim();
             m_startTS = Util.GetTimeStampMS();
-            m_expire = (expireTimeinMS > MINEXPIRE) ? m_expire = expireTimeinMS : MINEXPIRE;
+            m_expire = (expireCheckTimeinMS > MINEXPIRECHECK) ? m_expire = expireCheckTimeinMS : MINEXPIRECHECK;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

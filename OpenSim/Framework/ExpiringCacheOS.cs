@@ -35,7 +35,7 @@ namespace OpenSim.Framework
 {
     public sealed class ExpiringCacheOS<TKey1, TValue1> : IDisposable
     {
-        private const int MINEXPIRE = 500;
+        private const int MINEXPIRECHECK = 500;
 
         private Timer m_purgeTimer;
         private ReaderWriterLockSlim m_rwLock;
@@ -49,17 +49,17 @@ namespace OpenSim.Framework
             m_expireControl = new Dictionary<TKey1, int>();
             m_values = new Dictionary<TKey1, TValue1>();
             m_rwLock = new ReaderWriterLockSlim();
-            m_expire = MINEXPIRE;
+            m_expire = MINEXPIRECHECK;
             m_startTS = Util.GetTimeStampMS();
         }
 
-        public ExpiringCacheOS(int expireTimeinMS)
+        public ExpiringCacheOS(int expireCheckTimeinMS)
         {
             m_expireControl = new Dictionary<TKey1, int>();
             m_values = new Dictionary<TKey1, TValue1>();
             m_rwLock = new ReaderWriterLockSlim();
             m_startTS = Util.GetTimeStampMS();
-            m_expire = (expireTimeinMS > MINEXPIRE) ? m_expire = expireTimeinMS : MINEXPIRE;
+            m_expire = (expireCheckTimeinMS > MINEXPIRECHECK) ? m_expire = expireCheckTimeinMS : MINEXPIRECHECK;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -177,9 +177,9 @@ namespace OpenSim.Framework
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        public void AddOrUpdate(TKey1 key, TValue1 val, int expireMS)
+        public void AddOrUpdate(TKey1 key, TValue1 val, int expireSeconds)
         {
-            Add(key, val, expireMS);
+            Add(key, val, expireSeconds * 1000);
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -267,6 +267,12 @@ namespace OpenSim.Framework
         public int Count
         {
             get { return m_expireControl.Count; }
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool Contains(TKey1 key)
+        {
+            return ContainsKey(key);
         }
 
         public bool ContainsKey(TKey1 key)
