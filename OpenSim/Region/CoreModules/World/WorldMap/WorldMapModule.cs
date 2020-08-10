@@ -58,12 +58,10 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "WorldMapModule")]
-    public class WorldMapModule : INonSharedRegionModule, IWorldMapModule
+    public class WorldMapModule : INonSharedRegionModule, IWorldMapModule, IDisposable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-#pragma warning disable 414
-        private static string LogHeader = "[WORLD MAP]";
-#pragma warning restore 414
+        private const string LogHeader = "[WORLD MAP]";
 
         private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
         private static readonly UUID STOP_UUID = UUID.Random();
@@ -80,15 +78,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private byte[] myMapImageJPEG;
         protected volatile bool m_Enabled = false;
-        private ExpiringCache<string, int> m_blacklistedurls = new ExpiringCache<string, int>();
-        private ExpiringCache<ulong, int> m_blacklistedregions = new ExpiringCache<ulong, int>();
-        private ExpiringCache<ulong, string> m_cachedRegionMapItemsAddress = new ExpiringCache<ulong, string>();
-        private ExpiringCache<ulong, OSDMap> m_cachedRegionMapItemsResponses =
-                                        new ExpiringCache<ulong, OSDMap>();
-        private List<UUID> m_rootAgents = new List<UUID>();
+        private ExpiringKey<string> m_blacklistedurls = new ExpiringKey<string>(60000);
+        private ExpiringKey<ulong> m_blacklistedregions = new ExpiringKey<ulong>(60000);
+        private ExpiringCacheOS<ulong, string> m_cachedRegionMapItemsAddress = new ExpiringCacheOS<ulong, string>(60000);
+        private ExpiringCacheOS<ulong, OSDMap> m_cachedRegionMapItemsResponses = new ExpiringCacheOS<ulong, OSDMap>(1000);
+        private HashSet<UUID> m_rootAgents = new HashSet<UUID>();
         private volatile bool threadrunning = false;
         // expire time for the blacklists in seconds
-        protected double expireBlackListTime = 600.0; // 10 minutes
+        protected int expireBlackListTime = 300; // 5 minutes
         // expire mapItems responses time in seconds. Throttles requests to regions that do answer
         private const double expireResponsesTime = 120.0; // 2 minutes ?
         //private int CacheRegionsDistance = 256;
@@ -96,6 +93,44 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         protected bool m_exportPrintScale = false; // prints the scale of map in meters on exported map
         protected bool m_exportPrintRegionName = false; // prints the region name exported map
         protected bool m_showNPCs = true;
+
+        public WorldMapModule()
+        {
+        }
+
+        ~WorldMapModule()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        bool disposed;
+        public virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                disposed = true;
+
+                m_blacklistedurls?.Dispose();
+                m_blacklistedregions?.Dispose();
+                m_cachedRegionMapItemsAddress?.Dispose();
+                m_cachedRegionMapItemsResponses?.Dispose();
+
+                m_blacklistedurls = null;
+                m_blacklistedregions = null;
+                m_cachedRegionMapItemsAddress = null;
+                m_cachedRegionMapItemsResponses = null;
+            }
+        }
+
 
         #region INonSharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
@@ -106,8 +141,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 config, "WorldMapModule", configSections, "WorldMap") == "WorldMap")
                 m_Enabled = true;
 
-            expireBlackListTime = (double)Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60);
-
+            expireBlackListTime = (int)Util.GetConfigVarFromSections<int>(config, "BlacklistTimeout", configSections, 10 * 60);
+            expireBlackListTime *= 1000;
             m_exportPrintScale =
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddScale", configSections, m_exportPrintScale);
             m_exportPrintRegionName =
@@ -165,6 +200,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public virtual void Close()
         {
+            Dispose();
         }
 
         public Type ReplaceableInterface
@@ -665,23 +701,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         continue;
 
                     // region unreachable?
-                    if (m_blacklistedregions.Contains(st.regionhandle))
+                    if (m_blacklistedregions.ContainsKey(st.regionhandle))
                         continue;
 
                     bool dorequest = true;
-                    OSDMap responseMap = null;
-
                     // check if we are already serving this region
-                    lock (m_cachedRegionMapItemsResponses)
-                    {
-                        if (m_cachedRegionMapItemsResponses.Contains(st.regionhandle))
-                        {
-                            m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out responseMap);
-                            dorequest = false;
-                        }
-                        else
-                            m_cachedRegionMapItemsResponses.Add(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
-                    }
+                    if (m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out OSDMap responseMap))
+                        dorequest = false;
+                    else
+                        m_cachedRegionMapItemsResponses.AddOrUpdate(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
 
                     if (dorequest)
                     {
@@ -793,20 +821,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // m_log.DebugFormat("[WORLDMAP]: RequestMapItemsAsync; region handle: {0} {1}", regionhandle, itemtype);
 
             string httpserver = "";
-            bool blacklisted = false;
-
-            lock (m_blacklistedregions)
-                blacklisted = m_blacklistedregions.Contains(regionhandle);
-
-            if (blacklisted)
+            if (m_blacklistedregions.ContainsKey(regionhandle))
             {
                 Interlocked.Decrement(ref nAsyncRequests);
                 return;
             }
 
             UUID requestID = UUID.Random();
-            lock (m_cachedRegionMapItemsAddress)
-                m_cachedRegionMapItemsAddress.TryGetValue(regionhandle, out httpserver);
+            m_cachedRegionMapItemsAddress.TryGetValue(regionhandle, out httpserver);
 
             if (httpserver == null || httpserver.Length == 0)
             {
@@ -818,22 +840,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (mreg != null)
                 {
                     httpserver = mreg.ServerURI + "MAP/MapItems/" + regionhandle.ToString();
-                    lock (m_cachedRegionMapItemsAddress)
-                        m_cachedRegionMapItemsAddress.AddOrUpdate(regionhandle, httpserver, 2.0 * expireBlackListTime);
+                    m_cachedRegionMapItemsAddress.Add(regionhandle, httpserver, 2 * expireBlackListTime);
                 }
             }
 
-            lock (m_blacklistedurls)
+            if (httpserver == null || httpserver.Length == 0 || m_blacklistedurls.ContainsKey(httpserver))
             {
-                if (httpserver == null || httpserver.Length == 0 || m_blacklistedurls.Contains(httpserver))
-                {
-                    // Can't find the http server or its blocked
-                    lock (m_blacklistedregions)
-                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
+                // Can't find the http server or its blocked
+                m_blacklistedregions.Add(regionhandle, expireBlackListTime);
 
-                    Interlocked.Decrement(ref nAsyncRequests);
-                    return;
-                }
+                Interlocked.Decrement(ref nAsyncRequests);
+                return;
             }
 
             WebRequest mapitemsrequest = null;
@@ -870,10 +887,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 m_log.WarnFormat("[WORLD MAP]: Bad send on GetMapItems {0}", ex.Message);
                 m_log.WarnFormat("[WORLD MAP]: Blacklisted url {0}", httpserver);
-                lock (m_blacklistedurls)
-                    m_blacklistedurls.AddOrUpdate(httpserver, 0, expireBlackListTime);
-                lock (m_blacklistedregions)
-                    m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
+                m_blacklistedurls.Add(httpserver, expireBlackListTime);
+                m_blacklistedregions.Add(regionhandle, expireBlackListTime);
 
                 Interlocked.Decrement(ref nAsyncRequests);
                 return;
@@ -907,10 +922,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
                 catch (WebException)
                 {
-                    lock (m_blacklistedurls)
-                       m_blacklistedurls.AddOrUpdate(httpserver, 0, expireBlackListTime);
-                    lock (m_blacklistedregions)
-                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
+                    m_blacklistedurls.Add(httpserver, expireBlackListTime);
+                    m_blacklistedregions.Add(regionhandle, expireBlackListTime);
 
                     m_log.WarnFormat("[WORLD MAP]: Blacklisted url {0}", httpserver);
 
@@ -920,8 +933,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 catch
                 {
                     m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
-                    lock (m_blacklistedregions)
-                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
+                    m_blacklistedregions.Add(regionhandle, expireBlackListTime);
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
@@ -934,8 +946,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 catch (Exception ex)
                 {
                     m_log.InfoFormat("[WORLD MAP]: exception on parse of RequestMapItems reply from {0}: {1}", httpserver, ex.Message);
-                    lock (m_blacklistedregions)
-                        m_blacklistedregions.AddOrUpdate(regionhandle, 0, expireBlackListTime);
+                    m_blacklistedregions.Add(regionhandle, expireBlackListTime);
 
                     Interlocked.Decrement(ref nAsyncRequests);
                     return;
@@ -943,8 +954,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
             // cache the response that may include other valid items
-            lock (m_cachedRegionMapItemsResponses)
-                m_cachedRegionMapItemsResponses.AddOrUpdate(regionhandle, responseMap, expireResponsesTime);
+            m_cachedRegionMapItemsResponses.AddOrUpdate(regionhandle, responseMap, expireResponsesTime);
 
             flags &= 0xffff;
 
@@ -1748,23 +1758,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             ulong regionhandle = otherRegion.RegionHandle;
             string httpserver = otherRegion.ServerURI + "MAP/MapItems/" + regionhandle.ToString();
 
-            lock (m_blacklistedregions)
-            {
-                if (m_blacklistedregions.Contains(regionhandle))
-                    m_blacklistedregions.Remove(regionhandle);
-            }
-
-            lock (m_blacklistedurls)
-            {
-                if (m_blacklistedurls.Contains(httpserver))
-                    m_blacklistedurls.Remove(httpserver);
-            }
-
-            lock (m_cachedRegionMapItemsAddress)
-            {
-                    m_cachedRegionMapItemsAddress.AddOrUpdate(regionhandle,
-                        httpserver, 5.0 * expireBlackListTime);
-            }
+             m_blacklistedregions.Remove(regionhandle);
+             m_blacklistedurls.Remove(httpserver);
+ 
+             m_cachedRegionMapItemsAddress.Add(regionhandle, httpserver, 5 * expireBlackListTime);
         }
 
         private Byte[] GenerateOverlay()
