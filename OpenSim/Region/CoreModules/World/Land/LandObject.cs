@@ -47,18 +47,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[LAND OBJECT]";
 
+        protected const int GROUPMEMBERCACHETIMEOUT = 30000;  // cache invalidation after 30s
+
         private readonly int landUnit = 4;
 
         private int m_lastSeqId = 0;
         private int m_expiryCounter = 0;
 
         protected Scene m_scene;
-        protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
-        private Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
-        private object m_listTransactionsLock = new object();
+        protected readonly List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
+        private readonly Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
+        private readonly object m_listTransactionsLock = new object();
 
-        protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
-        protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+        protected readonly ExpiringCacheOS<UUID, bool> m_groupMemberCache = new ExpiringCacheOS<UUID, bool>();
         IDwellModule m_dwellModule;
 
         private bool[,] m_landBitmap;
@@ -488,6 +489,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (!LandData.IsGroupOwned)
                 {
                     newData.GroupID = args.GroupID;
+                    if(newData.GroupID != LandData.GroupID)
+                        m_groupMemberCache.Clear();
 
                     allowedDelta |= (uint)(ParcelFlags.AllowDeedToGroup |
                             ParcelFlags.ContributeWithDeed |
@@ -669,15 +672,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
             {
-                ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                if (m_groupMemberCache.TryGetValue(avatar, out bool isMember))
                 {
-                    bool isMember;
-                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
-                    {
-                        m_groupMemberCache.Update(avatar, isMember, m_groupMemberCacheTimeout);
-                        return isMember;
-                    }
+                    m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
+                    return isMember;
+                }
+
+                if (!m_scene.TryGetScenePresence(avatar, out ScenePresence sp))
+                {
 
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
@@ -686,7 +688,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
                     if (membership == null || membership.Length == 0)
                     {
-                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                        m_groupMemberCache.Add(avatar, false, GROUPMEMBERCACHETIMEOUT);
                         return false;
                     }
 
@@ -694,15 +696,19 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (d.GroupID == LandData.GroupID)
                         {
-                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
+                            m_groupMemberCache.Add(avatar, true, GROUPMEMBERCACHETIMEOUT);
                             return true;
                         }
                     }
-                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                    m_groupMemberCache.Add(avatar, false, GROUPMEMBERCACHETIMEOUT);
                     return false;
                 }
-
-                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
+                else
+                {
+                    isMember = sp.ControllingClient.IsGroupMember(LandData.GroupID);
+                    m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
+                    return isMember;
+                }
             }
             return false;
         }
