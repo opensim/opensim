@@ -134,7 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IEnvironmentModule m_envModule = null;
         protected IEmailModule m_emailModule = null;
 
-        protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache = new Dictionary<UUID, UserInfoCacheEntry>();
+        protected ExpiringCacheOS<UUID, PresenceInfo> m_PresenceInfoCache = new ExpiringCacheOS<UUID, PresenceInfo>(10000);
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
         protected int m_sleepMsOnSetTexture = 200;
         protected int m_sleepMsOnSetLinkTexture = 200;
