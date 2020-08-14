@@ -84,14 +84,6 @@ using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
-    // MUST be a ref type
-    public class UserInfoCacheEntry
-    {
-        public int time;
-        public UserAccount account;
-        public PresenceInfo pinfo;
-    }
-
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
@@ -99,7 +91,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public int LlRequestAgentDataCacheTimeoutMs { get; set; }
+        private int m_llRequestAgentDataCacheTimeout;
+        public int LlRequestAgentDataCacheTimeoutMs
+        {
+            get
+            {
+                return 1000 * m_llRequestAgentDataCacheTimeout;
+            }
+            set
+            {
+                m_llRequestAgentDataCacheTimeout = value / 1000;
+            }
+       }
 
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
@@ -4962,109 +4965,73 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.PassTouches = false;
         }
 
+        // THIS IS WRONG, must be async
         public LSL_Key llRequestAgentData(string id, int data)
         {
             m_host.AddScriptLPS(1);
 
-            if (UUID.TryParse(id, out UUID uuid))
+            if (UUID.TryParse(id, out UUID uuid) && uuid != UUID.Zero)
             {
-                PresenceInfo pinfo = null;
-                UserAccount account;
+                if (uuid == UUID.Zero)
+                    return string.Empty;
 
-                if (!m_userInfoCache.TryGetValue(uuid, out UserInfoCacheEntry ce))
+                UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                if(account == null)
+                    return string.Empty;
+
+                string reply;
+                if (data == ScriptBaseClass.DATA_ONLINE)
                 {
-                    account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
-                    if (account == null)
+                    PresenceInfo pinfo = null;
+                    if (!m_PresenceInfoCache.TryGetValue(uuid, out pinfo))
                     {
-                        m_userInfoCache[uuid] = null; // Cache negative
-                        return UUID.Zero.ToString();
-                    }
-
-                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                    if (pinfos != null && pinfos.Length > 0)
-                    {
-                        foreach (PresenceInfo p in pinfos)
+                        PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                        if (pinfos != null && pinfos.Length > 0)
                         {
-                            if (p.RegionID != UUID.Zero)
+                            foreach (PresenceInfo p in pinfos)
                             {
-                                pinfo = p;
+                                if (p.RegionID != UUID.Zero)
+                                {
+                                    pinfo = p;
+                                }
                             }
                         }
                     }
 
-                    ce = new UserInfoCacheEntry
-                    {
-                        time = Util.EnvironmentTickCount(),
-                        account = account,
-                        pinfo = pinfo
-                    };
-                    m_userInfoCache[uuid] = ce;
+                    m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
+                    if (pinfo != null && pinfo.RegionID != UUID.Zero)
+                        reply = "1";
+                    else
+                        reply = "0";
                 }
                 else
                 {
-                    if (ce == null)
-                        return UUID.Zero.ToString();
-
-                    account = ce.account;
-                    pinfo = ce.pinfo;
-                }
-
-                if (Util.EnvironmentTickCount() < ce.time ||
-                            (Util.EnvironmentTickCount() - ce.time) >= LlRequestAgentDataCacheTimeoutMs)
-                {
-                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                    if (pinfos != null && pinfos.Length > 0)
+                    switch (data)
                     {
-                        foreach (PresenceInfo p in pinfos)
-                        {
-                            if (p.RegionID != UUID.Zero)
-                            {
-                                pinfo = p;
-                            }
-                        }
-                    }
-                    else
-                        pinfo = null;
-
-                    ce.time = Util.EnvironmentTickCount();
-                    ce.pinfo = pinfo;
-                }
-
-                string reply = String.Empty;
-
-                switch (data)
-                {
-                    case ScriptBaseClass.DATA_ONLINE: // DATA_ONLINE (0|1)
-                        if (pinfo != null && pinfo.RegionID != UUID.Zero)
-                            reply = "1";
-                        else
+                        case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
+                            reply = account.FirstName + " " + account.LastName;
+                            break;
+                        case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
+                            DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+                            born = born.AddSeconds(account.Created);
+                            reply = born.ToString("yyyy-MM-dd");
+                            break;
+                        case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
+                            reply = "0,0,0,0,0,0";
+                            break;
+                        case 7: // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
+                            reply = account.UserLevel.ToString();
+                            break;
+                        case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
                             reply = "0";
-                        break;
-                    case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
-                        reply = account.FirstName + " " + account.LastName;
-                        break;
-                    case ScriptBaseClass.DATA_BORN: // DATA_BORN (YYYY-MM-DD)
-                        DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-                        born = born.AddSeconds(account.Created);
-                        reply = born.ToString("yyyy-MM-dd");
-                        break;
-                    case ScriptBaseClass.DATA_RATING: // DATA_RATING (0,0,0,0,0,0)
-                        reply = "0,0,0,0,0,0";
-                        break;
-                    case 7: // DATA_USERLEVEL (integer).  This is not available in LL and so has no constant.
-                        reply = account.UserLevel.ToString();
-                        break;
-                    case ScriptBaseClass.DATA_PAYINFO: // DATA_PAYINFO (0|1|2|3)
-                        reply = "0";
-                        break;
-                    default:
-                        return UUID.Zero.ToString(); // Raise no event
+                            break;
+                        default:
+                            return string.Empty; // Raise no event
+                    }
                 }
 
                 UUID rq = UUID.Random();
-
-                UUID tid = m_AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_host.LocalId,
+                UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                  m_item.ItemID, rq.ToString());
 
                 m_AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), reply);
