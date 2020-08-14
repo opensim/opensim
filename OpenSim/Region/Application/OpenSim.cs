@@ -930,47 +930,76 @@ namespace OpenSim
             switch (showParams[0])
             {
                 case "users":
-                    IList agents;
+                    bool includeChild = false;
                     if (showParams.Length > 1 && showParams[1] == "full")
-                    {
-                        agents = SceneManager.GetCurrentScenePresences();
-                    } else
-                    {
-                        agents = SceneManager.GetCurrentSceneAvatars();
-                    }
+                        includeChild = true;
 
-                    MainConsole.Instance.Output(String.Format("\nAgents connected: {0}\n", agents.Count));
-
-                    MainConsole.Instance.Output(
-                        String.Format("{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}", "Firstname", "Lastname",
-                                      "Agent ID", "Root/Child", "Region", "Position")
-                    );
-
-                    foreach (ScenePresence presence in agents)
-                    {
-                        RegionInfo regionInfo = presence.Scene.RegionInfo;
-                        string regionName;
-
-                        if (regionInfo == null)
+                    SceneManager.ForEachScene(
+                        delegate (Scene scene)
                         {
-                            regionName = "Unresolvable";
-                        } else
-                        {
-                            regionName = regionInfo.RegionName;
-                        }
+                            RegionInfo regionInfo = scene.RegionInfo;
+                            string regionName;
+                            if (regionInfo == null)
+                                regionName = "Unresolvable";
+                            else
+                                regionName = regionInfo.RegionName;
 
-                        MainConsole.Instance.Output(
-                            String.Format(
-                                "{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}",
-                                presence.Firstname,
-                                presence.Lastname,
-                                presence.UUID,
-                                presence.IsChildAgent ? "Child" : "Root",
-                                regionName,
-                                presence.AbsolutePosition.ToString())
-                        );
-                    }
+                            List<ScenePresence> agents = scene.GetScenePresences();
+                            List<ScenePresence> tmpagents = new List<ScenePresence>();
+                            int total = agents.Count;
+                            int childcount = 0;
+                            if (total > 0)
+                            {
+                                foreach(ScenePresence sp in agents)
+                                {
+                                    if(sp.IsChildAgent)
+                                    {
+                                        if (includeChild)
+                                            tmpagents.Add(sp);
+                                        ++childcount;
+                                    }
+                                    else
+                                        tmpagents.Add(sp);
+                                }
+                            }
+                            if(includeChild)
+                            {
+                                MainConsole.Instance.Output(String.Format("\nTotal agents in region {0}: {1} (root {2}, child {3})",
+                                        regionName, total, total - childcount, childcount));
+                            }
+                            else
+                            {
+                                MainConsole.Instance.Output(String.Format("\nRoot agents in region {0}: {1} (root {2}, child {3})",
+                                        regionName, tmpagents.Count, total - childcount, childcount));
+                            }
 
+                            if (tmpagents.Count == 0)
+                                return;
+
+                            MainConsole.Instance.Output(
+                                String.Format("{0,-16} {1,-16} {2,-37} {3,-11} {4,-30}", "Firstname", "Lastname",
+                                                "Agent ID", "Type", "Position")
+                            );
+
+                            foreach (ScenePresence presence in tmpagents)
+                            {
+                                string sptype;
+                                if(presence.IsNPC)
+                                    sptype = presence.IsChildAgent ? "NPC Child" : "NPC Root";
+                                else
+                                    sptype = presence.IsChildAgent ? "Child" : "Root";
+
+                                MainConsole.Instance.Output(
+                                    String.Format(
+                                        "{0,-16} {1,-16} {2,-37} {3,-11} {4,-30}",
+                                        presence.Firstname,
+                                        presence.Lastname,
+                                        presence.UUID,
+                                        sptype,
+                                        presence.AbsolutePosition.ToString())
+                                );
+                            }
+                        });
                     MainConsole.Instance.Output(String.Empty);
                     break;
 
@@ -984,7 +1013,7 @@ namespace OpenSim
 
                 case "modules":
                     SceneManager.ForEachSelectedScene(
-                        scene =>
+                        delegate (Scene scene)
                         {
                             MainConsole.Instance.Output("Loaded region modules in {0} are:", scene.Name);
 
