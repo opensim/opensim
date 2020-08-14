@@ -545,7 +545,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private bool CheckFromFileCache(string id)
         {
-            string filename = GetFileName(id);
             try
             {
                 return File.Exists(GetFileName(id));
