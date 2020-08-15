@@ -31,13 +31,11 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using System.Text.RegularExpressions;
-using System.Timers;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
@@ -78,8 +76,7 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using System.Reflection;
-using Timer = System.Timers.Timer;
-using System.Linq;
+//using System.Linq;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
@@ -287,7 +284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
-        private string[] HttpStandardHeaders =
+        private HashSet<string> HttpStandardHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
         {
             "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language",
             "Accept-Ranges", "Age", "Allow", "Authorization", "Cache-Control",
@@ -14134,7 +14131,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         }
 
-                        if (HttpStandardHeaders.Contains(parameters.Data[i].ToString(), StringComparer.OrdinalIgnoreCase))
+                        if (HttpStandardHeaders.Contains(parameters.Data[i].ToString()))
                             Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
 
                         param.Add(parameters.Data[i].ToString());
@@ -14877,7 +14874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case ScriptBaseClass.OBJECT_TOTAL_INVENTORY_COUNT:
                             SceneObjectPart[] parts = obj.ParentGroup.Parts;
                             count = 0;
-                            for(int i = 0; i < parts.Count(); i++)
+                            for(int i = 0; i < parts.Length; i++)
                                 count += parts[i].Inventory.Count;
                             ret.Add(new LSL_Integer(count));
                             break;
