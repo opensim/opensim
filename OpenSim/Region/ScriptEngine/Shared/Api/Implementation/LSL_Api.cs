@@ -107,6 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
 
+        protected UUID RegionScopeID = UUID.Zero;
         /// <summary>
         /// The item that hosts this script
         /// </summary>
@@ -133,6 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IMaterialsModule m_materialsModule = null;
         protected IEnvironmentModule m_envModule = null;
         protected IEmailModule m_emailModule = null;
+        protected IUserAccountService m_userAccountService = null;
 
         protected ExpiringCacheOS<UUID, PresenceInfo> m_PresenceInfoCache = new ExpiringCacheOS<UUID, PresenceInfo>(10000);
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
@@ -322,6 +324,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_envModule = m_ScriptEngine.World.RequestModuleInterface< IEnvironmentModule>();
 
             m_AsyncCommands = new AsyncCommandManager(m_ScriptEngine);
+            m_userAccountService = World.UserAccountService;
+            if(World.RegionInfo != null)
+                RegionScopeID = World.RegionInfo.ScopeID;
+
         }
 
         /// <summary>
@@ -1308,7 +1314,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string resolveName(UUID objecUUID)
         {
             // try avatar username surname
-            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, objecUUID);
+            UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, objecUUID);
             if (account != null)
             {
                 string avatarname = account.Name;
@@ -3991,10 +3997,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //The restriction only applies if the destination address is not local.
             if (m_restrictEmail == true && address.Contains(m_internalObjectHost) == false)
             {
-                UserAccount account =
-                        World.UserAccountService.GetUserAccount(
-                            World.RegionInfo.ScopeID,
-                            m_host.OwnerID);
+                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, m_host.OwnerID);
 
                 if (account == null)
                 {
@@ -4067,18 +4070,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if(parent.OwnerID == parent.GroupID)
                     return;
-                account = World.UserAccountService.GetUserAccount(
-                            World.RegionInfo.ScopeID,
-                            parent.OwnerID);
+                account = m_userAccountService.GetUserAccount(RegionScopeID, parent.OwnerID);
             }
             else if (target == ScriptBaseClass.TARGETED_EMAIL_ROOT_CREATOR)
             {
                 // non standard avoid creator spam
                 if(m_item.CreatorID == parent.RootPart.CreatorID)
                 {
-                    account = World.UserAccountService.GetUserAccount(
-                            World.RegionInfo.ScopeID,
-                            parent.RootPart.CreatorID);
+                    account = m_userAccountService.GetUserAccount(RegionScopeID, parent.RootPart.CreatorID);
                 }
                 else
                     return;
@@ -4873,10 +4872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence == null)
                 {
-                    UserAccount account =
-                            World.UserAccountService.GetUserAccount(
-                            World.RegionInfo.ScopeID,
-                            destId);
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, destId);
 
                     if (account == null)
                     {
@@ -5013,7 +5009,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             reply = "1";
                         else
                         {
-                            account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                            account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
                             if (account == null)
                                 reply = "0";
                             else
@@ -5045,7 +5041,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         if (account == null)
-                            account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                            account = m_userAccountService.GetUserAccount(RegionScopeID, uuid);
 
                         if (account == null)
                             reply = "0";
@@ -6606,7 +6602,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ex += World.RegionInfo.WorldLocX;
             ey += World.RegionInfo.WorldLocY;
 
-            if(World.GridService.GetRegionByPosition(World.RegionInfo.ScopeID, (int)ex, (int)ey) != null)
+            if(World.GridService.GetRegionByPosition(RegionScopeID, (int)ex, (int)ey) != null)
                 return 0;
             return 1;
         }
@@ -13054,7 +13050,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 Action<string> act = eventID =>
                 {
-                    GridRegion info = World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
+                    GridRegion info = World.GridService.GetRegionByName(RegionScopeID, simulator);
                     string reply = "unknown";
                     if (info != null)
                     {
@@ -15288,7 +15284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, key);
                     if(account != null)
                     {
                         name = account.FirstName + " " + account.LastName;
@@ -15345,7 +15341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 else
                 {
-                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, key);
                     if (account != null)
                     {
                         name = account.FirstName + " " + account.LastName;
@@ -16774,7 +16770,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(avatar, out id))
                 return 0;
 
-            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, id);
+            UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, id);
             isAccount = account != null ? true : false;
             if (!isAccount)
             {
@@ -16992,7 +16988,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
                     }
 
-                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, toID);
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, toID);
                     if (account == null)
                     {
                         replydata = "LINDENDOLLAR_ENTITYDOESNOTEXIST";
