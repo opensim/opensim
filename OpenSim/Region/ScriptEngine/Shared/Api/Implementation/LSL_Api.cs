@@ -4065,40 +4065,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            UserAccount account = null;
-            if (target == ScriptBaseClass.TARGETED_EMAIL_OBJECT_OWNER)
+            // this is a fire and forget no event is sent to script
+            Action<string> act = eventID =>
             {
-                if(parent.OwnerID == parent.GroupID)
-                    return;
-                account = m_userAccountService.GetUserAccount(RegionScopeID, parent.OwnerID);
-            }
-            else if (target == ScriptBaseClass.TARGETED_EMAIL_ROOT_CREATOR)
-            {
-                // non standard avoid creator spam
-                if(m_item.CreatorID == parent.RootPart.CreatorID)
+                UserAccount account = null;
+                if (target == ScriptBaseClass.TARGETED_EMAIL_OBJECT_OWNER)
                 {
-                    account = m_userAccountService.GetUserAccount(RegionScopeID, parent.RootPart.CreatorID);
+                    if(parent.OwnerID == parent.GroupID)
+                        return;
+                    account = m_userAccountService.GetUserAccount(RegionScopeID, parent.OwnerID);
+                }
+                else if (target == ScriptBaseClass.TARGETED_EMAIL_ROOT_CREATOR)
+                {
+                    // non standard avoid creator spam
+                    if(m_item.CreatorID == parent.RootPart.CreatorID)
+                    {
+                        account = m_userAccountService.GetUserAccount(RegionScopeID, parent.RootPart.CreatorID);
+                    }
+                    else
+                        return;
                 }
                 else
                     return;
-            }
-            else
-                return;
 
-            if (account == null)
-            {
-                Error("llTargetedEmail", "Can't find user account for '" + m_host.OwnerID.ToString() + "'");
-                return;
-            }
+                if (account == null)
+                {
+                    return;
+                }
 
-            string address = account.Email;
-            if (String.IsNullOrEmpty(address))
-            {
-                Error("llTargetedEmail", "User account has not registered an email address.");
-                return;
-            }
+                string address = account.Email;
+                if (String.IsNullOrEmpty(address))
+                {
+                    return;
+                }
 
-            m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+                m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+            };
+
+            UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
+                                                     m_item.ItemID, UUID.Random().ToString(), act);
             ScriptSleep(m_sleepMsOnEmail);
         }
 
