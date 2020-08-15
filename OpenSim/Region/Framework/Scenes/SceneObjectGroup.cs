@@ -5255,6 +5255,20 @@ namespace OpenSim.Region.Framework.Scenes
                 return new List<ScenePresence>(m_sittingAvatars);
         }
 
+        public bool HasSittingAvatar(UUID avatarID)
+        {
+            // locked O(n) :(
+            lock (m_sittingAvatars)
+            {
+                for(int i = 0; i < m_sittingAvatars.Count; ++i)
+                {
+                    if(m_sittingAvatars[i].UUID == avatarID)
+                        return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Gets the number of sitting avatars.
         /// </summary>
