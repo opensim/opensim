@@ -82,6 +82,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             public Action<string> action;
         }
 
+        // action, if provided, is executed async
+        // its code pattern should be:
+        //Action<string> act = eventID =>
+        //{
+        //     need operations to get reply string
+        //  m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+        //}
+        // eventID is the event id, provided by this on Invoque
+        // see ProcessActions below
+
         public UUID RegisterRequest(uint localID, UUID itemID,
                                       string identifier, Action<string> action = null)
         {

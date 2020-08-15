@@ -4965,7 +4965,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_host.PassTouches = false;
         }
 
-        // THIS IS WRONG, must be async
         public LSL_Key llRequestAgentData(string id, int data)
         {
             m_host.AddScriptLPS(1);
