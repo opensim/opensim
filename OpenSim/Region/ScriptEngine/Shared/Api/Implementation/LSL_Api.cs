@@ -16899,68 +16899,81 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llTransferLindenDollars(LSL_Key destination, LSL_Integer amount)
         {
-            UUID txn = UUID.Random();
+            m_host.AddScriptLPS(1);
 
-            Util.FireAndForget(delegate(object x)
+            IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+            UUID txn = UUID.Random();
+            UUID toID = UUID.Zero;
+
+            string replydata = "UnKnownError";
+            bool bad = true;
+            while(true)
+            {
+                if (amount <= 0)
+                {
+                    replydata = "INVALID_AMOUNT";
+                    break;
+                }
+
+                if (money == null)
+                {
+                    replydata = "TRANSFERS_DISABLED";
+                    break;
+                }
+
+                if (m_host.OwnerID == m_host.GroupID)
+                {
+                    replydata = "GROUP_OWNED";
+                    break;
+                }
+
+                if (m_item == null)
+                {
+                    replydata = "SERVICE_ERROR";
+                    break;
+                }
+
+                if (m_item.PermsGranter == UUID.Zero)
+                {
+                    replydata = "MISSING_PERMISSION_DEBIT";
+                    break;
+                }
+
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
+                {
+                    replydata = "MISSING_PERMISSION_DEBIT";
+                    break;
+                }
+
+                if (!UUID.TryParse(destination, out toID))
+                {
+                    replydata = "INVALID_AGENT";
+                    break;
+                }
+                bad = false;
+                break;
+            }
+            if(bad)
+            {
+                m_ScriptEngine.PostScriptEvent(m_item.ItemID, new EventParams(
+                        "transaction_result", new Object[] {
+                            new LSL_String(txn.ToString()),
+                            new LSL_Integer(0),
+                            new LSL_String(replydata) },
+                        new DetectParams[0]));
+                return txn.ToString();
+            }
+
+            //fire and forget...
+            Action<string> act = eventID =>
             {
                 int replycode = 0;
-                string replydata = destination + "," + amount.ToString();
-
                 try
                 {
-                    if (amount <= 0)
-                    {
-                        replydata = "INVALID_AMOUNT";
-                        return;
-                    }
-
-                    TaskInventoryItem item = m_item;
-                    if (item == null)
-                    {
-                        replydata = "SERVICE_ERROR";
-                        return;
-                    }
-
-                    if (m_host.OwnerID == m_host.GroupID)
-                    {
-                        replydata = "GROUP_OWNED";
-                        return;
-                    }
-
-                    m_host.AddScriptLPS(1);
-
-                    if (item.PermsGranter == UUID.Zero)
-                    {
-                        replydata = "MISSING_PERMISSION_DEBIT";
-                        return;
-                    }
-
-                    if ((item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
-                    {
-                        replydata = "MISSING_PERMISSION_DEBIT";
-                        return;
-                    }
-
-                    UUID toID = new UUID();
-
-                    if (!UUID.TryParse(destination, out toID))
-                    {
-                        replydata = "INVALID_AGENT";
-                        return;
-                    }
-
                     UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, toID);
                     if (account == null)
                     {
                         replydata = "LINDENDOLLAR_ENTITYDOESNOTEXIST";
-                        return;
-                    }
-
-                    IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
-
-                    if (money == null)
-                    {
-                        replydata = "TRANSFERS_DISABLED";
                         return;
                     }
 
@@ -16969,9 +16982,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (result)
                     {
                         replycode = 1;
+                        replydata = destination + "," + amount.ToString();
                         return;
                     }
-
                     replydata = reason;
                 }
                 finally
@@ -16983,8 +16996,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             new LSL_String(replydata) },
                             new DetectParams[0]));
                 }
-            }, null, "LSL_Api.llTransferLindenDollars");
+            };
 
+            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return txn.ToString();
         }
 
