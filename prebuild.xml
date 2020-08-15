@@ -2244,11 +2244,12 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Services.Interfaces"/>
-	  <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="Nini" path="../../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../../bin/"/>
+      <Reference name="SmartThreadPool"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
