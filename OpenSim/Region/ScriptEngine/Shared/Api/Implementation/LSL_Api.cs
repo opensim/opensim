@@ -15063,35 +15063,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // => complain loudly, as specified by the LSL docs
                 Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
-
                 return UUID.Zero.ToString();
             }
 
-            string reqIdentifier = UUID.Random().ToString();
-
-            // was: UUID tid = tid = AsyncCommands.
-            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, reqIdentifier);
-
-            if (NotecardCache.IsCached(assetID))
+            Action<string> act = eventID =>
             {
-                m_AsyncCommands.DataserverPlugin.DataserverReply(reqIdentifier, NotecardCache.GetLines(assetID).ToString());
+                if (NotecardCache.IsCached(assetID))
+                {
+                   m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLines(assetID).ToString());
+                   return;
+                }
 
-                ScriptSleep(m_sleepMsOnGetNumberOfNotecardLines);
-                return tid.ToString();
-            }
-
-            WithNotecard(assetID, delegate (UUID id, AssetBase a)
-            {
+                AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a == null || a.Type != 7)
                 {
-                    Error("llGetNumberOfNotecardLines", "Can't find notecard '" + name + "'");
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, string.Empty);
                     return;
                 }
 
-                NotecardCache.Cache(id, a.Data);
-                m_AsyncCommands.DataserverPlugin.DataserverReply(reqIdentifier, NotecardCache.GetLines(id).ToString());
-            });
+                NotecardCache.Cache(assetID, a.Data);
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLines(assetID).ToString());
+             };
 
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
             ScriptSleep(m_sleepMsOnGetNumberOfNotecardLines);
             return tid.ToString();
         }
@@ -15118,35 +15112,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return UUID.Zero.ToString();
             }
 
-            string reqIdentifier = UUID.Random().ToString();
-
-            // was: UUID tid = tid = AsyncCommands.
-            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, reqIdentifier);
-
-            if (NotecardCache.IsCached(assetID))
+            Action<string> act = eventID =>
             {
+                if (NotecardCache.IsCached(assetID))
+                {
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(
+                        eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+                    return;
+                }
+
+                AssetBase a = World.AssetService.Get(assetID.ToString());
+                if (a == null || a.Type != 7)
+                {
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, string.Empty);
+                    return;
+                }
+
+                NotecardCache.Cache(assetID, a.Data);
                 m_AsyncCommands.DataserverPlugin.DataserverReply(
-                    reqIdentifier, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+                   eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+            };
 
-                ScriptSleep(m_sleepMsOnGetNotecardLine);
-                return tid.ToString();
-            }
-
-            WithNotecard(assetID, delegate (UUID id, AssetBase a)
-                         {
-                             if (a == null || a.Type != 7)
-                             {
-                                 Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
-                                 return;
-                             }
-
-                             //string data = Encoding.UTF8.GetString(a.Data);
-                             //m_log.Debug(data);
-                             NotecardCache.Cache(id, a.Data);
-                             m_AsyncCommands.DataserverPlugin.DataserverReply(
-                                reqIdentifier, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
-                         });
-
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString());
             ScriptSleep(m_sleepMsOnGetNotecardLine);
             return tid.ToString();
         }
