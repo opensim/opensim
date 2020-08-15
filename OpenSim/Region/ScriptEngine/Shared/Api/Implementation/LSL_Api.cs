@@ -5124,6 +5124,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                          m_item.ItemID, UUID.Random().ToString(), act);
+
+            ScriptSleep(m_sleepMsOnRequestInventoryData);
             return tid.ToString();
         }
 
