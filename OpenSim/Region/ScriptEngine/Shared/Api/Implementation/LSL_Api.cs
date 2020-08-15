@@ -11274,25 +11274,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence.Animator.Animations.ImplicitDefaultAnimation.AnimID
                     == DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"])
-/*
-                {
-                    // This is for ground sitting avatars
-                    float height = presence.Appearance.AvatarHeight / 2.66666667f;
-                    lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
-                    upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
-                }
-                else
-                {
-                    // This is for standing/flying avatars
-                    float height = presence.Appearance.AvatarHeight / 2.0f;
-                    lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
-                    upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
-                }
-
-                // Adjust to the documented error offsets (see LSL Wiki)
-                lower += new LSL_Vector(0.05f, 0.05f, 0.05f);
-                upper -= new LSL_Vector(0.05f, 0.05f, 0.05f);
-*/
                 {
                     // This is for ground sitting avatars TODO!
                     lower = new LSL_Vector(-box.X - 0.1125, -box.Y, box.Z * -1.0f);
@@ -15136,7 +15117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                    eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
             };
 
-            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString());
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
             ScriptSleep(m_sleepMsOnGetNotecardLine);
             return tid.ToString();
         }
