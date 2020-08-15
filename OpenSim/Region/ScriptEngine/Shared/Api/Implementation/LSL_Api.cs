@@ -123,7 +123,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected double m_timer = Util.GetTimeStampMS();
         protected bool m_waitingForScriptAnswer = false;
         protected bool m_automaticLinkPermission = false;
-        protected IMessageTransferModule m_TransferModule = null;
         protected int m_notecardLineReadCharsMax = 255;
         protected int m_scriptConsoleChannel = 0;
         protected bool m_scriptConsoleChannelEnabled = false;
@@ -135,6 +134,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IEnvironmentModule m_envModule = null;
         protected IEmailModule m_emailModule = null;
         protected IUserAccountService m_userAccountService = null;
+        protected IMessageTransferModule m_TransferModule = null;
 
         protected ExpiringCacheOS<UUID, PresenceInfo> m_PresenceInfoCache = new ExpiringCacheOS<UUID, PresenceInfo>(10000);
         protected int EMAIL_PAUSE_TIME = 20;  // documented delay value for smtp.
@@ -235,7 +235,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_primSafetyCoeffX = 2.414214f;
         protected float m_primSafetyCoeffY = 2.414214f;
         protected float m_primSafetyCoeffZ = 1.618034f;
-        protected bool m_useCastRayV3 = false;
+
         protected float m_floatToleranceInCastRay = 0.00001f;
         protected float m_floatTolerance2InCastRay = 0.001f;
         protected DetailLevel m_primLodInCastRay = DetailLevel.Medium;
@@ -401,7 +401,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_primSafetyCoeffX = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientX", m_primSafetyCoeffX);
                     m_primSafetyCoeffY = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientY", m_primSafetyCoeffY);
                     m_primSafetyCoeffZ = lslConfig.GetFloat("PrimBoundingBoxSafetyCoefficientZ", m_primSafetyCoeffZ);
-                    m_useCastRayV3 = lslConfig.GetBoolean("UseLlCastRayV3", m_useCastRayV3);
                     m_floatToleranceInCastRay = lslConfig.GetFloat("FloatToleranceInLlCastRay", m_floatToleranceInCastRay);
                     m_floatTolerance2InCastRay = lslConfig.GetFloat("FloatTolerance2InLlCastRay", m_floatTolerance2InCastRay);
                     m_primLodInCastRay = (DetailLevel)lslConfig.GetInt("PrimDetailLevelInLlCastRay", (int)m_primLodInCastRay);
@@ -15639,10 +15638,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
         {
-            // Use llCastRay V3 if configured
-            if (m_useCastRayV3)
-                return llCastRayV3(start, end, options);
-
             LSL_List list = new LSL_List();
 
             m_host.AddScriptLPS(1);
