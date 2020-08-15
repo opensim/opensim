@@ -76,7 +76,6 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using System.Reflection;
-//using System.Linq;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
@@ -14615,8 +14614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 foreach (SceneObjectGroup Attachment in Attachments)
                                 {
                                     SceneObjectPart[] parts = Attachment.Parts;
-                                    int nparts = parts.Count();
-                                    for(int i = 0; i < nparts; i++)
+                                    for(int i = 0; i < parts.Length; i++)
                                         count += parts[i].Inventory.Count;
                                 }
                             } catch { };
