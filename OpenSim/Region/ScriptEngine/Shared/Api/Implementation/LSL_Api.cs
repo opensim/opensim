@@ -5091,39 +5091,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return "";
         }
 
-        public LSL_Key llRequestInventoryData(string name)
+        //bad if lm is HG
+        public LSL_Key llRequestInventoryData(LSL_String name)
         {
             m_host.AddScriptLPS(1);
 
-            foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
+            Action<string> act = eventID =>
             {
-                if (item.Type == 3 && item.Name == name)
+                string reply = String.Empty;
+                foreach (TaskInventoryItem item in m_host.Inventory.GetInventoryItems())
                 {
-                    UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                     m_item.ItemID, item.AssetID.ToString());
-
-                    Vector3 region = new Vector3(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
-
-                    World.AssetService.Get(item.AssetID.ToString(), this,
-                        delegate(string i, object sender, AssetBase a)
+                    if (item.Type == 3 && item.Name == name)
+                    {
+                        AssetBase a = World.AssetService.Get(item.AssetID.ToString());
+                        if(a != null)
                         {
                             AssetLandmark lm = new AssetLandmark(a);
-
-                            float rx = (uint)(lm.RegionHandle >> 32);
-                            float ry = (uint)lm.RegionHandle;
-                            region = lm.Position + new Vector3(rx, ry, 0) - region;
-
-                            string reply = region.ToString();
-                            m_AsyncCommands.DataserverPlugin.DataserverReply(i.ToString(),reply);
-                        });
-
-                    ScriptSleep(m_sleepMsOnRequestInventoryData);
-                    return tid.ToString();
+                            if(lm != null)
+                            {
+                                float rx = (uint)(lm.RegionHandle >> 32);
+                                float ry = (uint)lm.RegionHandle;
+                                Vector3 region = new Vector3(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
+                                region = lm.Position + new Vector3(rx, ry, 0) - region;
+                                reply = region.ToString();
+                            }
+                        }
+                        break;
+                    }
                 }
-            }
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+            };
 
-            ScriptSleep(m_sleepMsOnRequestInventoryData);
-            return String.Empty;
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
+                                                         m_item.ItemID, UUID.Random().ToString(), act);
+            return tid.ToString();
         }
 
         public void llSetDamage(double damage)
@@ -13005,93 +13006,104 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_host.AddScriptLPS(1);
 
-                string reply = String.Empty;
-
-                GridRegion info;
-
                 if (World.RegionInfo.RegionName == simulator)
-                    info = new GridRegion(World.RegionInfo);
-                else
-                    info = World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
-
-                switch (data)
                 {
-                    case ScriptBaseClass.DATA_SIM_POS:
-                        if (info == null)
-                        {
+                    string lreply = String.Empty;
+                    GridRegion linfo = new GridRegion(World.RegionInfo);
+                    switch (data)
+                    {
+                        case ScriptBaseClass.DATA_SIM_POS:
+                            {
+                                lreply = new LSL_Vector(
+                                    linfo.RegionLocX,
+                                    linfo.RegionLocY,
+                                    0).ToString();
+                            }
+                            break;
+                        case ScriptBaseClass.DATA_SIM_STATUS:
+                                lreply = "up"; // Duh!
+                            break;
+                        case ScriptBaseClass.DATA_SIM_RATING:
+                            int access = linfo.Maturity;
+                            if (access == 0)
+                                lreply = "PG";
+                            else if (access == 1)
+                                lreply = "MATURE";
+                            else if (access == 2)
+                                lreply = "ADULT";
+                            else
+                                lreply = "UNKNOWN";
+                            break;
+                        case ScriptBaseClass.DATA_SIM_RELEASE:
+                            lreply = "OpenSim";
+                            break;
+                        default:
                             ScriptSleep(m_sleepMsOnRequestSimulatorData);
-                            return UUID.Zero.ToString();
-                        }
+                            return UUID.Zero.ToString(); // Raise no event
+                    }
+                    string lrq = UUID.Random().ToString();
+                    UUID ltid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
 
-                        bool isHypergridRegion = false;
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, lreply);
 
-                        if (World.RegionInfo.RegionName != simulator && info.RegionSecret != "")
-                        {
-                            // Hypergrid is currently placing real destination region co-ords into RegionSecret.
-                            // But other code can also use this field for a genuine RegionSecret!  Therefore, if
-                            // anything is present we need to disambiguate.
-                            //
-                            // FIXME: Hypergrid should be storing this data in a different field.
-                            RegionFlags regionFlags
-                                = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(
-                                    info.ScopeID, info.RegionID);
-                            isHypergridRegion = (regionFlags & RegionFlags.Hyperlink) != 0;
-                        }
-
-                        if (isHypergridRegion)
-                        {
-                            Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out uint rx, out uint ry);
-
-                            reply = new LSL_Vector(
-                                rx,
-                                ry,
-                                0).ToString();
-                        }
-                        else
-                        {
-                            // Local grid co-oridnates
-                            reply = new LSL_Vector(
-                                info.RegionLocX,
-                                info.RegionLocY,
-                                0).ToString();
-                        }
-                        break;
-                    case ScriptBaseClass.DATA_SIM_STATUS:
-                        if (info != null)
-                            reply = "up"; // Duh!
-                        else
-                            reply = "unknown";
-                        break;
-                    case ScriptBaseClass.DATA_SIM_RATING:
-                        if (info == null)
-                        {
-                            ScriptSleep(m_sleepMsOnRequestSimulatorData);
-                            return UUID.Zero.ToString();
-                        }
-                        int access = info.Maturity;
-                        if (access == 0)
-                            reply = "PG";
-                        else if (access == 1)
-                            reply = "MATURE";
-                        else if (access == 2)
-                            reply = "ADULT";
-                        else
-                            reply = "UNKNOWN";
-                        break;
-                    case ScriptBaseClass.DATA_SIM_RELEASE:
-                        reply = "OpenSim";
-                        break;
-                    default:
-                        ScriptSleep(m_sleepMsOnRequestSimulatorData);
-                        return UUID.Zero.ToString(); // Raise no event
+                    ScriptSleep(m_sleepMsOnRequestSimulatorData);
+                    return ltid.ToString();
                 }
-                UUID rq = UUID.Random();
 
-                UUID tid = m_AsyncCommands.
-                    DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
+                Action<string> act = eventID =>
+                {
+                    GridRegion info = World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
+                    string reply = "unknown";
+                    if (info != null)
+                    {
+                        switch (data)
+                        {
+                            case ScriptBaseClass.DATA_SIM_POS:
+                                // Hypergrid is currently placing real destination region co-ords into RegionSecret.
+                                // But other code can also use this field for a genuine RegionSecret!  Therefore, if
+                                // anything is present we need to disambiguate.
+                                //
+                                // FIXME: Hypergrid should be storing this data in a different field.
+                                RegionFlags regionFlags = (RegionFlags)m_ScriptEngine.World.GridService.GetRegionFlags(
+                                        info.ScopeID, info.RegionID);
 
-                m_AsyncCommands.
-                    DataserverPlugin.DataserverReply(rq.ToString(), reply);
+                                if ((regionFlags & RegionFlags.Hyperlink) != 0)
+                                {
+                                    Utils.LongToUInts(Convert.ToUInt64(info.RegionSecret), out uint rx, out uint ry);
+                                    reply = new LSL_Vector(rx, ry, 0).ToString();
+                                }
+                                else
+                                {
+                                    // Local grid co-oridnates
+                                    reply = new LSL_Vector(info.RegionLocX, info.RegionLocY, 0).ToString();
+                                }
+                                break;
+                            case ScriptBaseClass.DATA_SIM_STATUS:
+                                reply = "up"; // Duh!
+                                break;
+                            case ScriptBaseClass.DATA_SIM_RATING:
+                                int access = info.Maturity;
+                                if (access == 0)
+                                    reply = "PG";
+                                else if (access == 1)
+                                    reply = "MATURE";
+                                else if (access == 2)
+                                    reply = "ADULT";
+                                else
+                                    reply = "UNKNOWN";
+                                break;
+                            case ScriptBaseClass.DATA_SIM_RELEASE:
+                                reply = "OpenSim";
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+                };
+
+                UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(
+                    m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
 
                 ScriptSleep(m_sleepMsOnRequestSimulatorData);
                 return tid.ToString();
@@ -15257,7 +15269,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Name2Username(llKey2Name(id));
         }
 
-        public LSL_String llRequestUsername(LSL_Key id)
+        public LSL_Key llRequestUsername(LSL_Key id)
         {
             m_host.AddScriptLPS(1);
             if (!UUID.TryParse(id, out UUID key) || key == UUID.Zero)
@@ -15314,7 +15326,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public LSL_String llRequestDisplayName(LSL_Key id)
+        public LSL_Key llRequestDisplayName(LSL_Key id)
         {
             m_host.AddScriptLPS(1);
             if (!UUID.TryParse(id, out UUID key) || key == UUID.Zero)
