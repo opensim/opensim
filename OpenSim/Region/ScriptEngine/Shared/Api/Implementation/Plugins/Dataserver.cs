@@ -93,6 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return ID;
         }
 
+        //legacy
         public UUID RegisterRequest(uint localID, UUID itemID, string identifier)
         {
             lock (DataserverRequests)
@@ -213,6 +214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return null;
         }
 
+        //legacy ?
         public void DataserverReply(string identifier, string reply)
         {
             DataserverRequest ds;

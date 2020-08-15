@@ -4014,7 +4014,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                     m_item.ItemID, UUID.Random().ToString(), act);
+                                                     m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnEmail);
         }
 
@@ -4103,7 +4103,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                     m_item.ItemID, UUID.Random().ToString(), act);
+                                                     m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnEmail);
         }
 
@@ -4982,14 +4982,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         World.TryGetScenePresence(uuid, out ScenePresence sp);
                         if (sp != null)
                         {
-                            string frq = UUID.Random().ToString();
-                            UUID ftid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                     m_item.ItemID, frq);
-
-                            m_AsyncCommands.DataserverPlugin.DataserverReply(frq, "1");
-
+                            string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
+                                                    m_item.ItemID, "1");
                             ScriptSleep(m_sleepMsOnRequestAgentData);
-                            return ftid.ToString();
+                            return ftid;
                         }
                         break;
                     case ScriptBaseClass.DATA_NAME: // DATA_NAME (First Last)
@@ -5078,9 +5074,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
                 };
 
-                string rq = UUID.Random().ToString();
                 UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                 m_item.ItemID, rq, act);
+                                                 m_item.ItemID, act);
 
                 ScriptSleep(m_sleepMsOnRequestAgentData);
                 return tid.ToString();
@@ -5124,7 +5119,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
-                                                         m_item.ItemID, UUID.Random().ToString(), act);
+                                                         m_item.ItemID, act);
 
             ScriptSleep(m_sleepMsOnRequestInventoryData);
             return tid.ToString();
@@ -13025,13 +13020,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ScriptSleep(m_sleepMsOnRequestSimulatorData);
                             return UUID.Zero.ToString(); // Raise no event
                     }
-                    string lrq = UUID.Random().ToString();
-                    UUID ltid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
-
-                    m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, lreply);
-
+                    string ltid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
+                                                                        m_item.ItemID, lreply);
                     ScriptSleep(m_sleepMsOnRequestSimulatorData);
-                    return ltid.ToString();
+                    return ltid;
                 }
 
                 Action<string> act = eventID =>
@@ -13087,7 +13079,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 };
 
                 UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(
-                    m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
+                    m_host.LocalId, m_item.ItemID, act);
 
                 ScriptSleep(m_sleepMsOnRequestSimulatorData);
                 return tid.ToString();
@@ -15069,7 +15061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLines(assetID).ToString());
              };
 
-            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnGetNumberOfNotecardLines);
             return tid.ToString();
         }
@@ -15117,7 +15109,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                    eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
             };
 
-            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnGetNotecardLine);
             return tid.ToString();
         }
@@ -15250,10 +15242,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (lpresence != null)
             {
                 string lname = lpresence.Name;
-                string lrq = UUID.Random().ToString();
-                UUID ltis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
-                m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, Name2Username(lname));
-                return ltis.ToString();
+                string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
+                                                    m_item.ItemID, Name2Username(lname));
+                return ftid;
             }
 
             Action<string> act = eventID =>
@@ -15279,7 +15270,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, Name2Username(name));
             };
 
-            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return rq.ToString();
         }
 
@@ -15307,10 +15298,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (lpresence != null)
             {
                 string lname = lpresence.Name;
-                string lrq = UUID.Random().ToString();
-                UUID ltis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
-                m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, lname);
-                return ltis.ToString();
+                string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
+                                                                   m_item.ItemID, lname);
+                return ftid;
             }
 
             Action<string> act = eventID =>
@@ -15336,15 +15326,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, name);
             };
 
-            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return rq.ToString();
         }
-/*
-        private void SayShoutTimerElapsed(Object sender, ElapsedEventArgs args)
-        {
-            m_SayShoutCount = 0;
-        }
-*/
+
         private struct Tri
         {
             public Vector3 p1;
