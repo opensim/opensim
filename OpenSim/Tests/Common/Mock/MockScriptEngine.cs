@@ -273,5 +273,10 @@ namespace OpenSim.Tests.Common
         public void SleepScript(UUID itemID, int delay)
         {
         }
+
+        public Dictionary<uint, int> GetObjectScriptsBytesUsed()
+        {
+            return new Dictionary<uint, int>();
+        }
     }
 }

@@ -3485,29 +3485,83 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
         {
-            LandStatReplyPacket lsrp = new LandStatReplyPacket();
-            // LandStatReplyPacket.RequestDataBlock lsreqdpb = new LandStatReplyPacket.RequestDataBlock();
-            LandStatReplyPacket.ReportDataBlock[] lsrepdba = new LandStatReplyPacket.ReportDataBlock[lsrpia.Length];
-            //LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
-            // lsrepdb.
-            lsrp.RequestData.ReportType = reportType;
-            lsrp.RequestData.RequestFlags = requestFlags;
-            lsrp.RequestData.TotalObjectCount = resultCount;
-            for (int i = 0; i < lsrpia.Length; i++)
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
             {
-                LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
-                lsrepdb.LocationX = lsrpia[i].LocationX;
-                lsrepdb.LocationY = lsrpia[i].LocationY;
-                lsrepdb.LocationZ = lsrpia[i].LocationZ;
-                lsrepdb.Score = lsrpia[i].Score;
-                lsrepdb.TaskID = lsrpia[i].TaskID;
-                lsrepdb.TaskLocalID = lsrpia[i].TaskLocalID;
-                lsrepdb.TaskName = Util.StringToBytes256(lsrpia[i].TaskName);
-                lsrepdb.OwnerName = Util.StringToBytes256(lsrpia[i].OwnerName);
-                lsrepdba[i] = lsrepdb;
+                LandStatReplyPacket lsrp = new LandStatReplyPacket();
+                // LandStatReplyPacket.RequestDataBlock lsreqdpb = new LandStatReplyPacket.RequestDataBlock();
+                LandStatReplyPacket.ReportDataBlock[] lsrepdba = new LandStatReplyPacket.ReportDataBlock[lsrpia.Length];
+                //LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
+                // lsrepdb.
+                lsrp.RequestData.ReportType = reportType;
+                lsrp.RequestData.RequestFlags = requestFlags;
+                lsrp.RequestData.TotalObjectCount = resultCount;
+                for (int i = 0; i < lsrpia.Length; i++)
+                {
+                    LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
+                    lsrepdb.LocationX = lsrpia[i].LocationX;
+                    lsrepdb.LocationY = lsrpia[i].LocationY;
+                    lsrepdb.LocationZ = lsrpia[i].LocationZ;
+                    lsrepdb.Score = lsrpia[i].Score;
+                    lsrepdb.TaskID = lsrpia[i].TaskID;
+                    lsrepdb.TaskLocalID = lsrpia[i].TaskLocalID;
+                    lsrepdb.TaskName = Util.StringToBytes256(lsrpia[i].TaskName);
+                    lsrepdb.OwnerName = Util.StringToBytes256(lsrpia[i].OwnerName);
+                    lsrepdba[i] = lsrepdb;
+                }
+                lsrp.ReportData = lsrepdba;
+                OutPacket(lsrp, ThrottleOutPacketType.Task);
             }
-            lsrp.ReportData = lsrepdba;
-            OutPacket(lsrp, ThrottleOutPacketType.Task);
+            else
+            {
+                StringBuilder sb = eq.StartEvent("LandStatReply");
+
+                LLSDxmlEncode.AddArrayAndMap("RequestData", sb);
+                LLSDxmlEncode.AddElem("ReportType", reportType, sb);
+                LLSDxmlEncode.AddElem("RequestFlags", requestFlags, sb);
+                LLSDxmlEncode.AddElem("TotalObjectCount", (uint)lsrpia.Length, sb);
+                LLSDxmlEncode.AddEndMapAndArray(sb);
+
+                if (lsrpia.Length > 0)
+                {
+                    LLSDxmlEncode.AddArray("ReportData", sb);
+
+                    foreach (var item in lsrpia)
+                    {
+                        LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("LocationX", item.LocationX, sb);
+                        LLSDxmlEncode.AddElem("LocationY", item.LocationY, sb);
+                        LLSDxmlEncode.AddElem("LocationZ", item.LocationZ, sb);
+                        LLSDxmlEncode.AddElem("OwnerName", item.OwnerName, sb);
+                        LLSDxmlEncode.AddElem("Score", item.Score, sb);
+                        LLSDxmlEncode.AddElem("TaskID", item.TaskID, sb);
+                        LLSDxmlEncode.AddElem("TaskLocalID", item.TaskLocalID, sb);
+                        LLSDxmlEncode.AddElem("TaskName", item.TaskName, sb);
+                        LLSDxmlEncode.AddEndMap(sb);
+                    }
+
+                    LLSDxmlEncode.AddEndArray(sb);
+
+                    LLSDxmlEncode.AddArray("DataExtended", sb);
+
+                    foreach (var item in lsrpia)
+                    {
+                        LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("MonoScore", 0.0f, sb);
+                        LLSDxmlEncode.AddElem("OwnerID", item.OwnerID, sb);
+                        LLSDxmlEncode.AddElem("ParcelName", item.Parcel, sb);
+                        LLSDxmlEncode.AddElem("PublicURLs", item.Urls, sb);
+                        LLSDxmlEncode.AddElem("Size", (float)item.Bytes, sb);
+                        LLSDxmlEncode.AddElem("TimeStamp", item.Time, sb);
+                        LLSDxmlEncode.AddEndMap(sb);
+                    }
+
+                    LLSDxmlEncode.AddEndArray(sb);
+                }
+
+                OSD ev = new OSDllsdxml(eq.EndEvent(sb));
+                eq.Enqueue(ev, AgentId);
+            }
         }
 
         public void SendScriptRunningReply(UUID objectID, UUID itemID, bool running)

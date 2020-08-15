@@ -111,5 +111,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// and the value is a representative execution time in milliseconds of all scripts in that linkset.
         /// </returns>
         Dictionary<uint, float> GetObjectScriptsExecutionTimes();
+
+        /// <summary>
+        /// Get the used memory of all scripts in each object.
+        /// </summary>
+        /// <returns>
+        /// A dictionary where the key is the root object ID of a linkset
+        /// and the value is a amount of bytes being used by the script
+        /// </returns>
+        Dictionary<uint, int> GetObjectScriptsBytesUsed();
     }
 }

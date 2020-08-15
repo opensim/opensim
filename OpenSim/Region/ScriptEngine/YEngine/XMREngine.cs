@@ -1875,6 +1875,27 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         /**
+         * @brief Return a list of all script used bytes
+         */
+        public Dictionary<uint, int> GetObjectScriptsBytesUsed()
+        {
+            Dictionary<uint, int> topScripts = new Dictionary<uint, int>();
+            lock (m_InstancesDict)
+            {
+                foreach (XMRInstance instance in m_InstancesDict.Values)
+                {
+                    uint rootLocalID = instance.m_Part.ParentGroup.LocalId;
+                    int oldTotal;
+                    if (!topScripts.TryGetValue(rootLocalID, out oldTotal))
+                        oldTotal = 0;
+
+                    topScripts[rootLocalID] = instance.xmrHeapUsed() + oldTotal;
+                }
+            }
+            return topScripts;
+        }
+
+        /**
          * @brief A float the value is a representative execution time in
          *        milliseconds of all scripts in the link set.
          * @param itemIDs = list of scripts in the link set

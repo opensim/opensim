@@ -771,5 +771,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             ScriptRemoved(itemID);
         }
+
+        public Dictionary<UUID, int> GetUrlCountForHosts()
+        {
+            Dictionary<UUID, int> dict = new Dictionary<UUID, int>();
+            foreach(var data in m_UrlMap)
+            {
+                int count = 0;
+                if(dict.ContainsKey(data.Value.hostID))
+                {
+                    count = dict[data.Value.hostID];
+                }
+                count++;
+                dict[data.Value.hostID] = count;
+            }
+            return dict;
+        }
     }
 }

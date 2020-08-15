@@ -1419,6 +1419,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 return;
 
             Dictionary<uint, float> sceneData = null;
+            Dictionary<uint, int> bytesUsed = null;
+            Dictionary<UUID, int> urlsInUse = null;
 
             if (reportType == 1)
             {
@@ -1429,8 +1431,25 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 IScriptModule scriptModule = Scene.RequestModuleInterface<IScriptModule>();
 
                 if (scriptModule != null)
+                {
                     sceneData = scriptModule.GetObjectScriptsExecutionTimes();
+                    bytesUsed = scriptModule.GetObjectScriptsBytesUsed();
+                }
+
+                IUrlModule urlModule = Scene.RequestModuleInterface<IUrlModule>();
+                if(urlModule != null)
+                {
+                    urlsInUse = urlModule.GetUrlCountForHosts();
+                }
             }
+
+            // hack: reformat the name so we don't have to do it on every item
+            if((requestFlags & 0x00000002) != 0)
+            {
+                filter = string.Join(" ", filter.Split(new[] { '.' }, 2));
+            }
+
+            filter = filter.ToLower();
 
             List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
             if (sceneData != null)
@@ -1449,13 +1468,46 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     if (entry.Part == null)
                         continue;
 
+                    int bytes_used = 0;
+                    if (bytesUsed.ContainsKey(entry.Part.LocalId))
+                        bytes_used = bytesUsed[entry.Part.LocalId];
+
+                    int urls_used = 0;
+                    if (urlsInUse.ContainsKey(entry.Part.UUID))
+                        urls_used = urlsInUse[entry.Part.UUID];
+
                     // Don't show scripts that haven't executed or where execution time is below one microsecond in
                     // order to produce a more readable report.
-                    if (entry.Measurement < 0.001)
+                    // Unless they are using URLs or using 1024 bytes or more.
+                    if (entry.Measurement < 0.001 && bytes_used < 1024 && urls_used == 0)
                         continue;
 
-                    items++;
                     SceneObjectGroup so = entry.Part.ParentGroup;
+
+                    ILandObject land = Scene.LandChannel.GetLandObject(entry.Part.AbsolutePosition);
+
+                    string owner_name = UserManager.GetUserName(so.OwnerID);
+                    string task_name = entry.Part.Name;
+                    string parcel_name = land != null ? land.LandData.Name : "unknown";
+
+                    if (filter.Length != 0 && requestFlags != 0)
+                    {
+                        if ((requestFlags & 0x00000002) != 0)
+                        {
+                            if (!owner_name.ToLower().Contains(filter))
+                                continue;
+                        }
+                        else if ((requestFlags & 0x00000004) != 0)
+                        {
+                            if (!task_name.ToLower().Contains(filter))
+                                continue;
+                        }
+                        else if ((requestFlags & 0x00000008) != 0)
+                        {
+                            if (!parcel_name.ToLower().Contains(filter))
+                                continue;
+                        }
+                    }
 
                     LandStatReportItem lsri = new LandStatReportItem()
                     {
@@ -1465,21 +1517,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         Score = entry.Measurement,
                         TaskID = so.UUID,
                         TaskLocalID = so.LocalId,
-                        TaskName = entry.Part.Name,
-                        OwnerName = UserManager.GetUserName(so.OwnerID)
+                        TaskName = task_name,
+                        OwnerName = owner_name,
+                        OwnerID = so.OwnerID,
+                        Bytes = bytes_used,
+                        Urls = urls_used,
+                        Time = Utils.DateTimeToUnixTime(entry.Part.Rezzed),
+                        Parcel = parcel_name
                     };
 
-                    if (filter.Length != 0)
-                    {
-                        if ((lsri.OwnerName.Contains(filter) || lsri.TaskName.Contains(filter)))
-                        {
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-
+                    items++;
                     SceneReport.Add(lsri);
 
                     if (items >= 100)
