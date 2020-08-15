@@ -234,8 +234,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llKey2Name(LSL_Key id);
         LSL_String llGetUsername(LSL_Key id);
         LSL_String llRequestUsername(LSL_Key id);
-        LSL_String llGetDisplayName(string id);
-           LSL_Key llRequestDisplayName(string id);
+        LSL_String llGetDisplayName(LSL_Key id);
+        LSL_String llRequestDisplayName(LSL_Key id);
               void llLinkParticleSystem(int linknum, LSL_List rules);
               void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot);
         LSL_String llList2CSV(LSL_List src);

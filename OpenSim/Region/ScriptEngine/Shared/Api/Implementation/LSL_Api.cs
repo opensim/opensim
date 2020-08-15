@@ -15300,19 +15300,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return rq.ToString();
         }
 
-        public LSL_String llGetDisplayName(string id)
+        public LSL_String llGetDisplayName(LSL_Key id)
         {
-            return llKey2Name(id);
+            m_host.AddScriptLPS(1);
+            if (UUID.TryParse(id, out UUID key) && key != UUID.Zero)
+            {
+                ScenePresence presence = World.GetScenePresence(key);
+                if (presence != null)
+                {
+                    return presence.Name;
+                }
+            }
+            return String.Empty;
         }
 
-        public LSL_Key llRequestDisplayName(string id)
+        public LSL_String llRequestDisplayName(LSL_Key id)
         {
-            UUID rq = UUID.Random();
+            m_host.AddScriptLPS(1);
+            if (!UUID.TryParse(id, out UUID key) || key == UUID.Zero)
+                return string.Empty;
 
-            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
+            ScenePresence lpresence = World.GetScenePresence(key);
+            if (lpresence != null)
+            {
+                string lname = lpresence.Name;
+                string lrq = UUID.Random().ToString();
+                UUID ltis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
+                m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, lname);
+                return ltis.ToString();
+            }
 
-            m_AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
+            Action<string> act = eventID =>
+            {
+                string name = String.Empty;
+                ScenePresence presence = World.GetScenePresence(key);
+                if (presence != null)
+                {
+                    name = presence.Name;
+                }
+                else if (World.TryGetSceneObjectPart(key, out SceneObjectPart sop) && sop != null)
+                {
+                    name = sop.Name;
+                }
+                else
+                {
+                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+                    if (account != null)
+                    {
+                        name = account.FirstName + " " + account.LastName;
+                    }
+                }
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, name);
+            };
 
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
             return rq.ToString();
         }
 /*
