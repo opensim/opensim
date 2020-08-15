@@ -15257,14 +15257,46 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Name2Username(llKey2Name(id));
         }
 
-        public LSL_Key llRequestUsername(string id)
+        public LSL_String llRequestUsername(LSL_Key id)
         {
-            UUID rq = UUID.Random();
+            m_host.AddScriptLPS(1);
+            if (!UUID.TryParse(id, out UUID key))
+                return string.Empty;
 
-            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, rq.ToString());
+            ScenePresence lpresence = World.GetScenePresence(key);
+            if (lpresence != null)
+            {
+                string lname = lpresence.Name;
+                string lrq = UUID.Random().ToString();
+                UUID ltis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, lrq);
+                m_AsyncCommands.DataserverPlugin.DataserverReply(lrq, Name2Username(lname));
+                return ltis.ToString();
+            }
 
-            m_AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
+            Action<string> act = eventID =>
+            {
+                string name = String.Empty;
+                ScenePresence presence = World.GetScenePresence(key);
+                if (presence != null)
+                {
+                    name = presence.Name;
+                }
+                else if (World.TryGetSceneObjectPart(key, out SceneObjectPart sop ) && sop != null)
+                {
+                    name = sop.Name;
+                }
+                else
+                {
+                    UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+                    if(account != null)
+                    {
+                        name = account.FirstName + " " + account.LastName;
+                    }
+                }
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, Name2Username(name));
+            };
 
+            UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, UUID.Random().ToString(), act);
             return rq.ToString();
         }
 

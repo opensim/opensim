@@ -233,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llIntegerToBase64(int number);
         LSL_String llKey2Name(LSL_Key id);
         LSL_String llGetUsername(LSL_Key id);
-           LSL_Key llRequestUsername(string id);
+        LSL_String llRequestUsername(LSL_Key id);
         LSL_String llGetDisplayName(string id);
            LSL_Key llRequestDisplayName(string id);
               void llLinkParticleSystem(int linknum, LSL_List rules);
