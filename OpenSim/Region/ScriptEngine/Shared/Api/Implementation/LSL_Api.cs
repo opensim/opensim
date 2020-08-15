@@ -15260,7 +15260,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llRequestUsername(LSL_Key id)
         {
             m_host.AddScriptLPS(1);
-            if (!UUID.TryParse(id, out UUID key))
+            if (!UUID.TryParse(id, out UUID key) || key == UUID.Zero)
                 return string.Empty;
 
             ScenePresence lpresence = World.GetScenePresence(key);
