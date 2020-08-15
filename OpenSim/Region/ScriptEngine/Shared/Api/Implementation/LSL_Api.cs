@@ -3993,28 +3993,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            //Restrict email destination to the avatars registered email address?
-            //The restriction only applies if the destination address is not local.
-            if (m_restrictEmail == true && address.Contains(m_internalObjectHost) == false)
+            // this is a fire and forget no event is sent to script
+            Action<string> act = eventID =>
             {
-                UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, m_host.OwnerID);
-
-                if (account == null)
+                //Restrict email destination to the avatars registered email address?
+                //The restriction only applies if the destination address is not local.
+                if (m_restrictEmail == true && address.Contains(m_internalObjectHost) == false)
                 {
-                    Error("llEmail", "Can't find user account for '" + m_host.OwnerID.ToString() + "'");
-                    return;
+                    UserAccount account = m_userAccountService.GetUserAccount(RegionScopeID, m_host.OwnerID);
+                    if (account == null)
+                        return;
+
+                    if (String.IsNullOrEmpty(account.Email))
+                        return;
+                    address = account.Email;
                 }
 
-                if (String.IsNullOrEmpty(account.Email))
-                {
-                    Error("llEmail", "User account has not registered an email address.");
-                    return;
-                }
+                m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+                // no dataserver event
+            };
 
-                address = account.Email;
-            }
-
-            m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+            UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
+                                                     m_item.ItemID, UUID.Random().ToString(), act);
             ScriptSleep(m_sleepMsOnEmail);
         }
 
