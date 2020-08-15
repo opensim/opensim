@@ -4008,7 +4008,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // no dataserver event
             };
 
-            UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
+            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnEmail);
         }
@@ -4097,7 +4097,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_emailModule.SendEmail(m_host.UUID, address, subject, message);
             };
 
-            UUID dummytis = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
+            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
                                                      m_item.ItemID, act);
             ScriptSleep(m_sleepMsOnEmail);
         }
