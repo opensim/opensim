@@ -3468,39 +3468,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount)
         {
-            Util.FireAndForget(x =>
+            m_host.AddScriptLPS(1);
+
+            if (m_item.PermsGranter == UUID.Zero)
+                return 0;
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
             {
-                m_host.AddScriptLPS(1);
+                Error("llGiveMoney", "No permissions to give money");
+                return 0;
+            }
 
-                if (m_item.PermsGranter == UUID.Zero)
-                    return;
+            UUID toID = new UUID();
 
-                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_DEBIT) == 0)
-                {
-                    Error("llGiveMoney", "No permissions to give money");
-                    return;
-                }
+            if (!UUID.TryParse(destination, out toID))
+            {
+                Error("llGiveMoney", "Bad key in llGiveMoney");
+                return 0;
+            }
 
-                UUID toID = new UUID();
+            IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
+            if (money == null)
+            {
+                NotImplemented("llGiveMoney");
+                return 0;
+            }
 
-                if (!UUID.TryParse(destination, out toID))
-                {
-                    Error("llGiveMoney", "Bad key in llGiveMoney");
-                    return;
-                }
-
-                IMoneyModule money = World.RequestModuleInterface<IMoneyModule>();
-
-                if (money == null)
-                {
-                    NotImplemented("llGiveMoney");
-                    return;
-                }
-
+            Action<string> act = dontcare =>
+            {
                 money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID,
                                         toID, amount,UUID.Zero, out string reason);
-            }, null, "LSL_Api.llGiveMoney");
+            };
 
+            m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
             return 0;
         }
 
