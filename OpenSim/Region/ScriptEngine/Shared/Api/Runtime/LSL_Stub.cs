@@ -1336,6 +1336,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRemoveVehicleFlags(flags);
         }
 
+        public LSL_Key llRequestUserKey(LSL_String username)
+        {
+            return m_LSL_Functions.llRequestUserKey(username);
+        }
+
         public LSL_Key llRequestAgentData(string id, int data)
         {
             return m_LSL_Functions.llRequestAgentData(id, data);

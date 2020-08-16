@@ -308,6 +308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llRemoveFromLandPassList(string avatar);
               void llRemoveInventory(string item);
               void llRemoveVehicleFlags(int flags);
+           LSL_Key llRequestUserKey(LSL_String username);
            LSL_Key llRequestAgentData(string id, int data);
            LSL_Key llRequestInventoryData(LSL_String name);
               void llRequestPermissions(string agent, int perm);

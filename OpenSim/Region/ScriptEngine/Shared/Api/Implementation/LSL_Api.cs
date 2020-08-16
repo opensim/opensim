@@ -6855,7 +6855,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence != null)
                 {
-                    return presence.ControllingClient.Name;
+                    return presence.Name;
                     //return presence.Name;
                 }
 
@@ -6874,20 +6874,117 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(string.IsNullOrWhiteSpace(name))
                 return ScriptBaseClass.NULL_KEY;
 
+            int nc = Util.ParseAvatarName(name, out string firstName, out string lastName, out string server);
+            if (nc < 2)
+                return ScriptBaseClass.NULL_KEY;
+
+            string sname;
+            if (nc == 2)
+                sname = firstName + " " + lastName;
+            else
+                sname = firstName + "." + lastName + " @" + server;
+
             foreach (ScenePresence sp in World.GetScenePresences())
             {
                 if (sp.IsDeleted || sp.IsChildAgent)
                     continue;
-
-                string test = sp.ControllingClient.Name;
-                if (!name.Contains(" "))
-                    test = test.Replace(" ", ".");
-
-                if (String.Compare(name, test, true) == 0)
+                if (String.Compare(sname, sp.Name, true) == 0)
                     return sp.UUID.ToString();
             }
 
             return ScriptBaseClass.NULL_KEY;
+        }
+
+        public LSL_Key llRequestUserKey(LSL_String username)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (string.IsNullOrWhiteSpace(username))
+                return ScriptBaseClass.NULL_KEY;
+
+            int nc = Util.ParseAvatarName(username, out string firstName, out string lastName, out string server);
+            if (nc < 2)
+                return ScriptBaseClass.NULL_KEY;
+
+            string sname;
+            if (nc == 2)
+                sname = firstName + " " + lastName;
+            else
+                sname = firstName + "." + lastName + " @" + server;
+
+            foreach (ScenePresence sp in World.GetScenePresences())
+            {
+                if (sp.IsDeleted || sp.IsChildAgent)
+                    continue;
+                if (String.Compare(sname, sp.Name, true) == 0)
+                {
+                    string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId,
+                                                        m_item.ItemID, sp.UUID.ToString());
+                    return ftid;
+                }
+            }
+
+            Action<string> act = eventID =>
+            {
+                string reply = ScriptBaseClass.NULL_KEY;
+                UUID userID = UUID.Zero;
+                IUserManagement userManager = World.RequestModuleInterface<IUserManagement>();
+                if (nc == 2)
+                {
+                    if (userManager != null)
+                    {
+                        userID = userManager.GetUserIdByName(firstName, lastName);
+                        if (userID != UUID.Zero)
+                            reply = userID.ToString();
+                    }
+                }
+                else
+                {
+                    string url = "http://" + server;
+                    if (Uri.TryCreate(url, UriKind.Absolute, out Uri dummy))
+                    {
+                        bool notfound = true;
+                        if (userManager != null)
+                        {
+                            string hgfirst = firstName + "." + lastName;
+                            string hglast = "@" + server;
+                            userID = userManager.GetUserIdByName(hgfirst, hglast);
+                            if (userID != UUID.Zero)
+                            {
+                                notfound = false;
+                                reply = userID.ToString();
+                            }
+                        }
+
+                        if(notfound)
+                        {
+                            try
+                            {
+                                UserAgentServiceConnector userConnection = new UserAgentServiceConnector(url);
+                                if (userConnection != null)
+                                {
+                                    userID = userConnection.GetUUID(firstName, lastName);
+                                    if (userID != UUID.Zero)
+                                    {
+                                        if (userManager != null)
+                                            userManager.AddUser(userID, firstName, lastName, url);
+                                        reply = userID.ToString();
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                reply = ScriptBaseClass.NULL_KEY;
+                            }
+                        }
+                    }
+                }
+                m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, reply);
+            };
+
+            UUID tid = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            ScriptSleep(m_sleepMsOnRequestAgentData);
+            return tid.ToString();
         }
 
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
@@ -15268,6 +15365,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             UUID rq = m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId, m_item.ItemID, act);
+            ScriptSleep(m_sleepMsOnRequestAgentData);
             return rq.ToString();
         }
 

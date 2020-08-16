@@ -3339,7 +3339,7 @@ namespace OpenSim.Framework
                 return p.WorkingSet64;
         }
 
-        // returns a timestamp in ms as double
+        // returns a timestamp in seconds as double
         // using the time resolution avaiable to StopWatch
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStamp()
@@ -3347,6 +3347,7 @@ namespace OpenSim.Framework
             return Stopwatch.GetTimestamp() * TimeStampClockPeriod;
         }
 
+        // returns a timestamp in ms as double
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStampMS()
         {
@@ -3627,14 +3628,97 @@ namespace OpenSim.Framework
             if (!lastname.Contains("@"))
                 return false;
 
-            if (!firstname.Contains("."))
+            string[] parts = firstname.Split('.');
+            if(parts.Length != 2)
                 return false;
 
-            realFirstName = firstname.Split('.')[0];
-            realLastName = firstname.Split('.')[1];
+            realFirstName = parts[0].Trim();
+            realLastName = parts[1].Trim();
+            lastname = lastname.Trim();
             serverURI = new Uri("http://" + lastname.Replace("@", "")).ToString();
 
             return true;
+        }
+
+        public static int ParseAvatarName(string name, out string FirstName, out string LastName, out string serverURI)
+        {
+            FirstName = LastName = serverURI = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(name) || name.Length < 1)
+                return 0;
+
+            int i = 0;
+            bool havedot = false;
+
+            while (i < name.Length && name[i] == ' ') ++i;
+            int start = i;
+
+            while (i < name.Length)
+            {
+                char c = name[i];
+                if (c == '@')
+                    return 0;
+
+                if (c == ' ')
+                {
+                    if (i >= name.Length - 1 || i == start)
+                        return 0;
+                    break;
+                }
+                if (c == '.')
+                {
+                    if (i >= name.Length - 1 || i == start)
+                        return 0;
+                    havedot = true;
+                    break;
+                }
+                ++i;
+            }
+
+            FirstName = name.Substring(start, i - start);
+
+            if (i >= name.Length - 1)
+                return 1;
+
+            ++i;
+            while (i < name.Length && name[i] == ' ') ++i;
+            if (i == name.Length)
+                return 1;
+
+            start = i;
+            while (i < name.Length)
+            {
+                char c = name[i];
+                if (c == '.')
+                {
+                    if (havedot || i >= name.Length - 1)
+                        return 0;
+                    else start = i + 1;
+                }
+                else if (c == '@')
+                {
+                    if(i >= name.Length - 1)
+                        return 0;
+
+                    int j = i;
+                    while (j > start && name[j - 1] == ' ') --j;
+                    if (j <= start)
+                        return 0;
+
+                    LastName = name.Substring(start, j - start);
+
+                    ++i;
+                    while (i < name.Length && name[i] == ' ') ++i;
+                    if (i > name.Length - 3)
+                        return 0;
+
+                    serverURI = name.Substring(i).TrimEnd();
+                    return serverURI.Length == 0 ? 2 : 3;
+                }
+                ++i;
+            }
+            LastName = name.Substring(start).TrimEnd();
+            return LastName.Length == 0 ? 1 : 2;
         }
 
         /// <summary>
