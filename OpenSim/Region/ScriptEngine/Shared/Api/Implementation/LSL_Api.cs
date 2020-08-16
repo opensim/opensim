@@ -25,6 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
+using OpenMetaverse.Assets;
+using OpenMetaverse.Packets;
+using OpenMetaverse.Rendering;
+using OpenSim.Framework;
+using OpenSim.Region.CoreModules.World.Land;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Animation;
+using OpenSim.Region.Framework.Scenes.Scripting;
+using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.PhysicsModules.SharedBase;
+using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Hypergrid;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,42 +51,13 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
-using System.Threading;
 using System.Text.RegularExpressions;
-using Nini.Config;
-using log4net;
-using OpenMetaverse;
-using OpenMetaverse.Assets;
-using OpenMetaverse.StructuredData; // LitJson is hidden on this
-using OpenMetaverse.Packets;
-using OpenMetaverse.Rendering;
-using OpenSim;
-using OpenSim.Framework;
-
-using OpenSim.Region.CoreModules;
-using OpenSim.Region.CoreModules.World.Land;
-using OpenSim.Region.CoreModules.World.Terrain;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Serialization;
-using OpenSim.Region.Framework.Scenes.Animation;
-using OpenSim.Region.Framework.Scenes.Scripting;
-using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Interfaces;
-using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
-using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
-using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
+using System.Threading;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
-using RegionFlags = OpenSim.Framework.RegionFlags;
-using RegionInfo = OpenSim.Framework.RegionInfo;
-
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
@@ -75,8 +65,11 @@ using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
-using System.Reflection;
 using PermissionMask = OpenSim.Framework.PermissionMask;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
+using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
+using RegionFlags = OpenSim.Framework.RegionFlags;
+using RegionInfo = OpenSim.Framework.RegionInfo;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
