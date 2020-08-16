@@ -737,7 +737,7 @@
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
     ; OfflineMessageURL = ${Const|BaseURL}/Offline.php
-    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivatePort}
+    ; OfflineMessageURL = ${Const|PrivURL}:${Const|PrivatePort}
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
     ;; For standalones, this is the storage dll.
@@ -1116,7 +1116,7 @@
     ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
-    ;; or ${Const|BaseURL}:${Const|PrivatePort} for robust, V2
+    ;; or ${Const|PrivURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
@@ -1222,7 +1222,7 @@
   ;# {URL} {} {Set URL for Baked texture service} {}
   ;; Sets the URL for the baked texture ROBUST service.
   ;; Disabled when unset.
-  ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
+  ;; URL = ${Const|PrivURL}:${Const|PrivatePort}
 
 ;;
 ;; Optional module to highlight God names in the viewer.
