@@ -1571,8 +1571,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             req.agent = avatarID;
             req.reqtype = 0;
 
-            m_asyncRequests.Enqueue(req);
-            if(Monitor.TryEnter(m_asyncRequestsLock))
+            //m_asyncRequests.Enqueue(req);
+            m_asyncRequests.Push(req);
+            if (Monitor.TryEnter(m_asyncRequestsLock))
             {
                 if (!m_asyncRequestsRunning)
                 {
