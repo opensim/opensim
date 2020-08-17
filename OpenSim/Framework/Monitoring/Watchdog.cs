@@ -154,7 +154,7 @@ namespace OpenSim.Framework.Monitoring
                 {
                     // Set now so we don't get alerted on the first run
                     LastWatchdogThreadTick = Environment.TickCount & Int32.MaxValue;
-                    m_watchdogTimer.Change(DEFAULT_WATCHDOG_TIMEOUT_MS, Timeout.Infinite);
+                    m_watchdogTimer.Change(WATCHDOG_INTERVAL_MS, Timeout.Infinite);
                 }
             }
         }
@@ -411,7 +411,7 @@ namespace OpenSim.Framework.Monitoring
             ChecksManager.CheckChecks();
             StatsManager.RecordStats();
 
-            m_watchdogTimer.Change(DEFAULT_WATCHDOG_TIMEOUT_MS, Timeout.Infinite);
+            m_watchdogTimer.Change(WATCHDOG_INTERVAL_MS, Timeout.Infinite);
         }
     }
 }
