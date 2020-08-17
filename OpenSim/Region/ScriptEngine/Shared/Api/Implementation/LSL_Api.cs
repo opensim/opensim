@@ -15171,14 +15171,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 // => complain loudly, as specified by the LSL docs
                 Error("llGetNotecardLine", "Can't find notecard '" + name + "'");
-
                 return ScriptBaseClass.NULL_KEY;
             }
 
             if (NotecardCache.IsCached(assetID))
             {
-                return m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId, m_item.ItemID,
+                string eid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId, m_item.ItemID,
                     NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+
+                ScriptSleep(m_sleepMsOnGetNotecardLine);
+                return eid;
             }
 
             Action<string> act = eventID =>
