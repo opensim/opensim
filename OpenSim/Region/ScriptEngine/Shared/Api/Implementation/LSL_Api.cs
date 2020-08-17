@@ -15175,15 +15175,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.NULL_KEY;
             }
 
+            if (NotecardCache.IsCached(assetID))
+            {
+                return m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId, m_item.ItemID,
+                    NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+            }
+
             Action<string> act = eventID =>
             {
-                if (NotecardCache.IsCached(assetID))
-                {
-                    m_AsyncCommands.DataserverPlugin.DataserverReply(
-                        eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
-                    return;
-                }
-
                 AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a == null || a.Type != 7)
                 {
