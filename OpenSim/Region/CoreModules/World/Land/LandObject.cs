@@ -1914,13 +1914,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void SetMusicUrl(string url)
         {
             if (String.IsNullOrWhiteSpace(url))
-                LandData.MediaURL = String.Empty;
+                LandData.MusicURL =  String.Empty;
             else
             {
                 try
                 {
                     Uri dummmy = new Uri(url, UriKind.Absolute);
-                    LandData.MediaURL = url;
+                    LandData.MusicURL = url;
                 }
                 catch (Exception e)
                 {
