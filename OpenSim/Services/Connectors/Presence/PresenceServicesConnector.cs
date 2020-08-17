@@ -43,9 +43,7 @@ namespace OpenSim.Services.Connectors
 {
     public class PresenceServicesConnector : BaseServiceConnector, IPresenceService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
 
