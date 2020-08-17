@@ -18588,51 +18588,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
     public class NotecardCache
     {
-        protected class Notecard
-        {
-            public string[] text;
-            public DateTime lastRef;
-        }
-
-        private static Dictionary<UUID, Notecard> m_Notecards =
-            new Dictionary<UUID, Notecard>();
+        private static ExpiringCacheOS<UUID, string[]> m_Notecards = new ExpiringCacheOS<UUID, string[]>(30000);
 
         public static void Cache(UUID assetID, byte[] text)
         {
-            CheckCache();
+            if (m_Notecards.ContainsKey(assetID))
+                return;
 
-            lock (m_Notecards)
-            {
-                if (m_Notecards.ContainsKey(assetID))
-                    return;
-
-                Notecard nc = new Notecard
-                {
-                    lastRef = DateTime.Now,
-                    text = SLUtil.ParseNotecardToArray(text)
-                };
-                m_Notecards[assetID] = nc;
-            }
+            m_Notecards.AddOrUpdate(assetID, SLUtil.ParseNotecardToArray(text), 30);
         }
 
         public static bool IsCached(UUID assetID)
         {
-            lock (m_Notecards)
-            {
-                return m_Notecards.ContainsKey(assetID);
-            }
+            return m_Notecards.ContainsKey(assetID);
         }
 
         public static int GetLines(UUID assetID)
         {
-            if (!IsCached(assetID))
-                return -1;
-
-            lock (m_Notecards)
-            {
-                m_Notecards[assetID].lastRef = DateTime.Now;
-                return m_Notecards[assetID].text.Length;
-            }
+            if (m_Notecards.TryGetValue(assetID, 0, out string[] text))
+                return text.Length;
+            return -1;
         }
 
         /// <summary>
@@ -18643,25 +18618,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns></returns>
         public static string GetLine(UUID assetID, int lineNumber)
         {
-            if (lineNumber < 0)
-                return "";
-
-            string data;
-
-            if (!IsCached(assetID))
-                return "";
-
-            lock (m_Notecards)
+            if (lineNumber >= 0 && m_Notecards.TryGetValue(assetID, 0, out string[] text))
             {
-                m_Notecards[assetID].lastRef = DateTime.Now;
-
-                if (lineNumber >= m_Notecards[assetID].text.Length)
+                if (lineNumber >= text.Length)
                     return "\n\n\n";
-
-                data = m_Notecards[assetID].text[lineNumber];
-
-                return data;
+                return text[lineNumber];
             }
+            return "";
         }
 
         /// <summary>
@@ -18681,23 +18644,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string line = GetLine(assetID, lineNumber);
 
             if (line.Length > maxLength)
-                line = line.Substring(0, maxLength);
+                return line.Substring(0, maxLength);
 
             return line;
         }
-
-        public static void CheckCache()
-        {
-            lock (m_Notecards)
-            {
-                foreach (UUID key in new List<UUID>(m_Notecards.Keys))
-                {
-                    Notecard nc = m_Notecards[key];
-                    if (nc.lastRef.AddSeconds(30) < DateTime.Now)
-                        m_Notecards.Remove(key);
-                }
-            }
-        }
-
     }
 }
