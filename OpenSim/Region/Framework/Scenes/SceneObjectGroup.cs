@@ -1038,7 +1038,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(Scene.PositionIsInCurrentRegion(targetPosition))
             {
-                if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 1.0)) 
+                if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 1000)) 
                 {
                     inTransit = false;
                     return -2;
@@ -1085,7 +1085,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return 1;
             }
 
-            if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 20.0)) 
+            if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 20000)) 
             {
                 inTransit = false;
                 return -1;

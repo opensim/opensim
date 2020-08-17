@@ -756,7 +756,7 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_minReprioritizationDistance = 32f;
         public bool ObjectsCullingByDistance = false;
 
-        private ExpiringCache<UUID, UUID> TeleportTargetsCoolDown = new ExpiringCache<UUID, UUID>();
+        private ExpiringCacheOS<UUID, UUID> TeleportTargetsCoolDown = new ExpiringCacheOS<UUID, UUID>();
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -6384,20 +6384,11 @@ Environment.Exit(1);
             m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
         }
 
-        public bool InTeleportTargetsCoolDown(UUID sourceID, UUID targetID, double timeout)
+        public bool InTeleportTargetsCoolDown(UUID sourceID, UUID targetID, int timeout)
         {
-            lock(TeleportTargetsCoolDown)
-            {
-                UUID lastSource = UUID.Zero;
-                TeleportTargetsCoolDown.TryGetValue(targetID, out lastSource);
-                if(lastSource == UUID.Zero)
-                {
-                    TeleportTargetsCoolDown.Add(targetID, sourceID, timeout);
-                    return false;
-                }
-                TeleportTargetsCoolDown.AddOrUpdate(targetID, sourceID, timeout);
+            if(TeleportTargetsCoolDown.TryGetValue(targetID, timeout, out UUID lastSource))
                 return lastSource == sourceID;
-            }
+            return false;
         }
     }
 }
