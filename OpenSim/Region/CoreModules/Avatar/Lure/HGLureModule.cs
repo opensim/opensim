@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         private string m_ThisGridURL;
 
-        private ExpiringCache<UUID, GridInstantMessage> m_PendingLures = new ExpiringCache<UUID, GridInstantMessage>();
+        private readonly ExpiringCacheOS<UUID, GridInstantMessage> m_PendingLures = new ExpiringCacheOS<UUID, GridInstantMessage>(3600000);
 
         public void Initialise(IConfigSource config)
         {
@@ -107,7 +107,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     scene.EventManager.OnIncomingInstantMessage -= OnIncomingInstantMessage;
                 }
             }
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -167,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 if (!m_PendingLures.Contains(sessionID))
                 {
                     m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", im.imSessionID, im.RegionID, im.message);
-                    m_PendingLures.Add(sessionID, im, 7200); // 2 hours
+                    m_PendingLures.Add(sessionID, im, 7200000); // 2 hours
                 }
 
                 // Forward. We do this, because the IM module explicitly rejects
@@ -200,7 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
 
             m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", m.imSessionID, m.RegionID, m.message);
-            m_PendingLures.Add(sessionID, m, 7200); // 2 hours
+            m_PendingLures.Add(sessionID, m, 7200000); // 2 hours
 
             if (m_TransferModule != null)
             {
@@ -214,10 +213,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             if (!(client.Scene is Scene))
                 return;
 
-//            Scene scene = (Scene)(client.Scene);
-
-            GridInstantMessage im = null;
-            if (m_PendingLures.TryGetValue(lureID, out im))
+            //Scene scene = (Scene)(client.Scene);
+            if (m_PendingLures.TryGetValue(lureID, out GridInstantMessage im))
             {
                 m_PendingLures.Remove(lureID);
                 Lure(client, teleportFlags, im);
@@ -229,8 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         private void Lure(IClientAPI client, uint teleportflags, GridInstantMessage im)
         {
-            Scene scene = (Scene)(client.Scene);
-            GridRegion region = scene.GridService.GetRegionByUUID(scene.RegionInfo.ScopeID, new UUID(im.RegionID));
+            Scene scene = client.Scene as Scene;
+            UUID regionID = new UUID(im.RegionID);
+            GridRegion region = scene.GridService.GetRegionByUUID(scene.RegionInfo.ScopeID, regionID);
             if (region != null)
                 scene.RequestTeleportLocation(client, region.RegionHandle, im.Position + new Vector3(0.5f, 0.5f, 0f), Vector3.UnitX, teleportflags);
             else // we don't have that region here. Check if it's HG
@@ -248,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         string homeURI = scene.GetAgentHomeURI(client.AgentId);
 
                         string message;
-                        GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(im.RegionID), client.AgentId, homeURI, out message);
+                        GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, regionID, client.AgentId, homeURI, out message);
                         if (finalDestination != null)
                         {
                             ScenePresence sp = scene.GetScenePresence(client.AgentId);
