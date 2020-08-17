@@ -361,7 +361,7 @@ namespace OpenSim.Framework
             finally
             {
                 if (gotLock)
-                    m_rwLock.EnterUpgradeableReadLock();
+                    m_rwLock.ExitUpgradeableReadLock();
             }
 
             return success;
