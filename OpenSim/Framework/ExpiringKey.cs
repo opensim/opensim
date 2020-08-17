@@ -259,6 +259,49 @@ namespace OpenSim.Framework
             }
         }
 
+        public bool ContainsKey(Tkey1 key, int expireMS)
+        {
+            bool gotLock = false;
+            try
+            {
+                try { }
+                finally
+                {
+                    m_rwLock.EnterUpgradeableReadLock();
+                    gotLock = true;
+                }
+                if (m_dictionary.ContainsKey(key))
+                {
+                    bool gotWriteLock = false;
+                    try
+                    {
+                        try { }
+                        finally
+                        {
+                            m_rwLock.EnterWriteLock();
+                            gotWriteLock = true;
+                        }
+                        expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                        int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+
+                        m_dictionary[key] = now;
+                        return true;
+                    }
+                    finally
+                    {
+                        if (gotWriteLock)
+                            m_rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                if (gotLock)
+                    m_rwLock.EnterUpgradeableReadLock();
+            }
+        }
+
         public bool TryGetValue(Tkey1 key, out int value)
         {
             bool success;
