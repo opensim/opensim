@@ -15129,12 +15129,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.NULL_KEY;
             }
 
+            if (NotecardCache.IsCached(assetID))
+            {
+                string ftid = m_AsyncCommands.DataserverPlugin.RequestWithImediatePost(m_host.LocalId, m_item.ItemID, NotecardCache.GetLines(assetID).ToString());
+                ScriptSleep(m_sleepMsOnGetNumberOfNotecardLines);
+                return ftid;
+            }
+
             Action<string> act = eventID =>
             {
                 if (NotecardCache.IsCached(assetID))
                 {
-                   m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLines(assetID).ToString());
-                   return;
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLines(assetID).ToString());
+                    return;
                 }
 
                 AssetBase a = World.AssetService.Get(assetID.ToString());
@@ -15185,6 +15192,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Action<string> act = eventID =>
             {
+                if (NotecardCache.IsCached(assetID))
+                {
+                    m_AsyncCommands.DataserverPlugin.DataserverReply(eventID, NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+                    return;
+                }
+
                 AssetBase a = World.AssetService.Get(assetID.ToString());
                 if (a == null || a.Type != 7)
                 {
@@ -18592,7 +18605,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public static void Cache(UUID assetID, byte[] text)
         {
-            if (m_Notecards.ContainsKey(assetID))
+            if (m_Notecards.ContainsKey(assetID, 30000))
                 return;
 
             m_Notecards.AddOrUpdate(assetID, SLUtil.ParseNotecardToArray(text), 30);
@@ -18600,7 +18613,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public static bool IsCached(UUID assetID)
         {
-            return m_Notecards.ContainsKey(assetID);
+            return m_Notecards.ContainsKey(assetID, 30000);
         }
 
         public static int GetLines(UUID assetID)
