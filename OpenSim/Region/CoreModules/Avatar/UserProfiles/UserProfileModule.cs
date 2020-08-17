@@ -66,9 +66,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         // The pair of Dictionaries are used to handle the switching of classified ads
         // by maintaining a cache of classified id to creator id mappings and an interest
         // count. The entries are removed when the interest count reaches 0.
-        Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
-        Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
-        ExpiringCache<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCache<UUID, UserProfileCacheEntry>();
+        readonly Dictionary<UUID, UUID> m_classifiedCache = new Dictionary<UUID, UUID>();
+        readonly Dictionary<UUID, int> m_classifiedInterest = new Dictionary<UUID, int>();
+        readonly ExpiringCacheOS<UUID, UserProfileCacheEntry> m_profilesCache = new ExpiringCacheOS<UUID, UserProfileCacheEntry>(60000);
         IAssetCache m_assetCache;
         IGroupsModule m_groupsModule = null;
 
@@ -86,7 +86,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             public int reqtype;
         }
 
-        private ConcurrentQueue<AsyncPropsRequest> m_asyncRequests = new ConcurrentQueue<AsyncPropsRequest>();
+        //private ConcurrentQueue<AsyncPropsRequest> m_asyncRequests = new ConcurrentQueue<AsyncPropsRequest>();
+        private ConcurrentStack<AsyncPropsRequest> m_asyncRequests = new ConcurrentStack<AsyncPropsRequest>();
         private object m_asyncRequestsLock = new object();
         private bool m_asyncRequestsRunning = false;
 
@@ -94,7 +95,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             lock(m_asyncRequestsLock)
             {
-                while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
+                //while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
+                while (m_asyncRequests.TryPop(out AsyncPropsRequest req))
                 {
                     try
                     {
