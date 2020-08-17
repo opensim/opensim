@@ -319,5 +319,53 @@ namespace OpenSim.Framework
 
             return success;
         }
+
+        public bool TryGetValue(TKey1 key, int expireMS, out TValue1 value)
+        {
+            bool success;
+            bool gotLock = false;
+
+            try
+            {
+                try { }
+                finally
+                {
+                    m_rwLock.EnterUpgradeableReadLock();
+                    gotLock = true;
+                }
+
+                success = m_values.TryGetValue(key, out value);
+                if(success)
+                {
+                    bool gotWriteLock = false;
+                    try
+                    {
+                        try { }
+                        finally
+                        {
+                            m_rwLock.EnterWriteLock();
+                            gotWriteLock = true;
+                        }
+                        expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                        int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+
+                        m_expireControl[key] = now;
+                    }
+                    finally
+                    {
+                        if (gotWriteLock)
+                            m_rwLock.ExitWriteLock();
+                    }
+                }
+            }
+            finally
+            {
+                if (gotLock)
+                    m_rwLock.EnterUpgradeableReadLock();
+            }
+
+            return success;
+        }
+
     }
 }
