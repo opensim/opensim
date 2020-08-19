@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private UUID DefaultGodParcelOwner;
 
         // caches ExtendedLandData
-        private Cache parcelInfoCache;
+        static private readonly ExpiringCacheOS<UUID,ExtendedLandData> m_parcelInfoCache = new ExpiringCacheOS<UUID, ExtendedLandData>(10000);
 
         /// <summary>
         /// Record positions that avatar's are currently being forced to move to due to parcel entry restrictions.
@@ -164,10 +164,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_landIDList = new int[m_scene.RegionInfo.RegionSizeX / LandUnit, m_scene.RegionInfo.RegionSizeY / LandUnit];
 
             landChannel = new LandChannel(scene, this);
-
-            parcelInfoCache = new Cache();
-            parcelInfoCache.Size = 30; // the number of different parcel requests in this region to cache
-            parcelInfoCache.DefaultTTL = new TimeSpan(0, 5, 0);
 
             m_scene.EventManager.OnObjectAddedToScene += EventManagerOnParcelPrimCountAdd;
             m_scene.EventManager.OnParcelPrimCountAdd += EventManagerOnParcelPrimCountAdd;
@@ -2133,47 +2129,44 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (parcelID == UUID.Zero)
                 return;
 
-            ExtendedLandData data = (ExtendedLandData)parcelInfoCache.Get(parcelID.ToString(),
-                    delegate(string id)
-                    {
-                        UUID parcel = UUID.Zero;
-                        UUID.TryParse(id, out parcel);
-                        // assume we've got the parcelID we just computed in RemoteParcelRequest
-                        ExtendedLandData extLandData = new ExtendedLandData();
-                        if(!Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
-                                               out extLandData.X, out extLandData.Y))
-                            return null;
-                        m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
-                                          extLandData.RegionHandle, extLandData.X, extLandData.Y);
+            if(!m_parcelInfoCache.TryGetValue(parcelID, 30000, out ExtendedLandData data))
+            {
+                data = null;
+                ExtendedLandData extLandData = new ExtendedLandData();
 
-                        // for this region or for somewhere else?
-                        if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
-                        {
-                            ILandObject extLandObject = this.GetLandObject(extLandData.X, extLandData.Y);
-                            if (extLandObject == null)
-                            {
-                                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: ParcelInfoRequest: a FakeParcelID points to outside the region");
-                                return null;
-                            }
-                            extLandData.LandData = extLandObject.LandData;
-                            extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
-                        }
-                        else
-                        {
-                            ILandService landService = m_scene.RequestModuleInterface<ILandService>();
-                            extLandData.LandData = landService.GetLandData(m_scene.RegionInfo.ScopeID,
-                                    extLandData.RegionHandle,
-                                    extLandData.X,
-                                    extLandData.Y,
-                                    out extLandData.RegionAccess);
-                            if (extLandData.LandData == null)
-                            {
-                                // we didn't find the region/land => don't cache
-                                return null;
-                            }
-                        }
-                        return extLandData;
-                    });
+                while(true)
+                {
+                    if(!Util.ParseFakeParcelID(parcelID, out extLandData.RegionHandle,
+                                        out extLandData.X, out extLandData.Y))
+                        break;
+
+                    //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
+                    //                extLandData.RegionHandle, extLandData.X, extLandData.Y);
+
+                    // for this region or for somewhere else?
+                    if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
+                    {
+                        ILandObject extLandObject = GetLandObject(extLandData.X, extLandData.Y);
+                        if (extLandObject == null)
+                            break;
+
+                        extLandData.LandData = extLandObject.LandData;
+                        extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
+                        data = extLandData;
+                        break;
+                    }
+                    else
+                    {
+                        ILandService landService = m_scene.RequestModuleInterface<ILandService>();
+                        extLandData.LandData = landService.GetLandData(m_scene.RegionInfo.ScopeID,
+                                extLandData.RegionHandle, extLandData.X, extLandData.Y,
+                                out extLandData.RegionAccess);
+                        data = extLandData;
+                        break;
+                    }
+                }
+                m_parcelInfoCache.Add(parcelID, data, 30000);
+            }
 
             if (data != null)  // if we found some data, send it
             {
@@ -2193,8 +2186,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     info = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
-                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: got parcelinfo for parcel {0} in region {1}; sending...",
-                                  data.LandData.Name, data.RegionHandle);
+                //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: got parcelinfo for parcel {0} in region {1}; sending...",
+                //                  data.LandData.Name, data.RegionHandle);
+
                 // HACK for now
                 RegionInfo r = new RegionInfo();
                 r.RegionName = info.RegionName;
