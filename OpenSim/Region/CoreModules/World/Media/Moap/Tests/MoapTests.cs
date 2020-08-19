@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
 
             // Although we've cleared one face, other faces may still be present.  So we need to check for an
             // update media url version
-            Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000001/" + UUID.Zero));
+            Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000002/" + UUID.Zero));
 
             // By changing media flag to false, the face texture once again becomes identical to the DefaultTexture.
             // Therefore, when libOMV reserializes it, it disappears and we are left with no face texture in this slot.
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
             m_module.SetMediaEntry(part, 1, me);
 
             Assert.That(part.Shape.Media[1].HomeURL, Is.EqualTo(homeUrl));
-            Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000000/" + UUID.Zero));
+            Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000001/" + UUID.Zero));
             Assert.That(part.Shape.Textures.FaceTextures[1].MediaFlags, Is.True);
         }
     }
