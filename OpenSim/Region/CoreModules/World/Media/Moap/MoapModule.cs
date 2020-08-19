@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             SetPartMediaFlags(part, face, me != null);
 
             part.ParentGroup.HasGroupChanged = true;
-            part.ScheduleFullUpdate();
+            part.ScheduleFullAnimUpdate();
             part.TriggerScriptChangedEvent(Changed.MEDIA);
         }
 
@@ -297,42 +297,46 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 return string.Empty;
             }
 
-            if (part.Shape.Media == null)
-                return string.Empty;
 
-            MediaEntry[] currentML = part.Shape.Media.ToArray();
-
-            int nentries = currentML.Length;
             int nsides = part.GetNumberOfSides();
-            if(nentries > nsides)
-                nentries = nsides;
-
-            Primitive.TextureEntry te = part.Shape.Textures;
-            bool isnull = true;
-
-            for(int face = 0; face < nentries; ++face)
+            MediaEntry[] currentML;
+            if (part.Shape.Media != null)
             {
-                Primitive.TextureEntryFace teFace = te.GetFace((uint)face);
-                if(!teFace.MediaFlags)
-                    currentML[face] = null;
-                else
-                    isnull = false;
+                 currentML = part.Shape.Media.ToArray();
+
+                int nentries = currentML.Length;
+                if(nentries > nsides)
+                    nentries = nsides;
+
+                bool isnull = true;
+                Primitive.TextureEntry te = part.Shape.Textures;
+                for(int face = 0; face < nentries; ++face)
+                {
+                    Primitive.TextureEntryFace teFace = te.GetFace((uint)face);
+                    if(!teFace.MediaFlags)
+                        currentML[face] = null;
+                    else
+                        isnull = false;
+                }
+                if (isnull)
+                {
+                    //remove the damm thing
+                    part.Shape.Media = null;
+                }
             }
-
-            if(isnull)
+            else
             {
-                //remove the damm thing
-                part.Shape.Media = null;
-                part.MediaUrl = null;
-                return string.Empty;
+                currentML = new MediaEntry[nsides];
             }
 
             ObjectMediaResponse resp = new ObjectMediaResponse();
             resp.PrimID = primId;
 
             resp.FaceMedia = currentML;
-
-            resp.Version = part.MediaUrl;
+            if (part.MediaUrl == null)
+                resp.Version = "x-mv:0000000000/00000000-0000-0000-0000-000000000000";
+            else
+                resp.Version = part.MediaUrl;
 
             string rawResp = OSDParser.SerializeLLSDXmlString(resp.Serialize());
 
@@ -552,10 +556,8 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             if (face < 0)
                 throw new ArgumentException("Face cannot be less than zero");
 
-            int maxFaces = part.GetNumberOfSides() - 1;
-            if (face > maxFaces)
-                throw new ArgumentException(
-                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));
+            if (face >= part.GetNumberOfSides())
+                throw new ArgumentException(string.Format("Face argument was {0} but max is {1}", face, part.GetNumberOfSides() - 1));
         }
 
         /// <summary>
@@ -571,7 +573,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             if (null == part.MediaUrl)
             {
                 // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
-                part.MediaUrl = "x-mv:0000000000/" + updateId;
+                part.MediaUrl = "x-mv:0000000001/" + updateId;
             }
             else
             {
