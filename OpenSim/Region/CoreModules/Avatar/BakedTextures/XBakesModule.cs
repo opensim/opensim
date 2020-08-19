@@ -114,9 +114,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
             using (RestClient rc = new RestClient(m_URL))
             {
                 List<WearableCacheItem> ret = new List<WearableCacheItem>();
-                rc.AddResourcePath("bakes");
-                rc.AddResourcePath(id.ToString());
-
+                rc.AddResourcePath("bakes/" + id.ToString());
                 rc.RequestMethod = "GET";
 
                 try

@@ -263,7 +263,14 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
                 args["context"] = ctx.Pack();
 
-                OSDMap result = WebUtil.PutToServiceCompressed(uri, args, timeout);
+                OSDMap result;
+                if (ctx.OutboundVersion >= 0.3)
+                {
+                    result = WebUtil.PutToServiceCompressed(uri, args, timeout);
+                    return result["Success"].AsBoolean();
+                }
+
+                result = WebUtil.PutToServiceCompressed(uri, args, timeout);
                 if (result["Success"].AsBoolean())
                     return true;
                 if(ctx.OutboundVersion < 0.2)

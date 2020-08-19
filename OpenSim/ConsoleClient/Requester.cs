@@ -67,9 +67,8 @@ namespace OpenSim.ConsoleClient
                     {
                         try
                         {
-                            using (Stream s = response.GetResponseStream())
-                                using (StreamReader r = new StreamReader(s))
-                                    reply = r.ReadToEnd();
+                            using (StreamReader r = new StreamReader(response.GetResponseStream()))
+                                reply = r.ReadToEnd();
 
                         }
                         catch (System.InvalidOperationException)

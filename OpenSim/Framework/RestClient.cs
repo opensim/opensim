@@ -325,20 +325,20 @@ namespace OpenSim.Framework
         {
             lock (_lock)
             {
-                _request = (HttpWebRequest) WebRequest.Create(buildUri());
-                _request.ContentType = "application/xml";
-                _request.Timeout = 90000;
-                _request.Method = RequestMethod;
-                _asyncException = null;
-                if (auth != null)
-                    auth.AddAuthorization(_request.Headers);
-
                 int reqnum = WebUtil.RequestNumber++;
-                if (WebUtil.DebugLevel >= 3)
-                    m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} REST {1} to {2}", reqnum, _request.Method, _request.RequestUri);
-
                 try
                 {
+                    _request = (HttpWebRequest) WebRequest.Create(buildUri());
+                    _request.ContentType = "application/xml";
+                    _request.Timeout = 90000;
+                    _request.Method = RequestMethod;
+                    _asyncException = null;
+                    if (auth != null)
+                        auth.AddAuthorization(_request.Headers);
+
+                    if (WebUtil.DebugLevel >= 3)
+                        m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} REST {1} to {2}", reqnum, _request.Method, _request.RequestUri);
+
                     using (_response = (HttpWebResponse) _request.GetResponse())
                     {
                         using (Stream src = _response.GetResponseStream())
@@ -388,16 +388,25 @@ namespace OpenSim.Framework
         // just post data, ignoring result
         public async Task AsyncPOSTRequest(byte[] src, IServiceAuth auth)
         {
-            _request = (HttpWebRequest)WebRequest.Create(buildUri());
-            _request.ContentType = "application/xml";
-            _request.Timeout = 90000;
-            _request.Method = "POST";
-            _asyncException = null;
-            _request.ContentLength = src.Length;
-            if (auth != null)
-                auth.AddAuthorization(_request.Headers);
-
             int reqnum = WebUtil.RequestNumber++;
+            try
+            {
+                _request = (HttpWebRequest)WebRequest.Create(buildUri());
+                _request.ContentType = "application/xml";
+                _request.Timeout = 90000;
+                _request.Method = "POST";
+                _asyncException = null;
+                _request.ContentLength = src.Length;
+                if (auth != null)
+                    auth.AddAuthorization(_request.Headers);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[REST]: AsyncPOST {0} failed with exception {1} {2}",
+                                _request.RequestUri, e.Message, e.StackTrace);
+                return;
+            }
+
             try
             {
                 using (Stream dst = _request.GetRequestStream())

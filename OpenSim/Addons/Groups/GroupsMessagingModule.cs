@@ -296,13 +296,13 @@ namespace OpenSim.Groups
 
             // In V2 we always only send to online members.
             // Sending to offline members is not an option.
-            string[] t1 = groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString()).ToArray();
 
             // We cache in order not to overwhelm the presence service on large grids with many groups.  This does
             // mean that members coming online will not see all group members until after m_usersOnlineCacheExpirySeconds has elapsed.
             // (assuming this is the same across all grid simulators).
             if (!m_usersOnlineCache.TryGetValue(groupID, out onlineAgents))
             {
+                string[] t1 = groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString()).ToArray();
                 onlineAgents = m_presenceService.GetAgents(t1);
                 m_usersOnlineCache.Add(groupID, onlineAgents, m_usersOnlineCacheExpirySeconds);
             }

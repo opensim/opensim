@@ -832,9 +832,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (httpserver == null || httpserver.Length == 0)
             {
-                uint x = 0, y = 0;
-                Util.RegionHandleToWorldLoc(regionhandle, out x, out y);
-
+                Util.RegionHandleToWorldLoc(regionhandle, out uint x, out uint y);
                 GridRegion mreg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
 
                 if (mreg != null)

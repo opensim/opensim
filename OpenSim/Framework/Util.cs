@@ -1318,11 +1318,8 @@ namespace OpenSim.Framework
             if(String.IsNullOrWhiteSpace(dnsAddress))
                 return null;
 
-            if(dnscache.TryGetValue(dnsAddress, out IPAddress ia) && ia != null)
-            {
-                dnscache.AddOrUpdate(dnsAddress, ia, 300);
+            if(dnscache.TryGetValue(dnsAddress, 300000, out IPAddress ia) && ia != null)
                 return ia;
-            }
 
             ia = null;
             // If it is already an IP, don't let GetHostEntry see it
@@ -1386,11 +1383,8 @@ namespace OpenSim.Framework
             if(String.IsNullOrWhiteSpace(hostname))
                 return null;
 
-            if(dnscache.TryGetValue(hostname, out IPAddress ia) && ia != null)
-            {
-                dnscache.AddOrUpdate(hostname, ia, 300);
+            if(dnscache.TryGetValue(hostname, 300000, out IPAddress ia) && ia != null)
                 return getEndPoint(ia, port);
-            }
 
             ia = null;
 
