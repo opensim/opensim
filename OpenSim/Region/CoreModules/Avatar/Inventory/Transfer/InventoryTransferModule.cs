@@ -384,7 +384,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                                 folder.ParentID = trashFolder.ID;
                                 invService.MoveFolder(folder);
                             }
-                            client.SendBulkUpdateInventory(folder);
+                            client.SendBulkUpdateInventory(folder, folder.ID);
                         }
                     }
 
