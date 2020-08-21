@@ -187,11 +187,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                             return;
                         }
 
-                        m_log.DebugFormat(
-                            "[INVENTORY TRANSFER]: offering folder {0} to agent {1}'s inventory",
+                        Dictionary<UUID,AssetType> ids = new Dictionary<UUID, AssetType>();
+                        ids[folderID] = assetType;
+
+                        if (im.binaryBucket.Length >= 34 && im.binaryBucket.Length % 17 == 0)
+                        {
+                            byte[] iddata = im.binaryBucket;
+                            for (int i = 17; i < im.binaryBucket.Length - 17; i += 17)
+                                ids[new UUID(iddata, i + 1)] = (AssetType)im.binaryBucket[i];
+                        }
+
+                        m_log.DebugFormat("[INVENTORY TRANSFER]: offering folder {0} to agent {1}'s inventory",
                             folderID, recipientID);
 
-                        InventoryFolderBase folderCopy = scene.GiveInventoryFolder(client, recipientID, agentID, folderID, UUID.Zero);
+                        InventoryFolderBase folderCopy = scene.GiveInventoryFolder(client, recipientID, agentID, folderID, UUID.Zero, ids);
 
                         if (folderCopy == null)
                         {
