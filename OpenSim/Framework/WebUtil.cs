@@ -1026,7 +1026,7 @@ namespace OpenSim.Framework
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
             {
-                m_log.InfoFormat("[FORMS]: request {0} {1} {2} took {3}ms, {4)/{5}bytes",
+                m_log.InfoFormat("[FORMS]: request {0} {1} {2} took {3}ms, {4}/{5}bytes",
                     reqnum, verb, requestUrl, tickdiff, sendlen, rcvlen);
             }
             else if (WebUtil.DebugLevel >= 4)
