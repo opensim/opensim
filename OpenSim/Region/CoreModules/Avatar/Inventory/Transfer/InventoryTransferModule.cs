@@ -336,22 +336,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         {
                             if(folder.ParentID != destinationFolderID)
                             {
-                                //previousParentFolderID = folder.ParentID;
                                 folder.ParentID = destinationFolderID;
                                 invService.MoveFolder(folder);
-                                client.SendBulkUpdateInventory(folder);
                             }
+                            client.SendBulkUpdateInventory(folder, folder.ID);
                         }
-                    }
-
-                    // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
-                    //if (previousParentFolderID != null)
-                    {
-                        //InventoryFolderBase previousParentFolder = invService.GetFolder(agentID, previousParentFolderID.Value);
-                        //if(previousParentFolder != null)
-                            //scene.SendInventoryUpdate(client, previousParentFolder, true, true);
-
-                        //scene.SendInventoryUpdate(client, destinationFolder, true, true);
                     }
                     break;
                 }
@@ -375,13 +364,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     InventoryItemBase item = invService.GetItem(agentID, inventoryID);
                     InventoryFolderBase folder = null;
-                    //UUID? previousParentFolderID = null;
 
                     if (item != null)
                     {
                         if (trashFolder.ID != item.Folder)
                         {
-                            //previousParentFolderID = item.Folder;
                             item.Folder = trashFolder.ID;
                             invService.MoveItems(item.Owner, new List<InventoryItemBase>() { item });
                             client.SendInventoryItemCreateUpdate(item, 0);
@@ -394,22 +381,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         {
                             if (trashFolder.ID != folder.ParentID)
                             {
-                                //previousParentFolderID = folder.ParentID;
                                 folder.ParentID = trashFolder.ID;
                                 invService.MoveFolder(folder);
-                                client.SendBulkUpdateInventory(folder);
                             }
+                            client.SendBulkUpdateInventory(folder);
                         }
-                    }
-
-                    // Tell client about updates to original parent and new parent (this should probably be factored with existing move item/folder code).
-                    //if (previousParentFolderID != null)
-                    {
-                        //InventoryFolderBase previousParentFolder = invService.GetFolder(agentID, (UUID)previousParentFolderID);
-                        //if(previousParentFolder != null)
-                            //scene.SendInventoryUpdate(client, previousParentFolder, true, true);
-
-                        //scene.SendInventoryUpdate(client, trashFolder, true, true);
                     }
 
                     if (im.dialog == (byte)InstantMessageDialog.InventoryDeclined)

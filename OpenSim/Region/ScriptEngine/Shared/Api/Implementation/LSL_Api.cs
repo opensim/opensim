@@ -7906,7 +7906,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ScenePresence sp = null;
             bool isNotOwner = true;
-            if (!World.TryGetSceneObjectPart(destID, out SceneObjectPart destsop))
+            if (!World.TryGetSceneObjectPart(destID, out SceneObjectPart destSop))
             {
                 if (!World.TryGetScenePresence(destID, out sp))
                 {
@@ -7937,9 +7937,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if ((taskItem.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     continue;
 
-                if (destsop != null)
+                if (destSop != null)
                 {
-                    if(!World.Permissions.CanDoObjectInvToObjectInv(taskItem, m_host, destsop))
+                    if(!World.Permissions.CanDoObjectInvToObjectInv(taskItem, m_host, destSop))
                         continue;
                 }
                 else
@@ -7961,7 +7961,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
+            UUID folderID = m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList, false);
 
             if (folderID == UUID.Zero)
             {
@@ -7970,7 +7970,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (destsop != null)
+            if (destSop != null)
                 return;
 
             if (m_TransferModule != null)
@@ -7982,16 +7982,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.OwnerID, m_host.Name, destID,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
-                        m_host.OwnerID == m_host.GroupID, string.Format("'{0}'", category),
-// We won't go so far as to add a SLURL, but this is the format used by LL as of 2012-10-06
-// false, string.Format("'{0}'  ( http://slurl.com/secondlife/{1}/{2}/{3}/{4} )", category, World.Name, (int)pos.X, (int)pos.Y, (int)pos.Z),
+                        m_host.OwnerID == m_host.GroupID,
+                        string.Format("'{0}'", category),
+                        //string.Format("'{0}'  ( http://slurl.com/secondlife/{1}/{2}/{3}/{4} )", category, World.Name, (int)pos.X, (int)pos.Y, (int)pos.Z),
                         folderID, false, pos,
                         bucket, false);
 
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
 
-            ScriptSleep(destsop == null ?  3000 : 100);
+            ScriptSleep(destSop == null ?  3000 : 100);
         }
 
         public void llSetVehicleType(int type)

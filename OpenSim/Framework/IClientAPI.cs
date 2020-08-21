@@ -697,15 +697,6 @@ namespace OpenSim.Framework
         Kill =          0x80000000 // 1 << 31
     }
 
-/* included in .net 4.0
-    public static class PrimUpdateFlagsExtensions
-    {
-        public static bool HasFlag(this PrimUpdateFlags updateFlags, PrimUpdateFlags flag)
-        {
-            return (updateFlags & flag) == flag;
-        }
-    }
-*/
     public interface IClientAPI
     {
         Vector3 StartPos { get; set; }
@@ -1235,7 +1226,7 @@ namespace OpenSim.Framework
         /// (including all descendent folders) as well as the folder itself.
         ///
         /// <param name="node"></param>
-        void SendBulkUpdateInventory(InventoryNodeBase node);
+        void SendBulkUpdateInventory(InventoryNodeBase node, UUID? transactionID = null);
 
         void SendXferPacket(ulong xferID, uint packet,
                 byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory);

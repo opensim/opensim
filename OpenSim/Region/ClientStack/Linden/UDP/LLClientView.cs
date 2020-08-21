@@ -2547,10 +2547,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase)
+        protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase, UUID? transationID)
         {
             // We will use the same transaction id for all the separate packets to be sent out in this update.
-            UUID transactionId = UUID.Random();
+            UUID transactionId = transationID ?? UUID.Random();
 
             List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks
                 = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
@@ -2697,19 +2697,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return itemBlock;
         }
 
-        public void SendBulkUpdateInventory(InventoryNodeBase node)
+        public void SendBulkUpdateInventory(InventoryNodeBase node, UUID? transationID = null)
         {
             if (node is InventoryItemBase)
-                SendBulkUpdateInventoryItem((InventoryItemBase)node);
+                SendBulkUpdateInventoryItem((InventoryItemBase)node, transationID);
             else if (node is InventoryFolderBase)
-                SendBulkUpdateInventoryFolder((InventoryFolderBase)node);
+                SendBulkUpdateInventoryFolder((InventoryFolderBase)node, transationID);
             else if (node != null)
                 m_log.ErrorFormat("[CLIENT]: {0} sent unknown inventory node named {1}", Name, node.Name);
             else
                 m_log.ErrorFormat("[CLIENT]: {0} sent null inventory node", Name);
         }
 
-        protected void SendBulkUpdateInventoryItem(InventoryItemBase item)
+        protected void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID? transationID = null)
         {
             const uint FULL_MASK_PERMISSIONS = (uint)0x7ffffff;
 
@@ -2717,7 +2717,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 = (BulkUpdateInventoryPacket)PacketPool.Instance.GetPacket(PacketType.BulkUpdateInventory);
 
             bulkUpdate.AgentData.AgentID = AgentId;
-            bulkUpdate.AgentData.TransactionID = UUID.Random();
+            bulkUpdate.AgentData.TransactionID = transationID ?? UUID.Random();
 
             bulkUpdate.FolderData = new BulkUpdateInventoryPacket.FolderDataBlock[1];
             bulkUpdate.FolderData[0] = new BulkUpdateInventoryPacket.FolderDataBlock();

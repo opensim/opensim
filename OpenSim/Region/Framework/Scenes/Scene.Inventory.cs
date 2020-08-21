@@ -1687,14 +1687,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
+        public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items, bool sendUpdates = true)
         {
 
             ScenePresence avatar;
             IClientAPI remoteClient = null;
             if (TryGetScenePresence(destID, out avatar))
                 remoteClient = avatar.ControllingClient;
-// ????
+
             SceneObjectPart destPart = GetSceneObjectPart(destID);
             if (destPart != null) // Move into a prim
             {
@@ -1702,12 +1702,16 @@ namespace OpenSim.Region.Framework.Scenes
                     MoveTaskInventoryItem(destID, host, itemID);
                 return destID; // Prim folder ID == prim ID
             }
-// /????
+
+            // move to a avatar inventory
+            if(remoteClient == null)
+                return UUID.Zero;
 
             InventoryFolderBase rootFolder = InventoryService.GetRootFolder(destID);
+            if(rootFolder == null)
+                return UUID.Zero;
 
             UUID newFolderID = UUID.Random();
-
             InventoryFolderBase newFolder = new InventoryFolderBase(newFolderID, category, destID, -1, rootFolder.ID, rootFolder.Version);
             InventoryService.AddFolder(newFolder);
 
@@ -1715,23 +1719,19 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 string message;
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID, out message);
-
                 if (agentItem != null)
                 {
                     agentItem.Folder = newFolderID;
-
                     AddInventoryItem(agentItem);
-
                     RemoveNonCopyTaskItemFromPrim(host, itemID);
                 }
                 else
                 {
-                    if (remoteClient != null)
-                        remoteClient.SendAgentAlertMessage(message, false);
+                    remoteClient.SendAgentAlertMessage(message, false);
                 }
             }
 
-            if (remoteClient != null)
+            if(sendUpdates)
             {
                 SendInventoryUpdate(remoteClient, rootFolder, true, false);
                 SendInventoryUpdate(remoteClient, newFolder, false, true);
