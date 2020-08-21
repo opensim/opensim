@@ -709,7 +709,7 @@ namespace OpenSim.Region.CoreModules.Asset
             long heap = 0;
             //if (m_LogLevel >= 2)
             {
-                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Start background expiring files older then {0}.", purgeLine);
+                m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Start background expiring files older than {0}.", purgeLine);
                 heap = GC.GetTotalMemory(false);
             }
 
@@ -1456,7 +1456,7 @@ namespace OpenSim.Region.CoreModules.Asset
             else if (cmdparams.Length == 1)
             {
                 con.Output("fcache assets - Attempt a deep cache of all assets in all scenes");
-                con.Output("fcache expire <datetime> - Purge assets older then the specified date & time");
+                con.Output("fcache expire <datetime> - Purge assets older than the specified date & time");
                 con.Output("fcache clear [file] [memory] - Remove cached assets");
                 con.Output("fcache status - Display cache status");
                 con.Output("fcache cachedefaultassets - loads default assets to cache replacing existent ones, this may override grid assets. Use with care");

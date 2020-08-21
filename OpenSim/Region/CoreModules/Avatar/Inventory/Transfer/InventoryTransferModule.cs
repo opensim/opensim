@@ -200,7 +200,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         }
 
                         copyID = folderCopy.ID;
-                        copyID.ToBytes(im.binaryBucket,1);
                         im.imSessionID = copyID.Guid;
 
                         if (recipientAgent != null)
@@ -231,7 +230,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         }
 
                         copyID = itemCopy.ID;
-                        copyID.ToBytes(im.binaryBucket, 1);
 
                         if (recipientAgent != null)
                             recipientAgent.ControllingClient.SendBulkUpdateInventory(itemCopy);
@@ -242,6 +240,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     // Send the IM to the recipient. The item is already
                     // in their inventory, so it will not be lost if
                     // they are offline.
+
+                    im.binaryBucket = new byte[17];
+                    im.binaryBucket[0] = (byte)assetType;
+                    copyID.ToBytes(im.binaryBucket, 1);
 
                     if (recipientAgent != null)
                     {
@@ -451,33 +453,42 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     if (im.binaryBucket.Length < 17) // Invalid
                         return;
 
-                    UUID recipientID = new UUID(im.toAgentID);
-
                     // First byte is the asset type
                     AssetType assetType = (AssetType)im.binaryBucket[0];
+                    if (assetType == AssetType.LinkFolder || assetType == AssetType.Link)
+                        return;
+
+                    UUID recipientID = new UUID(im.toAgentID);
+                    UUID copyID;
 
                     if (AssetType.Folder == assetType)
                     {
                         UUID folderID = new UUID(im.binaryBucket, 1);
 
-                        InventoryFolderBase folder =
-                                scene.InventoryService.GetFolder(recipientID, folderID);
+                        InventoryFolderBase folder = scene.InventoryService.GetFolder(recipientID, folderID);
 
-                        if (folder != null)
-                            user.ControllingClient.SendBulkUpdateInventory(folder);
+                        if (folder == null)
+                            return;
+
+                        copyID = folder.ID;
+                        user.ControllingClient.SendBulkUpdateInventory(folder);
                     }
                     else
                     {
                         UUID itemID = new UUID(im.binaryBucket, 1);
 
-                        InventoryItemBase item =
-                                scene.InventoryService.GetItem(recipientID, itemID);
+                        InventoryItemBase item = scene.InventoryService.GetItem(recipientID, itemID);
 
-                        if (item != null)
-                        {
-                            user.ControllingClient.SendBulkUpdateInventory(item);
-                        }
+                        if (item == null)
+                            return;
+                        user.ControllingClient.SendBulkUpdateInventory(item);
+                        copyID = item.ID;
                     }
+
+                    im.binaryBucket = new byte[17];
+                    im.binaryBucket[0] = (byte)assetType;
+                    copyID.ToBytes(im.binaryBucket, 1);
+
                     user.ControllingClient.SendInstantMessage(im);
                     break;
                 }
