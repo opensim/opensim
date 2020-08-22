@@ -274,9 +274,11 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public Dictionary<uint, int> GetObjectScriptsBytesUsed()
+        public ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory)
         {
-            return new Dictionary<uint, int>();
+            totaltime = 0;
+            totalmemory = 0;
+            return null;
         }
     }
 }

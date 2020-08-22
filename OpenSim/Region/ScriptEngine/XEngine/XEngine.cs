@@ -2411,7 +2411,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 foreach (IScriptInstance si in m_Scripts.Values)
                 {
-                    if (!topScripts.ContainsKey(si.LocalID))
+                    if (!topScripts.ContainsKey(si.RootLocalID))
                         topScripts[si.RootLocalID] = 0;
 
                     topScripts[si.RootLocalID] += GetExectionTime(si);
@@ -2511,9 +2511,34 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public Dictionary<uint, int> GetObjectScriptsBytesUsed()
+        public ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory)
         {
-            return new Dictionary<uint, int>();
+            Dictionary<uint, ScriptTopStatsData> topScripts = new Dictionary<uint, ScriptTopStatsData>();
+            totalmemory = 0;
+            totaltime = 0;
+            lock (m_Scripts)
+            {
+                foreach (IScriptInstance si in m_Scripts.Values)
+                {
+                    float time = GetExectionTime(si);
+                    totaltime += time;
+                    if(time > mintime)
+                    {
+                        ScriptTopStatsData sd;
+                        if (topScripts.TryGetValue(si.RootLocalID, out sd))
+                            sd.time += time;
+                        else
+                        {
+                            sd = new ScriptTopStatsData();
+                            sd.localID = si.RootLocalID;
+                            sd.time = time;
+                            topScripts[si.RootLocalID] = sd;
+                        }
+                    }
+                }
+            }
+            return topScripts.Values;
         }
+
     }
 }

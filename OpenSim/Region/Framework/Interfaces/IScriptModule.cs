@@ -35,6 +35,13 @@ namespace OpenSim.Region.Framework.Interfaces
     public delegate void ScriptRemoved(UUID script);
     public delegate void ObjectRemoved(UUID prim);
 
+    public class ScriptTopStatsData
+    {
+        public uint localID;
+        public float time;
+        public int memory;
+    };
+
     public interface IScriptModule: INonSharedRegionModule
     {
         /// <summary>
@@ -113,12 +120,13 @@ namespace OpenSim.Region.Framework.Interfaces
         Dictionary<uint, float> GetObjectScriptsExecutionTimes();
 
         /// <summary>
-        /// Get the used memory of all scripts in each object.
+        /// Get the used memory and exec time of all scripts in each object.
+        /// if time or memory is higher than min values;
         /// </summary>
         /// <returns>
         /// A dictionary where the key is the root object ID of a linkset
-        /// and the value is a amount of bytes being used by the script
+        /// and the value is a class with  amount of bytes being used by the script
         /// </returns>
-        Dictionary<uint, int> GetObjectScriptsBytesUsed();
+        ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory);
     }
 }

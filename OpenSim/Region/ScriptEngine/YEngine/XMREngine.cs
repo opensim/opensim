@@ -1875,24 +1875,43 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         /**
-         * @brief Return a list of all script used bytes
+         * @brief Return a list of object script used bytes and time
          */
-        public Dictionary<uint, int> GetObjectScriptsBytesUsed()
+
+        public ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory)
         {
-            Dictionary<uint, int> topScripts = new Dictionary<uint, int>();
+            Dictionary<uint, ScriptTopStatsData> topScripts = new Dictionary<uint, ScriptTopStatsData>();
+            totalmemory = 0;
+            totaltime = 0;
             lock (m_InstancesDict)
             {
                 foreach (XMRInstance instance in m_InstancesDict.Values)
                 {
                     uint rootLocalID = instance.m_Part.ParentGroup.LocalId;
-                    int oldTotal;
-                    if (!topScripts.TryGetValue(rootLocalID, out oldTotal))
-                        oldTotal = 0;
-
-                    topScripts[rootLocalID] = instance.xmrHeapUsed() + oldTotal;
+                    float time = (float)instance.m_CPUTime;
+                    totaltime += time;
+                    int mem = instance.xmrHeapUsed();
+                    totalmemory += mem;
+                    if (time > mintime || mem > minmemory)
+                    {
+                        ScriptTopStatsData sd;
+                        if (topScripts.TryGetValue(rootLocalID, out sd))
+                        {
+                            sd.time += time;
+                            sd.memory += mem;
+                        }
+                        else
+                        {
+                            sd = new ScriptTopStatsData();
+                            sd.localID = rootLocalID;
+                            sd.time = time;
+                            sd.memory = mem;
+                            topScripts[rootLocalID] = sd;
+                        }
+                    }
                 }
             }
-            return topScripts;
+            return topScripts.Values;
         }
 
         /**
