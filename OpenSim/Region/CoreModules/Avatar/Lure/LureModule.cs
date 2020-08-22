@@ -226,7 +226,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             // Forward remote teleport requests
             //
             if (msg.dialog != (byte)InstantMessageDialog.RequestTeleport &&
-                msg.dialog != (byte)InstantMessageDialog.GodLikeRequestTeleport)
+                msg.dialog != (byte)InstantMessageDialog.GodLikeRequestTeleport &&
+                msg.dialog != (byte)InstantMessageDialog.RequestLure)
                 return;
 
             if (m_TransferModule != null)
