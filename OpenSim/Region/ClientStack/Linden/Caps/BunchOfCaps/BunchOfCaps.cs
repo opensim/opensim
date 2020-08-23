@@ -1776,7 +1776,6 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             landdata = null;
 
-            int nparcels = 0;
             int totalmem = 0;
             int totalurls = 0;
             bool ownerparcels = showType != 1;
@@ -1797,8 +1796,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     continue;
                 if(ownerparcels && landdata.OwnerID != parcelOwner)
                     continue;
-
-                ++nparcels;
 
                 ParcelScriptInfo pi = null;
                 if (showdetail)
@@ -1830,7 +1827,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         totalurls += urls_used;
                     }
 
-                    if(showdetail)
+                    if (showdetail)
                     {
                         ScriptInfoForParcel sip = new ScriptInfoForParcel()
                         {
@@ -1845,7 +1842,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         pi.objects.Add(sip);
                     }
                 }
-                parcelsInfo.Add(pi);
+                if (showdetail)
+                    parcelsInfo.Add(pi);
             }
             landdata = null;
 
