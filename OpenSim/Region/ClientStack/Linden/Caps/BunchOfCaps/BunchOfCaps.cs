@@ -138,26 +138,6 @@ namespace OpenSim.Region.ClientStack.Linden
         }
         private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
 
-        public struct ScriptInfoForParcel
-        {
-            public UUID id;
-            public UUID owner;
-            public string name;
-            public Vector3 pos;
-            public int memory;
-            public int urls;
-            public bool groupOwned;
-        };
-
-        public struct ParcelScriptInfo
-        {
-            public UUID id;
-            public UUID owner;
-            public string name;
-            public int localID;
-            public List<ScriptInfoForParcel> objects;
-        };
-
         public BunchOfCaps(Scene scene, UUID agentID, Caps caps)
         {
             m_Scene = scene;
@@ -1633,7 +1613,8 @@ namespace OpenSim.Region.ClientStack.Linden
                     foreach (SceneObjectGroup so in atts)
                     {
                         byte attp = so.GetAttachmentPoint();
-                        int mem = so.ScriptsMemory();
+                        if(!so.ScriptsMemory(out int mem))
+                            continue;
                         int urls_used = 0;
                         totalmem += mem;
                         if (urlModule != null)
@@ -1731,6 +1712,24 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
         }
 
+        public class ScriptInfoForParcel
+        {
+            public UUID id;
+            public UUID owner;
+            public string name;
+            public int memory;
+            public int urls;
+            public bool groupOwned;
+            public Vector3 pos;
+        };
+
+        public class ParcelScriptInfo
+        {
+            public UUID id;
+            public string name;
+            public int localID;
+            public List<ScriptInfoForParcel> objects;
+        };
 
         public void LandResources(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
         {
@@ -1742,10 +1741,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
             UUID parcelOwner;
             LandData landdata = null;
+            ulong myHandler = m_Scene.RegionInfo.RegionHandle;
             if (req.TryGetValue("parcel_id", out OSD tmp) && tmp is OSDUUID)
             {
                 UUID parcelID = tmp.AsUUID();
-                if (Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) && regionHandle == m_Scene.RegionInfo.RegionHandle)
+                if (Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) && regionHandle == myHandler)
                 {
                     ILandObject land = m_Scene.LandChannel.GetLandObjectClipedXY(x, y);
                     if (land != null)
@@ -1779,11 +1779,8 @@ namespace OpenSim.Region.ClientStack.Linden
             int nparcels = 0;
             int totalmem = 0;
             int totalurls = 0;
-
             bool ownerparcels = showType != 1;
             bool showdetail = showType != 0;
-
-            showdetail = false;
 
             List<ParcelScriptInfo> parcelsInfo = null;
             IUrlModule urlModule = m_Scene.RequestModuleInterface<IUrlModule>();
@@ -1803,15 +1800,18 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 ++nparcels;
 
-                if(showdetail)
+                ParcelScriptInfo pi = null;
+                if (showdetail)
                 {
-                    ParcelScriptInfo pi = new ParcelScriptInfo
+                    pi = new ParcelScriptInfo
                     {
                         name = landdata.Name,
-                        localID = landdata.LocalID
-                        
+                        localID = landdata.LocalID,
+                        id = landdata.FakeID,
+                        objects = new List<ScriptInfoForParcel>()
                     };
                 }
+
                 ISceneObject[] isops = parcel.GetSceneObjectGroups();
                 for(int i = 0; i < isops.Length; ++i)
                 {
@@ -1819,7 +1819,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     if(so == null || so.IsDeleted || so.inTransit || so.IsAttachment)
                         continue;
 
-                    int mem = so.ScriptsMemory();
+                    if(!so.ScriptsMemory(out int mem))
+                        continue;
+
                     int urls_used = 0;
                     totalmem += mem;
                     if (urlModule != null)
@@ -1827,7 +1829,23 @@ namespace OpenSim.Region.ClientStack.Linden
                         urls_used = urlModule.GetUrlCount(so.UUID);
                         totalurls += urls_used;
                     }
+
+                    if(showdetail)
+                    {
+                        ScriptInfoForParcel sip = new ScriptInfoForParcel()
+                        {
+                            id = so.UUID,
+                            owner = so.OwnerID,
+                            name = so.Name,
+                            memory = mem,
+                            urls = urls_used,
+                            groupOwned = (so.OwnerID == so.GroupID),
+                            pos = so.AbsolutePosition
+                        };
+                        pi.objects.Add(sip);
+                    }
                 }
+                parcelsInfo.Add(pi);
             }
             landdata = null;
 
@@ -2645,6 +2663,53 @@ namespace OpenSim.Region.ClientStack.Linden
                     return;
                 }
 
+                StringBuilder sb = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(sb);
+
+                if (m_parcelsInfo.Count > 0)
+                {
+                    LLSDxmlEncode.AddArray("parcels", sb);
+
+                    foreach (ParcelScriptInfo ps in m_parcelsInfo)
+                    {
+                        LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("name", ps.name, sb);
+                        LLSDxmlEncode.AddElem("id", ps.id, sb);
+                        LLSDxmlEncode.AddElem("local_id", ps.localID, sb);
+                        if(ps.objects.Count > 0)
+                        {
+                            LLSDxmlEncode.AddArray("objects", sb);
+                            foreach (ScriptInfoForParcel sip in ps.objects)
+                            {
+                                LLSDxmlEncode.AddMap(sb);
+                                LLSDxmlEncode.AddElem("id", sip.id, sb);
+                                LLSDxmlEncode.AddElem("is_group_owned", sip.groupOwned, sb);
+                                LLSDxmlEncode.AddElem("location", sip.pos, sb);
+                                LLSDxmlEncode.AddElem("name", sip.name, sb);
+                                LLSDxmlEncode.AddElem("owner_id", sip.owner, sb);
+
+                                LLSDxmlEncode.AddMap("resources", sb);
+                                    LLSDxmlEncode.AddElem("memory", sip.memory, sb);
+                                    LLSDxmlEncode.AddElem("urls", sip.urls, sb);
+                                LLSDxmlEncode.AddEndMap(sb);
+
+                                LLSDxmlEncode.AddEndMap(sb);
+                            }
+                            LLSDxmlEncode.AddEndArray(sb);
+                        }
+                        else
+                            LLSDxmlEncode.AddEmptyArray("objects", sb);
+
+                        LLSDxmlEncode.AddEndMap(sb);
+                    }
+                    LLSDxmlEncode.AddEndArray(sb); //parcels
+                }
+                else
+                    LLSDxmlEncode.AddEmptyArray("parcels", sb);
+
+
+                LLSDxmlEncode.AddEndMap(sb);
+                response.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
 
