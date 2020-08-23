@@ -1625,8 +1625,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 StringBuilder sb = LLSDxmlEncode.Start();
                 LLSDxmlEncode.AddMap(sb);
-                LLSDxmlEncode.AddArray("attachments", sb);
 
+                LLSDxmlEncode.AddArray("attachments", sb);
                 foreach (KeyValuePair<byte, List<AttachmentScriptInfo>> kvp in perAttPoints)
                 {
                     LLSDxmlEncode.AddMap(sb);
@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     LLSDxmlEncode.AddEndArray(sb);
                     LLSDxmlEncode.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode.AddEndArray(sb); //attachments
 
                 LLSDxmlEncode.AddMap("summary", sb);
                 LLSDxmlEncode.AddArray("available", sb);
@@ -1662,7 +1662,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddElem("amount", (int)-1, sb);
                 LLSDxmlEncode.AddElem("type", "memory", sb);
                 LLSDxmlEncode.AddEndMap(sb);
-                LLSDxmlEncode.AddEndArray(sb);
+                
+                LLSDxmlEncode.AddEndArray(sb); //available
 
                 LLSDxmlEncode.AddArray("used", sb);
 
@@ -1675,14 +1676,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddElem("amount", totalmem, sb);
                 LLSDxmlEncode.AddElem("type", "memory", sb);
                 LLSDxmlEncode.AddEndMap(sb);
-                LLSDxmlEncode.AddEndArray(sb);
+
+                LLSDxmlEncode.AddEndArray(sb); //used
+
+                LLSDxmlEncode.AddEndMap(sb); // summary
 
                 LLSDxmlEncode.AddEndMap(sb);
-
-
-                LLSDxmlEncode.AddEndMap(sb);
-
-                string tst = sb.ToString();
 
                 httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
