@@ -1596,6 +1596,7 @@ namespace OpenSim.Region.ClientStack.Linden
             public string name;
             public Vector3 pos;
             public int memory;
+            public int urls;
         };
 
         public void AttachmentResources(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
@@ -1604,51 +1605,60 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 int totalmem = 0;
                 List<SceneObjectGroup> atts = sp.GetAttachments();
-                Dictionary<byte,List<AttachmentScriptInfo>> perAttPoints = new Dictionary<byte, List<AttachmentScriptInfo>>();
-                foreach(SceneObjectGroup so in atts)
+                Dictionary<byte, List<AttachmentScriptInfo>> perAttPoints = null;
+                if (atts.Count > 0)
                 {
-                    byte attp = so.GetAttachmentPoint();
-                    int mem = so.ScriptsMemory();
-                    totalmem += mem;
-                    AttachmentScriptInfo info = new AttachmentScriptInfo()
+                    perAttPoints = new Dictionary<byte, List<AttachmentScriptInfo>>();
+                    foreach (SceneObjectGroup so in atts)
                     {
-                        attpoint = attp,
-                        id = so.UUID,
-                        name = so.Name,
-                        memory = mem,
-                        pos = so.AbsolutePosition
-                    };
-                    if(perAttPoints.TryGetValue(attp, out List<AttachmentScriptInfo> la))
-                        la.Add(info);
-                    else
-                        perAttPoints[attp] = new List<AttachmentScriptInfo>(){  info };
+                        byte attp = so.GetAttachmentPoint();
+                        int mem = so.ScriptsMemory();
+                        totalmem += mem;
+                        AttachmentScriptInfo info = new AttachmentScriptInfo()
+                        {
+                            attpoint = attp,
+                            id = so.UUID,
+                            name = so.Name,
+                            memory = mem,
+                            pos = so.AbsolutePosition
+                        };
+                        if(perAttPoints.TryGetValue(attp, out List<AttachmentScriptInfo> la))
+                            la.Add(info);
+                        else
+                            perAttPoints[attp] = new List<AttachmentScriptInfo>(){  info };
+                    }
                 }
                 StringBuilder sb = LLSDxmlEncode.Start();
                 LLSDxmlEncode.AddMap(sb);
 
-                LLSDxmlEncode.AddArray("attachments", sb);
-                foreach (KeyValuePair<byte, List<AttachmentScriptInfo>> kvp in perAttPoints)
+                if (atts.Count > 0)
                 {
-                    LLSDxmlEncode.AddMap(sb);
-                    LLSDxmlEncode.AddElem("location", SLUtil.GetAttachmentName(kvp.Key), sb);
-                    LLSDxmlEncode.AddArray("objects", sb);
-                    foreach(AttachmentScriptInfo asi in kvp.Value)
+                    LLSDxmlEncode.AddArray("attachments", sb);
+                    foreach (KeyValuePair<byte, List<AttachmentScriptInfo>> kvp in perAttPoints)
                     {
                         LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", asi.id, sb);
-                        LLSDxmlEncode.AddElem("is_group_owned", (int)0, sb);
-                        LLSDxmlEncode.AddElem("location", asi.pos, sb);
-                        LLSDxmlEncode.AddElem("name", asi.name, sb);
-                        LLSDxmlEncode.AddElem("owner_id", m_AgentID, sb);
-                        LLSDxmlEncode.AddMap("resources", sb);
-                        LLSDxmlEncode.AddElem("memory", asi.memory, sb);
-                        LLSDxmlEncode.AddEndMap(sb);
+                        LLSDxmlEncode.AddElem("location", SLUtil.GetAttachmentName(kvp.Key), sb);
+                        LLSDxmlEncode.AddArray("objects", sb);
+                        foreach(AttachmentScriptInfo asi in kvp.Value)
+                        {
+                            LLSDxmlEncode.AddMap(sb);
+                            LLSDxmlEncode.AddElem("id", asi.id, sb);
+                            LLSDxmlEncode.AddElem("is_group_owned", (int)0, sb);
+                            LLSDxmlEncode.AddElem("location", asi.pos, sb);
+                            LLSDxmlEncode.AddElem("name", asi.name, sb);
+                            LLSDxmlEncode.AddElem("owner_id", m_AgentID, sb);
+                            LLSDxmlEncode.AddMap("resources", sb);
+                            LLSDxmlEncode.AddElem("memory", asi.memory, sb);
+                            LLSDxmlEncode.AddEndMap(sb);
+                            LLSDxmlEncode.AddEndMap(sb);
+                        }
+                        LLSDxmlEncode.AddEndArray(sb);
                         LLSDxmlEncode.AddEndMap(sb);
                     }
-                    LLSDxmlEncode.AddEndArray(sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode.AddEndArray(sb); //attachments
                 }
-                LLSDxmlEncode.AddEndArray(sb); //attachments
+                else
+                    LLSDxmlEncode.AddEmptyArray("attachments", sb);
 
                 LLSDxmlEncode.AddMap("summary", sb);
                 LLSDxmlEncode.AddArray("available", sb);
