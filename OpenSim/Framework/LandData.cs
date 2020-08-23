@@ -105,6 +105,19 @@ namespace OpenSim.Framework
         public bool AnyAVSounds { get; set; }
         public bool GroupAVSounds { get; set; }
 
+        private UUID m_fakeID = UUID.Zero;
+        public UUID FakeID
+        {
+            get
+            {
+                return m_fakeID;
+            }
+            set
+            {
+                m_fakeID = value;
+            }
+        }
+
         /// <summary>
         /// Traffic count of parcel
         /// </summary>

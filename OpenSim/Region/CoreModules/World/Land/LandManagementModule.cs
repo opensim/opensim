@@ -1472,38 +1472,32 @@ namespace OpenSim.Region.CoreModules.World.Land
                                                     bool snap_selection, IClientAPI remote_client)
         {
             //Get the land objects within the bounds
-            List<ILandObject> temp = new List<ILandObject>();
-            int inc_x = end_x - start_x;
-            int inc_y = end_y - start_y;
-            for (int x = 0; x < inc_x; x++)
+            Dictionary<int, ILandObject> temp = new Dictionary<int, ILandObject>();
+            for (int x = start_x; x < end_x; x += LandUnit)
             {
-                for (int y = 0; y < inc_y; y++)
+                for (int y = start_y; y < end_y; y += LandUnit)
                 {
-                    ILandObject currentParcel = GetLandObject(start_x + x, start_y + y);
+                    ILandObject currentParcel = GetLandObject(x, y);
 
                     if (currentParcel != null)
                     {
-                        if (!temp.Contains(currentParcel))
+                        if (!temp.ContainsKey(currentParcel.LandData.LocalID))
                         {
                             if (!currentParcel.IsBannedFromLand(remote_client.AgentId))
                             {
                                 currentParcel.ForceUpdateLandInfo();
-                                temp.Add(currentParcel);
+                                temp[currentParcel.LandData.LocalID] = currentParcel;
                             }
                         }
                     }
                 }
             }
 
-            int requestResult = LandChannel.LAND_RESULT_SINGLE;
-            if (temp.Count > 1)
-            {
-                requestResult = LandChannel.LAND_RESULT_MULTIPLE;
-            }
+            int requestResult = (temp.Count > 1) ? LandChannel.LAND_RESULT_MULTIPLE : LandChannel.LAND_RESULT_SINGLE;
 
-            for (int i = 0; i < temp.Count; i++)
+            foreach(ILandObject lo in temp.Values)
             {
-                temp[i].SendLandProperties(sequence_id, snap_selection, requestResult, remote_client);
+                lo.SendLandProperties(sequence_id, snap_selection, requestResult, remote_client);
             }
 
 //            SendParcelOverlay(remote_client);
@@ -2058,43 +2052,62 @@ namespace OpenSim.Region.CoreModules.World.Land
                     OSDArray list = (OSDArray)tmp;
                     uint x = (uint)(double)list[0];
                     uint y = (uint)(double)list[1];
+                    ulong myHandle = m_scene.RegionInfo.RegionHandle;
                     if (args.TryGetValue("region_handle", out tmp) && tmp is OSDBinary)
                     {
                         // if you do a "About Landmark" on a landmark a second time, the viewer sends the
                         // region_handle it got earlier via RegionHandleRequest
                         ulong regionHandle = Util.BytesToUInt64Big((byte[])tmp);
-                        if(regionHandle == m_scene.RegionInfo.RegionHandle)
-                            parcelID = Util.BuildFakeParcelID(regionHandle, x, y);
+                        if(regionHandle == myHandle)
+                        {
+                            ILandObject l = GetLandObjectClipedXY(x, y);
+                            if (l != null)
+                                parcelID = l.LandData.FakeID;
+                            else
+                                parcelID = Util.BuildFakeParcelID(myHandle, x, y);
+                        }
                         else
                         {
                             uint wx;
                             uint wy;
                             Util.RegionHandleToWorldLoc(regionHandle, out wx, out wy);
                             GridRegion info = m_scene.GridService.GetRegionByPosition(scope, (int)wx, (int)wy);
-                            if(info != null)
+                            if (info != null)
                             {
-                                wx -= (uint)info.RegionLocX;
-                                wy -= (uint)info.RegionLocY;
-                                wx += x;
-                                wy += y;
-                                // Firestorm devs have no ideia how to do handlers math
-                                // on all cases
-                                if(wx > info.RegionSizeX || wy > info.RegionSizeY)
+                                if (info.RegionHandle == myHandle)
                                 {
-                                    wx = x;
-                                    wy = y;
+                                    ILandObject l = GetLandObjectClipedXY(x, y);
+                                    if (l != null)
+                                        parcelID = l.LandData.FakeID;
+                                    else
+                                        parcelID = Util.BuildFakeParcelID(myHandle, x, y);
                                 }
-                                parcelID = Util.BuildFakeParcelID(info.RegionHandle, wx, wy);
+                                else
+                                {
+                                    wx -= (uint)info.RegionLocX;
+                                    wy -= (uint)info.RegionLocY;
+                                    wx += x;
+                                    wy += y;
+                                    if(wx >= info.RegionSizeX || wy >= info.RegionSizeY)
+                                    {
+                                        wx = x;
+                                        wy = y;
+                                    }
+                                    parcelID = Util.BuildFakeParcelID(info.RegionHandle, wx, wy);
+                                }
                             }
                         }
                     }
-                    else if(args.TryGetValue("region_id", out tmp) && tmp is OSDUUID)
+                    else if (args.TryGetValue("region_id", out tmp) && tmp is OSDUUID)
                     {
                         UUID regionID = tmp.AsUUID();
                         if (regionID == m_scene.RegionInfo.RegionID)
                         {
-                        // a parcel request for a local parcel => no need to query the grid
-                            parcelID = Util.BuildFakeParcelID(m_scene.RegionInfo.RegionHandle, x, y);
+                            ILandObject l = GetLandObjectClipedXY(x, y);
+                            if (l != null)
+                                parcelID = l.LandData.FakeID;
+                            else
+                                parcelID = Util.BuildFakeParcelID(myHandle, x, y);
                         }
                         else
                         {
