@@ -2146,7 +2146,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     // for this region or for somewhere else?
                     if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
                     {
-                        ILandObject extLandObject = GetLandObject(extLandData.X, extLandData.Y);
+                        ILandObject extLandObject = GetLandObjectClipedXY(extLandData.X, extLandData.Y);
                         if (extLandObject == null)
                             break;
 

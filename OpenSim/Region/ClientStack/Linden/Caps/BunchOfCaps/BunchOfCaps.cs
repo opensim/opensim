@@ -138,6 +138,26 @@ namespace OpenSim.Region.ClientStack.Linden
         }
         private FileAgentInventoryState m_FileAgentInventoryState = FileAgentInventoryState.idle;
 
+        public struct ScriptInfoForParcel
+        {
+            public UUID id;
+            public UUID owner;
+            public string name;
+            public Vector3 pos;
+            public int memory;
+            public int urls;
+            public bool groupOwned;
+        };
+
+        public struct ParcelScriptInfo
+        {
+            public UUID id;
+            public UUID owner;
+            public string name;
+            public int localID;
+            public List<ScriptInfoForParcel> objects;
+        };
+
         public BunchOfCaps(Scene scene, UUID agentID, Caps caps)
         {
             m_Scene = scene;
@@ -1591,7 +1611,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public struct AttachmentScriptInfo
         {
-            public byte attpoint;
             public UUID id;
             public string name;
             public Vector3 pos;
@@ -1624,7 +1643,6 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                         AttachmentScriptInfo info = new AttachmentScriptInfo()
                         {
-                            attpoint = attp,
                             id = so.UUID,
                             name = so.Name,
                             memory = mem,
@@ -1713,44 +1731,135 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
         }
 
+
         public void LandResources(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
         {
-            if(req.TryGetValue("parcel_id", out OSD tmp) && tmp is OSDUUID)
+            if (!m_Scene.TryGetScenePresence(m_AgentID, out ScenePresence sp))
             {
-                UUID parcelID = tmp.AsUUID();
-                if(!Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) || regionHandle != m_Scene.RegionInfo.RegionHandle)
-                {
-                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
-
-                ILandObject land = m_Scene.LandChannel.GetLandObject(x, y);
-                if(land == null || land.LandData == null)
-                {
-                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
-
-                string uploaderPath = GetNewCapPath();
-                ScriptResourceSummary uploader =
-                    new ScriptResourceSummary(land.LandData.LocalID, m_Scene, m_HostCapsObj.HttpListener, uploaderPath, httpRequest.RemoteIPEndPoint.Address);
-
-                m_HostCapsObj.RegisterSimpleHandler("LandResources",
-                                       new SimpleOSDMapHandler("POST", GetNewCapPath(), LandResources));
-
-                string protocol = m_HostCapsObj.SSLCaps ? "https://" : "http://";
-                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
-
-                StringBuilder lsl = LLSDxmlEncode.Start();
-                LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("ScriptResourceSummary", uploaderURL,lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
-
-                httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
-            httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+
+            UUID parcelOwner;
+            LandData landdata = null;
+            if (req.TryGetValue("parcel_id", out OSD tmp) && tmp is OSDUUID)
+            {
+                UUID parcelID = tmp.AsUUID();
+                if (Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) && regionHandle == m_Scene.RegionInfo.RegionHandle)
+                {
+                    ILandObject land = m_Scene.LandChannel.GetLandObjectClipedXY(x, y);
+                    if (land != null)
+                        landdata = land.LandData;
+                    land = null;
+                }
+            }
+            if(landdata == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            parcelOwner = landdata.OwnerID;
+
+            int showType = 0;
+            if (sp.IsGod || m_Scene.Permissions.IsEstateManager(m_AgentID))
+                showType = 1;
+            else
+            {
+                if (parcelOwner == m_AgentID)
+                    showType = 2;
+                else if (landdata.GroupID != UUID.Zero)
+                {
+                    ulong powers = sp.ControllingClient.GetGroupPowers(landdata.GroupID);
+                    if ((powers & (ulong)(GroupPowers.ReturnGroupOwned | GroupPowers.ReturnGroupSet | GroupPowers.ReturnNonGroup)) != 0)
+                        showType = 2;
+                }
+            }
+            landdata = null;
+
+            int nparcels = 0;
+            int totalmem = 0;
+            int totalurls = 0;
+
+            bool ownerparcels = showType != 1;
+            bool showdetail = showType != 0;
+
+            showdetail = false;
+
+            List<ParcelScriptInfo> parcelsInfo = null;
+            IUrlModule urlModule = m_Scene.RequestModuleInterface<IUrlModule>();
+
+            List<ILandObject>  allParcels = m_Scene.LandChannel.AllParcels();
+            if (showdetail)
+                parcelsInfo = new List<ParcelScriptInfo>(allParcels.Count);
+
+            for (int p = 0; p < allParcels.Count; ++p)
+            {
+                ILandObject parcel = allParcels[p];
+                landdata = parcel.LandData;
+                if (landdata == null)
+                    continue;
+                if(ownerparcels && landdata.OwnerID != parcelOwner)
+                    continue;
+
+                ++nparcels;
+
+                if(showdetail)
+                {
+                    ParcelScriptInfo pi = new ParcelScriptInfo
+                    {
+                        name = landdata.Name,
+                        localID = landdata.LocalID
+                        
+                    };
+                }
+                ISceneObject[] isops = parcel.GetSceneObjectGroups();
+                for(int i = 0; i < isops.Length; ++i)
+                {
+                    SceneObjectGroup so = isops[i] as SceneObjectGroup;
+                    if(so == null || so.IsDeleted || so.inTransit || so.IsAttachment)
+                        continue;
+
+                    int mem = so.ScriptsMemory();
+                    int urls_used = 0;
+                    totalmem += mem;
+                    if (urlModule != null)
+                    {
+                        urls_used = urlModule.GetUrlCount(so.UUID);
+                        totalurls += urls_used;
+                    }
+                }
+            }
+            landdata = null;
+
+            StringBuilder lsl = LLSDxmlEncode.Start();
+            LLSDxmlEncode.AddMap(lsl);
+
+            string baseurl = m_HostCapsObj.SSLCaps ? "https://" : "http://";
+            baseurl += m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString();
+
+            string SRSPath = GetNewCapPath();
+            ScriptResourceSummary srs =
+                new ScriptResourceSummary(m_Scene, m_AgentID, m_HostCapsObj.HttpListener, SRSPath, httpRequest.RemoteIPEndPoint.Address,
+                    totalmem, totalurls);
+            m_HostCapsObj.HttpListener.AddSimpleStreamHandler(new SimpleStreamHandler(SRSPath, srs.ScriptResourceSummaryCap));
+            string SRSURL = baseurl + SRSPath;
+            LLSDxmlEncode.AddElem("ScriptResourceSummary", SRSURL, lsl);
+
+            if(showdetail)
+            {
+                string SRDPath = GetNewCapPath();
+                string SRDURL = baseurl + SRDPath;
+                ScriptResourceDetails srd =
+                    new ScriptResourceDetails(m_Scene, m_AgentID, m_HostCapsObj.HttpListener, SRDPath, httpRequest.RemoteIPEndPoint.Address,
+                    parcelsInfo);
+                m_HostCapsObj.HttpListener.AddSimpleStreamHandler(new SimpleStreamHandler(SRDPath, srd.ScriptResourceDetailsCap));
+                LLSDxmlEncode.AddElem("ScriptResourceDetails", SRDURL, lsl);
+            }
+
+            LLSDxmlEncode.AddEndMap(lsl);
+            httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            return;
         }
 
         public void ResourceCostSelected(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
@@ -2210,227 +2319,341 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.ContentType = "application/llsd+xml";
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
-    }
 
-    public class AssetUploader
-    {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-
-        public event UpLoadedAsset OnUpLoad;
-        private UpLoadedAsset handlerUpLoad = null;
-
-        private string uploaderPath = String.Empty;
-        private UUID newAssetID;
-        private UUID inventoryItemID;
-        private UUID parentFolder;
-        private IHttpServer httpListener;
-        private bool m_dumpAssetsToFile;
-        private string m_assetName = String.Empty;
-        private string m_assetDes = String.Empty;
-
-        private string m_invType = String.Empty;
-        private string m_assetType = String.Empty;
-        private int m_cost;
-        private string m_error = String.Empty;
-
-        private Timer m_timeoutTimer = new Timer();
-        private UUID m_texturesFolder;
-        private int m_nreqtextures;
-        private int m_nreqmeshs;
-        private int m_nreqinstances;
-        private bool m_IsAtestUpload;
-
-        private int m_nextOwnerMask;
-        private int m_groupMask;
-        private int m_everyoneMask;
-        private int[] m_meshesSides;
-
-        public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
-                                UUID parentFolderID, string invType, string assetType, string path,
-                                IHttpServer httpServer, bool dumpAssetsToFile,
-                                int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
-                                bool IsAtestUpload, int nextOwnerMask, int groupMask, int everyoneMask, int[] meshesSides)
+        public class AssetUploader
         {
-            m_assetName = assetName;
-            m_assetDes = description;
-            newAssetID = assetID;
-            inventoryItemID = inventoryItem;
-            uploaderPath = path;
-            httpListener = httpServer;
-            parentFolder = parentFolderID;
-            m_assetType = assetType;
-            m_invType = invType;
-            m_dumpAssetsToFile = dumpAssetsToFile;
-            m_cost = totalCost;
+            private static readonly ILog m_log =
+                LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            m_texturesFolder = texturesFolder;
-            m_nreqtextures = nreqtextures;
-            m_nreqmeshs = nreqmeshs;
-            m_nreqinstances = nreqinstances;
-            m_IsAtestUpload = IsAtestUpload;
 
-            m_timeoutTimer.Elapsed += TimedOut;
-            m_timeoutTimer.Interval = 120000;
-            m_timeoutTimer.AutoReset = false;
-            m_timeoutTimer.Start();
+            public event UpLoadedAsset OnUpLoad;
+            private UpLoadedAsset handlerUpLoad = null;
 
-            m_nextOwnerMask = nextOwnerMask;
-            m_groupMask = groupMask;
-            m_everyoneMask = everyoneMask;
+            private string uploaderPath = String.Empty;
+            private UUID newAssetID;
+            private UUID inventoryItemID;
+            private UUID parentFolder;
+            private IHttpServer httpListener;
+            private bool m_dumpAssetsToFile;
+            private string m_assetName = String.Empty;
+            private string m_assetDes = String.Empty;
 
-            m_meshesSides = meshesSides;
-        }
+            private string m_invType = String.Empty;
+            private string m_assetType = String.Empty;
+            private int m_cost;
+            private string m_error = String.Empty;
 
-        /// <summary>
-        /// Handle raw asset upload data via the capability.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string uploaderCaps(byte[] data, string path, string param)
-        {
-            UUID inv = inventoryItemID;
-            string res = String.Empty;
-            LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-/*
-            uploadComplete.new_asset = newAssetID.ToString();
-            uploadComplete.new_inventory_item = inv;
-            uploadComplete.state = "complete";
+            private Timer m_timeoutTimer = new Timer();
+            private UUID m_texturesFolder;
+            private int m_nreqtextures;
+            private int m_nreqmeshs;
+            private int m_nreqinstances;
+            private bool m_IsAtestUpload;
 
-            res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-*/
-            m_timeoutTimer.Stop();
-            httpListener.RemoveStreamHandler("POST", uploaderPath);
+            private int m_nextOwnerMask;
+            private int m_groupMask;
+            private int m_everyoneMask;
+            private int[] m_meshesSides;
 
-            // TODO: probably make this a better set of extensions here
-            string extension = ".jp2";
-            if (m_invType != "image")
+            public AssetUploader(string assetName, string description, UUID assetID, UUID inventoryItem,
+                                    UUID parentFolderID, string invType, string assetType, string path,
+                                    IHttpServer httpServer, bool dumpAssetsToFile,
+                                    int totalCost, UUID texturesFolder, int nreqtextures, int nreqmeshs, int nreqinstances,
+                                    bool IsAtestUpload, int nextOwnerMask, int groupMask, int everyoneMask, int[] meshesSides)
             {
-                extension = ".dat";
+                m_assetName = assetName;
+                m_assetDes = description;
+                newAssetID = assetID;
+                inventoryItemID = inventoryItem;
+                uploaderPath = path;
+                httpListener = httpServer;
+                parentFolder = parentFolderID;
+                m_assetType = assetType;
+                m_invType = invType;
+                m_dumpAssetsToFile = dumpAssetsToFile;
+                m_cost = totalCost;
+
+                m_texturesFolder = texturesFolder;
+                m_nreqtextures = nreqtextures;
+                m_nreqmeshs = nreqmeshs;
+                m_nreqinstances = nreqinstances;
+                m_IsAtestUpload = IsAtestUpload;
+
+                m_timeoutTimer.Elapsed += TimedOut;
+                m_timeoutTimer.Interval = 120000;
+                m_timeoutTimer.AutoReset = false;
+                m_timeoutTimer.Start();
+
+                m_nextOwnerMask = nextOwnerMask;
+                m_groupMask = groupMask;
+                m_everyoneMask = everyoneMask;
+
+                m_meshesSides = meshesSides;
             }
 
-            if (m_dumpAssetsToFile)
+            /// <summary>
+            /// Handle raw asset upload data via the capability.
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public string uploaderCaps(byte[] data, string path, string param)
             {
-                SaveAssetToFile(m_assetName + extension, data);
-            }
-            handlerUpLoad = OnUpLoad;
-            if (handlerUpLoad != null)
-            {
-                handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
-                    m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
-                    ref m_error, ref m_nextOwnerMask, ref m_groupMask, ref m_everyoneMask, m_meshesSides);
-            }
-
-            uploadComplete.new_next_owner_mask = m_nextOwnerMask;
-            uploadComplete.new_group_mask = m_groupMask;
-            uploadComplete.new_everyone_mask = m_everyoneMask;
-
-            if (m_error == String.Empty)
-            {
+                UUID inv = inventoryItemID;
+                string res = String.Empty;
+                LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
+    /*
                 uploadComplete.new_asset = newAssetID.ToString();
                 uploadComplete.new_inventory_item = inv;
-                //                if (m_texturesFolder != UUID.Zero)
-                //                    uploadComplete.new_texture_folder_id = m_texturesFolder;
-               if (m_IsAtestUpload)
-               {
-                  LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                  resperror.message = "Upload SUCCESSFUL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
-                  resperror.identifier = inv;
+                uploadComplete.state = "complete";
+
+                res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+    */
+                m_timeoutTimer.Stop();
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
+
+                // TODO: probably make this a better set of extensions here
+                string extension = ".jp2";
+                if (m_invType != "image")
+                {
+                    extension = ".dat";
+                }
+
+                if (m_dumpAssetsToFile)
+                {
+                    SaveAssetToFile(m_assetName + extension, data);
+                }
+                handlerUpLoad = OnUpLoad;
+                if (handlerUpLoad != null)
+                {
+                    handlerUpLoad(m_assetName, m_assetDes, newAssetID, inv, parentFolder, data, m_invType, m_assetType,
+                        m_cost, m_texturesFolder, m_nreqtextures, m_nreqmeshs, m_nreqinstances, m_IsAtestUpload,
+                        ref m_error, ref m_nextOwnerMask, ref m_groupMask, ref m_everyoneMask, m_meshesSides);
+                }
+
+                uploadComplete.new_next_owner_mask = m_nextOwnerMask;
+                uploadComplete.new_group_mask = m_groupMask;
+                uploadComplete.new_everyone_mask = m_everyoneMask;
+
+                if (m_error == String.Empty)
+                {
+                    uploadComplete.new_asset = newAssetID.ToString();
+                    uploadComplete.new_inventory_item = inv;
+                    //                if (m_texturesFolder != UUID.Zero)
+                    //                    uploadComplete.new_texture_folder_id = m_texturesFolder;
+                   if (m_IsAtestUpload)
+                   {
+                      LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                      resperror.message = "Upload SUCCESSFUL for testing purposes only. Other uses are prohibited. Item will not work after 48 hours or on other regions";
+                      resperror.identifier = inv;
                     
-                  uploadComplete.error = resperror;
-               }
-               uploadComplete.state = "complete";
+                      uploadComplete.error = resperror;
+                   }
+                   uploadComplete.state = "complete";
+                }
+                else
+                {
+                    LLSDAssetUploadError resperror = new LLSDAssetUploadError();
+                    resperror.message = m_error;
+                    resperror.identifier = inv;
+
+                    uploadComplete.error = resperror;
+                    uploadComplete.state = "failed";
+                }
+
+                res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+                return res;
             }
-            else
+
+            private void TimedOut(object sender, ElapsedEventArgs args)
             {
-                LLSDAssetUploadError resperror = new LLSDAssetUploadError();
-                resperror.message = m_error;
-                resperror.identifier = inv;
-
-                uploadComplete.error = resperror;
-                uploadComplete.state = "failed";
+                m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out mesh upload");
+                httpListener.RemoveStreamHandler("POST", uploaderPath);
             }
 
-            res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-            return res;
-        }
-
-        private void TimedOut(object sender, ElapsedEventArgs args)
-        {
-            m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out mesh upload");
-            httpListener.RemoveStreamHandler("POST", uploaderPath);
-        }
-
-        private static void SaveAssetToFile(string filename, byte[] data)
-        {
-            string assetPath = "UserAssets";
-            if (!Directory.Exists(assetPath))
+            private static void SaveAssetToFile(string filename, byte[] data)
             {
-                Directory.CreateDirectory(assetPath);
+                string assetPath = "UserAssets";
+                if (!Directory.Exists(assetPath))
+                {
+                    Directory.CreateDirectory(assetPath);
+                }
+                FileStream fs = File.Create(Path.Combine(assetPath, Util.SafeFileName(filename)));
+                BinaryWriter bw = new BinaryWriter(fs);
+                bw.Write(data);
+                bw.Close();
+                fs.Close();
             }
-            FileStream fs = File.Create(Path.Combine(assetPath, Util.SafeFileName(filename)));
-            BinaryWriter bw = new BinaryWriter(fs);
-            bw.Write(data);
-            bw.Close();
-            fs.Close();
-        }
-    }
-
-    public class ScriptResourceSummary
-    {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private IHttpServer m_httpListener;
-        private string m_mypath;
-        private int m_parcelID;
-        private Scene m_scene;
-        private Timer m_timeoutTimer;
-
-        private IPAddress m_address;
-
-        public ScriptResourceSummary(int parcelID, Scene scene, IHttpServer httpServer, string path, IPAddress address)
-        {
-            m_httpListener = httpServer;
-            m_address = address;
-            m_mypath = path;
-            m_scene = scene;
-            m_parcelID = parcelID;
-
-            m_timeoutTimer = new Timer();
-            m_timeoutTimer.Elapsed += TimedOut;
-            m_timeoutTimer.Interval = 10000;
-            m_timeoutTimer.AutoReset = false;
-            m_timeoutTimer.Start();
         }
 
-        /// <summary>
-        /// Handle raw asset upload data via the capability.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public void ScriptResourceSummaryCap(IOSHttpRequest request, IOSHttpResponse response)
+        public class ScriptResourceSummary
         {
-            m_timeoutTimer.Stop();
-            m_httpListener.RemoveSimpleStreamHandler(m_mypath);
-            m_timeoutTimer.Dispose();
+            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            if (request.RemoteIPEndPoint.Address != m_address)
+            private IHttpServer m_httpListener;
+            private string m_mypath;
+            private Scene m_scene;
+            private Timer m_timeoutTimer;
+            private UUID m_agentID;
+            private int m_memory;
+            private int m_urls;
+            private IPAddress m_address;
+
+            public ScriptResourceSummary(Scene scene, UUID agentID, IHttpServer httpServer, string path, IPAddress address, 
+                int memory, int urls)
             {
-                response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return;
+                m_httpListener = httpServer;
+                m_address = address;
+                m_mypath = path;
+                m_scene = scene;
+                m_agentID = agentID;
+                m_memory = memory;
+                m_urls  = urls;
+
+                m_timeoutTimer = new Timer();
+                m_timeoutTimer.Elapsed += TimedOut;
+                m_timeoutTimer.Interval = 30000;
+                m_timeoutTimer.AutoReset = false;
+                m_timeoutTimer.Start();
+            }
+
+            /// <summary>
+            /// Handle raw asset upload data via the capability.
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public void ScriptResourceSummaryCap(IOSHttpRequest request, IOSHttpResponse response)
+            {
+                m_timeoutTimer.Stop();
+                m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+                m_timeoutTimer.Dispose();
+
+                if (!request.RemoteIPEndPoint.Address.Equals(m_address))
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                if (m_scene.ShuttingDown || !m_scene.TryGetScenePresence(m_agentID, out ScenePresence sp) || sp.IsChildAgent || sp.IsInTransit)
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                StringBuilder sb = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(sb);
+
+                LLSDxmlEncode.AddMap("summary", sb);
+                LLSDxmlEncode.AddArray("available", sb);
+
+                int maxurls = m_urls + 5000; // we don't limit this
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", maxurls, sb);
+                LLSDxmlEncode.AddElem("type", "urls", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", (int)-1, sb);
+                LLSDxmlEncode.AddElem("type", "memory", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddEndArray(sb); //available
+
+                LLSDxmlEncode.AddArray("used", sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", m_urls, sb);
+                LLSDxmlEncode.AddElem("type", "urls", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", m_memory, sb);
+                LLSDxmlEncode.AddElem("type", "memory", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddEndArray(sb); //used
+
+                LLSDxmlEncode.AddEndMap(sb); // summary
+                LLSDxmlEncode.AddEndMap(sb);
+                response.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+
+            private void TimedOut(object sender, ElapsedEventArgs args)
+            {
+                m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+                m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out ScriptResourceSummary");
+                m_timeoutTimer.Dispose();
             }
         }
 
-        private void TimedOut(object sender, ElapsedEventArgs args)
+        public class ScriptResourceDetails
         {
-            m_httpListener.RemoveSimpleStreamHandler(m_mypath);
-            m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out ScriptResourceSummary");
-            m_timeoutTimer.Dispose();
+            private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+            private IHttpServer m_httpListener;
+            private string m_mypath;
+            private Scene m_scene;
+            private Timer m_timeoutTimer;
+            private UUID m_agentID;
+            private List<ParcelScriptInfo> m_parcelsInfo;
+
+            private IPAddress m_address;
+
+            public ScriptResourceDetails(Scene scene, UUID agentID, IHttpServer httpServer, string path, IPAddress address,
+                List<ParcelScriptInfo> parcelsInfo)
+            {
+                m_httpListener = httpServer;
+                m_address = address;
+                m_mypath = path;
+                m_scene = scene;
+                m_agentID = agentID;
+                m_parcelsInfo = parcelsInfo;
+
+                m_timeoutTimer = new Timer();
+                m_timeoutTimer.Elapsed += TimedOut;
+                m_timeoutTimer.Interval = 30000;
+                m_timeoutTimer.AutoReset = false;
+                m_timeoutTimer.Start();
+            }
+
+            /// <summary>
+            /// Handle raw asset upload data via the capability.
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public void ScriptResourceDetailsCap(IOSHttpRequest request, IOSHttpResponse response)
+            {
+                m_timeoutTimer.Stop();
+                m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+                m_timeoutTimer.Dispose();
+
+                if (!request.RemoteIPEndPoint.Address.Equals(m_address))
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                if (m_scene.ShuttingDown || !m_scene.TryGetScenePresence(m_agentID, out ScenePresence sp) || sp.IsChildAgent || sp.IsInTransit)
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+
+            private void TimedOut(object sender, ElapsedEventArgs args)
+            {
+                m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+                m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out ScriptResourceSummary");
+                m_timeoutTimer.Dispose();
+            }
         }
     }
 }

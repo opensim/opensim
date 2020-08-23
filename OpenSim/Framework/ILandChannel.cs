@@ -56,7 +56,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>
         ILandObject GetLandObject(float x, float y);
-
+        ILandObject GetLandObjectClipedXY(float x, float y);
         /// <summary>
         /// Get the parcel at the specified point
         /// </summary>
