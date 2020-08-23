@@ -1434,10 +1434,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if(sceneData == null || sceneData.Count == 0)
                 remoteClient.SendLandStatReply(0, requestFlags, 0, new LandStatReportItem[0]);
 
-            Dictionary<UUID, int> urlsInUse = null;
             IUrlModule urlModule = Scene.RequestModuleInterface<IUrlModule>();
-            if(urlModule != null)
-                urlsInUse = urlModule.GetUrlCountForHosts();
 
             //reformat the name so we don't have to do it on every item
             bool hasfilter = false;
@@ -1477,9 +1474,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     continue;
 
                 int urls_used = 0;
-                if (urlsInUse  != null)
+                if (urlModule != null)
                 {
-                    urlsInUse.TryGetValue(sop.UUID, out urls_used);
+                    urls_used = urlModule.GetUrlCount(sop.UUID);
 
                     // Don't show scripts that haven't executed or where execution time is below one microsecond in
                     // order to produce a more readable report.

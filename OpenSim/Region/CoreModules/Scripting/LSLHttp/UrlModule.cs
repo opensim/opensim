@@ -49,6 +49,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
     public class UrlData
     {
         public UUID hostID;
+        public UUID groupID;
         public UUID itemID;
         public IScriptModule engine;
         public string url;
@@ -86,11 +87,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<UUID, UrlData> m_RequestMap =
-                new Dictionary<UUID, UrlData>();
+        protected readonly Dictionary<UUID, UrlData> m_RequestMap = new Dictionary<UUID, UrlData>();
+        protected readonly Dictionary<string, UrlData> m_UrlMap = new Dictionary<string, UrlData>();
+        protected readonly Dictionary<UUID, int> m_countsPerSOG = new Dictionary<UUID, int>();
 
-        protected Dictionary<string, UrlData> m_UrlMap =
-                new Dictionary<string, UrlData>();
 
         protected bool m_enabled = false;
         protected string m_ErrorStr;
@@ -241,8 +241,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
                 string url = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString() + "/";
 
+                UUID groupID = host.ParentGroup.UUID;
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
+                urlData.groupID = groupID;
                 urlData.itemID = itemID;
                 urlData.engine = engine;
                 urlData.url = url;
@@ -256,6 +258,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     urlData.allowXss = true;
 
                 m_UrlMap[url] = urlData;
+
+                if (m_countsPerSOG.TryGetValue(groupID, out int urlcount))
+                    m_countsPerSOG[groupID] = ++urlcount;
+                else
+                    m_countsPerSOG[groupID] = 1;
 
                 string uri = "/lslhttp/" + urlcode.ToString();
 
@@ -300,8 +307,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 }
                 string url = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + "/lslhttps/" + urlcode.ToString() + "/";
 
+                UUID groupID = host.ParentGroup.UUID;
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
+                urlData.groupID = groupID;
                 urlData.itemID = itemID;
                 urlData.engine = engine;
                 urlData.url = url;
@@ -314,6 +323,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     urlData.allowXss = true;
 
                 m_UrlMap[url] = urlData;
+
+                if (m_countsPerSOG.TryGetValue(groupID, out int urlcount))
+                    m_countsPerSOG[groupID] = ++urlcount;
+                else
+                    m_countsPerSOG[groupID] = 1;
 
                 string uri = "/lslhttps/" + urlcode.ToString();
 
@@ -496,6 +510,15 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_HttpsServer.RemovePollServiceHTTPHandler("", "/lslhttps/"+data.urlcode.ToString()+"/");
             else
                 m_HttpServer.RemovePollServiceHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
+
+            if(m_countsPerSOG.TryGetValue(data.groupID, out int count))
+            {
+                --count;
+                if(count <= 0)
+                    m_countsPerSOG.Remove(data.groupID);
+                else
+                    m_countsPerSOG[data.groupID] = count;
+            }
         }
 
         protected Hashtable NoEvents(UUID requestID, UUID sessionID)
@@ -774,18 +797,23 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public Dictionary<UUID, int> GetUrlCountForHosts()
         {
-            Dictionary<UUID, int> dict = new Dictionary<UUID, int>();
-            foreach(var data in m_UrlMap)
-            {
-                int count = 0;
-                if(dict.ContainsKey(data.Value.hostID))
-                {
-                    count = dict[data.Value.hostID];
-                }
-                count++;
-                dict[data.Value.hostID] = count;
+            if (!m_enabled)
+                return new Dictionary<UUID, int>();
+
+            lock (m_UrlMap)
+                return new Dictionary<UUID, int>(m_countsPerSOG);
+        }
+
+        public int GetUrlCount(UUID groupID)
+        {
+            if (!m_enabled)
+                return 0;
+
+            lock (m_UrlMap)
+            { 
+                m_countsPerSOG.TryGetValue(groupID, out int count);
+                return count;
             }
-            return dict;
         }
     }
 }
