@@ -795,15 +795,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             ScriptRemoved(itemID);
         }
 
-        public Dictionary<UUID, int> GetUrlCountForHosts()
-        {
-            if (!m_enabled)
-                return new Dictionary<UUID, int>();
-
-            lock (m_UrlMap)
-                return new Dictionary<UUID, int>(m_countsPerSOG);
-        }
-
         public int GetUrlCount(UUID groupID)
         {
             if (!m_enabled)
