@@ -198,7 +198,12 @@ namespace OpenSim.Tests.Common
 
         public float GetScriptExecutionTime(List<UUID> itemIDs)
         {
-            throw new System.NotImplementedException ();
+            return 0;
+        }
+
+        public int GetScriptsMemory(List<UUID> itemIDs)
+        {
+            return 0;
         }
 
         public Dictionary<uint, float> GetObjectScriptsExecutionTimes()

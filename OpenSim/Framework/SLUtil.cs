@@ -692,5 +692,73 @@ namespace OpenSim.Framework
                 return new string[0];
             return lines.ToArray();
         }
+
+        // libomv has old names on ATTACH_LEFT_PEC and ATTACH_RIGHT_PEC
+        public static readonly string[] AttachmentPointNames = new string[]
+        {
+            string.Empty,
+            "ATTACH_CHEST", // 1
+            "ATTACH_HEAD", // 2
+            "ATTACH_LSHOULDER", // 3
+            "ATTACH_RSHOULDER", // 4
+            "ATTACH_LHAND", // 5
+            "ATTACH_RHAND", // 6
+            "ATTACH_LFOOT", // 7
+            "ATTACH_RFOOT", // 8
+            "ATTACH_BACK", // 9
+            "ATTACH_PELVIS", // 10
+            "ATTACH_MOUTH", // 11
+            "ATTACH_CHIN", // 12
+            "ATTACH_LEAR", // 13
+            "ATTACH_REAR", // 14
+            "ATTACH_LEYE", // 15
+            "ATTACH_REYE", // 16
+            "ATTACH_NOSE", // 17
+            "ATTACH_RUARM", // 18
+            "ATTACH_RLARM", // 19
+            "ATTACH_LUARM", // 20
+            "ATTACH_LLARM", // 21
+            "ATTACH_RHIP", // 22
+            "ATTACH_RULEG", // 23
+            "ATTACH_RLLEG", // 24
+            "ATTACH_LHIP", // 25
+            "ATTACH_LULEG", // 26
+            "ATTACH_LLLEG", // 27
+            "ATTACH_BELLY", // 28
+            "ATTACH_LEFT_PEC", // 29
+            "ATTACH_RIGHT_PEC", // 30
+            "ATTACH_HUD_CENTER_2", // 31
+            "ATTACH_HUD_TOP_RIGHT", // 32
+            "ATTACH_HUD_TOP_CENTER", // 33
+            "ATTACH_HUD_TOP_LEFT", // 34
+            "ATTACH_HUD_CENTER_1", // 35
+            "ATTACH_HUD_BOTTOM_LEFT", // 36
+            "ATTACH_HUD_BOTTOM", // 37
+            "ATTACH_HUD_BOTTOM_RIGHT", // 38
+            "ATTACH_NECK", // 39
+            "ATTACH_AVATAR_CENTER", // 40
+            "ATTACH_LHAND_RING1", // 41
+            "ATTACH_RHAND_RING1", // 42
+            "ATTACH_TAIL_BASE", // 43
+            "ATTACH_TAIL_TIP", // 44
+            "ATTACH_LWING", // 45
+            "ATTACH_RWING", // 46
+            "ATTACH_FACE_JAW", // 47
+            "ATTACH_FACE_LEAR", // 48
+            "ATTACH_FACE_REAR", // 49
+            "ATTACH_FACE_LEYE", // 50
+            "ATTACH_FACE_REYE", // 51
+            "ATTACH_FACE_TONGUE", // 52
+            "ATTACH_GROIN", // 53
+            "ATTACH_HIND_LFOOT", // 54
+            "ATTACH_HIND_RFOOT" // 55
+        };
+
+        public static string GetAttachmentName(int point)
+        {
+            if(point < AttachmentPointNames.Length)
+                return AttachmentPointNames[point];
+            return "Unknown";
+        }
     }
 }

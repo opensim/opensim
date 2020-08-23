@@ -124,6 +124,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public ISceneObject[] GetSceneObjectGroups()
+        {
+            return primsOverMe.ToArray();
+        }
+
         public Vector2? GetNearestPoint(Vector3 pos)
         {
             Vector3 direction = new Vector3(m_centerPoint.X - pos.X, m_centerPoint.Y - pos.Y, 0f );

@@ -194,5 +194,6 @@ namespace OpenSim.Framework
         string GetMusicUrl();
 
         void Clear();
+        ISceneObject[] GetSceneObjectGroups();
     }
 }

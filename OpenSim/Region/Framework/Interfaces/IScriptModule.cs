@@ -109,6 +109,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A float the value is a representative execution time in milliseconds of all scripts in that Array.
         /// </returns>
         float GetScriptExecutionTime(List<UUID> itemIDs);
+        int GetScriptsMemory(List<UUID> itemIDs);
 
         /// <summary>
         /// Get the execution times of all scripts in each object.

@@ -122,7 +122,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private bool m_AllowCapHomeLocation = true;
         private bool m_AllowCapGroupMemberData = true;
-        private  IUserManagement m_UserManager;
+        private bool m_AllowCapLandResources = true;
+        private bool m_AllowCapAttachmentResources = true;
+
+        private IUserManagement m_UserManager;
         private IUserAccountService m_userAccountService;
         private IMoneyModule m_moneyModule;
 
@@ -199,6 +202,14 @@ namespace OpenSim.Region.ClientStack.Linden
                     string GroupMemberDataUrl = CapsConfig.GetString("Cap_GroupMemberData", "localhost");
                     if(GroupMemberDataUrl == String.Empty)
                         m_AllowCapGroupMemberData = false;
+
+                    string LandResourcesUrl = CapsConfig.GetString("Cap_LandResources", "localhost");
+                    if (LandResourcesUrl == String.Empty)
+                        m_AllowCapLandResources = false;
+
+                    string AttachmentResourcesUrl = CapsConfig.GetString("Cap_AttachmentResources", "localhost");
+                    if (AttachmentResourcesUrl == String.Empty)
+                        m_AllowCapAttachmentResources = false;
                 }
             }
 
@@ -273,6 +284,17 @@ namespace OpenSim.Region.ClientStack.Linden
                         new SimpleStreamHandler(GetNewCapPath(), GroupMemberData));
                 }
 
+                if (m_AllowCapLandResources)
+                {
+                    m_HostCapsObj.RegisterSimpleHandler("LandResources",
+                        new SimpleOSDMapHandler("POST", GetNewCapPath(), LandResources));
+                }
+
+                if (m_AllowCapAttachmentResources)
+                {
+                    m_HostCapsObj.RegisterSimpleHandler("AttachmentResources",
+                        new SimpleStreamHandler(GetNewCapPath(), AttachmentResources));
+                }
             }
             catch (Exception e)
             {
@@ -1567,7 +1589,149 @@ namespace OpenSim.Region.ClientStack.Linden
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
-        public void ResourceCostSelected(IOSHttpRequest httpRequest,IOSHttpResponse httpResponse, OSDMap req)
+        public struct AttachmentScriptInfo
+        {
+            public byte attpoint;
+            public UUID id;
+            public string name;
+            public Vector3 pos;
+            public int memory;
+        };
+
+        public void AttachmentResources(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            if(m_Scene.TryGetScenePresence(m_AgentID, out ScenePresence sp) && !sp.IsChildAgent && !sp.IsDeleted && !sp.IsInTransit)
+            {
+                int totalmem = 0;
+                List<SceneObjectGroup> atts = sp.GetAttachments();
+                Dictionary<byte,List<AttachmentScriptInfo>> perAttPoints = new Dictionary<byte, List<AttachmentScriptInfo>>();
+                foreach(SceneObjectGroup so in atts)
+                {
+                    byte attp = so.GetAttachmentPoint();
+                    int mem = so.ScriptsMemory();
+                    totalmem += mem;
+                    AttachmentScriptInfo info = new AttachmentScriptInfo()
+                    {
+                        attpoint = attp,
+                        id = so.UUID,
+                        name = so.Name,
+                        memory = mem,
+                        pos = so.AbsolutePosition
+                    };
+                    if(perAttPoints.TryGetValue(attp, out List<AttachmentScriptInfo> la))
+                        la.Add(info);
+                    else
+                        perAttPoints[attp] = new List<AttachmentScriptInfo>(){  info };
+                }
+                StringBuilder sb = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddArray("attachments", sb);
+
+                foreach (KeyValuePair<byte, List<AttachmentScriptInfo>> kvp in perAttPoints)
+                {
+                    LLSDxmlEncode.AddMap(sb);
+                    LLSDxmlEncode.AddElem("location", SLUtil.GetAttachmentName(kvp.Key), sb);
+                    LLSDxmlEncode.AddArray("objects", sb);
+                    foreach(AttachmentScriptInfo asi in kvp.Value)
+                    {
+                        LLSDxmlEncode.AddMap(sb);
+                        LLSDxmlEncode.AddElem("id", asi.id, sb);
+                        LLSDxmlEncode.AddElem("is_group_owned", (int)0, sb);
+                        LLSDxmlEncode.AddElem("location", asi.pos, sb);
+                        LLSDxmlEncode.AddElem("name", asi.name, sb);
+                        LLSDxmlEncode.AddElem("owner_id", m_AgentID, sb);
+                        LLSDxmlEncode.AddMap("resources", sb);
+                        LLSDxmlEncode.AddElem("memory", asi.memory, sb);
+                        LLSDxmlEncode.AddEndMap(sb);
+                        LLSDxmlEncode.AddEndMap(sb);
+                    }
+                    LLSDxmlEncode.AddEndArray(sb);
+                    LLSDxmlEncode.AddEndMap(sb);
+                }
+                LLSDxmlEncode.AddEndArray(sb);
+
+                LLSDxmlEncode.AddMap("summary", sb);
+                LLSDxmlEncode.AddArray("available", sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", (int)38, sb);
+                LLSDxmlEncode.AddElem("type", "urls", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", (int)-1, sb);
+                LLSDxmlEncode.AddElem("type", "memory", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
+
+                LLSDxmlEncode.AddArray("used", sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount",(int) 0, sb);
+                LLSDxmlEncode.AddElem("type", "urls", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+
+                LLSDxmlEncode.AddMap(sb);
+                LLSDxmlEncode.AddElem("amount", totalmem, sb);
+                LLSDxmlEncode.AddElem("type", "memory", sb);
+                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode.AddEndArray(sb);
+
+                LLSDxmlEncode.AddEndMap(sb);
+
+
+                LLSDxmlEncode.AddEndMap(sb);
+
+                string tst = sb.ToString();
+
+                httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                return;
+            }
+            httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+        }
+
+        public void LandResources(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
+        {
+            if(req.TryGetValue("parcel_id", out OSD tmp) && tmp is OSDUUID)
+            {
+                UUID parcelID = tmp.AsUUID();
+                if(!Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) || regionHandle != m_Scene.RegionInfo.RegionHandle)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                ILandObject land = m_Scene.LandChannel.GetLandObject(x, y);
+                if(land == null || land.LandData == null)
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                string uploaderPath = GetNewCapPath();
+                ScriptResourceSummary uploader =
+                    new ScriptResourceSummary(land.LandData.LocalID, m_Scene, m_HostCapsObj.HttpListener, uploaderPath, httpRequest.RemoteIPEndPoint.Address);
+
+                m_HostCapsObj.RegisterSimpleHandler("LandResources",
+                                       new SimpleOSDMapHandler("POST", GetNewCapPath(), LandResources));
+
+                string protocol = m_HostCapsObj.SSLCaps ? "https://" : "http://";
+                string uploaderURL = protocol + m_HostCapsObj.HostName + ":" + m_HostCapsObj.Port.ToString() + uploaderPath;
+
+                StringBuilder lsl = LLSDxmlEncode.Start();
+                LLSDxmlEncode.AddMap(lsl);
+                LLSDxmlEncode.AddElem("ScriptResourceSummary", uploaderURL,lsl);
+                LLSDxmlEncode.AddEndMap(lsl);
+
+                httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(lsl);
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                return;
+            }
+            httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+        }
+
+        public void ResourceCostSelected(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap req)
         {
             float phys=0;
             float stream=0;
@@ -2190,6 +2354,61 @@ namespace OpenSim.Region.ClientStack.Linden
             bw.Write(data);
             bw.Close();
             fs.Close();
+        }
+    }
+
+    public class ScriptResourceSummary
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private IHttpServer m_httpListener;
+        private string m_mypath;
+        private int m_parcelID;
+        private Scene m_scene;
+        private Timer m_timeoutTimer;
+
+        private IPAddress m_address;
+
+        public ScriptResourceSummary(int parcelID, Scene scene, IHttpServer httpServer, string path, IPAddress address)
+        {
+            m_httpListener = httpServer;
+            m_address = address;
+            m_mypath = path;
+            m_scene = scene;
+            m_parcelID = parcelID;
+
+            m_timeoutTimer = new Timer();
+            m_timeoutTimer.Elapsed += TimedOut;
+            m_timeoutTimer.Interval = 10000;
+            m_timeoutTimer.AutoReset = false;
+            m_timeoutTimer.Start();
+        }
+
+        /// <summary>
+        /// Handle raw asset upload data via the capability.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public void ScriptResourceSummaryCap(IOSHttpRequest request, IOSHttpResponse response)
+        {
+            m_timeoutTimer.Stop();
+            m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+            m_timeoutTimer.Dispose();
+
+            if (request.RemoteIPEndPoint.Address != m_address)
+            {
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
+            }
+        }
+
+        private void TimedOut(object sender, ElapsedEventArgs args)
+        {
+            m_httpListener.RemoveSimpleStreamHandler(m_mypath);
+            m_log.InfoFormat("[CAPS]: Removing URL and handler for timed out ScriptResourceSummary");
+            m_timeoutTimer.Dispose();
         }
     }
 }

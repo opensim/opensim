@@ -2442,6 +2442,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return time;
         }
 
+        public int GetScriptsMemory(List<UUID> itemIDs)
+        {
+            return 0;
+        }
+
         private float GetExectionTime(IScriptInstance si)
         {
             return (float)si.ExecutionTime.GetSumTime().TotalMilliseconds;

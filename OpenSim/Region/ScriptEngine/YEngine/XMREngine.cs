@@ -1915,11 +1915,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         /**
-         * @brief A float the value is a representative execution time in
-         *        milliseconds of all scripts in the link set.
-         * @param itemIDs = list of scripts in the link set
-         * @returns milliseconds for all those scripts
-         */
+            * @brief A float the value is a representative execution time in
+            *        milliseconds of all scripts in the link set.
+            * @param itemIDs = list of scripts in the link set
+            * @returns milliseconds for all those scripts
+            */
         public float GetScriptExecutionTime(List<UUID> itemIDs)
         {
             if((itemIDs == null) || (itemIDs.Count == 0))
@@ -1933,6 +1933,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     time += (float)instance.m_CPUTime;
             }
             return time;
+        }
+
+        public int GetScriptsMemory(List<UUID> itemIDs)
+        {
+            if ((itemIDs == null) || (itemIDs.Count == 0))
+                return 0;
+
+            int memory = 0;
+            foreach (UUID itemID in itemIDs)
+            {
+                XMRInstance instance = GetInstance(itemID);
+                if ((instance != null) && instance.Running)
+                    memory += instance.xmrHeapUsed();
+            }
+            return memory;
         }
 
         /**
