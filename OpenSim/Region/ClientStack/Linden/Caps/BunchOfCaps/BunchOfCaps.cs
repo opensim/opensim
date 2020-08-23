@@ -1604,22 +1604,31 @@ namespace OpenSim.Region.ClientStack.Linden
             if(m_Scene.TryGetScenePresence(m_AgentID, out ScenePresence sp) && !sp.IsChildAgent && !sp.IsDeleted && !sp.IsInTransit)
             {
                 int totalmem = 0;
+                int totalurls = 0;
                 List<SceneObjectGroup> atts = sp.GetAttachments();
                 Dictionary<byte, List<AttachmentScriptInfo>> perAttPoints = null;
                 if (atts.Count > 0)
                 {
+                    IUrlModule urlModule = m_Scene.RequestModuleInterface<IUrlModule>();
                     perAttPoints = new Dictionary<byte, List<AttachmentScriptInfo>>();
                     foreach (SceneObjectGroup so in atts)
                     {
                         byte attp = so.GetAttachmentPoint();
                         int mem = so.ScriptsMemory();
+                        int urls_used = 0;
                         totalmem += mem;
+                        if (urlModule != null)
+                        {
+                            urls_used = urlModule.GetUrlCount(so.UUID);
+                            totalurls += urls_used;
+                        }
                         AttachmentScriptInfo info = new AttachmentScriptInfo()
                         {
                             attpoint = attp,
                             id = so.UUID,
                             name = so.Name,
                             memory = mem,
+                            urls = urls_used,
                             pos = so.AbsolutePosition
                         };
                         if(perAttPoints.TryGetValue(attp, out List<AttachmentScriptInfo> la))
@@ -1648,7 +1657,10 @@ namespace OpenSim.Region.ClientStack.Linden
                             LLSDxmlEncode.AddElem("name", asi.name, sb);
                             LLSDxmlEncode.AddElem("owner_id", m_AgentID, sb);
                             LLSDxmlEncode.AddMap("resources", sb);
-                            LLSDxmlEncode.AddElem("memory", asi.memory, sb);
+                            if (asi.memory > 0)
+                                LLSDxmlEncode.AddElem("memory", asi.memory, sb);
+                            if (asi.urls > 0)
+                                LLSDxmlEncode.AddElem("urls", asi.urls, sb);
                             LLSDxmlEncode.AddEndMap(sb);
                             LLSDxmlEncode.AddEndMap(sb);
                         }
@@ -1663,8 +1675,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddMap("summary", sb);
                 LLSDxmlEncode.AddArray("available", sb);
 
+                int maxurls = totalurls <= 38? 38: totalurls; // we don't limit this
                 LLSDxmlEncode.AddMap(sb);
-                LLSDxmlEncode.AddElem("amount", (int)38, sb);
+                LLSDxmlEncode.AddElem("amount", maxurls, sb);
                 LLSDxmlEncode.AddElem("type", "urls", sb);
                 LLSDxmlEncode.AddEndMap(sb);
 
@@ -1672,13 +1685,13 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode.AddElem("amount", (int)-1, sb);
                 LLSDxmlEncode.AddElem("type", "memory", sb);
                 LLSDxmlEncode.AddEndMap(sb);
-                
+
                 LLSDxmlEncode.AddEndArray(sb); //available
 
                 LLSDxmlEncode.AddArray("used", sb);
 
                 LLSDxmlEncode.AddMap(sb);
-                LLSDxmlEncode.AddElem("amount",(int) 0, sb);
+                LLSDxmlEncode.AddElem("amount",totalurls, sb);
                 LLSDxmlEncode.AddElem("type", "urls", sb);
                 LLSDxmlEncode.AddEndMap(sb);
 
