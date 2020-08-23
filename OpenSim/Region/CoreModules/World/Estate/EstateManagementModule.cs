@@ -1438,7 +1438,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             //reformat the name so we don't have to do it on every item
             bool hasfilter = false;
-            if ((requestFlags & 0x0c) != 0 && !string.IsNullOrWhiteSpace(filter))
+            if ((requestFlags & 0x0e) != 0 && !string.IsNullOrWhiteSpace(filter))
             {
                 if ((requestFlags & 0x00000002) != 0)
                 {
