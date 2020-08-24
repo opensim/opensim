@@ -13,6 +13,20 @@
     <Key Name="fileName" Value="DefaultDaycycle.dat" />
   </Section>
 
+  <Section Name="Default Sky">
+    <Key Name="assetID" Value="3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad" />
+    <Key Name="name" Value="Default Sky" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="DefaultSky.dat" />
+  </Section>
+
+  <Section Name="Default Water">
+    <Key Name="assetID" Value="59d1a851-47e7-0e5f-1ed7-6b715154f41a" />
+    <Key Name="name" Value="Default Water" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="fileName" Value="DefaultWater.dat" />
+  </Section>
+
   <Section Name="Sunrise">
     <Key Name="assetID" Value="01e41537-ff51-2f1f-8ef7-17e4df760bfb" />
     <Key Name="name" Value="Sunrise" />

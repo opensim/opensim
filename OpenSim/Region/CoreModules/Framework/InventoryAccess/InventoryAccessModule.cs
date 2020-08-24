@@ -226,30 +226,42 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     groupmask = (uint)PermissionMask.AllAndExport;
                     everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
                 }
-                if(assetType == (byte)AssetType.Settings)
+
+                if (assetType == (byte)AssetType.Clothing || assetType == (byte)AssetType.Bodypart)
+                    flags = subType;
+
+                AssetBase asset = null;
+
+                if (assetType == (byte)AssetType.Settings)
                 {
-                    if(data == null)
+                    UUID default_asset_id = UUID.Zero;
+
+                    if (subType == 0)
+                        default_asset_id = UUID.Parse("3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad"); // Sky
+                    else if (subType == 1)
+                        default_asset_id = UUID.Parse("59d1a851-47e7-0e5f-1ed7-6b715154f41a"); // Water
+                    else if (subType == 2)
+                        default_asset_id = UUID.Parse("5646d39e-d3d7-6aff-ed71-30fc87d64a91"); // Daycycle
+
+                    if (default_asset_id != UUID.Zero)
                     {
-                        IEnvironmentModule envModule = m_Scene.RequestModuleInterface<IEnvironmentModule>();
-                        if(envModule == null)
-                            return;
-                        data = envModule.GetDefaultAssetData(subType);
-                        if(data == null)
-                        {
-                            m_log.ErrorFormat(
-                            "[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default environment setting asset {0} for agent {1}", name, remoteClient.AgentId);
-                            return;
-                        }
+                        asset = m_Scene.AssetService.Get(default_asset_id.ToString());
+                    }
+                    
+                    if (asset == null)
+                    {
+                        m_log.ErrorFormat("[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default environment setting asset {0} for agent {1}", name, remoteClient.AgentId);
+                        return;
                     }
 
                     flags = subType;
                 }
-                else if( assetType == (byte)AssetType.Clothing ||
-                         assetType == (byte)AssetType.Bodypart)
-                    flags = subType;
+                else
+                {
+                    asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
+                    m_Scene.AssetService.Store(asset);
+                }
 
-                AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
                         name, description, flags, callbackID, asset.FullID, asset.Type, invType,
