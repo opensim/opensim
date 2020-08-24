@@ -86,6 +86,46 @@ namespace OpenSim.Region.CoreModules.World.Land
             set { m_landData = value; }
         }
 
+        public UUID GlobalID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.GlobalID;
+            }
+        }
+
+        public UUID FakeID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.FakeID;
+            }
+        }
+
+        public UUID OwnerID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.OwnerID;
+            }
+        }
+
+        public UUID GroupID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.GroupID;
+            }
+        }
+
+        public int LocalID
+        {
+            get
+            {
+                return m_landData == null ? -1 : m_landData.LocalID;
+            }
+        }
+
         public IPrimCounts PrimCounts { get; set; }
 
         public UUID RegionUUID
@@ -312,7 +352,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if(m_scene != null)
                  m_scene.EventManager.OnFrame -= OnFrame;
-            LandData = null;     
+            LandData = null;
         }
 
 
@@ -1206,14 +1246,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true)
         {
-            // Empty bitmap for the whole region
-            bool[,] tempBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
-            tempBitmap.Initialize();
-
-            // Fill the bitmap square area specified by state and end
-            tempBitmap = ModifyLandBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, set_value);
-            // m_log.DebugFormat("{0} GetSquareLandBitmap. tempBitmapSize=<{1},{2}>",
-            //                         LogHeader, tempBitmap.GetLength(0), tempBitmap.GetLength(1));
+            bool[,] tempBitmap = ModifyLandBitmapSquare(null, start_x, start_y, end_x, end_y, set_value);
             return tempBitmap;
         }
 
@@ -1230,18 +1263,26 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y,
                                               bool set_value)
         {
-            int x, y;
-            for (y = 0; y < land_bitmap.GetLength(1); y++)
+            if(land_bitmap == null)
             {
-                for (x = 0; x < land_bitmap.GetLength(0); x++)
+                land_bitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                if(!set_value)
+                    return land_bitmap;
+            }
+
+            start_x /= landUnit;
+            end_x /= landUnit;
+            start_y /= landUnit;
+            end_y /= landUnit;
+
+            for (int x = start_x; x < end_x; ++x)
+            {
+                for (int y = start_y; y < end_y; ++y)
                 {
-                    if (x >= start_x / landUnit && x < end_x / landUnit
-                        && y >= start_y / landUnit && y < end_y / landUnit)
-                    {
-                        land_bitmap[x, y] = set_value;
-                    }
+                    land_bitmap[x, y] = set_value;
                 }
             }
+
             // m_log.DebugFormat("{0} ModifyLandBitmapSquare. startXY=<{1},{2}>, endXY=<{3},{4}>, val={5}, landBitmapSize=<{6},{7}>",
             //                         LogHeader, start_x, start_y, end_x, end_y, set_value, land_bitmap.GetLength(0), land_bitmap.GetLength(1));
             return land_bitmap;
@@ -1288,7 +1329,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        public bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        public bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow)
         {
             // get the size of the incoming bitmap
             int baseX = bitmap_base.GetLength(0);
@@ -1387,10 +1428,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             //                            baseX, baseY, dispX, dispY, radianRotation, offsetX, offsetY, startX, startY, endX, endY, cosR, sinR, newX, newY);
 
             isEmptyNow = true;
-            int minX = newX;
-            int minY = newY;
-            int maxX = 0;
-            int maxY = 0;
 
             int dx, dy;
             for (y = startY; y < endY; y++)
@@ -1407,10 +1444,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                             {
                                 bitmap_new[dx, dy] = true;
                                 isEmptyNow = false;
-                                if (dx < minX) minX = dx;
-                                if (dy < minY) minY = dy;
-                                if (dx > maxX) maxX = dx;
-                                if (dy > maxY) maxY = dy;
                             }
                         }
                         catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
@@ -1420,15 +1453,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
-            if (isEmptyNow)
-            {
-                //m_log.DebugFormat("{0} RemapLandBitmap: Land bitmap is marked as Empty", LogHeader);
-                minX = 0;
-                minY = 0;
-            }
-
-            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
-            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
             return bitmap_new;
         }
 
@@ -1442,7 +1466,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        public bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        public bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow)
         {
             // get the size of the incoming bitmaps
             int baseX = bitmap_base.GetLength(0);
@@ -1457,10 +1481,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             isEmptyNow = true;
-            int minX = baseX;
-            int minY = baseY;
-            int maxX = 0;
-            int maxY = 0;
 
             for (int x = 0; x < baseX; x++)
             {
@@ -1470,21 +1490,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (bitmap_base[x, y])
                     {
                         isEmptyNow = false;
-                        if (x < minX) minX = x;
-                        if (y < minY) minY = y;
-                        if (x > maxX) maxX = x;
-                        if (y > maxY) maxY = y;
                     }
                 }
             }
-            if (isEmptyNow)
-            {
-                //m_log.DebugFormat("{0} RemoveFromLandBitmap: Land bitmap is marked as Empty", LogHeader);
-                minX = 0;
-                minY = 0;
-            }
-            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
-            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
             return bitmap_base;
         }
 

@@ -765,8 +765,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
                 bool overrideRegionSize = true;  //use the src land parcel data size not the dst region size
                 bool isEmptyNow;
-                Vector3 AABBMin;
-                Vector3 AABBMax;
 
                 // create a new LandObject that we can use to manipulate the incoming source parcel data
                 // this is ok, but just beware that some of the LandObject functions (that we haven't used here) still
@@ -786,7 +784,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 //   parcel.Name, parcel.GlobalID, parcel.LocalID);
                 //landObject.DebugLandBitmap(srcLandBitmap);
 
-                bool[,] dstLandBitmap = landObject.RemapLandBitmap(srcLandBitmap, displacement, m_rotation, boundingOrigin, boundingSize, regionSize, out isEmptyNow, out AABBMin, out AABBMax);
+                bool[,] dstLandBitmap = landObject.RemapLandBitmap(srcLandBitmap, displacement, m_rotation, boundingOrigin, boundingSize, regionSize, out isEmptyNow);
                 if (isEmptyNow)
                 {
                     m_log.WarnFormat("[ARCHIVER]: Not adding destination parcel {0} with GlobalID: {1} LocalID: {2} because, after applying rotation, bounding and displacement, it has no claimed land.",
@@ -799,8 +797,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 landObject.LandBitmap = dstLandBitmap;
                 parcel.Bitmap = landObject.ConvertLandBitmapToBytes();
-                parcel.AABBMin = AABBMin;
-                parcel.AABBMax = AABBMax;
 
                 if (domerge)
                 {
@@ -814,7 +810,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (parcels[i] != null)
                         {
                             bool[,] modLandBitmap = parcels[i].ConvertBytesToLandBitmap(overrideRegionSize);
-                            modLandBitmap = parcels[i].RemoveFromLandBitmap(modLandBitmap, dstLandBitmap, out isEmptyNow, out AABBMin, out AABBMax);
+                            modLandBitmap = parcels[i].RemoveFromLandBitmap(modLandBitmap, dstLandBitmap, out isEmptyNow);
                             if (isEmptyNow)
                             {
                                 parcels[i] = null;
@@ -823,8 +819,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             {
                                 parcels[i].LandBitmap = modLandBitmap;
                                 parcels[i].LandData.Bitmap = parcels[i].ConvertLandBitmapToBytes();
-                                parcels[i].LandData.AABBMin = AABBMin;
-                                parcels[i].LandData.AABBMax = AABBMax;
                             }
                         }
                     }

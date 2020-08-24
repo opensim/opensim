@@ -51,7 +51,6 @@ namespace OpenSim.Framework
 
         public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
-
             AuthenticateResponse user = new AuthenticateResponse();
             if (!m_agentCircuits.TryGetValue(circuitcode, out AgentCircuitData validcircuit) || validcircuit == null)
             {
