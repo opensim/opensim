@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_regionSizeY = (int)m_scene.RegionInfo.RegionSizeY;
             m_landIDList = new int[m_regionSizeX / LandUnit, m_regionSizeY / LandUnit];
 
-            //m_landChannel = new LandChannel(scene, this);
+            m_scene.LandChannel = this;
 
             m_scene.EventManager.OnObjectAddedToScene += EventManagerOnParcelPrimCountAdd;
             m_scene.EventManager.OnParcelPrimCountAdd += EventManagerOnParcelPrimCountAdd;
@@ -189,12 +189,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
             m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;
             m_scene.EventManager.OnRegisterCaps += EventManagerOnRegisterCaps;
-
-            lock (m_scene)
-            {
-                //m_scene.LandChannel = m_landChannel;
-                m_scene.LandChannel = this;
-            }
 
             RegisterCommands();
         }
@@ -2152,13 +2146,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                                 parcelID = l.LandData.FakeID;
                             else
                                 parcelID = Util.BuildFakeParcelID(myHandle, x, y);
-                            if(parcelID == UUID.Zero)
-                            {
-                                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: RemoteParcelRequest failed {0} {1}{2}{3} ",
-                                    (l == null ? "nullL" : l.LandData.FakeID.ToString()),
-                                    x.ToString(), y.ToString(), regionHandle.ToString());
-                                parcelID = Util.BuildFakeParcelID(myHandle, x, y);
-                            }
                         }
                         else
                         {
@@ -2220,7 +2207,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID == UUID.Zero ? args.ToString() :"");
+            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID == UUID.Zero ? args.ToString() :"");
             StringBuilder sb = LLSDxmlEncode.Start();
                 LLSDxmlEncode.AddMap(sb);
                   LLSDxmlEncode.AddElem("parcel_id", parcelID,sb);
