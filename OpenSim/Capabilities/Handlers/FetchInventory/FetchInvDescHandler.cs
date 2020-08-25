@@ -137,20 +137,30 @@ namespace OpenSim.Capabilities.Handlers
                 }
                 sb.Append("</array></map></llsd>");
                 httpResponse.RawBuffer = Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
+
+                sb = osStringBuilderCache.Acquire();
+                sb.Append("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
+                sb.Append("Unknown");
+                sb.Append(" :");
+                int limit = 9;
+                foreach (UUID bad in bad_folders)
+                {
+                    sb.Append(" ");
+                    sb.Append(bad.ToString());
+                    if (--limit < 0)
+                        break;
+                }
+                if (limit < 0)
+                    sb.Append(" ...");
+                m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
+
+                return;
             }
 
             int total_folders = 0;
             int total_items = 0;
 
-            UUID requester = UUID.Zero;
-            try
-            {
-                requester = folders[0].owner_id;
-            }
-            catch
-            {
-                m_log.DebugFormat("folders[0].owner_id null ref");
-            }
+            UUID requester = folders[0].owner_id;
 
             List<InventoryCollection> invcollSet = Fetch(folders, bad_folders, ref total_folders, ref total_items);
             //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
