@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2008, openmetaverse.org, http://opensimulator.org/
- * All rights reserved.
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * - Redistribution and use in source and binary forms, with or without
  *   modification, are permitted provided that the following conditions are met:
@@ -105,14 +105,13 @@ namespace OpenSim.Framework
         private void Purge(object ignored)
         {
             bool gotLock = false;
-            int now = (int)(Util.GetTimeStampMS() - m_startTS);
 
             try
             {
                 try { }
                 finally
                 {
-                    m_rwLock.EnterWriteLock();
+                    m_rwLock.EnterUpgradeableReadLock();
                     gotLock = true;
                 }
 
@@ -122,26 +121,47 @@ namespace OpenSim.Framework
                     return;
                 }
 
+                int now = (int)(Util.GetTimeStampMS() - m_startTS);
                 List<TKey1> expired = new List<TKey1>(m_expireControl.Count);
                 foreach(KeyValuePair<TKey1, int> kvp in m_expireControl)
                 {
                     if(kvp.Value < now)
                         expired.Add(kvp.Key);
                 }
-                foreach(TKey1 key in expired)
+
+                if(expired.Count > 0)
                 {
-                    m_expireControl.Remove(key);
-                    m_values.Remove(key);
+                    bool gotWriteLock = false;
+                    try
+                    {
+                        try { }
+                        finally
+                        {
+                            m_rwLock.EnterWriteLock();
+                            gotWriteLock = true;
+                        }
+
+                        foreach (TKey1 key in expired)
+                        {
+                            m_expireControl.Remove(key);
+                            m_values.Remove(key);
+                        }
+                        if(m_expireControl.Count == 0)
+                            DisposeTimer();
+                        else
+                            m_purgeTimer.Change(m_expire, Timeout.Infinite);
+                    }
+                    finally
+                    {
+                        if (gotWriteLock)
+                            m_rwLock.ExitWriteLock();
+                    }
                 }
-                if(m_expireControl.Count == 0)
-                    DisposeTimer();
-                else
-                    m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
             finally
             {
                 if (gotLock)
-                    m_rwLock.ExitWriteLock();
+                    m_rwLock.ExitUpgradeableReadLock();
             }
         }
 

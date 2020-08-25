@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2008, openmetaverse.org, http://opensimulator.org/
- * All rights reserved.
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * - Redistribution and use in source and binary forms, with or without
  *   modification, are permitted provided that the following conditions are met:
@@ -100,14 +100,13 @@ namespace OpenSim.Framework
         private void Purge(object ignored)
         {
             bool gotLock = false;
-            int now = (int)(Util.GetTimeStampMS() - m_startTS);
 
             try
             {
                 try { }
                 finally
                 {
-                    m_rwLock.EnterWriteLock();
+                    m_rwLock.EnterUpgradeableReadLock();
                     gotLock = true;
                 }
 
@@ -117,23 +116,44 @@ namespace OpenSim.Framework
                     return;
                 }
 
+                int now = (int)(Util.GetTimeStampMS() - m_startTS);
                 List<Tkey1> expired = new List<Tkey1>(m_dictionary.Count);
                 foreach(KeyValuePair<Tkey1,int> kvp in m_dictionary)
                 {
                     if(kvp.Value < now)
                         expired.Add(kvp.Key);
                 }
-                foreach(Tkey1 key in expired)
-                    m_dictionary.Remove(key);
-                if(m_dictionary.Count == 0)
-                    DisposeTimer();
-                else
-                    m_purgeTimer.Change(m_expire, Timeout.Infinite);
+
+                if (expired.Count > 0)
+                {
+                    bool gotWriteLock = false;
+                    try
+                    {
+                        try { }
+                        finally
+                        {
+                            m_rwLock.EnterWriteLock();
+                            gotWriteLock = true;
+                        }
+
+                        foreach (Tkey1 key in expired)
+                            m_dictionary.Remove(key);
+                        if(m_dictionary.Count == 0)
+                            DisposeTimer();
+                        else
+                            m_purgeTimer.Change(m_expire, Timeout.Infinite);
+                    }
+                    finally
+                    {
+                        if (gotWriteLock)
+                            m_rwLock.ExitWriteLock();
+                    }
+                }
             }
             finally
             {
                 if (gotLock)
-                    m_rwLock.ExitWriteLock();
+                    m_rwLock.ExitUpgradeableReadLock();
             }
         }
 
