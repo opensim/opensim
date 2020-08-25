@@ -988,13 +988,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         public ILandObject GetLandObjectClipedXY(float x, float y)
         {
             //do clip inline
-            int avx = (int)x;
+            int avx = (int)(Math.Round(x));
             if (avx < 0)
                 avx = 0;
             else if (avx >= m_regionSizeX)
                 avx = m_regionSizeX - 1;
 
-            int avy = (int)y;
+            int avy = (int)(Math.Round(y));
             if (avy < 0)
                 avy = 0;
             else if (avy >= m_regionSizeY)
@@ -2152,6 +2152,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                                 parcelID = l.LandData.FakeID;
                             else
                                 parcelID = Util.BuildFakeParcelID(myHandle, x, y);
+                            if(parcelID == UUID.Zero)
+                            {
+                                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: RemoteParcelRequest failed {0} {1}{2}{3} ",
+                                    (l == null ? "nullL" : l.LandData.FakeID.ToString()),
+                                    x.ToString(), y.ToString(), regionHandle.ToString());
+                                parcelID = Util.BuildFakeParcelID(myHandle, x, y);
+                            }
                         }
                         else
                         {
