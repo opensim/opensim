@@ -2760,6 +2760,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("Parcel name", ld.Name);
             cdl.AddRow("Local ID", ld.LocalID);
+            cdl.AddRow("Fake ID", ld.FakeID);
             cdl.AddRow("Description", ld.Description);
             cdl.AddRow("Snapshot ID", ld.SnapshotID);
             cdl.AddRow("Area", ld.Area);
