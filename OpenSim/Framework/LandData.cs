@@ -773,6 +773,7 @@ namespace OpenSim.Framework
             landData._claimDate = _claimDate;
             landData._claimPrice = _claimPrice;
             landData._globalID = _globalID;
+            landData.m_fakeID = m_fakeID;
             landData._groupID = _groupID;
             landData._isGroupOwned = _isGroupOwned;
             landData._localID = _localID;
