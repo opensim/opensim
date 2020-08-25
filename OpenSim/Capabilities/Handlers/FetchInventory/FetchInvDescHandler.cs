@@ -142,7 +142,15 @@ namespace OpenSim.Capabilities.Handlers
             int total_folders = 0;
             int total_items = 0;
 
-            UUID requester = folders[0].owner_id;
+            UUID requester = UUID.Zero;
+            try
+            {
+                requester = folders[0].owner_id;
+            }
+            catch
+            {
+                m_log.DebugFormat("folders[0].owner_id null ref");
+            }
 
             List<InventoryCollection> invcollSet = Fetch(folders, bad_folders, ref total_folders, ref total_items);
             //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
@@ -159,7 +167,6 @@ namespace OpenSim.Capabilities.Handlers
             StringBuilder lastresponse = new StringBuilder(mem);
             lastresponse.Append("<llsd>");
 
-            
             if (invcollSetCount > 0)
             {
                 lastresponse.Append("<map><key>folders</key><array>");
