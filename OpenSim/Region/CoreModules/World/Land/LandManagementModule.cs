@@ -2728,6 +2728,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             cdt.AddColumn("Starts", ConsoleDisplayUtil.VectorSize);
             cdt.AddColumn("Ends", ConsoleDisplayUtil.VectorSize);
             cdt.AddColumn("Owner", ConsoleDisplayUtil.UserNameSize);
+            cdt.AddColumn("fakeID", 38);
 
             lock (m_landList)
             {
@@ -2745,7 +2746,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ownerName = m_userManager.GetUserName(ld.OwnerID);
                     }
                     cdt.AddRow(
-                        ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, ownerName);
+                        ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, ownerName, lo.FakeID);
                 }
             }
 
