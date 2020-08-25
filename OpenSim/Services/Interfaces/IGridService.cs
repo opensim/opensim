@@ -66,7 +66,7 @@ namespace OpenSim.Services.Interfaces
         List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID);
 
         GridRegion GetRegionByUUID(UUID scopeID, UUID regionID);
-
+        GridRegion GetRegionByHandle(UUID scopeID, ulong regionhandle);
         /// <summary>
         /// Get the region at the given position (in meters)
         /// </summary>

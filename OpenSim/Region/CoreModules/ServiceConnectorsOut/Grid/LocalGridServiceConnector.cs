@@ -212,13 +212,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             bool inCache = false;
-            GridRegion rinfo = m_RegionInfoCache.Get(scopeID,regionID,out inCache);
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionID, out inCache);
             if (inCache)
                 return rinfo;
 
             rinfo = m_GridService.GetRegionByUUID(scopeID, regionID);
-            if(rinfo != null)
-             m_RegionInfoCache.Cache(scopeID, rinfo);
+            if (rinfo != null)
+                m_RegionInfoCache.Cache(scopeID, rinfo);
+            return rinfo;
+        }
+
+        public GridRegion GetRegionByHandle(UUID scopeID, ulong regionhandle)
+        {
+            bool inCache = false;
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID, regionhandle, out inCache);
+            if (inCache)
+                return rinfo;
+
+            rinfo = m_GridService.GetRegionByHandle(scopeID, regionhandle);
+            if (rinfo != null)
+                m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
         }
 

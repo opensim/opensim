@@ -446,6 +446,13 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
+        public GridRegion GetRegionByHandle(UUID scopeID, ulong regionhandle)
+        {
+            int x = (int)(regionhandle >> 32);
+            int y = (int)(regionhandle & 0xfffffffful);
+            return GetRegionByPosition(scopeID, x, y);
+        }
+
         // Get a region given its base coordinates.
         // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
         //     be the base coordinate of the region.

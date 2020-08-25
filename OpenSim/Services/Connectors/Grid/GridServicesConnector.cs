@@ -273,6 +273,13 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
+        public GridRegion GetRegionByHandle(UUID scopeID, ulong regionhandle)
+        {
+            //still not on protocol
+            Util.RegionHandleToWorldLoc(regionhandle, out uint x, out uint y);
+            return GetRegionByPosition(scopeID, (int)x, (int)y);
+        }
+
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             GridRegion rinfo = null;
