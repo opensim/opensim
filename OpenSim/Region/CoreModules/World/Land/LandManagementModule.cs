@@ -2220,7 +2220,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
+            m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID == UUID.Zero ? args.ToString() :"");
             StringBuilder sb = LLSDxmlEncode.Start();
                 LLSDxmlEncode.AddMap(sb);
                   LLSDxmlEncode.AddElem("parcel_id", parcelID,sb);
