@@ -79,8 +79,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddScale", configSections, m_exportPrintScale);
                 m_exportPrintRegionName =
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
-                m_showNPCs =
-                    Util.GetConfigVarFromSections<bool>(source, "ShowNPCs", configSections, m_showNPCs);
             }
         }
 
@@ -184,27 +182,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 ((OSDMap)extras)["map-server-url"] = m_MapImageServerURL;
 
             }
-        }
-    }
-
-    class MapArea
-    {
-        public int minX;
-        public int minY;
-        public int maxX;
-        public int maxY;
-
-        public MapArea(int mix, int miy, int max, int may)
-        {
-            minX = mix;
-            minY = miy;
-            maxX = max;
-            maxY = may;
-        }
-
-        public void Print()
-        {
-            Console.WriteLine(String.Format(" --> Area is minX={0} minY={1} minY={2} maxY={3}", minX, minY, maxY, maxY));
         }
     }
 }

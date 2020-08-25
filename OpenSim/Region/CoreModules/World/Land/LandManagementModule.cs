@@ -950,10 +950,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             if(Util.ParseFakeParcelID(fakeID, out ulong rhandle, out uint x, out uint y) && rhandle == m_regionHandler)
             {
-                ILandObject ret = GetLandObjectClipedXY(x, y);
-                if(ret != null)
-                    m_landFakeIDs[fakeID] = ret.LandData.LocalID;
-                return ret;
+                return GetLandObjectClipedXY(x, y);
             }
             return null;
         }
@@ -2249,7 +2246,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     // for this region or for somewhere else?
                     if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
                     {
-                        ILandObject extLandObject = GetLandObjectClipedXY(extLandData.X, extLandData.Y);
+                        ILandObject extLandObject = GetLandObjectByfakeID(parcelID);
                         if (extLandObject == null)
                             break;
 
@@ -2286,9 +2283,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 else
                 {
                     // most likely still cached from building the extLandData entry
-                    uint x = 0, y = 0;
-                    Util.RegionHandleToWorldLoc(data.RegionHandle, out x, out y);
-                    info = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
+                    info = m_scene.GridService.GetRegionByHandle(m_scene.RegionInfo.ScopeID, data.RegionHandle);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
                 //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: got parcelinfo for parcel {0} in region {1}; sending...",
