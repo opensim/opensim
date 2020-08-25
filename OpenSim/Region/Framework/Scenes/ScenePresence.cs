@@ -1836,6 +1836,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsSatOnObject)
                 StandUp();
 
+            if(m_movingToTarget)
+                ResetMoveToTarget();
+
             float localHalfAVHeight = 0.8f;
             if (Appearance != null)
                 localHalfAVHeight = Appearance.AvatarHeight * 0.5f;
