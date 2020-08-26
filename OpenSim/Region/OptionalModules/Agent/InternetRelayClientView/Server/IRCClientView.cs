@@ -1142,7 +1142,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendRemoveInventoryItem(UUID itemID)
         {
+        }
 
+        public void SendRemoveInventoryItems(UUID[] items)
+        {
         }
 
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)

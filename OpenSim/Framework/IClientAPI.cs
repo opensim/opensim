@@ -1210,6 +1210,7 @@ namespace OpenSim.Framework
         void SendInventoryItemCreateUpdate(InventoryItemBase Item, UUID transactionID, uint callbackId);
 
         void SendRemoveInventoryItem(UUID itemID);
+        void SendRemoveInventoryItems(UUID[] items);
 
         void SendTakeControls(int controls, bool passToAgent, bool TakeControls);
 

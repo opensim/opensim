@@ -39,7 +39,6 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
@@ -214,24 +213,16 @@ namespace OpenSim.Region.Framework.Scenes
         private void ChangePlacement(InventoryItemBase item, InventoryFolderBase f)
         {
             ScenePresence sp = GetScenePresence(item.Owner);
-            if (sp != null)
+            if (sp != null && sp.ControllingClient != null && sp.ControllingClient.IsActive)
             {
-                if (sp.ControllingClient is IClientCore)
-                {
-                    IClientCore core = (IClientCore)sp.ControllingClient;
-                    IClientInventory inv;
-
-                    if (core.TryGet<IClientInventory>(out inv))
-                    {
-                        InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
-                        inv.SendRemoveInventoryItems(new UUID[] { item.ID });
-                        inv.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
-                        string message = "The item was placed in folder " + f.Name;
-                        if (parent != null)
-                            message += " under " + parent.Name;
-                        sp.ControllingClient.SendAgentAlertMessage(message, false);
-                    }
-                }
+                IClientAPI cli = sp.ControllingClient;
+                InventoryFolderBase parent = InventoryService.GetFolder(f.Owner, f.ParentID);
+                cli.SendRemoveInventoryItems(new UUID[] { item.ID });
+                cli.SendBulkUpdateInventory(new InventoryFolderBase[0], new InventoryItemBase[] { item });
+                string message = "The item was placed in folder " + f.Name;
+                if (parent != null)
+                    message += " under " + parent.Name;
+                cli.SendAgentAlertMessage(message, false);
             }
         }
 
