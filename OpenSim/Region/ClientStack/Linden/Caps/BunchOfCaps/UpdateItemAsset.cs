@@ -350,7 +350,6 @@ namespace OpenSim.Region.ClientStack.Linden
             private bool m_isScriptRunning;
             private bool m_dumpAssetToFile;
             public IPAddress m_remoteAddress;
-            private Timer m_timeout;
 
             public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
                                                 string path, IHttpServer httpServer, IPAddress address,
