@@ -83,7 +83,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private ExpiringCacheOS<ulong, string> m_cachedRegionMapItemsAddress = new ExpiringCacheOS<ulong, string>(60000);
         private ExpiringCacheOS<ulong, OSDMap> m_cachedRegionMapItemsResponses = new ExpiringCacheOS<ulong, OSDMap>(1000);
         private HashSet<UUID> m_rootAgents = new HashSet<UUID>();
-        private volatile bool threadrunning = false;
+        private volatile bool m_threadItemsRunning = false;
+        private volatile bool m_threadBlocksRunning = false;
         // expire time for the blacklists in seconds
         protected int expireBlackListTime = 300; // 5 minutes
         // expire mapItems responses time in seconds. Throttles requests to regions that do answer
@@ -129,7 +130,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_cachedRegionMapItemsResponses = null;
             }
         }
-
 
         #region INonSharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
@@ -232,13 +232,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_scene.EventManager.OnMakeRootAgent += MakeRootAgent;
             m_scene.EventManager.OnRegionUp += OnRegionUp;
 
-            StartThread(new object());
+            StartThreads();
         }
 
         // this has to be called with a lock on m_scene
         protected virtual void RemoveHandlers()
         {
-            StopThread();
+            StopThreads();
 
             m_scene.EventManager.OnRegionUp -= OnRegionUp;
             m_scene.EventManager.OnMakeRootAgent -= MakeRootAgent;
@@ -335,52 +335,29 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// Additionally, it gets stopped when there are none.
         /// </summary>
         /// <param name="o"></param>
-        private void StartThread(object o)
+        private void StartThreads()
         {
-            if (threadrunning)
-                return;
-            threadrunning = true;
+            if (!m_threadItemsRunning)
+            {
+                m_threadItemsRunning = true;
+                WorkManager.StartThread(MapItemsprocess, string.Format("MapItems ({0})", m_scene.RegionInfo.RegionName));
+            }
 
-            //m_log.Debug("[WORLD MAP]: Starting remote MapItem request thread");
-
-            WorkManager.StartThread(
-                process,
-                string.Format("MapItemRequestThread ({0})", m_scene.RegionInfo.RegionName));
-            WorkManager.StartThread(
-                MapBlockSendThread,
-                string.Format("MapBlockSendThread ({0})", m_scene.RegionInfo.RegionName));
+            if (!m_threadBlocksRunning)
+            {
+                m_threadBlocksRunning = true;
+                WorkManager.StartThread(MapBlocksProcess, string.Format("MapBlocks ({0})", m_scene.RegionInfo.RegionName));
+            }
         }
 
         /// <summary>
         /// Enqueues a 'stop thread' MapRequestState.  Causes the MapItemRequest thread to end
         /// </summary>
-        private void StopThread()
+        private void StopThreads()
         {
-            MapRequestState st = new MapRequestState();
-            st.agentID = STOP_UUID;
-            st.EstateID = 0;
-            st.flags = 0;
-            st.godlike = false;
-            st.itemtype = 0;
-            st.regionhandle = 0;
-
-            requests.Add(st);
-
-            MapBlockRequestData req = new MapBlockRequestData();
-
-            req.client = null;
-            req.minX = 0;
-            req.maxX = 0;
-            req.minY = 0;
-            req.maxY = 0;
-            req.flags = 0;
-
-            lock (m_mapBlockRequestEvent)
-            {
-                m_mapBlockRequests[UUID.Zero] = new Queue<MapBlockRequestData>();
-                m_mapBlockRequests[UUID.Zero].Enqueue(req);
-                m_mapBlockRequestEvent.Set();
-            }
+            m_threadItemsRunning = false;
+            m_mapBlockRequestEvent.Set();
+            m_threadBlocksRunning = false;
         }
 
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags,
@@ -654,7 +631,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <summary>
         /// Processing thread main() loop for doing remote mapitem requests
         /// </summary>
-        public void process()
+        public void MapItemsprocess()
         {
             const int MAX_ASYNC_REQUESTS = 5;
             ScenePresence av = null;
@@ -670,12 +647,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     requests.TryTake(out st, 4500);
                     Watchdog.UpdateThread();
 
+                    if (m_scene == null || !m_threadItemsRunning)
+                        break;
+
                     if (st == null || st.agentID == UUID.Zero)
                         continue;
-
-                    // end gracefully
-                    if (st.agentID == STOP_UUID)
-                        break;
 
                     // agent gone?
 
@@ -745,8 +721,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
                     {
                         Thread.Sleep(100);
+                        if (m_scene == null || !m_threadItemsRunning)
+                            break;
                         Watchdog.UpdateThread();
                     }
+                    if (m_scene == null || !m_threadItemsRunning)
+                        break;
                 }
             }
 
@@ -755,7 +735,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_log.ErrorFormat("[WORLD MAP]: Map item request thread terminated abnormally with exception {0}", e);
             }
 
-            threadrunning = false;
             Watchdog.RemoveThread();
         }
 
@@ -971,6 +950,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             Interlocked.Decrement(ref nAsyncRequests);
         }
 
+
+        private const double SPAMBLOCKTIMEms = 300000; // 5 minutes
+        private Dictionary<UUID,double> spamBlocked = new Dictionary<UUID,double>();
+
         /// <summary>
         /// Requests map blocks in area of minX, maxX, minY, MaxY in world cordinates
         /// </summary>
@@ -979,16 +962,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
-        {
-//            m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
-
-            GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
-        }
-
-        private const double SPAMBLOCKTIMEms = 300000; // 5 minutes
-        private Dictionary<UUID,double> spamBlocked = new Dictionary<UUID,double>();
-
-        protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             // anti spam because of FireStorm 4.7.7 absurd request repeat rates
             // possible others
@@ -1008,7 +981,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         m_log.DebugFormat("[WoldMapModule] RequestMapBlocks release spammer {0}", agentID);
                     }
                     else
-                        return new List<MapBlockData>();
+                        return;
                 }
                 else
                 {
@@ -1036,19 +1009,24 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
 //                m_log.DebugFormat("[WoldMapModule] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
 
-                MapBlockRequestData req = new MapBlockRequestData();
+                MapBlockRequestData req = new MapBlockRequestData()
+                {
+                    client = remoteClient,
+                    minX = minX,
+                    maxX = maxX,
+                    minY = minY,
+                    maxY = maxY,
+                    flags = flag
+                };
 
-                req.client = remoteClient;
-                req.minX = minX;
-                req.maxX = maxX;
-                req.minY = minY;
-                req.maxY = maxY;
-                req.flags = flag;
-
-                if (!m_mapBlockRequests.ContainsKey(agentID))
-                    m_mapBlockRequests[agentID] = new Queue<MapBlockRequestData>();
-                if(m_mapBlockRequests[agentID].Count < 150 )
-                    m_mapBlockRequests[agentID].Enqueue(req);
+                Queue<MapBlockRequestData> agentq; 
+                if(!m_mapBlockRequests.TryGetValue(agentID, out agentq))
+                {
+                    agentq = new Queue<MapBlockRequestData>();
+                    m_mapBlockRequests[agentID] = agentq;
+                }
+                if(agentq.Count < 150 )
+                    agentq.Enqueue(req);
                 else
                 {
                     spamBlocked[agentID] = now + SPAMBLOCKTIMEms;
@@ -1056,59 +1034,76 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
                 m_mapBlockRequestEvent.Set();
             }
-
-            return new List<MapBlockData>();
         }
 
-        protected void MapBlockSendThread()
+        protected void MapBlocksProcess()
         {
             List<MapBlockRequestData> thisRunData = new List<MapBlockRequestData>();
+            List<UUID> toRemove = new List<UUID>();
             while (true)
             {
                 while(!m_mapBlockRequestEvent.WaitOne(4900))
                 {
                     Watchdog.UpdateThread();
-                    if(m_scene == null)
+                    if (m_scene == null || !m_threadBlocksRunning)
+                    {
+                        Watchdog.RemoveThread();
                         return;
+                    }
                 }
                 Watchdog.UpdateThread();
+                if (m_scene == null || !m_threadBlocksRunning)
+                    break;
+
                 lock (m_mapBlockRequestEvent)
                 {
                     int total = 0;
-                    foreach (Queue<MapBlockRequestData> q in m_mapBlockRequests.Values)
+                    foreach (KeyValuePair<UUID, Queue<MapBlockRequestData>> kvp in m_mapBlockRequests)
                     {
-                        if (q.Count > 0)
-                            thisRunData.Add(q.Dequeue());
-
-                        total += q.Count;
+                        if (kvp.Value.Count > 0)
+                        {
+                            thisRunData.Add(kvp.Value.Dequeue());
+                            total += kvp.Value.Count;
+                        }
+                        else
+                            toRemove.Add(kvp.Key);
                     }
+
+                    if (m_scene == null || !m_threadBlocksRunning)
+                        break;
 
                     if (total == 0)
                         m_mapBlockRequestEvent.Reset();
                 }
 
-                if(thisRunData.Count > 0)
+                if (toRemove.Count > 0)
+                {
+                    foreach (UUID u in toRemove)
+                        m_mapBlockRequests.Remove(u);
+                    toRemove.Clear();
+                }
+
+                if (thisRunData.Count > 0)
                 {
                     foreach (MapBlockRequestData req in thisRunData)
                     {
-                        // Null client stops thread
-                        if (req.client == null)
-                            return;
-
                         GetAndSendBlocksInternal(req.client, req.minX, req.minY, req.maxX, req.maxY, req.flags);
+                        if (m_scene == null || !m_threadBlocksRunning)
+                            break;
                         Watchdog.UpdateThread();
                     }
-
                     thisRunData.Clear();
                 }
 
+                if (m_scene == null || !m_threadBlocksRunning)
+                    break;
                 Thread.Sleep(50);
             }
+            Watchdog.RemoveThread();
         }
 
         protected virtual List<MapBlockData> GetAndSendBlocksInternal(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            List<MapBlockData> allBlocks = new List<MapBlockData>();
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
                 minX * (int)Constants.RegionSize,
@@ -1119,19 +1114,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // only send a negative answer for a single region request
             // corresponding to a click on the map. Current viewers
             // keep displaying "loading.." without this
-            if (regions.Count == 0 && (flag & 0x10000) != 0 && minX == maxX && minY == maxY)
+            if (regions.Count == 0)
             {
-                MapBlockData block = new MapBlockData();
-                block.X = (ushort)minX;
-                block.Y = (ushort)minY;
-                block.MapImageId = UUID.Zero;
-                block.Access = (byte)SimAccess.NonExistent;
-                allBlocks.Add(block);
-                mapBlocks.Add(block);
-                remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
-                return allBlocks;
+                if((flag & 0x10000) != 0 && minX == maxX && minY == maxY)
+                {
+                    MapBlockData block = new MapBlockData();
+                    block.X = (ushort)minX;
+                    block.Y = (ushort)minY;
+                    block.MapImageId = UUID.Zero;
+                    block.Access = (byte)SimAccess.NonExistent;
+                    mapBlocks.Add(block);
+                    remoteClient.SendMapBlock(mapBlocks, flag & 0xffff);
+                }
+                return mapBlocks;
             }
 
+            List<MapBlockData> allBlocks = new List<MapBlockData>();
             flag &= 0xffff;
 
             foreach (GridRegion r in regions)
@@ -1149,6 +1147,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     mapBlocks.Clear();
                     Thread.Sleep(50);
                 }
+                if (m_scene == null || !m_threadBlocksRunning)
+                    return allBlocks;
             }
             if (mapBlocks.Count > 0)
                 remoteClient.SendMapBlock(mapBlocks, flag);

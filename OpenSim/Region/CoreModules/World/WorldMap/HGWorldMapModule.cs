@@ -149,23 +149,25 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         protected override List<MapBlockData> GetAndSendBlocksInternal(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData>  mapBlocks = base.GetAndSendBlocksInternal(remoteClient, minX, minY, maxX, maxY, flag);
-            lock (m_SeenMapBlocks)
+            if(mapBlocks.Count > 0)
             {
-                if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))
+                lock (m_SeenMapBlocks)
                 {
-                    m_SeenMapBlocks.Add(remoteClient.AgentId, mapBlocks);
-                }
-                else
-                {
-                    List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
-                    List<MapBlockData> newBlocks = new List<MapBlockData>();
-                    foreach (MapBlockData b in mapBlocks)
-                        if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
-                            newBlocks.Add(b);
-                    seen.AddRange(newBlocks);
+                    if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))
+                    {
+                        m_SeenMapBlocks.Add(remoteClient.AgentId, mapBlocks);
+                    }
+                    else
+                    {
+                        List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
+                        List<MapBlockData> newBlocks = new List<MapBlockData>();
+                        foreach (MapBlockData b in mapBlocks)
+                            if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
+                                newBlocks.Add(b);
+                        seen.AddRange(newBlocks);
+                    }
                 }
             }
-
             return mapBlocks;
         }
 
