@@ -4,7 +4,7 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Timers;
+using System.Threading;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -231,7 +231,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.Error("[UpdateScriptTaskInventory]: " + e.ToString());
             }
         }
-
         /// <summary>
         /// Called when new asset data for an agent inventory item update has been uploaded.
         /// </summary>
@@ -253,215 +252,181 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             return true;
         }
-    }
-
-
-    /// <summary>
-    /// This class is a callback invoked when a client sends asset data to
-    /// an agent inventory notecard update url
-    /// </summary>
-    public class ItemUpdater
-    {
-        public event UpdateItem OnUpLoad = null;
-        private string m_uploaderPath = String.Empty;
-        private UUID m_inventoryItemID;
-        private UUID m_objectID;
-        private IHttpServer m_httpListener;
-        private bool m_dumpAssetToFile;
-        public IPAddress m_remoteAdress;
-        private byte m_assetType;
-        private Timer m_timeout;
-
-        public ItemUpdater(UUID inventoryItem, UUID objectid,byte aType, string path, IHttpServer httpServer, bool dumpAssetToFile)
-        {
-            m_dumpAssetToFile = dumpAssetToFile;
-
-            m_inventoryItemID = inventoryItem;
-            m_objectID = objectid;
-            m_uploaderPath = path;
-            m_httpListener = httpServer;
-            m_assetType = aType;
-
-            m_timeout = new Timer();
-            m_timeout.Elapsed += Timeout;
-            m_timeout.AutoReset = false;
-            m_timeout.Interval = 30000;
-            m_timeout.Start();
-        }
-
-        private void Timeout(Object source, ElapsedEventArgs e)
-        {
-            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
-            m_timeout.Dispose();
-        }
 
         /// <summary>
-        /// Handle raw uploaded asset data.
+        /// This class is a callback invoked when a client sends asset data to
+        /// an agent inventory notecard update url
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
+        public class ItemUpdater : ExpiringCapBase
         {
-            m_timeout.Stop();
-            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
-            m_timeout.Dispose();
+            public event UpdateItem OnUpLoad = null;
+            private UUID m_inventoryItemID;
+            private UUID m_objectID;
+            private bool m_dumpAssetToFile;
+            public IPAddress m_remoteAdress;
+            private byte m_assetType;
 
-            if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAdress))
+            public ItemUpdater(UUID inventoryItem, UUID objectid, byte aType, string path, IHttpServer httpServer, bool dumpAssetToFile):
+                base(httpServer, path)
             {
-                response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return;
+                m_dumpAssetToFile = dumpAssetToFile;
+
+                m_inventoryItemID = inventoryItem;
+                m_objectID = objectid;
+                m_httpListener = httpServer;
+                m_assetType = aType;
+
+                Start(30000);
             }
 
-            string res = String.Empty;
-
-            if (OnUpLoad == null)
+            /// <summary>
+            /// Handle raw uploaded asset data.
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
             {
-                response.StatusCode = (int)HttpStatusCode.Gone;
-                return;
-            }
+                Stop();
 
-            if (!BunchOfCaps.ValidateAssetData(m_assetType, data))
-            {
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
+                if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAdress))
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
 
-            UUID assetID = OnUpLoad(m_inventoryItemID, m_objectID, data);
-
-            if (assetID == UUID.Zero)
-            {
-                LLSDAssetUploadError uperror = new LLSDAssetUploadError();
-                uperror.message = "Failed to update inventory item asset";
-                uperror.identifier = m_inventoryItemID;
-                res = LLSDHelpers.SerialiseLLSDReply(uperror);
-            }
-            else
-            {
-                LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
-                uploadComplete.new_asset = assetID.ToString();
-                uploadComplete.new_inventory_item = m_inventoryItemID;
-                uploadComplete.state = "complete";
-                res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
-            }
-
-            if (m_dumpAssetToFile)
-            {
-                Util.SaveAssetToFile("updateditem" + Util.RandomClass.Next(1, 1000) + ".dat", data);
-            }
-
-            response.StatusCode = (int)HttpStatusCode.OK;
-            response.RawBuffer = Util.UTF8NBGetbytes(res);
-        }
-    }
-
-    /// <summary>
-    /// This class is a callback invoked when a client sends asset data to
-    /// a task inventory script update url
-    /// </summary>
-    public class TaskInventoryScriptUpdater
-    {
-        public event UpdateTaskScript OnUpLoad;
-        private string m_uploaderPath = String.Empty;
-        private UUID m_inventoryItemID;
-        private UUID m_primID;
-        private bool m_isScriptRunning;
-        private IHttpServer m_httpListener;
-        private bool m_dumpAssetToFile;
-        public IPAddress m_remoteAddress;
-        private Timer m_timeout;
-
-        public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
-                                            string path, IHttpServer httpServer, IPAddress address, bool dumpAssetToFile)
-        {
-            m_dumpAssetToFile = dumpAssetToFile;
-
-            m_inventoryItemID = inventoryItemID;
-            m_primID = primID;
-
-            m_isScriptRunning = isScriptRunning;
-
-            m_uploaderPath = path;
-            m_httpListener = httpServer;
-            m_remoteAddress = address;
-            m_timeout = new Timer();
-            m_timeout.Elapsed += Timeout;
-            m_timeout.AutoReset = false;
-            m_timeout.Interval = 30000;
-            m_timeout.Start();
-        }
-
-        private void Timeout(Object source, ElapsedEventArgs e)
-        {
-            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
-            m_timeout.Dispose();
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
-        {
-            m_timeout.Stop();
-            m_httpListener.RemoveSimpleStreamHandler(m_uploaderPath);
-            m_timeout.Dispose();
-
-            if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAddress))
-            {
-                response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return;
-            }
-
-            if (OnUpLoad == null)
-            {
-                response.StatusCode = (int)HttpStatusCode.Gone;
-                return;
-            }
-
-            if (!BunchOfCaps.ValidateAssetData((byte)AssetType.LSLText, data))
-            {
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return;
-            }
-
-            response.StatusCode = (int)HttpStatusCode.OK;
-
-            try
-            {
                 string res = String.Empty;
-                LLSDTaskScriptUploadComplete uploadComplete = new LLSDTaskScriptUploadComplete();
 
-                ArrayList errors = new ArrayList();
-                OnUpLoad?.Invoke(m_inventoryItemID, m_primID, m_isScriptRunning, data, ref errors);
+                if (OnUpLoad == null)
+                {
+                    response.StatusCode = (int)HttpStatusCode.Gone;
+                    return;
+                }
 
-                uploadComplete.new_asset = m_inventoryItemID;
-                uploadComplete.compiled = errors.Count > 0 ? false : true;
-                uploadComplete.state = "complete";
-                uploadComplete.errors = new OpenSim.Framework.Capabilities.OSDArray();
-                uploadComplete.errors.Array = errors;
+                if (!BunchOfCaps.ValidateAssetData(m_assetType, data))
+                {
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
 
-                res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+                UUID assetID = OnUpLoad(m_inventoryItemID, m_objectID, data);
+
+                if (assetID == UUID.Zero)
+                {
+                    LLSDAssetUploadError uperror = new LLSDAssetUploadError();
+                    uperror.message = "Failed to update inventory item asset";
+                    uperror.identifier = m_inventoryItemID;
+                    res = LLSDHelpers.SerialiseLLSDReply(uperror);
+                }
+                else
+                {
+                    LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
+                    uploadComplete.new_asset = assetID.ToString();
+                    uploadComplete.new_inventory_item = m_inventoryItemID;
+                    uploadComplete.state = "complete";
+                    res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+                }
 
                 if (m_dumpAssetToFile)
                 {
-                    Util.SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                    Util.SaveAssetToFile("updateditem" + Util.RandomClass.Next(1, 1000) + ".dat", data);
                 }
 
-                // m_log.InfoFormat("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);
+                response.StatusCode = (int)HttpStatusCode.OK;
                 response.RawBuffer = Util.UTF8NBGetbytes(res);
             }
-            catch
+        }
+
+        /// <summary>
+        /// This class is a callback invoked when a client sends asset data to
+        /// a task inventory script update url
+        /// </summary>
+        public class TaskInventoryScriptUpdater : ExpiringCapBase
+        {
+            public event UpdateTaskScript OnUpLoad;
+            private UUID m_inventoryItemID;
+            private UUID m_primID;
+            private bool m_isScriptRunning;
+            private bool m_dumpAssetToFile;
+            public IPAddress m_remoteAddress;
+            private Timer m_timeout;
+
+            public TaskInventoryScriptUpdater(UUID inventoryItemID, UUID primID, bool isScriptRunning,
+                                                string path, IHttpServer httpServer, IPAddress address,
+                                                bool dumpAssetToFile) : base(httpServer, path)
             {
-                LLSDAssetUploadError error = new LLSDAssetUploadError();
-                error.message = "could not compile script";
-                error.identifier = UUID.Zero;
-                response.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
-                return;
+                m_dumpAssetToFile = dumpAssetToFile;
+                m_inventoryItemID = inventoryItemID;
+                m_primID = primID;
+                m_isScriptRunning = isScriptRunning;
+                m_remoteAddress = address;
+                Start(30000);
+            }
+
+            /// <summary>
+            ///
+            /// </summary>
+            /// <param name="data"></param>
+            /// <param name="path"></param>
+            /// <param name="param"></param>
+            /// <returns></returns>
+            public void process(IOSHttpRequest request, IOSHttpResponse response, byte[] data)
+            {
+                Stop();
+
+                if (!request.RemoteIPEndPoint.Address.Equals(m_remoteAddress))
+                {
+                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return;
+                }
+
+                if (OnUpLoad == null)
+                {
+                    response.StatusCode = (int)HttpStatusCode.Gone;
+                    return;
+                }
+
+                if (!BunchOfCaps.ValidateAssetData((byte)AssetType.LSLText, data))
+                {
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
+                }
+
+                response.StatusCode = (int)HttpStatusCode.OK;
+
+                try
+                {
+                    string res = String.Empty;
+                    LLSDTaskScriptUploadComplete uploadComplete = new LLSDTaskScriptUploadComplete();
+
+                    ArrayList errors = new ArrayList();
+                    OnUpLoad?.Invoke(m_inventoryItemID, m_primID, m_isScriptRunning, data, ref errors);
+
+                    uploadComplete.new_asset = m_inventoryItemID;
+                    uploadComplete.compiled = errors.Count > 0 ? false : true;
+                    uploadComplete.state = "complete";
+                    uploadComplete.errors = new OpenSim.Framework.Capabilities.OSDArray();
+                    uploadComplete.errors.Array = errors;
+
+                    res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
+
+                    if (m_dumpAssetToFile)
+                    {
+                        Util.SaveAssetToFile("updatedtaskscript" + Util.RandomClass.Next(1, 1000) + ".dat", data);
+                    }
+
+                    // m_log.InfoFormat("[CAPS]: TaskInventoryScriptUpdater.uploaderCaps res: {0}", res);
+                    response.RawBuffer = Util.UTF8NBGetbytes(res);
+                }
+                catch
+                {
+                    LLSDAssetUploadError error = new LLSDAssetUploadError();
+                    error.message = "could not compile script";
+                    error.identifier = UUID.Zero;
+                    response.RawBuffer = Util.UTF8NBGetbytes(LLSDHelpers.SerialiseLLSDReply(error));
+                    return;
+                }
             }
         }
     }
