@@ -11467,8 +11467,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch( Exception e)
             {
-                m_log.ErrorFormat("{0} HandleMapItemRequest exception: {1}", LogHeader, e.Message);
-            }
+                m_log.ErrorFormat("{0} HandleMapItemRequest exception: {1} : {2}", LogHeader, e.Message, e.StackTrace);
+            } 
         }
 
         private void HandleTransferAbort(Packet Pack)
