@@ -124,7 +124,7 @@ namespace OpenSim.Tests.Permissions
 
             // field = 8 is Everyone 
             // set = 1 means add the permission; set = 0 means remove permission
-            Common.TheScene.HandleObjectPermissionsUpdate((IClientAPI)Common.TheAvatars[0].ClientView, Common.TheAvatars[0].UUID,
+            Common.TheScene.HandleObjectPermissionsUpdate(Common.TheAvatars[0].ControllingClient, Common.TheAvatars[0].UUID,
                 Common.TheAvatars[0].ControllingClient.SessionId, 8, box.LocalId, (uint)PermissionMask.Copy, 1);
             Common.TheInstance.PrintPerms(box);
         }
