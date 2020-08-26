@@ -1029,6 +1029,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             m_scene.RemoveClient(AgentId, false);
         }
 
+        public void Disconnect(string reason)
+        {
+            Close(true, false);
+        }
+
         public void Start()
         {
             // We never start the client, so always fail.

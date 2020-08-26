@@ -1065,6 +1065,7 @@ namespace OpenSim.Framework
         /// Close this client
         /// </summary>
         void Close();
+        void Disconnect(string reason);
 
         /// <summary>
         /// Close this client

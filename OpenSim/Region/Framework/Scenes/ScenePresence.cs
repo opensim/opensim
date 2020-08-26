@@ -701,6 +701,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public IClientAPI ControllingClient { get; set; }
 
+        // dead end do not use
         public IClientCore ClientView
         {
             get { return (IClientCore)ControllingClient; }
