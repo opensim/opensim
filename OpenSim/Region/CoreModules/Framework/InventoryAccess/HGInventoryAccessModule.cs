@@ -460,28 +460,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void ProcessInventoryForComingHome(IClientAPI client)
         {
+            if(!client.IsActive)
+                return;
             m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: Restoring root folder for local user {0}", client.Name);
-            if (client is IClientCore)
+            InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
+            InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
+
+           List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+
+            foreach (InventoryFolderBase f in content.Folders)
             {
-                IClientCore core = (IClientCore)client;
-                IClientInventory inv;
-
-                if (core.TryGet<IClientInventory>(out inv))
-                {
-                    InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
-                    InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
-
-                    List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
-
-                    foreach (InventoryFolderBase f in content.Folders)
-                    {
-                        if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
-                            keep.Add(f);
-                    }
-
-                    inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
-                }
+                if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
+                    keep.Add(f);
             }
+            client.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
         }
 
         private void ProcessInventoryForArriving(IClientAPI client)
@@ -495,39 +487,32 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void ProcessInventoryForHypergriding(IClientAPI client)
         {
-            if (client is IClientCore)
+            if(!client.IsActive)
+                return;
+
+            InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
+            if (root != null)
             {
-                IClientCore core = (IClientCore)client;
-                IClientInventory inv;
+                m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: Changing root inventory for user {0}", client.Name);
+                InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-                if (core.TryGet<IClientInventory>(out inv))
+                List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+
+                foreach (InventoryFolderBase f in content.Folders)
                 {
-                    InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
-                    if (root != null)
+                    if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
                     {
-                        m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: Changing root inventory for user {0}", client.Name);
-                        InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
-
-                        List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
-
-                        foreach (InventoryFolderBase f in content.Folders)
-                        {
-                            if (f.Name != "My Suitcase" && f.Name != "Current Outfit")
-                            {
-                                f.Name = f.Name + " (Unavailable)";
-                                keep.Add(f);
-                            }
-                        }
-
-                        // items directly under the root folder
-                        foreach (InventoryItemBase it in content.Items)
-                            it.Name = it.Name + " (Unavailable)"; ;
-
-                        // Send the new names
-                        inv.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
-
+                        f.Name = f.Name + " (Unavailable)";
+                        keep.Add(f);
                     }
                 }
+
+                // items directly under the root folder
+                foreach (InventoryItemBase it in content.Items)
+                    it.Name = it.Name + " (Unavailable)"; ;
+
+                // Send the new names
+                client.SendBulkUpdateInventory(keep.ToArray(), content.Items.ToArray());
             }
         }
 
@@ -566,8 +551,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return true;
         }
-
-
         #endregion
     }
 }
