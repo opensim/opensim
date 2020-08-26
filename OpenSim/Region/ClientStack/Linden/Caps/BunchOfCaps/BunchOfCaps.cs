@@ -2397,7 +2397,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_nreqinstances = nreqinstances;
                 m_IsAtestUpload = IsAtestUpload;
 
-                m_address = address;
                 m_timeoutTimer = new System.Timers.Timer();
                 m_timeoutTimer.Elapsed += TimedOut;
                 m_timeoutTimer.Interval = 120000;
