@@ -1225,6 +1225,7 @@ namespace OpenSim.Framework
         ///
         /// <param name="node"></param>
         void SendBulkUpdateInventory(InventoryNodeBase node, UUID? transactionID = null);
+        void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items);
 
         void SendXferPacket(ulong xferID, uint packet,
                 byte[] XferData, int XferDataOffset, int XferDatapktLen, bool isTaskInventory);

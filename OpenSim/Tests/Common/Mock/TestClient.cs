@@ -817,6 +817,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
+        public virtual void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
+        {
+        }
+
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
         {
         }

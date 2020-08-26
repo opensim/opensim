@@ -1157,7 +1157,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void SendBulkUpdateInventory(InventoryNodeBase node, UUID? transactionID = null)
         {
+        }
 
+        public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
+        {
         }
 
         public void SendXferPacket(ulong xferID, uint packet, 
