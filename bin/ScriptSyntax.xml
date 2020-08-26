@@ -1,4 +1,4 @@
-31131f85-748a-9940-d0d5-4a1622bb4875
+fb15395e-84d4-f924-2559-67a40fdd21ec
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1577,7 +1577,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>13</string>
+  <key>value</key><string>15</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -2917,6 +2917,14 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>2</string>
  </map>
+ <key>TARGETED_EMAIL_OBJECT_OWNER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>TARGETED_EMAIL_ROOT_CREATOR</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
  <key>TEXTURE_BLANK</key><map>
   <key>type</key><string>string</string>
   <key>value</key><string>5748decc-f629-461c-9a36-a35a221fe21f</string>
@@ -3939,7 +3947,7 @@
  <map>
   <key>return</key><string>string</string>
   <key>arguments</key><array>
-   <map><key>id</key><map><key>type</key><string>string</string></map></map>
+   <map><key>id</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>llGetEnergy</key>
@@ -5243,7 +5251,7 @@
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
-   <map><key>id</key><map><key>type</key><string>string</string></map></map>
+   <map><key>id</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>llRequestInventoryData</key>
@@ -5278,11 +5286,18 @@
   <key>return</key><string>key</string>
   <key>arguments</key><undef/>
  </map>
+ <key>llRequestUserKey</key>
+ <map>
+  <key>return</key><string>key</string>
+  <key>arguments</key><array>
+   <map><key>username</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llRequestUsername</key>
  <map>
   <key>return</key><string>key</string>
   <key>arguments</key><array>
-   <map><key>id</key><map><key>type</key><string>string</string></map></map>
+   <map><key>id</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>llResetAnimationOverride</key>
@@ -6056,6 +6071,14 @@
    <map><key>range</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
+ <key>llTargetedEmail</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>target</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>subject</key><map><key>type</key><string>string</string></map></map>
+   <map><key>message</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llTargetOmega</key>
  <map>
   <key>arguments</key><array>
@@ -6257,7 +6280,6 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osAgentSaveAppearance</key>
@@ -6266,6 +6288,7 @@
   <key>arguments</key><array>
    <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osAngleBetween</key>
@@ -6994,15 +7017,15 @@
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
-   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osKickAvatar</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentId</key><map><key>type</key><string>key</string></map></map>
+   <map><key>FirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>SurName</key><map><key>type</key><string>string</string></map></map>
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -7120,6 +7143,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcCreate</key>
@@ -7130,7 +7154,6 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcGetOwner</key>
@@ -7195,7 +7218,6 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcSaveAppearance</key>
@@ -7204,6 +7226,7 @@
   <key>arguments</key><array>
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcSay</key>
@@ -7307,7 +7330,6 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osOwnerSaveAppearance</key>
@@ -7315,6 +7337,7 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osParcelJoin</key>
@@ -7608,6 +7631,12 @@
    <map><key>url</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osSetParcelMusicURL</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>url</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>osSetParcelSIPAddress</key>
  <map>
   <key>arguments</key><array>
@@ -7674,7 +7703,6 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7685,6 +7713,7 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7807,8 +7836,6 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
-   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7818,6 +7845,8 @@
   <key>arguments</key><array>
    <map><key>src</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>string</string></map></map>
+   <map><key>start</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>count</key><map><key>type</key><string>integer</string></map></map>
    <map><key>ignorecase</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
@@ -7947,8 +7976,6 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7956,6 +7983,8 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
