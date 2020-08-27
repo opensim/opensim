@@ -131,23 +131,14 @@ namespace OpenSim.Capabilities.Handlers
                     return;
                 }
                 StringBuilder sb = osStringBuilderCache.Acquire();
-                sb.Append("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
-                foreach (UUID bad in bad_folders)
-                {
-                    sb.Append("<map><key>folder_id</key><uuid>");
-                    sb.Append(bad.ToString());
-                    sb.Append("</uuid><key>error</key><string>Unknown</string></map>");
-                }
-                sb.Append("</array></map></llsd>");
-                httpResponse.RawBuffer = Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
-
-                sb = osStringBuilderCache.Acquire();
                 sb.Append("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
                 sb.Append("Unknown");
                 sb.Append(" :");
                 int limit = 9;
                 foreach (UUID bad in bad_folders)
                 {
+                    if (BadRequests.ContainsKey(bad))
+                        continue;
                     sb.Append(" ");
                     sb.Append(bad.ToString());
                     if (--limit < 0)
@@ -157,6 +148,16 @@ namespace OpenSim.Capabilities.Handlers
                     sb.Append(" ...");
                 m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
 
+                sb = osStringBuilderCache.Acquire();
+                sb.Append("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
+                foreach (UUID bad in bad_folders)
+                {
+                    sb.Append("<map><key>folder_id</key><uuid>");
+                    sb.Append(bad.ToString());
+                    sb.Append("</uuid><key>error</key><string>Unknown</string></map>");
+                }
+                sb.Append("</array></map></llsd>");
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
                 return;
             }
 
