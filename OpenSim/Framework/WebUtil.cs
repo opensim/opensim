@@ -44,6 +44,7 @@ using System.Xml.Linq;
 using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework;
 using OpenSim.Framework.ServiceAuth;
 
 namespace OpenSim.Framework
@@ -51,10 +52,13 @@ namespace OpenSim.Framework
     /// <summary>
     /// Miscellaneous static methods and extension methods related to the web
     /// </summary>
+    /// 
+
     public static class WebUtil
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static ExpiringKey<string> GlobalExpiringBadURLs = new ExpiringKey<string>(30000);
         /// <summary>
         /// Control the printing of certain debug messages.
         /// </summary>
@@ -221,11 +225,15 @@ namespace OpenSim.Framework
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    string strBuffer = OSDParser.SerializeJsonString(data);
+                    byte[] buffer;
                     if (DebugLevel >= 5)
+                    {
+                        string strBuffer = OSDParser.SerializeJsonString(data);
                         LogOutgoingDetail(method, reqnum, strBuffer);
-
-                    byte[] buffer = Util.UTF8Getbytes(strBuffer);
+                        buffer = Util.UTF8Getbytes(strBuffer);
+                    }
+                    else
+                        buffer = OSDParser.SerializeJsonToBytes(data);
 
                     request.ContentType = rpc ? "application/json-rpc" : "application/json";
 
@@ -247,6 +255,7 @@ namespace OpenSim.Framework
                     request.ContentLength = buffer.Length;   //Count bytes to send
                     using (Stream requestStream = request.GetRequestStream())
                         requestStream.Write(buffer, 0, buffer.Length);         //Send it
+                    buffer = null;
                 }
 
                 using (WebResponse response = request.GetResponse())
@@ -395,6 +404,7 @@ namespace OpenSim.Framework
                         LogOutgoingDetail("SEND", reqnum, queryString);
 
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(queryString);
+                    queryString = null;
 
                     request.ContentLength = buffer.Length;
                     sendlen = buffer.Length;
@@ -995,6 +1005,7 @@ namespace OpenSim.Framework
                 {
                     using(Stream requestStream = request.GetRequestStream())
                         requestStream.Write(data, 0, sendlen);
+                    data = null;
                 }
                 catch (Exception e)
                 {
