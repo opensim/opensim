@@ -436,5 +436,50 @@ namespace OpenSim.Framework
             return success;
         }
 
+        public ICollection<TValue1> Values
+        {
+            get
+            {
+                bool gotLock = false;
+                try
+                {
+                    try { }
+                    finally
+                    {
+                        m_rwLock.EnterUpgradeableReadLock();
+                        gotLock = true;
+                    }
+                    return m_values.Values;
+                }
+                finally
+                {
+                    if (gotLock)
+                        m_rwLock.ExitUpgradeableReadLock();
+                }
+            }
+        }
+
+        public ICollection<TKey1> Keys
+        {
+            get
+            {
+                bool gotLock = false;
+                try
+                {
+                    try { }
+                    finally
+                    {
+                        m_rwLock.EnterUpgradeableReadLock();
+                        gotLock = true;
+                    }
+                    return m_values.Keys;
+                }
+                finally
+                {
+                    if (gotLock)
+                        m_rwLock.ExitUpgradeableReadLock();
+                }
+            }
+        }
     }
 }

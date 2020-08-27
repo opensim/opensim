@@ -72,9 +72,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         IAssetCache m_assetCache;
         IGroupsModule m_groupsModule = null;
 
-        static readonly UUID m_MrOpenSimID = new UUID("11111111-1111-0000-0000-000100bba000");
-        static readonly DateTime m_MrOpenSimBorn = new DateTime(2007,1,1,0,0,0,DateTimeKind.Utc);
-
         private JsonRpcRequestManager rpc = new JsonRpcRequestManager();
         private bool m_allowUserProfileWebURLs = true;
 
@@ -110,62 +107,53 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                             ScenePresence p = req.presence;
 
                             string serverURI = string.Empty;
+
+                            bool ok = true;
                             bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
-
-                            UserAccount account = null;
-
-                            if (!foreign)
-                                account = Scene.UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, avatarID);
+                            if(serverURI == string.Empty)
+                                ok = false;
 
                             Byte[] membershipType = new Byte[1];
                             string born = string.Empty;
                             uint flags = 0x00;
 
-                            if (null != account)
-                            {
-                                if (account.UserTitle == "")
-                                    membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
+                           if (ok && GetUserAccountData(avatarID, out UserAccount acc))
+                           {
+                                int val_flags = acc.UserFlags;
+                                flags = (uint)(val_flags & 0xff);
+
+                                if (acc.UserTitle == "")
+                                    membershipType[0] = (byte)((val_flags & 0x0f00) >> 8);
                                 else
-                                    membershipType = Utils.StringToBytes(account.UserTitle);
+                                    membershipType = Utils.StringToBytes(acc.UserTitle);
 
-                                born = Util.ToDateTime(account.Created).ToString(
-                                                  "M/d/yyyy", CultureInfo.InvariantCulture);
-                                flags = (uint)(account.UserFlags & 0xff);
-                            }
-                            else
-                            {
-                                if (GetUserAccountData(avatarID, out Dictionary<string, object> userInfo) == true)
-                                {
-                                    if ((string)userInfo["user_title"] == "")
-                                        membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
-                                    else
-                                        membershipType = Utils.StringToBytes((string)userInfo["user_title"]);
-
-                                    int val_born = (int)userInfo["user_created"];
-                                    if (val_born != 0)
-                                        born = Util.ToDateTime(val_born).ToString(
-                                                  "M/d/yyyy", CultureInfo.InvariantCulture);
+                                int val_born = acc.Created;
+                                if (val_born != 0)
+                                  born = Util.ToDateTime(val_born).ToString("M/d/yyyy", CultureInfo.InvariantCulture);
 
                                     // picky, picky
-                                    int val_flags = (int)userInfo["user_flags"];
-                                    flags = (uint)(val_flags & 0xff);
-                                }
                             }
+                            else
+                                ok = false;
 
                             UserProfileProperties props = new UserProfileProperties();
                             props.UserId = avatarID;
 
-                            string result = string.Empty;
-                            if (!GetProfileData(ref props, foreign, serverURI, out result))
+                            if(ok)
                             {
-                                props.AboutText = "Profile not available at this time. User may still be unknown to this grid";
+                                string result = string.Empty;
+                                if (!GetProfileData(ref props, foreign, serverURI, out result))
+                                    ok = false;
                             }
+
+                            if (!ok)
+                                props.AboutText = "Profile not available at this time. User may still be unknown to this grid";
 
                             if (!m_allowUserProfileWebURLs)
                                 props.WebUrl = "";
 
                             GroupMembershipData[] agentGroups = null;
-                            if(m_groupsModule != null)
+                            if(ok && m_groupsModule != null)
                                 agentGroups = m_groupsModule.GetMembershipData(avatarID);
 
                             HashSet<IClientAPI> clients;
@@ -515,7 +503,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!UUID.TryParse(args[0], out targetID) || targetID == UUID.Zero)
                 return;
 
-            if (targetID == m_MrOpenSimID)
+            if (targetID ==  Constants.m_MrOpenSimID)
             {
                 remoteClient.SendAvatarClassifiedReply(targetID, classifieds);
                 return;
@@ -916,7 +904,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             Dictionary<UUID, string> picks = new Dictionary<UUID, string>();
 
-            if (targetId == m_MrOpenSimID)
+            if (targetId == Constants.m_MrOpenSimID)
             {
                 remoteClient.SendAvatarPicksReply(targetId, picks);
                 return;
@@ -1336,7 +1324,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         public void NotesUpdate(IClientAPI remoteClient, UUID queryTargetID, string queryNotes)
         {
-            if (queryTargetID == m_MrOpenSimID)
+            if (queryTargetID == Constants.m_MrOpenSimID)
                 return;
 
             ScenePresence p = FindPresence(queryTargetID);
@@ -1503,9 +1491,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            if (avatarID == m_MrOpenSimID)
+            if (avatarID == Constants.m_MrOpenSimID)
             {
-                remoteClient.SendAvatarProperties(avatarID, "Creator of OpenSimulator shared assets library", m_MrOpenSimBorn.ToString(),
+                remoteClient.SendAvatarProperties(avatarID, "Creator of OpenSimulator shared assets library", Constants.m_MrOpenSimBorn.ToString(),
                       Utils.StringToBytes("System agent"), "MrOpenSim has no life", 0x10,
                       UUID.Zero, UUID.Zero, "", UUID.Zero);
                 remoteClient.SendAvatarInterestsReply(avatarID, 0, "",
@@ -1758,7 +1746,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return false;
             }
 
-            object Prop = (object)properties;
+            object Prop = properties;
             if (!rpc.JsonRpcRequest(ref Prop, "avatar_properties_request", serverURI, UUID.Random().ToString()))
             {
                 // If it's a foreign user then try again using OpenProfile, in case that's what the grid is using
@@ -1789,7 +1777,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 {
                     message = string.Format("JsonRpcRequest for user {0} to {1} failed", properties.UserId, serverURI);
                     m_log.DebugFormat("[PROFILES]: {0}", message);
-
                     return false;
                 }
             }
@@ -1820,77 +1807,48 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='userInfo'>
         /// If set to <c>true</c> user info.
         /// </param>
-        bool GetUserAccountData(UUID userID, out Dictionary<string, object> userInfo)
+        bool GetUserAccountData(UUID userID, out UserAccount account)
         {
-            Dictionary<string,object> info = new Dictionary<string, object>();
-
+            account = null;
             if (UserManagementModule.IsLocalGridUser(userID))
             {
                 // Is local
                 IUserAccountService uas = Scene.UserAccountService;
-                UserAccount account = uas.GetUserAccount(Scene.RegionInfo.ScopeID, userID);
-
-                info["user_flags"] = account.UserFlags;
-                info["user_created"] = account.Created;
-
-                if (!String.IsNullOrEmpty(account.UserTitle))
-                    info["user_title"] = account.UserTitle;
-                else
-                    info["user_title"] = "";
-
-                userInfo = info;
-
-                return false;
+                account = uas.GetUserAccount(Scene.RegionInfo.ScopeID, userID);
+                return account != null;
             }
             else
             {
                 // Is Foreign
-                string home_url = UserManagementModule.GetUserServerURL(userID, "HomeURI");
-
-                if (String.IsNullOrEmpty(home_url))
-                {
-                    info["user_flags"] = 0;
-                    info["user_created"] = 0;
-                    info["user_title"] = "Unavailable";
-
-                    userInfo = info;
-                    return true;
-                }
+                string home_url = UserManagementModule.GetUserServerURL(userID, "HomeURI", out bool recentFailedWeb);
+                if (recentFailedWeb || String.IsNullOrEmpty(home_url))
+                    return false;
 
                 UserAgentServiceConnector uConn = new UserAgentServiceConnector(home_url);
 
-                Dictionary<string, object> account;
+                Dictionary<string, object> info;
                 try
                 {
-                    account = uConn.GetUserInfo(userID);
+                    info = uConn.GetUserInfo(userID);
                 }
                 catch (Exception e)
                 {
                     m_log.Debug("[PROFILES]: GetUserInfo call failed ", e);
-                    account = new Dictionary<string, object>();
+                    UserManagementModule.UserWebFailed(userID);
+                    return false;
                 }
 
-                if (account.Count > 0)
-                {
-                    if (account.ContainsKey("user_flags"))
-                        info["user_flags"] = account["user_flags"];
-                    else
-                        info["user_flags"] = "";
+                if (info.Count == 0)
+                    return false;
 
-                    if (account.ContainsKey("user_created"))
-                        info["user_created"] = account["user_created"];
-                    else
-                        info["user_created"] = "";
+                account = new UserAccount();
+                if (info.ContainsKey("user_flags"))
+                    account.UserFlags = (int)info["user_flags"];
 
-                    info["user_title"] = "HG Visitor";
-                }
-                else
-                {
-                   info["user_flags"] = 0;
-                   info["user_created"] = 0;
-                   info["user_title"] = "HG Visitor";
-                }
-                userInfo = info;
+                if (info.ContainsKey("user_created"))
+                    account.Created = (int)info["user_created"];
+
+                account.UserTitle = "HG Visitor";
                 return true;
             }
         }
@@ -1945,7 +1903,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (!local)
             {
-                serverURI = UserManagementModule.GetUserServerURL(userID, "ProfileServerURI");
+                serverURI = UserManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failled);
+                if(failled)
+                    serverURI = string.Empty;
                 // Is Foreign
                 return true;
             }

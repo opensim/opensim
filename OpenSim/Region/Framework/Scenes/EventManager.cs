@@ -1236,6 +1236,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            // to be removed
             if (client is IClientCore)
             {
                 OnClientConnectCoreDelegate handlerClientConnect = OnClientConnect;

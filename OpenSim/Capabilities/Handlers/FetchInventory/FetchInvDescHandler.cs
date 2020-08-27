@@ -72,6 +72,8 @@ namespace OpenSim.Capabilities.Handlers
             {
                 OSDArray foldersrequested = null;
                 OSD tmp = OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
+                httpRequest.InputStream.Dispose();
+
                 OSDMap map = (OSDMap)tmp;
                 if(map.TryGetValue("folders", out tmp) && tmp is OSDArray)
                     foldersrequested = tmp as OSDArray;
@@ -111,7 +113,8 @@ namespace OpenSim.Capabilities.Handlers
                     }
                 }
                 foldersrequested = null;
-                tmp = null;
+                map.Clear();
+                map = null;
             }
             catch (Exception e)
             {
