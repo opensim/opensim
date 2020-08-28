@@ -33,8 +33,6 @@ using OpenMetaverse;
 //namespace OpenSim.Services.Interfaces
 namespace OpenSim.Framework
 {
-
-
     /// <summary>
     /// This maintains the relationship between a UUID and a user name.
     /// </summary>
