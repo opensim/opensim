@@ -33,27 +33,23 @@ using System.Threading;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Region.ClientStack.LindenUDP;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
-using OpenMetaverse.Packets;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 
-using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 namespace OpenSim.Region.CoreModules.Framework.UserManagement
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "UserManagementModule")]
     public class UserManagementModule : ISharedRegionModule, IUserManagement, IPeople
     {
+        private const int BADURLEXPIRE = 2 * 60;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled;
@@ -449,10 +445,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public virtual string GetUserHomeURL(UUID userID)
         {
-            UserData user;
-            if (GetUser(userID, out user))
+            if (GetUser(userID, out UserData user) && user != null)
             {
-                if (user.LastWebFail > 0 && Util.GetTimeStamp() - user.LastWebFail > 5 * 60)
+                if (user.LastWebFail > 0 && Util.GetTimeStamp() - user.LastWebFail > BADURLEXPIRE)
                     user.LastWebFail = -1;
                 return user.HomeURL;
             }
@@ -461,13 +456,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public virtual string GetUserHomeURL(UUID userID, out bool recentFail)
         {
-            UserData user;
             recentFail = false;
-            if (GetUser(userID, out user))
+            if (GetUser(userID, out UserData user))
             {
                 if (user.LastWebFail > 0)
                 {
-                    if (Util.GetTimeStamp() - user.LastWebFail > 5 * 60)
+                    if (Util.GetTimeStamp() - user.LastWebFail > BADURLEXPIRE)
                         user.LastWebFail = -1;
                     else
                         recentFail = true;
@@ -488,7 +482,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(userdata.LastWebFail > 0)
             {
-                if(Util.GetTimeStamp() - userdata.LastWebFail > 5 * 60) // 5 minutes
+                if(Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE) // 5 minutes
                     return string.Empty;
                 userdata.LastWebFail = -1;
             }
@@ -501,29 +495,32 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return string.Empty;
             }
 
-            if (!string.IsNullOrEmpty(userdata.HomeURL) && !WebUtil.GlobalExpiringBadURLs.ContainsKey(userdata.HomeURL))
+            if (!string.IsNullOrEmpty(userdata.HomeURL))
             {
-//                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+                string homeuri = userdata.HomeURL.ToLower();
+                if (!WebUtil.GlobalExpiringBadURLs.ContainsKey(homeuri))
+                {
+                    //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(homeuri);
+                    try
+                    {
+                        userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    }
+                    catch(System.Net.WebException e)
+                    {
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
+                        WebUtil.GlobalExpiringBadURLs.Add(homeuri, BADURLEXPIRE * 1000);
+                        userdata.ServerURLs = new Dictionary<string, object>();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        userdata.ServerURLs = new Dictionary<string, object>();
+                    }
 
-                UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
-                try
-                {
-                    userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                        return userdata.ServerURLs[serverType].ToString();
                 }
-                catch(System.Net.WebException e)
-                {
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
-                    WebUtil.GlobalExpiringBadURLs.Add(userdata.HomeURL, 120000);
-                    userdata.ServerURLs = new Dictionary<string, object>();
-                }
-                catch (Exception e)
-                {
-                    m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
-                    userdata.ServerURLs = new Dictionary<string, object>();
-                }
-
-                if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
-                    return userdata.ServerURLs[serverType].ToString();
             }
             return string.Empty;
         }
@@ -537,8 +534,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public virtual string GetUserServerURL(UUID userID, string serverType, out bool recentFail)
         {
             recentFail = false;
-            UserData userdata;
-            if (!GetUser(userID, out userdata))
+            if (!GetUser(userID, out UserData userdata))
                 return string.Empty;
 
             if (userdata.IsLocal)
@@ -546,7 +542,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if (userdata.LastWebFail > 0)
             {
-                if (Util.GetTimeStamp() - userdata.LastWebFail > 5 * 60) // 5 minutes
+                if (Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
                     recentFail = true;
                 else
                     userdata.LastWebFail = -1;
@@ -560,33 +556,36 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return string.Empty;
             }
 
-            if (!recentFail && !string.IsNullOrEmpty(userdata.HomeURL) && !WebUtil.GlobalExpiringBadURLs.ContainsKey(userdata.HomeURL))
+            if (!recentFail && !string.IsNullOrEmpty(userdata.HomeURL))
             {
-                //                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+                string homeurl = userdata.HomeURL.ToLower();
+                if(!WebUtil.GlobalExpiringBadURLs.ContainsKey(homeurl))
+                {
+                    //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Requested url type {0} for {1}", serverType, userID);
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(homeurl);
+                    try
+                    {
+                        userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    }
+                    catch (System.Net.WebException e)
+                    {
+                        m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
+                        userdata.ServerURLs = new Dictionary<string, object>();
+                        userdata.LastWebFail = Util.GetTimeStamp();
+                        WebUtil.GlobalExpiringBadURLs.Add(homeurl, BADURLEXPIRE * 1000);
+                        recentFail = true;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
+                        userdata.ServerURLs = new Dictionary<string, object>();
+                        userdata.LastWebFail = Util.GetTimeStamp();
+                        recentFail = true;
+                    }
 
-                UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
-                try
-                {
-                    userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                        return userdata.ServerURLs[serverType].ToString();
                 }
-                catch (System.Net.WebException e)
-                {
-                    m_log.DebugFormat("[USER MANAGEMENT MODULE]: GetServerURLs call failed {0}", e.Message);
-                    userdata.ServerURLs = new Dictionary<string, object>();
-                    userdata.LastWebFail = Util.GetTimeStamp();
-                    WebUtil.GlobalExpiringBadURLs.Add(userdata.HomeURL, 120000);
-                    recentFail = true;
-                }
-                catch (Exception e)
-                {
-                    m_log.Debug("[USER MANAGEMENT MODULE]: GetServerURLs call failed ", e);
-                    userdata.ServerURLs = new Dictionary<string, object>();
-                    userdata.LastWebFail = Util.GetTimeStamp();
-                    recentFail = true;
-                }
-
-                if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
-                    return userdata.ServerURLs[serverType].ToString();
             }
             return string.Empty;
         }

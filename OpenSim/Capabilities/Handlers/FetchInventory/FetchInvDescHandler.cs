@@ -130,23 +130,32 @@ namespace OpenSim.Capabilities.Handlers
                     httpResponse.RawBuffer = EmptyResponse;
                     return;
                 }
+
                 StringBuilder sb = osStringBuilderCache.Acquire();
                 sb.Append("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
                 sb.Append("Unknown");
                 sb.Append(" :");
-                int limit = 9;
+                int limit = 5;
+                int count = 0;
                 foreach (UUID bad in bad_folders)
                 {
                     if (BadRequests.ContainsKey(bad))
                         continue;
                     sb.Append(" ");
                     sb.Append(bad.ToString());
+                    ++count;
                     if (--limit < 0)
                         break;
                 }
-                if (limit < 0)
-                    sb.Append(" ...");
-                m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
+
+                if(count > 0)
+                {
+                    if (limit < 0)
+                        sb.Append(" ...");
+                    m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
+                }
+                else
+                    osStringBuilderCache.Release(sb);
 
                 sb = osStringBuilderCache.Acquire();
                 sb.Append("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
