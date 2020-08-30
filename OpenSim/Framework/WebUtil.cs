@@ -1324,15 +1324,12 @@ namespace OpenSim.Framework
                 {
                     if (hwr != null)
                     {
-                        if (hwr.StatusCode == HttpStatusCode.NotFound)
-                            return deserial;
-
                         if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                         {
                             m_log.ErrorFormat("[SynchronousRestObjectRequester]: Web request {0} requires authentication",
                                 requestUrl);
                         }
-                        else
+                        else if(hwr.StatusCode != HttpStatusCode.NotFound)
                         {
                             m_log.WarnFormat("[SynchronousRestObjectRequester]: Web request {0} returned error: {1}",
                                 requestUrl, hwr.StatusCode);
@@ -1342,8 +1339,6 @@ namespace OpenSim.Framework
                         m_log.ErrorFormat(
                             "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} {3}",
                             verb, requestUrl, typeof(TResponse).ToString(), e.Message);
-
-                    return deserial;
                 }
             }
             catch (System.InvalidOperationException)
