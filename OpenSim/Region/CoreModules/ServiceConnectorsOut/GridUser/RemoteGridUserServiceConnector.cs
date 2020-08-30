@@ -28,9 +28,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
 
@@ -47,7 +47,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int KEEPTIME = 30; // 30 secs
-        private ExpiringCache<string, GridUserInfo> m_Infos = new ExpiringCache<string, GridUserInfo>();
+        private ExpiringCacheOS<string, GridUserInfo> m_Infos = new ExpiringCacheOS<string, GridUserInfo>(10000);
+
+        ~RemoteGridUserServicesConnector()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                m_Infos.Dispose();
+            }
+        }
+
 
         #region ISharedRegionModule
 
@@ -83,7 +105,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
                     m_log.Info("[REMOTE GRID USER CONNECTOR]: Remote grid user enabled");
                 }
             }
-
         }
 
         public void PostInitialise()
@@ -133,20 +154,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public bool LoggedOut(string userID, UUID sessionID, UUID region, Vector3 position, Vector3 lookat)
         {
-            if (m_Infos.Contains(userID))
-                m_Infos.Remove(userID);
-
+            m_Infos.Remove(userID);
             return m_RemoteConnector.LoggedOut(userID, sessionID, region, position, lookat);
         }
-
 
         public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             if (m_RemoteConnector.SetHome(userID, regionID, position, lookAt))
             {
-                // Update the cache too
-                GridUserInfo info = null;
-                if (m_Infos.TryGetValue(userID, out info))
+                if (m_Infos.TryGetValue(userID, KEEPTIME * 1000, out GridUserInfo info))
                 {
                     info.HomeRegionID = regionID;
                     info.HomePosition = position;
@@ -154,7 +170,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
                 }
                 return true;
             }
-
             return false;
         }
 
@@ -162,9 +177,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         {
             if (m_RemoteConnector.SetLastPosition(userID, sessionID, regionID, position, lookAt))
             {
-                // Update the cache too
-                GridUserInfo info = null;
-                if (m_Infos.TryGetValue(userID, out info))
+                if (m_Infos.TryGetValue(userID, KEEPTIME * 1000, out GridUserInfo info))
                 {
                     info.LastRegionID = regionID;
                     info.LastPosition = position;
@@ -178,12 +191,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public GridUserInfo GetGridUserInfo(string userID)
         {
-            GridUserInfo info = null;
-            if (m_Infos.TryGetValue(userID, out info))
+            if (m_Infos.TryGetValue(userID, KEEPTIME * 1000, out GridUserInfo info))
                 return info;
 
             info = m_RemoteConnector.GetGridUserInfo(userID);
-
             m_Infos.AddOrUpdate(userID, info, KEEPTIME);
 
             return info;
