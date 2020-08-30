@@ -103,8 +103,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // get it. But only one has the object in question. The others
             // just ignore it.
             //
-            SceneObjectPart part =
-                    this.World.GetSceneObjectPart(objectID);
+            SceneObjectPart part = World.GetSceneObjectPart(objectID);
 
             if(part == null)
                 return;
