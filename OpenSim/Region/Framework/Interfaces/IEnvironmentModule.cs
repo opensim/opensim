@@ -37,6 +37,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void FromLightShare(RegionLightShareData wl);
         RegionLightShareData ToLightShare();
         byte[] GetDefaultAssetData(int type);
+        UUID GetDefaultAsset(int type);
         void WindlightRefresh(int interpolate, bool notforparcel = true);
         void WindlightRefreshForced(IScenePresence sp, int interpolate);
 
