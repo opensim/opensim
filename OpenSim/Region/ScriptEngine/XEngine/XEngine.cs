@@ -1568,14 +1568,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             IScriptInstance instance = null;
-
             lock (m_Scripts)
             {
                 // Do we even have it?
-                if (!m_Scripts.ContainsKey(itemID))
+                if (!m_Scripts.TryGetValue(itemID, out instance))
                     return;
-
-                instance = m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
             }
 
@@ -1744,18 +1741,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             lock (m_PrimObjects)
             {
-                if (!m_PrimObjects.ContainsKey(localID))
+                if (!m_PrimObjects.TryGetValue(localID, out uuids))
                     return false;
-
-                uuids = m_PrimObjects[localID];
 
                 foreach (UUID itemID in uuids)
                 {
                     IScriptInstance instance = null;
                     try
                     {
-                        if (m_Scripts.ContainsKey(itemID))
-                            instance = m_Scripts[itemID];
+                        m_Scripts.TryGetValue(itemID, out instance);
                     }
                     catch { /* ignore race conditions */ }
 
@@ -1793,9 +1787,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// <returns></returns>
         public bool PostScriptEvent(UUID itemID, EventParams p)
         {
-            if (m_Scripts.ContainsKey(itemID))
+            if (m_Scripts.TryGetValue(itemID, out IScriptInstance instance))
             {
-                IScriptInstance instance = m_Scripts[itemID];
                 if (instance != null)
                     instance.PostEvent(p);
                 return true;
@@ -1889,14 +1882,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private IScriptInstance GetInstance(UUID itemID)
         {
-            IScriptInstance instance;
             lock (m_Scripts)
             {
-                if (!m_Scripts.ContainsKey(itemID))
-                    return null;
-                instance = m_Scripts[itemID];
+                if (m_Scripts.TryGetValue(itemID, out IScriptInstance instance))
+                    return instance;
             }
-            return instance;
+            return null;
         }
 
         public void SetScriptState(UUID itemID, bool running, bool self)
