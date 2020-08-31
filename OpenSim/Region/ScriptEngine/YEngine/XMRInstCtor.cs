@@ -582,9 +582,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_EventCounts[i] = 0;
                 foreach(EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                             evt.EventName);
-                    m_EventCounts[(int)eventCode]++;
+                    if(m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode eventCode))
+                        m_EventCounts[(int)eventCode]++;
                 }
             }
 
@@ -929,9 +928,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_EventCounts[i] = 0;
                 foreach (EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode evtCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                             evt.EventName);
-                    m_EventCounts[(int)evtCode]++;
+                    if(m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evtCode))
+                        m_EventCounts[(int)evtCode]++;
                 }
             }
 

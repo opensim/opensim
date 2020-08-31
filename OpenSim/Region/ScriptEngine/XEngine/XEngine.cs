@@ -1789,8 +1789,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             if (m_Scripts.TryGetValue(itemID, out IScriptInstance instance))
             {
-                if (instance != null)
-                    instance.PostEvent(p);
+                instance?.PostEvent(p);
                 return true;
             }
             lock (m_CompileDict)

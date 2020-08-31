@@ -63,7 +63,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PostEvent(EventParams evt)
         {
-            ScriptEventCode evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+            if(!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
+                return;
 
              // Put event on end of event queue.
             bool startIt = false;
@@ -175,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
                             {
                                 EventParams evt2 = lln2.Value;
-                                ScriptEventCode evc2 = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt2.EventName);
+                                m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
                                 if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
                                     break;
                             }
@@ -239,15 +240,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void CancelEvent(string eventName)
         {
-            ScriptEventCode evc;
-            try
-            {
-                evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), eventName);
-            }
-            catch
-            {
+            if (!m_eventCodeMap.TryGetValue(eventName, out ScriptEventCode evc))
                 return;
-            }
 
             lock (m_QueueLock)
             {
@@ -373,7 +367,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(m_EventQueue.First != null)
                         {
                             evt = m_EventQueue.First.Value;
-                            evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+                            m_eventCodeMap.TryGetValue(evt.EventName, out evc);
                             if (m_DetachQuantum > 0)
                             {
                                 if(evc != ScriptEventCode.attach)
@@ -390,7 +384,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 }
                             }
                             m_EventQueue.RemoveFirst();
-                            if((int)evc >= 0)
+                            if(evc >= 0)
                                 m_EventCounts[(int)evc]--;
                         }
 
