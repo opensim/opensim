@@ -1485,18 +1485,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return vec;
         }
 
-        public void osSetStateEvents(int events)
-        {
-            // This function is a hack. There is no reason for it's existence
-            // anymore, since state events now work properly.
-            // It was probably added as a crutch or debugging aid, and
-            // should be removed
-            //
-            CheckThreatLevel(ThreatLevel.High, "osSetStateEvents");
-
-            m_host.SetScriptEvents(m_item.ItemID, events);
-        }
-
         public void osSetRegionWaterHeight(double height)
         {
             CheckThreatLevel(ThreatLevel.High, "osSetRegionWaterHeight");
