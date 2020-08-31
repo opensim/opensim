@@ -4918,7 +4918,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 PrimUpdateFlags updateFlags = update.Flags;
 
-                if (updateFlags.HasFlag(PrimUpdateFlags.Kill))
+                if ((updateFlags  & PrimUpdateFlags.Kill) != 0)
                 {
                     m_killRecord.Add(update.Entity.LocalId);
                     maxUpdatesBytes -= 30;
@@ -4932,7 +4932,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
                     SceneObjectGroup grp = part.ParentGroup;
-                    if (grp.inTransit && !update.Flags.HasFlag(PrimUpdateFlags.SendInTransit))
+                    if (grp.inTransit && ((update.Flags & PrimUpdateFlags.SendInTransit) == 0))
                         continue;
 
                     if (grp.IsDeleted)
@@ -5013,7 +5013,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (dpos > maxview * maxview)
                                 continue;
 
-                            if (!viewerCache || !updateFlags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                            if (!viewerCache || ((updateFlags & PrimUpdateFlags.UpdateProbe) == 0))
                             {
                                 GroupsNeedFullUpdate.Add(grp);
                                 continue;
@@ -5021,7 +5021,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
 
-                    if (updateFlags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                    if ((updateFlags & PrimUpdateFlags.UpdateProbe) != 0)
                     {
                         if (objectUpdateProbes == null)
                         {
@@ -5033,7 +5033,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         continue;
                     }
 
-                    if (updateFlags.HasFlag(PrimUpdateFlags.Animations))
+                    if ((updateFlags & PrimUpdateFlags.Animations) != 0)
                     {
                         if (m_SupportObjectAnimations && part.Animations != null)
                         {

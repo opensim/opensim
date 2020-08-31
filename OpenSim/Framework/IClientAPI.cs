@@ -601,9 +601,9 @@ namespace OpenSim.Framework
         public virtual void Update()
         {
             // we are on the new one
-            if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
+            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
             {
-                if (m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
                     m_flags = PrimUpdateFlags.UpdateProbe;
                 else
                     m_flags = PrimUpdateFlags.FullUpdatewithAnim;
@@ -614,11 +614,11 @@ namespace OpenSim.Framework
         {
             // we are on the new one
             PrimUpdateFlags updateFlags = oldupdate.Flags;
-            if (updateFlags.HasFlag(PrimUpdateFlags.UpdateProbe))
+            if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
                 updateFlags &= ~PrimUpdateFlags.UpdateProbe;
-            if (m_flags.HasFlag(PrimUpdateFlags.CancelKill))
+            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
             {
-                if(m_flags.HasFlag(PrimUpdateFlags.UpdateProbe))
+                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
                     m_flags = PrimUpdateFlags.UpdateProbe;
                 else
                     m_flags = PrimUpdateFlags.FullUpdatewithAnim;
