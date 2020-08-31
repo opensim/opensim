@@ -310,10 +310,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 {
                     m_Script.InitApi(kv.Key, kv.Value);
                 }
-
-                //                // m_log.Debug("[Script] Script instance created");
-
-                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
             }
             catch (Exception e)
             {
@@ -355,10 +351,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                                LocalID, ItemID, ObjectID,
                                                                PluginData);
 
-                            //                            m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
+                            // m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
 
-                            Part.SetScriptEvents(ItemID,
-                                                 (int)m_Script.GetStateEventFlags(State));
 
                             if (!Running)
                                 m_startOnInit = false;
@@ -398,6 +392,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
             //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
             //            }
+            try
+            {
+                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
+            }
+            catch
+            {
+                m_log.ErrorFormat("[SCRIPT INSTANCE]: failed to SetScriptEvents {0}", ItemID);
+            }
 
             return true;
         }

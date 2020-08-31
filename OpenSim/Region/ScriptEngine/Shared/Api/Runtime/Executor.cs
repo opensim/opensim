@@ -45,7 +45,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// </summary>
         protected IScript m_Script;
 
-        protected Dictionary<string, scriptEvents> m_eventFlagsMap = new Dictionary<string, scriptEvents>();
+        protected static readonly Dictionary<string, scriptEvents> m_eventFlagsMap = new Dictionary<string, scriptEvents>()
+        {
+            {"attach", scriptEvents.attach},
+            {"at_rot_target", scriptEvents.at_rot_target},
+            {"at_target", scriptEvents.at_target},
+            // {"changed",(long)scriptEvents.changed},
+            {"collision", scriptEvents.collision},
+            {"collision_end", scriptEvents.collision_end},
+            {"collision_start", scriptEvents.collision_start},
+            {"control", scriptEvents.control},
+            {"dataserver", scriptEvents.dataserver},
+            {"email", scriptEvents.email},
+            {"http_response", scriptEvents.http_response},
+            {"land_collision", scriptEvents.land_collision},
+            {"land_collision_end", scriptEvents.land_collision_end},
+            {"land_collision_start", scriptEvents.land_collision_start},
+            //{"link_message",scriptEvents.link_message},
+            {"listen", scriptEvents.listen},
+            {"money", scriptEvents.money},
+            {"moving_end", scriptEvents.moving_end},
+            {"moving_start", scriptEvents.moving_start},
+            {"not_at_rot_target", scriptEvents.not_at_rot_target},
+            {"not_at_target", scriptEvents.not_at_target},
+            //{"no_sensor",(long)scriptEvents.no_sensor},
+            //{"on_rez",(long)scriptEvents.on_rez},
+            {"remote_data", scriptEvents.remote_data},
+            {"run_time_permissions", scriptEvents.run_time_permissions},
+            //{"sensor",(long)scriptEvents.sensor},
+            {"state_entry", scriptEvents.state_entry},
+            {"state_exit", scriptEvents.state_exit},
+            {"timer", scriptEvents.timer},
+            {"touch", scriptEvents.touch},
+            {"touch_end", scriptEvents.touch_end},
+            {"touch_start", scriptEvents.touch_start},
+            {"transaction_result", scriptEvents.transaction_result},
+            {"object_rez", scriptEvents.object_rez}
+        };
 
         [Flags]
         public enum scriptEvents : int
@@ -91,7 +127,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public Executor(IScript script)
         {
             m_Script = script;
-            initEventFlags();
         }
 
         public scriptEvents GetStateEventFlags(string state)
@@ -197,51 +232,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     throw;
                 }
             }
-
-        }
-
-        protected void initEventFlags()
-        {
-            // Initialize the table if it hasn't already been done
-            if (m_eventFlagsMap.Count > 0)
-            {
-                return;
-            }
-
-            m_eventFlagsMap.Add("attach", scriptEvents.attach);
-            m_eventFlagsMap.Add("at_rot_target", scriptEvents.at_rot_target);
-            m_eventFlagsMap.Add("at_target", scriptEvents.at_target);
-            // m_eventFlagsMap.Add("changed",(long)scriptEvents.changed);
-            m_eventFlagsMap.Add("collision", scriptEvents.collision);
-            m_eventFlagsMap.Add("collision_end", scriptEvents.collision_end);
-            m_eventFlagsMap.Add("collision_start", scriptEvents.collision_start);
-            m_eventFlagsMap.Add("control", scriptEvents.control);
-            m_eventFlagsMap.Add("dataserver", scriptEvents.dataserver);
-            m_eventFlagsMap.Add("email", scriptEvents.email);
-            m_eventFlagsMap.Add("http_response", scriptEvents.http_response);
-            m_eventFlagsMap.Add("land_collision", scriptEvents.land_collision);
-            m_eventFlagsMap.Add("land_collision_end", scriptEvents.land_collision_end);
-            m_eventFlagsMap.Add("land_collision_start", scriptEvents.land_collision_start);
-            // m_eventFlagsMap.Add("link_message",scriptEvents.link_message);
-            m_eventFlagsMap.Add("listen", scriptEvents.listen);
-            m_eventFlagsMap.Add("money", scriptEvents.money);
-            m_eventFlagsMap.Add("moving_end", scriptEvents.moving_end);
-            m_eventFlagsMap.Add("moving_start", scriptEvents.moving_start);
-            m_eventFlagsMap.Add("not_at_rot_target", scriptEvents.not_at_rot_target);
-            m_eventFlagsMap.Add("not_at_target", scriptEvents.not_at_target);
-            // m_eventFlagsMap.Add("no_sensor",(long)scriptEvents.no_sensor);
-            // m_eventFlagsMap.Add("on_rez",(long)scriptEvents.on_rez);
-            m_eventFlagsMap.Add("remote_data", scriptEvents.remote_data);
-            m_eventFlagsMap.Add("run_time_permissions", scriptEvents.run_time_permissions);
-            // m_eventFlagsMap.Add("sensor",(long)scriptEvents.sensor);
-            m_eventFlagsMap.Add("state_entry", scriptEvents.state_entry);
-            m_eventFlagsMap.Add("state_exit", scriptEvents.state_exit);
-            m_eventFlagsMap.Add("timer", scriptEvents.timer);
-            m_eventFlagsMap.Add("touch", scriptEvents.touch);
-            m_eventFlagsMap.Add("touch_end", scriptEvents.touch_end);
-            m_eventFlagsMap.Add("touch_start", scriptEvents.touch_start);
-            m_eventFlagsMap.Add("transaction_result", scriptEvents.transaction_result);
-            m_eventFlagsMap.Add("object_rez", scriptEvents.object_rez);
         }
     }
 }
