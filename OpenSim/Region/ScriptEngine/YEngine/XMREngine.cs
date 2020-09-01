@@ -1214,9 +1214,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (script.StartsWith("//MRM:"))
                 return;
 
-            SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
-            TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
-
             if(!m_LateInit)
             {
                 m_LateInit = true;
@@ -1280,6 +1277,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(!string.IsNullOrEmpty(langsrt) && langsrt !="lsl")
                 return;
+
+            SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
 
             // Put on object/instance lists.
             XMRInstance instance = (XMRInstance)Activator.CreateInstance(ScriptCodeGen.xmrInstSuperType);
@@ -1411,6 +1411,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 if(!instance.m_Running)
                     instance.EmptyEventQueues();
             }
+            // Declare which events the script's current state can handle.
+            int eventMask = instance.GetStateEventFlags(instance.stateCode);
+            instance.m_Part.SetScriptEvents(instance.m_ItemID, eventMask);
+
             QueueToStart(instance);
         }
 

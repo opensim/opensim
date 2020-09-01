@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.AttachedAvatar = sp.UUID;
             so.AttachmentPoint = attachmentpoint;
             so.RootPart.AttachedPos = attachOffset;
-            so.AbsolutePosition = attachOffset;
+            so.RootPart.GroupPosition = attachOffset; // can not set absolutepos
             so.IsAttachment = true;
 
             sp.AddAttachment(so);
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // scene that it's no longer in their awareness.
                     m_scene.ForEachClient(
                         client =>
-                            { if (client.AgentId != so.AttachedAvatar)
+                            { if (client.IsActive && client.AgentId != so.AttachedAvatar)
                                 client.SendKillObject(new List<uint>() { so.LocalId });
                             });
                 }

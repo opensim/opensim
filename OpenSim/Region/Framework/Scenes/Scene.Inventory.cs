@@ -79,8 +79,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (group is SceneObjectGroup)
                 {
-                    scriptsValidForStarting
-                        += ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    scriptsValidForStarting += ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
                     ((SceneObjectGroup) group).ResumeScripts();
                 }
             }

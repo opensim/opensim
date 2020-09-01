@@ -126,10 +126,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             suspendOnCheckRunHold = false;
             suspendOnCheckRunTemp = false;
-
-            // Declare which events the script's current state can handle.
-            int eventMask = GetStateEventFlags(stateCode);
-            m_Part.SetScriptEvents(m_ItemID, eventMask);
         }
 
         private void InitScriptApi(Yengine engine, string api, IScriptApi scriptApi)

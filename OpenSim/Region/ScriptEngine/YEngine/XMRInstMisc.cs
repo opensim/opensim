@@ -213,24 +213,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief For a given stateCode, get a mask of the low 32 event codes
          *        that the state has handlers defined for.
          */
-        public int GetStateEventFlags(int stateCode)
+        public int GetStateEventFlags(int state)
         {
-            if((stateCode < 0) ||
-                (stateCode >= m_ObjCode.scriptEventHandlerTable.GetLength(0)))
+            if((state < 0) ||
+                (state >= m_ObjCode.scriptEventHandlerTable.GetLength(0)))
             {
                 return 0;
             }
 
-            int code = 0;
+            int flags = 0;
             for(int i = 0; i < 32; i++)
             {
-                if(m_ObjCode.scriptEventHandlerTable[stateCode, i] != null)
+                if(m_ObjCode.scriptEventHandlerTable[state, i] != null)
                 {
-                    code |= 1 << i;
+                    flags |= 1 << i;
                 }
             }
-
-            return code;
+            return flags;
         }
 
         /**
