@@ -1114,8 +1114,7 @@ namespace OpenSim.Framework
                 {
                     if (resp.ContentLength != 0)
                     {
-                        using (Stream respStream = resp.GetResponseStream())
-                        using (StreamReader reader = new StreamReader(respStream))
+                        using (StreamReader reader = new StreamReader(resp.GetResponseStream()))
                             respstring = reader.ReadToEnd();
                     }
                 }
