@@ -93,7 +93,7 @@ namespace OpenSim.Tests.Common
             return GetNoLand();
         }
 
-        public ILandObject GetLandObjectClipedXY(float x, float y)
+        public ILandObject GetLandObjectClippedXY(float x, float y)
         {
             return GetNoLand();
         }

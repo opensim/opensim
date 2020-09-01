@@ -1874,7 +1874,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             Vector3 pos = sog.AbsolutePosition;
-            ILandObject parcel = m_scene.LandChannel.GetLandObjectClipedXY(pos.X, pos.Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObjectClippedXY(pos.X, pos.Y);
             if (parcel == null)
                 return false;
 
@@ -2080,7 +2080,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 parcel = m_scene.LandChannel.GetLandObject(id);
             else
             {
-                parcel = m_scene.LandChannel.GetLandObjectClipedXY(X, Y);
+                parcel = m_scene.LandChannel.GetLandObjectClippedXY(X, Y);
             }
 
             if (parcel == null)

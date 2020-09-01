@@ -944,7 +944,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             if(Util.ParseFakeParcelID(fakeID, out ulong rhandle, out uint x, out uint y) && rhandle == m_regionHandler)
             {
-                return GetLandObjectClipedXY(x, y);
+                return GetLandObjectClippedXY(x, y);
             }
             return null;
         }
@@ -979,7 +979,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // if x,y is off region this will return the parcel at cliped x,y
         // as did code it replaces
-        public ILandObject GetLandObjectClipedXY(float x, float y)
+        public ILandObject GetLandObjectClippedXY(float x, float y)
         {
             //do clip inline
             int avx = (int)(Math.Round(x));
@@ -2141,7 +2141,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ulong regionHandle = Util.BytesToUInt64Big((byte[])tmp);
                         if(regionHandle == myHandle)
                         {
-                            ILandObject l = GetLandObjectClipedXY(x, y);
+                            ILandObject l = GetLandObjectClippedXY(x, y);
                             if (l != null)
                                 parcelID = l.LandData.FakeID;
                             else
@@ -2157,7 +2157,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             {
                                 if (info.RegionHandle == myHandle)
                                 {
-                                    ILandObject l = GetLandObjectClipedXY(x, y);
+                                    ILandObject l = GetLandObjectClippedXY(x, y);
                                     if (l != null)
                                         parcelID = l.LandData.FakeID;
                                     else
@@ -2184,7 +2184,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         UUID regionID = tmp.AsUUID();
                         if (regionID == m_scene.RegionInfo.RegionID)
                         {
-                            ILandObject l = GetLandObjectClipedXY(x, y);
+                            ILandObject l = GetLandObjectClippedXY(x, y);
                             if (l != null)
                                 parcelID = l.LandData.FakeID;
                             else

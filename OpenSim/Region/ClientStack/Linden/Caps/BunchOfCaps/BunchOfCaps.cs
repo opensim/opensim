@@ -1749,7 +1749,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 UUID parcelID = tmp.AsUUID();
                 if (Util.ParseFakeParcelID(parcelID, out ulong regionHandle, out uint x, out uint y) && regionHandle == myHandler)
                 {
-                    ILandObject land = m_Scene.LandChannel.GetLandObjectClipedXY(x, y);
+                    ILandObject land = m_Scene.LandChannel.GetLandObjectClippedXY(x, y);
                     if (land != null)
                         landdata = land.LandData;
                     land = null;
