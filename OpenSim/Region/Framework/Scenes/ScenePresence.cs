@@ -6533,6 +6533,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObject(SceneObjectPart obj)
         {
             return new DetectedObject()
@@ -6549,6 +6550,7 @@ namespace OpenSim.Region.Framework.Scenes
             };
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObject(ScenePresence av)
         {
             DetectedObject detobj = new DetectedObject()
@@ -6571,6 +6573,7 @@ namespace OpenSim.Region.Framework.Scenes
             return detobj;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObjectForGround()
         {
             DetectedObject detobj = new DetectedObject()
@@ -6621,15 +6624,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         private delegate void ScriptCollidingNotification(uint localID, ColliderArgs message);
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void SendCollisionEvent(SceneObjectGroup dest, scriptEvents ev, List<uint> colliders, ScriptCollidingNotification notify)
         {
-            ColliderArgs CollidingMessage;
-
             if (colliders.Count > 0)
             {
                 if ((dest.RootPart.ScriptEvents & ev) != 0)
                 {
-                    CollidingMessage = CreateColliderArgs(dest.RootPart, colliders);
+                    ColliderArgs CollidingMessage = CreateColliderArgs(dest.RootPart, colliders);
 
                     if (CollidingMessage.Colliders.Count > 0)
                         notify(dest.RootPart.LocalId, CollidingMessage);
@@ -6637,6 +6639,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void SendLandCollisionEvent(SceneObjectGroup dest, scriptEvents ev, ScriptCollidingNotification notify)
         {
             if ((dest.RootPart.ScriptEvents & ev) != 0)
@@ -6774,14 +6777,14 @@ namespace OpenSim.Region.Framework.Scenes
                 for (int i = 0; i< attachements.Count; ++i)
                 {
                     SceneObjectGroup att = attachements[i];
-                    if ((att.ScriptEvents & scriptEvents.anyobjcollision) != 0)
+                    if ((att.RootPart.ScriptEvents & scriptEvents.anyobjcollision) != 0)
                     {
                         SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
                         SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
                         SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
                     }
 
-                    if ((att.ScriptEvents & scriptEvents.anylandcollision) != 0)
+                    if ((att.RootPart.ScriptEvents & scriptEvents.anylandcollision) != 0)
                     {
                         if (startLand)
                             SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);

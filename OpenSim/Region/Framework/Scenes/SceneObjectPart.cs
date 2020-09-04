@@ -2673,6 +2673,7 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObject(SceneObjectPart obj)
         {
             return new DetectedObject()
@@ -2689,6 +2690,7 @@ namespace OpenSim.Region.Framework.Scenes
             };
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObject(ScenePresence av)
         {
             DetectedObject detobj = new DetectedObject()
@@ -2710,6 +2712,7 @@ namespace OpenSim.Region.Framework.Scenes
             return detobj;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObjectForGround()
         {
             return new DetectedObject()
