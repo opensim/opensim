@@ -40,17 +40,117 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Contains the script to execute functions in.
-        /// </summary>
-        protected IScript m_Script;
+        // this is not the right place for this
+        // for now it must match similar enums duplicated on scritp engines
+        public enum ScriptEventCode : int
+        {
+            None = -1,
 
+            attach = 0,
+            state_exit = 1,
+            timer = 2,
+            touch = 3,
+            collision = 4,
+            collision_end = 5,
+            collision_start = 6,
+            control = 7,
+            dataserver = 8,
+            email = 9,
+            http_response = 10,
+            land_collision = 11,
+            land_collision_end = 12,
+            land_collision_start = 13,
+            at_target = 14,
+            listen = 15,
+            money = 16,
+            moving_end = 17,
+            moving_start = 18,
+            not_at_rot_target = 19,
+            not_at_target = 20,
+            touch_start = 21,
+            object_rez = 22,
+            remote_data = 23,
+            at_rot_target = 24,
+            transaction_result = 25,
+            //
+            //
+            run_time_permissions = 28,
+            touch_end = 29,
+            state_entry = 30,
+            //
+            //
+            changed = 33,
+            link_message = 34,
+            no_sensor = 35,
+            on_rez = 36,
+            sensor = 37,
+            http_request = 38,
+
+            path_update = 40,
+
+            // marks highest numbered event
+            Size = 41
+        }
+
+        // this is not the right place for this
+        // for now it must match similar enums duplicated on scritp engines
+        [Flags]
+        public enum scriptEvents : ulong
+        {
+            None = 0,
+            attach = 1,
+            state_exit = 1UL << 1,
+            timer = 1UL << 2,
+            touch = 1UL << 3,
+            collision = 1UL << 4,
+            collision_end = 1UL << 5,
+            collision_start = 1UL << 6,
+            control = 1UL << 7,
+            dataserver = 1UL << 8,
+            email = 1UL << 9,
+            http_response = 1UL << 10,
+            land_collision = 1UL << 11,
+            land_collision_end = 1UL << 12,
+            land_collision_start = 1UL << 13,
+            at_target = 1UL << 14,
+            listen = 1UL << 15,
+            money = 1UL << 16,
+            moving_end = 1UL << 17,
+            moving_start = 1UL << 18,
+            not_at_rot_target = 1UL << 19,
+            not_at_target = 1UL << 20,
+            touch_start = 1UL << 21,
+            object_rez = 1UL << 22,
+            remote_data = 1UL << 23,
+            at_rot_target = 1UL << 24,
+            transaction_result = 1UL << 25,
+            //
+            //
+            run_time_permissions = 1UL << 28,
+            touch_end = 1UL << 29,
+            state_entry = 1UL << 30,
+            //
+            //
+            changed = 1UL << 33,
+            link_message = 1UL << 34,
+            no_sensor = 1UL << 35,
+            on_rez = 1UL << 36,
+            sensor = 1UL << 37,
+            http_request = 1UL << 38,
+
+            path_update = 1UL << 40,
+
+            anytouch = touch | touch_end | touch_start,
+            anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target
+        }
+
+        // this is not the right place for this
+        // for now it must match similar enums duplicated on scritp engines
         protected static readonly Dictionary<string, scriptEvents> m_eventFlagsMap = new Dictionary<string, scriptEvents>()
         {
             {"attach", scriptEvents.attach},
             {"at_rot_target", scriptEvents.at_rot_target},
             {"at_target", scriptEvents.at_target},
-            // {"changed",(long)scriptEvents.changed},
             {"collision", scriptEvents.collision},
             {"collision_end", scriptEvents.collision_end},
             {"collision_start", scriptEvents.collision_start},
@@ -61,18 +161,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {"land_collision", scriptEvents.land_collision},
             {"land_collision_end", scriptEvents.land_collision_end},
             {"land_collision_start", scriptEvents.land_collision_start},
-            //{"link_message",scriptEvents.link_message},
             {"listen", scriptEvents.listen},
             {"money", scriptEvents.money},
             {"moving_end", scriptEvents.moving_end},
             {"moving_start", scriptEvents.moving_start},
             {"not_at_rot_target", scriptEvents.not_at_rot_target},
             {"not_at_target", scriptEvents.not_at_target},
-            //{"no_sensor",(long)scriptEvents.no_sensor},
-            //{"on_rez",(long)scriptEvents.on_rez},
             {"remote_data", scriptEvents.remote_data},
             {"run_time_permissions", scriptEvents.run_time_permissions},
-            //{"sensor",(long)scriptEvents.sensor},
             {"state_entry", scriptEvents.state_entry},
             {"state_exit", scriptEvents.state_exit},
             {"timer", scriptEvents.timer},
@@ -80,45 +176,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             {"touch_end", scriptEvents.touch_end},
             {"touch_start", scriptEvents.touch_start},
             {"transaction_result", scriptEvents.transaction_result},
-            {"object_rez", scriptEvents.object_rez}
+            {"object_rez", scriptEvents.object_rez},
+            {"changed", scriptEvents.changed},
+            {"link_message", scriptEvents.link_message},
+            {"no_sensor", scriptEvents.no_sensor},
+            {"on_rez", scriptEvents.on_rez},
+            {"sensor", scriptEvents.sensor},
+            {"http_request", scriptEvents.http_request},
+            {"path_update", scriptEvents.path_update},
         };
 
-        [Flags]
-        public enum scriptEvents : int
-        {
-            None                    = 0,
-            attach                  = 1,
-            state_exit              = 1 << 1,
-            timer                   = 1 << 2,
-            touch                   = 1 << 3,
-            collision               = 1 << 4,
-            collision_end           = 1 << 5,
-            collision_start         = 1 << 6,
-            control                 = 1 << 7,
-            dataserver              = 1 << 8,
-            email                   = 1 << 9,
-            http_response           = 1 << 10,
-            land_collision          = 1 << 11,
-            land_collision_end      = 1 << 12,
-            land_collision_start    = 1 << 13,
-            at_target               = 1 << 14,
-            listen                  = 1 << 15,
-            money                   = 1 << 16,
-            moving_end              = 1 << 17,
-            moving_start            = 1 << 18,
-            not_at_rot_target       = 1 << 19,
-            not_at_target           = 1 << 20,
-            touch_start             = 1 << 21,
-            object_rez              = 1 << 22,
-            remote_data             = 1 << 23,
-            at_rot_target           = 1 << 24,
-            transaction_result      = 1 << 25,
-            //
-            //
-            run_time_permissions    = 1 << 28,
-            touch_end               = 1 << 29,
-            state_entry             = 1 << 30,
-        }
+
+        /// <summary>
+        /// Contains the script to execute functions in.
+        /// </summary>
+        protected IScript m_Script;
+
 
         // Cache functions by keeping a reference to them in a dictionary
         private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();

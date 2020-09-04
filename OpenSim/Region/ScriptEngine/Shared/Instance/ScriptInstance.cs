@@ -394,7 +394,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             //            }
             try
             {
-                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
+                Part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
             }
             catch
             {
@@ -879,7 +879,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_StateChangeInProgress = false;
 
                 Part.RemoveScriptTargets(ItemID);
-                Part.SetScriptEvents(ItemID, (int)m_Script.GetStateEventFlags(State));
+                Part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
             }
             else
             {
