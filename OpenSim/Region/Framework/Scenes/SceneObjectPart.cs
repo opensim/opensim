@@ -2942,15 +2942,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (soundinfolist.Count > 0)
                     CollisionSounds.PartCollisionSound(this, soundinfolist);
             }
-            
+
             EventManager eventmanager = ParentGroup.Scene.EventManager;
+            if ((ScriptEvents & scriptEvents.anyobjcollision) != 0)
+            {
+                SendCollisionEvent(scriptEvents.collision_start, startedColliders, eventmanager.TriggerScriptCollidingStart);
+                if (!VolumeDetectActive)
+                    SendCollisionEvent(scriptEvents.collision  , m_lastColliders , eventmanager.TriggerScriptColliding);
+                SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , eventmanager.TriggerScriptCollidingEnd);
+            }
 
-            SendCollisionEvent(scriptEvents.collision_start, startedColliders, eventmanager.TriggerScriptCollidingStart);
-            if (!VolumeDetectActive)
-                SendCollisionEvent(scriptEvents.collision  , m_lastColliders , eventmanager.TriggerScriptColliding);
-            SendCollisionEvent(scriptEvents.collision_end  , endedColliders  , eventmanager.TriggerScriptCollidingEnd);
-
-            if (!VolumeDetectActive)
+            if (!VolumeDetectActive && (ScriptEvents & scriptEvents.anylandcollision) != 0)
             {
                 if (startLand)
                     SendLandCollisionEvent(scriptEvents.land_collision_start, eventmanager.TriggerScriptLandCollidingStart);

@@ -343,6 +343,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private List<uint> m_lastColliders = new List<uint>();
+        private bool m_lastLandCollide;
 
         private TeleportFlags m_teleportFlags;
         public TeleportFlags TeleportFlags
@@ -6652,16 +6653,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
+                bool thisHitLand = false;
+                bool startLand = false;
+                bool endedLand = false;
+
                 List<uint> thisHitColliders = new List<uint>();
                 List<uint> endedColliders = new List<uint>();
                 List<uint> startedColliders = new List<uint>();
 
                 if (coldata.Count == 0)
                 {
-                    if (m_lastColliders.Count == 0)
+                    if (m_lastColliders.Count == 0 && !m_lastLandCollide)
                         return; // nothing to do
 
-                    for(int i = 0; i < m_lastColliders.Count; ++i)
+                    endedLand = m_lastLandCollide;
+                    m_lastLandCollide = false;
+
+                    for (int i = 0; i < m_lastColliders.Count; ++i)
                         endedColliders.Add(m_lastColliders[i]);
 
                     m_lastColliders.Clear();
@@ -6676,20 +6684,42 @@ namespace OpenSim.Region.Framework.Scenes
 
                         foreach (uint id in coldata.Keys)
                         {
-                            thisHitColliders.Add(id);
-                            if (!m_lastColliders.Contains(id))
+                            if(id == 0)
                             {
-                                startedColliders.Add(id);
-                                curcontact = coldata[id];
-                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                thisHitLand = true;
+                                if (!m_lastLandCollide)
                                 {
-                                    soundinfo = new CollisionForSoundInfo()
+                                    startLand = true;
+                                    curcontact = coldata[id];
+                                    if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
                                     {
-                                        colliderID = id,
-                                        position = curcontact.Position,
-                                        relativeVel = curcontact.RelativeSpeed
-                                    };
-                                    soundinfolist.Add(soundinfo);
+                                        soundinfo = new CollisionForSoundInfo()
+                                        {
+                                            colliderID = id,
+                                            position = curcontact.Position,
+                                            relativeVel = curcontact.RelativeSpeed
+                                        };
+                                        soundinfolist.Add(soundinfo);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                thisHitColliders.Add(id);
+                                if (!m_lastColliders.Contains(id))
+                                {
+                                    startedColliders.Add(id);
+                                    curcontact = coldata[id];
+                                    if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                    {
+                                        soundinfo = new CollisionForSoundInfo()
+                                        {
+                                            colliderID = id,
+                                            position = curcontact.Position,
+                                            relativeVel = curcontact.RelativeSpeed
+                                        };
+                                        soundinfolist.Add(soundinfo);
+                                    }
                                 }
                             }
                         }
@@ -6698,9 +6728,18 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         foreach (uint id in coldata.Keys)
                         {
-                            thisHitColliders.Add(id);
-                            if (!m_lastColliders.Contains(id))
-                                startedColliders.Add(id);
+                            if (id == 0)
+                            {
+                                thisHitLand = true;
+                                if (!m_lastLandCollide)
+                                    startLand = true;
+                            }
+                            else
+                            {
+                                thisHitColliders.Add(id);
+                                if (!m_lastColliders.Contains(id))
+                                    startedColliders.Add(id);
+                            }
                         }
                     }
                     // calculate things that ended colliding
@@ -6722,23 +6761,35 @@ namespace OpenSim.Region.Framework.Scenes
                         m_lastColliders.Remove(localID);
                     }
 
+                    if (m_lastLandCollide && !thisHitLand)
+                        endedLand = true;
+
+                    m_lastLandCollide = thisHitLand;
+
                     if (soundinfolist.Count > 0)
                         CollisionSounds.AvatarCollisionSound(this, soundinfolist);
                 }
+
                 List<SceneObjectGroup> attachements = GetAttachments();
                 for (int i = 0; i< attachements.Count; ++i)
                 {
                     SceneObjectGroup att = attachements[i];
-                    SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
-                    SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
-                    SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
+                    if ((att.ScriptEvents & scriptEvents.anyobjcollision) != 0)
+                    {
+                        SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
+                        SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
+                        SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
+                    }
 
-                    if (startedColliders.Contains(0))
-                        SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);
-                    if (m_lastColliders.Contains(0))
-                        SendLandCollisionEvent(att, scriptEvents.land_collision, m_scene.EventManager.TriggerScriptLandColliding);
-                    if (endedColliders.Contains(0))
-                        SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
+                    if ((att.ScriptEvents & scriptEvents.anylandcollision) != 0)
+                    {
+                        if (startLand)
+                            SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);
+                        if (m_lastLandCollide)
+                            SendLandCollisionEvent(att, scriptEvents.land_collision, m_scene.EventManager.TriggerScriptLandColliding);
+                        if (endedLand)
+                            SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
+                    }
                 }
             }
             catch { }

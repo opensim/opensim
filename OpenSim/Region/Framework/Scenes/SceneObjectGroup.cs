@@ -25,24 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Xml;
-using System.Xml.Serialization;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.PhysicsModules.SharedBase;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Xml;
 using PermissionMask = OpenSim.Framework.PermissionMask;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -148,7 +143,9 @@ namespace OpenSim.Region.Framework.Scenes
         path_update = 1UL << 40,
 
         anytouch = touch | touch_end | touch_start,
-        anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target
+        anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target,
+        anyobjcollision = collision | collision_end | collision_start,
+        anylandcollision = land_collision | land_collision_end | land_collision_start
     }
 
     public struct scriptPosTarget
