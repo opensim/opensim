@@ -223,7 +223,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     {
                         m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
                     }
-                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION });
+                    m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
                     SendAnimPack();
                     ret = true;
                 }
@@ -239,8 +239,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
 //                        anim, m_scenePresence.Name);
 
-                        // 16384 is CHANGED_ANIMATION
-                        m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION });
+                        m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
                         SendAnimPack();
                         ret = true;
                     }

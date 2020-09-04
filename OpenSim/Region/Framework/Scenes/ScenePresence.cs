@@ -5850,36 +5850,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Send a script event to this scene presence's attachments
-        /// </summary>
-        /// <param name="eventName">The name of the event</param>
-        /// <param name="args">The arguments for the event</param>
-        public void SendScriptEventToAttachments(string eventName, Object[] args)
+        public void SendScriptChangedEventToAttachments(Changed val)
         {
-            Util.FireAndForget(delegate(object x)
+            lock (m_attachments)
             {
-                if (m_scriptEngines.Length == 0)
-                    return;
-
-                lock (m_attachments)
+                foreach (SceneObjectGroup grp in m_attachments)
                 {
-                    foreach (SceneObjectGroup grp in m_attachments)
+                    if ((grp.ScriptEvents & scriptEvents.changed) != 0)
                     {
-                        // 16384 is CHANGED_ANIMATION
-                        //
-                        // Send this to all attachment root prims
-                        //
-                        foreach (IScriptModule m in m_scriptEngines)
+                        foreach(SceneObjectPart sop in grp.Parts)
                         {
-                            if (m == null) // No script engine loaded
-                                continue;
-
-                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
+                            sop.TriggerScriptChangedEvent(val);
                         }
                     }
                 }
-            }, null, "ScenePresence.SendScriptEventToAttachments");
+            }
         }
 
         /// <summary>

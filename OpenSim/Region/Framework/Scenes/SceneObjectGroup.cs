@@ -689,7 +689,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // now that position is changed tell it to scripts
-                if (triggerScriptEvent)
+                if (triggerScriptEvent && (ScriptEvents & scriptEvents.changed) != 0)
                 {
                     foreach (SceneObjectPart part in parts)
                     {
@@ -2277,6 +2277,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private scriptEvents lastRootPartPhysEvents = 0;
 
+        public scriptEvents ScriptEvents;
+
         public void aggregateScriptEvents()
         {
             PrimFlags objectflagupdate = (PrimFlags)RootPart.GetEffectiveObjectFlags();
@@ -2328,6 +2330,7 @@ namespace OpenSim.Region.Framework.Scenes
                     parts[i].UpdatePhysicsSubscribedEvents();
             }
 
+            ScriptEvents = aggregatedScriptEvents;
             ScheduleGroupForFullUpdate();
         }
 

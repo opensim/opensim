@@ -4503,7 +4503,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerScriptChangedEvent(Changed val, object data = null)
         {
-            if (ParentGroup != null && ParentGroup.Scene != null)
+            //if (ParentGroup != null && ParentGroup.Scene != null && (ScriptEvents & scriptEvents.changed) != 0)
+            if ((ScriptEvents & scriptEvents.changed) != 0)
                 ParentGroup.Scene.EventManager.TriggerOnScriptChangedEvent(LocalId, (uint)val, data);
         }
 

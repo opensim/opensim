@@ -564,7 +564,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
-                sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+                if ((grp.ScriptEvents & scriptEvents.changed) != 0)
+                    sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
             }
 
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
