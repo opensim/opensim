@@ -6654,152 +6654,152 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void RaiseCollisionScriptEvents(Dictionary<uint, ContactPoint> coldata)
         {
+            int nattachments = m_attachments.Count;
+            if (!ParcelAllowThisAvatarSounds && nattachments == 0)
+                return;
+
             try
             {
-                bool thisHitLand = false;
-                bool startLand = false;
-                bool endedLand = false;
+                List<SceneObjectGroup> attachements;
+                int numberCollisions = coldata.Count;
 
-                List<uint> thisHitColliders = new List<uint>();
-                List<uint> endedColliders = new List<uint>();
-                List<uint> startedColliders = new List<uint>();
-
-                if (coldata.Count == 0)
+                if (numberCollisions == 0)
                 {
                     if (m_lastColliders.Count == 0 && !m_lastLandCollide)
                         return; // nothing to do
 
-                    endedLand = m_lastLandCollide;
+                    if(m_attachments.Count > 0)
+                    {
+                        attachements = GetAttachments();
+                        for (int j = 0; j < attachements.Count; ++j)
+                        {
+                            SceneObjectGroup att = attachements[j];
+                            scriptEvents attev = att.RootPart.ScriptEvents;
+                            if (m_lastLandCollide && (attev & scriptEvents.land_collision_end) != 0)
+                                SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
+                            if ((attev & scriptEvents.collision_end) != 0)
+                                SendCollisionEvent(att, scriptEvents.collision_end, m_lastColliders, m_scene.EventManager.TriggerScriptCollidingEnd);
+                        }
+                    }
                     m_lastLandCollide = false;
-
-                    for (int i = 0; i < m_lastColliders.Count; ++i)
-                        endedColliders.Add(m_lastColliders[i]);
-
                     m_lastColliders.Clear();
+                    return;
                 }
-                else
+
+                bool thisHitLand = false;
+                bool startLand = false;
+
+                List<uint> thisHitColliders = new List<uint>(numberCollisions);
+                List<uint> endedColliders = new List<uint>(m_lastColliders.Count);
+                List<uint> startedColliders = new List<uint>(numberCollisions);
+
+                if(ParcelAllowThisAvatarSounds)
                 {
                     List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
-                    if(ParcelAllowThisAvatarSounds)
-                    {
-                        CollisionForSoundInfo soundinfo;
-                        ContactPoint curcontact;
+                    CollisionForSoundInfo soundinfo;
+                    ContactPoint curcontact;
 
-                        foreach (uint id in coldata.Keys)
+                    foreach (uint id in coldata.Keys)
+                    {
+                        if(id == 0)
                         {
-                            if(id == 0)
+                            thisHitLand = true;
+                            startLand = !m_lastLandCollide;
+                            if (startLand)
                             {
-                                thisHitLand = true;
-                                if (!m_lastLandCollide)
+                                startLand = true;
+                                curcontact = coldata[id];
+                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
                                 {
-                                    startLand = true;
-                                    curcontact = coldata[id];
-                                    if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                    soundinfo = new CollisionForSoundInfo()
                                     {
-                                        soundinfo = new CollisionForSoundInfo()
-                                        {
-                                            colliderID = id,
-                                            position = curcontact.Position,
-                                            relativeVel = curcontact.RelativeSpeed
-                                        };
-                                        soundinfolist.Add(soundinfo);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                thisHitColliders.Add(id);
-                                if (!m_lastColliders.Contains(id))
-                                {
-                                    startedColliders.Add(id);
-                                    curcontact = coldata[id];
-                                    if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
-                                    {
-                                        soundinfo = new CollisionForSoundInfo()
-                                        {
-                                            colliderID = id,
-                                            position = curcontact.Position,
-                                            relativeVel = curcontact.RelativeSpeed
-                                        };
-                                        soundinfolist.Add(soundinfo);
-                                    }
+                                        colliderID = id,
+                                        position = curcontact.Position,
+                                        relativeVel = curcontact.RelativeSpeed
+                                    };
+                                    soundinfolist.Add(soundinfo);
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        foreach (uint id in coldata.Keys)
+                        else
                         {
-                            if (id == 0)
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
                             {
-                                thisHitLand = true;
-                                if (!m_lastLandCollide)
-                                    startLand = true;
-                            }
-                            else
-                            {
-                                thisHitColliders.Add(id);
-                                if (!m_lastColliders.Contains(id))
-                                    startedColliders.Add(id);
+                                startedColliders.Add(id);
+                                curcontact = coldata[id];
+                                if (Math.Abs(curcontact.RelativeSpeed) > 0.2)
+                                {
+                                    soundinfo = new CollisionForSoundInfo()
+                                    {
+                                        colliderID = id,
+                                        position = curcontact.Position,
+                                        relativeVel = curcontact.RelativeSpeed
+                                    };
+                                    soundinfolist.Add(soundinfo);
+                                }
                             }
                         }
                     }
-                    // calculate things that ended colliding
-                    foreach (uint localID in m_lastColliders)
-                    {
-                        if (!thisHitColliders.Contains(localID))
-                        {
-                            endedColliders.Add(localID);
-                        }
-                    }
-                    //add the items that started colliding this time to the last colliders list.
-                    foreach (uint localID in startedColliders)
-                    {
-                        m_lastColliders.Add(localID);
-                    }
-                    // remove things that ended colliding from the last colliders list
-                    foreach (uint localID in endedColliders)
-                    {
-                        m_lastColliders.Remove(localID);
-                    }
-
-                    if (m_lastLandCollide && !thisHitLand)
-                        endedLand = true;
-
-                    m_lastLandCollide = thisHitLand;
-
                     if (soundinfolist.Count > 0)
                         CollisionSounds.AvatarCollisionSound(this, soundinfolist);
                 }
+                else
+                {
+                    foreach (uint id in coldata.Keys)
+                    {
+                        if (id == 0)
+                        {
+                            thisHitLand = true;
+                            startLand = !m_lastLandCollide;
+                        }
+                        else
+                        {
+                            thisHitColliders.Add(id);
+                            if (!m_lastColliders.Contains(id))
+                                startedColliders.Add(id);
+                        }
+                    }
+                }
 
-                List<SceneObjectGroup> attachements = GetAttachments();
-                for (int i = 0; i< attachements.Count; ++i)
+                // calculate things that ended colliding
+                foreach (uint localID in m_lastColliders)
+                {
+                    if (!thisHitColliders.Contains(localID))
+                    {
+                        endedColliders.Add(localID);
+                    }
+                }
+
+                attachements = GetAttachments();
+                for (int i = 0; i < attachements.Count; ++i)
                 {
                     SceneObjectGroup att = attachements[i];
-                    if ((att.RootPart.ScriptEvents & scriptEvents.anyobjcollision) != 0)
+                    scriptEvents attev = att.RootPart.ScriptEvents;
+                    if ((attev & scriptEvents.anyobjcollision) != 0)
                     {
                         SendCollisionEvent(att, scriptEvents.collision_start, startedColliders, m_scene.EventManager.TriggerScriptCollidingStart);
                         SendCollisionEvent(att, scriptEvents.collision      , m_lastColliders , m_scene.EventManager.TriggerScriptColliding);
                         SendCollisionEvent(att, scriptEvents.collision_end  , endedColliders  , m_scene.EventManager.TriggerScriptCollidingEnd);
                     }
 
-                    if ((att.RootPart.ScriptEvents & scriptEvents.anylandcollision) != 0)
+                    if ((attev & scriptEvents.anylandcollision) != 0)
                     {
-                        if (startLand)
-                            SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);
-                        if (m_lastLandCollide)
+                        if (thisHitLand)
+                        {
+                            if (startLand)
+                                SendLandCollisionEvent(att, scriptEvents.land_collision_start, m_scene.EventManager.TriggerScriptLandCollidingStart);
                             SendLandCollisionEvent(att, scriptEvents.land_collision, m_scene.EventManager.TriggerScriptLandColliding);
-                        if (endedLand)
+                        }
+                        else if (m_lastLandCollide)
                             SendLandCollisionEvent(att, scriptEvents.land_collision_end, m_scene.EventManager.TriggerScriptLandCollidingEnd);
                     }
                 }
+
+                m_lastLandCollide = thisHitLand;
+                m_lastColliders = thisHitColliders;
             }
             catch { }
-//            finally
-//            {
-//                m_collisionEventFlag = false;
-//            }
         }
 
         private void TeleportFlagsDebug() {
