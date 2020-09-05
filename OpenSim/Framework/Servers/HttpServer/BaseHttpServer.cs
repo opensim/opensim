@@ -99,8 +99,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
         protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
-//        protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
+        //protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
         protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers = new ConcurrentDictionary<string, PollServiceEventArgs>();
+        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlersVarPath = new ConcurrentDictionary<string, PollServiceEventArgs>();
         protected ConcurrentDictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new ConcurrentDictionary<string, WebSocketRequestDelegate>();
 
         protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
@@ -511,9 +512,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             return m_pollHandlers.TryAdd(args.Url, args);
         }
 
+        public bool AddPollServiceHTTPHandlerVarPath(PollServiceEventArgs args)
+        {
+            return m_pollHandlersVarPath.TryAdd(args.Url, args);
+        }
+
         public List<string> GetPollServiceHandlerKeys()
         {
-            return new List<string>(m_pollHandlers.Keys);
+            List<string> s = new List<string>(m_pollHandlers.Keys);
+            s.AddRange(m_pollHandlersVarPath.Keys);
+            return s;
         }
 
         public bool AddLLSDHandler(string path, LLSDMethod handler)
@@ -1057,6 +1065,23 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             if(m_pollHandlers.TryGetValue(handlerKey, out oServiceEventArgs))
                 return true;
+
+            if(m_pollHandlersVarPath.Count > 0)
+            {
+                // only  lsl requests should reach this, so be restrict (/lslhttp/" + urlcode.ToString()
+                if (handlerKey.Length < 45) 
+                    return false;
+
+                if (m_pollHandlersVarPath.TryGetValue(handlerKey, out oServiceEventArgs))
+                    return true;
+
+                int indx = handlerKey.LastIndexOf('/', handlerKey.Length - 1, 44);
+                if (indx < 44) //lsl requests
+                    return false;
+
+                if(m_pollHandlersVarPath.TryGetValue(handlerKey.Substring(0, indx), out oServiceEventArgs))
+                    return true;
+            }
 
             oServiceEventArgs = null;
             return false;
@@ -2261,29 +2286,30 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void RemovePollServiceHTTPHandler(string httpMethod, string path)
         {
-            m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy);
+            if(!m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy))
+                m_pollHandlersVarPath.TryRemove(path, out PollServiceEventArgs dummy2);
         }
 
         public void RemovePollServiceHTTPHandler(string path)
         {
-            m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy);
+            if(!m_pollHandlers.TryRemove(path, out PollServiceEventArgs dummy))
+                m_pollHandlersVarPath.TryRemove(path, out PollServiceEventArgs dummy2);
         }
 
-        //        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
-        //        {
-        //            lock (m_agentHandlers)
-        //            {
-        //                IHttpAgentHandler foundHandler;
+        //public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
+        //{
+        //    lock (m_agentHandlers)
+        //    {
+        //      IHttpAgentHandler foundHandler;
+        //      if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
+        //      {
+        //         m_agentHandlers.Remove(agent);
+        //         return true;
+        //      }
+        //    }
         //
-        //                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
-        //                {
-        //                    m_agentHandlers.Remove(agent);
-        //                    return true;
-        //                }
-        //            }
-        //
-        //            return false;
-        //        }
+        //    return false;
+        //}
 
         public void RemoveXmlRPCHandler(string method)
         {

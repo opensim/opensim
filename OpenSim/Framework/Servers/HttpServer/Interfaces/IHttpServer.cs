@@ -80,6 +80,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         bool AddPollServiceHTTPHandler(string uripath, PollServiceEventArgs args);
         bool AddPollServiceHTTPHandler(PollServiceEventArgs args);
+        bool AddPollServiceHTTPHandlerVarPath(PollServiceEventArgs args);
 
         void RemovePollServiceHTTPHandler(string url, string path);
         void RemovePollServiceHTTPHandler(string path);

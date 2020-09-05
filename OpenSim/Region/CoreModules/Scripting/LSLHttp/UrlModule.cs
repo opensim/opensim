@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         "Too many URLs already open" });
                     return urlcode;
                 }
-                string url = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString() + "/";
+                string url = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString();
 
                 UUID groupID = host.ParentGroup.UUID;
                 UrlData urlData = new UrlData();
@@ -268,14 +268,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 PollServiceEventArgs args
                     = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
-                //args.Type = PollServiceEventArgs.EventType.LslHttp;
-                m_HttpServer.AddPollServiceHTTPHandler(args);
 
-//                m_log.DebugFormat(
-//                    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
-//                    uri, itemID, host.Name, host.LocalId);
+                m_HttpServer.AddPollServiceHTTPHandlerVarPath(args);
 
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
+                //m_log.DebugFormat(
+                //    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
+                //     uri, itemID, host.Name, host.LocalId);
+
+                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
             }
 
             return urlcode;
@@ -305,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         "Too many URLs already open" });
                     return urlcode;
                 }
-                string url = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + "/lslhttps/" + urlcode.ToString() + "/";
+                string url = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + "/lslhttps/" + urlcode.ToString();
 
                 UUID groupID = host.ParentGroup.UUID;
                 UrlData urlData = new UrlData();
@@ -333,14 +333,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                 PollServiceEventArgs args
                     = new PollServiceEventArgs(HttpRequestHandler, uri, HasEvents, GetEvents, NoEvents, Drop, urlcode, 25000);
-                //args.Type = PollServiceEventArgs.EventType.LslHttp;
-                m_HttpsServer.AddPollServiceHTTPHandler(args);
+                m_HttpsServer.AddPollServiceHTTPHandlerVarPath(args);
 
-//                m_log.DebugFormat(
-//                    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
-//                    uri, itemID, host.Name, host.LocalId);
-
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
+                //m_log.DebugFormat(
+                //    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
+                //     uri, itemID, host.Name, host.LocalId);
+                // keep ending / because legacy
+                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
             }
 
             return urlcode;
@@ -351,7 +350,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (m_UrlMap)
             {
                 UrlData data;
-
+                url = url.TrimEnd(new char[]{'/'});
                 if (!m_UrlMap.TryGetValue(url, out data))
                 {
                     return;
@@ -507,9 +506,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         protected void RemoveUrl(UrlData data)
         {
             if (data.isSsl)
-                m_HttpsServer.RemovePollServiceHTTPHandler("", "/lslhttps/"+data.urlcode.ToString()+"/");
+                m_HttpsServer.RemovePollServiceHTTPHandler("", "/lslhttps/"+data.urlcode.ToString());
             else
-                m_HttpServer.RemovePollServiceHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
+                m_HttpServer.RemovePollServiceHTTPHandler("", "/lslhttp/"+data.urlcode.ToString());
 
             if(m_countsPerSOG.TryGetValue(data.groupID, out int count))
             {
@@ -667,46 +666,48 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (request)
             {
                 string uri = request.RawUrl;
-                bool is_ssl = uri.Contains("lslhttps");
+                if(uri.Length < 45)
+                {
+                    request.InputStream.Dispose();
+                    return;
+                }
 
                 try
                 {
                     //string uri_full = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
 
-                    int pos1 = uri.IndexOf("/");// /lslhttp
-                    int pos2 = uri.IndexOf("/", pos1 + 1);// /lslhttp/
-                    int pos3 = uri.IndexOf("/", pos2 + 1); // /lslhttp/urlcode
-
-                    string uri_tmp = uri.Substring(0, pos3 + 1);
-                    //HTTP server code doesn't provide us with QueryStrings
+                    string uri_tmp;
                     string pathInfo;
 
-
-                    pathInfo = uri.Substring(pos3);
-
-                    UrlData url = null;
-                    string urlkey;
-                    if (!is_ssl)
-                        urlkey = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp;
-                    //m_UrlMap[];
-                    else
-                        urlkey = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + uri_tmp;
-
-                    if (m_UrlMap.ContainsKey(urlkey))
+                    int pos = uri.IndexOf("/", 45); // /lslhttp/uuid/ <-
+                    if (pos >= 45)
                     {
-                        url = m_UrlMap[urlkey];
+                        uri_tmp = uri.Substring(0, pos);
+                        pathInfo = uri.Substring(pos);
                     }
                     else
                     {
-                        //m_log.Warn("[HttpRequestHandler]: http-in request failed; no such url: "+urlkey.ToString());
-                        request.InputStream.Dispose();
-                        return;
+                        uri_tmp = uri;
+                        pathInfo = string.Empty;
+                    }
+
+                    string urlkey;
+                    if (uri.Contains("lslhttps"))
+                        urlkey = "https://" + ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + uri_tmp;
+                    //m_UrlMap[];
+                    else
+                        urlkey = "http://" + ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp;
+
+                    if (!m_UrlMap.TryGetValue(urlkey, out UrlData url))
+                    {
+                            //m_log.Warn("[HttpRequestHandler]: http-in request failed; no such url: "+urlkey.ToString());
+                            request.InputStream.Dispose();
+                            return;
                     }
 
                     //for llGetHttpHeader support we need to store original URI here
                     //to make x-path-info / x-query-string / x-script-url / x-remote-ip headers
                     //as per http://wiki.secondlife.com/wiki/LlGetHTTPHeader
-
                     RequestData requestData = new RequestData();
                     requestData.requestID = requestID;
                     requestData.requestDone = false;
@@ -738,7 +739,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                             if (string.IsNullOrEmpty(key))
                                 sb.AppendFormat("{0}&", query[i]);
                             else
-                                sb.AppendFormat("{0} = {1}&", key, query[i]);
+                                sb.AppendFormat("{0}={1}&", key, query[i]);
                         }
                         if (sb.Length > 1)
                             sb.Remove(sb.Length - 1, 1);
