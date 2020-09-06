@@ -1066,20 +1066,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_pollHandlers.TryGetValue(handlerKey, out oServiceEventArgs))
                 return true;
 
-            if(m_pollHandlersVarPath.Count > 0)
+            if(m_pollHandlersVarPath.Count > 0 && handlerKey.Length >= 45)
             {
-                // only  lsl requests should reach this, so be restrict (/lslhttp/" + urlcode.ToString()
-                if (handlerKey.Length < 45) 
-                    return false;
-
-                if (m_pollHandlersVarPath.TryGetValue(handlerKey, out oServiceEventArgs))
-                    return true;
-
-                int indx = handlerKey.LastIndexOf('/', handlerKey.Length - 1, 44);
+                // tunned for lsl requests, the only ones that should reach this, so be restrict (/lslhttp/uuid.ToString())
+                int indx = handlerKey.IndexOf('/', 44);
                 if (indx < 44) //lsl requests
-                    return false;
-
-                if(m_pollHandlersVarPath.TryGetValue(handlerKey.Substring(0, indx), out oServiceEventArgs))
+                {
+                    if(m_pollHandlersVarPath.TryGetValue(handlerKey, out oServiceEventArgs))
+                        return true;
+                }
+                else if(m_pollHandlersVarPath.TryGetValue(handlerKey.Substring(0, indx), out oServiceEventArgs))
                     return true;
             }
 
