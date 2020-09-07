@@ -80,7 +80,9 @@ namespace OpenSim.Server
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.DefaultConnectionLimit = 32;
+            ServicePointManager.MaxServicePointIdleTime = 30000;
+
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;

@@ -71,13 +71,13 @@ namespace OpenSim
         public static void Main(string[] args)
         {
             // First line, hook the appdomain to the crash reporter
-            AppDomain.CurrentDomain.UnhandledException +=
-                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.DefaultConnectionLimit = 32;
+            ServicePointManager.MaxServicePointIdleTime = 30000;
 
             try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
             ServicePointManager.Expect100Continue = false;
