@@ -141,6 +141,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public bool GetByPatchAndClear(int patchX, int patchY)
+            {
+                int indx = patchX + xsize * patchY;
+                bool ret = updated[indx];
+                if(ret)
+                {
+                    updated[indx] = false;
+                    --updateCount;
+                }
+                return ret;
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetByPatch(int patchX, int patchY, bool state)
             {
                 int indx = patchX + xsize * patchY;
@@ -1195,9 +1208,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 for (; x < limitX; x++)
                 {
-                    if (pups.GetByPatch(x, y))
+                    if (pups.GetByPatchAndClear(x, y))
                     {
-                        pups.SetByPatch(x, y, false);
                         patchs.Add(new PatchesToSend(x, y, 0));
                         if (++npatchs >= 128)
                         {
@@ -1301,25 +1313,27 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else if (endY > limitY)
                 endY = limitY;
 
-            int distx;
-            int disty;
-            int distsq;
+            float distxsq;
+            float distysq = 0;
+            float distlimitsq;
 
             DrawDistance *= DrawDistance;
 
-            for (int x = startX; x < endX; x++)
+            for (int y = startY; y < endY; y++)
             {
-                for (int y = startY; y < endY; y++)
+                distysq = y - testposY;
+                distysq *= distysq;
+                distlimitsq = DrawDistance - distysq;
+                for (int x = startX; x < endX; x++)
                 {
                     if (pups.GetByPatch(x, y))
                     {
-                        distx = x - testposX;
-                        disty = y - testposY;
-                        distsq = distx * distx + disty * disty;
-                        if (distsq < DrawDistance)
+                        distxsq = x - testposX;
+                        distxsq *= distxsq;
+                        if (distxsq < distlimitsq)
                         {
                             pups.SetByPatch(x, y, false);
-                            ret.Add(new PatchesToSend(x, y, (float)distsq));
+                            ret.Add(new PatchesToSend(x, y, distxsq + distysq));
                             if (npatchs++ > 1024)
                             {
                                 y = endY;
