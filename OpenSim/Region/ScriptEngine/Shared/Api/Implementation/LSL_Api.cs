@@ -5551,13 +5551,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPassCollisions(int pass)
         {
             m_host.AddScriptLPS(1);
-            if (pass == 0)
+            if (pass == 1)
             {
-                m_host.PassCollisions = false;
+                m_host.PassCollisions = true;
             }
             else
             {
-                m_host.PassCollisions = true;
+                m_host.PassCollisions = false;
             }
         }
 
@@ -7008,21 +7008,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void SetTextureAnim(SceneObjectPart part, int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
 
-            Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation
-            {
-                Flags = (Primitive.TextureAnimMode)mode
-            };
-
             //ALL_SIDES
             if (face == ScriptBaseClass.ALL_SIDES)
                 face = 255;
 
-            pTexAnim.Face = (uint)face;
-            pTexAnim.Length = (float)length;
-            pTexAnim.Rate = (float)rate;
-            pTexAnim.SizeX = (uint)sizex;
-            pTexAnim.SizeY = (uint)sizey;
-            pTexAnim.Start = (float)start;
+            Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation
+            {
+                Flags = (Primitive.TextureAnimMode)mode,
+                Face = (uint)face,
+                Length = (float)length,
+                Rate = (float)rate,
+                SizeX = (uint)sizex,
+                SizeY = (uint)sizey,
+                Start = (float)start
+            };
 
             part.AddTextureAnimation(pTexAnim);
             part.SendFullUpdateToAllClients();
@@ -18032,6 +18031,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if(str == ScriptBaseClass.JSON_NULL || str == "null")
                     return "null";
                 str.Trim();
+                if(str.Length == 0)
+                    return "\"\"";
                 if (str[0] == '{')
                     return str;
                 if (str[0] == '[')
