@@ -110,7 +110,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
 
             x[0, 0] = 1.0f;
             Assert.That(x.Tainted(0, 0), "Terrain channel tainting not working correctly.");
-            Assert.That(!x.Tainted(0, 0), "Terrain channel tainting not working correctly.");
 
             TerrainChannel y = x.Copy();
             Assert.That(!ReferenceEquals(x, y), "Terrain copy not duplicating correctly.");
