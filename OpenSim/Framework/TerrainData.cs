@@ -76,7 +76,6 @@ namespace OpenSim.Framework
 
         private BitArray m_taint;
         private int m_taintSizeX;
-        private int m_taintStrideForY; // stride when Y is in meters
         private int m_taintSizeY;
 
         // legacy CompressionFactor
@@ -107,7 +106,8 @@ namespace OpenSim.Framework
                 if (m_heightmap[x, y] != value)
                 {
                     m_heightmap[x, y] = value;
-                    m_taint[x / Constants.TerrainPatchSize + y * m_taintStrideForY] = true;
+                    int yy = y / Constants.TerrainPatchSize;
+                    m_taint[x / Constants.TerrainPatchSize + yy * m_taintSizeX] = true;
                 }
             }
         }
@@ -151,7 +151,8 @@ namespace OpenSim.Framework
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy, bool clearOnTest)
         {
-            int indx = xx / Constants.TerrainPatchSize + yy * m_taintStrideForY;
+            yy /= Constants.TerrainPatchSize;
+            int indx = xx / Constants.TerrainPatchSize + yy * m_taintSizeX;
             bool ret = m_taint[indx];
             if (ret && clearOnTest)
                 m_taint[indx] = false;
@@ -161,7 +162,8 @@ namespace OpenSim.Framework
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy)
         {
-            return m_taint[xx / Constants.TerrainPatchSize + yy * m_taintStrideForY];
+            yy /= Constants.TerrainPatchSize;
+            return m_taint[xx / Constants.TerrainPatchSize + yy * m_taintSizeX];
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -347,7 +349,6 @@ namespace OpenSim.Framework
             SizeX = pTerrain.GetLength(0);
             SizeY = pTerrain.GetLength(1);
             m_taintSizeX = SizeX / Constants.TerrainPatchSize;
-            m_taintStrideForY = m_taintSizeX / Constants.TerrainPatchSize;
             m_taintSizeY = SizeY / Constants.TerrainPatchSize;
 
             SizeZ = (int)Constants.RegionHeight;
@@ -374,7 +375,6 @@ namespace OpenSim.Framework
             SizeY = pY;
             SizeZ = pZ;
             m_taintSizeX = SizeX / Constants.TerrainPatchSize;
-            m_taintStrideForY = m_taintSizeX / Constants.TerrainPatchSize;
             m_taintSizeY = SizeY / Constants.TerrainPatchSize;
             CompressionFactor = 100.0f;
             m_heightmap = new float[SizeX, SizeY];
