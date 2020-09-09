@@ -138,17 +138,19 @@ namespace OpenSim.Framework
 
                         foreach (Tkey1 key in expired)
                             m_dictionary.Remove(key);
-                        if(m_dictionary.Count == 0)
-                            DisposeTimer();
-                        else
-                            m_purgeTimer.Change(m_expire, Timeout.Infinite);
                     }
                     finally
                     {
                         if (gotWriteLock)
                             m_rwLock.ExitWriteLock();
                     }
+                    if (m_dictionary.Count == 0)
+                        DisposeTimer();
+                    else
+                        m_purgeTimer.Change(m_expire, Timeout.Infinite);
                 }
+                else
+                    m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
             finally
             {

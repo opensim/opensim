@@ -146,17 +146,19 @@ namespace OpenSim.Framework
                             m_expireControl.Remove(key);
                             m_values.Remove(key);
                         }
-                        if(m_expireControl.Count == 0)
-                            DisposeTimer();
-                        else
-                            m_purgeTimer.Change(m_expire, Timeout.Infinite);
                     }
                     finally
                     {
                         if (gotWriteLock)
                             m_rwLock.ExitWriteLock();
                     }
+                    if (m_expireControl.Count == 0)
+                        DisposeTimer();
+                    else
+                        m_purgeTimer.Change(m_expire, Timeout.Infinite);
                 }
+                else
+                    m_purgeTimer.Change(m_expire, Timeout.Infinite);
             }
             finally
             {
