@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetCurrentSunHour();
         }
 
-        public double osGetSunParam(string param)
+        public LSL_Float osGetSunParam(LSL_String param)
         {
             return m_OSSL_Functions.osGetSunParam(param);
         }

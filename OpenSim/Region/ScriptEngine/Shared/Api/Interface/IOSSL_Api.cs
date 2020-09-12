@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetRegionSunSettings(bool useEstateSun, bool sunFixed, double sunHour);
         void osSetEstateSunSettings(bool sunFixed, double sunHour);
         LSL_Float osGetCurrentSunHour();
-        double osGetSunParam(string param);
+        LSL_Float osGetSunParam(LSL_String param);
         double osSunGetParam(string param); // Deprecated
         void osSetSunParam(string param, double value);
         void osSunSetParam(string param, double value); // Deprecated

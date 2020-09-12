@@ -1638,7 +1638,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return GetSunParam(param);
         }
 
-        public double osGetSunParam(string param)
+        public LSL_Float osGetSunParam(LSL_String param)
         {
             CheckThreatLevel();
             return GetSunParam(param);
@@ -1646,15 +1646,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private double GetSunParam(string param)
         {
-            double value = 0.0;
-
-            ISunModule module = World.RequestModuleInterface<ISunModule>();
-            if (module != null)
+            param = param.ToLower();
+            switch(param)
             {
-                value = module.GetSunParameter(param);
+                case "day_length":
+                    if (m_envModule == null)
+                        return 14400;
+                    return m_envModule.GetDayLength(m_host.AbsolutePosition);
+                case "year_length":
+                    return 365;
+                case "day_night_offset":
+                    return 0;
+                case "update_interval":
+                    return 0.1;
+                case "day_time_sun_hour_scale":
+                    return 1;
+                default:
+                    break;
             }
-
-            return value;
+            return 0;
         }
 
         public void osSunSetParam(string param, double value)
