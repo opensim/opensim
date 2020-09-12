@@ -5892,7 +5892,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 VEnv = parcel.LandData.Environment;
 
             bool changed = false;
-            if (!string.IsNullOrEmpty(daycycle) || !(daycycle == ScriptBaseClass.NULL_KEY))
+            if (!string.IsNullOrEmpty(daycycle) && (daycycle != ScriptBaseClass.NULL_KEY))
             {
 
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
@@ -5937,7 +5937,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ViewerEnvironment VEnv = m_envModule.GetRegionEnvironment().Clone();
 
             bool changed = false;
-            if (!string.IsNullOrEmpty(daycycle) || !(daycycle == ScriptBaseClass.NULL_KEY))
+            if (!string.IsNullOrEmpty(daycycle) && (daycycle != ScriptBaseClass.NULL_KEY))
             {
 
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
@@ -5965,7 +5965,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 int ll = VEnv.DayLength;
                 VEnv.DayLength = (int)(daylen * 3600f);
-                changed = ll != VEnv.DayLength;
+                changed |= ll != VEnv.DayLength;
             }
 
             if (dayoffset >= -11.5 && dayoffset <= 11.5)
@@ -5973,8 +5973,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int lo = VEnv.DayLength;
                 if (dayoffset <= 0)
                     dayoffset+= 24;
-                VEnv.DayLength = (int)(dayoffset * 3600f);
-                changed = lo != VEnv.DayOffset;
+                VEnv.DayOffset = (int)(dayoffset * 3600f);
+                changed |= lo != VEnv.DayOffset;
             }
 
             bool needSort = false;
