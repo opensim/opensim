@@ -763,7 +763,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     user.IsLocal = true;
                     user.HasGridUserTried = true;
                 }
-                m_userCacheByID.Add(uuid, user, expire);
+                m_userCacheByID.Add(uuid, user, isNPC ? int.MaxValue / 16 : expire);
             }
         }
 
