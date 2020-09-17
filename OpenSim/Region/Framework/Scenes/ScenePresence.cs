@@ -1612,9 +1612,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Resume scripts
             foreach (SceneObjectGroup sog in attachments)
             {
-                sog.ScheduleGroupForFullUpdate();
                 sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
                 sog.ResumeScripts();
+                sog.ScheduleGroupForFullUpdate();
             }
         }
 
@@ -2235,9 +2235,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Vector3 look = Lookat;
                 look.Z = 0f;
+                look.Normalize();
                 if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01))
                 {
                     look = Velocity;
+                    look.Z = 0f;
                     look.Normalize();
                     if ((Math.Abs(look.X) < 0.01) && (Math.Abs(look.Y) < 0.01) )
                         look = new Vector3(0.99f, 0.042f, 0);

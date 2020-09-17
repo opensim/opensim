@@ -95,7 +95,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ISceneEntity Entity
         {
-            get { return m_entity; }
+            get
+            {
+                return m_entity;
+            }
+            internal set
+            {
+                m_entity = value;
+            }
         }
 
         public PrimUpdateFlags Flags
@@ -143,6 +150,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Free()
         {
             m_entity = null;
+            EntityUpdatesPool.Free(this);
         }
 
         public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
@@ -173,6 +181,84 @@ namespace OpenSim.Region.Framework.Scenes
             // I'm assuming that the root part of an SOG is added to the update queue
             // before the component parts
             return Comparer<ulong>.Default.Compare(this.EntryOrder, other.EntryOrder);
+        }
+    }
+
+    public static class EntityUpdatesPool
+    {
+        const int MAXSIZE = 32768;
+        const int PREALLOC = 16384;
+        private static readonly EntityUpdate[] m_pool = new EntityUpdate[MAXSIZE];
+        private static readonly object m_poollock = new object();
+        private static int m_poolPtr;
+        //private static int m_min = int.MaxValue;
+        //private static int m_max = int.MinValue;
+
+        static EntityUpdatesPool()
+        {
+            for(int i = 0; i < PREALLOC; ++i)
+                m_pool[i] = new EntityUpdate(null, 0);
+            m_poolPtr = PREALLOC - 1;
+        }
+
+        public static EntityUpdate Get(ISceneEntity entity, PrimUpdateFlags flags)
+        {
+            lock (m_poollock)
+            {
+                if (m_poolPtr >= 0)
+                {
+                    EntityUpdate eu = m_pool[m_poolPtr];
+                    m_pool[m_poolPtr] = null;
+                    m_poolPtr--;
+                    //if (m_min > m_poolPtr)
+                    //    m_min = m_poolPtr;
+                    eu.Entity = entity;
+                    eu.Flags = flags;
+                    return eu;
+                }
+            }
+            return new EntityUpdate(entity, flags);
+        }
+
+        public static EntityUpdate Get(ISceneEntity entity, PrimUpdateFlags flags, bool sendfam, bool sendobj)
+        {
+            lock (m_poollock)
+            {
+                if (m_poolPtr >= 0)
+                {
+                    EntityUpdate eu = m_pool[m_poolPtr];
+                    m_pool[m_poolPtr] = null;
+                    m_poolPtr--;
+                    //if (m_min > m_poolPtr)
+                    //    m_min = m_poolPtr;
+                    eu.Entity = entity;
+                    eu.Flags = flags;
+                    ObjectPropertyUpdateFlags tmp = 0;
+                    if (sendfam)
+                        tmp |= ObjectPropertyUpdateFlags.Family;
+
+                    if (sendobj)
+                        tmp |= ObjectPropertyUpdateFlags.Object;
+
+                    eu.PropsFlags = tmp;
+                    return eu;
+                }
+            }
+            return new EntityUpdate(entity, flags, sendfam, sendobj);
+        }
+
+        public static void Free(EntityUpdate eu)
+        {
+            lock (m_poollock)
+            {
+                if (m_poolPtr < MAXSIZE - 1)
+                {
+                    m_poolPtr++;
+                    //if (m_max < m_poolPtr)
+                    //    m_max = m_poolPtr;
+                    m_pool[m_poolPtr] = eu;
+                }
+            }
         }
     }
 }

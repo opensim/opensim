@@ -97,7 +97,12 @@ namespace OpenSim.Region.Framework.Scenes
         public void Close()
         {
             for (int i = 0; i < m_heaps.Length; ++i)
+            {
+                foreach(EntityUpdate eu in m_heaps[i])
+                    eu.Free();
                 m_heaps[i] = null;
+            }
+
             m_heaps = null;
             m_lookupTable.Clear();
             m_lookupTable = null;
@@ -140,6 +145,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 pqueue = Util.Clamp<uint>(pqueue, 0, NumberOfQueues - 1);
                 value.Update(up, pqueue, entry);
+                up.Free();
 
                 lookup.Heap = m_heaps[pqueue];
                 lookup.Heap.Add(value, ref lookup.Handle);
@@ -167,6 +173,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_lookupTable.TryGetValue(localid, out lookup))
                 {
+                    lookup.Heap[lookup.Handle].Free();
                     lookup.Heap.Remove(lookup.Handle);
                     m_lookupTable.Remove(localid);
                 }
