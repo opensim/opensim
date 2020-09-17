@@ -99,6 +99,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         protected bool m_exportPrintScale = false; // prints the scale of map in meters on exported map
         protected bool m_exportPrintRegionName = false; // prints the region name exported map
+        protected bool m_localV1MapAssets = true; // keep V1 map assets only on  local cache
 
         public WorldMapModule()
         {
@@ -154,6 +155,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddScale", configSections, m_exportPrintScale);
             m_exportPrintRegionName =
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
+            m_localV1MapAssets =
+                Util.GetConfigVarFromSections<bool>(config, "LocalV1MapAssets", configSections, m_localV1MapAssets);
+
         }
 
         public virtual void AddRegion(Scene scene)
@@ -1634,6 +1638,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             m_scene.RegionInfo.RegionID.ToString());
                         asset.Data = data;
                         asset.Description = m_regionName;
+                        asset.Local = m_localV1MapAssets;
                         asset.Temporary = false;
                         asset.Flags = AssetFlags.Maptile;
 
@@ -1666,6 +1671,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 parcels.Data = overlay;
                 parcels.Description = m_regionName;
                 parcels.Temporary = false;
+                parcels.Local = m_localV1MapAssets;
                 parcels.Flags = AssetFlags.Maptile;
 
                 m_scene.AssetService.Store(parcels);
