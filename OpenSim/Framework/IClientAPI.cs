@@ -582,58 +582,6 @@ namespace OpenSim.Framework
         public float dwell;
     }
 
-    public class EntityUpdate
-    {
-        private readonly ISceneEntity m_entity;
-        private PrimUpdateFlags m_flags;
-
-        public ISceneEntity Entity
-        {
-            get { return m_entity; }
-        }
-
-        public PrimUpdateFlags Flags
-        {
-            get { return m_flags; }
-            set { m_flags = value; }
-        }
-
-        public virtual void Update()
-        {
-            // we are on the new one
-            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
-            {
-                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
-                    m_flags = PrimUpdateFlags.UpdateProbe;
-                else
-                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
-            }
-        }
-
-        public virtual void Update(EntityUpdate oldupdate)
-        {
-            // we are on the new one
-            PrimUpdateFlags updateFlags = oldupdate.Flags;
-            if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
-                updateFlags &= ~PrimUpdateFlags.UpdateProbe;
-            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
-            {
-                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
-                    m_flags = PrimUpdateFlags.UpdateProbe;
-                else
-                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
-            }
-            else
-                m_flags |= updateFlags;
-        }
-
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
-        {
-            m_entity = entity;
-            m_flags = flags;
-        }
-    }
-
     public class PlacesReplyData
     {
         public UUID OwnerID;

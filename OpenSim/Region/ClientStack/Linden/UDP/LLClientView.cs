@@ -5959,25 +5959,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
-        private class ObjectPropertyUpdate : EntityUpdate
-        {
-            internal bool SendFamilyProps;
-            internal bool SendObjectProps;
-
-            public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam, bool sendobj)
-                : base(entity,(PrimUpdateFlags)flags)
-            {
-                SendFamilyProps = sendfam;
-                SendObjectProps = sendobj;
-            }
-            public void Update(ObjectPropertyUpdate update)
-            {
-                SendFamilyProps = SendFamilyProps || update.SendFamilyProps;
-                SendObjectProps = SendObjectProps || update.SendObjectProps;
-                // other properties may need to be updated by base class
-                base.Update(update);
-            }
-        }
 
         public void SendObjectPropertiesFamilyData(ISceneEntity entity, uint requestFlags)
         {
@@ -6061,7 +6042,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
-                if (update.SendFamilyProps)
+                if ((update.PropsFlags & ObjectPropertyUpdateFlags.Family) != 0)
                 {
                     if (update.Entity is SceneObjectPart)
                     {
@@ -6073,7 +6054,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
-                if (update.SendObjectProps)
+                if ((update.PropsFlags & ObjectPropertyUpdateFlags.Object) != 0)
                 {
                     if (update.Entity is SceneObjectPart)
                     {
@@ -6113,6 +6094,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lastpos = zc.Position;
                     lastzc = zc.ZeroCount;
                     CreateObjectPropertiesBlock((SceneObjectPart)eu.Entity, zc);
+                    eu.Free();
                     if (zc.Position < LLUDPServer.MAXPAYLOAD)
                     {
                         //tau.Add(eu);
@@ -6172,6 +6154,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zc.Position = 8;
 
                     CreateObjectPropertiesFamilyBlock((SceneObjectPart)eu.Entity, eu.Flags, zc);
+                    eu.Free();
                     buf.DataLength = zc.Finish();
                     //List<EntityUpdate> tau = new List<EntityUpdate>(1);
                     //tau.Add(new ObjectPropertyUpdate((ISceneEntity) eu, (uint)eu.Flags, true, false));

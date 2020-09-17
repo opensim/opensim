@@ -1,0 +1,204 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
+using System.Collections.Generic;
+using OpenSim.Framework;
+
+namespace OpenSim.Region.Framework.Scenes
+{
+    /// <summary>
+    /// Specifies the fields that have been changed when sending a prim or
+    /// avatar update
+    /// </summary>
+    [Flags]
+    public enum ObjectPropertyUpdateFlags : byte
+    {
+        None = 0,
+        Family = 1,
+        Object = 2,
+
+        NoFamily = unchecked((byte)~Family),
+        NoObject = unchecked((byte)~Object)
+    }
+
+    public class EntityUpdate : IComparable<EntityUpdate>
+    {
+
+        // for priority queue
+        private uint m_pqueue;
+        private ulong m_entryorder;
+
+        private ISceneEntity m_entity;
+        private PrimUpdateFlags m_flags;
+        public ObjectPropertyUpdateFlags m_propsFlags;
+
+        public uint PriorityQueue
+        {
+            get
+            {
+                return m_pqueue;
+            }
+            set
+            {
+                m_pqueue = value;
+            }
+        }
+
+        public ulong EntryOrder
+        {
+            get
+            {
+                return m_entryorder;
+            }
+            set
+            {
+                m_entryorder = value;
+            }
+        }
+
+        public ObjectPropertyUpdateFlags PropsFlags
+        {
+            get
+            {
+                return m_propsFlags;
+            }
+            set
+            {
+                m_propsFlags = value;
+            }
+        }
+
+        public ISceneEntity Entity
+        {
+            get { return m_entity; }
+        }
+
+        public PrimUpdateFlags Flags
+        {
+            get { return m_flags; }
+            set { m_flags = value; }
+        }
+
+        public virtual void Update()
+        {
+            // we are on the new one
+            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
+            {
+                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            }
+        }
+
+        public void Update(uint pqueue, ulong entry)
+        {
+            Update();
+            m_pqueue = pqueue;
+            m_entryorder = entry;
+        }
+
+        public void Update(EntityUpdate oldupdate)
+        {
+            // we are on the new one
+            PrimUpdateFlags updateFlags = oldupdate.Flags;
+            if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
+                updateFlags &= ~PrimUpdateFlags.UpdateProbe;
+            if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
+            {
+                if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
+                    m_flags = PrimUpdateFlags.UpdateProbe;
+                else
+                    m_flags = PrimUpdateFlags.FullUpdatewithAnim;
+            }
+            else
+                m_flags |= updateFlags;
+        }
+
+        public void Update(EntityUpdate oldupdate, uint pqueue, ulong entry)
+        {
+            Update(oldupdate);
+            m_pqueue = pqueue;
+            m_entryorder = entry;
+        }
+
+        public void Free()
+        {
+            m_entity = null;
+        }
+
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
+        {
+            m_entity = entity;
+            m_flags = flags;
+        }
+
+        public override string ToString()
+        {
+            return String.Format("[{0},{1},{2}]", m_pqueue, m_entryorder, m_entity.LocalId);
+        }
+
+        public int CompareTo(EntityUpdate other)
+        {
+            // I'm assuming that the root part of an SOG is added to the update queue
+            // before the component parts
+            return Comparer<ulong>.Default.Compare(this.EntryOrder, other.EntryOrder);
+        }
+    }
+
+    public class ObjectPropertyUpdate : EntityUpdate
+    {
+        public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam, bool sendobj)
+            : base(entity, (PrimUpdateFlags)flags)
+        {
+            if (sendfam)
+                m_propsFlags |= ObjectPropertyUpdateFlags.Family;
+            else
+                m_propsFlags &= ObjectPropertyUpdateFlags.NoFamily;
+
+            if (sendobj)
+                m_propsFlags |= ObjectPropertyUpdateFlags.Object;
+            else
+                m_propsFlags &= ObjectPropertyUpdateFlags.NoObject;
+        }
+
+        public void Update(ObjectPropertyUpdate update)
+        {
+            m_propsFlags |= update.PropsFlags;
+            // other properties may need to be updated by base class
+            base.Update(update);
+        }
+
+        public void Update(ObjectPropertyUpdate update, uint pqueue, ulong entry)
+        {
+            m_propsFlags |= update.PropsFlags;
+            // other properties may need to be updated by base class
+            base.Update(update, pqueue, entry);
+        }
+    }
+}
