@@ -5165,7 +5165,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(objectUpdates != null)
             {
-                List<EntityUpdate> tau = new List<EntityUpdate>(30);
+                //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 Buffer.BlockCopy(objectUpdateHeader, 0, buf.Data, 0, 7);
@@ -5199,9 +5199,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         shouldCreateSelected = part.CreateSelected;
                         CreatePrimUpdateBlock(part, mysp, zc);
                     }
+
                     if (zc.Position < LLUDPServer.MAXPAYLOAD - 300)
                     {
-                        tau.Add(eu);
+                        //tau.Add(eu);
                         ++count;
                     }
                     else
@@ -5237,10 +5238,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             CreatePrimUpdateBlock((SceneObjectPart)eu.Entity, mysp, zc);
                         }
 
-                        tau = new List<EntityUpdate>(30);
-                        tau.Add(eu);
+                        //tau = new List<EntityUpdate>(30);
+                        //tau.Add(eu);
                         count = 1;
                     }
+                    eu.Free(); //remove if using resend
                 }
 
                 if (count > 0)
@@ -5320,7 +5322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (compressedUpdates != null)
             {
-                List<EntityUpdate> tau = new List<EntityUpdate>(30);
+                //List<EntityUpdate> tau = new List<EntityUpdate>(30);
 
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 byte[] data = buf.Data;
@@ -5357,6 +5359,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lastzc = zc.ZeroCount;
 
                     CreateCompressedUpdateBlockZC(sop, mysp, zc);
+
                     if (zc.Position < LLUDPServer.MAXPAYLOAD - 200)
                     {
                         //tau.Add(eu);
@@ -5394,10 +5397,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         // im lazy now, just do last again
                         CreateCompressedUpdateBlockZC(sop, mysp, zc);
-                        tau = new List<EntityUpdate>(30);
+                        //tau = new List<EntityUpdate>(30);
                         //tau.Add(eu);
                         count = 1;
                     }
+                    eu.Free(); //remove if using resend
                 }
 
                 if (count > 0)
@@ -5463,6 +5467,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         count = 0;
                     }
+                    eu.Free();
                 }
 
                 if (count > 0)
@@ -5964,17 +5969,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity, requestFlags, true, false));
+                m_entityProps.Enqueue(priority, new EntityUpdate(entity, (PrimUpdateFlags)requestFlags, true, false));
         }
 
-        private void ResendPropertyUpdate(ObjectPropertyUpdate update)
+        private void ResendPropertyUpdate(EntityUpdate update)
         {
             uint priority = 0;
             lock (m_entityProps.SyncRoot)
                 m_entityProps.Enqueue(priority, update);
         }
 
-        private void ResendPropertyUpdates(List<ObjectPropertyUpdate> updates, OutgoingPacket oPacket)
+        private void ResendPropertyUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
         {
             // m_log.WarnFormat("[CLIENT] resending object property {0}",updates[0].UpdateTime);
 
@@ -5990,7 +5995,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // is 100% correct
             m_udpServer.PacketsResentCount++;
 
-            foreach (ObjectPropertyUpdate update in updates)
+            foreach (EntityUpdate update in updates)
                 ResendPropertyUpdate(update);
         }
 
@@ -5998,7 +6003,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
+                m_entityProps.Enqueue(priority, new EntityUpdate(entity,0,false,true));
         }
 
         static private readonly byte[] ObjectPropertyUpdateHeader = new byte[] {
@@ -6017,13 +6022,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessEntityPropertyRequests(int maxUpdateBytes)
         {
-            List<ObjectPropertyUpdate> objectPropertiesUpdates = null;
-            List<ObjectPropertyUpdate> objectPropertiesFamilyUpdates = null;
+            List<EntityUpdate> objectPropertiesUpdates = null;
+            List<EntityUpdate> objectPropertiesFamilyUpdates = null;
+            List<EntityUpdate> used = new List<EntityUpdate>(64);
             List<SceneObjectPart> needPhysics = null;
 
             // bool orderedDequeue = m_scene.UpdatePrioritizationScheme  == UpdatePrioritizationSchemes.SimpleAngularDistance;
             bool orderedDequeue = false; // for now
-            EntityUpdate iupdate;
+            EntityUpdate update;
 
             while (maxUpdateBytes > 0)
             {
@@ -6031,42 +6037,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if(orderedDequeue)
                     {
-                        if (!m_entityProps.TryOrderedDequeue(out iupdate))
+                        if (!m_entityProps.TryOrderedDequeue(out update))
                             break;
                     }
                     else
                     {
-                        if (!m_entityProps.TryDequeue(out iupdate))
+                        if (!m_entityProps.TryDequeue(out update))
                             break;
                     }
                 }
 
-                ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
+                SceneObjectPart sop = (SceneObjectPart)update.Entity as SceneObjectPart;
+                if(sop == null)
+                    continue;
+
                 if ((update.PropsFlags & ObjectPropertyUpdateFlags.Family) != 0)
                 {
-                    if (update.Entity is SceneObjectPart)
-                    {
-                        SceneObjectPart sop = (SceneObjectPart)update.Entity;
-                        if(objectPropertiesFamilyUpdates == null)
-                            objectPropertiesFamilyUpdates = new List<ObjectPropertyUpdate>();
-                        objectPropertiesFamilyUpdates.Add(update);
-                        maxUpdateBytes -= 100;
-                    }
+                    if(objectPropertiesFamilyUpdates == null)
+                        objectPropertiesFamilyUpdates = new List<EntityUpdate>();
+                    objectPropertiesFamilyUpdates.Add(update);
+                    maxUpdateBytes -= 100;
                 }
 
                 if ((update.PropsFlags & ObjectPropertyUpdateFlags.Object) != 0)
                 {
-                    if (update.Entity is SceneObjectPart)
-                    {
-                        SceneObjectPart sop = (SceneObjectPart)update.Entity;
-                        if(needPhysics == null)
-                            needPhysics = new List<SceneObjectPart>();
-                        needPhysics.Add(sop);
-                        if(objectPropertiesUpdates == null)
-                            objectPropertiesUpdates = new List<ObjectPropertyUpdate>();
-                        objectPropertiesUpdates.Add(update);
-                        maxUpdateBytes -= 200; // aprox
-                    }
+                    if(needPhysics == null)
+                        needPhysics = new List<SceneObjectPart>();
+                    needPhysics.Add(sop);
+                    if(objectPropertiesUpdates == null)
+                        objectPropertiesUpdates = new List<EntityUpdate>();
+                    objectPropertiesUpdates.Add(update);
+                    maxUpdateBytes -= 200; // aprox
                 }
             }
 
@@ -6094,7 +6095,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     lastpos = zc.Position;
                     lastzc = zc.ZeroCount;
                     CreateObjectPropertiesBlock((SceneObjectPart)eu.Entity, zc);
-                    eu.Free();
                     if (zc.Position < LLUDPServer.MAXPAYLOAD)
                     {
                         //tau.Add(eu);
@@ -6131,6 +6131,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         count = 1;
                         --blocks;
                     }
+                    used.Add(eu);
                 }
 
                 if (count > 0)
@@ -6154,7 +6155,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zc.Position = 8;
 
                     CreateObjectPropertiesFamilyBlock((SceneObjectPart)eu.Entity, eu.Flags, zc);
-                    eu.Free();
+                    used.Add(eu);
                     buf.DataLength = zc.Finish();
                     //List<EntityUpdate> tau = new List<EntityUpdate>(1);
                     //tau.Add(new ObjectPropertyUpdate((ISceneEntity) eu, (uint)eu.Flags, true, false));
@@ -6187,6 +6188,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     eq.Enqueue(eq.EndEvent(sb), AgentId);
                 }
             }
+            foreach(EntityUpdate eu in used)
+                eu.Free();
         }
 
         private void CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, PrimUpdateFlags requestFlags, LLUDPZeroEncoder zc)

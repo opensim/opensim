@@ -104,9 +104,8 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_flags = value; }
         }
 
-        public virtual void Update()
+        public void Update(uint pqueue, ulong entry)
         {
-            // we are on the new one
             if ((m_flags & PrimUpdateFlags.CancelKill) != 0)
             {
                 if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
@@ -114,18 +113,16 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     m_flags = PrimUpdateFlags.FullUpdatewithAnim;
             }
-        }
 
-        public void Update(uint pqueue, ulong entry)
-        {
-            Update();
             m_pqueue = pqueue;
             m_entryorder = entry;
         }
 
-        public void Update(EntityUpdate oldupdate)
+        public void Update(EntityUpdate oldupdate, uint pqueue, ulong entry)
         {
             // we are on the new one
+            m_propsFlags |= oldupdate.PropsFlags;
+
             PrimUpdateFlags updateFlags = oldupdate.Flags;
             if ((m_flags & PrimUpdateFlags.UpdateProbe) != 0)
                 updateFlags &= ~PrimUpdateFlags.UpdateProbe;
@@ -138,11 +135,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
                 m_flags |= updateFlags;
-        }
 
-        public void Update(EntityUpdate oldupdate, uint pqueue, ulong entry)
-        {
-            Update(oldupdate);
             m_pqueue = pqueue;
             m_entryorder = entry;
         }
@@ -158,6 +151,18 @@ namespace OpenSim.Region.Framework.Scenes
             m_flags = flags;
         }
 
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, bool sendfam, bool sendobj)
+        {
+            m_entity = entity;
+            m_flags = flags;
+
+            if (sendfam)
+                m_propsFlags |= ObjectPropertyUpdateFlags.Family;
+
+            if (sendobj)
+                m_propsFlags |= ObjectPropertyUpdateFlags.Object;
+        }
+
         public override string ToString()
         {
             return String.Format("[{0},{1},{2}]", m_pqueue, m_entryorder, m_entity.LocalId);
@@ -168,37 +173,6 @@ namespace OpenSim.Region.Framework.Scenes
             // I'm assuming that the root part of an SOG is added to the update queue
             // before the component parts
             return Comparer<ulong>.Default.Compare(this.EntryOrder, other.EntryOrder);
-        }
-    }
-
-    public class ObjectPropertyUpdate : EntityUpdate
-    {
-        public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam, bool sendobj)
-            : base(entity, (PrimUpdateFlags)flags)
-        {
-            if (sendfam)
-                m_propsFlags |= ObjectPropertyUpdateFlags.Family;
-            else
-                m_propsFlags &= ObjectPropertyUpdateFlags.NoFamily;
-
-            if (sendobj)
-                m_propsFlags |= ObjectPropertyUpdateFlags.Object;
-            else
-                m_propsFlags &= ObjectPropertyUpdateFlags.NoObject;
-        }
-
-        public void Update(ObjectPropertyUpdate update)
-        {
-            m_propsFlags |= update.PropsFlags;
-            // other properties may need to be updated by base class
-            base.Update(update);
-        }
-
-        public void Update(ObjectPropertyUpdate update, uint pqueue, ulong entry)
-        {
-            m_propsFlags |= update.PropsFlags;
-            // other properties may need to be updated by base class
-            base.Update(update, pqueue, entry);
         }
     }
 }
