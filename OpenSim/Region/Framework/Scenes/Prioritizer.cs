@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Returns the priority queue into which the update should be placed.
         /// </summary>
-        public uint GetUpdatePriority(IClientAPI client, ISceneEntity entity)
+        public int GetUpdatePriority(IClientAPI client, ISceneEntity entity)
         {
             // If entity is null we have a serious problem
             if (entity == null)
@@ -68,8 +68,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (client.AgentId == entity.UUID)
                 return 0;
 
-            uint priority;
-
+            int priority;
             switch (m_scene.UpdatePrioritizationScheme)
             {
                 case UpdatePrioritizationSchemes.SimpleAngularDistance:
@@ -80,13 +79,14 @@ namespace OpenSim.Region.Framework.Scenes
                     priority = GetPriorityByBestAvatarResponsiveness(client, entity);
                     break;
             }
-
+            if(priority >= PriorityQueue.NumberOfQueues - 1)
+                return PriorityQueue.NumberOfQueues - 1;
             return priority;
         }
 
-        private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
+        private int GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
-            uint pqueue = 2; // keep compiler happy
+            int pqueue = 2; // keep compiler happy
 
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
@@ -122,7 +122,7 @@ namespace OpenSim.Region.Framework.Scenes
             return pqueue;
         }
 
-        private uint ComputeDistancePriority(IClientAPI client, ISceneEntity entity, bool useFrontBack)
+        private int ComputeDistancePriority(IClientAPI client, ISceneEntity entity, bool useFrontBack)
         {
             // Get this agent's position
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
@@ -164,7 +164,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
+            int pqueue = PriorityQueue.NumberOfImmediateQueues + 1; // reserve attachments queue
             if (distance > 10f)
             {
                 float tmp = (float)Math.Log((double)distance) * 1.442695f - 3.321928f;
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // now
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
-                pqueue += (uint)tmp;
+                pqueue += (int)tmp;
             }
 
             // If this is a root agent, then determine front & back
@@ -193,19 +193,18 @@ namespace OpenSim.Region.Framework.Scenes
             return pqueue;
         }
 
-        private uint GetPriorityByAngularDistance(IClientAPI client, ISceneEntity entity)
+        private int GetPriorityByAngularDistance(IClientAPI client, ISceneEntity entity)
         {
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence == null)
                 return PriorityQueue.NumberOfQueues - 1;
 
-            uint pqueue = ComputeAngleDistancePriority(presence, entity);
-            return pqueue;
+            return ComputeAngleDistancePriority(presence, entity);
         }
 
-        private uint ComputeAngleDistancePriority(ScenePresence presence, ISceneEntity entity)
+        private int ComputeAngleDistancePriority(ScenePresence presence, ISceneEntity entity)
         {
-            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
+            int pqueue = PriorityQueue.NumberOfImmediateQueues;
             float distance;
 
             Vector3 presencePos = presence.AbsolutePosition;
@@ -216,7 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (distance > 400f)
                 {
                     float tmp = (float)Math.Log(distance) * 0.7213475f - 4.321928f;
-                    pqueue += (uint)tmp;
+                    pqueue += (int)tmp;
                 }
                 return pqueue;
             }
@@ -238,7 +237,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (distance > 400f)
                 {
                     float tmp = (float)Math.Log(distance) * 0.7213475f - 4.321928f;
-                    pqueue += (uint)tmp;
+                    pqueue += (int)tmp;
                 }
                 return pqueue;
             }
@@ -265,7 +264,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // now
                 // 1st constant is 1/(log(2)) (natural log) so we get log2(distance)
                 // 2st constant makes it be log2(distance/10)
-                pqueue += (uint)tmp;
+                pqueue += (int)tmp;
             }
 
             return pqueue;

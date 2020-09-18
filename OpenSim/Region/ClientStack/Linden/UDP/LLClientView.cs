@@ -4773,7 +4773,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            int priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Enqueue(priority, EntityUpdatesPool.Get(entity, updateFlags));
@@ -4789,7 +4789,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // If the update exists in priority queue, it will be updated.
             // If it does not exist then it will be added with the current (rather than its original) priority
-            uint priority = m_prioritizer.GetUpdatePriority(this, update.Entity);
+            int priority = m_prioritizer.GetUpdatePriority(this, update.Entity);
 
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Enqueue(priority, update);
@@ -5778,9 +5778,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             CheckGroupsInViewBusy = false;
         }
 
-        private bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity)
+        private bool UpdatePriorityHandler(ref int priority, ISceneEntity entity)
         {
-            if (entity == null)
+            if (!IsActive)
                 return false;
 
             priority = m_prioritizer.GetUpdatePriority(this, entity);
@@ -5968,16 +5968,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendObjectPropertiesFamilyData(ISceneEntity entity, uint requestFlags)
         {
-            uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, EntityUpdatesPool.Get(entity, (PrimUpdateFlags)requestFlags, true, false));
+                m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity, (PrimUpdateFlags)requestFlags, true, false));
         }
 
         private void ResendPropertyUpdate(EntityUpdate update)
         {
-            uint priority = 0;
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, update);
+                m_entityProps.Enqueue(0, update);
         }
 
         private void ResendPropertyUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
@@ -6002,9 +6000,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendObjectPropertiesReply(ISceneEntity entity)
         {
-            uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, EntityUpdatesPool.Get(entity,0,false,true));
+                m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity,0,false,true));
         }
 
         static private readonly byte[] ObjectPropertyUpdateHeader = new byte[] {
