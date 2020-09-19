@@ -56,7 +56,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public StringBuilder StartEvent(string eventName)
         {
-            StringBuilder sb = new StringBuilder(256);
+            StringBuilder sb = osStringBuilderCache.Acquire();
             LLSDxmlEncode.AddMap(sb);
             LLSDxmlEncode.AddElem("message", eventName, sb);
             LLSDxmlEncode.AddMap("body", sb);
@@ -66,7 +66,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public StringBuilder StartEvent(string eventName, int cap)
         {
-            StringBuilder sb = new StringBuilder(cap);
+            StringBuilder sb = osStringBuilderCache.Acquire();
             LLSDxmlEncode.AddMap(sb);
             LLSDxmlEncode.AddElem("message", eventName, sb);
             LLSDxmlEncode.AddMap("body", sb);
@@ -78,14 +78,14 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             LLSDxmlEncode.AddEndMap(sb); // close body
             LLSDxmlEncode.AddEndMap(sb); // close event
-            return sb.ToString();
+            return osStringBuilderCache.GetStringAndRelease(sb);
         }
 
         public byte[] EndEventToBytes(StringBuilder sb)
         {
             LLSDxmlEncode.AddEndMap(sb); // close body
             LLSDxmlEncode.AddEndMap(sb); // close event
-            return Util.UTF8NBGetbytes(sb.ToString());
+            return Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)

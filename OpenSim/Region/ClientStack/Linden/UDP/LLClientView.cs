@@ -3559,8 +3559,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     LLSDxmlEncode.AddEndArray(sb);
                 }
 
-                OSD ev = new OSDllsdxml(eq.EndEvent(sb));
-                eq.Enqueue(ev, AgentId);
+                eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
             }
         }
 
@@ -4099,9 +4098,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 LLSDxmlEncode.AddEndArray(sb);
             }
-
-            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
-            eq.Enqueue(ev, AgentId);
+            eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
         }
 
         public void SendAgentGroupDataUpdate(UUID avatarID, GroupMembershipData[] data)
@@ -6045,9 +6042,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
+                if (update.PropsFlags == 0)
+                {
+                    update.Free();
+                    continue;
+                }
+
                 SceneObjectPart sop = (SceneObjectPart)update.Entity as SceneObjectPart;
                 if(sop == null)
+                {
+                    update.Free();
                     continue;
+                }
+
+                used.Add(update);
 
                 if ((update.PropsFlags & ObjectPropertyUpdateFlags.Family) != 0)
                 {
@@ -6129,7 +6137,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         count = 1;
                         --blocks;
                     }
-                    used.Add(eu);
                 }
 
                 if (count > 0)
@@ -6153,7 +6160,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zc.Position = 8;
 
                     CreateObjectPropertiesFamilyBlock((SceneObjectPart)eu.Entity, eu.Flags, zc);
-                    used.Add(eu);
                     buf.DataLength = zc.Finish();
                     //List<EntityUpdate> tau = new List<EntityUpdate>(1);
                     //tau.Add(new ObjectPropertyUpdate((ISceneEntity) eu, (uint)eu.Flags, true, false));
@@ -6182,10 +6188,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LLSDxmlEncode.AddEndMap(sb);
                     }
                     LLSDxmlEncode.AddEndArray(sb);
-                    OSDllsdxml ev = new OSDllsdxml(eq.EndEvent(sb));
-                    eq.Enqueue(eq.EndEvent(sb), AgentId);
+                    eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
                 }
             }
+
             foreach(EntityUpdate eu in used)
                 eu.Free();
         }
@@ -13612,8 +13618,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             LLSDxmlEncode.AddEndArray(sb);
 
-            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
-            eq.Enqueue(ev, AgentId);
+            eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
         }
 
         public void SendRemoveInventoryFolders(UUID[] folders)
@@ -13642,8 +13647,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             LLSDxmlEncode.AddEndArray(sb);
 
-            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
-            eq.Enqueue(ev, AgentId);
+            eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
         }
 
         public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
@@ -13727,8 +13731,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LLSDxmlEncode.AddEndArray(sb);
             }
 
-            OSD ev = new OSDllsdxml(eq.EndEvent(sb));
-            eq.Enqueue(ev, AgentId);
+            eq.Enqueue(eq.EndEventToBytes(sb), AgentId);
         }
 
         private HashSet<string> m_outPacketsToDrop;
