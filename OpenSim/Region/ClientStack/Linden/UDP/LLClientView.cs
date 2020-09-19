@@ -4919,6 +4919,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_killRecord.Add(update.Entity.LocalId);
                     maxUpdatesBytes -= 30;
+                    update.Free();
                     continue;
                 }
 
@@ -4930,7 +4931,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     SceneObjectPart part = (SceneObjectPart)update.Entity;
                     SceneObjectGroup grp = part.ParentGroup;
                     if (grp.inTransit && ((update.Flags & PrimUpdateFlags.SendInTransit) == 0))
+                    {
+                        update.Free();
                         continue;
+                    }
 
                     if (grp.IsDeleted)
                     {
@@ -4942,6 +4946,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_killRecord.Add(grp.LocalId);
                             maxUpdatesBytes -= 30;
                         }
+                        update.Free();
                         continue;
                     }
 
@@ -4949,16 +4954,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // animated attachments are nasty if not supported by viewer
                         if(!m_SupportObjectAnimations && grp.RootPart.Shape.MeshFlagEntry)
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         // Someone else's HUD, why are we getting these?
                         if (grp.OwnerID != AgentId && grp.HasPrivateAttachmentPoint)
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         // if owner gone don't update it to anyone
                         ScenePresence sp;
                         if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         // On vehicle crossing, the attachments are received
                         // while the avatar is still a child. Don't send
@@ -4966,7 +4980,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // been updated and the viewer will derender the
                         // attachments until the avatar becomes root.
                         if (sp.IsChildAgent)
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         // It's an attachment of a valid avatar, but
                         // doesn't seem to be attached, skip
@@ -4981,7 +4998,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                         if (!found)
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         if (m_disableFacelights)
                         {
@@ -4996,7 +5016,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else if (doCulling)
                     {
                         if(GroupsNeedFullUpdate.Contains(grp))
+                        {
+                            update.Free();
                             continue;
+                        }
 
                         bool inViewGroups = false;
                         lock(GroupsInView)
@@ -5008,11 +5031,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             float dpos = (partpos - mypos).LengthSquared();
                             float maxview = grp.GetBoundsRadius() + cullingrange;
                             if (dpos > maxview * maxview)
+                            {
+                                update.Free();
                                 continue;
+                            }
 
                             if (!viewerCache || ((updateFlags & PrimUpdateFlags.UpdateProbe) == 0))
                             {
                                 GroupsNeedFullUpdate.Add(grp);
+                                update.Free();
                                 continue;
                             }
                         }
@@ -5022,7 +5049,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         if (objectUpdateProbes == null)
                         {
-                            objectUpdateProbes = new List<EntityUpdate>();
+                            objectUpdateProbes = new List<EntityUpdate>(32);
                             maxUpdatesBytes -= 18;
                         }
                         objectUpdateProbes.Add(update);
@@ -5035,7 +5062,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (m_SupportObjectAnimations && part.Animations != null)
                         {
                             if (ObjectAnimationUpdates == null)
-                                ObjectAnimationUpdates = new List<SceneObjectPart>();
+                                ObjectAnimationUpdates = new List<SceneObjectPart>(8);
                             ObjectAnimationUpdates.Add(part);
                             maxUpdatesBytes -= 20 * part.Animations.Count + 24;
                         }
@@ -5050,23 +5077,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     ScenePresence presence = (ScenePresence)update.Entity;
                     if (presence.IsDeleted)
+                    {
+                        update.Free();
                         continue;
+                    }
                     // If ParentUUID is not UUID.Zero and ParentID is 0, this
                     // avatar is in the process of crossing regions while
                     // sat on an object. In this state, we don't want any
                     // updates because they will visually orbit the avatar.
                     // Update will be forced once crossing is completed anyway.
                     if (presence.ParentUUID != UUID.Zero && presence.ParentID == 0)
+                    {
+                        update.Free();
                         continue;
+                    }
                 }
                 else // what is this update ?
+                {
+                    update.Free();
                     continue;
+                }
 
                 #region UpdateFlags to packet type conversion
 
                 updateFlags &= PrimUpdateFlags.FullUpdate; // clear other control bits already handled
                 if(updateFlags == PrimUpdateFlags.None)
+                {
+                    update.Free();
                     continue;
+                }
 
                 const PrimUpdateFlags canNotUseImprovedMask = ~(
                         PrimUpdateFlags.AttachmentPoint |
@@ -5087,7 +5126,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (terseUpdates == null)
                     {
-                        terseUpdates = new List<EntityUpdate>();
+                        terseUpdates = new List<EntityUpdate>(16);
                         maxUpdatesBytes -= 18;
                     }
                     terseUpdates.Add(update);
@@ -5110,7 +5149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if (objectUpdates == null)
                         {
-                            objectUpdates = new List<EntityUpdate>();
+                            objectUpdates = new List<EntityUpdate>(16);
                             maxUpdatesBytes -= 18;
                         }
                         objectUpdates.Add(update);
@@ -5126,7 +5165,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             if (compressedUpdates == null)
                             {
-                                compressedUpdates = new List<EntityUpdate>();
+                                compressedUpdates = new List<EntityUpdate>(16);
                                 maxUpdatesBytes -= 18;
                             }
                             compressedUpdates.Add(update);
@@ -5140,7 +5179,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             if (objectUpdates == null)
                             {
-                                objectUpdates = new List<EntityUpdate>();
+                                objectUpdates = new List<EntityUpdate>(16);
                                 maxUpdatesBytes -= 18;
                             }
                             objectUpdates.Add(update);
