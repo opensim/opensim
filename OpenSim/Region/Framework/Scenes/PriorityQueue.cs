@@ -291,28 +291,26 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int Count { get { return m_size; } }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-        private void Set(EntityUpdate item, int index)
-        {
-            m_items[index] = item;
-            item.PriorityQueueIndex = index;
-        }
-
         private bool BubbleUp(int index)
         {
+            EntityUpdate tmp;
             EntityUpdate item = m_items[index];
+            ulong itemEntryOrder = item.EntryOrder;
             int current, parent;
 
             for (current = index, parent = (current - 1) / 2;
-                    (current > 0) && m_items[parent].EntryOrder > item.EntryOrder;
+                    (current > 0) && m_items[parent].EntryOrder > itemEntryOrder;
                     current = parent, parent = (current - 1) / 2)
             {
-                Set(m_items[parent], current);
+                tmp = m_items[parent];
+                tmp.PriorityQueueIndex = current;
+                m_items[current] = tmp;
             }
 
             if (current != index)
             {
-                Set(item, current);
+                item.PriorityQueueIndex = current;
+                m_items[current] = item;
                 return true;
             }
             return false;
@@ -323,23 +321,42 @@ namespace OpenSim.Region.Framework.Scenes
             if(m_size < 2)
                 return;
 
+            EntityUpdate childItem;
+            EntityUpdate childItemR;
             EntityUpdate item = m_items[index];
+
+            ulong itemEntryOrder = item.EntryOrder;
             int current;
             int child;
+            int childlimit = m_size - 1;
 
             for (current = index, child = (2 * current) + 1;
                         current < m_size / 2;
                         current = child, child = (2 * current) + 1)
             {
-                if ((child < m_size - 1) && m_items[child].EntryOrder > m_items[child + 1].EntryOrder)
-                    ++child;
-                if (m_items[child].EntryOrder >= item.EntryOrder)
+                childItem = m_items[child];
+                if (child < childlimit)
+                {
+                    childItemR = m_items[child + 1];
+
+                    if(childItem.EntryOrder > childItemR.EntryOrder)
+                    {
+                        childItem = childItemR;
+                        ++child;
+                    }
+                }
+                if (childItem.EntryOrder >= itemEntryOrder)
                     break;
-                Set(m_items[child], current);
+
+                childItem.PriorityQueueIndex = current;
+                m_items[current] = childItem;
             }
 
             if (current != index)
-                Set(item, current);
+            {
+                item.PriorityQueueIndex = current;
+                m_items[current] = item;
+            }
         }
 
         public void Add(EntityUpdate value)
@@ -352,7 +369,9 @@ namespace OpenSim.Region.Framework.Scenes
                 Array.Resize<EntityUpdate>(ref m_items, newcapacity);
             }
 
-            Set(value, m_size);
+            value.PriorityQueueIndex = m_size;
+            m_items[m_size] = value;
+
             BubbleUp(m_size);
             ++m_size;
         }
@@ -376,7 +395,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (index != m_size)
                 {
-                    Set(m_items[m_size], index);
+                    EntityUpdate tmp = m_items[m_size];
+                    tmp.PriorityQueueIndex = index;
+                    m_items[index] = tmp;
+
                     m_items[m_size] = null;
                     if (!BubbleUp(index))
                         BubbleDown(index);
@@ -395,9 +417,12 @@ namespace OpenSim.Region.Framework.Scenes
             --m_size;
             if (m_size > 0)
             {
-                    Set(m_items[m_size], 0);
-                    m_items[m_size] = null;
-                    BubbleDown(0);
+                EntityUpdate tmp = m_items[m_size];
+                tmp.PriorityQueueIndex = 0;
+                m_items[0] = tmp;
+                m_items[m_size] = null;
+
+                BubbleDown(0);
             }
             else if (m_items.Length > 4 * minCapacity)
                 m_items = new EntityUpdate[minCapacity];
