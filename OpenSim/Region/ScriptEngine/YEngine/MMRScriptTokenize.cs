@@ -1103,10 +1103,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             kws.Add("catch", GetTokenCtor(typeof(TokenKwCatch)));
             kws.Add("exception", GetTokenCtor(typeof(TokenTypeExc)));
+            kws.Add("scriptexception", GetTokenCtor(typeof(TokenTypeExc)));
             kws.Add("finally", GetTokenCtor(typeof(TokenKwFinally)));
             kws.Add("throw", GetTokenCtor(typeof(TokenKwThrow)));
             kws.Add("try", GetTokenCtor(typeof(TokenKwTry)));
-
+            
             return kws;
         }
 
