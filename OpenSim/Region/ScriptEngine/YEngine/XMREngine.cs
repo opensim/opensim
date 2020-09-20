@@ -298,7 +298,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             m_Scene.RegisterModuleInterface<IScriptModule>(this);
 
-            m_ScriptBasePath = m_Config.GetString("ScriptBasePath", "ScriptEngines");
+            m_ScriptBasePath = m_Config.GetString("ScriptEnginesPath");
+            //look for old
+            if (string.IsNullOrWhiteSpace(m_ScriptBasePath))
+                m_ScriptBasePath = m_Config.GetString("ScriptBasePath");
+            if (string.IsNullOrWhiteSpace(m_ScriptBasePath))
+                m_ScriptBasePath = "ScriptEngines";
+
             m_ScriptBasePath = Path.Combine(m_ScriptBasePath, "Yengine");
             m_ScriptBasePath = Path.Combine(m_ScriptBasePath, scene.RegionInfo.RegionID.ToString());
 
