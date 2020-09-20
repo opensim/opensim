@@ -1241,7 +1241,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            if (itemID != UUID.Zero)
+            bool ItemIDNotZero = itemID != UUID.Zero;
+
+            if (ItemIDNotZero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,
                     itemID, rezGroupID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                     false, false, sp.UUID, true);
@@ -1252,13 +1254,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (objatt == null)
             {
-                m_log.WarnFormat(
-                    "[ATTACHMENTS MODULE]: did not attached item {0} to avatar {1} at point {2}",
-                    itemID, sp.Name, attachmentPt);
+                if(ItemIDNotZero)
+                {
+                    m_log.WarnFormat("[ATTACHMENTS MODULE]: did not attach item {0} to avatar {1} at point {2}",
+                        itemID, sp.Name, attachmentPt);
+                }
+                else
+                {
+                    m_log.WarnFormat("[ATTACHMENTS MODULE]: did not attach item with asset {0} to avatar {1} at point {2}",
+                        assetID, sp.Name, attachmentPt);
+                }
 
                 return null;
             }
-            else if (itemID == UUID.Zero)
+
+            if (!ItemIDNotZero)
             {
                 // We need to have a FromItemID for multiple attachments on a single attach point to appear.  This is
                 // true on Singularity 1.8.5 and quite possibly other viewers as well.  As NPCs don't have an inventory

@@ -321,25 +321,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            //m_log.DebugFormat("[HGScene]: RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
-
-            //if (fromTaskID.Equals(UUID.Zero))
-            //{
             InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
-            //if (item == null)
-            //{ // Fetch the item
-            //    item = new InventoryItemBase();
-            //    item.Owner = remoteClient.AgentId;
-            //    item.ID = itemID;
-            //    item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
-            //}
-            string userAssetServer = string.Empty;
-            if (item != null && IsForeignUser(remoteClient.AgentId, out userAssetServer))
+            if (item == null || item.AssetID == UUID.Zero)
+                return null;
+
+            string userAssetServer;
+            if (IsForeignUser(remoteClient.AgentId, out userAssetServer))
             {
                 m_assMapper.Get(item.AssetID, remoteClient.AgentId, userAssetServer);
-
             }
-            //}
 
             // OK, we're done fetching. Pass it up to the default RezObject
             SceneObjectGroup sog = base.RezObject(remoteClient, itemID, groupID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
