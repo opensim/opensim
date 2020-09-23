@@ -119,7 +119,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
                 try
                 {
-                    using(Stream s = rc.Request(m_Auth))
+                    using(MemoryStream s = rc.Request(m_Auth))
                     {
                         using(XmlTextReader sr = new XmlTextReader(s))
                         {
