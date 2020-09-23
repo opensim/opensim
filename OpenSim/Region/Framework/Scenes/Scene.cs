@@ -817,6 +817,8 @@ namespace OpenSim.Region.Framework.Scenes
             private set;
         }
 
+        public GridInfo SceneGridInfo;
+
         #endregion Properties
 
         #region Constructors
@@ -895,6 +897,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (estateDataService != null)
                 RegionInfo.EstateSettings = estateDataService.LoadEstateSettings(RegionInfo.RegionID, false);
+
+            SceneGridInfo = new GridInfo(config, RegionInfo.ServerURI);
 
             #endregion Region Settings
 

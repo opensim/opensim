@@ -515,7 +515,7 @@ namespace OpenSim.Services.GridService
                     return null;
 
                 string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionHost);
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
                 if (localGrid)
                 {
                     if (String.IsNullOrWhiteSpace(regionName))
