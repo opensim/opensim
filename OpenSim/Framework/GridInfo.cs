@@ -109,7 +109,7 @@ namespace OpenSim.Framework
                         URL = "http://" + Host + ":80/";
                 }
 
-                if (withDNSResolve && URLType == UriHostNameType.Dns)
+                if (withDNSResolve)
                 {
                     IPAddress ip = Util.GetHostFromDNS(host);
                     if (ip != null)
