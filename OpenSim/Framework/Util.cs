@@ -475,10 +475,9 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public static bool buildHGRegionURI(string inputName, out string serverURI, out string serverHost, out string regionName)
+        public static bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
         {
             serverURI = string.Empty;
-            serverHost = string.Empty;
             regionName = string.Empty;
 
             inputName = inputName.Trim();
@@ -587,10 +586,10 @@ namespace OpenSim.Framework
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":80/";
             else if(uri.Port == 443)
                 serverURI = serverURI.Trim(new char[] { '/', ' ' }) +":443/";
-            serverHost = uri.Host;
             return true;
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static T Clamp<T>(T x, T min, T max)
             where T : IComparable<T>
         {

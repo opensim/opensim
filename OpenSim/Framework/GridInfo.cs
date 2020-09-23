@@ -193,6 +193,12 @@ namespace OpenSim.Framework
             }
             if (string.IsNullOrEmpty(gatekeeper))
             {
+                IConfig gridConfig = config.Configs["GridService"];
+                if (gridConfig != null)
+                    gatekeeper = gridConfig.GetString("Gatekeeper", string.Empty);
+            }
+            if (string.IsNullOrEmpty(gatekeeper))
+            {
                 if(!string.IsNullOrEmpty(defaultHost))
                     m_gateKeeperURL = new OSHostURL(defaultHost, true);
             }

@@ -509,9 +509,8 @@ namespace OpenSim.Services.GridService
             if (m_AllowHypergridMapSearch && name.Contains("."))
             {
                 string regionURI = "";
-                string regionHost = "";
                 string regionName = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
 
                 string mapname;
@@ -616,12 +615,11 @@ namespace OpenSim.Services.GridService
             {
                 string regionURI = "";
                 string regionName = "";
-                string regionHost = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return null;
 
                 string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionHost);
+                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
                 if (localGrid)
                 {
                     if (String.IsNullOrWhiteSpace(regionName))
