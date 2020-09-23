@@ -65,10 +65,12 @@ namespace OpenSim.Services.GridService
         protected UUID m_ScopeID = UUID.Zero;
 //        protected bool m_Check4096 = true;
         protected string m_MapTileDirectory = string.Empty;
-        protected string m_ThisGatekeeperURI = string.Empty;
-        protected string m_ThisGatekeeperHost = string.Empty;
-        protected string m_ThisGateKeeperIP = string.Empty;
-        protected HashSet<string> m_ThisGateKeeperAlias = new HashSet<string>();
+
+        protected GridInfo m_ThisGridInfo;
+        //protected string m_ThisGatekeeperURI = string.Empty;
+        //protected string m_ThisGatekeeperHost = string.Empty;
+        //protected string m_ThisGateKeeperIP = string.Empty;
+        //protected HashSet<string> m_ThisGateKeeperAlias = new HashSet<string>();
 
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
@@ -98,6 +100,7 @@ namespace OpenSim.Services.GridService
 
             m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 
+            /*
             m_ThisGatekeeperURI = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
                 new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
             m_ThisGatekeeperURI = gridConfig.GetString("Gatekeeper", m_ThisGatekeeperURI);
@@ -120,6 +123,10 @@ namespace OpenSim.Services.GridService
                         m_ThisGateKeeperAlias.Add(alias[i].Trim().ToLower());
                 }
             }
+            */
+
+            m_ThisGridInfo = new GridInfo(config);
+            m_log.DebugFormat("[HYPERGRID LINKER]: Local Gatekeeper: {0}", m_ThisGridInfo.GateKeeperURL);
 
             m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
@@ -177,13 +184,7 @@ namespace OpenSim.Services.GridService
 
         public bool IsLocalGrid(string UriHost)
         {
-            if(String.IsNullOrEmpty(UriHost))
-                return true;
-            if(m_ThisGatekeeperHost.Equals(UriHost, StringComparison.InvariantCultureIgnoreCase))
-                return true;
-            if (m_ThisGateKeeperIP.Equals(UriHost))
-                return true;
-            return m_ThisGateKeeperAlias.Contains(UriHost.ToLower());
+           return m_ThisGridInfo.IsLocalGrid(UriHost) == 1;
         }
 
         public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
@@ -262,6 +263,7 @@ namespace OpenSim.Services.GridService
             regInfo.EstateOwner = ownerID;
 
             // Make sure we're not hyperlinking to regions on this grid!
+            /*
             if (!String.IsNullOrWhiteSpace(m_ThisGateKeeperIP))
             {
                 if (m_ThisGatekeeperHost.Equals(regInfo.ExternalHostName, StringComparison.InvariantCultureIgnoreCase) 
@@ -272,6 +274,14 @@ namespace OpenSim.Services.GridService
                     reason = "Cannot hyperlink to regions on the same grid";
                     return false;
                 }
+            }
+            */
+
+            if(IsLocalGrid(regInfo.ServerURI))
+            {
+                m_log.InfoFormat("[HYPERGRID LINKER]: Cannot hyperlink to regions on the same grid");
+                reason = "Cannot hyperlink to regions on the same grid";
+                return false;
             }
 
             // Check for free coordinates
