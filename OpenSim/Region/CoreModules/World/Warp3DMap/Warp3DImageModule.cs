@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
+            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f, false);
             renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX * 0.5f,
                                                        waterHeight,
                                                        m_scene.RegionInfo.RegionSizeY * 0.5f);

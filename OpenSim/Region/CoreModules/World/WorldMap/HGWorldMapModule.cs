@@ -78,6 +78,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddScale", configSections, m_exportPrintScale);
                 m_exportPrintRegionName =
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
+                m_localV1MapAssets =
+                    Util.GetConfigVarFromSections<bool>(source, "LocalV1MapAssets", configSections, m_localV1MapAssets);
             }
         }
 
@@ -174,11 +176,9 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             if (m_UserManagement != null && !string.IsNullOrEmpty(m_MapImageServerURL) && !m_UserManagement.IsLocalGridUser(agentID))
             {
-                OSD extras = new OSDMap();
-                if (features.ContainsKey("OpenSimExtras"))
-                    extras = features["OpenSimExtras"];
-                else
-                    features["OpenSimExtras"] = extras;
+                OSD extras;
+                if (!features.TryGetValue("OpenSimExtras", out extras))
+                    extras = new OSDMap();
 
                 ((OSDMap)extras)["map-server-url"] = m_MapImageServerURL;
 

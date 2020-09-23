@@ -157,7 +157,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 Util.GetConfigVarFromSections<bool>(config, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
             m_localV1MapAssets =
                 Util.GetConfigVarFromSections<bool>(config, "LocalV1MapAssets", configSections, m_localV1MapAssets);
-
         }
 
         public virtual void AddRegion(Scene scene)

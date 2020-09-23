@@ -495,11 +495,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
         protected virtual void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
         {
-            OSD extras = new OSDMap();
-            if (features.ContainsKey("OpenSimExtras"))
-                extras = features["OpenSimExtras"];
-            else
-                features["OpenSimExtras"] = extras;
+            OSD extras;
+            if (!features.TryGetValue("OpenSimExtras", out extras))
+                extras = new OSDMap();
 
             if (m_SayRange == null)
             {
