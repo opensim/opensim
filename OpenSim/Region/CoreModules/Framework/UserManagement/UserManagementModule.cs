@@ -58,8 +58,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected IServiceThrottleModule m_ServiceThrottle;
         protected IUserAccountService m_userAccountService = null;
         protected IGridUserService m_gridUserService = null;
-        string m_ThisGatekeeperHost;
-        HashSet<string> m_ThisGateKeeperAlias = new HashSet<string>();
+        
+        protected GridInfo m_thisGridInfo;
 
         // The cache
         protected ExpiringCacheOS<UUID, UserData> m_userCacheByID = new ExpiringCacheOS<UUID, UserData>(60000);
@@ -126,7 +126,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 {
                     m_Scenes.Add(scene);
                 }
-
+                if(m_thisGridInfo == null)
+                    m_thisGridInfo = scene.SceneGridInfo;
                 scene.RegisterModuleInterface<IUserManagement>(this);
                 scene.RegisterModuleInterface<IPeople>(this);
                 scene.EventManager.OnNewClient += EventManager_OnNewClient;
@@ -171,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 m_Scenes.Clear();
             }
-
+            m_thisGridInfo = null;
             Dispose(false);
         }
 
@@ -267,10 +268,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             string host = uri.DnsSafeHost.ToLower();
 
-            if (m_ThisGatekeeperHost.Equals(host))
-                islocal = true;
-            else if (m_ThisGateKeeperAlias.Contains(host))
-                islocal = true;
+            islocal = m_thisGridInfo.IsLocalHome(host) == 1;
             return true;
         }
 
@@ -944,38 +942,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         protected virtual void Init(IConfigSource config)
         {
-            m_ThisGatekeeperHost = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
-                            new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
-            m_ThisGatekeeperHost = Util.GetConfigVarFromSections<string>(config, "Gatekeeper",
-                    new string[] { "Startup", "Hypergrid", "GridService" }, m_ThisGatekeeperHost);
-
-            string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias",
-                new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
-
-            if (!string.IsNullOrWhiteSpace(m_ThisGatekeeperHost))
-            {
-                try
-                {
-                    Uri uri = new Uri(m_ThisGatekeeperHost, UriKind.Absolute);
-                    m_ThisGatekeeperHost = uri.DnsSafeHost.ToLower();
-                }
-                catch
-                {
-                    m_log.Error("[UserManagementModule] Invalid grid gatekeeper");
-                    m_ThisGatekeeperHost = string.Empty;
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
-            {
-                string[] alias = gatekeeperURIAlias.Split(',');
-                for (int i = 0; i < alias.Length; ++i)
-                {
-                    if (!string.IsNullOrWhiteSpace(alias[i]))
-                        m_ThisGateKeeperAlias.Add(alias[i].Trim().ToLower());
-                }
-            }
-
             AddUser(UUID.Zero, "Unknown", "User", false, int.MaxValue / 16);
             AddUser(Constants.m_MrOpenSimID, "Mr", "Opensim", false, int.MaxValue / 16);
             RegisterConsoleCmds();

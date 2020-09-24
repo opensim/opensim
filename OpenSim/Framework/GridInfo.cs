@@ -177,8 +177,8 @@ namespace OpenSim.Framework
         private OSHostURL m_gateKeeperURL;
         private HashSet<OSHostURL> m_gateKeeperAlias;
 
-        //private OSHostURL m_homeURL;
-        //private HashSet<OSHostURL> m_homeURLAlias;
+        private OSHostURL m_homeURL;
+        private HashSet<OSHostURL> m_homeURLAlias;
 
         public GridInfo (IConfigSource config, string defaultHost = "")
         {
@@ -218,10 +218,45 @@ namespace OpenSim.Framework
                 for (int i = 0; i < alias.Length; ++i)
                 {
                     OSHostURL tmp = new OSHostURL(alias[i].Trim(), false);
-                    if(m_gateKeeperAlias == null)
-                        m_gateKeeperAlias = new HashSet<OSHostURL>();
                     if (tmp.URLType != UriHostNameType.Unknown)
+                    {
+                        if (m_gateKeeperAlias == null)
+                            m_gateKeeperAlias = new HashSet<OSHostURL>();
                         m_gateKeeperAlias.Add(tmp);
+                    }
+                }
+            }
+
+            string home = Util.GetConfigVarFromSections<string>(config, "HomeURI", sections, string.Empty);
+
+            if (string.IsNullOrEmpty(home))
+            {
+                if (!string.IsNullOrEmpty(gatekeeper))
+                    m_homeURL = m_gateKeeperURL;
+                else if (!string.IsNullOrEmpty(defaultHost))
+                    m_homeURL = new OSHostURL(defaultHost, true);
+            }
+            else
+                m_homeURL = new OSHostURL(home, true);
+
+            if (m_homeURL.URLType == UriHostNameType.Unknown)
+                throw new Exception(String.Format("could not find home(UserAgentsService) URL"));
+            if (m_homeURL.IP == null)
+                throw new Exception(String.Format("could not resolve home(UserAgentsService) hostname"));
+
+            string homeAlias = Util.GetConfigVarFromSections<string>(config, "HomeURIAlias", sections, String.Empty);
+            if (!string.IsNullOrWhiteSpace(homeAlias))
+            {
+                string[] alias = homeAlias.Split(',');
+                for (int i = 0; i < alias.Length; ++i)
+                {
+                    OSHostURL tmp = new OSHostURL(alias[i].Trim(), false);
+                    if (tmp.URLType != UriHostNameType.Unknown)
+                    {
+                        if (m_homeURLAlias == null)
+                            m_homeURLAlias = new HashSet<OSHostURL>();
+                        m_homeURLAlias.Add(tmp);
+                    }
                 }
             }
         }
@@ -232,6 +267,16 @@ namespace OpenSim.Framework
             {
                 if(m_gateKeeperURL.URLType != UriHostNameType.Unknown)
                     return m_gateKeeperURL.URL;
+                return null;
+            }
+        }
+
+        public string HomeURL
+        {
+            get
+            {
+                if (m_homeURL.URLType != UriHostNameType.Unknown)
+                    return m_homeURL.URL;
                 return null;
             }
         }
@@ -247,5 +292,18 @@ namespace OpenSim.Framework
                 return 1;
             return 0;
         }
+
+        public int IsLocalHome(string home)
+        {
+            OSHostURL tmp = new OSHostURL(home, false);
+            if (tmp.URLType == UriHostNameType.Unknown)
+                return -1;
+            if (tmp.Equals(m_homeURL))
+                return 1;
+            if (m_homeURLAlias != null && m_homeURLAlias.Contains(tmp))
+                return 1;
+            return 0;
+        }
+
     }
 }
