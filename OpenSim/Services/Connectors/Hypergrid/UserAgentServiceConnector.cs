@@ -58,18 +58,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public UserAgentServiceConnector(IConfigSource config)
         {
-            IConfig serviceConfig = config.Configs["UserAgentService"];
-            if (serviceConfig == null)
-            {
-                m_log.Error("[USER AGENT CONNECTOR]: UserAgentService missing from ini");
-                throw new Exception("UserAgent connector init error");
-            }
+            GridInfo tmp = new GridInfo(config);
 
-            string serviceURI = serviceConfig.GetString("UserAgentServerURI", String.Empty);
+            string serviceURI = tmp.HomeURL;
 
             if (String.IsNullOrWhiteSpace(serviceURI))
             {
-                m_log.Error("[USER AGENT CONNECTOR]: No Server URI named in section UserAgentService");
+                m_log.Error("[USER AGENT CONNECTOR]: No Home URI named in configuration");
                 throw new Exception("UserAgent connector init error");
             }
 

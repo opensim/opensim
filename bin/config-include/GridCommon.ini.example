@@ -221,13 +221,6 @@
     ; User level required to be able to send friendship invitations to foreign users
     ;LevelHGFriends = 0;
 
-[UserAgentService]
-    ;
-    ; === HG ONLY ===
-    ; Change this to your user agent server (HG robust)
-    ;
-    UserAgentServerURI = "${Const|BaseURL}:${Const|PublicPort}"
-
 [MapImageService]
     MapImageServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
