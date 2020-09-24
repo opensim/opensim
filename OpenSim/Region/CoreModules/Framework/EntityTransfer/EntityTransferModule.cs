@@ -126,8 +126,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </remarks>
         private Stat m_interRegionTeleportFailures;
 
-        protected string m_ThisHomeURI;
-        protected string m_GatekeeperURI;
+        protected GridInfo m_thisGridInfo;
 
         protected bool m_Enabled = false;
 
@@ -255,18 +254,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="source"></param>
         protected virtual void InitialiseCommon(IConfigSource source)
         {
-            IConfig hypergridConfig = source.Configs["Hypergrid"];
-            if (hypergridConfig != null)
-            {
-                m_ThisHomeURI = hypergridConfig.GetString("HomeURI", string.Empty);
-                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
-                    m_ThisHomeURI += '/';
-
-                m_GatekeeperURI = hypergridConfig.GetString("GatekeeperURI", string.Empty);
-                if (m_GatekeeperURI != string.Empty && !m_GatekeeperURI.EndsWith("/"))
-                    m_GatekeeperURI += '/';
-            }
-
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
@@ -275,7 +262,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 WaitForAgentArrivedAtDestination
                     = transferConfig.GetBoolean("wait_for_callback", WaitForAgentArrivedAtDestination);
-
             }
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
@@ -293,6 +279,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
 
             Scene = scene;
+            m_thisGridInfo = scene.SceneGridInfo;
 
             m_interRegionTeleportAttempts =
                 new Stat(
@@ -377,6 +364,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 StatsManager.DeregisterStat(m_interRegionTeleportCancels);
                 StatsManager.DeregisterStat(m_interRegionTeleportFailures);
                 scene.EventManager.OnNewClient -= OnNewClient;
+                m_thisGridInfo = null;
             }
         }
 
@@ -1334,7 +1322,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason, out bool logout)
         {
             GridRegion source = new GridRegion(Scene.RegionInfo);
-            source.RawServerURI = m_GatekeeperURI;
+            source.RawServerURI = m_thisGridInfo.GateKeeperURL;
 
             logout = false;
             bool success = Scene.SimulationService.CreateAgent(source, finalDestination, agentCircuit, teleportFlags, ctx, out reason);

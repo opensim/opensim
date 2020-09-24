@@ -192,7 +192,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
                 m_UAS = scene.RequestModuleInterface<IUserAgentService>();
                 if (m_UAS == null)
-                    m_UAS = new UserAgentServiceConnector(m_ThisHomeURI);
+                    m_UAS = new UserAgentServiceConnector(m_thisGridInfo.HomeURL);
 
             }
         }
@@ -278,14 +278,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
                     IUserAgentService connector;
 
-                    if (userAgentDriver.Equals(m_ThisHomeURI) && m_UAS != null)
+                    if (m_thisGridInfo.IsLocalHome(userAgentDriver) == 1 && m_UAS != null)
                         connector = m_UAS;
                     else
                         connector = new UserAgentServiceConnector(userAgentDriver);
 
                     GridRegion source = new GridRegion(Scene.RegionInfo)
                     {
-                        RawServerURI = m_GatekeeperURI
+                        RawServerURI = m_thisGridInfo.GateKeeperURL
                     };
 
                     bool success = connector.LoginAgentToGrid(source, agentCircuit, reg, finalDestination, false, out reason);
