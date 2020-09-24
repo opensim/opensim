@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (UserManagementModule != null) // foreign user
             {
                 url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
-                foreigner = UserManagementModule.IsLocalGridUser(toAgentID);
+                foreigner = !UserManagementModule.IsLocalGridUser(toAgentID);
             }
 
             Util.FireAndForget(delegate
@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 if (foreigner && url == string.Empty) // we don't know about this user
                 {
                     string recipientUUI = TryGetRecipientUUI(new UUID(im.fromAgentID), toAgentID);
-                    m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);
+                    //m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);
                     if (recipientUUI != string.Empty)
                     {
                         UUID id; string tourl = string.Empty, first = string.Empty, last = string.Empty, secret = string.Empty;
