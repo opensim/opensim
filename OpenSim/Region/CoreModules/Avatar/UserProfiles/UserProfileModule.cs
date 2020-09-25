@@ -273,10 +273,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             set;
         }
 
-        public string MyGatekeeper
-        {
-            get; private set;
-        }
+        private GridInfo m_thisGridInfo;
 
         #region IRegionModuleBase implementation
         /// <summary>
@@ -304,8 +301,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // If we find ProfileURL then we configure for FULL support
             // else we setup for BASIC support
             ProfileServerUri = profileConfig.GetString("ProfileServiceURL", "");
-            if (ProfileServerUri == "")
+            OSHostURL tmp = new OSHostURL(ProfileServerUri, true);
+            if(tmp.IP == null)
             {
+                m_log.Debug("[PROFILES]: Fail to resolve [UserProfiles] ProfileServiceURL. UserProfiles disabled");
                 Enabled = false;
                 return;
             }
@@ -315,9 +314,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             m_log.Debug("[PROFILES]: Full Profiles Enabled");
             ReplaceableInterface = null;
             Enabled = true;
-
-            MyGatekeeper = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
-                new string[] { "Startup", "Hypergrid", "UserProfiles" }, String.Empty);
         }
 
         /// <summary>
@@ -332,6 +328,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
 
             Scene = scene;
+            if(m_thisGridInfo == null)
+                m_thisGridInfo = scene.SceneGridInfo;
             Scene.RegisterModuleInterface<IProfileModule>(this);
             Scene.EventManager.OnNewClient += OnNewClient;
             Scene.EventManager.OnClientClosed += OnClientClosed;
@@ -393,6 +391,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </summary>
         public void Close()
         {
+            m_thisGridInfo = null;
         }
 
         /// <value>
@@ -1028,13 +1027,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            string theirGatekeeperURI;
-            GetUserGatekeeperURI(targetID, out theirGatekeeperURI);
-
             object Pick = (object)pick;
             if (!rpc.JsonRpcRequest (ref Pick, "pickinforequest", serverURI, UUID.Random ().ToString ())) {
-                remoteClient.SendAgentAlertMessage (
-                        "Error selecting pick", false);
+                remoteClient.SendAgentAlertMessage ("Error selecting pick", false);
                 return;
             }
             pick = (UserProfilePick)Pick;
@@ -1044,7 +1039,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Vector3 globalPos = new Vector3(Vector3.Zero);
             Vector3.TryParse(pick.GlobalPos, out globalPos);
 
-            if (!string.IsNullOrWhiteSpace(MyGatekeeper) && pick.Gatekeeper != MyGatekeeper)
+            if (m_thisGridInfo.IsLocalGrid(pick.Gatekeeper, true) == 0)
             {
                 // Setup the illusion
                 string region = string.Format("{0} {1}",pick.Gatekeeper,pick.SimName);
@@ -1185,7 +1180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             pick.SnapshotId = snapshotID;
             pick.ParcelName = landParcelName;
             pick.SimName = remoteClient.Scene.RegionInfo.RegionName;
-            pick.Gatekeeper = MyGatekeeper;
+            pick.Gatekeeper = m_thisGridInfo.GateKeeperURLNoEndSlash;
             pick.GlobalPos = posGlobal.ToString();
             pick.SortOrder = sortOrder;
             pick.Enabled = enabled;
@@ -1854,37 +1849,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         }
 
         /// <summary>
-        /// Gets the user gatekeeper server URI.
-        /// </summary>
-        /// <returns>
-        /// The user gatekeeper server URI.
-        /// </returns>
-        /// <param name='userID'>
-        /// If set to <c>true</c> user URI.
-        /// </param>
-        /// <param name='serverURI'>
-        /// If set to <c>true</c> server URI.
-        /// </param>
-        bool GetUserGatekeeperURI(UUID userID, out string serverURI)
-        {
-            bool local;
-            local = UserManagementModule.IsLocalGridUser(userID);
-
-            if (!local)
-            {
-                serverURI = UserManagementModule.GetUserServerURL(userID, "GatekeeperURI");
-                // Is Foreign
-                return true;
-            }
-            else
-            {
-                serverURI = MyGatekeeper;
-                // Is local
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Gets the user profile server UR.
         /// </summary>
         /// <returns>
@@ -1903,8 +1867,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (!local)
             {
-                serverURI = UserManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failled);
-                if(failled)
+                serverURI = UserManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failed);
+                if(failed)
                     serverURI = string.Empty;
                 // Is Foreign
                 return true;
