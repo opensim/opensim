@@ -2594,33 +2594,35 @@ public abstract class TokenType: Token
 
         public static TokenType FromLSLType(Token original, string typ)
         {
-            if(typ == "list")
-                return new TokenTypeList(original);
-            if(typ == "rotation")
-                return new TokenTypeRot(original);
-            if(typ == "vector")
-                return new TokenTypeVec(original);
-            if(typ == "float")
-                return new TokenTypeFloat(original);
-            if(typ == "integer")
-                return new TokenTypeInt(original);
-            if(typ == "key")
-                return new TokenTypeKey(original);
-            if(typ == "string")
-                return new TokenTypeStr(original);
-            if(typ == "object")
-                return new TokenTypeObject(original);
-            if(typ == "array")
-                return new TokenTypeArray(original);
-            if(typ == "bool")
-                return new TokenTypeBool(original);
-            if(typ == "void")
-                return new TokenTypeVoid(original);
-            if(typ == "char")
-                return new TokenTypeChar(original);
-            if(typ == "exception")
-                return new TokenTypeExc(original);
-
+            switch(typ)
+            {
+                case "list":
+                    return new TokenTypeList(original);
+                case "rotation":
+                    return new TokenTypeRot(original);
+                case "vector":
+                    return new TokenTypeVec(original);
+                case "float":
+                    return new TokenTypeFloat(original);
+                case "integer":
+                    return new TokenTypeInt(original);
+                case "key":
+                    return new TokenTypeKey(original);
+                case "string":
+                    return new TokenTypeStr(original);
+                case "object":
+                    return new TokenTypeObject(original);
+                case "array":
+                    return new TokenTypeArray(original);
+                case "bool":
+                    return new TokenTypeBool(original);
+                case "void":
+                    return new TokenTypeVoid(original);
+                case "char":
+                    return new TokenTypeChar(original);
+                case "exception":
+                    return new TokenTypeExc(original);
+            }
             throw new Exception("unknown type " + typ);
         }
 

@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public abstract void CodeGen(ScriptCodeGen scg, Token errorAt, CompValuTemp result, CompValu[] args);
 
-        private static string[] noCheckRuns;
+        private static HashSet<string> noCheckRuns;
         private static string[] keyReturns;
 
         protected bool isTaggedCallsCheckRun;
@@ -64,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              * For those listed in noCheckRun, we just generate the call (simple computations).
              * For all others, we generate the call then a call to CheckRun().
              */
-            noCheckRuns = new string[] {
+            noCheckRuns = new HashSet<string>() {
                 "llBase64ToString",
                 "llCSV2List",
                 "llDeleteSubList",
@@ -100,7 +100,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 "llStringToBase64",
                 "llStringTrim",
                 "llSubStringIndex",
-                "llUnescapeURL"
+                "llUnescapeURL",
+                "osGetSitActiveRange",
+                "osIsNotValidNumber",
+                "osSlerp",
+                "osApproxEquals",
+                "osVecDistSquare",
+                "osVecMagSquare",
+                "osRound",
+                "osGetLinkNumber",
+                "osMax",
+                "osMin",
+                "osIsUUID"
             };
 
             /*
@@ -144,21 +155,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             /*
              * Mono generates an FPU instruction for many math calls.
              */
-
-            new TokenDeclInline_LLAbs(ifd);
-            new TokenDeclInline_Math(ifd, "llAcos(float)", "Acos", oneDoub);
-            new TokenDeclInline_Math(ifd, "llAsin(float)", "Asin", oneDoub);
-            new TokenDeclInline_Math(ifd, "llAtan2(float,float)", "Atan2", twoDoubs);
-            new TokenDeclInline_Math(ifd, "llCos(float)", "Cos", oneDoub);
-            new TokenDeclInline_Math(ifd, "llFabs(float)", "Abs", oneDoub);
-            new TokenDeclInline_Math(ifd, "llLog(float)", "Log", oneDoub);
-            new TokenDeclInline_Math(ifd, "llLog10(float)", "Log10", oneDoub);
-            new TokenDeclInline_Math(ifd, "llPow(float,float)", "Pow", twoDoubs);
-            new TokenDeclInline_LLRound(ifd);
-            new TokenDeclInline_Math(ifd, "llSin(float)", "Sin", oneDoub);
-            new TokenDeclInline_Math(ifd, "llSqrt(float)", "Sqrt", oneDoub);
-            new TokenDeclInline_Math(ifd, "llTan(float)", "Tan", oneDoub);
-
+            /* just use lsl api alos this have cast issues
+                new TokenDeclInline_LLAbs(ifd); 
+                new TokenDeclInline_Math(ifd, "llAcos(float)", "Acos", oneDoub);
+                new TokenDeclInline_Math(ifd, "llAsin(float)", "Asin", oneDoub);
+                new TokenDeclInline_Math(ifd, "llAtan2(float,float)", "Atan2", twoDoubs);
+                new TokenDeclInline_Math(ifd, "llCos(float)", "Cos", oneDoub);
+                new TokenDeclInline_Math(ifd, "llFabs(float)", "Abs", oneDoub);
+                new TokenDeclInline_Math(ifd, "llLog(float)", "Log", oneDoub);
+                new TokenDeclInline_Math(ifd, "llLog10(float)", "Log10", oneDoub);
+                new TokenDeclInline_Math(ifd, "llPow(float,float)", "Pow", twoDoubs);
+                new TokenDeclInline_LLRound(ifd);
+                new TokenDeclInline_Math(ifd, "llSin(float)", "Sin", oneDoub);
+                new TokenDeclInline_Math(ifd, "llSqrt(float)", "Sqrt", oneDoub);
+                new TokenDeclInline_Math(ifd, "llTan(float)", "Tan", oneDoub);
+            */
             /*
              * Something weird about the code generation for these calls, so they all have their own handwritten code generators.
              */
@@ -218,14 +229,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                      * Otherwise, assume we will call CheckRun()
                      */
                     bool dcr = !key.StartsWith("xmr");
-                    foreach(string ncr in noCheckRuns)
-                    {
-                        if(ncr == key)
-                        {
-                            dcr = false;
-                            break;
-                        }
-                    }
+                    if(dcr && noCheckRuns.Contains(key))
+                        dcr = false;
 
                     /*
                      * Add function to dictionary.
@@ -293,14 +298,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                    MethodInfo methInfo)
                 : base(null, null, null)
         {
-            TokenType retType = TokenType.FromSysType(null, methInfo.ReturnType);
-
-            this.isTaggedCallsCheckRun = IsTaggedCallsCheckRun(methInfo);
-            this.name = new TokenName(null, methInfo.Name);
-            this.retType = GetRetType(methInfo, retType);
-            this.argDecl = GetArgDecl(methInfo.GetParameters());
-            this.triviality = (doCheckRun || this.isTaggedCallsCheckRun) ? Triviality.complex : Triviality.trivial;
-            this.location = new CompValuInline(this);
+            isTaggedCallsCheckRun = IsTaggedCallsCheckRun(methInfo);
+            name = new TokenName(null, methInfo.Name);
+            retType = GetRetType(methInfo, TokenType.FromSysType(null, methInfo.ReturnType));
+            argDecl = GetArgDecl(methInfo.GetParameters());
+            triviality = (doCheckRun || isTaggedCallsCheckRun) ? Triviality.complex : Triviality.trivial;
+            location = new CompValuInline(this);
 
             if(ifd == null)
                 ifd = inlineFunctions;

@@ -185,32 +185,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 cv = new CompValuChar(new TokenTypeChar(null), (char)value);
             }
-            if(value is double)
+            else if (value is double)
             {
                 cv = new CompValuFloat(new TokenTypeFloat(null), (double)(double)value);
             }
-            if(value is float)
+            else if (value is float)
             {
                 cv = new CompValuFloat(new TokenTypeFloat(null), (double)(float)value);
             }
-            if(value is int)
+            else if (value is int)
             {
                 cv = new CompValuInteger(new TokenTypeInt(null), (int)value);
             }
-            if(value is string)
+            else if (value is string)
             {
                 cv = new CompValuString(new TokenTypeStr(null), (string)value);
             }
 
-            if(value is LSL_Float)
+            else if (value is LSL_Float)
             {
                 cv = new CompValuFloat(new TokenTypeFloat(null), (double)((LSL_Float)value).value);
             }
-            if(value is LSL_Integer)
+            else if (value is LSL_Integer)
             {
                 cv = new CompValuInteger(new TokenTypeInt(null), ((LSL_Integer)value).value);
             }
-            if(value is LSL_Rotation)
+            else if (value is LSL_Rotation)
             {
                 LSL_Rotation r = (LSL_Rotation)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), r.x);
@@ -219,11 +219,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CompValu s = new CompValuFloat(new TokenTypeFloat(null), r.s);
                 cv = new CompValuRot(new TokenTypeRot(null), x, y, z, s);
             }
-            if(value is LSL_String)
+            else if (value is LSL_String)
             {
                 cv = new CompValuString(new TokenTypeStr(null), (string)(LSL_String)value);
             }
-            if(value is LSL_Vector)
+            else if (value is LSL_Vector)
             {
                 LSL_Vector v = (LSL_Vector)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), v.x);
@@ -232,7 +232,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 cv = new CompValuVec(new TokenTypeVec(null), x, y, z);
             }
 
-            if(value is OpenMetaverse.Quaternion)
+            else if (value is OpenMetaverse.Quaternion)
             {
                 OpenMetaverse.Quaternion r = (OpenMetaverse.Quaternion)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), r.X);
@@ -241,11 +241,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CompValu s = new CompValuFloat(new TokenTypeFloat(null), r.W);
                 cv = new CompValuRot(new TokenTypeRot(null), x, y, z, s);
             }
-            if(value is OpenMetaverse.UUID)
+            else if (value is OpenMetaverse.UUID)
             {
                 cv = new CompValuString(new TokenTypeKey(null), value.ToString());
             }
-            if(value is OpenMetaverse.Vector3)
+            else if (value is OpenMetaverse.Vector3)
             {
                 OpenMetaverse.Vector3 v = (OpenMetaverse.Vector3)value;
                 CompValu x = new CompValuFloat(new TokenTypeFloat(null), v.X);
