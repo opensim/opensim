@@ -97,6 +97,9 @@ namespace OpenSim.Services.GridService
             m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 
             m_ThisGridInfo = new GridInfo(config);
+            if(!m_ThisGridInfo.HasHGConfig)
+                throw new Exception("missing HyperGrid configuration");
+
             m_log.DebugFormat("[HYPERGRID LINKER]: Local Gatekeeper: {0}", m_ThisGridInfo.GateKeeperURL);
 
             m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);

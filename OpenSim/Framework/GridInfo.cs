@@ -198,13 +198,16 @@ namespace OpenSim.Framework
             if (string.IsNullOrEmpty(gatekeeper))
             {
                 m_hasHGconfig = false;
-                if(!string.IsNullOrEmpty(defaultHost))
+                if (!string.IsNullOrEmpty(defaultHost))
                     m_gateKeeperURL = new OSHostURL(defaultHost, true);
             }
             else
+            {
                 m_gateKeeperURL = new OSHostURL(gatekeeper, true);
+                m_hasHGconfig = true;
+            }
 
-            if(m_gateKeeperURL.URLType == UriHostNameType.Unknown)
+            if (m_gateKeeperURL.URLType == UriHostNameType.Unknown)
                 throw new Exception(String.Format("could not find gatekeeper URL"));
             if (m_gateKeeperURL.IP == null)
                 throw new Exception(String.Format("could not resolve gatekeeper hostname"));
