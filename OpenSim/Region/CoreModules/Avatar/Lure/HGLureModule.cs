@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
         private IMessageTransferModule m_TransferModule = null;
         private bool m_Enabled = false;
 
-        private string m_ThisGridURL;
+        private GridInfo m_thisGridInfo;
 
         private readonly ExpiringCacheOS<UUID, GridInstantMessage> m_PendingLures = new ExpiringCacheOS<UUID, GridInstantMessage>(3600000);
 
@@ -64,12 +64,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 if (config.Configs["Messaging"].GetString("LureModule", string.Empty) == "HGLureModule")
                 {
                     m_Enabled = true;
-
-                    m_ThisGridURL = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
-                        new string[] { "Startup", "Hypergrid", "Messaging" }, String.Empty);
-                    // Legacy. Remove soon!
-                    m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", m_ThisGridURL);
-                    m_log.DebugFormat("[LURE MODULE]: {0} enabled", Name);
                 }
             }
         }
@@ -82,6 +76,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
+                if(m_thisGridInfo == null)
+                    m_thisGridInfo = scene.SceneGridInfo;
                 scene.EventManager.OnIncomingInstantMessage += OnIncomingInstantMessage;
                 scene.EventManager.OnNewClient += OnNewClient;
             }
@@ -135,6 +131,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void Close()
         {
+            m_thisGridInfo = null;
         }
 
         public string Name
@@ -189,7 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             Scene scene = (Scene)(client.Scene);
             ScenePresence presence = scene.GetScenePresence(client.AgentId);
 
-            message += "@" + m_ThisGridURL;
+            message += "@" + m_thisGridInfo.GateKeeperURLNoEndSlash;
 
             m_log.DebugFormat("[HG LURE MODULE]: TP invite with message {0}", message);
 
@@ -241,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                 if (parts.Length > 1)
                 {
                     string url = parts[parts.Length - 1]; // the last part
-                    if (url.Trim(new char[] {'/'}) != m_ThisGridURL.Trim(new char[] {'/'}))
+                    if (m_thisGridInfo.IsLocalGrid(url, true) == 0)
                     {
                         m_log.DebugFormat("[HG LURE MODULE]: Luring agent to grid {0} region {1} position {2}", url, im.RegionID, im.Position);
                         GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();

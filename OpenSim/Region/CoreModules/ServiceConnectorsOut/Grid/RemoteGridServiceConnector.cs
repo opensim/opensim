@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             string regionName = name;
             if(name.Contains("."))
             {
-                if(string.IsNullOrWhiteSpace(m_ThisGridInfo.GateKeeperURL))
+                if(!m_ThisGridInfo.HasHGConfig)
                     return rinfo; // no HG
 
                 string regionURI = "";
@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             string regionName = name;
             if(name.Contains("."))
             {
-                if(string.IsNullOrWhiteSpace(m_ThisGridInfo.GateKeeperURL))
+                if(!m_ThisGridInfo.HasHGConfig)
                     return rinfo; // no HG
 
                 string regionURI = "";
