@@ -2155,13 +2155,22 @@ namespace OpenSim.Region.CoreModules.World.Land
                             GridRegion info = m_scene.GridService.GetRegionByPosition(scope, (int)wx, (int)wy);
                             if (info != null)
                             {
+                                wx -= (uint)info.RegionLocX;
+                                wy -= (uint)info.RegionLocY;
+                                wx += x;
+                                wy += y;
+                                if (wx >= info.RegionSizeX || wy >= info.RegionSizeY)
+                                {
+                                    wx = x;
+                                    wy = y;
+                                }
                                 if (info.RegionHandle == myHandle)
                                 {
-                                    ILandObject l = GetLandObjectClippedXY(x, y);
+                                    ILandObject l = GetLandObjectClippedXY(wx, wy);
                                     if (l != null)
                                         parcelID = l.LandData.FakeID;
                                     else
-                                        parcelID = Util.BuildFakeParcelID(myHandle, x, y);
+                                        parcelID = Util.BuildFakeParcelID(myHandle, wx, wy);
                                 }
                                 else
                                 {
