@@ -3718,6 +3718,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if((land.Flags & (uint)ParcelFlags.ForSale) != 0)
                 reply.Data.Flags |= (byte)((1 << 7));
 
+            if (land.GroupID == land.OwnerID)
+                reply.Data.Flags |= 4;
+
             Vector3 pos = land.UserLocation;
             if (pos.Equals(Vector3.Zero))
             {
