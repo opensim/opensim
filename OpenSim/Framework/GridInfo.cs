@@ -321,6 +321,16 @@ namespace OpenSim.Framework
             }
         }
 
+        public string HomeURLNoEndSlash
+        {
+            get
+            {
+                if (m_homeURL.URLType != UriHostNameType.Unknown)
+                    return m_homeURL.URL.Substring(0, m_gateKeeperURL.URL.Length - 1);
+                return null;
+            }
+        }
+
         // -2 dns failed
         // -1 if bad url
         // 0 if not local

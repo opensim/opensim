@@ -351,10 +351,6 @@
     ; DisallowImport ="LSLBytecode"
 
 [HGInventoryAccessModule]
-    ;; If you have these set under [Hypergrid], no need to set it here, leave it commented
-    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
-    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
-
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
     ;; true = allow exports, false = disallow exports. True by default.

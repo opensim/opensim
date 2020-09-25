@@ -57,11 +57,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             get { return m_assMapper; }
         }
 
-        private string m_HomeURI;
         private bool m_OutboundPermission;
-        private string m_ThisGatekeeper;
         private bool m_RestrictInventoryAccessAbroad;
-
         private bool m_bypassPermissions = true;
 
         // This simple check makes it possible to support grids in which all the simulators
@@ -99,13 +96,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
                     if (thisModuleConfig != null)
                     {
-                        m_HomeURI = Util.GetConfigVarFromSections<string>(source, "HomeURI",
-                            new string[] { "Startup", "Hypergrid", "HGInventoryAccessModule" }, String.Empty);
-                        m_ThisGatekeeper = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
-                            new string[] { "Startup", "Hypergrid", "HGInventoryAccessModule" }, String.Empty);
-                        // Legacy. Renove soon!
-                        m_ThisGatekeeper = thisModuleConfig.GetString("Gatekeeper", m_ThisGatekeeper);
-
                         m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
                         m_RestrictInventoryAccessAbroad = thisModuleConfig.GetBoolean("RestrictInventoryAccessAbroad", true);
                         m_CheckSeparateAssets = thisModuleConfig.GetBoolean("CheckSeparateAssets", false);
@@ -129,7 +119,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
 
             base.AddRegion(scene);
-            m_assMapper = new HGAssetMapper(scene, m_HomeURI);
+            if(!m_thisGridInfo.HasHGConfig)
+            {
+                m_Enabled = false;
+                return;
+            }
+
+            m_assMapper = new HGAssetMapper(scene, m_thisGridInfo.HomeURLNoEndSlash);
+
             scene.EventManager.OnNewInventoryItemUploadComplete += PostInventoryAsset;
             scene.EventManager.OnTeleportStart += TeleportStart;
             scene.EventManager.OnTeleportFail += TeleportFail;
@@ -237,13 +234,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 prefix = "HG ";
             else
                 prefix = string.Empty;
-            suffix = " @ " + m_ThisGatekeeper;
+            suffix = " @ " + m_thisGridInfo.GateKeeperURLNoEndSlash;
             Vector3 pos = presence.AbsolutePosition;
             return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\ngatekeeper {5}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle,
-                                m_ThisGatekeeper);
+                                m_thisGridInfo.GateKeeperURLNoEndSlash);
         }
 
 
