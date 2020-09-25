@@ -47,6 +47,11 @@
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
+    # {GatekeeperURIAlias} {Hypergrid} {Old hostnames, FQDN or ips of the gatekeeper of this world} {}
+    ;; comma separated list, and port (default 80 or 443)
+	;; in case there was for example a dns change, etc
+    ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.1:8043
+	
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
     ;; If this is a standalone world, this is the address of this instance.
     ;; If this is a grided simulator, this is the address of the external robust server that
@@ -55,6 +60,10 @@
     ;; This is a default that can be overwritten in some sections.
     HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
+    # {HomeURIAlias} {Hypergrid} {Old hostnames, FQDN or ips of the gatekeeper of this world} {}
+    ;; comma separated list, and port (default 80 or 443)
+    ;; in case there was for example a dns change, etc
+    ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.1:8043	
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
