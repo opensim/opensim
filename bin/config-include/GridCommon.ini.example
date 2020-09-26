@@ -35,7 +35,7 @@
     ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
 
 [Hypergrid]
-    ; Uncomment the variable GatekeeperURI in this section only if you are in
+    ; Uncomment the variable GatekeeperURI in this section to enable
     ; Hypergrid configuration. Otherwise, ignore.
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
@@ -46,10 +46,10 @@
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    # {GatekeeperURIAlias} {Hypergrid} {Old hostnames, FQDN or ips of the gatekeeper of this world} {}
-    ;; comma separated list, and port (default 80 or 443)
+    ;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;; comma separated list, 
     ;; in case there was for example a dns change, etc
-    ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.1:8043
+    ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
 
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
     ;; If this is a standalone world, this is the address of this instance.
@@ -57,12 +57,12 @@
     ;; runs the UserAgentsService.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
-    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    # {HomeURIAlias} {Hypergrid} {Old hostnames, FQDN or ips of the gatekeeper of this world} {}
-    ;; comma separated list, and port (default 80 or 443)
+    ;# {HomeURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;; comma separated list, 
     ;; in case there was for example a dns change, etc but it is still same grid
-    ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.1:8043
+    ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
 
 
 [Modules]
