@@ -118,9 +118,6 @@
     ;; Set to false to prevent export
     ExportSupported = true
 
-    ; === HG ONLY ===
-    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI="${Const|BaseURL}:${Const|PublicPort}"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
@@ -128,8 +125,6 @@
 
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
-    ;; If you have Gatekeeper set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     SRV_HomeURI = "${Hypergrid|HomeURI}"
     SRV_InventoryServerURI = "${Const|BaseURL}:${Const|PublicPort}"
@@ -369,9 +364,7 @@
     ;LevelHGFriends = 0;
 
 [Messaging]
-    ; === HG ONLY ===
-    ;; If you have this set under [Hypergrid], no need to set it here, leave it commented
-    ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
+
 
 [EntityTransfer]
     ;; User level from which local users are allowed to HG teleport. Default 0 (all users)
