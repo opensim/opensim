@@ -784,7 +784,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Float llSin(double f)
         {
             m_host.AddScriptLPS(1);
-            return (double)Math.Sin(f);
+            return Math.Sin(f);
         }
 
         public LSL_Float llCos(double f)

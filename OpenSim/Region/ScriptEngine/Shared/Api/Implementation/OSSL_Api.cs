@@ -2667,39 +2667,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
 
-            IConfigSource config = m_ScriptEngine.ConfigSource;
-            string HomeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI",
-                new string[] { "Startup", "Hypergrid" }, String.Empty);
-
-            if (!string.IsNullOrEmpty(HomeURI))
-                return HomeURI;
-
-            // Legacy. Remove soon!
-            if (config.Configs["LoginService"] != null)
-                HomeURI = config.Configs["LoginService"].GetString("SRV_HomeURI", HomeURI);
-
-            if (String.IsNullOrEmpty(HomeURI))
-                HomeURI = GridUserInfo(InfoType.Home);
-
-            return HomeURI;
+            return World.SceneGridInfo.HGHomeURLNoEndSlash;
         }
 
         public string osGetGridGatekeeperURI()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
 
-            IConfigSource config = m_ScriptEngine.ConfigSource;
-            string gatekeeperURI = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
-                new string[] { "Startup", "Hypergrid" }, String.Empty);
-
-            if (!string.IsNullOrEmpty(gatekeeperURI))
-                return gatekeeperURI;
-
-            // Legacy. Remove soon!
-            if (config.Configs["GridService"] != null)
-                gatekeeperURI = config.Configs["GridService"].GetString("Gatekeeper", gatekeeperURI);
-
-            return gatekeeperURI;
+            return World.SceneGridInfo.HGGateKeeperURLNoEndSlash;
         }
 
         public string osGetGridCustom(string key)
