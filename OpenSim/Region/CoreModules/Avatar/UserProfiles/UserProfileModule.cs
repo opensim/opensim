@@ -86,7 +86,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         private ConcurrentStack<AsyncPropsRequest> m_asyncRequests = new ConcurrentStack<AsyncPropsRequest>();
         private object m_asyncRequestsLock = new object();
         private bool m_asyncRequestsRunning = false;
-        private AutoResetEvent m_asyncRequestsEvent = new AutoResetEvent(false);
 
         private void ProcessRequests()
         {
@@ -216,8 +215,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                         m_log.ErrorFormat("[UserProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
                     }
 
-                    if (m_asyncRequests.Count == 0)
-                        m_asyncRequestsEvent.WaitOne(1000);
                 }
                 m_asyncRequestsRunning = false;
             }
@@ -396,10 +393,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         public void Close()
         {
             m_thisGridInfo = null;
-            m_asyncRequestsEvent.Set();
-            Thread.Sleep(50);
-            m_asyncRequestsEvent.Dispose();
-            m_asyncRequestsEvent = null;
         }
 
         /// <value>
@@ -1563,7 +1556,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             req.reqtype = 0;
 
             m_asyncRequests.Push(req);
-            m_asyncRequestsEvent.Set();
+
             if (Monitor.TryEnter(m_asyncRequestsLock))
             {
                 if (!m_asyncRequestsRunning)
