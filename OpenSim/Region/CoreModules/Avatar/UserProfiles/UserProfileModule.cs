@@ -83,16 +83,15 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             public int reqtype;
         }
 
-        //private ConcurrentQueue<AsyncPropsRequest> m_asyncRequests = new ConcurrentQueue<AsyncPropsRequest>();
         private ConcurrentStack<AsyncPropsRequest> m_asyncRequests = new ConcurrentStack<AsyncPropsRequest>();
         private object m_asyncRequestsLock = new object();
         private bool m_asyncRequestsRunning = false;
+        private AutoResetEvent m_asyncRequestsEvent = new AutoResetEvent(false);
 
         private void ProcessRequests()
         {
             lock(m_asyncRequestsLock)
             {
-                //while(m_asyncRequests.TryDequeue(out AsyncPropsRequest req))
                 while (m_asyncRequests.TryPop(out AsyncPropsRequest req))
                 {
                     try
@@ -216,6 +215,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     {
                         m_log.ErrorFormat("[UserProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
                     }
+
+                    if (m_asyncRequests.Count == 0)
+                        m_asyncRequestsEvent.WaitOne(1000);
                 }
                 m_asyncRequestsRunning = false;
             }
@@ -394,6 +396,10 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         public void Close()
         {
             m_thisGridInfo = null;
+            m_asyncRequestsEvent.Set();
+            Thread.Sleep(50);
+            m_asyncRequestsEvent.Dispose();
+            m_asyncRequestsEvent = null;
         }
 
         /// <value>
@@ -1556,8 +1562,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             req.agent = avatarID;
             req.reqtype = 0;
 
-            //m_asyncRequests.Enqueue(req);
             m_asyncRequests.Push(req);
+            m_asyncRequestsEvent.Set();
             if (Monitor.TryEnter(m_asyncRequestsLock))
             {
                 if (!m_asyncRequestsRunning)
@@ -1566,7 +1572,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     Util.FireAndForget(x => ProcessRequests());
                 }
                 Monitor.Exit(m_asyncRequestsLock);
-
             }
 
             /*
@@ -1690,7 +1695,6 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         {
             if (remoteClient.AgentId == newProfile.ID)
             {
-
                 UserProfileProperties prop = new UserProfileProperties();
 
                 prop.UserId = remoteClient.AgentId;
@@ -1864,10 +1868,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// </param>
         bool GetUserProfileServerURI(UUID userID, out string serverURI)
         {
-            bool local;
-            local = UserManagementModule.IsLocalGridUser(userID);
-
-            if (!local)
+            if (!UserManagementModule.IsLocalGridUser(userID))
             {
                 serverURI = UserManagementModule.GetUserServerURL(userID, "ProfileServerURI", out bool failed);
                 if(failed)
