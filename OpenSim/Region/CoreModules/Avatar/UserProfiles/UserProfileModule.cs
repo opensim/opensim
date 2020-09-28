@@ -214,7 +214,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[ProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
+                        m_log.ErrorFormat("[UserProfileModule]: Process fail {0} : {1}", e.Message, e.StackTrace);
                     }
                 }
                 m_asyncRequestsRunning = false;
@@ -301,17 +301,19 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // If we find ProfileURL then we configure for FULL support
             // else we setup for BASIC support
             ProfileServerUri = profileConfig.GetString("ProfileServiceURL", "");
-            OSHostURL tmp = new OSHostURL(ProfileServerUri, true);
-            if(tmp.IP == null)
+
+            OSHTTPURI tmp = new OSHTTPURI(ProfileServerUri, true);
+            if (!tmp.IsResolvedHost)
             {
-                m_log.Debug("[PROFILES]: Fail to resolve [UserProfiles] ProfileServiceURL. UserProfiles disabled");
-                Enabled = false;
-                return;
+                m_log.ErrorFormat("[UserProfileModule: {0}", tmp.IsValidHost ?  "Could not resolve ProfileServiceURL" : "ProfileServiceURL is a invalid host");
+                throw new Exception("UserProfileModule init error");
             }
+
+            ProfileServerUri = tmp.URI;
 
             m_allowUserProfileWebURLs = profileConfig.GetBoolean("AllowUserProfileWebURLs", m_allowUserProfileWebURLs);
 
-            m_log.Debug("[PROFILES]: Full Profiles Enabled");
+            m_log.Debug("[UserProfileModule]: Full Profiles Enabled");
             ReplaceableInterface = null;
             Enabled = true;
         }

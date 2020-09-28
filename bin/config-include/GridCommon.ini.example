@@ -163,7 +163,7 @@
 
 [GridUserService]
     ;
-    ; Change this to your grid-wide user accounts server
+    ; Change this to your grid-wide user server
     ;
     GridUserServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 

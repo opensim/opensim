@@ -72,15 +72,23 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("GridUser connector init error");
             }
 
-            string serviceURI = gridConfig.GetString("GridUserServerURI",
-                    String.Empty);
+            string serviceURI = gridConfig.GetString("GridUserServerURI", string.Empty);
 
-            if (serviceURI == String.Empty)
+            if (string.IsNullOrWhiteSpace(serviceURI))
             {
-                m_log.Error("[GRID USER CONNECTOR]: No Server URI named in section GridUserService");
+                m_log.Error("[GRIDUSER CONNECTOR]: GridUserServerURI not found section GridUserService");
                 throw new Exception("GridUser connector init error");
             }
-            m_ServerURI = serviceURI;
+
+            OSHHTPHost tmp = new OSHHTPHost(serviceURI, true);
+            if (!tmp.IsResolvedHost)
+            {
+                m_log.ErrorFormat("[GRIDUSER CONNECTOR]: {0}", tmp.IsValidHost ? "Could not resolve GridUserServerURI" : "GridUserServerURI is a invalid host");
+                throw new Exception("User account connector init error");
+            }
+
+            m_ServerURI = tmp.URI;
+
             base.Initialise(source, "GridUserService");
         }
 
