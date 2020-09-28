@@ -2174,15 +2174,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                                 }
                                 else
                                 {
-                                    wx -= (uint)info.RegionLocX;
-                                    wy -= (uint)info.RegionLocY;
-                                    wx += x;
-                                    wy += y;
-                                    if(wx >= info.RegionSizeX || wy >= info.RegionSizeY)
-                                    {
-                                        wx = x;
-                                        wy = y;
-                                    }
                                     parcelID = Util.BuildFakeParcelID(info.RegionHandle, wx, wy);
                                 }
                             }
