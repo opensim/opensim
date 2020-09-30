@@ -134,23 +134,6 @@ namespace OpenSim
             m_log.InfoFormat("[OPENSIM MAIN] Running GC in {0} mode", GCSettings.IsServerGC ? "server":"workstation");
         }
 
-#if (_MONO)
-        private static Mono.Unix.UnixSignal[] signals;
-
-
-        private Thread signal_thread = new Thread (delegate ()
-        {
-            while (true)
-            {
-                // Wait for a signal to be delivered
-                int index = Mono.Unix.UnixSignal.WaitAny (signals, -1);
-
-                //Mono.Unix.Native.Signum signal = signals [index].Signum;
-                MainConsole.Instance.RunCommand("shutdown");
-            }
-        });       
-#endif
-
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -160,27 +143,6 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
 
-#if (_MONO)
-            if(!Util.IsWindows())
-            {
-                try
-                {
-                    // linux mac os specifics
-                    signals = new Mono.Unix.UnixSignal[]
-                    {
-                        new Mono.Unix.UnixSignal(Mono.Unix.Native.Signum.SIGTERM)
-                    };
-                    signal_thread.IsBackground = true;
-                    signal_thread.Start();
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("Could not set up UNIX signal handlers. SIGTERM will not");
-                    m_log.InfoFormat("shut down gracefully: {0}", e.Message);
-                    m_log.Debug("Exception was: ", e);
-                }
-            }
-#endif
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -1109,6 +1071,7 @@ namespace OpenSim
                         cdt.AddColumn("Code", 10);
                         cdt.AddColumn("IP", 16);
                         cdt.AddColumn("Viewer Name", 24);
+                        cdt.AddColumn("Svc Urls", 8);
 
                         foreach (AgentCircuitData aCircuit in circuits)
                             cdt.AddRow(
@@ -1116,8 +1079,9 @@ namespace OpenSim
                             aCircuit.child ? "child" : "root",
                             aCircuit.circuitcode.ToString(),
                             aCircuit.IPAddress != null ? aCircuit.IPAddress.ToString() : "not set",
-                            Util.GetViewerName(aCircuit));
-
+                                Util.GetViewerName(aCircuit),
+                            aCircuit.ServiceURLs != null ? aCircuit.ServiceURLs.Count : 0
+                            );
                         MainConsole.Instance.Output(cdt.ToString());
                     }
                 });

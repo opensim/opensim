@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Console
         public string PasswdPrompt(string p) { return ""; }
 
         public void ReadConfig(IConfigSource configSource) { }
+        public void SetCntrCHandler(OnCntrCCelegate handler) { }
     }
 
     public class MockCommands : ICommands
