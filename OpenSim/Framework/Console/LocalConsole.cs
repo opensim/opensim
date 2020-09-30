@@ -496,6 +496,7 @@ namespace OpenSim.Framework.Console
 
                 if((key.Modifiers & ConsoleModifiers.Control) != 0 && key.Key == ConsoleKey.C)
                 {
+                    System.Console.Write(Environment.NewLine);
                     LocalCancelKeyPressed();
                     return string.Empty;
                 }
