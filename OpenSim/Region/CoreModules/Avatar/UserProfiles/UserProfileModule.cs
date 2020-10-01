@@ -300,6 +300,11 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             // If we find ProfileURL then we configure for FULL support
             // else we setup for BASIC support
             ProfileServerUri = profileConfig.GetString("ProfileServiceURL", "");
+            if (string.IsNullOrEmpty(ProfileServerUri))
+            {
+                Enabled = false;
+                return;
+            }
 
             OSHTTPURI tmp = new OSHTTPURI(ProfileServerUri, true);
             if (!tmp.IsResolvedHost)

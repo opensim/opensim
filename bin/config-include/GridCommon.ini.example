@@ -43,7 +43,6 @@
     ;; If this is a grided simulator, this is the address of the external robust server
     ;; that runs the Gatekeeper service.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
-    ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
@@ -56,7 +55,6 @@
     ;; If this is a grided simulator, this is the address of the external robust server that
     ;; runs the UserAgentsService.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
-    ;; This is a default that can be overwritten in some sections.
     HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {HomeURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
