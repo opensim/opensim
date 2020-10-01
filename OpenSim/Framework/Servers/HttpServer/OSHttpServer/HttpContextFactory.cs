@@ -121,7 +121,6 @@ namespace OSHttpServer
         /// </returns>
         public IHttpClientContext CreateContext(Socket socket)
         {
-            socket.NoDelay = true;
             var networkStream = new NetworkStream(socket, true);
             var remoteEndPoint = (IPEndPoint)socket.RemoteEndPoint;
             return CreateContext(false, remoteEndPoint, networkStream, socket);

@@ -34,25 +34,33 @@ using Nini.Config;
 
 namespace OpenSim.Framework
 {
+    public enum OSHTTPURIFlags : byte
+    {
+        None        = 0,
+        ValidHost   = 1,
+        Resolved    = 1 << 1,
+
+        ValidResolved = ValidHost | Resolved
+    }
+
     // full http or https schema, server host, port and possible server path any query is ignored.
     public struct OSHTTPURI:IComparable<OSHTTPURI>, IEquatable<OSHTTPURI>
     {
-        public string Host;
+        public OSHTTPURIFlags Flags;
         public int Port;
-        public UriHostNameType HostType;
         public IPAddress IP;
-        private string m_URI;
-        public string Path;
+        public readonly string Host;
+        public readonly string URI;
+        public readonly string Path;
 
         public OSHTTPURI(string uri, bool withDNSResolve = false)
         {
-            Host = string.Empty;
+            Flags = OSHTTPURIFlags.None;
             Port = -1;
-            m_URI = string.Empty;
-            Path = string.Empty;
-
-            HostType = UriHostNameType.Unknown;
             IP = null;
+            Host = string.Empty;
+            URI = string.Empty;
+            Path = string.Empty;
 
             if (string.IsNullOrEmpty(uri))
                 return;
@@ -64,26 +72,31 @@ namespace OpenSim.Framework
                 if(m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
                     return;
 
+                Flags = OSHTTPURIFlags.ValidHost;
                 Host = m_checkuri.DnsSafeHost.ToLowerInvariant();
-                HostType = m_checkuri.HostNameType;
+
                 Port = m_checkuri.Port;
                 Path = m_checkuri.AbsolutePath;
                 if (Path[Path.Length - 1] == '/')
                     Path = Path.Substring(0, Path.Length - 1);
 
-                m_URI = m_checkuri.Scheme + "://" + Host + ":" + Port + Path;
+                URI = m_checkuri.Scheme + "://" + Host + ":" + Port + Path;
 
                 if (withDNSResolve)
                 {
                     IPAddress ip = Util.GetHostFromDNS(Host);
                     if (ip != null)
+                    {
                         IP = ip;
+                        Flags = OSHTTPURIFlags.ValidResolved;
+                    }
                 }
             }
             catch
             {
-                HostType = UriHostNameType.Unknown;
+                Flags = OSHTTPURIFlags.None;
                 IP = null;
+                URI = string.Empty;
             }
         }
 
@@ -91,23 +104,27 @@ namespace OpenSim.Framework
         {
             IPAddress ip = Util.GetHostFromDNS(Host);
             if (ip == null)
+            {
+                Flags &= ~OSHTTPURIFlags.Resolved;
                 return false;
+            }
+            Flags |= OSHTTPURIFlags.Resolved;
             return true;
         }
 
         public bool IsValidHost
         {
-            get { return (HostType != UriHostNameType.Unknown);}
+            get { return Flags != OSHTTPURIFlags.None;}
         }
 
         public bool ValidAndResolved(out string error)
         {
-            if (HostType == UriHostNameType.Unknown)
+            if (Flags == OSHTTPURIFlags.None)
             {
                 error = "failed to parse uri";
                 return false;
             }
-            if (IP == null)
+            if ((Flags & OSHTTPURIFlags.Resolved) == 0)
             {
                 error = "failed DNS resolve of uri host";
                 return false;
@@ -118,24 +135,19 @@ namespace OpenSim.Framework
 
         public bool IsResolvedHost
         {
-            get {return (HostType != UriHostNameType.Unknown) && (IP != null);}
-        }
-
-        public string URI
-        {
-            get { return (HostType == UriHostNameType.Unknown) ? "" : m_URI;}
+            get {return (Flags & OSHTTPURIFlags.Resolved) != 0; }
         }
 
         public string URIwEndSlash
         {
-            get { return (HostType == UriHostNameType.Unknown) ? "" : m_URI + "/";}
+            get { return Flags != OSHTTPURIFlags.None ? "" : URI + "/";}
         }
 
         public int CompareTo(OSHTTPURI other)
         {
-            if (Port == other.Port && other.HostType != UriHostNameType.Unknown)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                if (Path.Equals(other.Path) && HostType == other.HostType)
+                if (Path.Equals(other.Path))
                     return Host.CompareTo(other.Host);
             }
             return -1;
@@ -143,9 +155,9 @@ namespace OpenSim.Framework
 
         public bool Equals(OSHTTPURI other)
         {
-            if (Port == other.Port && other.HostType != UriHostNameType.Unknown)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                if (Path.Equals(other.Path) && HostType == other.HostType)
+                if (Path.Equals(other.Path))
                     return Host.Equals(other.Host);
             }
             return false;
@@ -160,21 +172,21 @@ namespace OpenSim.Framework
     //host and port. Can not have server internal path or query. http scheme is assumed if not present
     public struct OSHHTPHost : IComparable<OSHHTPHost>, IEquatable<OSHHTPHost>
     {
-        public string Host;
+        public OSHTTPURIFlags Flags;
         public int Port;
-        private string m_URI;
-        public UriHostNameType HostType;
-        public bool SecureHTTP;
         public IPAddress IP;
+        public readonly string Host;
+        public readonly string URI;
 
         public OSHHTPHost(string url, bool withDNSResolve = false)
         {
-            Host = string.Empty;
+            Flags = OSHTTPURIFlags.None;
             Port = 80;
-            m_URI = string.Empty;
-            HostType = UriHostNameType.Unknown;
             IP = null;
-            SecureHTTP = false;
+            Host = string.Empty;
+            URI = string.Empty;
+
+            bool secureHTTP = false;
 
             if (string.IsNullOrEmpty(url))
                 return;
@@ -192,7 +204,7 @@ namespace OpenSim.Framework
                     if (url[4] == 's')
                     {
                         start = 8;
-                        SecureHTTP = true;
+                        secureHTTP = true;
                     }
                     else
                         start = 7;
@@ -214,10 +226,11 @@ namespace OpenSim.Framework
                     int tmp;
                     if (!int.TryParse(sport, out tmp) || tmp < 0 || tmp > 65535)
                         return;
-                    HostType = type;
+
+                    Flags = OSHTTPURIFlags.ValidHost;
                     Host = host;
                     Port = tmp;
-                    m_URI = (SecureHTTP ? "https://" : "http://") + Host + ":" + Port.ToString();
+                    URI = (secureHTTP ? "https://" : "http://") + Host + ":" + Port.ToString();
                 }
                 else
                 {
@@ -225,25 +238,36 @@ namespace OpenSim.Framework
                     type = Uri.CheckHostName(host);
                     if (type == UriHostNameType.Unknown || type == UriHostNameType.Basic)
                         return;
-                    HostType = type;
+
+                    Flags = OSHTTPURIFlags.ValidHost;
                     Host = host;
-                    if (SecureHTTP)
-                        m_URI = "https://" + Host + ":443";
+                    if (secureHTTP)
+                    {
+                        Port = 443;
+                        URI = "https://" + Host + ":443";
+                    }
                     else
-                        m_URI = "http://" + Host + ":80";
+                    {
+                        Port = 80;
+                        URI = "http://" + Host + ":80";
+                    }
                 }
 
                 if (withDNSResolve)
                 {
                     IPAddress ip = Util.GetHostFromDNS(host);
                     if (ip != null)
+                    {
+                        Flags = OSHTTPURIFlags.ValidResolved;
                         IP = ip;
+                    }
                 }
             }
             catch
             {
-                HostType = UriHostNameType.Unknown;
+                Flags = OSHTTPURIFlags.None;
                 IP = null;
+                URI = string.Empty;
             }
         }
 
@@ -251,28 +275,32 @@ namespace OpenSim.Framework
         {
             IPAddress ip = Util.GetHostFromDNS(Host);
             if (ip == null)
+            {
+                Flags &= ~OSHTTPURIFlags.Resolved;
                 return false;
+            }
+            Flags |= OSHTTPURIFlags.Resolved;
             return true;
         }
 
         public bool IsValidHost
         {
-            get { return HostType != UriHostNameType.Unknown; }
+            get { return Flags != OSHTTPURIFlags.None; }
         }
 
         public bool IsResolvedHost
         {
-            get { return (HostType != UriHostNameType.Unknown) && (IP != null); }
+            get { return (Flags & OSHTTPURIFlags.Resolved) != 0; }
         }
 
         public bool ValidAndResolved(out string error)
         {
-            if (HostType == UriHostNameType.Unknown)
+            if (Flags == OSHTTPURIFlags.None)
             {
                 error = "failed to parse uri";
                 return false;
             }
-            if (IP == null)
+            if ((Flags & OSHTTPURIFlags.Resolved) == 0)
             {
                 error = "failed DNS resolve of uri host";
                 return false;
@@ -281,32 +309,25 @@ namespace OpenSim.Framework
             return true;
         }
 
-        public string URI
-        {
-            get { return (HostType == UriHostNameType.Unknown) ? "" : m_URI; }
-        }
-
         public string URIwEndSlash
         {
-            get { return (HostType == UriHostNameType.Unknown) ? "" : m_URI + "/"; }
+            get { return (Flags == OSHTTPURIFlags.None) ? "" : URI + "/"; }
         }
 
         public int CompareTo(OSHHTPHost other)
         {
-            if (Port == other.Port && other.HostType != UriHostNameType.Unknown)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                if (HostType == other.HostType)
-                    return Host.CompareTo(other.Host);
+                return Host.CompareTo(other.Host);
             }
             return -1;
         }
 
         public bool Equals(OSHHTPHost other)
         {
-            if (Port == other.Port && other.HostType != UriHostNameType.Unknown)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                if (HostType == other.HostType)
-                    return Host.Equals(other.Host);
+                return Host.Equals(other.Host);
             }
             return false;
         }
@@ -371,7 +392,7 @@ namespace OpenSim.Framework
                 for (int i = 0; i < alias.Length; ++i)
                 {
                     OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
-                    if (tmp.HostType != UriHostNameType.Unknown)
+                    if (tmp.IsValidHost)
                     {
                         if (m_gateKeeperAlias == null)
                             m_gateKeeperAlias = new HashSet<OSHHTPHost>();
@@ -405,7 +426,7 @@ namespace OpenSim.Framework
                 for (int i = 0; i < alias.Length; ++i)
                 {
                     OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
-                    if (tmp.HostType != UriHostNameType.Unknown)
+                    if (tmp.IsValidHost)
                     {
                         if (m_homeURLAlias == null)
                             m_homeURLAlias = new HashSet<OSHHTPHost>();
@@ -434,7 +455,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                if (m_gateKeeperURL.HostType != UriHostNameType.Unknown && m_hasHGconfig)
+                if (m_hasHGconfig)
                     return m_gateKeeperURL.URIwEndSlash;
                 return string.Empty;
             }
@@ -484,10 +505,22 @@ namespace OpenSim.Framework
         // -1 if bad url
         // 0 if not local
         // 1 if local
-        public int IsLocalGrid(string othergatekeeper, bool withResolveCheck = false)
+        public int IsLocalGrid(string othergatekeeper)
         {
             OSHHTPHost tmp = new OSHHTPHost(othergatekeeper, false);
-            if(tmp.HostType == UriHostNameType.Unknown)
+            if (!tmp.IsValidHost)
+                return -1;
+            if (tmp.Equals(m_gateKeeperURL))
+                return 1;
+            if (m_gateKeeperAlias != null && m_gateKeeperAlias.Contains(tmp))
+                return 1;
+            return 0;
+        }
+
+        public int IsLocalGrid(string othergatekeeper, bool withResolveCheck)
+        {
+            OSHHTPHost tmp = new OSHHTPHost(othergatekeeper, false);
+            if (!tmp.IsValidHost)
                 return -1;
             if (tmp.Equals(m_gateKeeperURL))
                 return 1;
@@ -495,6 +528,8 @@ namespace OpenSim.Framework
                 return 1;
             if (withResolveCheck)
             {
+                if (tmp.IsResolvedHost)
+                    return 0;
                 return tmp.ResolveDNS() ? 0 : -2;
             }
             return 0;
@@ -503,12 +538,31 @@ namespace OpenSim.Framework
         public int IsLocalHome(string otherhome)
         {
             OSHHTPHost tmp = new OSHHTPHost(otherhome, false);
-            if (tmp.HostType == UriHostNameType.Unknown)
+            if (!tmp.IsValidHost)
                 return -1;
             if (tmp.Equals(m_homeURL))
                 return 1;
             if (m_homeURLAlias != null && m_homeURLAlias.Contains(tmp))
                 return 1;
+            return 0;
+        }
+
+        public int IsLocalHome(string otherhome, bool withResolveCheck)
+        {
+            OSHHTPHost tmp = new OSHHTPHost(otherhome, false);
+            if (!tmp.IsValidHost)
+                return -1;
+            if (tmp.Equals(m_homeURL))
+                return 1;
+            if (m_homeURLAlias != null && m_homeURLAlias.Contains(tmp))
+                return 1;
+
+            if (withResolveCheck)
+            {
+                if (tmp.IsResolvedHost)
+                    return 0;
+                return tmp.ResolveDNS() ? 0 : -2;
+            }
             return 0;
         }
     }
