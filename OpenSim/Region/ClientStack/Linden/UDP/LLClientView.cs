@@ -3718,8 +3718,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if((land.Flags & (uint)ParcelFlags.ForSale) != 0)
                 reply.Data.Flags |= (byte)((1 << 7));
 
-            if (land.GroupID == land.OwnerID)
-                reply.Data.Flags |= 4;
+            if (land.IsGroupOwned)
+                reply.Data.Flags |= 0x04;
 
             Vector3 pos = land.UserLocation;
             if (pos.Equals(Vector3.Zero))
@@ -12483,17 +12483,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     GrantUserRights.Rights[0].RelatedRights);
         }
 
+        private double m_nextRevokePermissionsTime = Double.MinValue;
+        private uint m_lastRevokePermissionsSeq = uint.MinValue;
+
         private void HandleRevokePermissions(Packet Pack)
         {
             RevokePermissionsPacket pkt = (RevokePermissionsPacket)Pack;
             if (pkt.AgentData.SessionID != SessionId || pkt .AgentData.AgentID != AgentId)
                 return;
 
-            // don't use multidelegate "event"
+            uint thisSeq = pkt.Header.Sequence;
+            if (thisSeq == m_lastRevokePermissionsSeq)
+                return;
+            m_lastRevokePermissionsSeq = thisSeq;
+
             ScenePresence sp = (ScenePresence)SceneAgent;
             if(sp != null && !sp.IsDeleted && !sp.IsInTransit)
             {
                 UUID objectID = pkt.Data.ObjectID;
+
+                double now = Util.GetTimeStampMS();
+                if (now < m_nextRevokePermissionsTime)
+                    return;
+
+                if (objectID == m_scene.RegionInfo.RegionID)
+                    m_nextRevokePermissionsTime = now + 2000;
+                else
+                    m_nextRevokePermissionsTime = now + 50;
+
                 uint permissions = pkt.Data.ObjectPermissions;
                 sp.HandleRevokePermissions(objectID , permissions);
             }
