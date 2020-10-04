@@ -6314,16 +6314,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddUUID(sop.LastOwnerID);
 
             //name
-            zc.AddShortString(sop.Name, 64);
+            zc.AddShortLimitedUTF8(sop.osUTF8Name);
 
             //Description
-            zc.AddShortString(sop.Description, 128);
+            zc.AddShortLimitedUTF8(sop.osUTF8description);
 
             // touch name
-            zc.AddShortString(root.TouchName, 9, 37);
+            zc.AddShortLimitedUTF8(sop.osUTF8TouchName);
 
             // sit name
-            zc.AddShortString(root.SitName, 9, 37);
+            zc.AddShortLimitedUTF8(sop.osUTF8SitName);
 
             //texture ids block
             // still not sending, not clear the impact on viewers, if any.
@@ -7345,10 +7345,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //media url
-            if (part.MediaUrl == null || part.MediaUrl.Length == 0)
-                zc.AddZeros(1);
-            else
-                zc.AddShortString(part.MediaUrl, 255);
+            zc.AddShortLimitedUTF8(part.osUTFMediaUrl);
 
             bool hasps = false;
             //particle system
@@ -7814,11 +7811,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 hasangvel = true;
             }
 
-            byte[] mediaURLBytes = null;
-            if (part.MediaUrl != null && part.MediaUrl.Length > 1)
+            if (part.osUTFMediaUrl.Length > 0)
             {
-                mediaURLBytes = Util.StringToBytes256(part.MediaUrl); // must be null term
-                BlockLengh += mediaURLBytes.Length;
+                BlockLengh += part.osUTFMediaUrl.Length + 1;
                 cflags |= CompressedFlags.MediaURL;
                 hasmediaurl = true;
             }
@@ -7903,7 +7898,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             if (hasmediaurl)
             {
-                zc.AddBytes(mediaURLBytes, mediaURLBytes.Length);
+                zc.AddBytes(part.osUTFMediaUrl.GetArray(), part.osUTFMediaUrl.Length);
+                zc.AddZeros(1);
             }
             if (hasps)
             {

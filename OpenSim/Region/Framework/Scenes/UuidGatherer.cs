@@ -811,7 +811,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             try
             {
-                osUTF8 ostmp = new osUTF8(asset.Data);
+                osUTF8Slice ostmp = new osUTF8Slice(asset.Data);
                 if (!ostmp.SkipLine()) // version
                     return;
                 if (!ostmp.SkipLine()) // name
@@ -821,10 +821,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!ostmp.SkipLine())
                     return;
 
-                while (ostmp.ReadLine(out osUTF8 line))
+                while (ostmp.ReadLine(out osUTF8Slice line))
                 {
                     line.SelfTrim(wearableSeps);
-                    osUTF8[] parts = line.Split(wearableSeps);
+                    osUTF8Slice[] parts = line.Split(wearableSeps);
                     if(parts[0].Length == 0)
                         continue;
                     parts[0].SelfTrim(wearableSeps);
@@ -833,7 +833,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
-                        if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
+                        if (!osUTF8Slice.TryParseInt(parts[1], out int count) || count == 0)
                             return;
                         for (int i = 0; i < count; ++i)
                         {
@@ -846,14 +846,14 @@ namespace OpenSim.Region.Framework.Scenes
                         if(parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
-                        if (!osUTF8.TryParseInt(parts[1], out int count) || count == 0)
+                        if (!osUTF8Slice.TryParseInt(parts[1], out int count) || count == 0)
                             return;
                         for(int i = 0; i < count; ++i)
                         {
-                            if(!ostmp.ReadLine(out osUTF8 texline))
+                            if(!ostmp.ReadLine(out osUTF8Slice texline))
                                 return;
                             texline.SelfTrim(wearableSeps);
-                            osUTF8[] texparts = texline.Split(wearableSeps);
+                            osUTF8Slice[] texparts = texline.Split(wearableSeps);
                             if(texparts.Length <2 || texparts[1].Length < 36)
                                 continue;
                             texparts[1].SelfTrim(wearableSeps);
@@ -868,14 +868,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private int getxmlNode(ref osUTF8 data, out osUTF8 h)
+        private int getxmlNode(ref osUTF8Slice data, out osUTF8Slice h)
         {
             h = data;
             int st = -1;
             while ((st = data.IndexOf('<')) >= 0)
             {
                 if (st > 0 && data[st - 1] == (byte)'\\')
-                    data.osUTF8SubStringSelf(st + 1);
+                    data.SubUTF8Self(st + 1);
                 break;
             }
             if (st < 0)
@@ -885,23 +885,23 @@ namespace OpenSim.Region.Framework.Scenes
             while ((ed = data.IndexOf('>')) >= 0)
             {
                 if (data[st - 1] == (byte)'\\')
-                    data.osUTF8SubStringSelf(st + 1);
+                    data.SubUTF8Self(st + 1);
                 break;
             }
             if (ed < 0)
                 return -1;
 
-            h = data.osUTF8SubString(st, ed - st);
+            h = data.SubUTF8(st, ed - st);
             h.SelfTrim();
             ++ed;
-            data.osUTF8SubStringSelf(ed);
+            data.SubUTF8Self(ed);
             return ed;
         }
 
-        private bool TryGetxmlUUIDValue(ref osUTF8 data, out UUID id)
+        private bool TryGetxmlUUIDValue(ref osUTF8Slice data, out UUID id)
         {
             id = UUID.Zero;
-            if(getxmlNode(ref data, out osUTF8 h) < 0)
+            if(getxmlNode(ref data, out osUTF8Slice h) < 0)
                 return false;
 
             if (h.StartsWith(UUIDB))
@@ -912,10 +912,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (indx < 0)
                     return false;
 
-                osUTF8 tmp = data.osUTF8SubString(0, indx);
-                data.osUTF8SubStringSelf(indx + 1);
+                osUTF8Slice tmp = data.SubUTF8(0, indx);
+                data.SubUTF8Self(indx + 1);
 
-                return osUTF8.TryParseUUID(tmp, out id);
+                return osUTF8Slice.TryParseUUID(tmp, out id);
             }
 
             if (h.StartsWith(uuidB))
@@ -926,24 +926,24 @@ namespace OpenSim.Region.Framework.Scenes
                 if (indx < 0)
                     return false;
 
-                osUTF8 tmp = data.osUTF8SubString(0, indx);
-                data.osUTF8SubStringSelf(indx + 1);
+                osUTF8Slice tmp = data.SubUTF8(0, indx);
+                data.SubUTF8Self(indx + 1);
 
-                return osUTF8.TryParseUUID(tmp, out id);
+                return osUTF8Slice.TryParseUUID(tmp, out id);
             }
 
             return false;
         }
 
-        private bool TryGetXMLBinary(ref osUTF8 data, out byte[] te)
+        private bool TryGetXMLBinary(ref osUTF8Slice data, out byte[] te)
         {
             te = null;
             int indx = data.IndexOf((byte)'<');
             if(indx <= 0)
                 return false;
 
-            osUTF8 tmp = data.osUTF8SubString(0, indx);
-            data.osUTF8SubStringSelf(indx + 1);
+            osUTF8Slice tmp = data.SubUTF8(0, indx);
+            data.SubUTF8Self(indx + 1);
 
             tmp.SelfTrim();
             if(tmp.Length == 0)
@@ -959,7 +959,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
 
-        // bad ugly and ulgy
+        // bad ugly
         private static osUTF8 UUIDB = new osUTF8("UUID");
         private static osUTF8 uuidB = new osUTF8("uuid");
         private static osUTF8 SOPAnimsB = new osUTF8("SOPAnims");
@@ -981,10 +981,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="sceneObjectAsset"></param>
         private void RecordSceneObjectAssetUuids(AssetBase sceneObjectAsset)
         {
-            osUTF8 data = new osUTF8(sceneObjectAsset.Data);
+            osUTF8Slice data = new osUTF8Slice(sceneObjectAsset.Data);
 
             int next;
-            osUTF8 nodeName;
+            osUTF8Slice nodeName;
             while ((next = getxmlNode(ref data, out nodeName)) > 0)
             {
                 if (nodeName.StartsWith((byte)'/'))
@@ -1153,7 +1153,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="gestureAsset"></param>
         private void RecordGestureAssetUuids(AssetBase gestureAsset)
         {
-            osUTF8 osdata = new osUTF8(gestureAsset.Data);
+            osUTF8Slice osdata = new osUTF8Slice(gestureAsset.Data);
 
             if (!osdata.SkipLine()) // version
                 return;
@@ -1166,21 +1166,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (!osdata.SkipLine()) // replace
                 return;
 
-            if (!osdata.ReadLine(out osUTF8 line))
+            if (!osdata.ReadLine(out osUTF8Slice line))
                 return;
 
-            if(!osUTF8.TryParseInt(line, out int scount) || scount == 0)
+            if(!osUTF8Slice.TryParseInt(line, out int scount) || scount == 0)
                 return;
 
             for(int i = 0; i < scount; ++i)
             {
-                if (!osdata.ReadLine(out osUTF8 typeline)) // type
+                if (!osdata.ReadLine(out osUTF8Slice typeline)) // type
                     return;
                 typeline.SelfTrim();
-                if (!osUTF8.TryParseInt(typeline, out int type))
+                if (!osUTF8Slice.TryParseInt(typeline, out int type))
                     return;
 
-                osUTF8 id;
+                osUTF8Slice id;
                 UUID uid;
                 switch(type)
                 {
@@ -1190,7 +1190,7 @@ namespace OpenSim.Region.Framework.Scenes
                             return;
                         if (!osdata.ReadLine(out id)) // uuid
                             return;
-                        if (osUTF8.TryParseUUID(id, out uid) && uid != UUID.Zero)
+                        if (osUTF8Slice.TryParseUUID(id, out uid) && uid != UUID.Zero)
                             GatheredUuids[uid] = type == 0 ? (sbyte)AssetType.Animation : (sbyte)AssetType.Sound;
                         if (!osdata.SkipLine()) // flags 
                             return;
@@ -1213,9 +1213,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void RecordMaterialAssetUuids(AssetBase materialAsset)
         {
-            osUTF8 data = new osUTF8(materialAsset.Data);
+            osUTF8Slice data = new osUTF8Slice(materialAsset.Data);
             int next;
-            while ((next = getxmlNode(ref data, out osUTF8 header)) > 0)
+            while ((next = getxmlNode(ref data, out osUTF8Slice header)) > 0)
             {
                 if (header.StartsWith((byte)'/'))
                     continue;
@@ -1226,10 +1226,10 @@ namespace OpenSim.Region.Framework.Scenes
                     int indx = data.IndexOf((byte)'<');
                     if(indx < 0)
                         continue;
-                    osUTF8 tmp = data.osUTF8SubString(0, indx);
-                    if(osUTF8.TryParseUUID(tmp, out UUID id) && id != UUID.Zero)
+                    osUTF8Slice tmp = data.SubUTF8(0, indx);
+                    if(osUTF8Slice.TryParseUUID(tmp, out UUID id) && id != UUID.Zero)
                         GatheredUuids[id] = (sbyte)AssetType.Texture;
-                    data.osUTF8SubStringSelf(indx + 1);
+                    data.SubUTF8Self(indx + 1);
                 }
             }
         }

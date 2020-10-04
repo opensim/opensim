@@ -308,12 +308,9 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_scriptAccessPin;
 
         private readonly Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
-        private string m_sitName = String.Empty;
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition;
         private string m_sitAnimation = "SIT";
-        private string m_text = String.Empty;
-        private string m_touchName = String.Empty;
         private UndoRedoState m_UndoRedo = null;
         private readonly object m_UndoLock = new object();
 
@@ -404,12 +401,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_TextureAnimation = Utils.EmptyBytes;
             m_particleSystem = Utils.EmptyBytes;
             Rezzed = DateTime.UtcNow;
-            Description = String.Empty;
+            //Description = String.Empty;
             PseudoCRC = (int)DateTime.UtcNow.Ticks; // random could be as good; fallbak if not on region db
             m_inventory = new SceneObjectPartInventory(this);
             LastColSoundSentTime = Util.EnvironmentTickCount();
         }
 
+        public static osUTF8 defaultName = new osUTF8("Object", true);
         /// <summary>
         /// Create a completely new SceneObjectPart (prim).  This will need to be added separately to a SceneObjectGroup
         /// </summary>
@@ -418,11 +416,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="position"></param>
         /// <param name="rotationOffset"></param>
         /// <param name="offsetPosition"></param>
+
         public SceneObjectPart(
             UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition,
             Quaternion rotationOffset, Vector3 offsetPosition) : this()
         {
-            m_name = "Object";
+            osUTF8Name = defaultName;
+            osUTF8LargeName = defaultName;
 
             CreationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
             RezzerID = LastOwnerID = CreatorID = OwnerID = ownerID;
@@ -621,12 +621,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
  
+        // several code still depends on large uncontroled names
+        private osUTF8 osUTF8LargeName;
         public override string Name
         {
-            get { return m_name; }
+            get
+            {
+                return osUTF8LargeName.ToString();
+            }
             set
             {
-                m_name = value;
+                osUTF8LargeName = new osUTF8(value);
+                osUTF8Name = new osUTF8(value, 63);
                 if(ParentGroup != null)
                     ParentGroup.InvalidatePartsLinkMaps();
 
@@ -669,7 +675,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_isSelected = value;
                 if (ParentGroup != null)
                     ParentGroup.PartSelectChanged(value);
-
             }
         }
 
@@ -1037,7 +1042,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public string Description { get; set; }
+        public osUTF8 osUTF8description;
+        public string Description
+        {
+            get {return osUTF8description.ToString(); }
+            set { osUTF8description = new osUTF8(value, 127);}
+        }
 
         /// <value>
         /// Text color.
@@ -1048,28 +1058,25 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_color = value; }
         }
 
+        public osUTF8 osUTF8Text;
         public string Text
         {
-            get
-            {
-                if (m_text.Length > 254)
-                    return m_text.Substring(0, 254);
-                return m_text;
-            }
-            set { m_text = value; }
+            get { return osUTF8Text.ToString(); }
+            set { osUTF8Text = new osUTF8(value, 254); }
         }
 
-
+        public osUTF8 osUTF8SitName;
         public string SitName
         {
-            get { return m_sitName; }
-            set { m_sitName = value; }
+            get { return osUTF8SitName.ToString(); }
+            set { osUTF8SitName = new osUTF8(value, 36); }
         }
 
+        public osUTF8 osUTF8TouchName;
         public string TouchName
         {
-            get { return m_touchName; }
-            set { m_touchName = value; }
+            get { return osUTF8TouchName.ToString(); }
+            set { osUTF8TouchName = new osUTF8(value, 36); }
         }
 
         public int LinkNum
@@ -1184,19 +1191,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// Used for media on a prim.
         /// </summary>
         /// Do not change this value directly - always do it through an IMoapModule.
+        public osUTF8 osUTFMediaUrl;
         public string MediaUrl
         {
             get
             {
-                return m_mediaUrl;
+                if(osUTFMediaUrl.Length == 0)
+                    return null;
+                return osUTFMediaUrl.ToString();
             }
 
             set
             {
-                string old = m_mediaUrl;
-                m_mediaUrl = value;
+                osUTF8 old = osUTFMediaUrl;
+                osUTFMediaUrl = new osUTF8(value, 254);
 
-                if (ParentGroup != null && old != m_mediaUrl)
+                if (ParentGroup != null && !osUTFMediaUrl.Equals(old))
                     ParentGroup.HasGroupChanged = true;
             }
         }
@@ -4052,10 +4062,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="text"></param>
         public void SetText(string text)
         {
-            string oldtext = m_text;
-            m_text = text;
+            osUTF8 old = osUTF8Text;
+            osUTF8Text = new osUTF8(text, 254);
 
-            if (ParentGroup != null && oldtext != text)
+            if (ParentGroup != null && !osUTF8Text.Equals(old))
             {
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();
@@ -4071,13 +4081,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetText(string text, Vector3 color, double alpha)
         {
             Color oldcolor = Color;
-            string oldtext = m_text;
+
             Color = Color.FromArgb((int) (alpha*0xff),
                                    (int) (color.X*0xff),
                                    (int) (color.Y*0xff),
                                    (int) (color.Z*0xff));
-            m_text = text;
-            if(ParentGroup != null && (oldcolor != Color || oldtext != m_text))
+            osUTF8 old = osUTF8Text;
+            osUTF8Text = new osUTF8(text, 254);
+            if (ParentGroup != null && (oldcolor != Color || !osUTF8Text.Equals(old)))
             {
                 ParentGroup.HasGroupChanged = true;
                 ScheduleFullUpdate();

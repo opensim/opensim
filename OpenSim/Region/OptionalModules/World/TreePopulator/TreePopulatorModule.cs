@@ -619,13 +619,14 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 if(grp.RootPart.Shape.PCode != (byte)PCode.NewTree && grp.RootPart.Shape.PCode != (byte)PCode.Tree)
                     continue;
 
-                if (grp.Name.Length > 5 && (grp.Name.Substring(0, 5) == "ATPM:" || grp.Name.Substring(0, 5) == "FTPM:"))
+                string grpname = grp.Name;
+                if (grpname.Length > 5 && (grpname.Substring(0, 5) == "ATPM:" || grpname.Substring(0, 5) == "FTPM:"))
                 {
                     // Create a new copse definition or add uuid to an existing definition
                     try
                     {
                         Boolean copsefound = false;
-                        Copse grpcopse = new Copse(grp.Name);
+                        Copse grpcopse = new Copse(grpname);
 
                         lock(mylock)
                         {
