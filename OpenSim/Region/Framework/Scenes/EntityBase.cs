@@ -58,11 +58,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// The name of this entity
         /// </summary>
-        protected string m_name;
+        public osUTF8 osUTF8Name;
         public virtual string Name
         {
-            get { return m_name; }
-            set { m_name = value; }
+            get { return osUTF8Name.ToString(); }
+            set { osUTF8Name = new osUTF8(value); }
         }
 
         /// <summary>
