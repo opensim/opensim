@@ -162,20 +162,28 @@ namespace OpenSim.Framework
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
         /// </value>
+        
         public osUTF8 UTF8Description;
+        public string Description
+        {
+            get { return UTF8Description == null ? string.Empty : UTF8Description.ToString();}
+            set { UTF8Description = string.IsNullOrWhiteSpace(value) ? null : new osUTF8(value);}
+        }
+        /*
         public string Description
         {
             get
             {
-                return UTF8Description.ToString();
+                return m_description;
             }
 
             set
             {
-                UTF8Description = new osUTF8(value);
+                m_description = value;
             }
         }
-
+        protected string m_description = String.Empty;
+        */
         /// <value>
         ///
         /// </value>

@@ -868,7 +868,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private int getxmlNode(ref osUTF8Slice data, out osUTF8Slice h)
+        private int getxmlNode(osUTF8Slice data, out osUTF8Slice h)
         {
             h = data;
             int st = -1;
@@ -898,10 +898,10 @@ namespace OpenSim.Region.Framework.Scenes
             return ed;
         }
 
-        private bool TryGetxmlUUIDValue(ref osUTF8Slice data, out UUID id)
+        private bool TryGetxmlUUIDValue(osUTF8Slice data, out UUID id)
         {
             id = UUID.Zero;
-            if(getxmlNode(ref data, out osUTF8Slice h) < 0)
+            if(getxmlNode(data, out osUTF8Slice h) < 0)
                 return false;
 
             if (h.StartsWith(UUIDB))
@@ -935,7 +935,7 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        private bool TryGetXMLBinary(ref osUTF8Slice data, out byte[] te)
+        private bool TryGetXMLBinary(osUTF8Slice data, out byte[] te)
         {
             te = null;
             int indx = data.IndexOf((byte)'<');
@@ -987,7 +987,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             int next;
             osUTF8Slice nodeName;
-            while ((next = getxmlNode(ref data, out nodeName)) > 0)
+            while ((next = getxmlNode(data, out nodeName)) > 0)
             {
                 if (nodeName.StartsWith((byte)'/'))
                     continue;
@@ -996,7 +996,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
 
-                    if (TryGetXMLBinary(ref data, out byte[] abytes) && abytes != null && abytes.Length > 16)
+                    if (TryGetXMLBinary(data, out byte[] abytes) && abytes != null && abytes.Length > 16)
                     {
                         try
                         {
@@ -1028,21 +1028,21 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!nodeName.EndsWith((byte)'d'))
                         continue;
-                    if (TryGetxmlUUIDValue(ref data, out UUID id) && id != UUID.Zero)
+                    if (TryGetxmlUUIDValue(data, out UUID id) && id != UUID.Zero)
                         GatheredUuids[id] = (sbyte)AssetType.Sound;
                 }
                 else if (nodeName.StartsWith(SoundIDB))
                 {
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
-                    if (TryGetxmlUUIDValue(ref data, out UUID id) && id != UUID.Zero)
+                    if (TryGetxmlUUIDValue(data, out UUID id) && id != UUID.Zero)
                         GatheredUuids[id] = (sbyte)AssetType.Sound;
                 }
                 else if (nodeName.StartsWith(SculptTextureB))
                 {
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
-                    if (TryGetxmlUUIDValue(ref data, out UUID id) && id != UUID.Zero)
+                    if (TryGetxmlUUIDValue(data, out UUID id) && id != UUID.Zero)
                         GatheredUuids[id] = (sbyte)AssetType.Texture; // can be mesh but no prob
                 }
                 else if (nodeName.StartsWith(ExtraParamsB))
@@ -1050,7 +1050,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
 
-                    if (TryGetXMLBinary(ref data, out byte[] exbytes) && exbytes != null && exbytes.Length > 16)
+                    if (TryGetXMLBinary(data, out byte[] exbytes) && exbytes != null && exbytes.Length > 16)
                     {
                         try
                         {
@@ -1083,7 +1083,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
 
-                    if (TryGetXMLBinary(ref data, out byte[] psbytes) && psbytes != null && psbytes.Length > 16)
+                    if (TryGetXMLBinary(data, out byte[] psbytes) && psbytes != null && psbytes.Length > 16)
                     {
                         try
                         {
@@ -1105,7 +1105,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
 
-                    if (TryGetXMLBinary(ref data, out byte[] tebytes) && tebytes != null && tebytes.Length > 16)
+                    if (TryGetXMLBinary(data, out byte[] tebytes) && tebytes != null && tebytes.Length > 16)
                     {
                         try
                         {
@@ -1135,11 +1135,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (nodeName.EndsWith((byte)'/'))
                         continue;
-                    while ((next = getxmlNode(ref data, out nodeName)) > 0)
+                    while ((next = getxmlNode(data, out nodeName)) > 0)
                     {
                         if (nodeName.StartsWith(AssetIDB))
                         {
-                            if (TryGetxmlUUIDValue(ref data, out UUID id) && id != UUID.Zero)
+                            if (TryGetxmlUUIDValue(data, out UUID id) && id != UUID.Zero)
                                 AddForInspection(id);
                         }
                         else if (nodeName.StartsWith(endTaskInventoryB))
@@ -1217,7 +1217,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             osUTF8Slice data = new osUTF8Slice(materialAsset.Data);
             int next;
-            while ((next = getxmlNode(ref data, out osUTF8Slice header)) > 0)
+            while ((next = getxmlNode(data, out osUTF8Slice header)) > 0)
             {
                 if (header.StartsWith((byte)'/'))
                     continue;

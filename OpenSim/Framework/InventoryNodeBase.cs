@@ -40,11 +40,19 @@ namespace OpenSim.Framework
 
         public virtual string Name
         {
-            get { return UTF8Name.ToString(); }
-            set { UTF8Name = new osUTF8(value); }
+            get { return UTF8Name == null ? string.Empty : UTF8Name.ToString(); }
+            set { UTF8Name = string.IsNullOrEmpty(value) ? null : new osUTF8(value); }
         }
         public osUTF8 UTF8Name;
 
+        /*
+        public virtual string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        }
+        private string m_name = string.Empty;
+        */
         /// <summary>
         /// A UUID containing the ID for the inventory node itself
         /// </summary>
