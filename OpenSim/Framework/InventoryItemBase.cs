@@ -169,21 +169,7 @@ namespace OpenSim.Framework
             get { return UTF8Description == null ? string.Empty : UTF8Description.ToString();}
             set { UTF8Description = string.IsNullOrWhiteSpace(value) ? null : new osUTF8(value);}
         }
-        /*
-        public string Description
-        {
-            get
-            {
-                return m_description;
-            }
 
-            set
-            {
-                m_description = value;
-            }
-        }
-        protected string m_description = String.Empty;
-        */
         /// <value>
         ///
         /// </value>

@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (sb == null)
                     sb = new StringBuilder(512);
                 i = notFound.Count;
-                sb.Append("[HG ASSET MAPPER POST]: did not found embedded UUIDs as assets:\n\t");
+                sb.Append("[HG ASSET MAPPER POST]: did not find embedded UUIDs as assets:\n\t");
                 for (int j = 0; j < notFound.Count; ++j)
                 {
                     sb.Append(notFound[j]);
