@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 asset = m_scene.AssetService.Get(idstr);
                 if (asset == null)
-                {   
+                {
                     notFound.Add(idstr);
                     continue;
                 }
@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (sb == null)
                     sb = new StringBuilder(512);
                 i = notFound.Count;
-                sb.Append("[HG ASSET MAPPER POST]: Missing assets:\n\t");
+                sb.Append("[HG ASSET MAPPER POST]: did not found embedded UUIDs as assets:\n\t");
                 for (int j = 0; j < notFound.Count; ++j)
                 {
                     sb.Append(notFound[j]);
@@ -347,7 +347,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (sb == null) 
                     sb = new StringBuilder(512);
                 i = existSet.Count;
-                sb.Append("[HG ASSET MAPPER POST]: Already at destination server:\n\t");
+                sb.Append("[HG ASSET MAPPER POST]: embedded assets already at destination server:\n\t");
                 foreach (UUID id in existSet)
                 {
                     sb.Append(id);

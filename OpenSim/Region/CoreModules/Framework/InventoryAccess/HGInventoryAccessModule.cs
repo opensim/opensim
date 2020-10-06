@@ -144,7 +144,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected override void OnNewClient(IClientAPI client)
         {
             base.OnNewClient(client);
-            client.OnCompleteMovementToRegion += new Action<IClientAPI, bool>(OnCompleteMovementToRegion);
+            client.OnCompleteMovementToRegion += OnCompleteMovementToRegion;
         }
 
         protected void OnCompleteMovementToRegion(IClientAPI client, bool arg2)
