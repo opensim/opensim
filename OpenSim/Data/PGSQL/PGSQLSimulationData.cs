@@ -1831,12 +1831,12 @@ namespace OpenSim.Data.PGSQL
             if (prim.VehicleParams != null)
                 parameters.Add(_Database.CreateParameter("Vehicle", prim.VehicleParams.ToXml2()));
             else
-                parameters.Add(_Database.CreateParameter("Vehicle", String.Empty));
+                parameters.Add(_Database.CreateParameter("Vehicle", string.Empty));
 
             if (prim.PhysicsInertia != null)
                 parameters.Add(_Database.CreateParameter("PhysInertia", prim.PhysicsInertia.ToXml2()));
             else
-                parameters.Add(_Database.CreateParameter("PhysInertia", String.Empty));
+                parameters.Add(_Database.CreateParameter("PhysInertia", string.Empty));
 
             if (prim.DynAttrs != null && prim.DynAttrs.CountNamespaces > 0)
                 parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));

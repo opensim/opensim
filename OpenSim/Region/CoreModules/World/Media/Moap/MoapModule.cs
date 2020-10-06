@@ -333,7 +333,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             resp.PrimID = primId;
 
             resp.FaceMedia = currentML;
-            if (part.MediaUrl == null)
+            if (string.IsNullOrEmpty(part.MediaUrl))
                 resp.Version = "x-mv:0000000000/00000000-0000-0000-0000-000000000000";
             else
                 resp.Version = part.MediaUrl;
@@ -570,7 +570,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// </param>
         protected void UpdateMediaUrl(SceneObjectPart part, UUID updateId)
         {
-            if (null == part.MediaUrl)
+            if (string.IsNullOrEmpty(part.MediaUrl))
             {
                 // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
                 part.MediaUrl = "x-mv:0000000001/" + updateId;

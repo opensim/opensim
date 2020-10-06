@@ -61,8 +61,8 @@ namespace OpenSim.Region.Framework.Scenes
         public osUTF8 osUTF8Name;
         public virtual string Name
         {
-            get { return osUTF8Name.ToString(); }
-            set { osUTF8Name = new osUTF8(value); }
+            get { return osUTF8Name == null ? string.Empty : osUTF8Name.ToString(); }
+            set { osUTF8Name = value == null? null : new osUTF8(value); }
         }
 
         /// <summary>

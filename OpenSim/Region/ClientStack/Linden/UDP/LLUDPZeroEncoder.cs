@@ -352,11 +352,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddBytes(data, len);
         }
 
-        // maxlen <= 255 and includes null termination byte, maxchars == max len of utf16 source
+        // maxlen <= 254 because null termination byte
         public unsafe void AddShortLimitedUTF8(osUTF8 str)
         {
+            if(str == null)
+            {
+                AddZeros(1);
+                return;
+            }
+
             int len = str.Length;
-            if (str.Length == 0)
+            if (len == 0)
             {
                 AddZeros(1);
                 return;

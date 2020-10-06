@@ -828,7 +828,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if(parts[0].Length == 0)
                         continue;
                     parts[0].SelfTrim(wearableSeps);
-                    if (parts[0].ToString() == "parameters")
+                    if (parts[0].Equals(parametersB))
                     {
                         if (parts[1].Length == 0)
                             return;
@@ -841,7 +841,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 return;
                         }
                     }
-                    else if (parts[0].ToString() == "textures")
+                    else if (parts[0].Equals(texturesB))
                     {
                         if(parts[1].Length == 0)
                             return;
@@ -960,18 +960,20 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         // bad ugly
-        private static osUTF8 UUIDB = new osUTF8("UUID");
-        private static osUTF8 uuidB = new osUTF8("uuid");
-        private static osUTF8 SOPAnimsB = new osUTF8("SOPAnims");
-        private static osUTF8 CollisionSoundB = new osUTF8("CollisionSound");
-        private static osUTF8 SoundIDB = new osUTF8("SoundID");
-        private static osUTF8 SculptTextureB = new osUTF8("SculptTexture");
-        private static osUTF8 ExtraParamsB = new osUTF8("ExtraParams");
-        private static osUTF8 ParticleSystemB = new osUTF8("ParticleSystem");
-        private static osUTF8 TextureEntryB = new osUTF8("TextureEntry");
-        private static osUTF8 TaskInventoryB = new osUTF8("TaskInventory");
-        private static osUTF8 endTaskInventoryB = new osUTF8("/TaskInventory");
+        private static osUTF8 UUIDB = new osUTF8("UUID", true);
+        private static osUTF8 uuidB = new osUTF8("uuid", true);
+        private static osUTF8 SOPAnimsB = new osUTF8("SOPAnims", true);
+        private static osUTF8 CollisionSoundB = new osUTF8("CollisionSound", true);
+        private static osUTF8 SoundIDB = new osUTF8("SoundID", true);
+        private static osUTF8 SculptTextureB = new osUTF8("SculptTexture", true);
+        private static osUTF8 ExtraParamsB = new osUTF8("ExtraParams", true);
+        private static osUTF8 ParticleSystemB = new osUTF8("ParticleSystem", true);
+        private static osUTF8 TextureEntryB = new osUTF8("TextureEntry", true);
+        private static osUTF8 TaskInventoryB = new osUTF8("TaskInventory", true);
+        private static osUTF8 endTaskInventoryB = new osUTF8("/TaskInventory", true);
         private static osUTF8 AssetIDB = new osUTF8("AssetID");
+        private static osUTF8 texturesB = new osUTF8("textures", true);
+        private static osUTF8 parametersB = new osUTF8("parameters", true);
 
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with

@@ -6267,10 +6267,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddUUID(sop.LastOwnerID);
 
             //name
-            zc.AddShortString(sop.Name, 64);
+            zc.AddShortLimitedUTF8(sop.osUTF8Name);
 
             //Description
-            zc.AddShortString(sop.Description, 128);
+            zc.AddShortLimitedUTF8(sop.osUTF8Description);
         }
 
         private void CreateObjectPropertiesBlock(SceneObjectPart sop, LLUDPZeroEncoder zc)
@@ -6317,7 +6317,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddShortLimitedUTF8(sop.osUTF8Name);
 
             //Description
-            zc.AddShortLimitedUTF8(sop.osUTF8description);
+            zc.AddShortLimitedUTF8(sop.osUTF8Description);
 
             // touch name
             zc.AddShortLimitedUTF8(sop.osUTF8TouchName);
@@ -7333,11 +7333,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //text
-            if (part.Text == null || part.Text.Length == 0)
+            osUTF8 osUTF8PartText = part.osUTF8Text;
+            if (osUTF8PartText == null || osUTF8PartText.Length == 0)
                 zc.AddZeros(5);
             else
             {
-                zc.AddShortString(part.Text, 255);
+                zc.AddShortLimitedUTF8(osUTF8PartText);
 
                 //textcolor
                 byte[] tc = part.GetTextColor().GetBytes(false);
@@ -7756,13 +7757,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
                 BlockLengh += extraParamBytes.Length;
 
-            byte[] hoverText = null;
             byte[] hoverTextColor = null;
-            if (part.Text != null && part.Text.Length > 0)
+            osUTF8 osUTF8PartText = part.osUTF8Text;
+            if (osUTF8PartText != null && osUTF8PartText.Length > 0)
             {
                 cflags |= CompressedFlags.HasText;
-                hoverText = Util.StringToBytes256(part.Text);
-                BlockLengh += hoverText.Length;
+                BlockLengh += osUTF8PartText.Length + 1;
                 hoverTextColor = part.GetTextColor().GetBytes(false);
                 BlockLengh += hoverTextColor.Length;
                 hastext = true;
@@ -7811,9 +7811,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 hasangvel = true;
             }
 
-            if (part.osUTFMediaUrl.Length > 0)
+            osUTF8 osUTFMediaUrl = part.osUTFMediaUrl;
+            if (osUTFMediaUrl != null && osUTFMediaUrl.Length > 0)
             {
-                BlockLengh += part.osUTFMediaUrl.Length + 1;
+                BlockLengh += osUTFMediaUrl.Length + 1;
                 cflags |= CompressedFlags.MediaURL;
                 hasmediaurl = true;
             }
@@ -7893,12 +7894,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             if (hastext)
             {
-                zc.AddBytes(hoverText, hoverText.Length);
+                zc.AddBytes(osUTF8PartText.GetArray(), osUTF8PartText.Length);
+                zc.AddZeros(1);
                 zc.AddBytes(hoverTextColor, hoverTextColor.Length);
             }
             if (hasmediaurl)
             {
-                zc.AddBytes(part.osUTFMediaUrl.GetArray(), part.osUTFMediaUrl.Length);
+                zc.AddBytes(osUTFMediaUrl.GetArray(), osUTFMediaUrl.Length);
                 zc.AddZeros(1);
             }
             if (hasps)

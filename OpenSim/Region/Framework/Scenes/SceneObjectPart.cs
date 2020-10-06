@@ -350,11 +350,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected bool m_isSelected = false;
 
-        /// <summary>
-        /// Stores media texture data
-        /// </summary>
-        protected string m_mediaUrl;
-
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
         private Vector3 m_cameraEyeOffset;
@@ -627,18 +622,28 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return osUTF8LargeName.ToString();
+                return osUTF8LargeName == null ? string.Empty : osUTF8LargeName.ToString();
             }
             set
             {
-                osUTF8LargeName = new osUTF8(value);
-                osUTF8Name = new osUTF8(value, 63);
-                if(ParentGroup != null)
+                if(string.IsNullOrEmpty(value))
+                {
+                    osUTF8LargeName = null;
+                    osUTF8Name = null;
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.SOPName = string.Empty;
+                }
+                else
+                {
+                    osUTF8LargeName = new osUTF8(value);
+                    osUTF8Name = new osUTF8(value, 63);
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
+                        pa.SOPName = value;
+                }
+                if (ParentGroup != null)
                     ParentGroup.InvalidatePartsLinkMaps();
-
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
-                    pa.SOPName = value;
             }
         }
 
@@ -1042,11 +1047,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public osUTF8 osUTF8description;
+        public osUTF8 osUTF8Description;
         public string Description
         {
-            get {return osUTF8description.ToString(); }
-            set { osUTF8description = new osUTF8(value, 127);}
+            get {return osUTF8Description == null ? string.Empty : osUTF8Description.ToString(); }
+            set { osUTF8Description = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 127);}
         }
 
         /// <value>
@@ -1061,22 +1066,22 @@ namespace OpenSim.Region.Framework.Scenes
         public osUTF8 osUTF8Text;
         public string Text
         {
-            get { return osUTF8Text.ToString(); }
-            set { osUTF8Text = new osUTF8(value, 254); }
+            get { return osUTF8Text == null ? string.Empty : osUTF8Text.ToString(); }
+            set { osUTF8Text = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 254); }
         }
 
         public osUTF8 osUTF8SitName;
         public string SitName
         {
-            get { return osUTF8SitName.ToString(); }
-            set { osUTF8SitName = new osUTF8(value, 36); }
+            get { return osUTF8SitName == null ? string.Empty : osUTF8SitName.ToString(); }
+            set { osUTF8SitName = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 36); }
         }
 
         public osUTF8 osUTF8TouchName;
         public string TouchName
         {
-            get { return osUTF8TouchName.ToString(); }
-            set { osUTF8TouchName = new osUTF8(value, 36); }
+            get { return osUTF8TouchName == null ? string.Empty : osUTF8TouchName.ToString(); }
+            set { osUTF8TouchName = string.IsNullOrEmpty(value) ? null : new osUTF8(value, 36); }
         }
 
         public int LinkNum
@@ -1196,18 +1201,25 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if(osUTFMediaUrl.Length == 0)
-                    return null;
-                return osUTFMediaUrl.ToString();
+                return osUTFMediaUrl == null ? string.Empty : osUTFMediaUrl.ToString();
             }
 
             set
             {
                 osUTF8 old = osUTFMediaUrl;
-                osUTFMediaUrl = new osUTF8(value, 254);
+                if (string.IsNullOrEmpty(value))
+                {
+                    osUTFMediaUrl = null;
+                    if (old != null && ParentGroup != null)
+                        ParentGroup.HasGroupChanged = true;
+                }
+                else
+                {
+                    osUTFMediaUrl = new osUTF8(value, 254);
 
-                if (ParentGroup != null && !osUTFMediaUrl.Equals(old))
-                    ParentGroup.HasGroupChanged = true;
+                    if (ParentGroup != null && !osUTFMediaUrl.Equals(old))
+                        ParentGroup.HasGroupChanged = true;
+                }
             }
         }
 
