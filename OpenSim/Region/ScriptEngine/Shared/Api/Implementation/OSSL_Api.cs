@@ -4095,11 +4095,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // invited agent has to be present in this scene
             ScenePresence sp = World.GetScenePresence(agent);
-            if (sp == null || !sp.ControllingClient.IsActive)
+            if (sp == null || sp.IsNPC || sp.IsChildAgent || !sp.ControllingClient.IsActive)
                 return ScriptBaseClass.FALSE;
 
             if (sp.ControllingClient.IsGroupMember(m_host.GroupID))
-                return ScriptBaseClass.TRUE;
+                return 2;
 
             // object owner has to be in that group and required permissions
             GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
