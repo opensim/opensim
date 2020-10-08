@@ -874,6 +874,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return data;
         }
 
+        public ulong GetFullGroupPowers(UUID agentID, UUID groupID)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            List<GroupRolesData> data = m_groupData.GetGroupRoles(agentID, groupID);
+            if (data == null || data.Count == 0)
+                return 0;
+
+            ulong powers = 0;
+            for (int i = 0; i < data.Count; ++i)
+            {
+                powers |= data[i].Powers;
+            }
+            return powers;
+        }
+
+        public List<GroupRolesData> GroupRoleDataRequest(UUID agentID, UUID groupID)
+        {
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            List<GroupRolesData> data = m_groupData.GetGroupRoles(agentID, groupID);
+
+            return data;
+        }
+
         public List<GroupRolesData> GroupRoleDataRequest(IClientAPI remoteClient, UUID groupID)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);

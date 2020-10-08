@@ -4101,9 +4101,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (sp.ControllingClient.IsGroupMember(m_host.GroupID))
                 return 2;
 
-            // object owner has to be in that group and required permissions
-            GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
-            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Invite) == 0)
+            // object owner needs invite power
+            ulong ownerPowers = m_groupsModule.GetFullGroupPowers(m_host.OwnerID, m_host.GroupID);
+            if ((ownerPowers & (ulong)GroupPowers.Invite) == 0)
                 return ScriptBaseClass.FALSE;
 
             m_groupsModule.InviteGroup(null, m_host.OwnerID, m_host.GroupID, agent, UUID.Zero);
@@ -4132,9 +4132,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
                 return ScriptBaseClass.FALSE;
 
-            // object owner has to be in that group and required permissions
-            GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
-            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Eject) == 0)
+            // object owner needs eject power
+            ulong ownerPowers = m_groupsModule.GetFullGroupPowers(m_host.OwnerID, m_host.GroupID);
+            if ((ownerPowers & (ulong)GroupPowers.Eject) == 0)
                 return ScriptBaseClass.FALSE;
 
             m_groupsModule.EjectGroupMember(null, m_host.OwnerID, m_host.GroupID, agent);
