@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
         protected IEnvironmentModule m_envModule = null;
-
+        protected IGroupsModule m_groupsModule= null;
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             //private init
@@ -169,6 +169,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             m_SoundModule = m_ScriptEngine.World.RequestModuleInterface<ISoundModule>();
             m_envModule = m_ScriptEngine.World.RequestModuleInterface<IEnvironmentModule>();
+            m_groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
 
             //private init
             lock (m_OSSLLock)
@@ -1864,10 +1865,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     }
                                     else
                                     {
-                                        IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
                                         GroupMembershipData member = null;
-                                        if (groupsModule != null)
-                                            member = groupsModule.GetMembershipData(uuid, newLand.OwnerID);
+                                        if (m_groupsModule != null)
+                                            member = m_groupsModule.GetMembershipData(uuid, newLand.OwnerID);
                                         if (member == null)
                                             OSSLShoutError(string.Format("land owner is not member of the new group for parcel"));
                                         else
@@ -2962,10 +2962,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if(hostGroupID && m_host.GroupID != UUID.Zero)
             {
-                IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
-                if (groupsModule != null)
+                if (m_groupsModule != null)
                 {
-                    GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+                    GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
                     if (member == null)
                     {
                         OSSLError(string.Format("osNpcCreate: the object owner is not member of the object group"));
@@ -2976,7 +2975,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if((createFlags & NPCOptionsFlags.NoNPCGroup) != 0)
                     {
-                        GroupRecord grprec = groupsModule.GetGroupRecord(m_host.GroupID);
+                        GroupRecord grprec = m_groupsModule.GetGroupRecord(m_host.GroupID);
                         if(grprec != null && grprec.GroupName != "")
                             groupTitle = grprec.GroupName;
                     }
@@ -4082,27 +4081,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osInviteToGroup");
 
-            UUID agent = new UUID(agentId);
-
             // groups module is required
-            IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
-            if (groupsModule == null) return ScriptBaseClass.FALSE;
+            if (m_groupsModule == null)
+                return ScriptBaseClass.FALSE;
 
-            // object has to be set to a group, but not group owned
-            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID) return ScriptBaseClass.FALSE;
-
-            // object owner has to be in that group and required permissions
-            GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
-            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Invite) == 0) return ScriptBaseClass.FALSE;
-
-            // check if agent is in that group already
-            //member = groupsModule.GetMembershipData(agent, m_host.GroupID, agent);
-            //if (member != null) return ScriptBaseClass.FALSE;
+            UUID agent;
+            if (!UUID.TryParse(agentId, out agent))
+                return ScriptBaseClass.FALSE;
 
             // invited agent has to be present in this scene
-            if (World.GetScenePresence(agent) == null) return ScriptBaseClass.FALSE;
+            if (World.GetScenePresence(agent) == null)
+                return ScriptBaseClass.FALSE;
 
-            groupsModule.InviteGroup(null, m_host.OwnerID, m_host.GroupID, agent, UUID.Zero);
+            // object has to be set to a group, but not group owned
+            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
+                return ScriptBaseClass.FALSE;
+
+            // object owner has to be in that group and required permissions
+            GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Invite) == 0)
+                return ScriptBaseClass.FALSE;
+
+            m_groupsModule.InviteGroup(null, m_host.OwnerID, m_host.GroupID, agent, UUID.Zero);
 
             return ScriptBaseClass.TRUE;
         }
@@ -4116,26 +4116,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osEjectFromGroup");
 
-            UUID agent = new UUID(agentId);
-
             // groups module is required
-            IGroupsModule groupsModule = m_ScriptEngine.World.RequestModuleInterface<IGroupsModule>();
-            if (groupsModule == null) return ScriptBaseClass.FALSE;
+            if (m_groupsModule == null)
+                return ScriptBaseClass.FALSE;
+
+            UUID agent;
+            if (!UUID.TryParse(agentId, out agent))
+                return ScriptBaseClass.FALSE;
 
             // object has to be set to a group, but not group owned
-            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID) return ScriptBaseClass.FALSE;
+            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
+                return ScriptBaseClass.FALSE;
 
             // object owner has to be in that group and required permissions
-            GroupMembershipData member = groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
-            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Eject) == 0) return ScriptBaseClass.FALSE;
+            GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
+            if (member == null || (member.GroupPowers & (ulong)GroupPowers.Eject) == 0)
+                return ScriptBaseClass.FALSE;
 
-            // agent has to be in that group
-            //member = groupsModule.GetMembershipData(agent, m_host.GroupID, agent);
-            //if (member == null) return ScriptBaseClass.FALSE;
-
-            // ejectee can be offline
-
-            groupsModule.EjectGroupMember(null, m_host.OwnerID, m_host.GroupID, agent);
+            m_groupsModule.EjectGroupMember(null, m_host.OwnerID, m_host.GroupID, agent);
 
             return ScriptBaseClass.TRUE;
         }
