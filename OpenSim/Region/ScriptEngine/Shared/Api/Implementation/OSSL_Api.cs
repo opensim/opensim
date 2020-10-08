@@ -4089,13 +4089,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(agentId, out agent))
                 return ScriptBaseClass.FALSE;
 
-            // invited agent has to be present in this scene
-            if (World.GetScenePresence(agent) == null)
-                return ScriptBaseClass.FALSE;
-
             // object has to be set to a group, but not group owned
             if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
                 return ScriptBaseClass.FALSE;
+
+            // invited agent has to be present in this scene
+            ScenePresence sp = World.GetScenePresence(agent);
+            if (sp == null || !sp.ControllingClient.IsActive)
+                return ScriptBaseClass.FALSE;
+
+            if (sp.ControllingClient.IsGroupMember(m_host.GroupID))
+                return ScriptBaseClass.TRUE;
 
             // object owner has to be in that group and required permissions
             GroupMembershipData member = m_groupsModule.GetMembershipData(m_host.GroupID, m_host.OwnerID);
