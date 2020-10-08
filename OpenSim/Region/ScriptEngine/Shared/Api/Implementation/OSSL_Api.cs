@@ -158,7 +158,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected IUrlModule m_UrlModule = null;
         protected ISoundModule m_SoundModule = null;
         protected IEnvironmentModule m_envModule = null;
-        protected IGroupsModule m_groupsModule= null;
+        protected IGroupsModule m_groupsModule = null;
         public void Initialize(IScriptEngine scriptEngine, SceneObjectPart host, TaskInventoryItem item)
         {
             //private init
