@@ -218,6 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int INVENTORY_BODYPART = 13;
         public const int INVENTORY_ANIMATION = 20;
         public const int INVENTORY_GESTURE = 21;
+        public const int INVENTORY_SETTING = 56;
 
         public const int ATTACH_CHEST = 1;
         public const int ATTACH_HEAD = 2;

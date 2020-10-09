@@ -3415,7 +3415,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // Normalize indices (if negative).
-            // After normlaization they may still be
+            // After normalization they may still be
             // negative, but that is now relative to
             // the start, rather than the end, of the
             // sequence.
@@ -7132,19 +7132,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llSameGroup(string id)
         {
             m_host.AddScriptLPS(1);
-            UUID uuid = new UUID();
+            UUID uuid;
             if (!UUID.TryParse(id, out uuid))
-                return new LSL_Integer(0);
+                return 0;
 
             // Check if it's a group key
             if (uuid == m_host.ParentGroup.RootPart.GroupID)
-                return new LSL_Integer(1);
+                return 1;
 
             // Handle object case
             SceneObjectPart part = World.GetSceneObjectPart(uuid);
             if (part != null)
             {
-
                 if(part.ParentGroup.IsAttachment)
                 {
                     uuid = part.ParentGroup.AttachedAvatar;
@@ -7154,9 +7153,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // This will handle both deed and non-deed and also the no
                     // group case
                     if (part.ParentGroup.RootPart.GroupID == m_host.ParentGroup.RootPart.GroupID)
-                        return new LSL_Integer(1);
-
-                    return new LSL_Integer(0);
+                        return 1;
+                    return 0;
                 }
             }
 
@@ -7165,16 +7163,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (presence != null)
             {
                 if (presence.IsChildAgent)
-                    return new LSL_Integer(0);
+                    return 0;
 
                 IClientAPI client = presence.ControllingClient;
                 if (m_host.ParentGroup.RootPart.GroupID == client.ActiveGroupId)
-                    return new LSL_Integer(1);
+                    return 1;
 
-                return new LSL_Integer(0);
+                return 0;
             }
 
-            return new LSL_Integer(0);
+            return 0;
         }
 
         public void llUnSit(string id)
