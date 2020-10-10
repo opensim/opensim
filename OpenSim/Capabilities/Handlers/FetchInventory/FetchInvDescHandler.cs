@@ -132,9 +132,7 @@ namespace OpenSim.Capabilities.Handlers
                 }
 
                 osUTF8 sb = OSUTF8Cached.Acquire();
-                sb.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
-                sb.AppendASCII("Unknown");
-                sb.AppendASCII(" :");
+                sb.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by Unknown user:");
                 int limit = 5;
                 int count = 0;
                 foreach (UUID bad in bad_folders)
