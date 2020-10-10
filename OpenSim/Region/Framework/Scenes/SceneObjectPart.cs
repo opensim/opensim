@@ -4075,12 +4075,24 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetText(string text)
         {
             osUTF8 old = osUTF8Text;
-            osUTF8Text = new osUTF8(text, 254);
-
-            if (ParentGroup != null && !osUTF8Text.Equals(old))
+            if(string.IsNullOrEmpty(text))
             {
-                ParentGroup.HasGroupChanged = true;
-                ScheduleFullUpdate();
+                osUTF8Text = null;
+                if (old != null && ParentGroup != null)
+                {
+                    ParentGroup.HasGroupChanged = true;
+                    ScheduleFullUpdate();
+                }
+            }
+            else
+            {
+                osUTF8Text = new osUTF8(text, 254);
+
+                if (ParentGroup != null && !osUTF8Text.Equals(old))
+                {
+                    ParentGroup.HasGroupChanged = true;
+                    ScheduleFullUpdate();
+                }
             }
         }
 
@@ -4099,11 +4111,23 @@ namespace OpenSim.Region.Framework.Scenes
                                    (int) (color.Y*0xff),
                                    (int) (color.Z*0xff));
             osUTF8 old = osUTF8Text;
-            osUTF8Text = new osUTF8(text, 254);
-            if (ParentGroup != null && (oldcolor != Color || !osUTF8Text.Equals(old)))
+            if(string.IsNullOrEmpty(text))
             {
-                ParentGroup.HasGroupChanged = true;
-                ScheduleFullUpdate();
+                osUTF8Text = new osUTF8(text, 254);
+                if (ParentGroup != null && (oldcolor != Color || !osUTF8Text.Equals(old)))
+                {
+                    ParentGroup.HasGroupChanged = true;
+                    ScheduleFullUpdate();
+                }
+            }
+            else
+            {
+                osUTF8Text = null;
+                if (ParentGroup != null && (oldcolor != Color || old != null))
+                {
+                    ParentGroup.HasGroupChanged = true;
+                    ScheduleFullUpdate();
+                }
             }
         }
 

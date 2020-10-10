@@ -480,6 +480,7 @@ namespace OpenSim.Framework
                     ret = OSDParser.SerializeLLSDXmlToBytes(map);
                     m_cachedbytes = ret;
                 }
+
                 return ret;
             }
         }

@@ -81,31 +81,31 @@ namespace OpenSim.Capabilities.Handlers
                     items[i++] = m_inventoryService.GetItem(UUID.Zero, id);
             }
 
-            StringBuilder lsl = LLSDxmlEncode.Start(4096);
-            LLSDxmlEncode.AddMap(lsl);
+            osUTF8 lsl = LLSDxmlEncode2.Start(4096);
+            LLSDxmlEncode2.AddMap(lsl);
 
             if(m_agentID == UUID.Zero && items.Length > 0)
-                LLSDxmlEncode.AddElem("agent_id", items[0].Owner, lsl);
+                LLSDxmlEncode2.AddElem("agent_id", items[0].Owner, lsl);
             else
-                LLSDxmlEncode.AddElem("agent_id", m_agentID, lsl);
+                LLSDxmlEncode2.AddElem("agent_id", m_agentID, lsl);
 
             if(items == null || items.Length == 0)
             {
-                LLSDxmlEncode.AddEmptyArray("items", lsl);
+                LLSDxmlEncode2.AddEmptyArray("items", lsl);
             }
             else
             {
-                LLSDxmlEncode.AddArray("items", lsl);
+                LLSDxmlEncode2.AddArray("items", lsl);
                 foreach (InventoryItemBase item in items)
                 {
                     if (item != null)
                         item.ToLLSDxml(lsl, 0xff);
                 }
-                LLSDxmlEncode.AddEndArray(lsl);
+                LLSDxmlEncode2.AddEndArray(lsl);
             }            
 
-            LLSDxmlEncode.AddEndMap(lsl);
-            return LLSDxmlEncode.End(lsl);
+            LLSDxmlEncode2.AddEndMap(lsl);
+            return LLSDxmlEncode2.End(lsl);
         }
 
         public void FetchInventorySimpleRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap requestmap, ExpiringKey<UUID> BadRequests)
@@ -137,28 +137,28 @@ namespace OpenSim.Capabilities.Handlers
             }
             catch{ }
 
-            StringBuilder lsl = LLSDxmlEncode.Start(4096);
-            LLSDxmlEncode.AddMap(lsl);
+            osUTF8 lsl = LLSDxmlEncode2.Start(4096);
+            LLSDxmlEncode2.AddMap(lsl);
 
-            LLSDxmlEncode.AddElem("agent_id", m_agentID, lsl);
+            LLSDxmlEncode2.AddElem("agent_id", m_agentID, lsl);
 
             if (items == null || items.Length == 0)
             {
-                LLSDxmlEncode.AddEmptyArray("items", lsl);
+                LLSDxmlEncode2.AddEmptyArray("items", lsl);
             }
             else
             {
-                LLSDxmlEncode.AddArray("items", lsl);
+                LLSDxmlEncode2.AddArray("items", lsl);
                 foreach (InventoryItemBase item in items)
                 {
                     if (item != null)
                         item.ToLLSDxml(lsl, 0xff);
                 }
-                LLSDxmlEncode.AddEndArray(lsl);
+                LLSDxmlEncode2.AddEndArray(lsl);
             }
 
-            LLSDxmlEncode.AddEndMap(lsl);
-            httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+            LLSDxmlEncode2.AddEndMap(lsl);
+            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
     }
