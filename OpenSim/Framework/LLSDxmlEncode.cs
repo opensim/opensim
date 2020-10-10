@@ -259,7 +259,7 @@ namespace OpenSim.Framework
 
         public static void AddElem(Quaternion e, StringBuilder sb)
         {
-            sb.Append("<array><key>x</key>");
+            sb.Append("<array>");
 
             if(e.X == 0)
                 sb.Append("<real>0</real>");
