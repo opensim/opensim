@@ -290,6 +290,32 @@ namespace OpenSim.Region.ClientStack.Linden
             return true;
         }
 
+        public bool Enqueue(osUTF8 o, UUID avatarID)
+        {
+            //m_log.DebugFormat("[EVENTQUEUE]: Enqueuing event for {0} in region {1}", avatarID, m_scene.RegionInfo.RegionName);
+            try
+            {
+                Queue<byte[]> queue = GetQueue(avatarID);
+                if (queue != null)
+                {
+                    lock (queue)
+                        queue.Enqueue(o.ToArray());
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                            "[EVENTQUEUE]: (Enqueue) No queue found for agent {0} in region {1}",
+                            avatarID, m_scene.Name);
+                }
+            }
+            catch (NullReferenceException e)
+            {
+                m_log.Error("[EVENTQUEUE] Caught exception: " + e);
+                return false;
+            }
+            return true;
+        }
+
         #endregion
 
         private void ClientClosed(UUID agentID, Scene scene)

@@ -76,6 +76,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         bool Enqueue(OSD o, UUID avatarID);
         bool Enqueue(byte[] o, UUID avatarID);
+        bool Enqueue(osUTF8 o, UUID avatarID);
 
         //        void DisableSimulator(ulong handle, UUID avatarID);
         void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY);
@@ -105,9 +106,8 @@ namespace OpenSim.Region.Framework.Interfaces
         byte[] BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
         void WindlightRefreshEvent(int interpolate, UUID avatarID);
-        StringBuilder StartEvent(string eventName);
-        StringBuilder StartEvent(string eventName, int cap);
-        string EndEvent(StringBuilder sb);
-        byte[] EndEventToBytes(StringBuilder sb);
+        osUTF8 StartEvent(string eventName);
+        osUTF8 StartEvent(string eventName, int cap);
+        byte[] EndEventToBytes(osUTF8 sb);
     }
 }

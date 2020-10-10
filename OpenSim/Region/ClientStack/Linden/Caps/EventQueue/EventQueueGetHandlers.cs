@@ -54,38 +54,31 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
         */
 
-        public StringBuilder StartEvent(string eventName)
+        public osUTF8 StartEvent(string eventName)
         {
-            StringBuilder sb = osStringBuilderCache.Acquire();
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("message", eventName, sb);
-            LLSDxmlEncode.AddMap("body", sb);
+            osUTF8 sb = OSUTF8Cached.Acquire();
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("message", eventName, sb);
+            LLSDxmlEncode2.AddMap("body", sb);
 
             return sb;
         }
 
-        public StringBuilder StartEvent(string eventName, int cap)
+        public osUTF8 StartEvent(string eventName, int cap)
         {
-            StringBuilder sb = osStringBuilderCache.Acquire();
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("message", eventName, sb);
-            LLSDxmlEncode.AddMap("body", sb);
+            osUTF8 sb = OSUTF8Cached.Acquire(cap);
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("message", eventName, sb);
+            LLSDxmlEncode2.AddMap("body", sb);
 
             return sb;
         }
 
-        public string EndEvent(StringBuilder sb)
+        public byte[] EndEventToBytes(osUTF8 sb)
         {
-            LLSDxmlEncode.AddEndMap(sb); // close body
-            LLSDxmlEncode.AddEndMap(sb); // close event
-            return osStringBuilderCache.GetStringAndRelease(sb);
-        }
-
-        public byte[] EndEventToBytes(StringBuilder sb)
-        {
-            LLSDxmlEncode.AddEndMap(sb); // close body
-            LLSDxmlEncode.AddEndMap(sb); // close event
-            return Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
+            LLSDxmlEncode2.AddEndMap(sb); // close body
+            LLSDxmlEncode2.AddEndMap(sb); // close event
+            return OSUTF8Cached.GetArrayAndRelease(sb);
         }
 
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
@@ -94,14 +87,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
 
-            StringBuilder sb = StartEvent("EnableSimulator");
-            LLSDxmlEncode.AddArrayAndMap("SimulatorInfo", sb);
-                LLSDxmlEncode.AddElem("Handle", handle, sb);
-                LLSDxmlEncode.AddElem("IP", endPoint.Address.GetAddressBytes(), sb);
-                LLSDxmlEncode.AddElem("Port", endPoint.Port, sb);
-                LLSDxmlEncode.AddElem("RegionSizeX", (uint)regionSizeX, sb);
-                LLSDxmlEncode.AddElem("RegionSizeY", (uint)regionSizeY, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            osUTF8 sb = StartEvent("EnableSimulator");
+            LLSDxmlEncode2.AddArrayAndMap("SimulatorInfo", sb);
+                LLSDxmlEncode2.AddElem("Handle", handle, sb);
+                LLSDxmlEncode2.AddElem("IP", endPoint.Address.GetAddressBytes(), sb);
+                LLSDxmlEncode2.AddElem("Port", endPoint.Port, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeX", (uint)regionSizeX, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeY", (uint)regionSizeY, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
@@ -113,15 +106,15 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, endPoint={2}, avatarID={3}",
                     LogHeader, regionHandle, endPoint, avatarID, regionSizeX, regionSizeY);
 
-            StringBuilder sb = StartEvent("EstablishAgentCommunication");
+            osUTF8 sb = StartEvent("EstablishAgentCommunication");
 
-            LLSDxmlEncode.AddElem("agent-id", avatarID, sb);
-            LLSDxmlEncode.AddElem("sim-ip-and-port", endPoint.ToString(), sb);
-            LLSDxmlEncode.AddElem("seed-capability", capsPath, sb);
+            LLSDxmlEncode2.AddElem("agent-id", avatarID, sb);
+            LLSDxmlEncode2.AddElem("sim-ip-and-port", endPoint.ToString(), sb);
+            LLSDxmlEncode2.AddElem("seed-capability", capsPath, sb);
             // current viewers ignore this, also not needed its sent on enablesim
-            //LLSDxmlEncode.AddElem("region-handle", regionHandle, sb);
-            //LLSDxmlEncode.AddElem("region-size-x", (uint)regionSizeX, sb);
-            //LLSDxmlEncode.AddElem("region-size-y", (uint)regionSizeY, sb);
+            //LLSDxmlEncode2.AddElem("region-handle", regionHandle, sb);
+            //LLSDxmlEncode2.AddElem("region-size-x", (uint)regionSizeX, sb);
+            //LLSDxmlEncode2.AddElem("region-size-y", (uint)regionSizeY, sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
@@ -141,20 +134,20 @@ namespace OpenSim.Region.ClientStack.Linden
             else
                 flags = (uint)TeleportFlags.ViaLocation;
 
-            StringBuilder sb = StartEvent("TeleportFinish");
+            osUTF8 sb = StartEvent("TeleportFinish");
 
-            LLSDxmlEncode.AddArrayAndMap("Info", sb);
-                LLSDxmlEncode.AddElem("AgentID", avatarID, sb);
-                LLSDxmlEncode.AddElem("LocationID", (uint)4, sb); // TODO what is this?
-                LLSDxmlEncode.AddElem("SimIP", regionExternalEndPoint.Address.GetAddressBytes(), sb);
-                LLSDxmlEncode.AddElem("SimPort", regionExternalEndPoint.Port, sb);
-                LLSDxmlEncode.AddElem("RegionHandle", regionHandle, sb);
-                LLSDxmlEncode.AddElem("SeedCapability", capsURL, sb);
-                LLSDxmlEncode.AddElem("SimAccess",(int)simAccess, sb);
-                LLSDxmlEncode.AddElem("TeleportFlags", flags, sb);
-                LLSDxmlEncode.AddElem("RegionSizeX", (uint)regionSizeX, sb);
-                LLSDxmlEncode.AddElem("RegionSizeY", (uint)regionSizeY, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            LLSDxmlEncode2.AddArrayAndMap("Info", sb);
+                LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+                LLSDxmlEncode2.AddElem("LocationID", (uint)4, sb); // TODO what is this?
+                LLSDxmlEncode2.AddElem("SimIP", regionExternalEndPoint.Address.GetAddressBytes(), sb);
+                LLSDxmlEncode2.AddElem("SimPort", regionExternalEndPoint.Port, sb);
+                LLSDxmlEncode2.AddElem("RegionHandle", regionHandle, sb);
+                LLSDxmlEncode2.AddElem("SeedCapability", capsURL, sb);
+                LLSDxmlEncode2.AddElem("SimAccess",(int)simAccess, sb);
+                LLSDxmlEncode2.AddElem("TeleportFlags", flags, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeX", (uint)regionSizeX, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeY", (uint)regionSizeY, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
@@ -167,26 +160,26 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
                     LogHeader, handle, avatarID, regionSizeX, regionSizeY);
 
-            StringBuilder sb = StartEvent("CrossedRegion");
+            osUTF8 sb = StartEvent("CrossedRegion");
 
-            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
-                LLSDxmlEncode.AddElem("AgentID", avatarID, sb);
-                LLSDxmlEncode.AddElem("SessionID", sessionID, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+                LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+                LLSDxmlEncode2.AddElem("SessionID", sessionID, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
-            LLSDxmlEncode.AddArrayAndMap("Info", sb);
-                LLSDxmlEncode.AddElem("LookAt", lookAt, sb);
-                LLSDxmlEncode.AddElem("Position", pos, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            LLSDxmlEncode2.AddArrayAndMap("Info", sb);
+                LLSDxmlEncode2.AddElem("LookAt", lookAt, sb);
+                LLSDxmlEncode2.AddElem("Position", pos, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
-            LLSDxmlEncode.AddArrayAndMap("RegionData", sb);
-                LLSDxmlEncode.AddElem("RegionHandle", handle, sb);
-                LLSDxmlEncode.AddElem("SeedCapability", capsURL, sb);
-                LLSDxmlEncode.AddElem("SimIP", newRegionExternalEndPoint.Address.GetAddressBytes(), sb);
-                LLSDxmlEncode.AddElem("SimPort", newRegionExternalEndPoint.Port, sb);
-                LLSDxmlEncode.AddElem("RegionSizeX", (uint)regionSizeX, sb);
-                LLSDxmlEncode.AddElem("RegionSizeY", (uint)regionSizeY, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            LLSDxmlEncode2.AddArrayAndMap("RegionData", sb);
+                LLSDxmlEncode2.AddElem("RegionHandle", handle, sb);
+                LLSDxmlEncode2.AddElem("SeedCapability", capsURL, sb);
+                LLSDxmlEncode2.AddElem("SimIP", newRegionExternalEndPoint.Address.GetAddressBytes(), sb);
+                LLSDxmlEncode2.AddElem("SimPort", newRegionExternalEndPoint.Port, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeX", (uint)regionSizeX, sb);
+                LLSDxmlEncode2.AddElem("RegionSizeY", (uint)regionSizeY, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
@@ -196,37 +189,37 @@ namespace OpenSim.Region.ClientStack.Linden
             Vector3 position, uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket,
             bool checkEstate, int godLevel, bool limitedToEstate)
         {
-            StringBuilder sb = new StringBuilder(512);
-            LLSDxmlEncode.AddMap("instantmessage", sb);
-            LLSDxmlEncode.AddMap("message_params", sb); //messageParams
-            LLSDxmlEncode.AddElem("type", dialog, sb);
-            LLSDxmlEncode.AddElem("position", position, sb);
-            LLSDxmlEncode.AddElem("region_id", UUID.Zero, sb);
-            LLSDxmlEncode.AddElem("to_id", toAgent, sb);
-            LLSDxmlEncode.AddElem("source", 0, sb);
+            osUTF8 sb = new osUTF8(512);
+            LLSDxmlEncode2.AddMap("instantmessage", sb);
+            LLSDxmlEncode2.AddMap("message_params", sb); //messageParams
+            LLSDxmlEncode2.AddElem("type", dialog, sb);
+            LLSDxmlEncode2.AddElem("position", position, sb);
+            LLSDxmlEncode2.AddElem("region_id", UUID.Zero, sb);
+            LLSDxmlEncode2.AddElem("to_id", toAgent, sb);
+            LLSDxmlEncode2.AddElem("source", 0, sb);
 
-            LLSDxmlEncode.AddMap("data", sb); //messageParams data
-            LLSDxmlEncode.AddElem("binary_bucket", binaryBucket, sb);
-            LLSDxmlEncode.AddEndMap(sb); //messageParams data
+            LLSDxmlEncode2.AddMap("data", sb); //messageParams data
+            LLSDxmlEncode2.AddElem("binary_bucket", binaryBucket, sb);
+            LLSDxmlEncode2.AddEndMap(sb); //messageParams data
 
-            LLSDxmlEncode.AddElem("message", message, sb);
-            LLSDxmlEncode.AddElem("id", transactionID, sb);
-            LLSDxmlEncode.AddElem("from_name", fromName, sb);
-            LLSDxmlEncode.AddElem("timestamp", timeStamp, sb);
-            LLSDxmlEncode.AddElem("offline", (offline ? 1 : 0), sb);
-            LLSDxmlEncode.AddElem("parent_estate_id", parentEstateID, sb);
-            LLSDxmlEncode.AddElem("ttl", (int)ttl, sb);
-            LLSDxmlEncode.AddElem("from_id", fromAgent, sb);
-            LLSDxmlEncode.AddElem("from_group", fromGroup, sb);
-            LLSDxmlEncode.AddEndMap(sb); //messageParams
+            LLSDxmlEncode2.AddElem("message", message, sb);
+            LLSDxmlEncode2.AddElem("id", transactionID, sb);
+            LLSDxmlEncode2.AddElem("from_name", fromName, sb);
+            LLSDxmlEncode2.AddElem("timestamp", timeStamp, sb);
+            LLSDxmlEncode2.AddElem("offline", (offline ? 1 : 0), sb);
+            LLSDxmlEncode2.AddElem("parent_estate_id", parentEstateID, sb);
+            LLSDxmlEncode2.AddElem("ttl", (int)ttl, sb);
+            LLSDxmlEncode2.AddElem("from_id", fromAgent, sb);
+            LLSDxmlEncode2.AddElem("from_group", fromGroup, sb);
+            LLSDxmlEncode2.AddEndMap(sb); //messageParams
 
-            LLSDxmlEncode.AddMap("agent_params", sb);
-            LLSDxmlEncode.AddElem("agent_id", fromAgent, sb);
-            LLSDxmlEncode.AddElem("check_estate", checkEstate, sb);
-            LLSDxmlEncode.AddElem("god_level", godLevel, sb);
-            LLSDxmlEncode.AddElem("limited_to_estate", limitedToEstate, sb);
-            LLSDxmlEncode.AddEndMap(sb); // agent params
-            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode2.AddMap("agent_params", sb);
+            LLSDxmlEncode2.AddElem("agent_id", fromAgent, sb);
+            LLSDxmlEncode2.AddElem("check_estate", checkEstate, sb);
+            LLSDxmlEncode2.AddElem("god_level", godLevel, sb);
+            LLSDxmlEncode2.AddElem("limited_to_estate", limitedToEstate, sb);
+            LLSDxmlEncode2.AddEndMap(sb); // agent params
+            LLSDxmlEncode2.AddEndMap(sb);
 
             return sb.ToString();
         }
@@ -236,13 +229,13 @@ namespace OpenSim.Region.ClientStack.Linden
                                          uint timeStamp, bool offline, int parentEstateID, Vector3 position,
                                          uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket)
         {
-            StringBuilder sb = StartEvent("ChatterBoxInvitation");
-            LLSDxmlEncode.AddElem("session_id", sessionID, sb);
-            LLSDxmlEncode.AddElem("from_name", fromName, sb);
-            LLSDxmlEncode.AddElem("session_name", sessionName, sb);
-            LLSDxmlEncode.AddElem("from_id", fromAgent, sb);
+            osUTF8 sb = StartEvent("ChatterBoxInvitation");
+            LLSDxmlEncode2.AddElem("session_id", sessionID, sb);
+            LLSDxmlEncode2.AddElem("from_name", fromName, sb);
+            LLSDxmlEncode2.AddElem("session_name", sessionName, sb);
+            LLSDxmlEncode2.AddElem("from_id", fromAgent, sb);
 
-            LLSDxmlEncode.AddLLSD(InstantMessageBody(fromAgent, message, toAgent,
+            LLSDxmlEncode2.AddLLSD(InstantMessageBody(fromAgent, message, toAgent,
                 fromName, dialog, timeStamp, offline, parentEstateID, position,
                 ttl, transactionID, fromGroup, binaryBucket, true, 0, true), sb);
 
@@ -251,27 +244,27 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID toAgent, List<GroupChatListAgentUpdateData> updates)
         {
-            StringBuilder sb = StartEvent("ChatterBoxSessionAgentListUpdates",1024);
-            LLSDxmlEncode.AddMap("agent_updates",sb);
+            osUTF8 sb = StartEvent("ChatterBoxSessionAgentListUpdates",1024);
+            LLSDxmlEncode2.AddMap("agent_updates",sb);
             foreach (GroupChatListAgentUpdateData up in updates)
             {
-                LLSDxmlEncode.AddMap(up.agentID.ToString(), sb);
-                    LLSDxmlEncode.AddMap("info", sb);
-                        LLSDxmlEncode.AddElem("can_voice_chat", up.canVoice, sb);
-                        LLSDxmlEncode.AddElem("is_moderator", up.isModerator, sb);
-                        LLSDxmlEncode.AddMap("mutes",sb);
-                            LLSDxmlEncode.AddElem("text", up.mutedText, sb);
-                        LLSDxmlEncode.AddEndMap(sb); // mutes
-                    LLSDxmlEncode.AddEndMap(sb); // info
+                LLSDxmlEncode2.AddMap(up.agentID.ToString(), sb);
+                    LLSDxmlEncode2.AddMap("info", sb);
+                        LLSDxmlEncode2.AddElem("can_voice_chat", up.canVoice, sb);
+                        LLSDxmlEncode2.AddElem("is_moderator", up.isModerator, sb);
+                        LLSDxmlEncode2.AddMap("mutes",sb);
+                            LLSDxmlEncode2.AddElem("text", up.mutedText, sb);
+                        LLSDxmlEncode2.AddEndMap(sb); // mutes
+                    LLSDxmlEncode2.AddEndMap(sb); // info
                     if (up.enterOrLeave)
-                        LLSDxmlEncode.AddElem("transition", "ENTER", sb);
+                        LLSDxmlEncode2.AddElem("transition", "ENTER", sb);
                     else
-                        LLSDxmlEncode.AddElem("transition", "LEAVE", sb);
-                LLSDxmlEncode.AddEndMap(sb); //agentid
+                        LLSDxmlEncode2.AddElem("transition", "LEAVE", sb);
+                LLSDxmlEncode2.AddEndMap(sb); //agentid
             }
-            LLSDxmlEncode.AddEndMap(sb); // agent_updates
-            LLSDxmlEncode.AddEmptyMap("updates",sb);
-            LLSDxmlEncode.AddElem("session_id", sessionID, sb);
+            LLSDxmlEncode2.AddEndMap(sb); // agent_updates
+            LLSDxmlEncode2.AddEmptyMap("updates",sb);
+            LLSDxmlEncode2.AddElem("session_id", sessionID, sb);
 
             Enqueue(EndEventToBytes(sb), toAgent);
         }
@@ -281,75 +274,75 @@ namespace OpenSim.Region.ClientStack.Linden
                                 bool sucess, string error,
                                 UUID toAgent)
         {
-            StringBuilder sb = StartEvent("ChatterBoxSessionStartReply");
-            LLSDxmlEncode.AddElem("session_id", sessionID, sb);
-            LLSDxmlEncode.AddElem("temp_session_id", tmpSessionID, sb);
-            LLSDxmlEncode.AddElem("success", sucess, sb);
+            osUTF8 sb = StartEvent("ChatterBoxSessionStartReply");
+            LLSDxmlEncode2.AddElem("session_id", sessionID, sb);
+            LLSDxmlEncode2.AddElem("temp_session_id", tmpSessionID, sb);
+            LLSDxmlEncode2.AddElem("success", sucess, sb);
             if(sucess)
             {
-                LLSDxmlEncode.AddMap("session_info", sb);
-                    LLSDxmlEncode.AddMap("moderated_mode", sb);
-                        LLSDxmlEncode.AddElem("voice", voiceModerated, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
-                    LLSDxmlEncode.AddElem("session_name", sessionName, sb);
-                    LLSDxmlEncode.AddElem("type", type, sb);
-                    LLSDxmlEncode.AddElem("voice_enabled", voiceEnabled, sb);
-                LLSDxmlEncode.AddEndMap(sb);
+                LLSDxmlEncode2.AddMap("session_info", sb);
+                    LLSDxmlEncode2.AddMap("moderated_mode", sb);
+                        LLSDxmlEncode2.AddElem("voice", voiceModerated, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
+                    LLSDxmlEncode2.AddElem("session_name", sessionName, sb);
+                    LLSDxmlEncode2.AddElem("type", type, sb);
+                    LLSDxmlEncode2.AddElem("voice_enabled", voiceEnabled, sb);
+                LLSDxmlEncode2.AddEndMap(sb);
             }
             else
-                LLSDxmlEncode.AddElem("error", String.IsNullOrEmpty(error) ? "" : error, sb);
+                LLSDxmlEncode2.AddElem("error", String.IsNullOrEmpty(error) ? "" : error, sb);
 
             Enqueue(EndEventToBytes(sb), toAgent);
         }
 
         public void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason)
         {
-            StringBuilder sb = StartEvent("ForceCloseChatterBoxSession");
-            LLSDxmlEncode.AddElem("session_id", sessionID, sb);
-            LLSDxmlEncode.AddElem("reason", reason, sb);
+            osUTF8 sb = StartEvent("ForceCloseChatterBoxSession");
+            LLSDxmlEncode2.AddElem("session_id", sessionID, sb);
+            LLSDxmlEncode2.AddElem("reason", reason, sb);
 
             Enqueue(EndEventToBytes(sb), toAgent);
         }
 
         public void GroupMembershipData(UUID AgentID, GroupMembershipData[] data)
         {
-            StringBuilder sb = StartEvent("AgentGroupDataUpdate");
+            osUTF8 sb = StartEvent("AgentGroupDataUpdate");
 
-            LLSDxmlEncode.AddArrayAndMap("AgentData", sb);
-            LLSDxmlEncode.AddElem("AgentID", AgentID, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            LLSDxmlEncode2.AddArrayAndMap("AgentData", sb);
+            LLSDxmlEncode2.AddElem("AgentID", AgentID, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             if (data.Length == 0)
             {
-                LLSDxmlEncode.AddEmptyArray("GroupData", sb);
-                LLSDxmlEncode.AddEmptyArray("NewGroupData", sb);
+                LLSDxmlEncode2.AddEmptyArray("GroupData", sb);
+                LLSDxmlEncode2.AddEmptyArray("NewGroupData", sb);
             }
             else
             {
                 List<bool> lstInProfiles = new List<bool>(data.Length);
-                LLSDxmlEncode.AddArray("GroupData", sb);
+                LLSDxmlEncode2.AddArray("GroupData", sb);
                 foreach (GroupMembershipData m in data)
                 {
-                    LLSDxmlEncode.AddMap(sb);
-                    LLSDxmlEncode.AddElem("GroupID", m.GroupID, sb);
-                    LLSDxmlEncode.AddElem("GroupPowers", m.GroupPowers, sb);
-                    LLSDxmlEncode.AddElem("AcceptNotices", m.AcceptNotices, sb);
-                    LLSDxmlEncode.AddElem("GroupInsigniaID", m.GroupPicture, sb);
-                    LLSDxmlEncode.AddElem("Contribution", m.Contribution, sb);
-                    LLSDxmlEncode.AddElem("GroupName", m.GroupName, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("GroupID", m.GroupID, sb);
+                    LLSDxmlEncode2.AddElem("GroupPowers", m.GroupPowers, sb);
+                    LLSDxmlEncode2.AddElem("AcceptNotices", m.AcceptNotices, sb);
+                    LLSDxmlEncode2.AddElem("GroupInsigniaID", m.GroupPicture, sb);
+                    LLSDxmlEncode2.AddElem("Contribution", m.Contribution, sb);
+                    LLSDxmlEncode2.AddElem("GroupName", m.GroupName, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                     lstInProfiles.Add(m.ListInProfile);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
 
-                LLSDxmlEncode.AddArray("NewGroupData", sb);
+                LLSDxmlEncode2.AddArray("NewGroupData", sb);
                 foreach(bool b in lstInProfiles)
                 {
-                    LLSDxmlEncode.AddMap(sb);
-                    LLSDxmlEncode.AddElem("ListInProfile", b, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("ListInProfile", b, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
 
             Enqueue(EndEventToBytes(sb), AgentID);
@@ -357,54 +350,54 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void PlacesQueryReply(UUID avatarID, UUID queryID, UUID transactionID, PlacesReplyData[] replyDataArray)
         {
-            StringBuilder sb = new StringBuilder(256);
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("message", "PlacesReplyMessage", sb);
-            LLSDxmlEncode.AddMap("QueryData[]", sb); LLSDxmlEncode.AddArray(sb);
-                LLSDxmlEncode.AddArray("AgentData", sb);
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("AgentID", avatarID, sb);
-                        LLSDxmlEncode.AddElem("QueryID", queryID, sb);
-                        LLSDxmlEncode.AddElem("TransactionID", transactionID, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
-                LLSDxmlEncode.AddEndArray(sb);
+            osUTF8 sb = new osUTF8(256);
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("message", "PlacesReplyMessage", sb);
+            LLSDxmlEncode2.AddMap("QueryData[]", sb); LLSDxmlEncode2.AddArray(sb);
+                LLSDxmlEncode2.AddArray("AgentData", sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+                        LLSDxmlEncode2.AddElem("QueryID", queryID, sb);
+                        LLSDxmlEncode2.AddElem("TransactionID", transactionID, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
 
-                LLSDxmlEncode.AddArray("QueryData", sb);
+                LLSDxmlEncode2.AddArray("QueryData", sb);
 
                 for (int i = 0; i < replyDataArray.Length; ++i)
                 {
                     PlacesReplyData data = replyDataArray[i];
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("ActualArea", data.ActualArea, sb);
-                        LLSDxmlEncode.AddElem("BillableArea", data.BillableArea, sb);
-                        LLSDxmlEncode.AddElem("Description", data.Desc, sb);
-                        LLSDxmlEncode.AddElem("Dwell", data.Dwell, sb);
-                        LLSDxmlEncode.AddElem("Flags", data.Flags, sb);
-                        LLSDxmlEncode.AddElem("GlobalX", data.GlobalX, sb);
-                        LLSDxmlEncode.AddElem("GlobalY", data.GlobalY, sb);
-                        LLSDxmlEncode.AddElem("GlobalZ", data.GlobalZ, sb);
-                        LLSDxmlEncode.AddElem("Name", data.Name, sb);
-                        LLSDxmlEncode.AddElem("OwnerID", data.OwnerID, sb);
-                        LLSDxmlEncode.AddElem("SimName", data.SimName, sb);
-                        LLSDxmlEncode.AddElem("SnapShotID", data.SnapshotID, sb);
-                        LLSDxmlEncode.AddElem("ProductSku", (int)0, sb);
-                        LLSDxmlEncode.AddElem("Price", data.Price, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("ActualArea", data.ActualArea, sb);
+                        LLSDxmlEncode2.AddElem("BillableArea", data.BillableArea, sb);
+                        LLSDxmlEncode2.AddElem("Description", data.Desc, sb);
+                        LLSDxmlEncode2.AddElem("Dwell", data.Dwell, sb);
+                        LLSDxmlEncode2.AddElem("Flags", data.Flags, sb);
+                        LLSDxmlEncode2.AddElem("GlobalX", data.GlobalX, sb);
+                        LLSDxmlEncode2.AddElem("GlobalY", data.GlobalY, sb);
+                        LLSDxmlEncode2.AddElem("GlobalZ", data.GlobalZ, sb);
+                        LLSDxmlEncode2.AddElem("Name", data.Name, sb);
+                        LLSDxmlEncode2.AddElem("OwnerID", data.OwnerID, sb);
+                        LLSDxmlEncode2.AddElem("SimName", data.SimName, sb);
+                        LLSDxmlEncode2.AddElem("SnapShotID", data.SnapshotID, sb);
+                        LLSDxmlEncode2.AddElem("ProductSku", (int)0, sb);
+                        LLSDxmlEncode2.AddElem("Price", data.Price, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
 
         public void ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID)
         {
-            StringBuilder sb = StartEvent("ScriptRunningReply");
-            LLSDxmlEncode.AddArrayAndMap("Script", sb);
-                LLSDxmlEncode.AddElem("ObjectID", objectID, sb);
-                LLSDxmlEncode.AddElem("ItemID", itemID, sb);
-                LLSDxmlEncode.AddElem("Running", running, sb);
-                LLSDxmlEncode.AddElem("Mono", true, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            osUTF8 sb = StartEvent("ScriptRunningReply");
+            LLSDxmlEncode2.AddArrayAndMap("Script", sb);
+                LLSDxmlEncode2.AddElem("ObjectID", objectID, sb);
+                LLSDxmlEncode2.AddElem("ItemID", itemID, sb);
+                LLSDxmlEncode2.AddElem("Running", running, sb);
+                LLSDxmlEncode2.AddElem("Mono", true, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
@@ -412,34 +405,34 @@ namespace OpenSim.Region.ClientStack.Linden
         public void partPhysicsProperties(uint localID, byte physhapetype,
                         float density, float friction, float bounce, float gravmod, UUID avatarID)
         {
-            StringBuilder sb = StartEvent("ObjectPhysicsProperties");
-            LLSDxmlEncode.AddArrayAndMap("ObjectData", sb);
-                LLSDxmlEncode.AddElem("LocalID", (int)localID, sb);
-                LLSDxmlEncode.AddElem("Density", density, sb);
-                LLSDxmlEncode.AddElem("Friction", friction, sb);
-                LLSDxmlEncode.AddElem("GravityMultiplier", gravmod, sb);
-                LLSDxmlEncode.AddElem("Restitution", bounce, sb);
-                LLSDxmlEncode.AddElem("PhysicsShapeType", (int)physhapetype, sb);
-            LLSDxmlEncode.AddEndMapAndArray(sb);
+            osUTF8 sb = StartEvent("ObjectPhysicsProperties");
+            LLSDxmlEncode2.AddArrayAndMap("ObjectData", sb);
+                LLSDxmlEncode2.AddElem("LocalID", (int)localID, sb);
+                LLSDxmlEncode2.AddElem("Density", density, sb);
+                LLSDxmlEncode2.AddElem("Friction", friction, sb);
+                LLSDxmlEncode2.AddElem("GravityMultiplier", gravmod, sb);
+                LLSDxmlEncode2.AddElem("Restitution", bounce, sb);
+                LLSDxmlEncode2.AddElem("PhysicsShapeType", (int)physhapetype, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             Enqueue(EndEventToBytes(sb), avatarID);
         }
 
         public void WindlightRefreshEvent(int interpolate, UUID avatarID)
         {
-            StringBuilder sb = StartEvent("WindLightRefresh");
-            LLSDxmlEncode.AddElem("Interpolate", interpolate > 0 ? 1 : 0, sb);
+            osUTF8 sb = StartEvent("WindLightRefresh");
+            LLSDxmlEncode2.AddElem("Interpolate", interpolate > 0 ? 1 : 0, sb);
             Enqueue(EndEventToBytes(sb), avatarID);
         }
 
         public static string KeepAliveEvent()
         {
-            StringBuilder sb = new StringBuilder(256);
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("message", "FAKEEVENT", sb);
-            LLSDxmlEncode.AddMap("body", sb);
-            LLSDxmlEncode.AddEndMap(sb); // close body
-            LLSDxmlEncode.AddEndMap(sb); // close event
+            osUTF8 sb = new osUTF8(256);
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("message", "FAKEEVENT", sb);
+            LLSDxmlEncode2.AddMap("body", sb);
+            LLSDxmlEncode2.AddEndMap(sb); // close body
+            LLSDxmlEncode2.AddEndMap(sb); // close event
             return sb.ToString();
         }
 

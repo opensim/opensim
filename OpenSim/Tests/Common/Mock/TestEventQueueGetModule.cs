@@ -117,12 +117,10 @@ namespace OpenSim.Tests.Common
         {
             return true;
         }
-        /*
-                                public void DisableSimulator(ulong handle, UUID avatarID)
-                                {
-                                    AddEvent(avatarID, "DisableSimulator", handle);
-                                }
-                        */
+        public bool Enqueue(osUTF8 o, UUID avatarID)
+        {
+            return true;
+        }
         public void EnableSimulator (ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             AddEvent(avatarID, "EnableSimulator", handle);
@@ -207,21 +205,17 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public StringBuilder StartEvent(string eventName)
+        public osUTF8 StartEvent(string eventName)
         {
             return null;
         }
 
-        public StringBuilder StartEvent(string eventName, int cap)
+        public osUTF8 StartEvent(string eventName, int cap)
         {
             return null;
         }
 
-        public string EndEvent(StringBuilder sb)
-        {
-            return "";
-        }
-        public byte[] EndEventToBytes(StringBuilder sb)
+        public byte[] EndEventToBytes(osUTF8 sb)
         {
             return new byte[0];
         }
