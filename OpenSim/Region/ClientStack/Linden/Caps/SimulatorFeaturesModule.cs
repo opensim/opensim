@@ -307,6 +307,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
+            ScenePresence sp = m_scene.GetScenePresence(agentID);
+            if (sp == null)
+            {
+                response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                response.AddHeader("Retry-After", "5");
+                return;
+            }
+
             OSDMap copy = DeepCopy();
 
             // Let's add the agentID to the destination guide, if it is expecting that.

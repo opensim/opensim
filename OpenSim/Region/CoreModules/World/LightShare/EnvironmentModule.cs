@@ -465,21 +465,17 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            ViewerEnvironment VEnv = null;
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-
-            if(sp != null && sp.Environment != null)
+            if (sp == null)
             {
-                //if (parcelid == -1)
-                    VEnv = sp.Environment;
-                //else
-                //{
-                //    OSD def = ViewerEnvironment.DefaultToOSD(regionID, parcelid);
-                //    httpResponse.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(def);
-                //    httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                //    return;
-                //}
+                httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                httpResponse.AddHeader("Retry-After", "5");
+                return;
             }
+
+            ViewerEnvironment VEnv = null;
+            if (sp.Environment != null)
+                VEnv = sp.Environment;
             else if (parcelid == -1)
                 VEnv = GetRegionEnvironment();
             else
@@ -499,17 +495,6 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            //OSDMap map = new OSDMap();
-            //OSDMap cenv = (OSDMap)VEnv.ToOSD();
-            //cenv["parcel_id"] = parcelid;
-            //cenv["region_id"] = regionID;
-            //map["environment"] = cenv;
-            //map["parcel_id"] = parcelid;
-            //map["success"] = true;
-
-            //string env = OSDParser.SerializeLLSDXmlString(map);
-
-            //if (String.IsNullOrEmpty(env))
             byte[] envBytes = VEnv.ToCapBytes(regionID, parcelid);
             if(envBytes == null)
             {
@@ -708,14 +693,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             ViewerEnvironment VEnv = null;
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if(sp == null)
+            if (sp == null)
             {
                 response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
-                response.AddHeader("Retry-After", "10");
+                response.AddHeader("Retry-After", "5");
                 return;
             }
 
-            if(sp.Environment != null)
+            if (sp.Environment != null)
                 VEnv = sp.Environment;
             else
             {
