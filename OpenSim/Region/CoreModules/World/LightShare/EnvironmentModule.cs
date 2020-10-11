@@ -708,7 +708,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
             ViewerEnvironment VEnv = null;
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-            if (sp != null && sp.Environment != null)
+            if(sp == null)
+            {
+                response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                response.AddHeader("Retry-After", "10");
+                return;
+            }
+
+            if(sp.Environment != null)
                 VEnv = sp.Environment;
             else
             {
@@ -718,14 +725,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     if (land != null && land.LandData != null && land.LandData.Environment != null)
                         VEnv = land.LandData.Environment;
                 }
-                if(VEnv == null)
-                    VEnv = GetRegionEnvironment();
             }
+            if (VEnv == null)
+                VEnv = GetRegionEnvironment();
 
-            //OSD d = VEnv.ToWLOSD(UUID.Zero, regionID);
-            //string env = OSDParser.SerializeLLSDXmlString(d);
-
-            //if (String.IsNullOrEmpty(env))
             byte[] envBytes = VEnv.ToCapWLBytes(UUID.Zero, regionID);
             if(envBytes == null)
             {
