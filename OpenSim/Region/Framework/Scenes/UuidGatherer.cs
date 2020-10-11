@@ -960,20 +960,20 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         // bad ugly
-        private static osUTF8 UUIDB = new osUTF8("UUID", true);
-        private static osUTF8 uuidB = new osUTF8("uuid", true);
-        private static osUTF8 SOPAnimsB = new osUTF8("SOPAnims", true);
-        private static osUTF8 CollisionSoundB = new osUTF8("CollisionSound", true);
-        private static osUTF8 SoundIDB = new osUTF8("SoundID", true);
-        private static osUTF8 SculptTextureB = new osUTF8("SculptTexture", true);
-        private static osUTF8 ExtraParamsB = new osUTF8("ExtraParams", true);
-        private static osUTF8 ParticleSystemB = new osUTF8("ParticleSystem", true);
-        private static osUTF8 TextureEntryB = new osUTF8("TextureEntry", true);
-        private static osUTF8 TaskInventoryB = new osUTF8("TaskInventory", true);
-        private static osUTF8 endTaskInventoryB = new osUTF8("/TaskInventory", true);
-        private static osUTF8 AssetIDB = new osUTF8("AssetID");
-        private static osUTF8 texturesB = new osUTF8("textures", true);
-        private static osUTF8 parametersB = new osUTF8("parameters", true);
+        private static byte[] UUIDB = osUTF8.GetASCIIBytes("UUID");
+        private static byte[] uuidB = osUTF8.GetASCIIBytes("uuid");
+        private static byte[] SOPAnimsB = osUTF8.GetASCIIBytes("SOPAnims");
+        private static byte[] CollisionSoundB = osUTF8.GetASCIIBytes("CollisionSound");
+        private static byte[] SoundIDB = osUTF8.GetASCIIBytes("SoundID");
+        private static byte[] SculptTextureB = osUTF8.GetASCIIBytes("SculptTexture");
+        private static byte[] ExtraParamsB = osUTF8.GetASCIIBytes("ExtraParams");
+        private static byte[] ParticleSystemB = osUTF8.GetASCIIBytes("ParticleSystem");
+        private static byte[] TextureEntryB = osUTF8.GetASCIIBytes("TextureEntry");
+        private static byte[] TaskInventoryB = osUTF8.GetASCIIBytes("TaskInventory");
+        private static byte[] endTaskInventoryB = osUTF8.GetASCIIBytes("/TaskInventory");
+        private static byte[] AssetIDB = osUTF8.GetASCIIBytes("AssetID");
+        private static byte[] texturesB = osUTF8.GetASCIIBytes("textures");
+        private static byte[] parametersB = osUTF8.GetASCIIBytes("parameters");
 
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with

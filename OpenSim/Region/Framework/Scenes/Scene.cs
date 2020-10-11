@@ -4066,6 +4066,40 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            if (teleportFlags != (uint)TPFlags.Default)
+            {
+                // Make sure root avatar position is in the region
+                if (acd.startpos.X < 0)
+                    acd.startpos.X = 1f;
+                else if (acd.startpos.X >= RegionInfo.RegionSizeX)
+                    acd.startpos.X = RegionInfo.RegionSizeX - 1f;
+                if (acd.startpos.Y < 0)
+                    acd.startpos.Y = 1f;
+                else if (acd.startpos.Y >= RegionInfo.RegionSizeY)
+                    acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
+            }
+
+            // only check access, actual relocations will happen later on ScenePresence MakeRoot
+            // allow child agents creation
+            //if(!godlike && teleportFlags != (uint) TPFlags.Default)
+            if (teleportFlags != (uint)TPFlags.Default)
+            {
+                bool checkTeleHub;
+
+                // don't check hubs if via home or via lure
+                if ((teleportFlags & (uint)(TPFlags.ViaHome | TPFlags.ViaLure)) != 0)
+                    checkTeleHub = false;
+                else
+                    checkTeleHub = vialogin
+                        || (TelehubAllowLandmarks == true ? false : ((teleportFlags & (uint)(TPFlags.ViaLandmark | TPFlags.ViaLocation)) != 0));
+
+                if (!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, acd.startpos, out reason))
+                {
+                    m_authenticateHandler.RemoveCircuit(acd);
+                    return false;
+                }
+            }
+
             // TODO: can we remove this lock?
             lock (m_newUserConnLock)
             {
@@ -4185,50 +4219,11 @@ namespace OpenSim.Region.Framework.Scenes
                 CacheUserName(null, acd);
             }
 
-
-            //if (vialogin)
-            //{
-            //    CleanDroppedAttachments();
-            //}
-
-            if (teleportFlags != (uint)TPFlags.Default)
-            {
-                // Make sure root avatar position is in the region
-                if (acd.startpos.X < 0)
-                    acd.startpos.X = 1f;
-                else if (acd.startpos.X >= RegionInfo.RegionSizeX)
-                    acd.startpos.X = RegionInfo.RegionSizeX - 1f;
-                if (acd.startpos.Y < 0)
-                    acd.startpos.Y = 1f;
-                else if (acd.startpos.Y >= RegionInfo.RegionSizeY)
-                    acd.startpos.Y = RegionInfo.RegionSizeY - 1f;
-            }
-
-            // only check access, actual relocations will happen later on ScenePresence MakeRoot
-            // allow child agents creation
-            //if(!godlike && teleportFlags != (uint) TPFlags.Default)
-            if (teleportFlags != (uint)TPFlags.Default)
-            {
-                bool checkTeleHub;
-
-                // don't check hubs if via home or via lure
-                if ((teleportFlags & (uint)(TPFlags.ViaHome | TPFlags.ViaLure)) != 0)
-                    checkTeleHub = false;
-                else
-                    checkTeleHub = vialogin
-                        || (TelehubAllowLandmarks == true ? false : ((teleportFlags & (uint)(TPFlags.ViaLandmark | TPFlags.ViaLocation)) != 0));
-
-                if (!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, acd.startpos, out reason))
-                {
-                    m_authenticateHandler.RemoveCircuit(acd);
-                    return false;
-                }
-            }
-
             if (CapsModule != null)
             {
                 CapsModule.ActivateCaps(acd.circuitcode);
             }
+
 
             return true;
         }
