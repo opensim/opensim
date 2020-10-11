@@ -83,11 +83,6 @@ namespace OpenSim.Region.ClientStack.Linden
         private static object m_loadLock = new object();
         protected IUserManagement m_UserManagement = null;
 
-        private Dictionary<UUID, string> m_capsDictTexture = new Dictionary<UUID, string>();
-        private Dictionary<UUID, string> m_capsDictGetMesh = new Dictionary<UUID, string>();
-        private Dictionary<UUID, string> m_capsDictGetMesh2 = new Dictionary<UUID, string>();
-        private Dictionary<UUID, string> m_capsDictGetAsset = new Dictionary<UUID, string>();
-
         #region Region Module interfaceBase Members
 
         public Type ReplaceableInterface
@@ -132,7 +127,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             s.EventManager.OnRegisterCaps -= RegisterCaps;
-            s.EventManager.OnDeregisterCaps -= DeregisterCaps;
             m_NumberScenes--;
             m_scene = null;
         }
@@ -161,7 +155,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_UserManagement = s.RequestModuleInterface<IUserManagement>();
 
                 s.EventManager.OnRegisterCaps += RegisterCaps;
-                s.EventManager.OnDeregisterCaps += DeregisterCaps;
 
                 m_NumberScenes++;
 
@@ -409,14 +402,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 // Register this as a poll service
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene, hgassets);
 
-                //args.Type = PollServiceEventArgs.EventType.Texture;
-                MainServer.Instance.AddPollServiceHTTPHandler(args);
-
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetTexture", capUrl);
                 else
-                    caps.RegisterHandler("GetTexture", baseURL + capUrl);
-                m_capsDictTexture[agentID] = capUrl;
+                    caps.RegisterPollHandler("GetTexture", args);
             }
             else
             {
@@ -429,14 +418,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 string capUrl = "/" + UUID.Random();
 
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene, hgassets);
-                //args.Type = PollServiceEventArgs.EventType.Mesh;
-                MainServer.Instance.AddPollServiceHTTPHandler(args);
 
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetMesh", capUrl);
                 else
-                    caps.RegisterHandler("GetMesh", baseURL + capUrl);
-                m_capsDictGetMesh[agentID] = capUrl;
+                    caps.RegisterPollHandler("GetMesh", args);
             }
             else if (m_GetMeshURL != string.Empty)
                 caps.RegisterHandler("GetMesh", m_GetMeshURL);
@@ -447,14 +433,11 @@ namespace OpenSim.Region.ClientStack.Linden
                 string capUrl = "/" + UUID.Random();
 
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene, hgassets);
-                //args.Type = PollServiceEventArgs.EventType.Mesh2;
-                MainServer.Instance.AddPollServiceHTTPHandler(args);
 
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "GetMesh2", capUrl);
                 else
-                    caps.RegisterHandler("GetMesh2", baseURL + capUrl);
-                m_capsDictGetMesh2[agentID] = capUrl;
+                    caps.RegisterPollHandler("GetMesh2", args);
             }
             else if (m_GetMesh2URL != string.Empty)
                 caps.RegisterHandler("GetMesh2", m_GetMesh2URL);
@@ -465,43 +448,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 string capUrl = "/" + UUID.Random();
 
                 PollServiceAssetEventArgs args = new PollServiceAssetEventArgs(capUrl, agentID, m_scene, hgassets);
-                //args.Type = PollServiceEventArgs.EventType.Asset;
-                MainServer.Instance.AddPollServiceHTTPHandler(args);
 
                 if (handler != null)
                     handler.RegisterExternalUserCapsHandler(agentID, caps, "ViewerAsset", capUrl);
                 else
-                    caps.RegisterHandler("ViewerAsset", baseURL + capUrl);
-                m_capsDictGetAsset[agentID] = capUrl;
+                    caps.RegisterPollHandler("ViewerAsset", args);
             }
             else if (m_GetAssetURL != string.Empty)
                 caps.RegisterHandler("ViewerAsset", m_GetAssetURL);
-        }
-
-        private void DeregisterCaps(UUID agentID, Caps caps)
-        {
-            string capUrl;
-            if (m_capsDictTexture.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemovePollServiceHTTPHandler(capUrl);
-                m_capsDictTexture.Remove(agentID);
-            }
-            if (m_capsDictGetMesh.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemovePollServiceHTTPHandler(capUrl);
-                m_capsDictGetMesh.Remove(agentID);
-            }
-            if (m_capsDictGetMesh2.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemovePollServiceHTTPHandler(capUrl);
-                m_capsDictGetMesh2.Remove(agentID);
-            }
-
-            if (m_capsDictGetAsset.TryGetValue(agentID, out capUrl))
-            {
-                MainServer.Instance.RemovePollServiceHTTPHandler(capUrl);
-                m_capsDictGetAsset.Remove(agentID);
-            }
         }
     }
 }
