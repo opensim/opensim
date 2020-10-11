@@ -7762,7 +7762,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (osUTF8PartText != null && osUTF8PartText.Length > 0)
             {
                 cflags |= CompressedFlags.HasText;
-                BlockLengh += osUTF8PartText.Length + 1;
+                BlockLengh += osUTF8PartText.Length;
+                if (osUTF8PartText[osUTF8PartText.Length - 1] != 0)
+                    ++BlockLengh;
                 hoverTextColor = part.GetTextColor().GetBytes(false);
                 BlockLengh += hoverTextColor.Length;
                 hastext = true;
@@ -7814,7 +7816,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             osUTF8 osUTFMediaUrl = part.osUTFMediaUrl;
             if (osUTFMediaUrl != null && osUTFMediaUrl.Length > 0)
             {
-                BlockLengh += osUTFMediaUrl.Length + 1;
+                BlockLengh += osUTFMediaUrl.Length;
+                if (osUTFMediaUrl[osUTFMediaUrl.Length - 1] != 0)
+                    ++BlockLengh;
                 cflags |= CompressedFlags.MediaURL;
                 hasmediaurl = true;
             }
@@ -7895,13 +7899,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (hastext)
             {
                 zc.AddBytes(osUTF8PartText.GetArray(), osUTF8PartText.Length);
-                zc.AddZeros(1);
+                if (osUTF8PartText[osUTF8PartText.Length - 1] != 0)
+                    zc.AddZeros(1);
                 zc.AddBytes(hoverTextColor, hoverTextColor.Length);
             }
             if (hasmediaurl)
             {
                 zc.AddBytes(osUTFMediaUrl.GetArray(), osUTFMediaUrl.Length);
-                zc.AddZeros(1);
+                if (osUTFMediaUrl[osUTFMediaUrl.Length - 1] != 0)
+                    zc.AddZeros(1);
             }
             if (hasps)
             {
