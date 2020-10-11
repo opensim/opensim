@@ -4106,15 +4106,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Color oldcolor = Color;
 
-            Color = Color.FromArgb((int) (alpha*0xff),
-                                   (int) (color.X*0xff),
-                                   (int) (color.Y*0xff),
-                                   (int) (color.Z*0xff));
+            Color = Color.FromArgb((int) (alpha * 0xff),
+                                   (int) (color.X * 0xff),
+                                   (int) (color.Y * 0xff),
+                                   (int) (color.Z * 0xff));
             osUTF8 old = osUTF8Text;
             if(string.IsNullOrEmpty(text))
             {
-                osUTF8Text = new osUTF8(text, 254);
-                if (ParentGroup != null && (oldcolor != Color || !osUTF8Text.Equals(old)))
+                osUTF8Text = null;
+                if (ParentGroup != null && (oldcolor != Color || old != null))
                 {
                     ParentGroup.HasGroupChanged = true;
                     ScheduleFullUpdate();
@@ -4122,8 +4122,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                osUTF8Text = null;
-                if (ParentGroup != null && (oldcolor != Color || old != null))
+                osUTF8Text = new osUTF8(text, 254);
+                if (ParentGroup != null && (oldcolor != Color || !osUTF8Text.Equals(old)))
                 {
                     ParentGroup.HasGroupChanged = true;
                     ScheduleFullUpdate();
