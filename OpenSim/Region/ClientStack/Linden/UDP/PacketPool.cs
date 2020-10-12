@@ -102,8 +102,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private PacketPool()
         {
             // defaults
-            //RecyclePackets = true;
-            RecyclePackets = false;
+            RecyclePackets = true;
+            //RecyclePackets = false;
         }
 
         /// <summary>
