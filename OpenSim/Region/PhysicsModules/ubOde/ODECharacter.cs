@@ -177,11 +177,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if(pos.IsFinite())
             {
-                if(pos.Z > 99999f)
+                if(pos.Z > Constants.MaxSimulationHeight)
                 {
                     pos.Z = parent_scene.GetTerrainHeightAtXY(127,127) + 5;
                 }
-                if(pos.Z < -100f) // shouldn't this be 0 ?
+                if(pos.Z < Constants.MinSimulationHeight) // shouldn't this be 0 ?
                 {
                     pos.Z = parent_scene.GetTerrainHeightAtXY(127,127) + 5;
                 }

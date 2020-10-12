@@ -43,8 +43,14 @@ namespace OpenSim.Framework
         public const uint MaximumRegionSize = 4096;
 
         // Since terrain is stored in 16x16 heights, regions must be a multiple of this number and that is the minimum
-        public const int MinRegionSize = 16;
+        // but for placement on a grid min must be 256m
+        public const int MinRegionSize = 256;
         public const int TerrainPatchSize = 16;
+
+        public const float MinSimulationHeight = -100f;
+        public const float MaxSimulationHeight = 50000f;
+        public const float MinTerrainHeightmap = -100f;
+        public const float MaxTerrainHeightmap = 4000f;
 
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 
