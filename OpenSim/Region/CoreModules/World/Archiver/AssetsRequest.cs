@@ -129,7 +129,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return;
             }
 
-            m_timeOutTimer = new System.Timers.Timer(60000);
+            m_timeOutTimer = new System.Timers.Timer(950000);
             m_timeOutTimer .AutoReset = false;
             m_timeOutTimer.Elapsed += OnTimeout;
             m_timeout = false;
@@ -143,8 +143,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     m_timeOutTimer.Enabled = true;
                     AssetBase asset = m_assetService.Get(thiskey);
-                    if(m_timeout)
+                    if(m_timeout && asset == null)
                         break;
+                    else
+                        m_timeout = false;
                         
                     m_timeOutTimer.Enabled = false;
 
