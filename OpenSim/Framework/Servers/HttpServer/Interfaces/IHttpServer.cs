@@ -47,29 +47,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 //        bool AddAgentHandler(string agent, IHttpAgentHandler handler);
 
         /// <summary>
-        /// Add a handler for an HTTP request.
-        /// </summary>
-        /// <remarks>
-        /// This handler can actually be invoked either as
-        ///
-        /// http://<hostname>:<port>/?method=<methodName>
-        ///
-        /// or
-        ///
-        /// http://<hostname>:<port><method>
-        ///
-        /// if the method name starts with a slash.  For example, AddHTTPHandler("/object/", ...) on a standalone region
-        /// server will register a handler that can be invoked with either
-        ///
-        /// http://localhost:9000/?method=/object/
-        ///
-        /// or
-        ///
-        /// http://localhost:9000/object/
-        ///
-        /// In addition, the handler invoked by the HTTP server for any request is the one when best matches the request
-        /// URI.  So if a handler for "/myapp/" is registered and a request for "/myapp/page" is received, then
-        /// the "/myapp/" handler is invoked if no "/myapp/page" handler exists.
         /// </remarks>
         /// <param name="methodName"></param>
         /// <param name="handler"></param>
@@ -78,7 +55,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </returns>
         bool AddHTTPHandler(string methodName, GenericHTTPMethod handler);
 
-        bool AddPollServiceHTTPHandler(string methodName, PollServiceEventArgs args);
+        bool AddPollServiceHTTPHandler(string uripath, PollServiceEventArgs args);
+        bool AddPollServiceHTTPHandler(PollServiceEventArgs args);
+        bool AddPollServiceHTTPHandlerVarPath(PollServiceEventArgs args);
+
+        void RemovePollServiceHTTPHandler(string url, string path);
+        void RemovePollServiceHTTPHandler(string path);
 
         /// <summary>
         /// Adds a LLSD handler, yay.
@@ -93,6 +75,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         /// <param name="handler"></param>
         void AddStreamHandler(IRequestHandler handler);
+        void AddSimpleStreamHandler(ISimpleStreamHandler handler, bool varPath = false);
 
         bool AddXmlRPCHandler(string method, XmlRpcMethod handler);
         bool AddXmlRPCHandler(string method, XmlRpcMethod handler, bool keepAlive);
@@ -133,18 +116,19 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="path"></param>
         void RemoveHTTPHandler(string httpMethod, string path);
 
-        void RemovePollServiceHTTPHandler(string httpMethod, string path);
 
         bool RemoveLLSDHandler(string path, LLSDMethod handler);
 
         void RemoveStreamHandler(string httpMethod, string path);
+        void RemoveSimpleStreamHandler(string path);
 
         void RemoveXmlRPCHandler(string method);
 
         void RemoveJsonRPCHandler(string method);
 
-        string GetHTTP404(string host);
-
-        string GetHTTP500();
+        string GetHTTP404();
+        void AddIndexPHPMethodHandler(string key, SimpleStreamMethod sh);
+        void RemoveIndexPHPMethodHandler(string key);
+        SimpleStreamMethod TryGetIndexPHPMethodHandler(string key);
     }
 }

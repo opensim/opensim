@@ -141,7 +141,7 @@ namespace OpenSim.Tests.Common
         public event SpinStop OnSpinStop;
         public event ViewerEffectEventHandler OnViewerEffect;
 
-        public event FetchInventory OnAgentDataUpdateRequest;
+        public event AgentDataUpdate OnAgentDataUpdateRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
 
         public event UpdateShape OnUpdatePrimShape;
@@ -583,7 +583,7 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
+        public virtual void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
         {
         }
 
@@ -787,20 +787,21 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendInventoryFolderDetails(UUID ownerID, UUID folderID,
-                                                       List<InventoryItemBase> items,
-                                                       List<InventoryFolderBase> folders,
-                                                       int version,
-                                                       bool fetchFolders,
-                                                       bool fetchItems)
+        public void SendInventoryFolderDetails(UUID ownerID, UUID folderID,
+                                               List<InventoryItemBase> items,
+                                               List<InventoryFolderBase> folders,
+                                               int version,
+                                               int descendents,
+                                               bool fetchFolders,
+                                               bool fetchItems)
         {
         }
 
-        public virtual void SendInventoryItemDetails(UUID ownerID, InventoryItemBase item)
+        public void SendInventoryItemDetails(InventoryItemBase[] items)
         {
         }
 
-        public virtual void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackID)
+        public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackID)
         {
         }
 
@@ -808,11 +809,19 @@ namespace OpenSim.Tests.Common
         {
         }
 
-        public virtual void SendRemoveInventoryItem(UUID itemID)
+        public void SendRemoveInventoryItem(UUID itemID)
         {
         }
 
-        public virtual void SendBulkUpdateInventory(InventoryNodeBase node)
+        public void SendRemoveInventoryItems(UUID[] items)
+        {
+        }
+
+        public void SendBulkUpdateInventory(InventoryNodeBase node, UUID? transactionID = null)
+        {
+        }
+
+        public void SendBulkUpdateInventory(InventoryFolderBase[] folders, InventoryItemBase[] items)
         {
         }
 
@@ -980,23 +989,17 @@ namespace OpenSim.Tests.Common
 
         public void SendAdminResponse(UUID Token, uint AdminLevel)
         {
-
         }
 
         public void SendGroupMembership(GroupMembershipData[] GroupMembership)
         {
-
         }
 
-        public void SendSunPos(Vector3 sunPos, Vector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
+        public void SendViewerTime(Vector3 sunDir, float sunphase)
         {
         }
 
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
-        {
-        }
-
-        public void SendViewerTime(int phase)
         {
         }
 

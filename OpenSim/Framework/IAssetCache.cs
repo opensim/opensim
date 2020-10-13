@@ -35,7 +35,7 @@ namespace OpenSim.Framework
         /// Cache the specified asset.
         /// </summary>
         /// <param name='asset'></param>
-        void Cache(AssetBase asset);
+        void Cache(AssetBase asset, bool replace = false);
 
         /// <summary>
         /// Cache that the specified asset wasn't found.

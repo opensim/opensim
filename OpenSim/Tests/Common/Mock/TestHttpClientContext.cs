@@ -31,7 +31,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using HttpServer;
+using OSHttpServer;
 using OpenSim.Framework;
 
 namespace OpenSim.Tests.Common

@@ -495,10 +495,6 @@ namespace OpenSim.Data.Tests
             Assert.AreEqual(pricePerMeter, estateSettings.PricePerMeter);
             Assert.AreEqual(redirectGridX, estateSettings.RedirectGridX);
             Assert.AreEqual(redirectGridY, estateSettings.RedirectGridY);
-            Assert.AreEqual(useGlobalTime, estateSettings.UseGlobalTime);
-            Assert.AreEqual(fixedSun, estateSettings.FixedSun);
-
-            DataTestUtil.AssertDoubleEqualsWithTolerance(sunPosition, estateSettings.SunPosition);
 
             Assert.AreEqual(allowVoice, estateSettings.AllowVoice);
             Assert.AreEqual(allowDirectTeleport, estateSettings.AllowDirectTeleport);

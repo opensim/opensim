@@ -39,7 +39,7 @@ namespace OpenSim.Groups
         bool UpdateGroup(string RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee,
             bool openEnrollment, bool allowPublish, bool maturePublish, out string reason);
         ExtendedGroupRecord GetGroupRecord(string RequestingAgentID, UUID GroupID, string GroupName);
-        List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search);
+        List<DirGroupsReplyData> FindGroups(string RequestingAgentIDstr, string search);
         List<GroupMembersData> GetGroupMembers(string RequestingAgentID, UUID GroupID);
 
         bool AddGroupRole(string RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers, out string reason);

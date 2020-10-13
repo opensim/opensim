@@ -186,7 +186,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return;
 
             JsonStoreStats stats = m_store.GetStoreStats();
-            MainConsole.Instance.Output("{0}\t{1}", null, m_scene.RegionInfo.RegionName, stats.StoreCount);
+            MainConsole.Instance.Output("{0}\t{1}", m_scene.RegionInfo.RegionName, stats.StoreCount);
         }
 
 #endregion

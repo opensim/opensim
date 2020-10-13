@@ -45,8 +45,7 @@ namespace OpenSim.Framework
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods or Clone() this object before
     /// iterating over it.
     /// </remarks>
-    public class TaskInventoryDictionary : Dictionary<UUID, TaskInventoryItem>,
-                                           ICloneable, IXmlSerializable
+    public class TaskInventoryDictionary : Dictionary<UUID, TaskInventoryItem>, ICloneable, IXmlSerializable, IDisposable
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -64,11 +63,27 @@ namespace OpenSim.Framework
         /// </value>
         private volatile System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
 
-
         ~TaskInventoryDictionary()
         {
-            m_itemLock.Dispose();
-            m_itemLock = null;
+            Dispose(false);
+        }
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!disposed)
+            {
+                m_itemLock.Dispose();
+                m_itemLock = null;
+                disposed = true;
+            }
         }
 
         /// <summary>
@@ -248,21 +263,15 @@ namespace OpenSim.Framework
 
             return clone;
         }
-
         #endregion
 
-        // The alternative of simply serializing the list doesn't appear to work on mono, since
-        // we get a
-        //
-        // System.TypeInitializationException: An exception was thrown by the type initializer for OpenSim.Framework.TaskInventoryDictionary ---> System.ArgumentOutOfRangeException: < 0
-        // Parameter name: length
-        //   at System.String.Substring (Int32 startIndex, Int32 length) [0x00088] in /build/buildd/mono-1.2.4/mcs/class/corlib/System/String.cs:381
-        //   at System.Xml.Serialization.TypeTranslator.GetTypeData (System.Type runtimeType, System.String xmlDataType) [0x001f6] in /build/buildd/mono-1.2.4/mcs/class/System.XML/System.Xml.Serialization/TypeTranslator.cs:217
-        // ...
-//        private static XmlSerializer tiiSerializer
-//            = new XmlSerializer(typeof(Dictionary<UUID, TaskInventoryItem>.ValueCollection));
-
-        // see IXmlSerializable
+        public List<TaskInventoryItem> GetItems()
+        {
+            m_itemLock.EnterReadLock();
+            var ret = new List<TaskInventoryItem>(Values);
+            m_itemLock.ExitReadLock();
+            return ret;
+        }
 
         #region IXmlSerializable Members
 

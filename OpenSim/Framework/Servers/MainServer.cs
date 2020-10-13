@@ -192,35 +192,35 @@ namespace OpenSim.Framework.Servers
 
                 if (!int.TryParse(rawNewDebug, out newDebug))
                 {
-                    MainConsole.Instance.Output("{0} is not a valid debug level", null, rawNewDebug);
+                    MainConsole.Instance.Output("{0} is not a valid debug level", rawNewDebug);
                     return;
                 }
 
                 if (newDebug < 0 || newDebug > 6)
                 {
-                    MainConsole.Instance.Output("{0} is outside the valid debug level range of 0..6", null, newDebug);
+                    MainConsole.Instance.Output("{0} is outside the valid debug level range of 0..6", newDebug);
                     return;
                 }
 
                 if (allReqs || inReqs)
                 {
                     MainServer.DebugLevel = newDebug;
-                    MainConsole.Instance.Output("IN debug level set to {0}", null, newDebug);
+                    MainConsole.Instance.Output("IN debug level set to {0}", newDebug);
                 }
 
                 if (allReqs || outReqs)
                 {
                     WebUtil.DebugLevel = newDebug;
-                    MainConsole.Instance.Output("OUT debug level set to {0}", null, newDebug);
+                    MainConsole.Instance.Output("OUT debug level set to {0}", newDebug);
                 }
             }
             else
             {
                 if (allReqs || inReqs)
-                    MainConsole.Instance.Output("Current IN debug level is {0}", null, DebugLevel);
+                    MainConsole.Instance.Output("Current IN debug level is {0}", DebugLevel);
 
                 if (allReqs || outReqs)
-                    MainConsole.Instance.Output("Current OUT debug level is {0}", null, WebUtil.DebugLevel);
+                    MainConsole.Instance.Output("Current OUT debug level is {0}", WebUtil.DebugLevel);
             }
         }
 
@@ -241,33 +241,69 @@ namespace OpenSim.Framework.Servers
                     handlers.AppendFormat(
                         "Registered HTTP Handlers for server at {0}:{1}\n", httpServer.ListenIPAddress, httpServer.Port);
 
-                    handlers.AppendFormat("* XMLRPC:\n");
-                    foreach (String s in httpServer.GetXmlRpcHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    List<string> lst = httpServer.GetXmlRpcHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* XMLRPC methods ({0}):\n",lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-                    handlers.AppendFormat("* HTTP:\n");
-                    foreach (String s in httpServer.GetHTTPHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetJsonRpcHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* JSONRPC methods ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-                    handlers.AppendFormat("* HTTP (poll):\n");
-                    foreach (String s in httpServer.GetPollServiceHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetIndexPHPHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* index.php methods ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-                    handlers.AppendFormat("* JSONRPC:\n");
-                    foreach (String s in httpServer.GetJsonRpcHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetHTTPHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* HTTP ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-//                    handlers.AppendFormat("* Agent:\n");
-//                    foreach (String s in httpServer.GetAgentHandlerKeys())
-//                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetPollServiceHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* HTTP poll ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-                    handlers.AppendFormat("* LLSD:\n");
-                    foreach (String s in httpServer.GetLLSDHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetLLSDHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* LLSD ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
 
-                    handlers.AppendFormat("* StreamHandlers ({0}):\n", httpServer.GetStreamHandlerKeys().Count);
-                    foreach (String s in httpServer.GetStreamHandlerKeys())
-                        handlers.AppendFormat("\t{0}\n", s);
+                    lst = httpServer.GetStreamHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* StreamHandlers ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t{0}\n", s);
+                    }
+
+                    lst = httpServer.GetSimpleStreamHandlerKeys();
+                    if (lst.Count > 0)
+                    {
+                        handlers.AppendFormat("* SimpleStreamHandlers ({0}):\n", lst.Count);
+                        foreach (String s in lst)
+                            handlers.AppendFormat("\t***:{0}\n", s);
+                    }
 
                     handlers.Append("\n");
                 }

@@ -40,65 +40,73 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using Nini.Config;
 using log4net;
 
 
 namespace OpenSim.Server.Handlers.Neighbour
 {
-    public class NeighbourGetHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public NeighbourGetHandler(INeighbourService service, IAuthenticationService authentication) :
-                base("GET", "/region")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        protected override byte[] ProcessRequest(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            Console.WriteLine("--- Get region --- " + path);
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
-        }
-    }
-
-    public class NeighbourPostHandler : BaseStreamHandler
+    public class NeighbourSimpleHandler : SimpleStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private INeighbourService m_NeighbourService;
         private IAuthenticationService m_AuthenticationService;
-        // TODO: unused: private bool m_AllowForeignGuests;
 
-        public NeighbourPostHandler(INeighbourService service, IAuthenticationService authentication) :
-            base("POST", "/region")
+        public NeighbourSimpleHandler(INeighbourService service, IAuthenticationService authentication) :
+                base("/region")
         {
             m_NeighbourService = service;
             m_AuthenticationService = authentication;
-            // TODO: unused: m_AllowForeignGuests = foreignGuests;
         }
 
-        protected override byte[] ProcessRequest(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            httpResponse.KeepAlive = false;
+
+            if (m_NeighbourService == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return;
+            }
+
+            switch (httpRequest.HttpMethod)
+            {
+                case "POST":
+                {
+                    OSDMap args = RestHandlerUtils.DeserializeOSMap(httpRequest);
+                    if (args == null)
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        httpResponse.RawBuffer = Util.UTF8.GetBytes("false");
+                        return;
+                    }
+
+                    if (RestHandlerUtils.GetParams(httpRequest.UriPath, out UUID regionID, out ulong regionHandle, out string action)
+                        || regionID == UUID.Zero)
+                    {
+                        m_log.InfoFormat("[RegionPostHandler]: Invalid parameters for neighbour message {0}", httpRequest.UriPath);
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return;
+                    }
+                    ProcessPostRequest(args, httpRequest, httpResponse, regionID);
+                    break;
+                }
+                case "GET":
+                case "PUT":
+                case "DELETE":
+                    httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
+                    return;
+                default:
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                    return;
+                }
+            }
+        }
+
+        // TODO: unused: private bool m_AllowForeignGuests;
+        protected void ProcessPostRequest(OSDMap args, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID regionID)
         {
             byte[] result = new byte[0];
-
-            UUID regionID;
-            string action;
-            ulong regionHandle;
-            if (RestHandlerUtils.GetParams(path, out regionID, out regionHandle, out action))
-            {
-                m_log.InfoFormat("[RegionPostHandler]: Invalid parameters for neighbour message {0}", path);
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Invalid parameters for neighbour message " + path;
-
-                return result;
-            }
 
             if (m_AuthenticationService != null)
             {
@@ -107,9 +115,9 @@ namespace OpenSim.Server.Handlers.Neighbour
                 string authToken = string.Empty;
                 if (!RestHandlerUtils.GetAuthentication(httpRequest, out authority, out authToken))
                 {
-                    m_log.InfoFormat("[RegionPostHandler]: Authentication failed for neighbour message {0}", path);
+                    m_log.InfoFormat("[RegionPostHandler]: Authentication failed for neighbour message");
                     httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    return result;
+                    return;
                 }
                 // TODO: Rethink this
                 //if (!m_AuthenticationService.VerifyKey(regionID, authToken))
@@ -119,15 +127,6 @@ namespace OpenSim.Server.Handlers.Neighbour
                 //    return result;
                 //}
                 m_log.DebugFormat("[RegionPostHandler]: Authentication succeeded for {0}", regionID);
-            }
-
-            OSDMap args = Util.GetOSDMap(request, (int)httpRequest.ContentLength);
-            if (args == null)
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Unable to retrieve data";
-                m_log.DebugFormat("[RegionPostHandler]: Unable to retrieve data for post {0}", path);
-                return result;
             }
 
             // retrieve the regionhandle
@@ -144,8 +143,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             {
                 m_log.InfoFormat("[RegionPostHandler]: exception on unpacking region info {0}", ex.Message);
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Problems with data deserialization";
-                return result;
+                return;
             }
 
             // Finally!
@@ -158,51 +156,9 @@ namespace OpenSim.Server.Handlers.Neighbour
             else
                 resp["success"] = OSD.FromBoolean(false);
 
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
-
-            return Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
-        }
-    }
-
-    public class NeighbourPutHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public NeighbourPutHandler(INeighbourService service, IAuthenticationService authentication) :
-            base("PUT", "/region")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        protected override byte[] ProcessRequest(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
-        }
-    }
-
-    public class NeighbourDeleteHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public NeighbourDeleteHandler(INeighbourService service, IAuthenticationService authentication) :
-            base("DELETE", "/region")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        protected override byte[] ProcessRequest(string path, Stream request,
-                IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
         }
     }
 }
+

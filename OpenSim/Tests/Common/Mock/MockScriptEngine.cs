@@ -109,6 +109,11 @@ namespace OpenSim.Tests.Common
             throw new System.NotImplementedException ();
         }
 
+        public void CancelScriptEvent(UUID itemID, string eventName)
+        {
+
+        }
+
         public bool PostScriptEvent(UUID itemID, string name, object[] args)
         {
 //            Console.WriteLine("Posting event {0} for {1}", name, itemID);
@@ -156,12 +161,12 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
-        public void SuspendScript(UUID itemID)
+        public bool SuspendScript(UUID itemID)
         {
             throw new System.NotImplementedException ();
         }
 
-        public void ResumeScript(UUID itemID)
+        public bool ResumeScript(UUID itemID)
         {
             throw new System.NotImplementedException ();
         }
@@ -193,7 +198,12 @@ namespace OpenSim.Tests.Common
 
         public float GetScriptExecutionTime(List<UUID> itemIDs)
         {
-            throw new System.NotImplementedException ();
+            return 0;
+        }
+
+        public int GetScriptsMemory(List<UUID> itemIDs)
+        {
+            return 0;
         }
 
         public Dictionary<uint, float> GetObjectScriptsExecutionTimes()
@@ -267,6 +277,13 @@ namespace OpenSim.Tests.Common
 
         public void SleepScript(UUID itemID, int delay)
         {
+        }
+
+        public ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory)
+        {
+            totaltime = 0;
+            totalmemory = 0;
+            return null;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 {
     public interface ITerrainPaintableEffect
     {
-        void PaintEffect(ITerrainChannel map, bool[,] allowMask, double x, double y, double z,
-            double strength, double duration, int startX, int endX, int startY, int endY);
+        void PaintEffect(ITerrainChannel map, bool[,] allowMask, float x, float y, float z,
+            float strength, float duration, int startX, int endX, int startY, int endY);
     }
 }

@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Globalization;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -810,7 +811,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         public static string FloatToString(double x)
         {
-            return x.ToString("0.000000");
+            return x.ToString("0.000000",CultureInfo.InvariantCulture);
         }
         public static string IntegerToString(int x)
         {

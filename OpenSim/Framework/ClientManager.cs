@@ -40,15 +40,15 @@ namespace OpenSim.Framework
     {
         /// <summary>A dictionary mapping from <seealso cref="UUID"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private Dictionary<UUID, IClientAPI> m_dict1;
+        private readonly Dictionary<UUID, IClientAPI> m_dictbyUUID = new Dictionary<UUID, IClientAPI>();
         /// <summary>A dictionary mapping from <seealso cref="IPEndPoint"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private Dictionary<IPEndPoint, IClientAPI> m_dict2;
-        /// <summary>An immutable collection of <seealso cref="IClientAPI"/>
+        private readonly Dictionary<IPEndPoint, IClientAPI> m_dictbyIPe= new Dictionary<IPEndPoint, IClientAPI>();
+        /// <summary>snapshot collection of current <seealso cref="IClientAPI"/>
         /// references</summary>
-        private IClientAPI[] m_array;
+        private IClientAPI[] m_array = null;
         /// <summary>Synchronization object for writing to the collections</summary>
-        private object m_syncRoot = new object();
+        private readonly object m_syncRoot = new object();
 
         /// <summary>Number of clients in the collection</summary>
         public int Count
@@ -56,7 +56,7 @@ namespace OpenSim.Framework
             get
             {
                 lock (m_syncRoot) 
-                    return m_dict1.Count;
+                    return m_dictbyUUID.Count;
             }
         }
 
@@ -65,9 +65,6 @@ namespace OpenSim.Framework
         /// </summary>
         public ClientManager()
         {
-            m_dict1 = new Dictionary<UUID, IClientAPI>();
-            m_dict2 = new Dictionary<IPEndPoint, IClientAPI>();
-            m_array = null;
         }
 
         /// <summary>
@@ -81,8 +78,8 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                m_dict1[value.AgentId] = value;
-                m_dict2[value.RemoteEndPoint] = value;
+                m_dictbyUUID[value.AgentId] = value;
+                m_dictbyIPe[value.RemoteEndPoint] = value;
                 m_array = null;
             }
 
@@ -100,10 +97,10 @@ namespace OpenSim.Framework
             lock (m_syncRoot)
             {
                 IClientAPI value;
-                if (m_dict1.TryGetValue(key, out value))
+                if (m_dictbyUUID.TryGetValue(key, out value))
                 {
-                    m_dict1.Remove(key);
-                    m_dict2.Remove(value.RemoteEndPoint);
+                    m_dictbyUUID.Remove(key);
+                    m_dictbyIPe.Remove(value.RemoteEndPoint);
                     m_array = null;
                     return true;
                 }
@@ -118,8 +115,8 @@ namespace OpenSim.Framework
         {
             lock (m_syncRoot)
             {
-                m_dict1.Clear();
-                m_dict2.Clear();
+                m_dictbyUUID.Clear();
+                m_dictbyIPe.Clear();
                 m_array = null;
             }
         }
@@ -132,7 +129,7 @@ namespace OpenSim.Framework
         public bool ContainsKey(UUID key)
         {
             lock (m_syncRoot)
-                return m_dict1.ContainsKey(key);
+                return m_dictbyUUID.ContainsKey(key);
         }
 
         /// <summary>
@@ -143,7 +140,7 @@ namespace OpenSim.Framework
         public bool ContainsKey(IPEndPoint key)
         {
             lock (m_syncRoot)
-                return m_dict2.ContainsKey(key);
+                return m_dictbyIPe.ContainsKey(key);
         }
 
         /// <summary>
@@ -157,7 +154,7 @@ namespace OpenSim.Framework
             try
             {
                 lock (m_syncRoot)
-                    return m_dict1.TryGetValue(key, out value);
+                    return m_dictbyUUID.TryGetValue(key, out value);
             }
             catch
             {
@@ -177,7 +174,7 @@ namespace OpenSim.Framework
             try
             {
                 lock (m_syncRoot)
-                    return m_dict2.TryGetValue(key, out value);
+                    return m_dictbyIPe.TryGetValue(key, out value);
             }
             catch
             {
@@ -198,11 +195,11 @@ namespace OpenSim.Framework
             {
                 if (m_array == null)
                 {
-                    if (m_dict1.Count == 0)
+                    if (m_dictbyUUID.Count == 0)
                         return;
 
-                    m_array = new IClientAPI[m_dict1.Count];
-                    m_dict1.Values.CopyTo(m_array, 0);
+                    m_array = new IClientAPI[m_dictbyUUID.Count];
+                    m_dictbyUUID.Values.CopyTo(m_array, 0);
                 }
                 localArray = m_array;
             }

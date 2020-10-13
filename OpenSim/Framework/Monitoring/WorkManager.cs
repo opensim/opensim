@@ -224,14 +224,14 @@ namespace OpenSim.Framework.Monitoring
             }
             else if (subCommand == "status")
             {
-                MainConsole.Instance.Output("Job engine running: {0}", null, JobEngine.IsRunning);
+                MainConsole.Instance.Output("Job engine running: {0}", JobEngine.IsRunning);
 
                 JobEngine.Job job = JobEngine.CurrentJob;
-                MainConsole.Instance.Output("Current job {0}", null, job != null ? job.Name : "none");
+                MainConsole.Instance.Output("Current job {0}", job != null ? job.Name : "none");
 
                 MainConsole.Instance.Output(
-                    "Jobs waiting: {0}", null, JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
-                MainConsole.Instance.Output("Log Level: {0}", null, JobEngine.LogLevel);
+                    "Jobs waiting: {0}", JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
+                MainConsole.Instance.Output("Log Level: {0}", JobEngine.LogLevel);
             }
             else if (subCommand == "log")
             {
@@ -246,12 +246,12 @@ namespace OpenSim.Framework.Monitoring
                 //                if (ConsoleUtil.TryParseConsoleInt(MainConsole.Instance, args[4], out logLevel))
                 //                {
                 JobEngine.LogLevel = logLevel;
-                MainConsole.Instance.Output("Set debug log level to {0}", null, JobEngine.LogLevel);
+                MainConsole.Instance.Output("Set debug log level to {0}", JobEngine.LogLevel);
                 //                }
             }
             else
             {
-                MainConsole.Instance.Output("Unrecognized job engine subcommand {0}", null, subCommand);
+                MainConsole.Instance.Output("Unrecognized job engine subcommand {0}", subCommand);
             }
         }
     }

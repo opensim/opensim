@@ -243,7 +243,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             m_debugEnabled = verbose;
 
-            MainConsole.Instance.Output("{0} verbose logging set to {1}", null, Name, m_debugEnabled);
+            MainConsole.Instance.Output("{0} verbose logging set to {1}", Name, m_debugEnabled);
         }
 
         /// <summary>
@@ -463,30 +463,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 case (byte)InstantMessageDialog.SessionAdd:
                     m_groupData.AgentInvitedToGroupChatSession(fromAgentID, GroupID);
-                    if(eq != null)
-                        eq.ChatterBoxSessionAgentListUpdates(
-                            GroupID
-                            , fromAgentID
-                            , client.AgentId
-                            , false //canVoiceChat
-                            , false //isModerator
-                            , false //text mute
-                            , true // enter
-                            );
+                    if (eq != null)
+                    {
+                        var update = new GroupChatListAgentUpdateData(fromAgentID);
+                        var updates = new List<GroupChatListAgentUpdateData>() { update };
+                        eq.ChatterBoxSessionAgentListUpdates(GroupID, client.AgentId, updates);
+                    }
                     break;
 
                 case (byte)InstantMessageDialog.SessionDrop:
                     m_groupData.AgentDroppedFromGroupChatSession(fromAgentID, GroupID);
-                    if(eq != null)
-                        eq.ChatterBoxSessionAgentListUpdates(
-                                GroupID
-                                , fromAgentID
-                                , client.AgentId
-                                , false //canVoiceChat
-                                , false //isModerator
-                                , false //text mute
-                                , false // leave
-                                );
+                    if (eq != null)
+                    {
+                        var update = new GroupChatListAgentUpdateData(fromAgentID, false);
+                        var updates = new List<GroupChatListAgentUpdateData>() { update };
+                        eq.ChatterBoxSessionAgentListUpdates(GroupID, client.AgentId, updates);
+                    }
                     break;
 
                 case (byte)InstantMessageDialog.SessionSend:
@@ -500,26 +492,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             {
                                 if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Sending chatterbox invite instant message");
 
-                                if(eq != null)
-                                {
-                                    eq.ChatterboxInvitation(
-                                        GroupID
-                                        , groupInfo.GroupName
-                                        , fromAgentID
-                                        , msg.message
-                                        , client.AgentId
-                                        , msg.fromAgentName
-                                        , msg.dialog
-                                        , msg.timestamp
-                                        , msg.offline == 1
-                                        , (int)msg.ParentEstateID
-                                        , msg.Position
-                                        , 1
-                                        , new UUID(msg.imSessionID)
-                                        , msg.fromGroup
-                                        , Utils.StringToBytes(groupInfo.GroupName)
-                                        );
-                                }
+                                eq?.ChatterboxInvitation(
+                                    GroupID
+                                    , groupInfo.GroupName
+                                    , fromAgentID
+                                    , msg.message
+                                    , client.AgentId
+                                    , msg.fromAgentName
+                                    , msg.dialog
+                                    , msg.timestamp
+                                    , msg.offline == 1
+                                    , (int)msg.ParentEstateID
+                                    , msg.Position
+                                    , 1
+                                    , new UUID(msg.imSessionID)
+                                    , msg.fromGroup
+                                    , Utils.StringToBytes(groupInfo.GroupName)
+                                    );
                             }
                         }
                         else
@@ -529,16 +518,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 //                        if (!m_groupData.hasAgentBeenInvitedToGroupChatSession(fromAgentID, GroupID))
                         {
-                             m_groupData.AgentInvitedToGroupChatSession(fromAgentID, GroupID);
-                             eq.ChatterBoxSessionAgentListUpdates(
-                                    GroupID
-                                    , fromAgentID
-                                    , client.AgentId
-                                    , false //canVoiceChat
-                                    , false //isModerator
-                                    , false //text mute
-                                    , true // enter
-                                    );
+                            m_groupData.AgentInvitedToGroupChatSession(fromAgentID, GroupID);
+                            if(eq != null)
+                            {
+                                var update = new GroupChatListAgentUpdateData(fromAgentID);
+                                var updates = new List<GroupChatListAgentUpdateData>() { update };
+                                eq.ChatterBoxSessionAgentListUpdates(GroupID, client.AgentId, updates);
+                            }
                         }
                     }
                     break;
@@ -628,11 +614,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             bodyMap.Add("session_info", sessionMap);
 
             IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
-
-            if (queue != null)
-            {
-                queue.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
-            }
+            queue?.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
         }
 
         private void DebugGridInstantMessage(GridInstantMessage im)

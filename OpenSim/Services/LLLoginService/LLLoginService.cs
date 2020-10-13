@@ -285,18 +285,15 @@ namespace OpenSim.Services.LLLoginService
         }
 
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID,
-            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP, bool LibOMVclient)
+            string clientVersion, string channel, string mac, string id0, IPEndPoint clientIP)
         {
             bool success = false;
             UUID session = UUID.Random();
 
             string processedMessage;
 
-            if (clientVersion.Contains("Radegast"))
-                LibOMVclient = false;
-
-            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}, Possible LibOMVGridProxy: {8} ",
-                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0, LibOMVclient.ToString());
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7} ",
+                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
 
             string curMac = mac.ToString();
 
@@ -420,8 +417,9 @@ namespace OpenSim.Services.LLLoginService
                             m_log.InfoFormat(
                                 "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: already logged in",
                                 firstName, lastName);
-                            return LLFailedLoginResponse.AlreadyLoggedInProblem;
                         }
+                        m_GridUserService.LoggedOut(PrincipalIDstr, scopeID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+                        return LLFailedLoginResponse.AlreadyLoggedInProblem;
                     }
                 }
 
@@ -699,7 +697,6 @@ namespace OpenSim.Services.LLLoginService
                             where = "safe";
                         }
                     }
-
                 }
                 else
                 {
@@ -735,41 +732,32 @@ namespace OpenSim.Services.LLLoginService
                     {
                         if (!regionName.Contains("@"))
                         {
-                            List<GridRegion> regions = m_GridService.GetRegionsByName(scopeID, regionName, 1);
-                            if ((regions == null) || (regions != null && regions.Count == 0))
+                            region = m_GridService.GetRegionByName (scopeID, regionName);
+                            if(region != null)
+                                return region;
+
+                            m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, can't locate region {1}. Trying defaults.", startLocation, regionName);
+                            List<GridRegion> regions = m_GridService.GetDefaultRegions(scopeID);
+                            if (regions != null && regions.Count > 0)
                             {
-                                m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, can't locate region {1}. Trying defaults.", startLocation, regionName);
-                                regions = m_GridService.GetDefaultRegions(scopeID);
-                                if (regions != null && regions.Count > 0)
+                                where = "safe";
+                                return regions[0];
+                            }
+                            else
+                            {
+                                m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
+                                region = FindAlternativeRegion(scopeID);
+                                if (region != null)
                                 {
                                     where = "safe";
-                                    return regions[0];
+                                    return region;
                                 }
                                 else
                                 {
-                                    m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
-                                    region = FindAlternativeRegion(scopeID);
-                                    if (region != null)
-                                    {
-                                        where = "safe";
-                                        return region;
-                                    }
-                                    else
-                                    {
-                                        m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions and no alternative found.", startLocation);
-                                        return null;
-                                    }
+                                    m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions and no alternative found.", startLocation);
+                                    return null;
                                 }
                             }
-
-                            //find a exact match
-                            foreach(GridRegion r in regions)
-                            {
-                                if(string.Equals(regionName, r.RegionName, StringComparison.InvariantCultureIgnoreCase))
-                                    return r;
-                            }
-                            // else, whatever
-                            return regions[0];
                         }
                         else
                         {
@@ -1126,22 +1114,22 @@ namespace OpenSim.Services.LLLoginService
                     if (cmd.Length > 2)
                     {
                         if (Int32.TryParse(cmd[2], out m_MinLoginLevel))
-                            MainConsole.Instance.Output("Set minimum login level to {0}", null, m_MinLoginLevel);
+                            MainConsole.Instance.Output("Set minimum login level to {0}", m_MinLoginLevel);
                         else
-                            MainConsole.Instance.Output("ERROR: {0} is not a valid login level", null, cmd[2]);
+                            MainConsole.Instance.Output("ERROR: {0} is not a valid login level",  cmd[2]);
                     }
                     break;
 
                 case "reset":
                     m_MinLoginLevel = m_LoginServerConfig.GetInt("MinLoginLevel", 0);
-                    MainConsole.Instance.Output("Reset min login level to {0}", null, m_MinLoginLevel);
+                    MainConsole.Instance.Output("Reset min login level to {0}", m_MinLoginLevel);
                     break;
 
                 case "text":
                     if (cmd.Length > 2)
                     {
                         m_WelcomeMessage = cmd[2];
-                        MainConsole.Instance.Output("Login welcome message set to '{0}'", null, m_WelcomeMessage);
+                        MainConsole.Instance.Output("Login welcome message set to '{0}'", m_WelcomeMessage);
                     }
                     break;
             }

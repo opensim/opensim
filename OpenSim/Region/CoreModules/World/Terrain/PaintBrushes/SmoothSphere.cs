@@ -34,64 +34,67 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            strength = TerrainUtil.MetersToSphericalStrength(strength);
+            float distancefactor;
+            float dx2;
 
-            int x, y;
-            double[,] tweak = new double[map.Width,map.Height];
+            float[,] tweak = new float[endX - startX + 1, endY - startY + 1];
+            int ssize = (int)(size + 0.5);
+            if(ssize > 4)
+                ssize = 4;
 
-            double area = strength;
-            double step = strength / 4.0;
-            duration = 0.03; //MCP Should be read from ini file
+            size *= size;
 
+            if (strength > 1.0f)
+                strength = 1.0f;
 
             // compute delta map
-            for (x = startX; x <= endX; x++)
+            for (int x = startX,  i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                dx2 = (x - rx) * (x - rx);
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
                     if (!mask[x, y])
                         continue;
 
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
-
-                    if (z > 0) // add in non-zero amount
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor <= 1.0f)
                     {
-                        double average = 0.0;
+                        distancefactor = strength * (1.0f - distancefactor);
+
+                        float average = 0f;
                         int avgsteps = 0;
 
-                        double n;
-                        for (n = 0.0 - area; n < area; n += step)
+                        for (int n = x - ssize; n <=  x + ssize; ++n)
                         {
-                            double l;
-                            for (l = 0.0 - area; l < area; l += step)
+                            if(n >= 0 && n < map.Width)
                             {
-                                avgsteps++;
-                                average += TerrainUtil.GetBilinearInterpolate(x + n, y + l, map);
+                                for (int l = y - ssize; l <= y + ssize; ++l)
+                                {
+                                    if (l >= 0 && l < map.Height)
+                                    {
+                                        avgsteps++;
+                                        average += map[n, l];
+                                    }
+                                }
                             }
                         }
-                        tweak[x, y] = average / avgsteps;
+                        average /= avgsteps;
+                        tweak[i, j] = distancefactor * (map[x, y] - average);
                     }
                 }
             }
             // blend in map
-            for (x = startX; x <= endX; x++)
+            for (int x = startX, i = 0; x <= endX; x++, i++)
             {
-                for (y = startY; y <= endY; y++)
+                for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
-                    if (!mask[x, y])
-                        continue;
-
-                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
-
-                    if (z > 0) // add in non-zero amount
+                    float tz = tweak[i, j];
+                    if(tz != 0.0)
                     {
-                        double da = z;
-                        double a = (map[x, y] - tweak[x, y]) * da;
-                        double newz = map[x, y] - (a * duration);
-
+                        float newz = map[x, y] - tz;
                         if (newz > 0.0)
                             map[x, y] = newz;
                     }

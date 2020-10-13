@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -65,11 +66,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             Smooth = 3,
             Noise = 4,
             Revert = 5,
-
-            // Extended brushes
-            Erode = 255,
-            Weather = 254,
-            Olsen = 253
         }
 
         #endregion
@@ -81,13 +77,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 #pragma warning restore 414
 
         private readonly Commander m_commander = new Commander("terrain");
+        private readonly Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         private readonly Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
             new Dictionary<StandardTerrainEffects, ITerrainFloodEffect>();
-        private readonly Dictionary<string, ITerrainLoader> m_loaders = new Dictionary<string, ITerrainLoader>();
         private readonly Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
-        private Dictionary<string, ITerrainModifier> m_modifyOperations =
-             new Dictionary<string, ITerrainModifier>();
+        private Dictionary<string, ITerrainModifier> m_modifyOperations = new Dictionary<string, ITerrainModifier>();
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_channel;
         private ITerrainChannel m_baked;
@@ -104,84 +99,170 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         //    patch packet is queued to the client, the bit for that patch is set to 'false'.
         private class PatchUpdates
         {
-            private bool[,] updated;    // for each patch, whether it needs to be sent to this client
+            private BitArray updated;    // for each patch, whether it needs to be sent to this client
             private int updateCount;    // number of patches that need to be sent
             public ScenePresence Presence;   // a reference to the client to send to
             public bool sendAll;
             public int sendAllcurrentX;
             public int sendAllcurrentY;
-
+            private int xsize;
+            private int ysize;
 
             public PatchUpdates(TerrainData terrData, ScenePresence pPresence)
             {
-                updated = new bool[terrData.SizeX / Constants.TerrainPatchSize, terrData.SizeY / Constants.TerrainPatchSize];
-                updateCount = 0;
+                xsize = terrData.SizeX / Constants.TerrainPatchSize;
+                ysize = terrData.SizeY / Constants.TerrainPatchSize;
+                updated = new BitArray(xsize * ysize, true);
+                updateCount = xsize * ysize;
                 Presence = pPresence;
                 // Initially, send all patches to the client
-                SetAll(true);
+                sendAll = true;
+                sendAllcurrentX = 0;
+                sendAllcurrentY = 0;
             }
+
+            public PatchUpdates(TerrainData terrData, ScenePresence pPresence, bool defaultState)
+            {
+                xsize = terrData.SizeX / Constants.TerrainPatchSize;
+                ysize = terrData.SizeY / Constants.TerrainPatchSize;
+                updated = new BitArray(xsize * ysize, true);
+                updateCount = defaultState ? xsize * ysize : 0;
+                Presence = pPresence;
+                sendAll = defaultState;
+                sendAllcurrentX = 0;
+                sendAllcurrentY = 0;
+            }
+
             // Returns 'true' if there are any patches marked for sending
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool HasUpdates()
             {
                 return (updateCount > 0);
             }
 
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetByXY(int x, int y, bool state)
             {
-                this.SetByPatch(x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, state);
+                SetByPatch(x / Constants.TerrainPatchSize , y / Constants.TerrainPatchSize, state);
             }
 
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatch(int patchX, int patchY)
             {
-                return updated[patchX, patchY];
+                return updated[patchX + xsize * patchY];
             }
 
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public bool GetByPatch(int indx)
+            {
+                return updated[indx];
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public bool GetByPatchAndClear(int patchX, int patchY)
+            {
+                int indx = patchX + xsize * patchY;
+                if(updated[indx])
+                {
+                    updated[indx] = false;
+                    --updateCount;
+                    return true;
+                }
+                return false;
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetByPatch(int patchX, int patchY, bool state)
             {
-                bool prevState = updated[patchX, patchY];
-                if (!prevState && state)
-                    updateCount++;
-                if (prevState && !state)
-                    updateCount--;
-                updated[patchX, patchY] = state;
+                int indx = patchX + xsize * patchY;
+                bool prevState = updated[indx];
+                updated[indx] = state;
+                if (state)
+                {
+                    if (!prevState)
+                        ++updateCount;
+                }
+                else
+                {
+                    if (prevState)
+                        --updateCount;
+                }
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void SetTrueByPatch(int patchX, int patchY)
+            {
+                int indx = patchX + xsize * patchY;
+                if (!updated[indx])
+                {
+                    updated[indx] = true;
+                    ++updateCount;
+                }
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void SetTrueByPatch(int indx)
+            {
+                if (!updated[indx])
+                {
+                    updated[indx] = true;
+                    ++updateCount;
+                }
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void SetFalseByPatch(int patchX, int patchY)
+            {
+                int indx = patchX + xsize * patchY;
+                if (updated[indx])
+                {
+                    updated[indx] = false;
+                    --updateCount;
+                }
+            }
+
+            [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+            public void SetFalseByPatch(int indx)
+            {
+                if (updated[indx])
+                {
+                    updated[indx] = false;
+                    --updateCount;
+                }
             }
 
             public void SetAll(bool state)
             {
-                updateCount = 0;
-                for (int xx = 0; xx < updated.GetLength(0); xx++)
-                    for (int yy = 0; yy < updated.GetLength(1); yy++)
-                        updated[xx, yy] = state;
+                updated.SetAll(state);
+
                 if (state)
-                    updateCount = updated.GetLength(0) * updated.GetLength(1);
+                {
+                    sendAll = true;
+                    updateCount = xsize * ysize;
+                }
+                else updateCount = 0;
+
                 sendAllcurrentX = 0;
                 sendAllcurrentY = 0;
-                sendAll = true;
             }
 
             // Logically OR's the terrain data's patch taint map into this client's update map.
             public void SetAll(TerrainData terrData)
             {
-                if (updated.GetLength(0) != (terrData.SizeX / Constants.TerrainPatchSize)
-                    || updated.GetLength(1) != (terrData.SizeY / Constants.TerrainPatchSize))
+                if (xsize != (terrData.SizeX / Constants.TerrainPatchSize)
+                    || ysize != (terrData.SizeY / Constants.TerrainPatchSize))
                 {
                     throw new Exception(
                         String.Format("{0} PatchUpdates.SetAll: patch array not same size as terrain. arr=<{1},{2}>, terr=<{3},{4}>",
-                                LogHeader, updated.GetLength(0), updated.GetLength(1),
+                                LogHeader, xsize, ysize,
                                 terrData.SizeX / Constants.TerrainPatchSize, terrData.SizeY / Constants.TerrainPatchSize)
                     );
                 }
 
-                for (int xx = 0; xx < terrData.SizeX; xx += Constants.TerrainPatchSize)
+                for (int indx = 0; indx < updated.Length; ++indx)
                 {
-                    for (int yy = 0; yy < terrData.SizeY; yy += Constants.TerrainPatchSize)
-                    {
-                        // Only set tainted. The patch bit may be set if the patch was to be sent later.
-                        if (terrData.IsTaintedAt(xx, yy, false))
-                        {
-                            this.SetByXY(xx, yy, true);
-                        }
-                    }
+                    if (terrData.IsTaintedAtPatch(indx))
+                        SetTrueByPatch(indx);
                 }
             }
         }
@@ -520,13 +601,39 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="size">The size of the brush (0=small, 1=medium, 2=large)</param>
         /// <param name="action">0=LAND_LEVEL, 1=LAND_RAISE, 2=LAND_LOWER, 3=LAND_SMOOTH, 4=LAND_NOISE, 5=LAND_REVERT</param>
         /// <param name="agentId">UUID of script-owner</param>
-        public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action, UUID agentId)
+        public void ModifyTerrain(UUID user, Vector3 pos, byte size, byte action)
         {
-            float duration = 0.25f;
-            if (action == 0)
-                duration = 4.0f;
+            float duration;
+            float brushSize;
+            if (size > 2)
+            {
+                size = 3;
+                brushSize = 4.0f;
+            }
+            else
+            {
+                size++;
+                brushSize = size;
+            }
 
-            client_OnModifyTerrain(user, (float)pos.Z, duration, size, action, pos.Y, pos.X, pos.Y, pos.X, agentId);
+            switch((StandardTerrainEffects)action)
+            {
+                case StandardTerrainEffects.Flatten:
+                    duration = 7.29f * size * size;
+                    break;
+                case StandardTerrainEffects.Smooth:
+                case StandardTerrainEffects.Revert:
+                    duration = 0.06f * size * size;
+                    break;
+                case StandardTerrainEffects.Noise:
+                    duration = 0.46f * size * size;
+                    break;
+                default:
+                    duration = 0.25f;
+                    break;
+            }
+
+            client_OnModifyTerrain(user, pos.Z, duration, brushSize, action, pos.Y, pos.X, pos.Y, pos.X, -1);
         }
 
         /// <summary>
@@ -585,7 +692,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             pups = new PatchUpdates(m_scene.Heightmap.GetTerrainData(), presence);
                             m_perClientPatchUpdates.Add(presence.UUID, pups);
                         }
-                        pups.SetAll(true);
+                        else
+                          pups.SetAll(true);
                     }
                 }
             }
@@ -686,9 +794,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_painteffects[StandardTerrainEffects.Noise] = new NoiseSphere();
             m_painteffects[StandardTerrainEffects.Flatten] = new FlattenSphere();
             m_painteffects[StandardTerrainEffects.Revert] = new RevertSphere(m_baked);
-            m_painteffects[StandardTerrainEffects.Erode] = new ErodeSphere();
-            m_painteffects[StandardTerrainEffects.Weather] = new WeatherSphere();
-            m_painteffects[StandardTerrainEffects.Olsen] = new OlsenSphere();
 
             // Area of effect selection effects
             m_floodeffects[StandardTerrainEffects.Raise] = new RaiseArea();
@@ -793,7 +898,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 MainConsole.Instance.Output(
                     "ERROR: file width + minimum X tile and file height + minimum Y tile must incorporate the current region at ({0},{1}).  File width {2} from {3} and file height {4} from {5} does not.",
-                    null,
                     m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY, fileWidth, fileStartX, fileHeight, fileStartY);
 
                 return;
@@ -813,7 +917,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
                         MainConsole.Instance.Output(
                             "Saved terrain from ({0},{1}) to ({2},{3}) from {4} to {5}",
-                            null,
                             fileStartX, fileStartY, fileStartX + fileWidth - 1, fileStartY + fileHeight - 1,
                             m_scene.RegionInfo.RegionName, filename);
                     }
@@ -824,7 +927,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             MainConsole.Instance.Output(
                 "ERROR: Could not save terrain from {0} to {1}.  Valid file extensions are {2}",
-                null,
                 m_scene.RegionInfo.RegionName, filename, m_supportFileExtensionsForTileSave);
         }
 
@@ -849,15 +951,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             // dont overlap execution
             if(Monitor.TryEnter(TerrainCheckUpdatesLock))
             {
-                // this needs fixing
                 TerrainData terrData = m_channel.GetTerrainData();
-
                 bool shouldTaint = false;
-                for (int x = 0; x < terrData.SizeX; x += Constants.TerrainPatchSize)
+
+                int sx = terrData.SizeX / Constants.TerrainPatchSize;
+                for (int y = 0, py = 0; y < terrData.SizeY / Constants.TerrainPatchSize; y++, py += sx)
                 {
-                    for (int y = 0; y < terrData.SizeY; y += Constants.TerrainPatchSize)
+                    for (int x = 0; x < sx; x++)
                     {
-                        if (terrData.IsTaintedAt(x, y,true))
+                        if (terrData.IsTaintedAtPatchWithClear(x + py))
                         {
                             // Found a patch that was modified. Push this flag into the clients.
                             SendToClients(terrData, x, y);
@@ -963,8 +1065,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 for (int y = 0; y < terrData.SizeY; y += Constants.TerrainPatchSize)
                 {
-                    if (terrData.IsTaintedAt(x, y, false /* clearOnTest */))
-                   {
+                    if (terrData.IsTaintedAt(x, y))
+                    {
                         // If we should respect the estate settings then
                         //     fixup and height deltas that don't respect them.
                         // Note that LimitChannelChanges() modifies the TerrainChannel with the limited height values.
@@ -984,8 +1086,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 for (int y = startX; y <= endY; y += Constants.TerrainPatchSize)
                 {
-                    if (terrData.IsTaintedAt(x, y, false /* clearOnTest */))
-                   {
+                    if (terrData.IsTaintedAt(x, y))
+                    {
                         // If we should respect the estate settings then
                         //     fixup and height deltas that don't respect them.
                         // Note that LimitChannelChanges() modifies the TerrainChannel with the limited height values.
@@ -1041,9 +1143,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// Sends a copy of the current terrain to the scenes clients
         /// </summary>
         /// <param name="serialised">A copy of the terrain as a 1D float array of size w*h</param>
-        /// <param name="x">The patch corner to send</param>
-        /// <param name="y">The patch corner to send</param>
-        private void SendToClients(TerrainData terrData, int x, int y)
+        /// <param name="px">x patch coords</param>
+        /// <param name="py">y patch coords</param>
+        private void SendToClients(TerrainData terrData, int px, int py)
         {
             if (m_sendTerrainUpdatesByViewDistance)
             {
@@ -1052,14 +1154,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     m_scene.ForEachScenePresence(presence =>
                         {
-                            PatchUpdates thisClientUpdates;
-                            if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out thisClientUpdates))
+                            if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out PatchUpdates thisClientUpdates))
                             {
-                                // There is a ScenePresence without a send patch map. Create one.
-                                thisClientUpdates = new PatchUpdates(terrData, presence);
+                                // There is a ScenePresence without a send patch map. Create one. should not happen
+                                thisClientUpdates = new PatchUpdates(terrData, presence, false);
                                 m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
                             }
-                            thisClientUpdates.SetByXY(x, y, true);
+                            thisClientUpdates.SetTrueByPatch(px, py);
                         }
                     );
                 }
@@ -1069,7 +1170,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 // Legacy update sending where the update is sent out as soon as noticed
                 // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
                 //float[] heightMap = terrData.GetFloatsSerialized();
-                int[] map = new int[]{ x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize };
+                int[] map = new int[]{px, py};
                 m_scene.ForEachClient(
                     delegate (IClientAPI controller)
                     {
@@ -1105,48 +1206,33 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 foreach (PatchUpdates pups in m_perClientPatchUpdates.Values)
                 {
-                    if(pups.Presence.IsDeleted)
+                    if(pups.Presence.IsDeleted || !pups.HasUpdates() || !pups.Presence.ControllingClient.CanSendLayerData())
                         continue;
 
-                    // limit rate acording to udp land queue state
-                    if (!pups.Presence.ControllingClient.CanSendLayerData())
-                        continue;
-
-                    if (pups.HasUpdates())
+                    if (m_sendTerrainUpdatesByViewDistance)
                     {
-                        if (m_sendTerrainUpdatesByViewDistance)
+                        // There is something that could be sent to this client.
+                        List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
+                        if (toSend.Count > 0)
                         {
-                            // There is something that could be sent to this client.
-                            List<PatchesToSend> toSend = GetModifiedPatchesInViewDistance(pups);
-                            if (toSend.Count > 0)
+                            // m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2} in region {3}",
+                            //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
+                            // Sort the patches to send by the distance from the presence
+                            toSend.Sort();
+                            int[] patchPieces = new int[toSend.Count * 2];
+                            int pieceIndex = 0;
+                            foreach (PatchesToSend pts in toSend)
                             {
-                                // m_log.DebugFormat("{0} CheckSendingPatchesToClient: sending {1} patches to {2} in region {3}",
-                                //                     LogHeader, toSend.Count, pups.Presence.Name, m_scene.RegionInfo.RegionName);
-                                // Sort the patches to send by the distance from the presence
-                                toSend.Sort();
-                                /*
-                                foreach (PatchesToSend pts in toSend)
-                                {
-                                    pups.Presence.ControllingClient.SendLayerData(pts.PatchX, pts.PatchY, null);
-                                    // presence.ControllingClient.SendLayerData(xs.ToArray(), ys.ToArray(), null, TerrainPatch.LayerType.Land);
-                                }
-                                */
-
-                                int[] patchPieces = new int[toSend.Count * 2];
-                                int pieceIndex = 0;
-                                foreach (PatchesToSend pts in toSend)
-                                {
-                                    patchPieces[pieceIndex++] = pts.PatchX;
-                                    patchPieces[pieceIndex++] = pts.PatchY;
-                                }
-                                pups.Presence.ControllingClient.SendLayerData(patchPieces);
+                                patchPieces[pieceIndex++] = pts.PatchX;
+                                patchPieces[pieceIndex++] = pts.PatchY;
                             }
-                            if (pups.sendAll && toSend.Count < 1024)
-                                SendAllModifiedPatchs(pups);
+                            pups.Presence.ControllingClient.SendLayerData(patchPieces);
                         }
-                        else
+                        if (pups.sendAll && toSend.Count < 1024)
                             SendAllModifiedPatchs(pups);
                     }
+                    else
+                        SendAllModifiedPatchs(pups);
                 }
             }
         }
@@ -1176,9 +1262,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 for (; x < limitX; x++)
                 {
-                    if (pups.GetByPatch(x, y))
+                    if (pups.GetByPatchAndClear(x, y))
                     {
-                        pups.SetByPatch(x, y, false);
                         patchs.Add(new PatchesToSend(x, y, 0));
                         if (++npatchs >= 128)
                         {
@@ -1282,25 +1367,28 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else if (endY > limitY)
                 endY = limitY;
 
-            int distx;
-            int disty;
-            int distsq;
+            float distxsq;
+            float distysq = 0;
+            float distlimitsq;
 
             DrawDistance *= DrawDistance;
 
-            for (int x = startX; x < endX; x++)
+            for (int y = startY, py = startY * limitX; y < endY; y++, py += limitX)
             {
-                for (int y = startY; y < endY; y++)
+                distysq = y - testposY;
+                distysq *= distysq;
+                distlimitsq = DrawDistance - distysq;
+                for (int x = startX; x < endX; x++)
                 {
-                    if (pups.GetByPatch(x, y))
+                    int indx = x + py;
+                    if (pups.GetByPatch(indx))
                     {
-                        distx = x - testposX;
-                        disty = y - testposY;
-                        distsq = distx * distx + disty * disty;
-                        if (distsq < DrawDistance)
+                        distxsq = x - testposX;
+                        distxsq *= distxsq;
+                        if (distxsq < distlimitsq)
                         {
-                            pups.SetByPatch(x, y, false);
-                            ret.Add(new PatchesToSend(x, y, (float)distsq));
+                            pups.SetFalseByPatch(x + py);
+                            ret.Add(new PatchesToSend(x, y, distxsq + distysq));
                             if (npatchs++ > 1024)
                             {
                                 y = endY;
@@ -1313,131 +1401,171 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return ret;
         }
 
-        private void client_OnModifyTerrain(UUID user, float height, float seconds, byte size, byte action,
-                                            float north, float west, float south, float east, UUID agentId)
+        private double NextModifyTerrainTime = double.MinValue;
+
+        private void client_OnModifyTerrain(UUID user, float height, float seconds, float brushSize, byte action,
+                                            float north, float west, float south, float east, int parcelLocalID)
         {
-            bool god = m_scene.Permissions.IsGod(user);
-            bool allowed = false;
-            if (north == south && east == west)
+            double now = Util.GetTimeStamp();
+            if(now < NextModifyTerrainTime)
+                return;
+
+            try
             {
-                if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
+                NextModifyTerrainTime = double.MaxValue; // block it
+
+                //m_log.DebugFormat("brushs {0} seconds {1} height {2}, parcel {3}", brushSize, seconds, height, parcelLocalID);
+                bool god = m_scene.Permissions.IsGod(user);
+                bool allowed = false;
+                if (north == south && east == west)
                 {
-                    bool[,] allowMask = new bool[m_channel.Width, m_channel.Height];
-                    allowMask.Initialize();
-                    int n = size + 1;
-                    if (n > 2)
-                        n = 4;
-
-                    int zx = (int)(west + 0.5);
-                    int zy = (int)(north + 0.5);
-
-                    int startX = zx - n;
-                    if (startX < 0)
-                        startX = 0;
-
-                    int startY = zy - n;
-                    if (startY < 0)
-                        startY = 0;
-
-                    int endX = zx + n;
-                    if (endX >= m_channel.Width)
-                        endX = m_channel.Width - 1;
-                    int endY = zy + n;
-                    if (endY >= m_channel.Height)
-                        endY = m_channel.Height - 1;
-
-                    int x, y;
-
-                    for (x = startX; x <= endX; x++)
+                    if (m_painteffects.ContainsKey((StandardTerrainEffects)action))
                     {
-                        for (y = startY; y <= endY; y++)
+                        bool[,] allowMask = new bool[m_channel.Width, m_channel.Height];
+                    
+                        allowMask.Initialize();
+
+                        int startX = (int)(west - brushSize + 0.5);
+                        if (startX < 0)
+                            startX = 0;
+
+                        int startY = (int)(north - brushSize + 0.5);
+                        if (startY < 0)
+                            startY = 0;
+
+                        int endX = (int)(west + brushSize + 0.5);
+                        if (endX >= m_channel.Width)
+                            endX = m_channel.Width - 1;
+                        int endY = (int)(north + brushSize + 0.5);
+                        if (endY >= m_channel.Height)
+                            endY = m_channel.Height - 1;
+
+                        int x, y;
+
+                        for (x = startX; x <= endX; x++)
                         {
-                            if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x, y, 0)))
+                            for (y = startY; y <= endY; y++)
                             {
-                                allowMask[x, y] = true;
-                                allowed = true;
+                                if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, -1)))
+                                {
+                                    allowMask[x, y] = true;
+                                    allowed = true;
+                                }
                             }
                         }
-                    }
-                    if (allowed)
-                    {
-                        StoreUndoState();
-                        m_painteffects[(StandardTerrainEffects) action].PaintEffect(
-                            m_channel, allowMask, west, south, height, size, seconds,
-                            startX, endX, startY, endY);
+                        if (allowed)
+                        {
+                            StoreUndoState();
+                            m_painteffects[(StandardTerrainEffects) action].PaintEffect(
+                                m_channel, allowMask, west, south, height, brushSize, seconds,
+                                startX, endX, startY, endY);
 
-                        //block changes outside estate limits
-                        if (!god)
-                            EnforceEstateLimits(startX, endX, startY, endY);
+                            //block changes outside estate limits
+                            if (!god)
+                                EnforceEstateLimits(startX, endX, startY, endY);
+                        }
+                    }
+                    else
+                    {
+                        m_log.Debug("Unknown terrain brush type " + action);
                     }
                 }
                 else
                 {
-                    m_log.Debug("Unknown terrain brush type " + action);
+                    if (m_floodeffects.ContainsKey((StandardTerrainEffects)action))
+                    {
+                        bool[,] fillArea = new bool[m_channel.Width, m_channel.Height];
+                        fillArea.Initialize();
+
+                        int startX = (int)west;
+                        int startY = (int)south;
+                        int endX = (int)east;
+                        int endY = (int)north;
+
+                        if (startX < 0)
+                            startX = 0;
+                        else if (startX >= m_channel.Width)
+                            startX = m_channel.Width - 1;
+
+                        if (endX < 0)
+                            endX = 0;
+                        else if (endX >= m_channel.Width)
+                            endX = m_channel.Width - 1;
+
+                        if (startY < 0)
+                            startY = 0;
+                        else if (startY >= m_channel.Height)
+                            startY = m_channel.Height - 1;
+
+                        if (endY < 0)
+                            endY = 0;
+                        else if (endY >= m_channel.Height)
+                            endY = m_channel.Height - 1;
+
+                        int x, y;
+                        if (parcelLocalID == -1)
+                        {
+                            for (x = startX; x <= endX; x++)
+                            {
+                                for (y = startY; y <= endY; y++)
+                                {
+                                    if (m_scene.Permissions.CanTerraformLand(user, new Vector3(x, y, -1)))
+                                    {
+                                        fillArea[x, y] = true;
+                                        allowed = true;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (!m_scene.Permissions.CanTerraformLand(user, new Vector3(-1, -1, parcelLocalID)))
+                                return;
+
+                            ILandObject parcel = m_scene.LandChannel.GetLandObject(parcelLocalID);
+                            if(parcel == null)
+                                return;
+
+                            bool[,] parcelmap = parcel.GetLandBitmap();
+                            //ugly
+                            for (x = startX; x <= endX; x++)
+                            {
+                                int px = x >> 2;
+                                y = startY;
+                                while( y <= endY)
+                                {
+                                    int py = y >> 2;
+                                    bool inp = parcelmap[px, py];
+                                    fillArea[x, y++] = inp;
+                                    fillArea[x, y++] = inp;
+                                    fillArea[x, y++] = inp;
+                                    fillArea[x, y++] = inp;
+                                }
+                            }
+
+                            allowed = true;
+                        }
+
+                        if (allowed)
+                        {
+                            StoreUndoState();
+                            m_floodeffects[(StandardTerrainEffects)action].FloodEffect(m_channel, fillArea, height, seconds,
+                                startX, endX, startY, endY);
+
+                            //block changes outside estate limits
+                            if (!god)
+                                EnforceEstateLimits(startX, endX, startY, endY);
+                        }
+                    }
+                    else
+                    {
+                        m_log.Debug("Unknown terrain flood type " + action);
+                    }
                 }
             }
-            else
+            finally
             {
-                if (m_floodeffects.ContainsKey((StandardTerrainEffects)action))
-                {
-                    bool[,] fillArea = new bool[m_channel.Width, m_channel.Height];
-                    fillArea.Initialize();
-
-                    int startX = (int)west;
-                    int startY = (int)south;
-                    int endX = (int)east;
-                    int endY = (int)north;
-
-                    if (startX < 0)
-                        startX = 0;
-                    else if (startX >= m_channel.Width)
-                        startX = m_channel.Width - 1;
-
-                    if (endX < 0)
-                        endX = 0;
-                    else if (endX >= m_channel.Width)
-                        endX = m_channel.Width - 1;
-
-                    if (startY < 0)
-                        startY = 0;
-                    else if (startY >= m_channel.Height)
-                        startY = m_channel.Height - 1;
-
-                    if (endY < 0)
-                        endY = 0;
-                    else if (endY >= m_channel.Height)
-                        endY = m_channel.Height - 1;
-
-
-                    int x, y;
-
-                    for (x = startX; x <= endX; x++)
-                    {
-                        for (y = startY; y <= endY; y++)
-                        {
-                            if (m_scene.Permissions.CanTerraformLand(agentId, new Vector3(x, y, 0)))
-                            {
-                                fillArea[x, y] = true;
-                                allowed = true;
-                            }
-                        }
-                    }
-
-                    if (allowed)
-                    {
-                        StoreUndoState();
-                        m_floodeffects[(StandardTerrainEffects)action].FloodEffect(m_channel, fillArea, size,
-                            startX, endX, startY, endY);
-
-                        //block changes outside estate limits
-                        if (!god)
-                            EnforceEstateLimits(startX, endX, startY, endY);
-                    }
-                }
-                else
-                {
-                    m_log.Debug("Unknown terrain flood type " + action);
-                }
+                NextModifyTerrainTime = Util.GetTimeStamp() + 0.02; // 20ms cooldown
             }
         }
 
@@ -1517,8 +1645,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for (int y = 0; y < m_channel.Height / 2; y++)
                     {
-                        double height = m_channel[x, y];
-                        double flippedHeight = m_channel[x, (int)m_channel.Height - 1 - y];
+                        float height = m_channel[x, y];
+                        float flippedHeight = m_channel[x, (int)m_channel.Height - 1 - y];
                         m_channel[x, y] = flippedHeight;
                         m_channel[x, (int)m_channel.Height - 1 - y] = height;
 
@@ -1531,8 +1659,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for (int x = 0; x < m_channel.Width / 2; x++)
                     {
-                        double height = m_channel[x, y];
-                        double flippedHeight = m_channel[(int)m_channel.Width - 1 - x, y];
+                        float height = m_channel[x, y];
+                        float flippedHeight = m_channel[(int)m_channel.Width - 1 - x, y];
                         m_channel[x, y] = flippedHeight;
                         m_channel[(int)m_channel.Width - 1 - x, y] = height;
 
@@ -1541,17 +1669,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             else
             {
-                MainConsole.Instance.Output("ERROR: Unrecognised direction {0} - need x or y", null, direction);
+                MainConsole.Instance.Output("ERROR: Unrecognised direction {0} - need x or y", direction);
             }
         }
 
         private void InterfaceRescaleTerrain(Object[] args)
         {
-            double desiredMin = (double)args[0];
-            double desiredMax = (double)args[1];
+            float desiredMin = (float)args[0];
+            float desiredMax = (float)args[1];
 
             // determine desired scaling factor
-            double desiredRange = desiredMax - desiredMin;
+            float desiredRange = desiredMax - desiredMin;
             //m_log.InfoFormat("Desired {0}, {1} = {2}", new Object[] { desiredMin, desiredMax, desiredRange });
 
             if (desiredRange == 0d)
@@ -1562,8 +1690,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             else
             {
                 //work out current heightmap range
-                double currMin = double.MaxValue;
-                double currMax = double.MinValue;
+                float currMin = float.MaxValue;
+                float currMax = float.MinValue;
 
                 int width = m_channel.Width;
                 int height = m_channel.Height;
@@ -1572,7 +1700,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for(int y = 0; y < height; y++)
                     {
-                        double currHeight = m_channel[x, y];
+                        float currHeight = m_channel[x, y];
                         if (currHeight < currMin)
                         {
                             currMin = currHeight;
@@ -1584,8 +1712,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     }
                 }
 
-                double currRange = currMax - currMin;
-                double scale = desiredRange / currRange;
+                float currRange = currMax - currMin;
+                float scale = desiredRange / currRange;
 
                 //m_log.InfoFormat("Current {0}, {1} = {2}", new Object[] { currMin, currMax, currRange });
                 //m_log.InfoFormat("Scale = {0}", scale);
@@ -1595,7 +1723,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     for(int y = 0; y < height; y++)
                     {
-                        double currHeight = m_channel[x, y] - currMin;
+                        float currHeight = m_channel[x, y] - currMin;
                         m_channel[x, y] = desiredMin + (currHeight * scale);
                     }
                 }
@@ -1605,7 +1733,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceElevateTerrain(Object[] args)
         {
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             int x, y;
             for (x = 0; x < m_channel.Width; x++)
@@ -1616,7 +1744,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMultiplyTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1626,7 +1754,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceLowerTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1636,7 +1764,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         public void InterfaceFillTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
 
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
@@ -1646,7 +1774,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMinTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
             for (x = 0; x < m_channel.Width; x++)
             {
                 for(y = 0; y < m_channel.Height; y++)
@@ -1659,7 +1787,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void InterfaceMaxTerrain(Object[] args)
         {
             int x, y;
-            double val = (double)args[0];
+            float val = (float)args[0];
             for (x = 0; x < m_channel.Width; x++)
             {
                 for(y = 0; y < m_channel.Height; y++)
@@ -1686,8 +1814,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         private void InterfaceShowDebugStats(Object[] args)
         {
-            double max = Double.MinValue;
-            double min = double.MaxValue;
+            float max = float.MinValue;
+            float min = float.MaxValue;
             double sum = 0;
 
             int x;
@@ -1706,22 +1834,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             double avg = sum / (m_channel.Height * m_channel.Width);
 
-            MainConsole.Instance.Output("Channel {0}x{1}", null, m_channel.Width, m_channel.Height);
-            MainConsole.Instance.Output("max/min/avg/sum: {0}/{1}/{2}/{3}", null, max, min, avg, sum);
-        }
-
-        private void InterfaceEnableExperimentalBrushes(Object[] args)
-        {
-            if ((bool)args[0])
-            {
-                m_painteffects[StandardTerrainEffects.Revert] = new WeatherSphere();
-                m_painteffects[StandardTerrainEffects.Flatten] = new OlsenSphere();
-                m_painteffects[StandardTerrainEffects.Smooth] = new ErodeSphere();
-            }
-            else
-            {
-                InstallDefaultEffects();
-            }
+            MainConsole.Instance.Output("Channel {0}x{1}", m_channel.Width, m_channel.Height);
+            MainConsole.Instance.Output("max/min/avg/sum: {0}/{1}/{2}/{3}", max, min, avg, sum);
         }
 
         private void InterfaceRunPluginEffect(Object[] args)
@@ -1799,19 +1913,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             Command fillRegionCommand =
                 new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
             fillRegionCommand.AddArgument("value", "The numeric value of the height you wish to set your region to.",
-                                          "Double");
+                                          "Float");
 
             Command elevateCommand =
                 new Command("elevate", CommandIntentions.COMMAND_HAZARDOUS, InterfaceElevateTerrain, "Raises the current heightmap by the specified amount.");
-            elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Double");
+            elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Float");
 
             Command lowerCommand =
                 new Command("lower", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLowerTerrain, "Lowers the current heightmap by the specified amount.");
-            lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Double");
+            lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Float");
 
             Command multiplyCommand =
                 new Command("multiply", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMultiplyTerrain, "Multiplies the heightmap by the value specified.");
-            multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Double");
+            multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Float");
 
             Command bakeRegionCommand =
                 new Command("bake", CommandIntentions.COMMAND_HAZARDOUS, InterfaceBakeTerrain, "Saves the current terrain into the regions baked map.");
@@ -1824,14 +1938,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
             Command rescaleCommand =
                 new Command("rescale", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRescaleTerrain, "Rescales the current terrain to fit between the given min and max heights");
-            rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Double");
-            rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Double");
+            rescaleCommand.AddArgument("min", "min terrain height after rescaling", "Float");
+            rescaleCommand.AddArgument("max", "max terrain height after rescaling", "Float");
 
             Command minCommand = new Command("min", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMinTerrain, "Sets the minimum terrain height to the specified value.");
-            minCommand.AddArgument("min", "terrain height to use as minimum", "Double");
+            minCommand.AddArgument("min", "terrain height to use as minimum", "Float");
 
             Command maxCommand = new Command("max", CommandIntentions.COMMAND_HAZARDOUS, InterfaceMaxTerrain, "Sets the maximum terrain height to the specified value.");
-            maxCommand.AddArgument("min", "terrain height to use as maximum", "Double");
+            maxCommand.AddArgument("min", "terrain height to use as maximum", "Float");
 
 
             // Debug
@@ -1844,12 +1958,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             "Shows terrain height at a given co-ordinate.");
             showCommand.AddArgument("point", "point in <x>,<y> format with no spaces (e.g. 45,45)", "String");
 
-            Command experimentalBrushesCommand =
-                new Command("newbrushes", CommandIntentions.COMMAND_HAZARDOUS, InterfaceEnableExperimentalBrushes,
-                            "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
-            experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
-
-            // Plugins
+             // Plugins
             Command pluginRunCommand =
                 new Command("effect", CommandIntentions.COMMAND_HAZARDOUS, InterfaceRunPluginEffect, "Runs a specified plugin effect");
             pluginRunCommand.AddArgument("name", "The plugin effect you wish to run, or 'list' to see all plugins", "String");
@@ -1864,7 +1973,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("multiply", multiplyCommand);
             m_commander.RegisterCommand("bake", bakeRegionCommand);
             m_commander.RegisterCommand("revert", revertRegionCommand);
-            m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
             m_commander.RegisterCommand("show", showCommand);
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
             m_commander.RegisterCommand("effect", pluginRunCommand);

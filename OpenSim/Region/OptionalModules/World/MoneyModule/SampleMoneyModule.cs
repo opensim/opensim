@@ -35,6 +35,7 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -64,6 +65,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// Where Stipends come from and Fees go to.
         /// </summary>
         // private UUID EconomyBaseAccount = UUID.Zero;
+
+        private Dictionary<string, XmlRpcMethod> m_rpcHandlers;
+        private string m_localEconomyURL;
 
         private float EnergyEfficiency = 1f;
         // private ObjectPaid handerOnObjectPaid;
@@ -138,20 +142,16 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 {
                     if (m_scenel.Count == 0)
                     {
-                        // XMLRPCHandler = scene;
+                        m_localEconomyURL = scene.RegionInfo.ServerURI;
+                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
+                        m_rpcHandlers.Add("getCurrencyQuote", quote_func);
+                        m_rpcHandlers.Add("buyCurrency", buy_func);
+                        m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                        m_rpcHandlers.Add("buyLandPrep", landBuy_func);
 
-                        // To use the following you need to add:
-                        // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER>
-                        // to the command line parameters you use to start up your client
-                        // This commonly looks like -helperuri http://127.0.0.1:9000/
-
-
-                        // Local Server..  enables functionality only.
-                        httpServer.AddXmlRPCHandler("getCurrencyQuote", quote_func);
-                        httpServer.AddXmlRPCHandler("buyCurrency", buy_func);
-                        httpServer.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                        httpServer.AddXmlRPCHandler("buyLandPrep", landBuy_func);
-
+                        // add php
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
+                        MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/landtool.php", processPHP));
                     }
 
                     if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
@@ -169,7 +169,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 scene.EventManager.OnClientClosed += ClientClosed;
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-                scene.EventManager.OnClientClosed += ClientLoggedOut;
                 scene.EventManager.OnValidateLandBuy += ValidateLandBuy;
                 scene.EventManager.OnLandBuy += processLandBuy;
             }
@@ -181,8 +180,22 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
+            ISimulatorFeaturesModule fm = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+            if (fm != null && !string.IsNullOrWhiteSpace(m_localEconomyURL))
+            {
+                if(fm.TryGetOpenSimExtraFeature("currency-base-uri", out OSD tmp))
+                    return;
+                fm.AddOpenSimExtraFeature("currency-base-uri", Util.AppendEndSlash(m_localEconomyURL));
+            }
         }
 
+        public void processPHP(IOSHttpRequest request, IOSHttpResponse response)
+        {
+            MainServer.Instance.HandleXmlRpcRequests((OSHttpRequest)request, (OSHttpResponse)response, m_rpcHandlers);
+        }
 
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
@@ -251,16 +264,20 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             if(String.IsNullOrEmpty(mmodule))
             {
                 if(economyConfig != null)
-                    mmodule = economyConfig.GetString("economymodule","");
+                {
+                    mmodule = economyConfig.GetString("economymodule", "");
+                    if (String.IsNullOrEmpty(mmodule))
+                        mmodule = economyConfig.GetString("EconomyModule", "");
+                }
             }
 
-            if(!String.IsNullOrEmpty(mmodule) && mmodule != Name)
+            if (!String.IsNullOrEmpty(mmodule) && mmodule != Name)
             {
                 // some other money module selected
                 m_enabled = false;
                 return;
             }
-            
+
             if(economyConfig == null)
                 return;
 
@@ -300,7 +317,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             client.OnMoneyBalanceRequest += SendMoneyBalance;
             client.OnRequestPayPrice += requestPayPrice;
             client.OnObjectBuy += ObjectBuy;
-            client.OnLogout += ClientClosed;
+            client.OnLogout += ClientLoggedOut;
         }
 
         /// <summary>
@@ -312,9 +329,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <returns></returns>
         private bool doMoneyTransfer(UUID Sender, UUID Receiver, int amount, int transactiontype, string description)
         {
-            bool result = true;
-
-            return result;
+            return true;
         }
 
 
@@ -468,26 +483,32 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public XmlRpcResponse quote_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            // Hashtable requestData = (Hashtable) request.Params[0];
             // UUID agentId = UUID.Zero;
             int amount = 0;
-            Hashtable quoteResponse = new Hashtable();
-            XmlRpcResponse returnval = new XmlRpcResponse();
-
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+                amount = (int)requestData["currencyBuy"];
+            }
+            catch{ }
 
             Hashtable currencyResponse = new Hashtable();
             currencyResponse.Add("estimatedCost", 0);
+            //currencyResponse.Add("estimatedLocalCost", " 0 Euros");
+
             currencyResponse.Add("currencyBuy", amount);
 
+            Hashtable quoteResponse = new Hashtable();
             quoteResponse.Add("success", true);
             quoteResponse.Add("currency", currencyResponse);
             quoteResponse.Add("confirm", "asdfad9fj39ma9fj");
 
+            //quoteResponse.Add("success", false);
+            //quoteResponse.Add("errorMessage", "There is currency");
+            //quoteResponse.Add("errorURI", "http://opensimulator.org");
+            XmlRpcResponse returnval = new XmlRpcResponse();
             returnval.Value = quoteResponse;
             return returnval;
-
-
-
         }
 
         public XmlRpcResponse buy_func(XmlRpcRequest request, IPEndPoint remoteClient)
@@ -756,7 +777,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// Event Handler for when the client logs out.
         /// </summary>
         /// <param name="AgentId"></param>
-        private void ClientLoggedOut(UUID AgentId, Scene scene)
+        private void ClientLoggedOut(IClientAPI client)
         {
 
         }
@@ -829,23 +850,35 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             // Validate that the object exists in the scene the user is in
             SceneObjectPart part = s.GetSceneObjectPart(localID);
-            if (part == null)
+            if(!part.IsRoot) // silent ignore non root parts
+                return;
+
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
             {
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
+                return;
+            }
+
+            if (part.ObjectSaleType == (byte)SaleType.Not)
+            {
+                string e = string.Format("Object {0} is not for sale", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 
             // Validate that the client sent the price that the object is being sold for
             if (part.SalePrice != salePrice)
             {
-                remoteClient.SendAgentAlertMessage("Cannot buy at this price. Buy Failed. If you continue to get this relog.", false);
+                string e = string.Format("Object {0} price does not match selected price", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 
             // Validate that the client sent the proper sale type the object has set
             if (part.ObjectSaleType != saleType)
             {
-                remoteClient.SendAgentAlertMessage("Cannot buy this way. Buy Failed. If you continue to get this relog.", false);
+                string e = string.Format("Object {0} sell type does not match selected type", part.Name);
+                remoteClient.SendAgentAlertMessage(e, false);
                 return;
             }
 

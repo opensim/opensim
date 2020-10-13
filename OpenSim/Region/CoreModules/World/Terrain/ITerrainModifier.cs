@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name='y'>
         /// Y.
         /// </param>
-        double operate(double[,] map, TerrainModifierData data, int x, int y);
+        float operate(float[,] map, TerrainModifierData data, int x, int y);
     }
 
 }

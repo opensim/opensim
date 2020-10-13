@@ -119,10 +119,7 @@ namespace OpenSim.Region.Framework.Scenes
             return m_terrainData;
         }
 
-        // ITerrainChannel.GetFloatsSerialized()
         // This one dimensional version is ordered so height = map[y*sizeX+x];
-        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
-        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialised()
         {
             return m_terrainData.GetFloatsSerialized();
@@ -147,12 +144,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // ITerrainChannel.this[x,y]
-        public double this[int x, int y]
+        public float this[int x, int y]
         {
             get {
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
                     return 0;
-                return (double)m_terrainData[x, y];
+                return m_terrainData[x, y];
             }
             set
             {
@@ -492,7 +489,7 @@ namespace OpenSim.Region.Framework.Scenes
                     float value;
                     value = BitConverter.ToSingle(dataArray, index);
                     index += 4;
-                    this[x, y] = (double)value;
+                    this[x, y] = value;
                 }
             }
         }
@@ -538,19 +535,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             float cx = m_terrainData.SizeX * 0.5f;
             float cy = m_terrainData.SizeY * 0.5f;
-            float h;
+            float h, b;
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
- //                   h = (float)TerrainUtil.PerlinNoise2D(x, y, 2, 0.125) * 10;
-                    h = 1.0f;
-                    float spherFacA = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 50) * 0.01d);
-                    float spherFacB = (float)(TerrainUtil.SphericalFactor(x, y, cx, cy, 100) * 0.001d);
-                    if (h < spherFacA)
-                        h = spherFacA;
-                    if (h < spherFacB)
-                        h = spherFacB;
+                    h = 25 * TerrainUtil.SphericalFactor(x - cx, y - cy, 50);
+                    b = 10 * TerrainUtil.SphericalFactor(x - cx, y - cy, 100);
+                    if (h < b)
+                        h = b;
                     m_terrainData[x, y] = h;
                 }
             }

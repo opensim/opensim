@@ -59,6 +59,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
 
+            config = initConfigSource.AddConfig("OSSL");
+            config.Set("DebuggerSafe", false);
+            config.Set("AllowOSFunctions", "true");
+            config.Set("OSFunctionThreatLevel", "Severe");
             Scene scene = new SceneHelpers().SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene).RootPart;
 

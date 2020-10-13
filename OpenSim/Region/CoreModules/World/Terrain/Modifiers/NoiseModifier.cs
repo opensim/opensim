@@ -96,11 +96,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
             return val;
         }
 
-        public override double operate(double[,] map, TerrainModifierData data, int x, int y)
+        public override float operate(float[,] map, TerrainModifierData data, int x, int y)
         {
-            double factor = this.computeBevel(data, x, y);
-            double noise = TerrainUtil.PerlinNoise2D((double)x / map.GetLength(0), (double)y / map.GetLength(1), 8, 1.0);
-            return map[x, y] + (data.elevation - (data.elevation - data.bevelevation) * factor) * (noise - .5);
+            float factor = this.computeBevel(data, x, y);
+            float noise = (float)TerrainUtil.PerlinNoise2D((double)x / map.GetLength(0), (double)y / map.GetLength(1), 8, 1.0);
+            return map[x, y] + (data.elevation - (data.elevation - data.bevelevation) * factor) * (noise - .5f);
         }
 
     }

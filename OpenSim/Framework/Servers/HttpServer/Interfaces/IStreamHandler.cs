@@ -27,6 +27,7 @@
 
 using System.Collections;
 using System.IO;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -88,4 +89,20 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         Hashtable Handle(string path, Hashtable request);
     }
+
+    public interface ISimpleStreamHandler
+    {
+        string Name { get; }
+        string Path { get; }
+
+        int RequestsReceived { get; }
+        int RequestsHandled { get; }
+
+        // Handle request stream, return byte array
+        void Handle(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
+    }
+
+    public delegate void SimpleStreamMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse);
+    public delegate void SimpleOSDMapMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap args);
+    public delegate void SimpleBinaryMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, byte[] data);
 }

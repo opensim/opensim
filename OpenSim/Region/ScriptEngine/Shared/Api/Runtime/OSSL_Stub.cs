@@ -76,12 +76,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetEstateSunSettings(sunFixed, sunHour);
         }
 
-        public double osGetCurrentSunHour()
+        public LSL_Float osGetCurrentSunHour()
         {
             return m_OSSL_Functions.osGetCurrentSunHour();
         }
 
-        public double osGetSunParam(string param)
+        public LSL_Float osGetSunParam(LSL_String param)
         {
             return m_OSSL_Functions.osGetSunParam(param);
         }
@@ -235,7 +235,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osConsoleCommand(Command);
         }
 
-        public void osSetParcelMediaURL(string url)
+        public void osSetParcelMusicURL(LSL_String url)
+        {
+            m_OSSL_Functions.osSetParcelMusicURL(url);
+        }
+
+        public void osSetParcelMediaURL(LSL_String url)
         {
             m_OSSL_Functions.osSetParcelMediaURL(url);
         }
@@ -456,11 +461,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetDrawStringSize(contentType, text, fontName, fontSize);
         }
 
-        public void osSetStateEvents(int events)
-        {
-            m_OSSL_Functions.osSetStateEvents(events);
-        }
-
         public string osGetScriptEngineName()
         {
             return m_OSSL_Functions.osGetScriptEngineName();
@@ -628,9 +628,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom, options);
         }
 
-        public key osNpcSaveAppearance(key npc, string notecard)
+        public key osNpcSaveAppearance(key npc, LSL_String notecard)
         {
             return m_OSSL_Functions.osNpcSaveAppearance(npc, notecard);
+        }
+
+        public key osNpcSaveAppearance(key npc, LSL_String notecard, LSL_Integer includeHuds)
+        {
+            return m_OSSL_Functions.osNpcSaveAppearance(npc, notecard, includeHuds);
         }
 
         public void osNpcLoadAppearance(key npc, string notecard)
@@ -738,14 +743,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcTouch(npcLSL_Key, object_key, link_num);
         }
 
-        public LSL_Key osOwnerSaveAppearance(string notecard)
+        public LSL_Key osOwnerSaveAppearance(LSL_String notecard)
         {
             return m_OSSL_Functions.osOwnerSaveAppearance(notecard);
         }
 
-        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, string notecard)
+        public LSL_Key osOwnerSaveAppearance(LSL_String notecard, LSL_Integer includeHuds)
+        {
+            return m_OSSL_Functions.osOwnerSaveAppearance(notecard, includeHuds);
+        }
+
+        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, LSL_String notecard)
         {
             return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecard);
+        }
+
+        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, LSL_String notecard, LSL_Integer includeHuds)
+        {
+            return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecard, includeHuds);
         }
 
         public OSSLPrim Prim;
@@ -1412,5 +1427,101 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSlerp(a, b, amount);
         }
 
+        public void osResetAllScripts(LSL_Integer allLinkSet)
+        {
+            m_OSSL_Functions.osResetAllScripts(allLinkSet);
+        }
+
+        public LSL_Integer osIsNotValidNumber(LSL_Float v)
+        {
+            return m_OSSL_Functions.osIsNotValidNumber(v);
+        }
+
+        public void osSetSitActiveRange(LSL_Float v)
+        {
+            m_OSSL_Functions.osSetSitActiveRange(v);
+        }
+
+        public void osSetLinkSitActiveRange(LSL_Integer linkNumber, LSL_Float v)
+        {
+            m_OSSL_Functions.osSetLinkSitActiveRange(linkNumber, v);
+        }
+
+        public LSL_Float osGetSitActiveRange()
+        {
+            return m_OSSL_Functions.osGetSitActiveRange();
+        }
+
+        public LSL_Float osGetLinkSitActiveRange(LSL_Integer linkNumber)
+        {
+            return m_OSSL_Functions.osGetLinkSitActiveRange(linkNumber);
+        }
+
+        public void osSetStandTarget(vector v)
+        {
+            m_OSSL_Functions.osSetStandTarget(v);
+        }
+
+        public void osSetLinkStandTarget(LSL_Integer linkNumber, vector v)
+        {
+            m_OSSL_Functions.osSetLinkStandTarget(linkNumber, v);
+        }
+
+        public vector osGetStandTarget()
+        {
+            return m_OSSL_Functions.osGetStandTarget();
+        }
+
+        public vector osGetLinkStandTarget(LSL_Integer linkNumber)
+        {
+            return m_OSSL_Functions.osGetLinkStandTarget(linkNumber);
+        }
+
+        public LSL_Integer osClearObjectAnimations()
+        {
+            return m_OSSL_Functions.osClearObjectAnimations();
+        }
+
+        public LSL_Float osGetApparentTime()
+        {
+            return m_OSSL_Functions.osGetApparentTime();
+        }
+
+        public LSL_String osGetApparentTimeString(LSL_Integer format24)
+        {
+            return m_OSSL_Functions.osGetApparentTimeString(format24);
+        }
+
+        public LSL_Float osGetApparentRegionTime()
+        {
+            return m_OSSL_Functions.osGetApparentRegionTime();
+        }
+
+        public LSL_String osGetApparentRegionTimeString(LSL_Integer format24)
+        {
+            return m_OSSL_Functions.osGetApparentRegionTimeString(format24);
+        }
+
+        public LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle)
+        {
+            return m_OSSL_Functions.osReplaceAgentEnvironment(agentkey, transition, daycycle);
+        }
+
+        public LSL_Integer osReplaceParcelEnvironment(LSL_Integer transition, LSL_String daycycle)
+        {
+            return m_OSSL_Functions.osReplaceParcelEnvironment(transition, daycycle);
+        }
+
+        public LSL_Integer osReplaceRegionEnvironment(LSL_Integer transition, LSL_String daycycle,
+           LSL_Float daylen, LSL_Float dayoffset, LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3)
+        {
+            return m_OSSL_Functions.osReplaceRegionEnvironment(transition, daycycle, daylen,
+                        dayoffset, altitude1, altitude2, altitude3);
+        }
+
+        public LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition)
+        {
+            return m_OSSL_Functions.osResetEnvironment(parcelOrRegion, transition);
+        }
     }
 }

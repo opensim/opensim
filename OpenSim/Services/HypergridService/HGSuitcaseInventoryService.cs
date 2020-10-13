@@ -210,6 +210,8 @@ namespace OpenSim.Services.HypergridService
                 CreateFolder(principalID, rootID, (int)FolderType.Texture, "Textures");
             if (!Array.Exists(sysFolders, delegate(XInventoryFolder f) { if (f.type == (int)FolderType.Trash) return true; return false; }))
                 CreateFolder(principalID, rootID, (int)FolderType.Trash, "Trash");
+            if (!Array.Exists(sysFolders, delegate (XInventoryFolder f) { if (f.type == (int)FolderType.Settings) return true; return false; }))
+                CreateFolder(principalID, rootID, (int)FolderType.Settings, "Settings");
         }
 
         public override InventoryFolderBase GetFolderForType(UUID principalID, FolderType type)

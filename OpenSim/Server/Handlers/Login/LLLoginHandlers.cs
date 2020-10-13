@@ -132,13 +132,8 @@ namespace OpenSim.Server.Handlers.Login
 
                     //m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
 
-
-                    bool LibOMVclient = false;
-                    if (request.Params.Count > 4 && (string)request.Params[4] == "gridproxy")
-                        LibOMVclient = true;
-
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID, clientVersion, channel, mac, id0, remoteClient, LibOMVclient);
+                    reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID, clientVersion, channel, mac, id0, remoteClient);
 
                     XmlRpcResponse response = new XmlRpcResponse();
                     response.Value = reply.ToHashtable();
@@ -221,7 +216,7 @@ namespace OpenSim.Server.Handlers.Login
 
                     LoginResponse reply = null;
                     reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, scopeID,
-                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(), map["id0"].AsString(), remoteClient,false);
+                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(), map["id0"].AsString(), remoteClient);
                     return reply.ToOSDMap();
 
                 }
@@ -264,7 +259,7 @@ namespace OpenSim.Server.Handlers.Login
                                                (sender as WebSocketHttpServerHandler).GetRemoteIPEndpoint();
                                            LoginResponse reply = null;
                                            reply = m_LocalService.Login(first, last, passwd, start, scope, version,
-                                                                        channel, mac, id0, endPoint,false);
+                                                                        channel, mac, id0, endPoint);
                                            sock.SendMessage(OSDParser.SerializeJsonString(reply.ToOSDMap()));
 
                                        }

@@ -26,36 +26,30 @@
  */
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Reflection;
-using System.IO;
-using System.Web;
+
+using System.Net;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Capabilities;
 using Caps = OpenSim.Framework.Capabilities.Caps;
-using OpenSim.Capabilities.Handlers;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AvatarPickerSearchModule")]
-    public class AvatarPickerSearchModule : INonSharedRegionModule
+    public class AvatarPickerSearchModule : ISharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
-        private IPeople m_People;
+        private int m_nscenes;
+        private IPeople m_People = null;
         private bool m_Enabled = false;
 
         private string m_URL;
@@ -78,8 +72,6 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             if (!m_Enabled)
                 return;
-
-            m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
@@ -87,8 +79,10 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene = null;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            --m_nscenes;
+            if(m_nscenes >= 0)
+                m_People = null;
         }
 
         public void RegionLoaded(Scene s)
@@ -96,8 +90,10 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!m_Enabled)
                 return;
 
-            m_People = m_scene.RequestModuleInterface<IPeople>();
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            if(m_People == null)
+                m_People = s.RequestModuleInterface<IPeople>();
+            s.EventManager.OnRegisterCaps += RegisterCaps;
+            ++m_nscenes;
         }
 
         public void PostInitialise()
@@ -121,16 +117,76 @@ namespace OpenSim.Region.ClientStack.Linden
 
             if (m_URL == "localhost")
             {
-//                m_log.DebugFormat("[AVATAR PICKER SEARCH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-                caps.RegisterHandler(
-                    "AvatarPickerSearch",
-                    new AvatarPickerSearchHandler("/CAPS/" + capID + "/", m_People, "AvatarPickerSearch", "Search for avatars by name"));
+                // m_log.DebugFormat("[AVATAR PICKER SEARCH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+                if(m_People != null)
+                    caps.RegisterSimpleHandler("AvatarPickerSearch",
+                        new SimpleStreamHandler("/" + UUID.Random(), ProcessRequest));
             }
             else
             {
-                //                m_log.DebugFormat("[AVATAR PICKER SEARCH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
+                // m_log.DebugFormat("[AVATAR PICKER SEARCH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("AvatarPickerSearch", m_URL);
             }
+        }
+
+        protected void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            if(httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            NameValueCollection query = httpRequest.QueryString;
+            string names = query.GetOne("names");
+            string psize = query.GetOne("page_size");
+            string pnumber = query.GetOne("page");
+
+            if (string.IsNullOrEmpty(names) || names.Length < 3)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+
+            int page_size;
+            int page_number;
+            try
+            {
+                page_size = (string.IsNullOrEmpty(psize) ? 500 : Int32.Parse(psize));
+                page_number = (string.IsNullOrEmpty(pnumber) ? 1 : Int32.Parse(pnumber));
+            }
+            catch
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
+            }
+            // Full content request
+            List<UserData> users = m_People.GetUserData(names, page_size, page_number);
+
+            LLSDAvatarPicker osdReply = new LLSDAvatarPicker();
+            osdReply.next_page_url = httpRequest.RawUrl;
+            foreach (UserData u in users)
+                osdReply.agents.Array.Add(ConvertUserData(u));
+
+            string reply = LLSDHelpers.SerialiseLLSDReply(osdReply);
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(reply);
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.ContentType = "application/llsd+xml";
+        }
+
+        private LLSDPerson ConvertUserData(UserData user)
+        {
+            LLSDPerson p = new LLSDPerson();
+            p.legacy_first_name = user.FirstName;
+            p.legacy_last_name = user.LastName;
+            p.display_name = user.FirstName + " " + user.LastName;
+            if (user.LastName.StartsWith("@"))
+                p.username = user.FirstName.ToLower() + user.LastName.ToLower();
+            else
+                p.username = user.FirstName.ToLower() + "." + user.LastName.ToLower();
+            p.id = user.Id;
+            p.is_display_name_default = false;
+            return p;
         }
     }
 }

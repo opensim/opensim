@@ -115,14 +115,14 @@ namespace OpenSim.Region.OptionalModules.Asset
 
             if (!UUID.TryParse(rawAssetId, out assetId))
             {
-                MainConsole.Instance.Output("ERROR: {0} is not a valid ID format", null, rawAssetId);
+                MainConsole.Instance.Output("ERROR: {0} is not a valid ID format", rawAssetId);
                 return;
             }
 
             AssetBase asset = m_scene.AssetService.Get(assetId.ToString());
             if (asset == null)
             {
-                MainConsole.Instance.Output("ERROR: No asset found with ID {0}", null, assetId);
+                MainConsole.Instance.Output("ERROR: No asset found with ID {0}", assetId);
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace OpenSim.Region.OptionalModules.Asset
                 }
             }
 
-            MainConsole.Instance.Output("Asset dumped to file {0}", null, fileName);
+            MainConsole.Instance.Output("Asset dumped to file {0}", fileName);
         }
 
         void HandleShowAsset(string module, string[] args)
@@ -160,13 +160,13 @@ namespace OpenSim.Region.OptionalModules.Asset
 
             int i;
 
-            MainConsole.Instance.Output("Name: {0}", null, asset.Name);
-            MainConsole.Instance.Output("Description: {0}", null, asset.Description);
-            MainConsole.Instance.Output("Type: {0} (type number = {1})", null, (AssetType)asset.Type, asset.Type);
-            MainConsole.Instance.Output("Content-type: {0}", null, asset.Metadata.ContentType);
-            MainConsole.Instance.Output("Size: {0} bytes", null, asset.Data.Length);
-            MainConsole.Instance.Output("Temporary: {0}", null, asset.Temporary ? "yes" : "no");
-            MainConsole.Instance.Output("Flags: {0}", null, asset.Metadata.Flags);
+            MainConsole.Instance.Output("Name: {0}", asset.Name);
+            MainConsole.Instance.Output("Description: {0}", asset.Description);
+            MainConsole.Instance.Output("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
+            MainConsole.Instance.Output("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.Output("Size: {0} bytes", asset.Data.Length);
+            MainConsole.Instance.Output("Temporary: {0}", asset.Temporary ? "yes" : "no");
+            MainConsole.Instance.Output("Flags: {0}", asset.Metadata.Flags);
 
             for (i = 0 ; i < 5 ; i++)
             {

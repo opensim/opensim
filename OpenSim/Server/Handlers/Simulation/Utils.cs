@@ -26,11 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Framework.Servers.HttpServer;
 
 using log4net;
 
@@ -99,5 +101,28 @@ namespace OpenSim.Server.Handlers.Simulation
             }
         }
 
+        public static OSDMap DeserializeOSMap(IOSHttpRequest httpRequest)
+        {
+            Stream inputStream = httpRequest.InputStream;
+            Stream innerStream = null;
+            try
+            {
+                if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
+                {
+                    innerStream = inputStream;
+                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
+                }
+                return (OSDMap)OSDParser.DeserializeJson(inputStream);
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (innerStream != null)
+                    innerStream.Dispose();
+            }
+        }
     }
 }

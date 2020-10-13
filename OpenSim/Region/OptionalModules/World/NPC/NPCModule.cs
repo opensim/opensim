@@ -220,8 +220,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
                     scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
-                    ScenePresence sp;
-                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
+                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out ScenePresence sp))
                     {
                         npcAvatar.Born = born;
                         npcAvatar.ActiveGroupId = groupID;
@@ -259,8 +258,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                                sp.Name, pos, scene.RegionInfo.RegionName,
 //                                noFly, landAtTarget);
 
-                        sp.MoveToTarget(pos, noFly, landAtTarget);
-                        sp.SetAlwaysRun = running;
+                        sp.MoveToTarget(pos, noFly, landAtTarget, running);
 
                         return true;
                     }

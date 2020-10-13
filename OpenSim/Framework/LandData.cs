@@ -46,11 +46,6 @@ namespace OpenSim.Framework
     /// </summary>
     public class LandData
     {
-        // use only one serializer to give the runtime a chance to
-        // optimize it (it won't do that if you use a new instance
-        // every time)
-        private static XmlSerializer serializer = new XmlSerializer(typeof(LandData));
-
         private Vector3 _AABBMax = new Vector3();
         private Vector3 _AABBMin = new Vector3();
         private int _area = 0;
@@ -104,6 +99,19 @@ namespace OpenSim.Framework
         public bool SeeAVs { get; set; }
         public bool AnyAVSounds { get; set; }
         public bool GroupAVSounds { get; set; }
+
+        private UUID m_fakeID = UUID.Zero;
+        public UUID FakeID
+        {
+            get
+            {
+                return m_fakeID;
+            }
+            set
+            {
+                m_fakeID = value;
+            }
+        }
 
         /// <summary>
         /// Traffic count of parcel
@@ -369,7 +377,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// jp2 data for the image representative of the parcel in the parcel dialog
+        /// parcel shape in bits per ocupied location
         /// </summary>
         public byte[] Bitmap
         {
@@ -732,6 +740,11 @@ namespace OpenSim.Framework
             }
         }
 
+        public int EnvironmentVersion = -1;
+
+        [XmlIgnore] //this needs to be added by hand
+        public ViewerEnvironment Environment { get; set;}
+
         public LandData()
         {
             _globalID = UUID.Random();
@@ -739,6 +752,8 @@ namespace OpenSim.Framework
             AnyAVSounds = true;
             GroupAVSounds = true;
             LastDwellTimeMS = Util.GetTimeStampMS();
+            EnvironmentVersion = -1;
+            Environment = null;
         }
 
         /// <summary>
@@ -758,6 +773,7 @@ namespace OpenSim.Framework
             landData._claimDate = _claimDate;
             landData._claimPrice = _claimPrice;
             landData._globalID = _globalID;
+            landData.m_fakeID = m_fakeID;
             landData._groupID = _groupID;
             landData._isGroupOwned = _isGroupOwned;
             landData._localID = _localID;
@@ -804,24 +820,18 @@ namespace OpenSim.Framework
                 landData._parcelAccessList.Add(newEntry);
             }
 
+            if (Environment == null)
+            {
+                landData.Environment = null;
+                landData.EnvironmentVersion = -1;
+            }
+            else
+            {
+                landData.Environment = Environment.Clone();
+                landData.EnvironmentVersion = EnvironmentVersion;
+            }
+
             return landData;
         }
-
-//        public void ToXml(XmlWriter xmlWriter)
-//        {
-//            serializer.Serialize(xmlWriter, this);
-//        }
-
-        /// <summary>
-        /// Restore a LandData object from the serialized xml representation.
-        /// </summary>
-        /// <param name="xmlReader"></param>
-        /// <returns></returns>
-//        public static LandData FromXml(XmlReader xmlReader)
-//        {
-//            LandData land = (LandData)serializer.Deserialize(xmlReader);
-//
-//            return land;
-//        }
     }
 }

@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (umanmod == Name)
             {
                 m_Enabled = true;
-                Init();
+                base.Init(config);
                 m_log.DebugFormat("[USER MANAGEMENT MODULE]: {0} is enabled", Name);
             }
         }
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         #endregion ISharedRegionModule
 
-        protected override void AddAdditionalUsers(string query, List<UserData> users)
+        protected override void AddAdditionalUsers(string query, List<UserData> users, HashSet<UUID> found)
         {
             if (query.Contains("@"))  // First.Last@foo.com, maybe?
             {
@@ -82,13 +82,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
 
                 words[0] = words[0].Trim(); // it has at least 1
-                words[1] = words[1].Trim();
-
-                if (words[0] == String.Empty) // query was @foo.com?
+                words[1] = words[1].Trim().ToLower();
+                string match1 = "@" + words[1];
+                if (String.IsNullOrWhiteSpace(words[0])) // query was @foo.com?
                 {
-                    foreach (UserData d in m_UserCache.Values)
+                    foreach (UserData d in m_userCacheByID.Values)
                     {
-                        if (d.LastName.ToLower().StartsWith("@" + words[1].ToLower()))
+                        if(found.Contains(d.Id))
+                            continue;
+                        if (d.LastName.ToLower().StartsWith(match1))
                             users.Add(d);
                     }
 
@@ -96,13 +98,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return;
                 }
 
+                string match0 = words[0].ToLower();
                 // words.Length == 2 and words[0] != string.empty
                 // first.last@foo.com ?
-                foreach (UserData d in m_UserCache.Values)
+                foreach (UserData d in m_userCacheByID.Values)
                 {
-                    if (d.LastName.StartsWith("@") &&
-                        d.FirstName.ToLower().Equals(words[0].ToLower()) &&
-                        d.LastName.ToLower().Equals("@" + words[1].ToLower()))
+                    if (found.Contains(d.Id))
+                        continue;
+                    if (d.LastName.ToLower().Equals(match1) &&
+                        d.FirstName.ToLower().Equals(match0))
                     {
                         users.Add(d);
                         // It's cached. We're done
@@ -116,7 +120,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     string[] names = words[0].Split(new char[] { '.' });
                     if (names.Length >= 2)
                     {
-
                         string uriStr = "http://" + words[1];
                         // Let's check that the last name is a valid address
                         try
@@ -129,16 +132,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             return;
                         }
 
-                        UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
-
                         UUID userID = UUID.Zero;
-                        try
+                        uriStr = uriStr.ToLower();
+                        if(!WebUtil.GlobalExpiringBadURLs.ContainsKey(uriStr))
                         {
-                            userID = uasConn.GetUUID(names[0], names[1]);
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Debug("[USER MANAGEMENT MODULE]: GetUUID call failed ", e);
+                            UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uriStr);
+                            try
+                            {
+                                userID = uasConn.GetUUID(names[0], names[1]);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Debug("[USER MANAGEMENT MODULE]: GetUUID call failed ", e);
+                            }
                         }
 
                         if (!userID.Equals(UUID.Zero))
@@ -148,9 +154,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             ud.FirstName = words[0];
                             ud.LastName = "@" + words[1];
                             users.Add(ud);
-                            // WARNING! that uriStr is not quite right... it may be missing the / at the end,
-                            // which will cause trouble (duplicate entries on some tables). We should
-                            // get the UUI instead from the UAS. TO BE FIXED.
                             AddUser(userID, names[0], names[1], uriStr);
                             m_log.DebugFormat("[USER MANAGEMENT MODULE]: User {0}@{1} found", words[0], words[1]);
                         }
@@ -159,17 +162,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     }
                 }
             }
-            //else
-            //{
-            //    foreach (UserData d in m_UserCache.Values)
-            //    {
-            //        if (d.LastName.StartsWith("@") &&
-            //            (d.FirstName.ToLower().StartsWith(query.ToLower()) ||
-            //             d.LastName.ToLower().StartsWith(query.ToLower())))
-            //            users.Add(d);
-            //    }
-            //}
         }
-
     }
 }

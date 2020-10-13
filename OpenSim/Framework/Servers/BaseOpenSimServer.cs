@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Servers
                 return true;
 
             return false;
-        }             
+        }
         /// <summary>
         /// Must be overriden by child classes for their own server specific startup behaviour.
         /// </summary>
@@ -190,8 +190,15 @@ namespace OpenSim.Framework.Servers
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
             m_log.InfoFormat(
                 "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
-                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
+                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
 
+            // next code can be changed on .net 4.7.x
+            if(Util.IsWindows())
+                m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
+                    System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine),
+                    BitConverter.IsLittleEndian ?"le":"be");
+
+            // on other platforms we need to wait for .net4.7.1
             try
             {
                 StartupSpecific();
@@ -202,7 +209,7 @@ namespace OpenSim.Framework.Servers
                 Environment.Exit(1);
             }
 
-            TimeSpan timeTaken = DateTime.Now - m_startuptime;
+            //TimeSpan timeTaken = DateTime.Now - m_startuptime;
 
 //            MainConsole.Instance.OutputFormat(
 //                "PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.  Non-script portion of startup took {0}m {1}s.",

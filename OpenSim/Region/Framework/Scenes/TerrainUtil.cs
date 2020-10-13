@@ -32,15 +32,12 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public static class TerrainUtil
     {
-        public static double MetersToSphericalStrength(double size)
+        public static float SphericalFactor(float dx, float dy, float size)
         {
-            //return Math.Pow(2, size);
-            return (size + 1) * 1.35; // MCP: a more useful brush size range
-        }
-
-        public static double SphericalFactor(double x, double y, double rx, double ry, double size)
-        {
-            return size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
+            float a = ((dx * dx) + (dy * dy))/ (size * size);
+            if( a >= 1.0f)
+                return 0;
+            return 1.0f - a;
         }
 
         public static double GetBilinearInterpolate(double x, double y, ITerrainChannel map)

@@ -121,7 +121,22 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
-        public bool MoveItem(string id, string newParent) { throw new NotImplementedException(); }
+        public bool MoveItem(string id, string newParent)
+        {
+            UUID uid = new UUID(id);
+            UUID upid = new UUID(newParent);
+            m_allItems[uid].parentFolderID = upid;
+            return true;
+        }
+
+        public bool MoveItems(string[] ids, string[] newParents)
+        {
+            if(ids.Length != newParents.Length)
+                return false;
+            for(int i =0; i< ids.Length;++i)
+                MoveItem(ids[i], newParents[i]);
+            return true;
+        }
 
         public bool MoveFolder(string id, string newParent)
         {

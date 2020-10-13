@@ -56,7 +56,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>
         ILandObject GetLandObject(float x, float y);
-
+        ILandObject GetLandObjectClippedXY(float x, float y);
         /// <summary>
         /// Get the parcel at the specified point
         /// </summary>
@@ -99,5 +99,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
         void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
         void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay);
+        void ClearAllEnvironments();
     }
 }

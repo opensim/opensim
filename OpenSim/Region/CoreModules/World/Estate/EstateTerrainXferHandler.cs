@@ -39,7 +39,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private AssetBase m_asset;
 
         public delegate void TerrainUploadComplete(string name, byte[] filedata, IClientAPI remoteClient);
-
         public event TerrainUploadComplete TerrainUploadDone;
 
         //private string m_description = String.Empty;
@@ -48,15 +47,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private sbyte type = 0;
 
         public ulong mXferID;
-        private TerrainUploadComplete handlerTerrainUploadDone;
 
         public EstateTerrainXferHandler(IClientAPI pRemoteClient, string pClientFilename)
         {
-            m_asset = new AssetBase(UUID.Zero, pClientFilename, type, pRemoteClient.AgentId.ToString());
-            m_asset.Data = new byte[0];
-            m_asset.Description = "empty";
-            m_asset.Local = true;
-            m_asset.Temporary = true;
+            m_asset = new AssetBase(UUID.Zero, pClientFilename, type, pRemoteClient.AgentId.ToString())
+            {
+                Data = new byte[0],
+                Description = "empty",
+                Local = true,
+                Temporary = true
+            };
         }
 
         public ulong XferID
@@ -108,11 +108,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void SendCompleteMessage(IClientAPI remoteClient)
         {
-            handlerTerrainUploadDone = TerrainUploadDone;
-            if (handlerTerrainUploadDone != null)
-            {
-                handlerTerrainUploadDone(m_asset.Name, m_asset.Data, remoteClient);
-            }
+            TerrainUploadDone?.Invoke(m_asset.Name, m_asset.Data, remoteClient);
         }
     }
 }

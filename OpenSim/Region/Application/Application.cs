@@ -71,18 +71,13 @@ namespace OpenSim
         public static void Main(string[] args)
         {
             // First line, hook the appdomain to the crash reporter
-            AppDomain.CurrentDomain.UnhandledException +=
-                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            if(Util.IsWindows())
-                ServicePointManager.DefaultConnectionLimit = 32;
-            else
-            {
-                ServicePointManager.DefaultConnectionLimit = 12;
-            }
+            ServicePointManager.DefaultConnectionLimit = 32;
+            ServicePointManager.MaxServicePointIdleTime = 30000;
 
             try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
             ServicePointManager.Expect100Continue = false;
@@ -108,11 +103,12 @@ namespace OpenSim
 
             m_log.InfoFormat(
                 "[OPENSIM MAIN]: System Locale is {0}", System.Threading.Thread.CurrentThread.CurrentCulture);
-
-            string monoThreadsPerCpu = System.Environment.GetEnvironmentVariable("MONO_THREADS_PER_CPU");
-
-            m_log.InfoFormat(
-                "[OPENSIM MAIN]: Environment variable MONO_THREADS_PER_CPU is {0}", monoThreadsPerCpu ?? "unset");
+            if(!Util.IsWindows())
+            {
+                string monoThreadsPerCpu = System.Environment.GetEnvironmentVariable("MONO_THREADS_PER_CPU");
+                m_log.InfoFormat(
+                    "[OPENSIM MAIN]: Environment variable MONO_THREADS_PER_CPU is {0}", monoThreadsPerCpu ?? "unset");
+            }
 
             // Verify the Threadpool allocates or uses enough worker and IO completion threads
             // .NET 2.0, workerthreads default to 50 *  numcores
@@ -126,16 +122,12 @@ namespace OpenSim
             int iocpThreadsMin = 1000;
             int iocpThreadsMax = 2000; // may need further adjustment to match other CLR
 
-            {
-                int currentMinWorkerThreads, currentMinIocpThreads;
-                System.Threading.ThreadPool.GetMinThreads(out currentMinWorkerThreads, out currentMinIocpThreads);
-                m_log.InfoFormat(
-                    "[OPENSIM MAIN]: Runtime gave us {0} min worker threads and {1} min IOCP threads",
-                    currentMinWorkerThreads, currentMinIocpThreads);
-            }
+            System.Threading.ThreadPool.GetMinThreads(out int currentMinWorkerThreads, out int currentMinIocpThreads);
+            m_log.InfoFormat(
+                "[OPENSIM MAIN]: Runtime gave us {0} min worker threads and {1} min IOCP threads",
+                currentMinWorkerThreads, currentMinIocpThreads);
 
-            int workerThreads, iocpThreads;
-            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+            System.Threading.ThreadPool.GetMaxThreads(out int workerThreads, out int iocpThreads);
             m_log.InfoFormat("[OPENSIM MAIN]: Runtime gave us {0} max worker threads and {1} max IOCP threads", workerThreads, iocpThreads);
 
             if (workerThreads < workerThreadsMin)

@@ -28,7 +28,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
-using HttpServer;
+using OSHttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -231,18 +231,17 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        /// <summary>
-        /// Set a redirct location.
-        /// </summary>
-        public string RedirectLocation
+        public int Priority
         {
-            // get { return _redirectLocation; }
+            get
+            {
+                return _httpResponse.Priority;
+            }
             set
             {
-                _httpResponse.Redirect(value);
+                _httpResponse.Priority = value;
             }
         }
-
 
         /// <summary>
         /// Chunk transfers.
@@ -276,6 +275,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public double RequestTS
+        {
+            get {return _httpResponse.RequestTS; }
+        }
 
         /// <summary>
         /// HTTP status description.
@@ -310,8 +313,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// replying</param>
         public OSHttpResponse(OSHttpRequest req)
         {
-            _httpResponse = new HttpResponse(req.IHttpClientContext, req.IHttpRequest);
-
+            _httpResponse = new HttpResponse(req.IHttpRequest);
         }
 
         public OSHttpResponse(HttpResponse resp)

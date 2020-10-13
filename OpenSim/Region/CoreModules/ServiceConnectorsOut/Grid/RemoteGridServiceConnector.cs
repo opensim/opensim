@@ -52,9 +52,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private string m_ThisGatekeeperURI = string.Empty;
-        private string m_ThisGatekeeperHost = string.Empty;
-        private string m_ThisGatekeeperIP = string.Empty;
+        private GridInfo m_ThisGridInfo;
+        //private string m_ThisGatekeeperURI = string.Empty;
+        //private string m_ThisGatekeeperHost = string.Empty;
+        //private string m_ThisGatekeeperIP = string.Empty;
+        //private HashSet<string> m_ThisGateKeeperAlias = new HashSet<string>();
 
         private IGridService m_LocalGridService;
         private IGridService m_RemoteGridService;
@@ -128,12 +130,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if(m_RegionInfoCache == null)
                 m_RegionInfoCache = new RegionInfoCache();
 
-            m_ThisGatekeeperURI = Util.GetConfigVarFromSections<string>(source, "GatekeeperURI",
-                new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
-            // Legacy. Remove soon!
-            m_ThisGatekeeperURI = gridConfig.GetString("Gatekeeper", m_ThisGatekeeperURI);
-
-            Util.checkServiceURI(m_ThisGatekeeperURI, out m_ThisGatekeeperURI, out m_ThisGatekeeperHost, out m_ThisGatekeeperIP);
             return true;
         }
 
@@ -145,6 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void Close()
         {
+            m_ThisGridInfo = null;
         }
 
         public void AddRegion(Scene scene)
@@ -152,6 +149,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (m_Enabled)
             {
                 scene.RegisterModuleInterface<IGridService>(this);
+                if(m_ThisGridInfo == null)
+                    m_ThisGridInfo = scene.SceneGridInfo;
                 ((ISharedRegionModule)m_LocalGridService).AddRegion(scene);
             }
         }
@@ -204,6 +203,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
+        public GridRegion GetRegionByHandle(UUID scopeID, ulong regionhandle)
+        {
+            GridRegion rinfo = m_LocalGridService.GetRegionByHandle(scopeID, regionhandle);
+            if (rinfo != null)
+                return rinfo;
+
+            rinfo = m_RemoteGridService.GetRegionByHandle(scopeID, regionhandle);
+            m_RegionInfoCache.Cache(scopeID, rinfo);
+            return rinfo;
+        }
+
         // Get a region given its base world coordinates (in meters).
         // NOTE: this is NOT 'get a region by some point in the region'. The coordinate MUST
         //     be the base coordinate of the region.
@@ -248,14 +258,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             string regionName = name;
             if(name.Contains("."))
             {
-                if(string.IsNullOrWhiteSpace(m_ThisGatekeeperIP))
+                if(!m_ThisGridInfo.HasHGConfig)
                     return rinfo; // no HG
 
                 string regionURI = "";
-                string regionHost = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return rinfo; // invalid
-                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) && !m_ThisGatekeeperIP.Equals(regionHost))
+                if (m_ThisGridInfo.IsLocalGrid(regionURI) != 1)
                     return rinfo; // not local grid
             }
 
@@ -284,14 +293,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             string regionName = name;
             if(name.Contains("."))
             {
-                if(string.IsNullOrWhiteSpace(m_ThisGatekeeperURI))
+                if(!m_ThisGridInfo.HasHGConfig)
                     return rinfo; // no HG
 
                 string regionURI = "";
-                string regionHost = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionHost, out regionName))
+                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
                     return rinfo; // invalid
-                if (!m_ThisGatekeeperHost.Equals(regionHost, StringComparison.InvariantCultureIgnoreCase) && !m_ThisGatekeeperIP.Equals(regionHost))
+                if (m_ThisGridInfo.IsLocalGrid(regionURI) != 1)
                     return rinfo; // not local grid
             }
 

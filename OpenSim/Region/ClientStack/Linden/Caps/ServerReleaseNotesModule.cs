@@ -30,6 +30,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
@@ -111,22 +112,18 @@ namespace OpenSim.Region.ClientStack.LindenCaps
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
-            IRequestHandler ServerReleaseNote  = new RestHTTPHandler("GET", capUrl,
-                delegate (Hashtable request)
-                {
-                    return ProcessServerReleaseNotes(request, agentID);
-                });
-            caps.RegisterHandler("ServerReleaseNotes", ServerReleaseNote);
+            string capPath = "/" + UUID.Random();
+            caps.RegisterSimpleHandler("ServerReleaseNotes",
+                           new SimpleStreamHandler(capPath, delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                           {
+                               ProcessServerReleaseNotes(httpResponse);
+                           }));
         }
 
-        private Hashtable ProcessServerReleaseNotes(Hashtable request, UUID agentID)
+        private void ProcessServerReleaseNotes(IOSHttpResponse httpResponse)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 301;
-            responsedata["str_redirect_location"] = m_ServerReleaseNotesURL;
-            return responsedata;
+            httpResponse.StatusCode = (int)HttpStatusCode.Moved;
+            httpResponse.AddHeader("Location", m_ServerReleaseNotesURL);
         }
     }
 }

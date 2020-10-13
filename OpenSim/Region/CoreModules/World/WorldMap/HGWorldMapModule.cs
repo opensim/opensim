@@ -37,8 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.CoreModules.World.WorldMap;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 
 namespace OpenSim.Region.CoreModules.Hypergrid
 {
@@ -73,14 +72,14 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         m_MapImageServerURL = m_MapImageServerURL + "/";
                 }
 
-                expireBlackListTime = (double)Util.GetConfigVarFromSections<int>(source, "BlacklistTimeout", configSections, 10 * 60);
-
+                expireBlackListTime = (int)Util.GetConfigVarFromSections<int>(source, "BlacklistTimeout", configSections, 10 * 60);
+                expireBlackListTime *= 1000;
                 m_exportPrintScale =
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddScale", configSections, m_exportPrintScale);
                 m_exportPrintRegionName =
                     Util.GetConfigVarFromSections<bool>(source, "ExportMapAddRegionName", configSections, m_exportPrintRegionName);
-                m_showNPCs =
-                    Util.GetConfigVarFromSections<bool>(source, "ShowNPCs", configSections, m_showNPCs);
+                m_localV1MapAssets =
+                    Util.GetConfigVarFromSections<bool>(source, "LocalV1MapAssets", configSections, m_localV1MapAssets);
             }
         }
 
@@ -151,23 +150,25 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         protected override List<MapBlockData> GetAndSendBlocksInternal(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData>  mapBlocks = base.GetAndSendBlocksInternal(remoteClient, minX, minY, maxX, maxY, flag);
-            lock (m_SeenMapBlocks)
+            if(mapBlocks.Count > 0)
             {
-                if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))
+                lock (m_SeenMapBlocks)
                 {
-                    m_SeenMapBlocks.Add(remoteClient.AgentId, mapBlocks);
-                }
-                else
-                {
-                    List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
-                    List<MapBlockData> newBlocks = new List<MapBlockData>();
-                    foreach (MapBlockData b in mapBlocks)
-                        if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
-                            newBlocks.Add(b);
-                    seen.AddRange(newBlocks);
+                    if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))
+                    {
+                        m_SeenMapBlocks.Add(remoteClient.AgentId, mapBlocks);
+                    }
+                    else
+                    {
+                        List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
+                        List<MapBlockData> newBlocks = new List<MapBlockData>();
+                        foreach (MapBlockData b in mapBlocks)
+                            if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
+                                newBlocks.Add(b);
+                        seen.AddRange(newBlocks);
+                    }
                 }
             }
-
             return mapBlocks;
         }
 
@@ -175,36 +176,13 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             if (m_UserManagement != null && !string.IsNullOrEmpty(m_MapImageServerURL) && !m_UserManagement.IsLocalGridUser(agentID))
             {
-                OSD extras = new OSDMap();
-                if (features.ContainsKey("OpenSimExtras"))
-                    extras = features["OpenSimExtras"];
-                else
-                    features["OpenSimExtras"] = extras;
+                OSD extras;
+                if (!features.TryGetValue("OpenSimExtras", out extras))
+                    extras = new OSDMap();
 
                 ((OSDMap)extras)["map-server-url"] = m_MapImageServerURL;
 
             }
-        }
-    }
-
-    class MapArea
-    {
-        public int minX;
-        public int minY;
-        public int maxX;
-        public int maxY;
-
-        public MapArea(int mix, int miy, int max, int may)
-        {
-            minX = mix;
-            minY = miy;
-            maxX = max;
-            maxY = may;
-        }
-
-        public void Print()
-        {
-            Console.WriteLine(String.Format(" --> Area is minX={0} minY={1} minY={2} maxY={3}", minX, minY, maxY, maxY));
         }
     }
 }

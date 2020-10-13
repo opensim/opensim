@@ -32,7 +32,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using HttpServer;
+using OSHttpServer;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -132,13 +132,13 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         private const string WebsocketHandshakeAcceptHashConstant = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-        public WebSocketHttpServerHandler(OSHttpRequest preq, IHttpClientContext pContext, int bufferlen)
+        public WebSocketHttpServerHandler(OSHttpRequest preq, int bufferlen)
             : base(preq.HttpMethod, preq.Url.OriginalString)
         {
             _request = preq;
-            _networkContext = pContext.GiveMeTheNetworkStreamIKnowWhatImDoing();
+            _networkContext = preq.IHttpClientContext.GiveMeTheNetworkStreamIKnowWhatImDoing();
             _networkContext.Stream.ReadTimeout = _defaultReadTimeout;
-            _clientContext = pContext;
+            _clientContext = preq.IHttpClientContext;
             _bufferLength = bufferlen;
             _buffer = new byte[_bufferLength];
         }
@@ -242,13 +242,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (string.IsNullOrEmpty(_request.Headers["upgrade"]))
             {
-                FailUpgrade(OSHttpStatusCode.ClientErrorBadRequest, "no upgrade request submitted");
+                FailUpgrade(HttpStatusCode.BadRequest, "no upgrade request submitted");
             }
 
             string connectionheader = _request.Headers["upgrade"];
             if (connectionheader.ToLower() != "websocket")
             {
-                FailUpgrade(OSHttpStatusCode.ClientErrorBadRequest, "no connection upgrade request submitted");
+                FailUpgrade(HttpStatusCode.BadRequest, "no connection upgrade request submitted");
             }
 
             // If the object consumer provided a method to validate the origin, we should call it and give the client a success or fail.
@@ -266,7 +266,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 else
                 {
-                    FailUpgrade(OSHttpStatusCode.ClientErrorForbidden, "Origin Validation Failed");
+                    FailUpgrade(HttpStatusCode.Forbidden, "Origin Validation Failed");
                 }
             }
             else
@@ -353,7 +353,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         /// <param name="pCode">HTTP Status reflecting the reason why</param>
         /// <param name="pMessage">Textual reason for the upgrade fail</param>
-        private void FailUpgrade(OSHttpStatusCode pCode, string pMessage )
+        private void FailUpgrade(HttpStatusCode pCode, string pMessage )
         {
             string handshakeResponse = string.Format(HandshakeDeclineText, (int)pCode, pMessage.Replace("\n", string.Empty).Replace("\r", string.Empty));
             byte[] bhandshakeResponse = Encoding.UTF8.GetBytes(handshakeResponse);

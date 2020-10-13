@@ -114,6 +114,27 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
+        public RegionData GetSpecific(string regionName, UUID scopeID)
+        {
+            string sql = "select * from " + m_Realm + " where lower(\"regionName\") = lower(:regionName) ";
+            if (scopeID != UUID.Zero)
+                sql += " and \"ScopeID\" = :scopeID";
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(m_database.CreateParameter("regionName", regionName));
+                if (scopeID != UUID.Zero)
+                    cmd.Parameters.Add(m_database.CreateParameter("scopeID", scopeID));
+                conn.Open();
+                List<RegionData> ret = RunCommand(cmd);
+                if (ret.Count == 0)
+                    return null;
+
+                return ret[0];
+            }
+        }
+
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
             // extend database search for maximum region size area

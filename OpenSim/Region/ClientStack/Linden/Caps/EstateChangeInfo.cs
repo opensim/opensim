@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Reflection;
 
@@ -128,59 +129,44 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
-            caps.RegisterHandler(
-                "EstateChangeInfo",
-                new RestHTTPHandler(
-                    "POST",
-                    capUrl,
-                    httpMethod => ProcessRequest(httpMethod, agentID, caps),
-                    "EstateChangeInfo",
-                    agentID.ToString())); ;
+            caps.RegisterSimpleHandler("EstateChangeInfo",
+                new SimpleStreamHandler("/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                    {
+                        ProcessRequest(httpRequest, httpResponse, agentID, caps);
+                    }));
         }
 
-        public Hashtable ProcessRequest(Hashtable request, UUID AgentId, Caps cap)
+        public void ProcessRequest(IOSHttpRequest request, IOSHttpResponse response, UUID AgentId, Caps cap)
         {
-            Hashtable responsedata = new Hashtable();
+            if(request.HttpMethod != "POST")
+            {
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             ScenePresence avatar;
             if (!m_scene.TryGetScenePresence(AgentId, out avatar) || !m_scene.Permissions.CanIssueEstateCommand(AgentId, false))
             {
-                responsedata["int_response_code"] = 401;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
             }
 
-            if (m_scene.RegionInfo == null 
-                || m_scene.RegionInfo.EstateSettings == null)
+            if (m_scene.RegionInfo == null || m_scene.RegionInfo.EstateSettings == null)
             {
-                responsedata["int_response_code"] = 501;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.NotImplemented;
+                return;
             }
 
             OSDMap r;
-
             try
             {
-                r = (OSDMap)OSDParser.Deserialize((string)request["requestbody"]);
+                r = (OSDMap)OSDParser.Deserialize(request.InputStream);
             }
             catch (Exception ex)
             {
                 m_log.Error("[UPLOAD OBJECT ASSET MODULE]: Error deserializing message " + ex.ToString());
-                r = null;
-            }
-
-            if (r == null)
-            {
-                responsedata["int_response_code"] = 400; //501; //410; //404;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return;
             }
 
             bool ok = true;
@@ -188,41 +174,32 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 string estateName = r["estate_name"].AsString();
                 UUID invoice = r["invoice"].AsUUID();
-                int sunHour = r["sun_hour"].AsInteger();
-                bool sunFixed = r["is_sun_fixed"].AsBoolean();
+                //int sunHour = r["sun_hour"].AsInteger();
+                //bool sunFixed = r["is_sun_fixed"].AsBoolean();
                 bool externallyVisible = r["is_externally_visible"].AsBoolean();
                 bool allowDirectTeleport = r["allow_direct_teleport"].AsBoolean();
                 bool denyAnonymous = r["deny_anonymous"].AsBoolean();
                 bool denyAgeUnverified = r["deny_age_unverified"].AsBoolean();
                 bool alloVoiceChat = r["allow_voice_chat"].AsBoolean();
-                // taxfree is now AllowAccessOverride
-                bool overridePublicAccess = m_scene.RegionInfo.EstateSettings.TaxFree;
+                // taxfree is now !AllowAccessOverride
+                bool overridePublicAccess = !m_scene.RegionInfo.EstateSettings.TaxFree;
                 if (r.ContainsKey("override_public_access"))
-                    overridePublicAccess = r["override_public_access"].AsBoolean();
+                    overridePublicAccess = !r["override_public_access"].AsBoolean();
 
-                ok = m_EstateModule.handleEstateChangeInfoCap(estateName, invoice, sunHour, sunFixed,
+                bool allowEnvironmentOverride = m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride;
+                if (r.ContainsKey("override_environment"))
+                    allowEnvironmentOverride = !r["override_environment"].AsBoolean();
+
+                ok = m_EstateModule.handleEstateChangeInfoCap(estateName, invoice,
                         externallyVisible, allowDirectTeleport, denyAnonymous, denyAgeUnverified,
-                        alloVoiceChat, overridePublicAccess);
+                        alloVoiceChat, overridePublicAccess, allowEnvironmentOverride);
             }
             catch
             {
                 ok = false;
             }
 
-            if(ok)
-            {
-                responsedata["int_response_code"] = 200;
-                responsedata["content_type"] = "text/plain";
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-            }
-            else
-            {
-                responsedata["int_response_code"] = 400; //501; //410; //404;
-                responsedata["content_type"] = "text/plain";
-                responsedata["keepalive"] = false;
-                responsedata["str_response_string"] = LLSDxmlEncode.LLSDEmpty;
-            }
-            return responsedata;
-        }
+            response.StatusCode = ok ? (int)HttpStatusCode.OK : (int)HttpStatusCode.BadRequest;
+         }
     }
 }

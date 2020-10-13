@@ -29,12 +29,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -58,7 +61,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             public PollServiceInventoryEventArgs thepoll;
             public UUID reqID;
-            public Hashtable request;
+            public OSHttpRequest request;
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -88,6 +91,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private ILibraryService m_LibraryService;
 
         private bool m_Enabled;
+        private ExpiringKey<UUID> m_badRequests;
 
         private string m_fetchInventoryDescendents2Url;
 //        private string m_webFetchInventoryDescendentsUrl;
@@ -191,6 +195,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             Scene.EventManager.OnRegisterCaps += RegisterCaps;
 
+            if(m_badRequests == null)
+                m_badRequests = new ExpiringKey<UUID>(30000);
+
             m_NumberScenes++;
 
             int nworkers = 2; // was 2
@@ -229,6 +236,8 @@ namespace OpenSim.Region.ClientStack.Linden
                         Watchdog.AbortThread(t.ManagedThreadId);
 
                     m_workerThreads = null;
+                    m_badRequests.Dispose();
+                    m_badRequests = null;
                 }
             }
 //            m_queue.Dispose();
@@ -257,39 +266,43 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 m_module = module;
 
-                HasEvents = (x, y) => { lock (responses) return responses.ContainsKey(x); };
+                HasEvents = (requestID, y) =>
+                {
+                    lock (responses)
+                        return responses.ContainsKey(requestID);
+                };
 
-                Drop = (x, y) =>
+                Drop = (requestID, y) =>
                 {
                     lock (responses)
                     {
-                        responses.Remove(x);
+                        responses.Remove(requestID);
                         lock(dropedResponses)
-                            dropedResponses.Add(x);
+                            dropedResponses.Add(requestID);
                     }
                 };
 
-                GetEvents = (x, y) =>
+                GetEvents = (requestID, y) =>
                 {
                     lock (responses)
                     {
                         try
                         {
-                            return responses[x];
+                            return responses[requestID];
                         }
                         finally
                         {
-                            responses.Remove(x);
+                            responses.Remove(requestID);
                         }
                     }
                 };
 
-                Request = (x, y) =>
+                Request = (requestID, request) =>
                 {
                     APollRequest reqinfo = new APollRequest();
                     reqinfo.thepoll = this;
-                    reqinfo.reqID = x;
-                    reqinfo.request = y;
+                    reqinfo.reqID = requestID;
+                    reqinfo.request = request;
                     m_queue.Add(reqinfo);
                 };
 
@@ -324,16 +337,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
 
-                Hashtable response = new Hashtable();
+                OSHttpResponse osresponse = new OSHttpResponse(requestinfo.request);
+                m_webFetchHandler.FetchInventoryDescendentsRequest(requestinfo.request, osresponse, m_module.m_badRequests);
+                requestinfo.request.InputStream.Dispose();
 
-                response["int_response_code"] = 200;
-                response["content_type"] = "text/plain";
-
-                response["bin_response_data"] = System.Text.Encoding.UTF8.GetBytes(
-                        m_webFetchHandler.FetchInventoryDescendentsRequest(
-                                    requestinfo.request["body"].ToString(),
-                                    String.Empty, String.Empty, null, null)
-                        );
                 lock (responses)
                 {
                     lock(dropedResponses)
@@ -341,18 +348,16 @@ namespace OpenSim.Region.ClientStack.Linden
                         if(dropedResponses.Contains(requestID))
                         {
                             dropedResponses.Remove(requestID);
-                            requestinfo.request.Clear();
-                            WebFetchInvDescModule.ProcessedRequestsCount++;
+                            ProcessedRequestsCount++;
                             return;
                         }
                     }
 
-                    if (responses.ContainsKey(requestID))
-                        m_log.WarnFormat("[FETCH INVENTORY DESCENDENTS2 MODULE]: Caught in the act of loosing responses! Please report this on mantis #7054");
+                    Hashtable response = new Hashtable();
+                    response["h"] = osresponse;
                     responses[requestID] = response;
                 }
-                requestinfo.request.Clear();
-                WebFetchInvDescModule.ProcessedRequestsCount++;
+                ProcessedRequestsCount++;
             }
         }
 
@@ -373,11 +378,11 @@ namespace OpenSim.Region.ClientStack.Linden
             // handled by the simulator
             else if (url == "localhost")
             {
-                capUrl = "/CAPS/" + UUID.Random() + "/";
+                capUrl = "/" + UUID.Random();
 
                 // Register this as a poll service
                 PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, capUrl, agentID);
-                args.Type = PollServiceEventArgs.EventType.Inventory;
+                //args.Type = PollServiceEventArgs.EventType.Inventory;
 
                 caps.RegisterPollHandler(capName, args);
             }

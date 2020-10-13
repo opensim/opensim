@@ -39,15 +39,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      *        in range 0..63 that begin with a lower-case letter for scripts to
      *        reference.
      */
+
     public enum ScriptEventCode: int
     {
-
         // used by XMRInstance to indicate no event being processed
         None = -1,
-
-        // must be bit numbers of equivalent values in ...
-        // OpenSim.Region.ScriptEngine.Shared.ScriptBase.scriptEvents
-        // ... so they can be passed to m_Part.SetScriptEvents().
         attach = 0,
         state_exit = 1,
         timer = 2,
@@ -77,18 +73,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         run_time_permissions = 28,
         touch_end = 29,
         state_entry = 30,
-
-        // events not passed to m_Part.SetScriptEvents().
+        //
+        //
         changed = 33,
         link_message = 34,
         no_sensor = 35,
         on_rez = 36,
         sensor = 37,
         http_request = 38,
-
+        //
         path_update = 40,
 
-        // marks highest numbered event, ie, number of columns in seht.
+        // marks highest numbered event
         Size = 41
     }
 }

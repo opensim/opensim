@@ -105,13 +105,7 @@ namespace OpenSim.Tests.Common
             }
         }
 
-        public Stream InputStream
-        {
-            get
-            {
-                throw new NotImplementedException ();
-            }
-        }
+        public Stream InputStream { get; set;}
 
         public bool IsSecured
         {
@@ -141,7 +135,23 @@ namespace OpenSim.Tests.Common
         {
             get
             {
-                throw new NotImplementedException ();
+                throw new NotImplementedException();
+            }
+        }
+
+        public Dictionary<string, string> QueryAsDictionary
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public HashSet<string> QueryFlags
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -157,11 +167,21 @@ namespace OpenSim.Tests.Common
         {
             get
             {
-                throw new NotImplementedException ();
+                throw new NotImplementedException();
+            }
+        }
+
+        public IPEndPoint LocalIPEndPoint
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 
         public Uri Url { get; set; }
+        public string UriPath { get;}
+        public double ArrivalTS { get; }
 
         public string UserAgent
         {

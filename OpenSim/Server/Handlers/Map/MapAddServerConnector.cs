@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Net;
 using System.Xml;
 
 using Nini.Config;
@@ -115,7 +116,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 if (!request.ContainsKey("X") || !request.ContainsKey("Y") || !request.ContainsKey("DATA"))
                 {
-                    httpResponse.StatusCode = (int)OSHttpStatusCode.ClientErrorBadRequest;
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                     return FailureResult("Bad request.");
                 }
                 int x = 0, y = 0;
@@ -135,7 +136,7 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 if (m_GridService != null)
                 {
-                    System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
+                    IPAddress ipAddr = httpRequest.RemoteIPEndPoint.Address;
                     GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
                     if (r != null)
                     {
@@ -144,7 +145,6 @@ namespace OpenSim.Server.Handlers.MapImage
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
                             return FailureResult("IP address of caller does not match IP address of registered region");
                         }
-
                     }
                     else
                     {
@@ -222,31 +222,5 @@ namespace OpenSim.Server.Handlers.MapImage
 
             return Util.DocToBytes(doc);
         }
-
-        private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
-        {
-//            if (!m_Proxy)
-//                return request.RemoteIPEndPoint.Address;
-
-            // We're behind a proxy
-            string xff = "X-Forwarded-For";
-            string xffValue = request.Headers[xff.ToLower()];
-            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
-                xffValue = request.Headers[xff];
-
-            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
-            {
-//                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
-                return request.RemoteIPEndPoint.Address;
-            }
-
-            System.Net.IPEndPoint ep = Util.GetClientIPFromXFF(xffValue);
-            if (ep != null)
-                return ep.Address;
-
-            // Oops
-            return request.RemoteIPEndPoint.Address;
-        }
-
     }
 }

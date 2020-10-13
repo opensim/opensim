@@ -131,7 +131,15 @@ namespace OpenSim.Framework.Monitoring
                 finally
                 {
                     if(m_cancelSource != null)
+                    {
                         m_cancelSource.Dispose();
+                        m_cancelSource = null;
+                    }
+                    if (m_jobQueue != null)
+                    {
+                        m_jobQueue.Dispose();
+                        m_jobQueue = null;
+                    }
                 }
             }
         }
@@ -238,13 +246,13 @@ namespace OpenSim.Framework.Monitoring
                         break;
                     }
                 }
-                catch(ObjectDisposedException)
+                catch (OperationCanceledException)
                 {
-                    m_log.DebugFormat("[JobEngine] {0} stopping ignoring {1} jobs in queue",
-                        Name,m_jobQueue.Count);
+                    m_log.DebugFormat("[JobEngine] {0} Canceled ignoring {1} jobs in queue",
+                        Name, m_jobQueue.Count);
                     break;
                 }
-                catch(OperationCanceledException)
+                catch
                 {
                     break;
                 }
@@ -266,6 +274,7 @@ namespace OpenSim.Framework.Monitoring
                 if(LogLevel >= 1)
                     m_log.DebugFormat("[{0}]: Processed job {1}",LoggingName,m_currentJob.Name);
 
+                m_currentJob.Action = null;
                 m_currentJob = null;
             }
         }
@@ -292,7 +301,7 @@ namespace OpenSim.Framework.Monitoring
             /// <summary>
             /// Action to perform when this job is processed.
             /// </summary>
-            public Action Action { get; private set; }
+            public Action Action { get; set; }
 
             private Job(string name, string commonId, Action action)
             {

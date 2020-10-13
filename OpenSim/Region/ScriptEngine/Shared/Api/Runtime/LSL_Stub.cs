@@ -821,11 +821,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetSubString(src, start, end);
         }
 
-        public LSL_Vector llGetSunDirection()
-        {
-            return m_LSL_Functions.llGetSunDirection();
-        }
-
         public LSL_String llGetTexture(int face)
         {
             return m_LSL_Functions.llGetTexture(face);
@@ -966,17 +961,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetUsername(id);
         }
 
-        public LSL_Key llRequestUsername(string id)
+        public LSL_Key llRequestUsername(LSL_Key id)
         {
             return m_LSL_Functions.llRequestUsername(id);
         }
 
-        public LSL_String llGetDisplayName(string id)
+        public LSL_String llGetDisplayName(LSL_Key id)
         {
             return m_LSL_Functions.llGetDisplayName(id);
         }
 
-        public LSL_Key llRequestDisplayName(string id)
+        public LSL_Key llRequestDisplayName(LSL_Key id)
         {
             return m_LSL_Functions.llRequestDisplayName(id);
         }
@@ -1341,12 +1336,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llRemoveVehicleFlags(flags);
         }
 
+        public LSL_Key llRequestUserKey(LSL_String username)
+        {
+            return m_LSL_Functions.llRequestUserKey(username);
+        }
+
         public LSL_Key llRequestAgentData(string id, int data)
         {
             return m_LSL_Functions.llRequestAgentData(id, data);
         }
 
-        public LSL_Key llRequestInventoryData(string name)
+        public LSL_Key llRequestInventoryData(LSL_String name)
         {
             return m_LSL_Functions.llRequestInventoryData(name);
         }
@@ -1926,6 +1926,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llTargetRemove(number);
         }
 
+        public void llTargetedEmail(LSL_Integer target, LSL_String subject, LSL_String message)
+        {
+            m_LSL_Functions.llTargetedEmail(target, subject, message);
+        }
+
         public void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt)
         {
             m_LSL_Functions.llTeleportAgent(agent, simname, pos, lookAt);
@@ -2109,6 +2114,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_String llJsonValueType(LSL_String json, LSL_List specifiers)
         {
             return m_LSL_Functions.llJsonValueType(json, specifiers);
+        }
+
+        public LSL_Integer llGetDayLength()
+        {
+            return m_LSL_Functions.llGetDayLength();
+        }
+
+        public LSL_Integer llGetRegionDayLength()
+        {
+            return m_LSL_Functions.llGetRegionDayLength();
+        }
+
+        public LSL_Integer llGetDayOffset()
+        {
+            return m_LSL_Functions.llGetDayOffset();
+        }
+
+        public LSL_Integer llGetRegionDayOffset()
+        {
+            return m_LSL_Functions.llGetRegionDayOffset();
+        }
+
+        public LSL_Vector llGetSunDirection()
+        {
+            return m_LSL_Functions.llGetSunDirection();
+        }
+
+        public LSL_Vector llGetRegionSunDirection()
+        {
+            return m_LSL_Functions.llGetRegionSunDirection();
+        }
+
+        public LSL_Vector llGetMoonDirection()
+        {
+            return m_LSL_Functions.llGetMoonDirection();
+        }
+
+        public LSL_Vector llGetRegionMoonDirection()
+        {
+            return m_LSL_Functions.llGetRegionMoonDirection();
+        }
+
+        public LSL_Rotation llGetSunRotation()
+        {
+            return m_LSL_Functions.llGetSunRotation();
+        }
+
+        public LSL_Rotation llGetRegionSunRotation()
+        {
+            return m_LSL_Functions.llGetRegionSunRotation();
+        }
+
+        public LSL_Rotation llGetMoonRotation()
+        {
+            return m_LSL_Functions.llGetMoonRotation();
+        }
+
+        public LSL_Rotation llGetRegionMoonRotation()
+        {
+            return m_LSL_Functions.llGetRegionMoonRotation();
         }
     }
 }

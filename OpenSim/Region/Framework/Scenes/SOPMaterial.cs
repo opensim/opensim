@@ -190,8 +190,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void genID()
         {
-            string lslx = toLLSDxml();
-            Byte[] data = System.Text.Encoding.ASCII.GetBytes(lslx);
+            Byte[] data = toLLSDxml();
             using (var md5 = MD5.Create())
                 ID = new UUID(md5.ComputeHash(data), 0);
         }
@@ -291,52 +290,52 @@ namespace OpenSim.Region.Framework.Scenes
             return mat;
         }
 
-        public string toLLSDxml(StringBuilder sb = null)
+        public byte[] toLLSDxml(osUTF8 sb = null)
         {
             const float scale = 10000f;
             bool fullLLSD = false;
             if (sb == null)
             {
 
-                sb = LLSDxmlEncode.Start(1024, false);
+                sb = LLSDxmlEncode2.Start(1024, false);
                 fullLLSD = true;
             }
 
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("NormMap", NormalMapID, sb);
-            LLSDxmlEncode.AddElem("NormOffsetX", (int)(scale * NormalOffsetX + 0.5f), sb);
-            LLSDxmlEncode.AddElem("NormOffsetY", (int)(scale * NormalOffsetY + 0.5f), sb);
-            LLSDxmlEncode.AddElem("NormRepeatX", (int)(scale * NormalRepeatX + 0.5f), sb);
-            LLSDxmlEncode.AddElem("NormRepeatY", (int)(scale * NormalRepeatY + 0.5f), sb);
-            LLSDxmlEncode.AddElem("NormRotation", (int)(scale * NormalRotation + 0.5f), sb);
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("NormMap", NormalMapID, sb);
+            LLSDxmlEncode2.AddElem("NormOffsetX", (int)(scale * NormalOffsetX + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("NormOffsetY", (int)(scale * NormalOffsetY + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("NormRepeatX", (int)(scale * NormalRepeatX + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("NormRepeatY", (int)(scale * NormalRepeatY + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("NormRotation", (int)(scale * NormalRotation + 0.5f), sb);
 
-            LLSDxmlEncode.AddElem("SpecMap", SpecularMapID, sb);
-            LLSDxmlEncode.AddElem("SpecOffsetX", (int)(scale * SpecularOffsetX + 0.5f), sb);
-            LLSDxmlEncode.AddElem("SpecOffsetY", (int)(scale * SpecularOffsetY + 0.5f), sb);
-            LLSDxmlEncode.AddElem("SpecRepeatX", (int)(scale * SpecularRepeatX + 0.5f), sb);
-            LLSDxmlEncode.AddElem("SpecRepeatY", (int)(scale * SpecularRepeatY + 0.5f), sb);
-            LLSDxmlEncode.AddElem("SpecRotation", (int)(scale * SpecularRotation + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("SpecMap", SpecularMapID, sb);
+            LLSDxmlEncode2.AddElem("SpecOffsetX", (int)(scale * SpecularOffsetX + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("SpecOffsetY", (int)(scale * SpecularOffsetY + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("SpecRepeatX", (int)(scale * SpecularRepeatX + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("SpecRepeatY", (int)(scale * SpecularRepeatY + 0.5f), sb);
+            LLSDxmlEncode2.AddElem("SpecRotation", (int)(scale * SpecularRotation + 0.5f), sb);
 
-            LLSDxmlEncode.AddArray("SpecColor", sb);
-            LLSDxmlEncode.AddElem(SpecularLightColorR, sb);
-            LLSDxmlEncode.AddElem(SpecularLightColorG, sb);
-            LLSDxmlEncode.AddElem(SpecularLightColorB, sb);
-            LLSDxmlEncode.AddElem(255, sb);
-            LLSDxmlEncode.AddEndArray(sb);
+            LLSDxmlEncode2.AddArray("SpecColor", sb);
+            LLSDxmlEncode2.AddElem(SpecularLightColorR, sb);
+            LLSDxmlEncode2.AddElem(SpecularLightColorG, sb);
+            LLSDxmlEncode2.AddElem(SpecularLightColorB, sb);
+            LLSDxmlEncode2.AddElem(255, sb);
+            LLSDxmlEncode2.AddEndArray(sb);
 
-            LLSDxmlEncode.AddElem("SpecExp", SpecularLightExponent, sb);
-            LLSDxmlEncode.AddElem("EnvIntensity", EnvironmentIntensity, sb);
-            LLSDxmlEncode.AddElem("DiffuseAlphaMode", DiffuseAlphaMode, sb);
-            LLSDxmlEncode.AddElem("AlphaMaskCutoff", AlphaMaskCutoff, sb);
+            LLSDxmlEncode2.AddElem("SpecExp", SpecularLightExponent, sb);
+            LLSDxmlEncode2.AddElem("EnvIntensity", EnvironmentIntensity, sb);
+            LLSDxmlEncode2.AddElem("DiffuseAlphaMode", DiffuseAlphaMode, sb);
+            LLSDxmlEncode2.AddElem("AlphaMaskCutoff", AlphaMaskCutoff, sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
             if (fullLLSD)
             {
-                return LLSDxmlEncode.End(sb);
+                return LLSDxmlEncode2.EndToBytes(sb);
             }
             else
-                return String.Empty; // ignored if appending
+                return Utils.EmptyBytes; // ignored if appending
         }
     }
 }

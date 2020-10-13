@@ -46,9 +46,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 {
     public class UserAgentServiceConnector : SimulationServiceConnector, IUserAgentService
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(
-            MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURL;
         private GridRegion m_Gatekeeper;
@@ -60,18 +58,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public UserAgentServiceConnector(IConfigSource config)
         {
-            IConfig serviceConfig = config.Configs["UserAgentService"];
-            if (serviceConfig == null)
-            {
-                m_log.Error("[USER AGENT CONNECTOR]: UserAgentService missing from ini");
-                throw new Exception("UserAgent connector init error");
-            }
+            GridInfo tmp = new GridInfo(config);
 
-            string serviceURI = serviceConfig.GetString("UserAgentServerURI", String.Empty);
+            string serviceURI = tmp.HomeURL;
 
             if (String.IsNullOrWhiteSpace(serviceURI))
             {
-                m_log.Error("[USER AGENT CONNECTOR]: No Server URI named in section UserAgentService");
+                m_log.Error("[USER AGENT CONNECTOR]: No Home URI named in configuration");
                 throw new Exception("UserAgent connector init error");
             }
 
@@ -84,6 +77,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
         private bool setServiceURL(string url)
         {
             // validate url getting some extended error messages
+            url = url.ToLower();
             try
             {
                 Uri tmpuri = new Uri(url);
@@ -120,19 +114,20 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 return false;
             }
 
-            GridRegion home = new GridRegion();
-            home.ServerURI = m_ServerURL;
-            home.RegionID = destination.RegionID;
-            home.RegionLocX = destination.RegionLocX;
-            home.RegionLocY = destination.RegionLocY;
+            GridRegion home = new GridRegion()
+            {
+                ServerURI = m_ServerURL,
+                RegionID = destination.RegionID,
+                RegionLocX = destination.RegionLocX,
+                RegionLocY = destination.RegionLocY
+            };
 
             m_Gatekeeper = gatekeeper;
 
             //Console.WriteLine("   >>> LoginAgentToGrid <<< " + home.ServerURI);
 
             uint flags = fromLogin ? (uint)TeleportFlags.ViaLogin : (uint)TeleportFlags.ViaHome;
-            EntityTransferContext ctx = new EntityTransferContext();
-            return CreateAgent(source, home, aCircuit, flags, ctx, out reason);
+            return CreateAgent(source, home, aCircuit, flags, new EntityTransferContext(), out reason);
         }
 
 
@@ -175,19 +170,17 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 throw;
             }
 
-            if (response.IsFault)
+            if (response == null || response.IsFault)
             {
                 throw new Exception(string.Format("[USER AGENT CONNECTOR]: {0} call to {1} returned an error: {2}", methodName, m_ServerURL, response.FaultString));
             }
 
-            hash = (Hashtable)response.Value;
-
-            if (hash == null)
+            if (!(response.Value is Hashtable))
             {
                 throw new Exception(string.Format("[USER AGENT CONNECTOR]: {0} call to {1} returned null", methodName, m_ServerURL));
             }
 
-            return hash;
+            return (Hashtable)response.Value; ;
         }
 
         public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)

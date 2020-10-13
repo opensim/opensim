@@ -130,8 +130,8 @@ namespace OpenSim.Region.UserStatistics
             // End Own reports section
             ////
 
-            MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
-            MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
+            MainServer.Instance.AddHTTPHandler("/SStats", HandleStatsRequest);
+            MainServer.Instance.AddHTTPHandler("/VS", HandleUnknownCAPSRequest);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -317,7 +317,7 @@ namespace OpenSim.Region.UserStatistics
             }
             else
             {
-                strOut = MainServer.Instance.GetHTTP404("");
+                strOut = MainServer.Instance.GetHTTP404();
             }
 
             responsedata["int_response_code"] = response_code;
@@ -340,7 +340,7 @@ namespace OpenSim.Region.UserStatistics
         {
 //            m_log.DebugFormat("[WEB STATS MODULE]: OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
 
-            string capsPath = "/CAPS/VS/" + UUID.Random();
+            string capsPath = "/" + UUID.Random();
             caps.RegisterHandler(
                 "ViewerStats",
                 new RestStreamHandler(

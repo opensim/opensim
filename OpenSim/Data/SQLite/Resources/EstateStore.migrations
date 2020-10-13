@@ -74,4 +74,10 @@ ALTER TABLE `estateban` ADD COLUMN `banningUUID` varchar(36) NOT NULL DEFAULT '0
 ALTER TABLE `estateban` ADD COLUMN `banTime` integer NOT NULL DEFAULT 0;
 COMMIT;
 
+:VERSION 12
+BEGIN;
+ALTER TABLE `estate_settings`
+    ADD COLUMN `AllowEnviromentOverride` tinyint not null default 0;
+COMMIT;
+
 

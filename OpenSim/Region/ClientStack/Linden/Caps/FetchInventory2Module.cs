@@ -28,7 +28,9 @@
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Capabilities.Handlers;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -42,17 +44,18 @@ namespace OpenSim.Region.ClientStack.Linden
     /// This module implements both WebFetchInventoryDescendents and FetchInventoryDescendents2 capabilities.
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FetchInventory2Module")]
-    public class FetchInventory2Module : INonSharedRegionModule
+    public class FetchInventory2Module : ISharedRegionModule
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Enabled { get; private set; }
 
-        private Scene m_scene;
+        private int m_nScenes;
 
-        private IInventoryService m_inventoryService;
-        private ILibraryService m_LibraryService;
+        private IInventoryService m_inventoryService = null;
+        private ILibraryService m_LibraryService = null;
         private string m_fetchInventory2Url;
+        private ExpiringKey<UUID> m_badRequests;
 
         #region ISharedRegionModule Members
 
@@ -70,10 +73,6 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void AddRegion(Scene s)
         {
-            if (!Enabled)
-                return;
-
-            m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
@@ -81,8 +80,15 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!Enabled)
                 return;
 
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene = null;
+            s.EventManager.OnRegisterCaps -= RegisterCaps;
+            --m_nScenes;
+            if(m_nScenes <= 0)
+            {
+                m_inventoryService = null;
+                m_LibraryService = null;
+                m_badRequests.Dispose();
+                m_badRequests = null;
+            }
         }
 
         public void RegionLoaded(Scene s)
@@ -90,9 +96,19 @@ namespace OpenSim.Region.ClientStack.Linden
             if (!Enabled)
                 return;
 
-            m_inventoryService = m_scene.InventoryService;
-            m_LibraryService = m_scene.LibraryService;
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            if (m_inventoryService == null)
+                m_inventoryService = s.InventoryService;
+            if(m_LibraryService == null)
+                m_LibraryService = s.LibraryService;
+
+            if(m_badRequests == null)
+                m_badRequests = new ExpiringKey<UUID>(30000);
+
+            if (m_inventoryService != null)
+            {
+                s.EventManager.OnRegisterCaps += RegisterCaps;
+                ++m_nScenes;
+            }
         }
 
         public void PostInitialise() {}
@@ -110,30 +126,19 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void RegisterCaps(UUID agentID, Caps caps)
         {
-            RegisterFetchCap(agentID, caps, "FetchInventory2", m_fetchInventory2Url);
-        }
-
-        private void RegisterFetchCap(UUID agentID, Caps caps, string capName, string url)
-        {
-            string capUrl;
-
-            if (url == "localhost")
+            if (m_fetchInventory2Url == "localhost")
             {
-                capUrl = "/CAPS/" + UUID.Random();
-
                 FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
-
-                IRequestHandler reqHandler
-                    = new RestStreamHandler(
-                        "POST", capUrl, fetchHandler.FetchInventoryRequest, capName, agentID.ToString());
-
-                caps.RegisterHandler(capName, reqHandler);
+                caps.RegisterSimpleHandler("FetchInventory2",
+                    new SimpleOSDMapHandler("POST", "/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+                    {
+                        fetchHandler.FetchInventorySimpleRequest(httpRequest, httpResponse, map, m_badRequests);
+                    }
+                 ));
             }
             else
             {
-                capUrl = url;
-
-                caps.RegisterHandler(capName, capUrl);
+                caps.RegisterHandler("FetchInventory2", m_fetchInventory2Url);
             }
 
 //            m_log.DebugFormat(

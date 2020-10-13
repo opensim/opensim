@@ -119,20 +119,6 @@ namespace OpenSim.Data.Null
             return m_store.LoadRegionSettings(regionUUID);
         }
 
-        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
-        {
-            return m_store.LoadRegionWindlightSettings(regionUUID);
-        }
-
-        public void RemoveRegionWindlightSettings(UUID regionID)
-        {
-        }
-
-        public void StoreRegionWindlightSettings(RegionLightShareData wl)
-        {
-            m_store.StoreRegionWindlightSettings(wl);
-        }
-
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
             return m_store.LoadRegionEnvironmentSettings(regionUUID);
@@ -195,22 +181,6 @@ namespace OpenSim.Data.Null
         public void StoreRegionSettings(RegionSettings rs)
         {
             m_regionSettings[rs.RegionUUID] = rs;
-        }
-
-        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
-        {
-            //This connector doesn't support the windlight module yet
-            //Return default LL windlight settings
-            return new RegionLightShareData();
-        }
-
-        public void RemoveRegionWindlightSettings(UUID regionID)
-        {
-        }
-
-        public void StoreRegionWindlightSettings(RegionLightShareData wl)
-        {
-            //This connector doesn't support the windlight module yet
         }
 
         #region Environment Settings

@@ -55,7 +55,7 @@ namespace OpenSim.Framework
 
         // regions and viewer compatibility
         public readonly static int TEXTURE_COUNT = 45;
-        public const int TEXTURE_COUNT_PV7 = 26;
+        public const int TEXTURE_COUNT_PV7 = 29;
         public const int BAKES_COUNT_PV7 = 6;
         public const int MAXWEARABLE_PV7 = 16;
         public const int MAXWEARABLE_LEGACY = 15;
@@ -817,7 +817,7 @@ namespace OpenSim.Framework
             return data;
         }
 
-        public OSDMap PackForNotecard()
+        public OSDMap PackForNotecard(bool NoHuds = true)
         {
             OSDMap data = new OSDMap();
 
@@ -868,7 +868,13 @@ namespace OpenSim.Framework
                 // Attachments
                 OSDArray attachs = new OSDArray(m_attachments.Count);
                 foreach (AvatarAttachment attach in GetAttachments())
+                {
+                    if (NoHuds &&
+                            attach.AttachPoint >= (uint)AttachmentPoint.HUDCenter2 &&
+                            attach.AttachPoint <= (uint)AttachmentPoint.HUDBottomRight)
+                        continue;
                     attachs.Add(attach.Pack());
+                }
                 data["attachments"] = attachs;
             }
 

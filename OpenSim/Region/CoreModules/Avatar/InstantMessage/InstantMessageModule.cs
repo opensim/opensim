@@ -33,7 +33,6 @@ using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -75,14 +74,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
 
             lock (m_scenes)
-            {
-                if (!m_scenes.Contains(scene))
-                {
-                    m_scenes.Add(scene);
-                    scene.EventManager.OnClientConnect += OnClientConnect;
-                    scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-                }
-            }
+                m_scenes.Add(scene);
         }
 
         public virtual void RegionLoaded(Scene scene)
@@ -92,19 +84,20 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (m_TransferModule == null)
             {
-                m_TransferModule =
-                    scene.RequestModuleInterface<IMessageTransferModule>();
+                m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
 
                 if (m_TransferModule == null)
                 {
                     m_log.Error("[INSTANT MESSAGE]: No message transfer module, IM will not work!");
-                    scene.EventManager.OnClientConnect -= OnClientConnect;
+                    scene.EventManager.OnNewClient -= OnClientConnect;
                     scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
 
                     m_scenes.Clear();
                     m_enabled = false;
                 }
             }
+            scene.EventManager.OnNewClient += OnClientConnect;
+            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
         }
 
         public virtual void RemoveRegion(Scene scene)
@@ -118,13 +111,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
         }
 
-        protected virtual void OnClientConnect(IClientCore client)
+        protected virtual void OnClientConnect(IClientAPI client)
         {
-            IClientIM clientIM;
-            if (client.TryGet(out clientIM))
-            {
-                clientIM.OnInstantMessage += OnInstantMessage;
-            }
+            client.OnInstantMessage += OnInstantMessage;
         }
 
         public virtual void PostInitialise()

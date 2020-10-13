@@ -159,16 +159,16 @@ namespace OpenSim.Tests.Permissions
             // set = 1 means add the permission; set = 0 means remove permission
 
             if ((nextOwnerPerms & PermissionMask.Copy) != 0)
-                m_Scene.HandleObjectPermissionsUpdate((IClientAPI)m_Avatars[0].ClientView, m_Avatars[0].UUID,
-                    ((IClientAPI)(m_Avatars[0].ClientView)).SessionId, 16, box.LocalId, (uint)PermissionMask.Copy, 1);
+                m_Scene.HandleObjectPermissionsUpdate(m_Avatars[0].ControllingClient, m_Avatars[0].UUID,
+                    m_Avatars[0].ControllingClient.SessionId, 16, box.LocalId, (uint)PermissionMask.Copy, 1);
 
             if ((nextOwnerPerms & PermissionMask.Modify) != 0)
-                m_Scene.HandleObjectPermissionsUpdate((IClientAPI)m_Avatars[0].ClientView, m_Avatars[0].UUID,
-                    ((IClientAPI)(m_Avatars[0].ClientView)).SessionId, 16, box.LocalId, (uint)PermissionMask.Modify, 1);
+                m_Scene.HandleObjectPermissionsUpdate(m_Avatars[0].ControllingClient, m_Avatars[0].UUID,
+                    m_Avatars[0].ControllingClient.SessionId, 16, box.LocalId, (uint)PermissionMask.Modify, 1);
 
             if ((nextOwnerPerms & PermissionMask.Transfer) == 0)
-                m_Scene.HandleObjectPermissionsUpdate((IClientAPI)m_Avatars[0].ClientView, m_Avatars[0].UUID,
-                    ((IClientAPI)(m_Avatars[0].ClientView)).SessionId, 16, box.LocalId, (uint)PermissionMask.Transfer, 0);
+                m_Scene.HandleObjectPermissionsUpdate(m_Avatars[0].ControllingClient, m_Avatars[0].UUID,
+                    m_Avatars[0].ControllingClient.SessionId, 16, box.LocalId, (uint)PermissionMask.Transfer, 0);
 
             PrintPerms(box);
             AssertPermissions(nextOwnerPerms, (PermissionMask)box.RootPart.NextOwnerMask, box.OwnerID.ToString().Substring(34) + " : " + box.Name);
@@ -258,7 +258,7 @@ namespace OpenSim.Tests.Permissions
 
             List<uint> localIds = new List<uint>(); localIds.Add(sog.LocalId);
             // This is an async operation
-            m_Scene.DeRezObjects((IClientAPI)m_Avatars[userIndex].ClientView, localIds, m_Avatars[userIndex].UUID, DeRezAction.TakeCopy, objsFolder.ID);
+            m_Scene.DeRezObjects(m_Avatars[userIndex].ControllingClient, localIds, m_Avatars[userIndex].UUID, DeRezAction.TakeCopy, objsFolder.ID);
         }
 
         public InventoryItemBase GetItemFromInventory(UUID userID, string folderName, string itemName)

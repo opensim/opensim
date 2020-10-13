@@ -130,7 +130,7 @@ namespace OpenSim.Framework.Serialization.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            RegionSettings deserRs = RegionSettingsSerializer.Deserialize(m_serializedRs);
+            RegionSettings deserRs = RegionSettingsSerializer.Deserialize(m_serializedRs, out ViewerEnvironment dummy);
             Assert.That(deserRs, Is.Not.Null);
             Assert.That(deserRs.TerrainTexture2, Is.EqualTo(m_rs.TerrainTexture2));
             Assert.That(deserRs.DisablePhysics, Is.EqualTo(m_rs.DisablePhysics));

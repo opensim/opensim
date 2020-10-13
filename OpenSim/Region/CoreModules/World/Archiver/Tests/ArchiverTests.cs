@@ -657,7 +657,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.TelehubObject = UUID.Parse("00000000-0000-0000-0000-111111111111");
             rs.AddSpawnPoint(SpawnPoint.Parse("1,-2,0.33"));
 
-            tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs));
+            tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs, null));
 
             tar.Close();
 
@@ -690,8 +690,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.Elevation2NE, Is.EqualTo(19.2));
             Assert.That(loadedRs.Elevation2SE, Is.EqualTo(9.2));
             Assert.That(loadedRs.Elevation2SW, Is.EqualTo(2.1));
-            Assert.That(loadedRs.FixedSun, Is.True);
-            Assert.AreEqual(12.0, loadedRs.SunPosition);
             Assert.That(loadedRs.ObjectBonus, Is.EqualTo(1.4));
             Assert.That(loadedRs.RestrictPushing, Is.True);
             Assert.That(loadedRs.TerrainLowerLimit, Is.EqualTo(0.4));
@@ -700,7 +698,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.TerrainTexture2, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000040")));
             Assert.That(loadedRs.TerrainTexture3, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000060")));
             Assert.That(loadedRs.TerrainTexture4, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000080")));
-            Assert.That(loadedRs.UseEstateSun, Is.True);
             Assert.That(loadedRs.WaterHeight, Is.EqualTo(23));
             Assert.AreEqual(UUID.Zero, loadedRs.TelehubObject); // because no object was found with the original UUID
             Assert.AreEqual(0, loadedRs.SpawnPoints().Count);

@@ -61,11 +61,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public partial class XMRInstance
     {
 
+        private bool m_disposed;
         // In case Dispose() doesn't get called, we want to be sure to clean
         // up.  This makes sure we decrement m_CompiledScriptRefCount.
         ~XMRInstance()
         {
-            Dispose();
+            Dispose(false);
         }
 
         /**
@@ -74,15 +75,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void Dispose()
         {
-             // Tell script stop executing next time it calls CheckRun().
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+        }
+
+        public void Dispose(bool fromdispose)
+        {
+            if (m_disposed)
+                return;
+
+            // Tell script stop executing next time it calls CheckRun().
             suspendOnCheckRunHold = true;
 
-             // Don't send us any more events.
-            lock(m_RunLock)
+            // Don't send us any more events.
+            lock (m_RunLock)
             {
                 if(m_Part != null)
                 {
-                    m_Part.RemoveScriptEvents(m_ItemID);
                     AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
                     m_Part = null;
                 }
@@ -91,6 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Let script methods get garbage collected if no one else is using
              // them.
             DecObjCodeRefCount();
+            m_disposed = true;
         }
 
         private void DecObjCodeRefCount()
@@ -203,24 +213,23 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief For a given stateCode, get a mask of the low 32 event codes
          *        that the state has handlers defined for.
          */
-        public int GetStateEventFlags(int stateCode)
+        public ulong GetStateEventFlags(int state)
         {
-            if((stateCode < 0) ||
-                (stateCode >= m_ObjCode.scriptEventHandlerTable.GetLength(0)))
+            if((state < 0) ||
+                (state >= m_ObjCode.scriptEventHandlerTable.GetLength(0)))
             {
                 return 0;
             }
 
-            int code = 0;
-            for(int i = 0; i < 32; i++)
+            ulong flags = 0;
+            for(int i = 0; i <(int)ScriptEventCode.Size; i++)
             {
-                if(m_ObjCode.scriptEventHandlerTable[stateCode, i] != null)
+                if(m_ObjCode.scriptEventHandlerTable[state, i] != null)
                 {
-                    code |= 1 << i;
+                    flags |= 1ul << i;
                 }
             }
-
-            return code;
+            return flags;
         }
 
         /**
@@ -387,8 +396,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             else
                                 m_IState = XMRInstState.IDLE;
                         }
-                        else if(m_SuspendCount != 0)
-                            m_IState = XMRInstState.IDLE;
+                        //else if(m_SuspendCount != 0)
+                        //    m_IState = XMRInstState.IDLE;
                     }
                     else
                     {

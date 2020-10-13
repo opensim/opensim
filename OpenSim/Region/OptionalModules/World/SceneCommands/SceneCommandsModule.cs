@@ -145,7 +145,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
             cdl.AddRow("teleport", m_scene.DebugTeleporting);
             cdl.AddRow("updates", m_scene.DebugUpdates);
 
-            MainConsole.Instance.Output("Scene {0} options:", null, m_scene.Name);
+            MainConsole.Instance.Output("Scene {0} options:", m_scene.Name);
             MainConsole.Instance.Output(cdl.ToString());
         }
 
@@ -160,7 +160,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
                 string value = args[4];
                 SetSceneDebugOptions(new Dictionary<string, string>() { { key, value } });
 
-                MainConsole.Instance.Output("Set {0} debug scene {1} = {2}", null, m_scene.Name, key, value);
+                MainConsole.Instance.Output("Set {0} debug scene {1} = {2}", m_scene.Name, key, value);
             }
             else
             {

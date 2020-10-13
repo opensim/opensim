@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 Primitive.TextureEntryFace bakedTextureFace = bakedTextures[bakeType];
 
-                if (bakedTextureFace == null)
+                if (bakedTextureFace == null || bakedTextureFace.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
                     continue;
 
                 AssetBase asset;
@@ -309,8 +309,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // Replace an HG ID with the simple asset ID so that we can persist textures for foreign HG avatars
                     asset.ID = asset.FullID.ToString();
 
+                    asset.Description ="NPC BAKED";
                     asset.Temporary = false;
                     asset.Local = false;
+                    //asset.Flags &= ~AssetFlags.AvatarBake; // this can cause issues on older grids
                     m_scene.AssetService.Store(asset);
                 }
 
@@ -609,6 +611,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 wearableCache[j].TextureAsset = bakedModuleCache[i].TextureAsset;
                                 bakedModuleCache[i].TextureAsset.Temporary = true;
                                 bakedModuleCache[i].TextureAsset.Local = true;
+                                //bakedModuleCache[i].TextureAsset.Flags = AssetFlags.AvatarBake;
                                 cache.Cache(bakedModuleCache[i].TextureAsset);
                             }
                         }

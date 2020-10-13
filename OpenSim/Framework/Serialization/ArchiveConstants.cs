@@ -125,7 +125,8 @@ namespace OpenSim.Framework.Serialization
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = ASSET_EXTENSION_SEPARATOR + "sound.wav";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = ASSET_EXTENSION_SEPARATOR + "texture.jp2";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = ASSET_EXTENSION_SEPARATOR + "texture.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)OpenSimAssetType.Material]     = ASSET_EXTENSION_SEPARATOR + "material.xml";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)OpenSimAssetType.Material]     = ASSET_EXTENSION_SEPARATOR + "material.xml";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Settings]            = ASSET_EXTENSION_SEPARATOR + "settings.bin";
 
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "animation.bvh"]            = (sbyte)AssetType.Animation;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "bodypart.txt"]             = (sbyte)AssetType.Bodypart;
@@ -147,6 +148,7 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.jp2"]              = (sbyte)AssetType.Texture;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "material.xml"]             = (sbyte)OpenSimAssetType.Material;
+            EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "settings.bin"]             = (sbyte)AssetType.Settings;
         }
 
         public static string CreateOarLandDataPath(LandData ld)

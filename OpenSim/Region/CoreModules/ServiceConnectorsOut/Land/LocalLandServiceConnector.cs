@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
                 }
             }
 
-            m_log.Debug("[LAND CONNECTOR]: didn't find land data locally.");
+            //m_log.Debug("[LAND CONNECTOR]: didn't find land data locally.");
             return null;
 
         }

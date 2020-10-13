@@ -54,6 +54,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </remarks>
         Object AttachmentsSyncLock { get; }
 
+        int GetAttachmentsCount();
         /// <summary>
         /// The scene objects attached to this avatar.
         /// </summary>

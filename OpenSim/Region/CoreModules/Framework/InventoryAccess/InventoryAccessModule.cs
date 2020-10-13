@@ -58,6 +58,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected bool m_Enabled = false;
         protected Scene m_Scene;
+
+        protected GridInfo m_thisGridInfo;
         protected IUserManagement m_UserManagement;
         protected IUserManagement UserManagementModule
         {
@@ -125,6 +127,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
 
             m_Scene = scene;
+            if (m_thisGridInfo == null)
+                m_thisGridInfo = scene.SceneGridInfo;
 
             scene.RegisterModuleInterface<IInventoryAccessModule>(this);
             scene.EventManager.OnNewClient += OnNewClient;
@@ -139,8 +143,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
             if (!m_Enabled)
                 return;
+            m_thisGridInfo = null;
         }
-
 
         public virtual void RemoveRegion(Scene scene)
         {
@@ -171,11 +175,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="name"></param>
         /// <param name="invType"></param>
         /// <param name="type"></param>
-        /// <param name="wearableType"></param>
+        /// <param name="subType"></param>
         /// <param name="nextOwnerMask"></param>
         public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
                                            uint callbackID, string description, string name, sbyte invType,
-                                           sbyte assetType, byte wearableType,
+                                           sbyte assetType, byte subType,
                                            uint nextOwnerMask, int creationDate)
         {
             m_log.DebugFormat("[INVENTORY ACCESS MODULE]: Received request to create inventory item {0} in folder {1}, transactionID {2}", name,
@@ -196,14 +200,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
-            if (transactionID != UUID.Zero)
+            if (transactionID != UUID.Zero && assetType != (byte)AssetType.Settings)
             {
                 IAgentAssetTransactions agentTransactions = m_Scene.AgentTransactionsModule;
                 if (agentTransactions != null)
                 {
                     if (agentTransactions.HandleItemCreationFromTransaction(
                         remoteClient, transactionID, folderID, callbackID, description,
-                        name, invType, assetType, wearableType, nextOwnerMask))
+                        name, invType, assetType, subType, nextOwnerMask))
                         return;
                 }
             }
@@ -214,6 +218,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 byte[] data = null;
                 uint everyonemask = 0;
                 uint groupmask = 0;
+                uint flags = 0;
 
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
                 {
@@ -225,12 +230,39 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     groupmask = (uint)PermissionMask.AllAndExport;
                     everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
                 }
+                if(assetType == (sbyte)AssetType.Settings)
+                {
+                    flags = subType;
+                    if (data == null)
+                    {
+                        IEnvironmentModule envModule = m_Scene.RequestModuleInterface<IEnvironmentModule>();
+                        if(envModule == null)
+                            return;
+                        UUID assetID = envModule.GetDefaultAsset(subType);
+                        if(assetID == UUID.Zero)
+                        {
+                            m_log.ErrorFormat(
+                            "[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default environment setting asset {0} for agent {1}", name, remoteClient.AgentId);
+                            return;
+                        }
+                        m_Scene.CreateNewInventoryItem(
+                                remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                                name, description, flags, callbackID, assetID, (sbyte)AssetType.Settings, invType,
+                                (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                                everyonemask, nextOwnerMask, groupmask,
+                                creationDate, false); // Data from viewer
+                        return;
+                    }
+                }
+                else if( assetType == (byte)AssetType.Clothing ||
+                         assetType == (byte)AssetType.Bodypart)
+                    flags = subType;
 
                 AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
                 m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
                         remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                        name, description, 0, callbackID, asset.FullID, asset.Type, invType,
+                        name, description, flags, callbackID, asset.FullID, asset.Type, invType,
                         (uint)PermissionMask.AllAndExport, // Base
                         (uint)PermissionMask.AllAndExport, // Current
                         everyonemask,
@@ -249,7 +281,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             prefix = string.Empty;
             suffix = string.Empty;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+            return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle);
@@ -276,30 +308,35 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (item.Owner != remoteClient.AgentId)
                 return UUID.Zero;
 
-            if ((InventoryType)item.InvType == InventoryType.Notecard)
+            InventoryType itemType = (InventoryType)item.InvType;
+            switch (itemType)
             {
-                if (!m_Scene.Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
+                case InventoryType.Notecard:
                 {
-                    remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
-                    return UUID.Zero;
-                }
+                    if (!m_Scene.Permissions.CanEditNotecard(itemID, UUID.Zero, remoteClient.AgentId))
+                    {
+                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit notecard", false);
+                        return UUID.Zero;
+                    }
 
-               remoteClient.SendAlertMessage("Notecard saved");
-            }
-            else if ((InventoryType)item.InvType == InventoryType.LSL)
-            {
-                if (!m_Scene.Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
+                    remoteClient.SendAlertMessage("Notecard updated");
+                    break;
+                }
+                case InventoryType.LSL:
                 {
-                    remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
-                    return UUID.Zero;
-                }
+                    if (!m_Scene.Permissions.CanEditScript(itemID, UUID.Zero, remoteClient.AgentId))
+                    {
+                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
+                        return UUID.Zero;
+                    }
 
-                remoteClient.SendAlertMessage("Script saved");
-            }
-            else if ((CustomInventoryType)item.InvType == CustomInventoryType.AnimationSet)
-            {
-                AnimationSet animSet = new AnimationSet(data);
-                uint res = animSet.Validate(x => {
+                    remoteClient.SendAlertMessage("Script updated");
+                    break;
+                }
+                case (InventoryType)CustomInventoryType.AnimationSet:
+                {
+                    AnimationSet animSet = new AnimationSet(data);
+                    uint res = animSet.Validate(x => {
                         const int required = (int)(PermissionMask.Transfer | PermissionMask.Copy);
                         int perms = m_Scene.InventoryService.GetAssetPermissions(remoteClient.AgentId, x);
                         // enforce previus perm rule
@@ -307,10 +344,34 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             return 0;
                         return (uint) perms;
                     });
-                if(res == 0)
+                    if(res == 0)
+                    {
+                        remoteClient.SendAgentAlertMessage("Not enought permissions on asset(s) referenced by animation set '{0}', update failed", false);
+                        return UUID.Zero;
+                    }
+                    break;
+                }
+                case InventoryType.Gesture:
                 {
-                    remoteClient.SendAgentAlertMessage("Not enought permissions on asset(s) referenced by animation set '{0}', update failed", false);
-                    return UUID.Zero;
+                    if ((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit gesture", false);
+                        return UUID.Zero;
+                    }
+
+                    remoteClient.SendAlertMessage("gesture updated");
+                    break;
+                }
+                case InventoryType.Settings:
+                {
+                    if((item.CurrentPermissions & (uint)PermissionMask.Modify) == 0)
+                    {
+                        remoteClient.SendAgentAlertMessage("Insufficient permissions to edit setting", false);
+                        return UUID.Zero;
+                    }
+
+                    remoteClient.SendAlertMessage("Setting updated");
+                    break;
                 }
             }
 
@@ -621,8 +682,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                          (uint)PermissionMask.Move |
                          (uint)PermissionMask.Export |
                          (uint)PermissionMask.FoldedMask); // Preserve folded permissions ??
-            }    
-            
+            }
+
             return item;
         }
 
@@ -828,9 +889,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
 
             if (item == null)
-            {
                 return null;
-            }
 
             item.Owner = remoteClient.AgentId;
 
@@ -858,8 +917,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 byte BypassRayCast, bool RayEndIsIntersection,
                 bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());
+            if(assetID == UUID.Zero)
+                return null;
 
+            AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());
             if (rezAsset == null)
             {
                 if (item != null)
@@ -876,7 +937,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         assetID, remoteClient.Name);
                     remoteClient.SendAgentAlertMessage(string.Format("Unable to rez: could not find asset {0}.", assetID), false);
                 }
-
                 return null;
             }
 
@@ -1005,14 +1065,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (!attachment)
                 {
-                    // If it's rezzed in world, select it. Much easier to
-                    // find small items.
-                    //
-                    foreach (SceneObjectPart part in group.Parts)
+                    if(RezSelected)
                     {
-                        part.CreateSelected = true;
+                        group.IsSelected = true;
+                        group.RootPart.CreateSelected = true;
                     }
-
                     if (rootPart.Shape.PCode == (byte)PCode.Prim)
                         group.ClearPartAttachmentData();
                 }

@@ -205,7 +205,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llGetStartParameter();
        LSL_Integer llGetStatus(int status);
         LSL_String llGetSubString(string src, int start, int end);
-        LSL_Vector llGetSunDirection();
         LSL_String llGetTexture(int face);
         LSL_Vector llGetTextureOffset(int face);
          LSL_Float llGetTextureRot(int side);
@@ -218,7 +217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llGetVel();
          LSL_Float llGetWallclock();
               void llGiveInventory(LSL_Key destination, LSL_String inventory);
-              void llGiveInventoryList(LSL_Key destination, LSL_String category, LSL_List inventory);
+              void llGiveInventoryList(LSL_Key destination, LSL_String folderName, LSL_List inventory);
        LSL_Integer llGiveMoney(LSL_Key destination, LSL_Integer amount);
            LSL_Key llTransferLindenDollars(LSL_Key destination, LSL_Integer amount);
               void llGodLikeRezObject(string inventory, LSL_Vector pos);
@@ -234,9 +233,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llIntegerToBase64(int number);
         LSL_String llKey2Name(LSL_Key id);
         LSL_String llGetUsername(LSL_Key id);
-           LSL_Key llRequestUsername(string id);
-        LSL_String llGetDisplayName(string id);
-           LSL_Key llRequestDisplayName(string id);
+           LSL_Key llRequestUsername(LSL_Key id);
+        LSL_String llGetDisplayName(LSL_Key id);
+           LSL_Key llRequestDisplayName(LSL_Key id);
               void llLinkParticleSystem(int linknum, LSL_List rules);
               void llLinkSitTarget(LSL_Integer link, LSL_Vector offset, LSL_Rotation rot);
         LSL_String llList2CSV(LSL_List src);
@@ -309,8 +308,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llRemoveFromLandPassList(string avatar);
               void llRemoveInventory(string item);
               void llRemoveVehicleFlags(int flags);
+           LSL_Key llRequestUserKey(LSL_String username);
            LSL_Key llRequestAgentData(string id, int data);
-           LSL_Key llRequestInventoryData(string name);
+           LSL_Key llRequestInventoryData(LSL_String name);
               void llRequestPermissions(string agent, int perm);
            LSL_Key llRequestSecureURL();
            LSL_Key llRequestSimulatorData(string simulator, int data);
@@ -427,6 +427,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
        LSL_Integer llTarget(LSL_Vector position, double range);
               void llTargetOmega(LSL_Vector axis, double spinrate, double gain);
               void llTargetRemove(int number);
+              void llTargetedEmail(LSL_Integer target, LSL_String subject, LSL_String message);
               void llTeleportAgentHome(string agent);
               void llTeleportAgent(string agent, string simname, LSL_Vector pos, LSL_Vector lookAt);
               void llTeleportAgentGlobalCoords(string agent, LSL_Vector global, LSL_Vector pos, LSL_Vector lookAt);
@@ -461,5 +462,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_String llList2Json(LSL_String type, LSL_List values);
         LSL_String llJsonSetValue(LSL_String json, LSL_List specifiers, LSL_String value);
         LSL_String llJsonValueType(LSL_String json, LSL_List specifiers);
+
+
+        LSL_Integer llGetDayLength();
+        LSL_Integer llGetRegionDayLength();
+        LSL_Integer llGetDayOffset();
+        LSL_Integer llGetRegionDayOffset();
+        LSL_Vector llGetSunDirection();
+        LSL_Vector llGetRegionSunDirection();
+        LSL_Vector llGetMoonDirection();
+        LSL_Vector llGetRegionMoonDirection();
+        LSL_Rotation llGetSunRotation();
+        LSL_Rotation llGetRegionSunRotation();
+        LSL_Rotation llGetMoonRotation();
+        LSL_Rotation llGetRegionMoonRotation();
     }
 }

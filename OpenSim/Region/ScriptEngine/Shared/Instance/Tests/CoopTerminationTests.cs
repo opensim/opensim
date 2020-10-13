@@ -106,6 +106,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
             // has an effect - without it tests will fail due to a 120 second wait for the event to finish.
             xEngineConfig.Set("WaitForEventCompletionOnScriptStop", 120000);
 
+            IConfig config = configSource.AddConfig("OSSL");
+            config.Set("DebuggerSafe", false);
+            config.Set("AllowOSFunctions", "true");
+            config.Set("OSFunctionThreatLevel", "Severe");
+
             m_scene = new SceneHelpers().SetupScene("My Test", TestHelpers.ParseTail(0x9999), 1000, 1000, configSource);
             SceneHelpers.SetupSceneModules(m_scene, configSource, m_xEngine);
             m_scene.StartScripts();

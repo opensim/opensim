@@ -112,12 +112,13 @@ namespace OpenSim.Framework
         /// <param name="args"></param>
         public void UnpackUpdateMessage(OSDMap args)
         {
-            if (args["animation"] != null)
-                animID = args["animation"].AsUUID();
-            if (args["object_id"] != null)
-                objectID = args["object_id"].AsUUID();
-            if (args["seq_num"] != null)
-                sequenceNum = args["seq_num"].AsInteger();
+            OSD tmp;
+            if (args.TryGetValue("animation", out tmp))
+                animID = tmp.AsUUID();
+            if (args.TryGetValue("object_id", out tmp))
+                objectID = tmp.AsUUID();
+            if (args.TryGetValue("seq_num", out tmp))
+                sequenceNum = tmp.AsInteger();
         }
 
         public override bool Equals(object obj)

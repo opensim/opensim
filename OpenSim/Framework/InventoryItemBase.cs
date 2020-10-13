@@ -28,6 +28,7 @@
 using System;
 using System.Text;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -162,19 +163,13 @@ namespace OpenSim.Framework
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
         /// </value>
+        
+        public osUTF8 UTF8Description;
         public string Description
         {
-            get
-            {
-                return m_description;
-            }
-
-            set
-            {
-                m_description = value;
-            }
+            get { return UTF8Description == null ? string.Empty : UTF8Description.ToString();}
+            set { UTF8Description = string.IsNullOrWhiteSpace(value) ? null : new osUTF8(value);}
         }
-        protected string m_description = String.Empty;
 
         /// <value>
         ///
@@ -417,39 +412,39 @@ namespace OpenSim.Framework
             return MemberwiseClone();
         }
 
-        public void ToLLSDxml(StringBuilder lsl, uint flagsMask = 0xffffffff)
+        public void ToLLSDxml(osUTF8 lsl, uint flagsMask = 0xffffffff)
         {
-            LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("parent_id", Folder, lsl);
-                LLSDxmlEncode.AddElem("asset_id", AssetID, lsl);
-                LLSDxmlEncode.AddElem("item_id", ID, lsl);
+            LLSDxmlEncode2.AddMap(lsl);
+                LLSDxmlEncode2.AddElem_parent_id(Folder, lsl);
+                LLSDxmlEncode2.AddElem("asset_id", AssetID, lsl);
+                LLSDxmlEncode2.AddElem("item_id", ID, lsl);
 
-                LLSDxmlEncode.AddMap("permissions",lsl);
-                    LLSDxmlEncode.AddElem("creator_id", CreatorIdAsUuid, lsl);
-                    LLSDxmlEncode.AddElem("owner_id", Owner, lsl);
-                    LLSDxmlEncode.AddElem("group_id", GroupID, lsl);
-                    LLSDxmlEncode.AddElem("base_mask", (int)CurrentPermissions, lsl);
-                    LLSDxmlEncode.AddElem("owner_mask", (int)CurrentPermissions, lsl);
-                    LLSDxmlEncode.AddElem("group_mask", (int)GroupPermissions, lsl);
-                    LLSDxmlEncode.AddElem("everyone_mask", (int)EveryOnePermissions, lsl);
-                    LLSDxmlEncode.AddElem("next_owner_mask", (int)NextPermissions, lsl);
-                    LLSDxmlEncode.AddElem("is_owner_group", GroupOwned, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
+                LLSDxmlEncode2.AddMap("permissions",lsl);
+                    LLSDxmlEncode2.AddElem("creator_id", CreatorIdAsUuid, lsl);
+                    LLSDxmlEncode2.AddElem_owner_id( Owner, lsl);
+                    LLSDxmlEncode2.AddElem("group_id", GroupID, lsl);
+                    LLSDxmlEncode2.AddElem("base_mask", (int)CurrentPermissions, lsl);
+                    LLSDxmlEncode2.AddElem("owner_mask", (int)CurrentPermissions, lsl);
+                    LLSDxmlEncode2.AddElem("group_mask", (int)GroupPermissions, lsl);
+                    LLSDxmlEncode2.AddElem("everyone_mask", (int)EveryOnePermissions, lsl);
+                    LLSDxmlEncode2.AddElem("next_owner_mask", (int)NextPermissions, lsl);
+                    LLSDxmlEncode2.AddElem("is_owner_group", GroupOwned, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
 
-                LLSDxmlEncode.AddElem("type", AssetType, lsl);
-                LLSDxmlEncode.AddElem("inv_type", InvType, lsl);
-                LLSDxmlEncode.AddElem("flags", (int)(Flags & flagsMask), lsl);
+                LLSDxmlEncode2.AddElem("type", AssetType, lsl);
+                LLSDxmlEncode2.AddElem("inv_type", InvType, lsl);
+                LLSDxmlEncode2.AddElem("flags", (int)(Flags & flagsMask), lsl);
 
-                LLSDxmlEncode.AddMap("sale_info",lsl);
-                    LLSDxmlEncode.AddElem("sale_price", SalePrice, lsl);
-                    LLSDxmlEncode.AddElem("sale_type", SaleType, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
+                LLSDxmlEncode2.AddMap("sale_info",lsl);
+                    LLSDxmlEncode2.AddElem("sale_price", SalePrice, lsl);
+                    LLSDxmlEncode2.AddElem("sale_type", SaleType, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
 
-                LLSDxmlEncode.AddElem("name", Name, lsl);
-                LLSDxmlEncode.AddElem("desc", Description, lsl);
-                LLSDxmlEncode.AddElem("created_at", CreationDate, lsl);
+                LLSDxmlEncode2.AddElem_name(Name, lsl);
+                LLSDxmlEncode2.AddElem("desc", Description, lsl);
+                LLSDxmlEncode2.AddElem("created_at", CreationDate, lsl);
 
-            LLSDxmlEncode.AddEndMap(lsl);
+            LLSDxmlEncode2.AddEndMap(lsl);
         }
     }
 }

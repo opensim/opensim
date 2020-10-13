@@ -194,10 +194,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
             }
 
-            if (m_scenes.ContainsKey(destination.RegionID))
+            if (m_scenes.TryGetValue(destination.RegionID, out Scene destScene))
             {
 //                    m_log.DebugFormat("[LOCAL SIMULATION CONNECTOR]: Found region {0} to send SendCreateChildAgent", destination.RegionName);
-                return m_scenes[destination.RegionID].NewUserConnection(aCircuit, teleportFlags, source, out reason);
+                return destScene.NewUserConnection(aCircuit, teleportFlags, source, out reason);
             }
 
             reason = "Did not find region " + destination.RegionName;

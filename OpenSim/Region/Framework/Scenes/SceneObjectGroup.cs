@@ -25,76 +25,143 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Xml;
-using System.Xml.Serialization;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.PhysicsModules.SharedBase;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading;
+using System.Xml;
 using PermissionMask = OpenSim.Framework.PermissionMask;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    // this is not the right place for this
+    // for now it must match similar enums duplicated on scritp engines
+    public enum ScriptEventCode : int
+    {
+        None = -1,
 
+        attach = 0,
+        state_exit = 1,
+        timer = 2,
+        touch = 3,
+        collision = 4,
+        collision_end = 5,
+        collision_start = 6,
+        control = 7,
+        dataserver = 8,
+        email = 9,
+        http_response = 10,
+        land_collision = 11,
+        land_collision_end = 12,
+        land_collision_start = 13,
+        at_target = 14,
+        listen = 15,
+        money = 16,
+        moving_end = 17,
+        moving_start = 18,
+        not_at_rot_target = 19,
+        not_at_target = 20,
+        touch_start = 21,
+        object_rez = 22,
+        remote_data = 23,
+        at_rot_target = 24,
+        transaction_result = 25,
+        //
+        //
+        run_time_permissions = 28,
+        touch_end = 29,
+        state_entry = 30,
+        //
+        //
+        changed = 33,
+        link_message = 34,
+        no_sensor = 35,
+        on_rez = 36,
+        sensor = 37,
+        http_request = 38,
+
+        path_update = 40,
+
+        // marks highest numbered event
+        Size = 41
+    }
+
+    // this is not the right place for this
+    // for now it must match similar enums duplicated on scritp engines
+    // ignore this flags, do not use .net flags handle, it is bad
     [Flags]
-    public enum scriptEvents
+    public enum scriptEvents : ulong
     {
         None = 0,
         attach = 1,
-        collision = 16,
-        collision_end = 32,
-        collision_start = 64,
-        control = 128,
-        dataserver = 256,
-        email = 512,
-        http_response = 1024,
-        land_collision = 2048,
-        land_collision_end = 4096,
-        land_collision_start = 8192,
-        at_target = 16384,
-        at_rot_target = 16777216,
-        listen = 32768,
-        money = 65536,
-        moving_end = 131072,
-        moving_start = 262144,
-        not_at_rot_target = 524288,
-        not_at_target = 1048576,
-        remote_data = 8388608,
-        run_time_permissions = 268435456,
-        state_entry = 1073741824,
-        state_exit = 2,
-        timer = 4,
-        touch = 8,
-        touch_end = 536870912,
-        touch_start = 2097152,
-        transaction_result = 33554432,
-        object_rez = 4194304,
-        anytouch = touch | touch_end | touch_start
+        state_exit = 1UL << 1,
+        timer = 1UL << 2,
+        touch = 1UL << 3,
+        collision = 1UL << 4,
+        collision_end = 1UL << 5,
+        collision_start = 1UL << 6,
+        control = 1UL << 7,
+        dataserver = 1UL << 8,
+        email = 1UL << 9,
+        http_response = 1UL << 10,
+        land_collision = 1UL << 11,
+        land_collision_end = 1UL << 12,
+        land_collision_start = 1UL << 13,
+        at_target = 1UL << 14,
+        listen = 1UL << 15,
+        money = 1UL << 16,
+        moving_end = 1UL << 17,
+        moving_start = 1UL << 18,
+        not_at_rot_target = 1UL << 19,
+        not_at_target = 1UL << 20,
+        touch_start = 1UL << 21,
+        object_rez = 1UL << 22,
+        remote_data = 1UL << 23,
+        at_rot_target = 1UL << 24,
+        transaction_result = 1UL << 25,
+        //
+        //
+        run_time_permissions = 1UL << 28,
+        touch_end = 1UL << 29,
+        state_entry = 1UL << 30,
+        //
+        //
+        changed = 1UL << 33,
+        link_message = 1UL << 34,
+        no_sensor = 1UL << 35,
+        on_rez = 1UL << 36,
+        sensor = 1UL << 37,
+        http_request = 1UL << 38,
+
+        path_update = 1UL << 40,
+
+        anytouch = touch | touch_end | touch_start,
+        anyTarget = at_target | not_at_target | at_rot_target | not_at_rot_target,
+        anyobjcollision = collision | collision_end | collision_start,
+        anylandcollision = land_collision | land_collision_end | land_collision_start
     }
 
     public struct scriptPosTarget
     {
         public Vector3 targetPos;
         public float tolerance;
-        public uint handle;
+        public int handle;
+        public UUID scriptID;
     }
 
     public struct scriptRotTarget
     {
         public Quaternion targetRot;
         public float tolerance;
-        public uint handle;
+        public int handle;
+        public UUID scriptID;
     }
 
     public delegate void PrimCountTaintedDelegate();
@@ -103,7 +170,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// A scene object group is conceptually an object in the scene.  The object is constituted of SceneObjectParts
     /// (often known as prims), one of which is considered the root part.
     /// </summary>
-    public partial class SceneObjectGroup : EntityBase, ISceneObject
+    public partial class SceneObjectGroup : EntityBase, ISceneObject, IDisposable
     {
         // Axis selection bitmask used by SetAxisRotation()
         // Just happen to be the same bits used by llSetStatus() and defined in ScriptBaseClass.
@@ -144,8 +211,6 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
 
-        public int PseudoCRC;
-
         /// <summary>
         /// This indicates whether the object has changed such that it needs to be repersisted to permenant storage
         /// (the database).
@@ -164,7 +229,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Backup)
                         m_scene.SceneGraph.FireChangeBackup(this);
 
-                    PseudoCRC = (int)(DateTime.UtcNow.Ticks); ;
                     timeLastChanged = DateTime.UtcNow.Ticks;
                     if (!m_hasGroupChanged)
                         timeFirstChanged = timeLastChanged;
@@ -194,6 +258,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             get { return m_hasGroupChanged; }
         }
+
+        public bool TemporaryInstance = false;
 
         private bool m_groupContainsForeignPrims = false;
 
@@ -357,15 +423,16 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPart m_rootPart;
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
-        private SortedDictionary<uint, scriptPosTarget> m_targets = new SortedDictionary<uint, scriptPosTarget>();
-        private SortedDictionary<uint, scriptRotTarget> m_rotTargets = new SortedDictionary<uint, scriptRotTarget>();
+        private Dictionary<int, scriptPosTarget> m_targets = new Dictionary<int, scriptPosTarget>();
+        private Dictionary<int, scriptRotTarget> m_rotTargets = new Dictionary<int, scriptRotTarget>();
+        private Dictionary<UUID, List<int>> m_targetsByScript = new Dictionary<UUID, List<int>>();
 
-        public SortedDictionary<uint, scriptPosTarget> AtTargets
+        public Dictionary<int, scriptPosTarget> AtTargets
         {
             get { return m_targets; }
         }
 
-        public SortedDictionary<uint, scriptRotTarget> RotTargets
+        public Dictionary<int, scriptRotTarget> RotTargets
         {
             get { return m_rotTargets; }
         }
@@ -497,8 +564,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Does this group contain the given part?
-        /// should be able to remove these methods once we have a entity index in scene
-        /// </summary>
         /// <param name="localID"></param>
         /// <returns></returns>
         public bool ContainsPart(uint localID)
@@ -609,7 +674,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // this is needed because physics may not have linksets but just loose SOPs in world
 
                 SceneObjectPart[] parts = m_parts.GetArray();
-
                 foreach (SceneObjectPart part in parts)
                 {
                     if (part != m_rootPart)
@@ -622,7 +686,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // now that position is changed tell it to scripts
-                if (triggerScriptEvent)
+                if (triggerScriptEvent && (ScriptEvents & scriptEvents.changed) != 0)
                 {
                     foreach (SceneObjectPart part in parts)
                     {
@@ -663,8 +727,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // We remove the object here
                     try
                     {
-                        List<uint> localIDs = new List<uint>();
-                        localIDs.Add(root.LocalId);
+                        List<uint> localIDs = new List<uint>(){root.LocalId};
                         sogScene.AddReturn(sog.OwnerID, sog.Name, sog.AbsolutePosition,
                             "Returned at region cross");
                         sogScene.DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return, UUID.Zero, false);
@@ -906,7 +969,7 @@ namespace OpenSim.Region.Framework.Scenes
                 avsToCrossFar.Clear();
                 avsToCross.Clear();
                 sog.RemoveScriptInstances(true);
-                sog.Clear();
+                sog.Dispose();
                 return sog;
             }
             else
@@ -1039,7 +1102,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(Scene.PositionIsInCurrentRegion(targetPosition))
             {
-                if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 1.0)) 
+                if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 1000)) 
                 {
                     inTransit = false;
                     return -2;
@@ -1086,20 +1149,21 @@ namespace OpenSim.Region.Framework.Scenes
                 return 1;
             }
 
-            if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 20.0)) 
+            if(Scene.InTeleportTargetsCoolDown(UUID, sourceID, 20000)) 
             {
                 inTransit = false;
                 return -1;
             }
 
-            TeleportObjectData tdata = new TeleportObjectData();
-            tdata.flags = flags;
-            tdata.vel = vel;
-            tdata.avel = avel;
-            tdata.acc = acc;
-            tdata.ori = ori;
-            tdata.sourceID = sourceID;
-
+            TeleportObjectData tdata = new TeleportObjectData()
+            {
+                flags = flags,
+                vel = vel,
+                avel = avel,
+                acc = acc,
+                ori = ori,
+                sourceID = sourceID
+            };
 
             SOGCrossDelegate d = CrossAsync;
             d.BeginInvoke(this, targetPosition, tdata, CrossAsyncCompleted, d);
@@ -1332,7 +1396,6 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup()
         {
             m_lastCollisionSoundMS = Util.GetTimeStampMS() + 1000.0;
-            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
         }
 
         /// <summary>
@@ -1360,6 +1423,40 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup(UUID ownerID, Vector3 pos, PrimitiveBaseShape shape)
             : this(ownerID, pos, Quaternion.Identity, shape)
         {
+        }
+
+        ~SceneObjectGroup()
+        {
+            Dispose(false);
+        }
+        private bool disposed = false;
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!disposed)
+            {
+                IsDeleted = true;
+                disposed = true;
+
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for(int i= 0; i < parts.Length; ++i)
+                    parts[i].Dispose();
+
+                m_parts.Clear();
+                m_sittingAvatars.Clear();
+                // m_rootPart = null;
+
+                m_targets.Clear();
+                m_rotTargets.Clear();
+                m_targetsByScript.Clear();
+                m_partsNameToLinkMap.Clear();
+            }
         }
 
         public void LoadScriptState(XmlDocument doc)
@@ -1551,7 +1648,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.OffsetPosition;
                 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(part.RotationOffset);
+                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.RotationOffset));
                 Vector3 a = m.AtAxis;
                 a.X = Math.Abs(a.X);
                 a.Y = Math.Abs(a.Y);
@@ -1598,9 +1695,9 @@ namespace OpenSim.Region.Framework.Scenes
     /// <summary>
     /// Gets a vector representing the size of the bounding box containing all the prims in the group
     /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
-    /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
     /// </summary>
     /// <returns></returns>
+
     public void GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
             maxX = float.MinValue;
@@ -1619,7 +1716,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 offset = part.GetWorldPosition() - absPos;
                 Vector3 scale = part.Scale * 0.5f;
 
-                Matrix4 m = Matrix4.CreateFromQuaternion(part.GetWorldRotation());
+                Matrix4 m = Matrix4.CreateFromQuaternion(Quaternion.Conjugate(part.GetWorldRotation()));
                 Vector3 a = m.AtAxis;
                 a.X = Math.Abs(a.X);
                 a.Y = Math.Abs(a.Y);
@@ -1664,30 +1761,23 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Gets a vector representing the size of the bounding box containing all the prims in the group
+        /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
+        /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
+        /// </summary>
+        /// <returns></returns>
         public Vector3 GetAxisAlignedBoundingBox(out float offsetHeight)
         {
-            float minX;
-            float maxX;
-            float minY;
-            float maxY;
-            float minZ;
-            float maxZ;
-
-            GetAxisAlignedBoundingBoxRaw(out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+            GetAxisAlignedBoundingBoxRaw(out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ);
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
 
             offsetHeight = 0;
-            float lower = (minZ * -1);
+            float lower = -minZ;
             if (lower > maxZ)
-            {
-                offsetHeight = lower - (boundingBox.Z / 2);
-
-            }
+                offsetHeight = lower - 0.5f * boundingBox.Z;
             else if (maxZ > lower)
-            {
-                offsetHeight = maxZ - (boundingBox.Z / 2);
-                offsetHeight *= -1;
-            }
+                offsetHeight = 0.5f * boundingBox.Z - maxZ;
 
            // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
@@ -2184,56 +2274,60 @@ namespace OpenSim.Region.Framework.Scenes
 
         private scriptEvents lastRootPartPhysEvents = 0;
 
+        public scriptEvents ScriptEvents;
+
         public void aggregateScriptEvents()
         {
             PrimFlags objectflagupdate = (PrimFlags)RootPart.GetEffectiveObjectFlags();
-
-            scriptEvents aggregateScriptEvents = 0;
+            scriptEvents aggregatedScriptEvents = 0;
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
-                if (part == null)
-                    continue;
                 if (part != RootPart)
                     part.Flags = objectflagupdate;
-                aggregateScriptEvents |= part.AggregateScriptEvents;
+                aggregatedScriptEvents |= part.AggregatedScriptEvents;
             }
 
-            m_scriptListens_atTarget = ((aggregateScriptEvents & scriptEvents.at_target) != 0);
-            m_scriptListens_notAtTarget = ((aggregateScriptEvents & scriptEvents.not_at_target) != 0);
-
+            m_scriptListens_atTarget = ((aggregatedScriptEvents & scriptEvents.at_target) != 0);
+            m_scriptListens_notAtTarget = ((aggregatedScriptEvents & scriptEvents.not_at_target) != 0);
             if (!m_scriptListens_atTarget && !m_scriptListens_notAtTarget)
             {
                 lock (m_targets)
-                    m_targets.Clear();
-                m_scene.RemoveGroupTarget(this);
+                {
+                    if (m_targets.Count > 0)
+                    {
+                        m_targets.Clear();
+                        m_scene.RemoveGroupTarget(this);
+                    }
+                }
             }
-            m_scriptListens_atRotTarget = ((aggregateScriptEvents & scriptEvents.at_rot_target) != 0);
-            m_scriptListens_notAtRotTarget = ((aggregateScriptEvents & scriptEvents.not_at_rot_target) != 0);
 
+            m_scriptListens_atRotTarget = ((aggregatedScriptEvents & scriptEvents.at_rot_target) != 0);
+            m_scriptListens_notAtRotTarget = ((aggregatedScriptEvents & scriptEvents.not_at_rot_target) != 0);
             if (!m_scriptListens_atRotTarget && !m_scriptListens_notAtRotTarget)
             {
                 lock (m_rotTargets)
-                    m_rotTargets.Clear();
-                m_scene.RemoveGroupTarget(this);
+                {
+                    if (m_rotTargets.Count > 0)
+                    {
+                        m_rotTargets.Clear();
+                        m_scene.RemoveGroupTarget(this);
+                    }
+                }
             }
 
-            scriptEvents rootPartPhysEvents = RootPart.AggregateScriptEvents;
+            scriptEvents rootPartPhysEvents = RootPart.AggregatedScriptEvents;
             rootPartPhysEvents &= PhysicsNeeedSubsEvents;
             if (rootPartPhysEvents != lastRootPartPhysEvents)
             {
                 lastRootPartPhysEvents = rootPartPhysEvents;
                 for (int i = 0; i < parts.Length; i++)
-                {
-                    SceneObjectPart part = parts[i];
-                    if (part == null)
-                        continue;
-                    part.UpdatePhysicsSubscribedEvents();
-                }
+                    parts[i].UpdatePhysicsSubscribedEvents();
             }
 
+            ScriptEvents = aggregatedScriptEvents;
             ScheduleGroupForFullUpdate();
         }
 
@@ -2411,7 +2505,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         });
 
-                        backup_group.Clear();
+                        backup_group.Dispose();
                         backup_group = null;
                     }
                 }
@@ -2479,6 +2573,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
 
+            dupe.m_targets = new Dictionary<int, scriptPosTarget>();
+            dupe.m_rotTargets = new Dictionary<int, scriptRotTarget>();
+            dupe.m_targetsByScript = new Dictionary<UUID, List<int>>();
+
             // a copy isnt backedup
             dupe.Backup = false;
             dupe.InvalidBoundsRadius();
@@ -2540,7 +2638,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             dupe.InvalidatePartsLinkMaps();
-            dupe.PseudoCRC = (int)(DateTime.UtcNow.Ticks);
+            
             m_dupeInProgress = false;
             return dupe;
         }
@@ -2641,7 +2739,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
                     if (avatar != null && !avatar.IsSatOnObject)
-                        avatar.MoveToTarget(target, false, false, tau);
+                        avatar.MoveToTarget(target, false, false, false, tau);
                 }
                 else
                 {
@@ -2794,7 +2892,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             rpart.ScheduleFullUpdate();
         }
 
@@ -2834,7 +2931,6 @@ namespace OpenSim.Region.Framework.Scenes
                     part.ResetIDs(part.LinkNum); // Don't change link nums
                     m_parts.Add(part.UUID, part);
                 }
-                PseudoCRC = (int)(DateTime.UtcNow.Ticks);
             }
         }
 
@@ -2906,7 +3002,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            if (IsAttachment)
             //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
-            checkAtTargets();
             if (Scene.GetNumberOfClients() == 0)
                 return;
 
@@ -2925,8 +3020,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //            if (IsAttachment)
             //                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
-            checkAtTargets();
-
             if (Scene.GetNumberOfClients() == 0)
                 return;
 
@@ -3052,9 +3145,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if a part with the primID was not found</returns>
         public SceneObjectPart GetPart(UUID primID)
         {
-            SceneObjectPart childPart;
-            m_parts.TryGetValue(primID, out childPart);
-            return childPart;
+            if(m_parts.TryGetValue(primID, out SceneObjectPart childPart))
+                return childPart;
+            return null;
         }
 
         /// <summary>
@@ -3065,7 +3158,7 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart GetPart(uint localID)
         {
             SceneObjectPart sop = m_scene.GetSceneObjectPart(localID);
-            if(sop.ParentGroup.Equals(this))
+            if(sop.ParentGroup.LocalId == LocalId)
                 return sop;
             return null;
         }
@@ -3216,7 +3309,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 linkPart.SetParent(this);
 
-                linkPart.CreateSelected = true;
+                //linkPart.CreateSelected = true;
 
                 linkPart.UpdatePrimFlags(grpusephys, grptemporary, (IsPhantom || (linkPart.Flags & PrimFlags.Phantom) != 0), linkPart.VolumeDetectActive || RootPart.VolumeDetectActive, true);
 
@@ -3262,9 +3355,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Now that we've aquired all of the old SOG's parts, remove the old SOG from the scene.
             m_scene.UnlinkSceneObject(objectGroup, true);
-            objectGroup.IsDeleted = true;
-
-            objectGroup.m_parts.Clear();
+            objectGroup.m_parts.Clear(); // do not dispose the parts moved to new group
+            objectGroup.Dispose();
 
             // Can't do this yet since backup still makes use of the root part without any synchronization
 //            objectGroup.m_rootPart = null;
@@ -3421,27 +3513,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Create a new SOG to go around this unlinked and unattached SOP
             SceneObjectGroup objectGroup = new SceneObjectGroup(linkPart);
-
             m_scene.AddNewSceneObject(objectGroup, true);
-
             linkPart.Rezzed = RootPart.Rezzed;
 
-            // When we delete a group, we currently have to force persist to the database if the object id has changed
-            // (since delete works by deleting all rows which have a given object id)
-
-            // this is as it seems to be in sl now
-            if(linkPart.PhysicsShapeType == (byte)PhysShapeType.none)
-                linkPart.PhysicsShapeType = linkPart.DefaultPhysicsShapeType(); // root prims can't have type none for now
+            InvalidBoundsRadius();
+            InvalidatePartsLinkMaps();
+            InvalidateEffectivePerms();
 
             if (m_rootPart.PhysActor != null)
                 m_rootPart.PhysActor.Building = false;
 
             objectGroup.HasGroupChangedDueToDelink = true;
-
-            InvalidBoundsRadius();
-            InvalidatePartsLinkMaps();
-            objectGroup.InvalidateEffectivePerms();
-
+            
             if (sendEvents)
                 linkPart.TriggerScriptChangedEvent(Changed.LINK);
 
@@ -3767,9 +3850,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // compute difference between previous old rotation and new incoming rotation
                         Quaternion minimalRotationFromQ1ToQ2 = newOrientation * Quaternion.Inverse(old);
 
-                        float rotationAngle;
-                        Vector3 spinforce;
-                        minimalRotationFromQ1ToQ2.GetAxisAngle(out spinforce, out rotationAngle);
+                        minimalRotationFromQ1ToQ2.GetAxisAngle(out Vector3 spinforce, out float rotationAngle);
                         if(Math.Abs(rotationAngle)< 0.001)
                             return;
 
@@ -4017,8 +4098,7 @@ namespace OpenSim.Region.Framework.Scenes
             HasGroupChanged = true;
 
             // Send the group's properties to all clients once all parts are updated
-            IClientAPI client;
-            if (Scene.TryGetClient(AgentID, out client))
+            if (Scene.TryGetClient(AgentID, out IClientAPI client))
                 SendPropertiesToClient(client);
         }
 
@@ -4804,195 +4884,218 @@ namespace OpenSim.Region.Framework.Scenes
             return 0;
         }
 
-        public int registerRotTargetWaypoint(Quaternion target, float tolerance)
+        public int RegisterRotTargetWaypoint(UUID scriptID, Quaternion target, float tolerance)
         {
-            scriptRotTarget waypoint = new scriptRotTarget();
-            waypoint.targetRot = target;
-            waypoint.tolerance = tolerance;
-            uint handle = m_scene.AllocateLocalId();
-            waypoint.handle = handle;
-            lock (m_rotTargets)
+            int handle = m_scene.AllocateIntId();
+            scriptRotTarget waypoint = new scriptRotTarget()
             {
-                if (m_rotTargets.Count >= 8)
-                    m_rotTargets.Remove(m_rotTargets.ElementAt(0).Key);
-                m_rotTargets.Add(handle, waypoint);
-            }
-            m_scene.AddGroupTarget(this);
-            return (int)handle;
-        }
+                targetRot = target,
+                tolerance = tolerance,
+                scriptID = scriptID,
+                handle = handle
+            };
 
-        public void unregisterRotTargetWaypoint(int handle)
-        {
             lock (m_targets)
             {
-                m_rotTargets.Remove((uint)handle);
-                if (m_targets.Count == 0)
-                    m_scene.RemoveGroupTarget(this);
-            }
-        }
-
-        public int registerTargetWaypoint(Vector3 target, float tolerance)
-        {
-            scriptPosTarget waypoint = new scriptPosTarget();
-            waypoint.targetPos = target;
-            waypoint.tolerance = tolerance;
-            uint handle = m_scene.AllocateLocalId();
-            waypoint.handle = handle;
-            lock (m_targets)
-            {
-                if (m_targets.Count >= 8)
-                    m_targets.Remove(m_targets.ElementAt(0).Key);
-                m_targets.Add(handle, waypoint);
-            }
-            m_scene.AddGroupTarget(this);
-            return (int)handle;
-        }
-
-        public void unregisterTargetWaypoint(int handle)
-        {
-            lock (m_targets)
-            {
-                m_targets.Remove((uint)handle);
-                if (m_targets.Count == 0)
-                    m_scene.RemoveGroupTarget(this);
-            }
-        }
-
-        public void checkAtTargets()
-        {
-            if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
-            {
-                if (m_targets.Count > 0)
+                if(m_targetsByScript.TryGetValue(scriptID, out List<int> handles))
                 {
-                    bool at_target = false;
-                    //Vector3 targetPos;
-                    //uint targetHandle;
-                    Dictionary<uint, scriptPosTarget> atTargets = new Dictionary<uint, scriptPosTarget>();
-                    lock (m_targets)
+                    if (handles.Count >= 8)
                     {
-                        foreach (uint idx in m_targets.Keys)
-                        {
-                            scriptPosTarget target = m_targets[idx];
-                            if (Vector3.DistanceSquared(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance * target.tolerance)
-                            {
-                                at_target = true;
-
-                                // trigger at_target
-                                if (m_scriptListens_atTarget)
-                                {
-                                    scriptPosTarget att = new scriptPosTarget();
-                                    att.targetPos = target.targetPos;
-                                    att.tolerance = target.tolerance;
-                                    att.handle = target.handle;
-                                    atTargets.Add(idx, att);
-                                }
-                            }
-                        }
+                        int todel = handles[0];
+                        handles.RemoveAt(0);
+                        if(!m_rotTargets.Remove(todel))
+                            m_targets.Remove(todel);
                     }
+                    handles.Add(handle);
+                }
+                else
+                    m_targetsByScript[scriptID] = new List<int>(){handle};
 
-                    if (atTargets.Count > 0)
+                m_rotTargets.Add(handle, waypoint);
+                m_scene.AddGroupTarget(this);
+            }
+            return handle;
+        }
+
+        public void UnRegisterRotTargetWaypoint(int handle)
+        {
+            lock (m_targets)
+            {
+                if(m_rotTargets.TryGetValue(handle, out scriptRotTarget waypoint))
+                {
+                    if(m_targetsByScript.TryGetValue(waypoint.scriptID, out List<int>handles))
                     {
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
-                        {
-                            foreach (uint target in atTargets.Keys)
-                            {
-                                scriptPosTarget att = atTargets[target];
-                                m_scene.EventManager.TriggerAtTargetEvent(
-                                    localids[ctr], att.handle, att.targetPos, m_rootPart.GroupPosition);
-                            }
-                        }
-
-                        return;
+                        handles.Remove(handle);
+                        if(handles.Count() == 0)
+                            m_targetsByScript.Remove(waypoint.scriptID);
                     }
+                    m_rotTargets.Remove(handle);
+                }
+                if (m_targets.Count == 0 && m_rotTargets.Count == 0)
+                    m_scene.RemoveGroupTarget(this);
+            }
+        }
 
-                    if (m_scriptListens_notAtTarget && !at_target)
+        public int RegisterTargetWaypoint(UUID scriptID, Vector3 target, float tolerance)
+        {
+            int handle = m_scene.AllocateIntId();
+            scriptPosTarget waypoint = new scriptPosTarget()
+            {
+                targetPos = target,
+                tolerance = tolerance * tolerance,
+                scriptID = scriptID,
+                handle = handle
+            };
+
+            lock (m_targets)
+            {
+                if (m_targetsByScript.TryGetValue(scriptID, out List<int> handles))
+                {
+                    if (handles.Count >= 8)
                     {
-                        //trigger not_at_target
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
+                        int todel = handles[0];
+                        handles.RemoveAt(0);
+                        if(!m_targets.Remove(todel))
+                            m_rotTargets.Remove(todel);
+                    }
+                    handles.Add(handle);
+                }
+                else
+                    m_targetsByScript[scriptID] = new List<int>() { handle };
 
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                m_targets.Add(handle, waypoint);
+                m_scene.AddGroupTarget(this);
+            }
+            return handle;
+        }
+
+        public void UnregisterTargetWaypoint(int handle)
+        {
+            lock (m_targets)
+            {
+                if (m_targets.TryGetValue(handle, out scriptPosTarget waypoint))
+                {
+                    if (m_targetsByScript.TryGetValue(waypoint.scriptID, out List<int> handles))
+                    {
+                        handles.Remove(handle);
+                        if (handles.Count() == 0)
+                            m_targetsByScript.Remove(waypoint.scriptID);
+                    }
+                    m_targets.Remove(handle);
+                }
+
+                if (m_targets.Count == 0 && m_rotTargets.Count == 0)
+                    m_scene.RemoveGroupTarget(this);
+            }
+        }
+
+        public void RemoveScriptTargets(UUID scriptID)
+        {
+            lock (m_targets)
+            {
+                if(m_targetsByScript.TryGetValue(scriptID, out List<int> toremove))
+                {
+                    m_targetsByScript.Remove(scriptID);
+                    if (toremove.Count > 0)
+                    {
+                        for (int i = 0; i < toremove.Count; ++i)
                         {
-                            m_scene.EventManager.TriggerNotAtTargetEvent(localids[ctr]);
+                            if(!m_targets.Remove(toremove[i]))
+                                m_rotTargets.Remove(toremove[i]);
                         }
                     }
                 }
+                m_scene.RemoveGroupTarget(this);
             }
-            if (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget)
+        }
+
+        public void CheckAtTargets()
+        {
+            int targetsCount = m_targets.Count;
+            if (targetsCount > 0 && (m_scriptListens_atTarget || m_scriptListens_notAtTarget))
             {
-                if (m_rotTargets.Count > 0)
+                List<scriptPosTarget> atTargets = new List<scriptPosTarget>();
+                HashSet<UUID> notatTargets = new HashSet<UUID>();
+                Vector3 pos = m_rootPart.GroupPosition;
+                lock (m_targets)
                 {
-                    bool at_Rottarget = false;
-                    Dictionary<uint, scriptRotTarget> atRotTargets = new Dictionary<uint, scriptRotTarget>();
-                    lock (m_rotTargets)
+                    foreach (scriptPosTarget target in m_targets.Values)
                     {
-                        foreach (uint idx in m_rotTargets.Keys)
+                        if (Vector3.DistanceSquared(target.targetPos, pos) <= target.tolerance)
                         {
-                            scriptRotTarget target = m_rotTargets[idx];
-                            double angle
-                                = Math.Acos(
-                                    target.targetRot.X * m_rootPart.RotationOffset.X
-                                        + target.targetRot.Y * m_rootPart.RotationOffset.Y
-                                        + target.targetRot.Z * m_rootPart.RotationOffset.Z
-                                        + target.targetRot.W * m_rootPart.RotationOffset.W)
-                                    * 2;
-                            if (angle < 0) angle = -angle;
-                            if (angle > Math.PI) angle = (Math.PI * 2 - angle);
-                            if (angle <= target.tolerance)
-                            {
-                                // trigger at_rot_target
-                                if (m_scriptListens_atRotTarget)
-                                {
-                                    at_Rottarget = true;
-                                    scriptRotTarget att = new scriptRotTarget();
-                                    att.targetRot = target.targetRot;
-                                    att.tolerance = target.tolerance;
-                                    att.handle = target.handle;
-                                    atRotTargets.Add(idx, att);
-                                }
-                            }
+                            if (m_scriptListens_atTarget)
+                                atTargets.Add(target);
+                            notatTargets.Remove(target.scriptID);
+                        }
+                        else
+                        {
+                            if (m_scriptListens_notAtTarget)
+                                notatTargets.Add(target.scriptID);
                         }
                     }
+                }
 
-                    if (atRotTargets.Count > 0)
+                if (atTargets.Count > 0)
+                {
+                    for (int target = 0; target < atTargets.Count; ++target)
                     {
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
-
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
-                        {
-                            foreach (uint target in atRotTargets.Keys)
-                            {
-                                scriptRotTarget att = atRotTargets[target];
-                                m_scene.EventManager.TriggerAtRotTargetEvent(
-                                    localids[ctr], att.handle, att.targetRot, m_rootPart.RotationOffset);
-                            }
-                        }
-
-                        return;
+                        scriptPosTarget att = atTargets[target];
+                        m_scene.EventManager.TriggerAtTargetEvent(att.scriptID, (uint)att.handle, att.targetPos, pos);
                     }
+                }
 
-                    if (m_scriptListens_notAtRotTarget && !at_Rottarget)
+                if (notatTargets.Count > 0)
+                {
+                    foreach (UUID id in notatTargets)
                     {
-                        //trigger not_at_target
-                        SceneObjectPart[] parts = m_parts.GetArray();
-                        uint[] localids = new uint[parts.Length];
-                        for (int i = 0; i < parts.Length; i++)
-                            localids[i] = parts[i].LocalId;
+                        m_scene.EventManager.TriggerNotAtTargetEvent(id);
+                    }
+                }
+            }
 
-                        for (int ctr = 0; ctr < localids.Length; ctr++)
+            targetsCount = m_rotTargets.Count;
+            if (targetsCount > 0 && (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget))
+            {
+                List<scriptRotTarget> atRotTargets = new List<scriptRotTarget>(targetsCount);
+                HashSet<UUID> notatRotTargets = new HashSet<UUID>();
+                Quaternion rot = m_rootPart.RotationOffset;
+                lock (m_targets)
+                {
+                    foreach (scriptRotTarget target in m_rotTargets.Values)
+                    {
+                        double angle = 2 * Math.Acos(Quaternion.Dot(target.targetRot, rot));
+                        if (angle < 0)
+                            angle = -angle;
+                        if (angle > Math.PI)
+                            angle = (2 * Math.PI - angle);
+                        if (angle <= target.tolerance)
                         {
-                            m_scene.EventManager.TriggerNotAtRotTargetEvent(localids[ctr]);
+                            if (m_scriptListens_atRotTarget)
+                                atRotTargets.Add(target);
+                            notatRotTargets.Remove(target.scriptID);
                         }
+                        else
+                        {
+                            if (m_scriptListens_notAtRotTarget)
+                                notatRotTargets.Add(target.scriptID);
+                        }
+                    }
+                }
+
+                if (atRotTargets.Count > 0)
+                {
+                    for (int target = 0; target < atRotTargets.Count; ++target)
+                    {
+                        scriptRotTarget att = atRotTargets[target];
+                        m_scene.EventManager.TriggerAtRotTargetEvent(att.scriptID, (uint)att.handle, att.targetRot, rot);
+                    }
+                }
+
+                if (notatRotTargets.Count > 0)
+                {
+                    foreach (UUID id in notatRotTargets)
+                    {
+                        m_scene.EventManager.TriggerNotAtRotTargetEvent(id);
                     }
                 }
             }
@@ -5093,20 +5196,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetInertiaData(float TotalMass, Vector3 CenterOfMass, Vector3 Inertia, Vector4 aux )
         {
-            PhysicsInertiaData inertia = new PhysicsInertiaData();
-            inertia.TotalMass = TotalMass;
-            inertia.CenterOfMass = CenterOfMass;
-            inertia.Inertia = Inertia;
-            inertia.InertiaRotation = aux;
+            PhysicsInertiaData inertiaData = new PhysicsInertiaData()
+            {
+                TotalMass = TotalMass,
+                CenterOfMass = CenterOfMass,
+                Inertia = Inertia,
+                InertiaRotation = aux
+            };
 
             if(TotalMass < 0)
                 RootPart.PhysicsInertia = null;
             else
-                RootPart.PhysicsInertia = new PhysicsInertiaData(inertia);
+                RootPart.PhysicsInertia = inertiaData;
 
             PhysicsActor pa = RootPart.PhysActor;
             if(pa !=null)
-                pa.SetInertiaData(inertia);
+                pa.SetInertiaData(inertiaData);
         }
 
         /// <summary>
@@ -5190,6 +5295,44 @@ namespace OpenSim.Region.Framework.Scenes
             return time;
         }
 
+        public bool ScriptsMemory(out int memory)
+        {
+            memory = 0;
+            IScriptModule[] engines = Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines.Length == 0) // No engine at all
+                return false;
+
+            // get all the scripts in all parts
+            SceneObjectPart[] parts = m_parts.GetArray();
+            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                scripts.AddRange(parts[i].Inventory.GetInventoryItems(InventoryType.LSL));
+            }
+
+            if (scripts.Count == 0)
+                return false;
+
+            // extract the UUIDs
+            List<UUID> ids = new List<UUID>(scripts.Count);
+            foreach (TaskInventoryItem script in scripts)
+            {
+                if (!ids.Contains(script.ItemID))
+                {
+                    ids.Add(script.ItemID);
+                }
+            }
+            // Offer the list of script UUIDs to each engine found and accumulate the memory
+            foreach (IScriptModule e in engines)
+            {
+                if (e != null)
+                {
+                    memory += e.GetScriptsMemory(ids);
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Returns a count of the number of running scripts in this groups parts.
         /// </summary>
@@ -5215,6 +5358,20 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_sittingAvatars)
                 return new List<ScenePresence>(m_sittingAvatars);
+        }
+
+        public bool HasSittingAvatar(UUID avatarID)
+        {
+            // locked O(n) :(
+            lock (m_sittingAvatars)
+            {
+                for(int i = 0; i < m_sittingAvatars.Count; ++i)
+                {
+                    if(m_sittingAvatars[i].UUID == avatarID)
+                        return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -5271,17 +5428,6 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ResetOwnerChangeFlag();
             });
             InvalidateEffectivePerms();
-        }
-
-        // clear some references to easy cg
-        public void Clear()
-        {
-            m_parts.Clear();
-            m_sittingAvatars.Clear();
-//            m_rootPart = null;
-
-            m_targets.Clear();
-            m_partsNameToLinkMap.Clear();
         }
 
         private Dictionary<string,int> m_partsNameToLinkMap = new Dictionary<string, int>();

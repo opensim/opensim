@@ -88,6 +88,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 | GroupPowers.LandDeed
                 | GroupPowers.LandDivideJoin
                 | GroupPowers.LandEdit
+                | GroupPowers.AllowEnvironment
                 | GroupPowers.LandEjectAndFreeze
                 | GroupPowers.LandGardening
                 | GroupPowers.LandManageAllowed

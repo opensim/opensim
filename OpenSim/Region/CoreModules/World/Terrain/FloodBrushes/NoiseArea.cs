@@ -35,9 +35,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
     {
         #region ITerrainFloodEffect Members
 
-        public void FloodEffect(ITerrainChannel map, bool[,] fillArea, double strength,
+        public void FloodEffect(ITerrainChannel map, bool[,] fillArea, float height, float strength,
             int startX, int endX, int startY, int endY)
         {
+            strength *= 0.08f;
+
             int x, y;
             for (x = startX; x <= endX; x++)
             {
@@ -45,7 +47,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FloodBrushes
                 {
                     if (fillArea[x, y])
                     {
-                        double noise = TerrainUtil.PerlinNoise2D((double) x / map.Width, (double) y / map.Height, 8, 1.0);
+                        float noise = (float)TerrainUtil.PerlinNoise2D((double) x / map.Width, (double) y / map.Height, 8, 1.0);
                         map[x, y] += noise * strength;
                     }
                 }

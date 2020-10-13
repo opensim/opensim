@@ -82,5 +82,9 @@
     <Key Name="foldersFile" Value="TexturesLibrary/TexturesLibraryFolders.xml"/>
     <Key Name="itemsFile" Value="TexturesLibrary/TexturesLibraryItems.xml"/>
   </Section>
+  <Section Name="Settings Library">
+    <Key Name="foldersFile" Value="SettingsLibrary/Folders.xml"/>
+    <Key Name="itemsFile" Value="SettingsLibrary/Items.xml"/>
+  </Section>
   <!---->
 </Nini>

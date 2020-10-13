@@ -49,19 +49,46 @@ using Mono.Addins;
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EntityTransferModule")]
-    public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule
+    public class EntityTransferModule : INonSharedRegionModule, IEntityTransferModule, IDisposable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[ENTITY TRANSFER MODULE]";
         private static readonly string OutfitTPError = "destination region does not support the Outfit you are wearing. Please retry with a simpler one";
 
-        public const bool WaitForAgentArrivedAtDestinationDefault = true;
+        public EntityTransferModule()
+        {
+        }
+
+        ~EntityTransferModule()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                m_bannedRegionCache?.Dispose();
+                m_bannedRegionCache = null;
+            }
+        }
 
         /// <summary>
         /// If true then on a teleport, the source region waits for a callback from the destination region.  If
         /// a callback fails to arrive within a set time then the user is pulled back into the source region.
         /// </summary>
-        public bool WaitForAgentArrivedAtDestination { get; set; }
+        public bool WaitForAgentArrivedAtDestination { get; set; } = true;
 
         /// <summary>
         /// If true then we ask the viewer to disable teleport cancellation and ignore teleport requests.
@@ -99,8 +126,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </remarks>
         private Stat m_interRegionTeleportFailures;
 
-        protected string m_ThisHomeURI;
-        protected string m_GatekeeperURI;
+        protected GridInfo m_thisGridInfo;
 
         protected bool m_Enabled = false;
 
@@ -116,51 +142,78 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    to the grid service.
         private class BannedRegionCache
         {
-            private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
-                    new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
-            ExpiringCache<ulong, DateTime> m_idCache;
-            DateTime m_banUntil;
+            private ExpiringCacheOS<UUID, Dictionary<ulong, double>> m_bannedRegions =
+                    new ExpiringCacheOS<UUID, Dictionary<ulong, double>>(15000);
+
             public BannedRegionCache()
             {
             }
+
+            ~BannedRegionCache()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (m_bannedRegions != null)
+                {
+                    m_bannedRegions.Dispose();
+                    m_bannedRegions = null;
+                }
+            }
+
             // Return 'true' if there is a valid ban entry for this agent in this region
             public bool IfBanned(ulong pRegionHandle, UUID pAgentID)
             {
-                bool ret = false;
-                if (m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                if (m_bannedRegions.TryGetValue(pAgentID, out Dictionary<ulong, double> idCache))
                 {
-                    if (m_idCache.TryGetValue(pRegionHandle, out m_banUntil))
+                    lock(idCache)
                     {
-                        if (DateTime.UtcNow < m_banUntil)
+                        if (idCache.TryGetValue(pRegionHandle, out double exp))
                         {
-                            ret = true;
+                            if(exp < Util.GetTimeStamp())
+                                return true;
+                            else
+                                idCache.Remove(pRegionHandle);
                         }
                     }
                 }
-                return ret;
-            }
-            // Add this agent in this region as a banned person
-            public void Add(ulong pRegionHandle, UUID pAgentID)
-            {
-                this.Add(pRegionHandle, pAgentID, 45, 15);
+                return false;
             }
 
-            public void Add(ulong pRegionHandle, UUID pAgentID, double newTime, double extendTime)
+            public void Add(ulong pRegionHandle, UUID pAgentID, double newTime)
             {
-                if (!m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                Dictionary<ulong, double> idCache;
+                if (!m_bannedRegions.TryGetValue(pAgentID, out idCache))
                 {
-                    m_idCache = new ExpiringCache<ulong, DateTime>();
-                    m_bannedRegions.Add(pAgentID, m_idCache, TimeSpan.FromSeconds(newTime));
+                    idCache = new Dictionary<ulong, double>();
+                    idCache[pRegionHandle] = Util.GetTimeStamp() + newTime;
+                    m_bannedRegions.AddOrUpdate(pAgentID, idCache, newTime);
                 }
-                m_idCache.Add(pRegionHandle, DateTime.UtcNow + TimeSpan.FromSeconds(extendTime), extendTime);
+                else
+                {
+                    lock(idCache)
+                    {
+                        idCache[pRegionHandle] = Util.GetTimeStamp() + newTime;
+                        m_bannedRegions.AddOrUpdate(pAgentID, idCache, newTime);
+                    }
+                }
             }
 
             // Remove the agent from the region's banned list
             public void Remove(ulong pRegionHandle, UUID pAgentID)
             {
-                if (m_bannedRegions.TryGetValue(pAgentID, out m_idCache))
+                if (m_bannedRegions.TryGetValue(pAgentID, out Dictionary<ulong, double> idCache))
                 {
-                    m_idCache.Remove(pRegionHandle);
+                    lock (idCache)
+                        idCache.Remove(pRegionHandle);
                 }
             }
         }
@@ -201,18 +254,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="source"></param>
         protected virtual void InitialiseCommon(IConfigSource source)
         {
-            IConfig hypergridConfig = source.Configs["Hypergrid"];
-            if (hypergridConfig != null)
-            {
-                m_ThisHomeURI = hypergridConfig.GetString("HomeURI", string.Empty);
-                if (m_ThisHomeURI != string.Empty && !m_ThisHomeURI.EndsWith("/"))
-                    m_ThisHomeURI += '/';
-
-                m_GatekeeperURI = hypergridConfig.GetString("GatekeeperURI", string.Empty);
-                if (m_GatekeeperURI != string.Empty && !m_GatekeeperURI.EndsWith("/"))
-                    m_GatekeeperURI += '/';
-            }
-
             IConfig transferConfig = source.Configs["EntityTransfer"];
             if (transferConfig != null)
             {
@@ -220,8 +261,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     = transferConfig.GetBoolean("DisableInterRegionTeleportCancellation", false);
 
                 WaitForAgentArrivedAtDestination
-                    = transferConfig.GetBoolean("wait_for_callback", WaitForAgentArrivedAtDestinationDefault);
-
+                    = transferConfig.GetBoolean("wait_for_callback", WaitForAgentArrivedAtDestination);
             }
 
             m_entityTransferStateMachine = new EntityTransferStateMachine(this);
@@ -239,6 +279,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
 
             Scene = scene;
+            m_thisGridInfo = scene.SceneGridInfo;
 
             m_interRegionTeleportAttempts =
                 new Stat(
@@ -309,7 +350,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             client.OnConnectionClosed += OnConnectionClosed;
         }
 
-        public virtual void Close() {}
+        public virtual void Close()
+        {
+            Dispose();
+        }
 
         public virtual void RemoveRegion(Scene scene)
         {
@@ -319,6 +363,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 StatsManager.DeregisterStat(m_interRegionTeleportAborts);
                 StatsManager.DeregisterStat(m_interRegionTeleportCancels);
                 StatsManager.DeregisterStat(m_interRegionTeleportFailures);
+                scene.EventManager.OnNewClient -= OnNewClient;
+                m_thisGridInfo = null;
             }
         }
 
@@ -334,7 +380,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Agent Teleports
 
-        private void OnConnectionClosed(IClientAPI client)
+        public virtual void OnConnectionClosed(IClientAPI client)
         {
             if (client.IsLoggingOut && m_entityTransferStateMachine.UpdateInTransit(client.AgentId, AgentTransferState.Aborting))
             {
@@ -506,7 +552,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             foreach (SceneObjectGroup grp in sp.GetAttachments())
             {
-                sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
+                if ((grp.ScriptEvents & scriptEvents.changed) != 0)
+                    sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
             }
 
             m_entityTransferStateMachine.UpdateInTransit(sp.UUID, AgentTransferState.CleaningUp);
@@ -559,19 +606,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (finalDestination == null)
             {
-                m_log.WarnFormat( "{0} Final destination is having problems. Unable to teleport {1} {2}: {3}",
+                m_log.WarnFormat( "{0} Unable to teleport {1} {2}: {3}",
                                         LogHeader, sp.Name, sp.UUID, reason);
 
                 sp.ControllingClient.SendTeleportFailed(reason);
-                return;
-            }
-
-            // Check that these are not the same coordinates
-            if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
-                finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
-            {
-                // Can't do. Viewer crashes
-                sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
                 return;
             }
 
@@ -690,6 +728,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             RegionInfo sourceRegion = sp.Scene.RegionInfo;
 
             ulong destinationHandle = finalDestination.RegionHandle;
+
+            if(destinationHandle == sourceRegion.RegionHandle)
+            {
+                sp.ControllingClient.SendTeleportFailed("Can't teleport to a region on same map position. Try going to another region first, then retry from there");
+                return;
+            }
 
             // Let's do DNS resolution only once in this process, please!
             // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
@@ -1069,15 +1113,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                 }
             }
-            else
-            {
-                if(!sp.IsInLocalTransit || sp.RegionViewDistance == 0)
-                {
-                    // this will be closed by callback
-                    if (agentCircuit.ChildrenCapSeeds != null)
-                        agentCircuit.ChildrenCapSeeds.Remove(sp.RegionHandle);
-                }
-            }
+
+            if (OutSideViewRange && agentCircuit.ChildrenCapSeeds != null)
+                agentCircuit.ChildrenCapSeeds.Remove(sp.RegionHandle);
 
             string capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);;
 
@@ -1150,7 +1188,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             agent.SenderWantsToWaitForRoot = true;
 
-            if(!sp.IsInLocalTransit || sp.RegionViewDistance == 0)
+            if(OutSideViewRange)
                 SetNewCallbackURL(agent, sp.Scene.RegionInfo);
 
             // Reset the do not close flag.  This must be done before the destination opens child connections (here
@@ -1224,7 +1262,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         break;
                 } while (--count > 0);
 
-
                 if (!sp.IsDeleted)
                 {
                     m_log.DebugFormat(
@@ -1285,7 +1322,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason, out bool logout)
         {
             GridRegion source = new GridRegion(Scene.RegionInfo);
-            source.RawServerURI = m_GatekeeperURI;
+            source.RawServerURI = m_thisGridInfo.GateKeeperURL;
 
             logout = false;
             bool success = Scene.SimulationService.CreateAgent(source, finalDestination, agentCircuit, teleportFlags, ctx, out reason);
@@ -1498,13 +1535,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!ascene.SimulationService.QueryAccess(destiny, agentID, homeURI, false, position,
                    agent.Scene.GetFormatsOffered(), ctx, out reason))
             {
-                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
+                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0);
                 return false;
             }
             if (!agent.Appearance.CanTeleport(ctx.OutboundVersion))
             {
                 reason = OutfitTPError;
-                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0, 30.0);
+                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0);
                 return false;
             }
 
@@ -1545,8 +1582,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return null;
             }
 
-            m_bannedRegionCache.Remove(neighbourRegion.RegionHandle, agentID);
-
             // Compute the entity's position relative to the new region
             newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
                                       (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
@@ -1559,7 +1594,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     scene.GetFormatsOffered(), ctx, out failureReason))
             {
                 // remember the fail
-                m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID);
+                m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID, 45);
                 if(String.IsNullOrWhiteSpace(failureReason))
                     failureReason = "Access Denied";
                 return null;
@@ -2610,7 +2645,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (newAgent)
             {
                 // we may already had lost this sp
-                if(sp == null || sp.IsDeleted || sp.ClientView == null) // something bad already happened
+                if(sp == null || sp.IsDeleted || sp.ControllingClient == null) // something bad already happened
                    return;
 
                 Scene scene = sp.Scene;
@@ -2633,7 +2668,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     if (m_eqModule != null)
                     {
-                        if(sp == null || sp.IsDeleted || sp.ClientView == null) // something bad already happened
+                        if(sp == null || sp.IsDeleted || sp.ControllingClient == null) // something bad already happened
                             return;
 
                         m_log.DebugFormat("{0} {1} is sending {2} EnableSimulator for neighbour region {3}(loc=<{4},{5}>,siz=<{6},{7}>) " +

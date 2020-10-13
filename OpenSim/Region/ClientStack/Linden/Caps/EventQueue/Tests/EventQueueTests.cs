@@ -171,7 +171,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
 
             Hashtable eventsResponse = m_eqgMod.GetEvents(UUID.Zero, TestHelpers.ParseTail(0x1));
 
-            Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.BadGateway));
+            Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.NotFound));
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace OpenSim.Region.ClientStack.Linden.Tests
 
             Hashtable eventsResponse = m_eqgMod.GetEvents(UUID.Zero, npc.UUID);
 
-            Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.BadGateway));
+            Assert.That((int)eventsResponse["int_response_code"], Is.EqualTo((int)HttpStatusCode.NotFound));
         }
     }
 }

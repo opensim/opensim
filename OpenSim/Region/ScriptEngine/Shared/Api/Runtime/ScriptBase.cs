@@ -86,9 +86,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         private Executor m_Executor = null;
 
-        public int GetStateEventFlags(string state)
+        public ulong GetStateEventFlags(string state)
         {
-            return (int)m_Executor.GetStateEventFlags(state);
+            return (ulong)m_Executor.GetStateEventFlags(state);
         }
 
         [DebuggerNonUserCode]

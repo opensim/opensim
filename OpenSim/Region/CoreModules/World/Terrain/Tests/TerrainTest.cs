@@ -60,10 +60,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             TerrainChannel map = new TerrainChannel((int)Constants.RegionSize, (int)Constants.RegionSize);
             ITerrainPaintableEffect effect = new RaiseSphere();
 
-            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0, 2, 6.0,
+            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 5, 6.0f,
                 0, midRegion - 1,0, (int)Constants.RegionSize -1);
             Assert.That(map[127, midRegion] > 0.0, "Raise brush should raising value at this point (127,128).");
-            Assert.That(map[125, midRegion] > 0.0, "Raise brush should raising value at this point (124,128).");
+            Assert.That(map[124, midRegion] > 0.0, "Raise brush should raising value at this point (124,128).");
             Assert.That(map[120, midRegion] == 0.0, "Raise brush should not change value at this point (120,128).");
             Assert.That(map[128, midRegion] == 0.0, "Raise brush should not change value at this point (128,128).");
 //            Assert.That(map[0, midRegion] == 0.0, "Raise brush should not change value at this point (0,128).");
@@ -75,12 +75,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             {
                 for (y=0; y<map.Height; y++)
                 {
-                    map[x,y] = 1.0;
+                    map[x,y] = 1.0f;
                 }
             }
             effect = new LowerSphere();
 
-            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0, 2, 6.0,
+            effect.PaintEffect(map, allowMask, midRegion, midRegion, -1.0f, 5, 6.0f,
                 0, (int)Constants.RegionSize -1,0, (int)Constants.RegionSize -1);
             Assert.That(map[127, midRegion] >= 0.0, "Lower should not lowering value below 0.0 at this point (127,128).");
             Assert.That(map[127, midRegion] == 0.0, "Lower brush should lowering value to 0.0 at this point (127,128).");
@@ -96,21 +96,20 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Tests
             TerrainChannel x = new TerrainChannel((int)Constants.RegionSize, (int)Constants.RegionSize);
             Assert.That(x[0, 0] == 0.0, "Terrain not initialising correctly.");
 
-            x[0, 0] = 1.0;
+            x[0, 0] = 1.0f;
             Assert.That(x[0, 0] == 1.0, "Terrain not setting values correctly.");
 
             x[0, 0] = 0;
-            x[0, 0] += 5.0;
-            x[0, 0] -= 1.0;
-            Assert.That(x[0, 0] == 4.0, "Terrain addition/subtraction error.");
+            x[0, 0] += 5.0f;
+            x[0, 0] -= 1.0f;
+            Assert.That(x[0, 0] == 4.0f, "Terrain addition/subtraction error.");
 
-            x[0, 0] = 1.0;
+            x[0, 0] = 1.0f;
             float[] floatsExport = x.GetFloatsSerialised();
             Assert.That(floatsExport[0] == 1.0f, "Export to float[] not working correctly.");
 
-            x[0, 0] = 1.0;
+            x[0, 0] = 1.0f;
             Assert.That(x.Tainted(0, 0), "Terrain channel tainting not working correctly.");
-            Assert.That(!x.Tainted(0, 0), "Terrain channel tainting not working correctly.");
 
             TerrainChannel y = x.Copy();
             Assert.That(!ReferenceEquals(x, y), "Terrain copy not duplicating correctly.");

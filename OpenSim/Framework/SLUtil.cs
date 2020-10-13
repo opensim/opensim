@@ -28,6 +28,7 @@
 using OpenMetaverse;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace OpenSim.Framework
 {
@@ -43,7 +44,6 @@ namespace OpenSim.Framework
         {
             Material = -2
         }
-
 
         #region SL / file extension / content-type conversions
 
@@ -190,6 +190,56 @@ namespace OpenSim.Framework
         private static Dictionary<sbyte, string> inventory2Content;
         private static Dictionary<string, sbyte> content2Asset;
         private static Dictionary<string, sbyte> content2Inventory;
+        private static Dictionary<string, AssetType> name2Asset = new Dictionary<string, AssetType>()
+        {
+            {"texture", AssetType.Texture },
+            {"sound", AssetType.Sound},
+            {"callcard", AssetType.CallingCard},
+            {"landmark", AssetType.Landmark},
+            {"script", (AssetType)4},
+            {"clothing", AssetType.Clothing},
+            {"object", AssetType.Object},
+            {"notecard", AssetType.Notecard},
+            {"category", AssetType.Folder},
+            {"lsltext", AssetType.LSLText},
+            {"lslbyte", AssetType.LSLBytecode},
+            {"txtr_tga", AssetType.TextureTGA},
+            {"bodypart", AssetType.Bodypart},
+            {"snd_wav", AssetType.SoundWAV},
+            {"img_tga", AssetType.ImageTGA},
+            {"jpeg", AssetType.ImageJPEG},
+            {"animatn", AssetType.Animation},
+            {"gesture", AssetType.Gesture},
+            {"simstate", AssetType.Simstate},
+            {"mesh", AssetType.Mesh},
+            {"settings", AssetType.Settings}
+        };
+        private static Dictionary<string, FolderType> name2Inventory = new Dictionary<string, FolderType>()
+        {
+            {"texture", FolderType.Texture},
+            {"sound", FolderType.Sound},
+            {"callcard", FolderType.CallingCard},
+            {"landmark", FolderType.Landmark},
+            {"script", (FolderType)4},
+            {"clothing", FolderType.Clothing},
+            {"object", FolderType.Object},
+            {"notecard", FolderType.Notecard},
+            {"root", FolderType.Root},
+            {"lsltext", FolderType.LSLText},
+            {"bodypart", FolderType.BodyPart},
+            {"trash", FolderType.Trash},
+            {"snapshot", FolderType.Snapshot},
+            {"lostandfound", FolderType.LostAndFound},
+            {"animatn", FolderType.Animation},
+            {"gesture", FolderType.Gesture},
+            {"favorites", FolderType.Favorites},
+            {"currentoutfit", FolderType.CurrentOutfit},
+            {"outfit", FolderType.Outfit},
+            {"myoutfits", FolderType.MyOutfits},
+            {"mesh", FolderType.Mesh},
+            {"settings", FolderType.Settings},
+            {"suitcase", FolderType.Suitcase}
+        };
 
         static SLUtil()
         {
@@ -225,6 +275,20 @@ namespace OpenSim.Framework
                         content2Inventory.Add(mapping.ContentType2, mapping.InventoryType);
                 }
             }
+        }
+
+        public static AssetType SLAssetName2Type(string name)
+        {
+            if (name2Asset.TryGetValue(name, out AssetType type))
+                return type;
+            return AssetType.Unknown;
+        }
+
+        public static FolderType SLInvName2Type(string name)
+        {
+            if (name2Inventory.TryGetValue(name, out FolderType type))
+                return type;
+            return FolderType.None;
         }
 
         public static string SLAssetTypeToContentType(int assetType)
@@ -269,270 +333,432 @@ namespace OpenSim.Framework
 
         #endregion SL / file extension / content-type conversions
 
-        private class NotecardReader
+        static char[] seps = new char[] { '\t', '\n' };
+        static char[] stringseps = new char[] { '|', '\n' };
+
+        static byte[] moronize = new byte[16]
         {
-            private string rawInput;
-            private int lineNumber;
+            60, 17, 94, 81, 4, 244, 82, 60, 159, 166, 152, 175, 241, 3, 71, 48
+        };
 
-            public int LineNumber
-            {
-                get
-                {
-                    return lineNumber;
-                }
-            }
-
-            public NotecardReader(string _rawInput)
-            {
-                rawInput = (string)_rawInput.Clone();
-                lineNumber = 0;
-            }
-
-            public string getLine()
-            {
-                if(rawInput.Length == 0)
-                {
-                    throw new NotANotecardFormatException(lineNumber + 1);
-                }
-
-                int pos = rawInput.IndexOf('\n');
-                if(pos < 0)
-                {
-                    pos = rawInput.Length;
-                }
-
-                /* cut line from rest */
-                ++lineNumber;
-                string line = rawInput.Substring(0, pos);
-                if (pos + 1 >= rawInput.Length)
-                {
-                    rawInput = string.Empty;
-                }
-                else
-                {
-                    rawInput = rawInput.Substring(pos + 1);
-                }
-                /* clean up line from double spaces and tabs */
-                line = line.Replace("\t", " ");
-                while(line.IndexOf("  ") >= 0)
-                {
-                    line = line.Replace("  ", " ");
-                }
-                return line.Replace("\r", "").Trim();
-            }
-
-            public string getBlock(int length)
-            {
-                /* cut line from rest */
-                if(length > rawInput.Length)
-                {
-                    throw new NotANotecardFormatException(lineNumber);
-                }
-                string line = rawInput.Substring(0, length);
-                rawInput = rawInput.Substring(length);
-                return line;
-            }
+        static int getField(string note, int start, string name, bool isString, out string value)
+        {
+            value = String.Empty;
+            int end = -1;
+            int limit = note.Length - start;
+            if (limit > 64)
+                limit = 64;
+            int indx = note.IndexOf(name, start, limit);
+            if (indx < 0)
+                return -1;
+            indx += name.Length + 1; // eat \t
+            limit = note.Length - indx - 2;
+            if (limit > 129)
+                limit = 129;
+            if (isString)
+                end = note.IndexOfAny(stringseps, indx, limit);
+            else
+                end = note.IndexOfAny(seps, indx, limit);
+            if (end < 0)
+                return -1;
+            value = note.Substring(indx, end - indx);
+            return end;
         }
 
-        public class NotANotecardFormatException : Exception
+        private static UUID deMoronize(UUID id)
         {
-            public int lineNumber;
-            public NotANotecardFormatException(int _lineNumber)
-                : base()
-            {
-               lineNumber = _lineNumber;
-            }
+            byte[] data = new byte[16];
+            id.ToBytes(data,0);
+            for(int i = 0; i < 16; ++i)
+                data[i] ^= moronize[i];
+
+            return new UUID(data,0);
         }
 
-        private static void skipSection(NotecardReader reader)
+        public static InventoryItemBase GetEmbeddedItem(byte[] data, UUID itemID)
         {
-            if (reader.getLine() != "{")
-                throw new NotANotecardFormatException(reader.LineNumber);
+            if(data == null || data.Length < 300)
+                return null;
 
-            string line;
-            while ((line = reader.getLine()) != "}")
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return null;
+
+            // waste some time checking rigid versions
+            string version = note.Substring(0,21);
+            if (!version.Equals("Linden text version 2"))
+                return null;
+
+            version = note.Substring(24, 25);
+            if (!version.Equals("LLEmbeddedItems version 1"))
+                return null;
+
+            int indx = note.IndexOf(itemID.ToString(), 100);
+            if (indx < 0)
+                return null;
+
+            indx = note.IndexOf("permissions", indx, 100); // skip parentID
+            if (indx < 0)
+                return null;
+
+            string valuestr;
+
+            indx = getField(note, indx, "base_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint basemask))
+                return null;
+
+            indx = getField(note, indx, "owner_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint ownermask))
+                return null;
+
+            indx = getField(note, indx, "group_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint groupmask))
+                return null;
+
+            indx = getField(note, indx, "everyone_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint everyonemask))
+                return null;
+
+            indx = getField(note, indx, "next_owner_mask", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint nextownermask))
+                return null;
+
+            indx = getField(note, indx, "creator_id", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!UUID.TryParse(valuestr, out UUID creatorID))
+                return null;
+
+            indx = getField(note, indx, "owner_id", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!UUID.TryParse(valuestr, out UUID ownerID))
+                return null;
+
+            int limit = note.Length - indx;
+            if (limit > 120)
+                limit = 120;
+            indx = note.IndexOf('}', indx, limit); // last owner
+            if (indx < 0)
+                return null;
+
+            int curindx = indx;
+            UUID assetID = UUID.Zero;
+            indx = getField(note, indx, "asset_id", false, out valuestr);
+            if (indx < 0)
             {
-                if(line.IndexOf('{')>=0)
-                {
-                    throw new NotANotecardFormatException(reader.LineNumber);
-                }
-            }
-        }
-
-        private static void skipInventoryItem(NotecardReader reader)
-        {
-            if (reader.getLine() != "{")
-                throw new NotANotecardFormatException(reader.LineNumber);
-
-            string line;
-            while((line = reader.getLine()) != "}")
-            {
-                string[] data = line.Split(' ');
-                if(data.Length == 0)
-                {
-                    continue;
-                }
-                if(data[0] == "permissions")
-                {
-                    skipSection(reader);
-                }
-                else if(data[0] == "sale_info")
-                {
-                    skipSection(reader);
-                }
-                else if (line.IndexOf('{') >= 0)
-                {
-                    throw new NotANotecardFormatException(reader.LineNumber);
-                }
-            }
-        }
-
-        private static void skipInventoryItems(NotecardReader reader)
-        {
-            if(reader.getLine() != "{")
-            {
-                throw new NotANotecardFormatException(reader.LineNumber);
-            }
-
-            string line;
-            while((line = reader.getLine()) != "}")
-            {
-                string[] data = line.Split(' ');
-                if(data.Length == 0)
-                {
-                    continue;
-                }
-
-                if(data[0] == "inv_item")
-                {
-                    skipInventoryItem(reader);
-                }
-                else if (line.IndexOf('{') >= 0)
-                {
-                    throw new NotANotecardFormatException(reader.LineNumber);
-                }
-
-            }
-        }
-
-        private static void skipInventory(NotecardReader reader)
-        {
-            if (reader.getLine() != "{")
-                throw new NotANotecardFormatException(reader.LineNumber);
-
-            string line;
-            while((line = reader.getLine()) != "}")
-            {
-                string[] data = line.Split(' ');
-                if(data[0] == "count")
-                {
-                    int count = Int32.Parse(data[1]);
-                    for(int i = 0; i < count; ++i)
-                    {
-                        skipInventoryItems(reader);
-                    }
-                }
-                else if (line.IndexOf('{') >= 0)
-                {
-                    throw new NotANotecardFormatException(reader.LineNumber);
-                }
-            }
-        }
-
-        private static string readNotecardText(NotecardReader reader)
-        {
-            if (reader.getLine() != "{")
-                throw new NotANotecardFormatException(reader.LineNumber);
-
-            string notecardString = string.Empty;
-            string line;
-            while((line = reader.getLine()) != "}")
-            {
-                string[] data = line.Split(' ');
-                if (data.Length == 0)
-                {
-                    continue;
-                }
-
-                if (data[0] == "LLEmbeddedItems")
-                {
-                    skipInventory(reader);
-                }
-                else if(data[0] == "Text" && data.Length == 3)
-                {
-                    int length = Int32.Parse(data[2]);
-                    notecardString = reader.getBlock(length);
-                }
-                else if (line.IndexOf('{') >= 0)
-                {
-                    throw new NotANotecardFormatException(reader.LineNumber);
-                }
-
-            }
-            return notecardString;
-        }
-
-        private static string readNotecard(byte[] rawInput)
-        {
-            string rawIntermedInput = string.Empty;
-
-            /* make up a Raw Encoding here */
-            foreach(byte c in rawInput)
-            {
-                char d = (char)c;
-                rawIntermedInput += d;
-            }
-
-            NotecardReader reader = new NotecardReader(rawIntermedInput);
-            string line;
-            try
-            {
-                line = reader.getLine();
-            }
-            catch(Exception)
-            {
-                return System.Text.Encoding.UTF8.GetString(rawInput);
-            }
-            string[] versioninfo = line.Split(' ');
-            if(versioninfo.Length < 3)
-            {
-                return System.Text.Encoding.UTF8.GetString(rawInput);
-            }
-            else if(versioninfo[0] != "Linden" || versioninfo[1] != "text")
-            {
-                return System.Text.Encoding.UTF8.GetString(rawInput);
+                indx = getField(note, curindx, "shadow_id", false, out valuestr);
+                if (indx < 0)
+                    return null;
+                if (!UUID.TryParse(valuestr, out assetID))
+                    return null;
+                assetID = deMoronize(assetID);
             }
             else
             {
-                /* now we actually decode the Encoding, before we needed it in raw */
-                string o = readNotecardText(reader);
-                byte[] a = new byte[o.Length];
-                for(int i = 0; i < o.Length; ++i)
-                {
-                    a[i] = (byte)o[i];
-                }
-                return System.Text.Encoding.UTF8.GetString(a);
+                if (!UUID.TryParse(valuestr, out assetID))
+                    return null;
             }
+
+            indx = getField(note, indx, "type", false, out valuestr);
+            if (indx < 0)
+                return null;
+
+            AssetType assetType = SLAssetName2Type(valuestr);
+
+            indx = getField(note, indx, "inv_type", false, out valuestr);
+            if (indx < 0)
+                return null;
+            FolderType invType = SLInvName2Type(valuestr);
+
+            indx = getField(note, indx, "flags", false, out valuestr);
+            if (indx < 0)
+                return null;
+            if (!uint.TryParse(valuestr, NumberStyles.HexNumber, Culture.NumberFormatInfo, out uint flags))
+                return null;
+
+            limit = note.Length - indx;
+            if (limit > 120)
+                limit = 120;
+            indx = note.IndexOf('}', indx, limit); // skip sale
+            if (indx < 0)
+                return null;
+
+            indx = getField(note, indx, "name", true, out valuestr);
+            if (indx < 0)
+                return null;
+
+            string name = valuestr;
+
+            indx = getField(note, indx, "desc", true, out valuestr);
+            if (indx < 0)
+                return null;
+            string desc = valuestr;
+
+            InventoryItemBase item = new InventoryItemBase();
+            item.AssetID = assetID;
+            item.AssetType = (sbyte)assetType;
+            item.BasePermissions = basemask;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
+            item.CreatorData = "";
+            item.CreatorId = creatorID.ToString();
+            item.CurrentPermissions = ownermask;
+            item.Description = desc;
+            item.Flags = flags;
+            item.Folder = UUID.Zero;
+            item.GroupID = UUID.Zero;
+            item.GroupOwned = false;
+            item.GroupPermissions = groupmask;
+            item.InvType = (sbyte)invType;
+            item.Name = name;
+            item.NextPermissions = nextownermask;
+            item.Owner = ownerID;
+            item.SalePrice = 0;
+            item.SaleType = (byte)SaleType.Not;
+            item.ID = UUID.Random();
+            return item;
+        }
+
+        public static List<UUID> GetEmbeddedAssetIDs(byte[] data)
+        {
+            if (data == null || data.Length < 79)
+                return null;
+
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return null;
+
+            // waste some time checking rigid versions
+            string tmpStr = note.Substring(0, 21);
+            if (!tmpStr.Equals("Linden text version 2"))
+                return null;
+
+            tmpStr = note.Substring(24, 25);
+            if (!tmpStr.Equals("LLEmbeddedItems version 1"))
+                return null;
+
+            tmpStr = note.Substring(52,5);
+            if (!tmpStr.Equals("count"))
+                return null;
+
+            int limit = note.Length - 57 - 2;
+            if (limit > 8)
+                limit = 8;
+
+            int indx = note.IndexOfAny(seps, 57, limit);
+            if(indx < 0)
+                return null;
+
+            if (!int.TryParse(note.Substring(57, indx - 57), out int count))
+                return null;
+
+            List<UUID> ids = new List<UUID>();
+            while(count > 0)
+            {
+                string valuestr;
+                UUID assetID = UUID.Zero;
+                indx = note.IndexOf('}',indx); // skip to end of permissions
+                if (indx < 0)
+                    return null;
+
+                int curindx = indx;
+                indx = getField(note, indx, "asset_id", false, out valuestr);
+                if (indx < 0)
+                {
+                    indx = getField(note, curindx, "shadow_id", false, out valuestr);
+                    if (indx < 0)
+                        return null;
+                    if (!UUID.TryParse(valuestr, out assetID))
+                        return null;
+                    assetID = deMoronize(assetID);
+                }
+                else
+                {
+                    if (!UUID.TryParse(valuestr, out assetID))
+                        return null;
+                }
+                ids.Add(assetID);
+
+                indx = note.IndexOf('}', indx); // skip to end of sale
+                if (indx < 0)
+                    return null;
+                indx = getField(note, indx, "name", false, out valuestr); // avoid name contents
+                if (indx < 0)
+                    return null;
+                indx = getField(note, indx, "desc", false, out valuestr); // avoid desc contents
+                if (indx < 0)
+                    return null;
+
+                if(count > 1)
+                {
+                    indx = note.IndexOf("ext char index", indx); // skip to next
+                    if (indx < 0)
+                        return null;
+                }
+                --count;
+            }
+
+            indx = note.IndexOf("Text length",indx);
+            if(indx > 0)
+            {
+                indx += 14;
+                List<UUID> textIDs = Util.GetUUIDsOnString(ref note, indx, note.Length - indx);
+                if(textIDs.Count > 0)
+                    ids.AddRange(textIDs);
+            }
+            if (ids.Count == 0)
+                return null;
+            return ids;
         }
 
         /// <summary>
-        /// Parse a notecard in Linden format to a string of ordinary text.
+        /// Parse a notecard in Linden format to a list of ordinary lines for LSL
         /// </summary>
         /// <param name="rawInput"></param>
         /// <returns></returns>
-        public static string ParseNotecardToString(byte[] rawInput)
+
+        public static string[] ParseNotecardToArray(byte[] data)
         {
-            return readNotecard(rawInput);
+            // check of a valid notecard
+            if (data == null || data.Length < 79)
+                return new string[0];
+
+            //LSL can't read notecards with embedded items
+            if (data[58] != '0' || data[59] != '\n')
+                return new string[0];
+
+            string note = Util.UTF8.GetString(data);
+            if (String.IsNullOrWhiteSpace(note))
+                return new string[0];
+
+            // waste some time checking rigid versions
+            string tmpStr = note.Substring(0, 21);
+            if (!tmpStr.Equals("Linden text version 2"))
+                return new string[0];
+
+            tmpStr = note.Substring(24, 25);
+            if (!tmpStr.Equals("LLEmbeddedItems version 1"))
+                return new string[0];
+
+            tmpStr = note.Substring(52, 5);
+            if (!tmpStr.Equals("count"))
+                return new string[0];
+
+            int indx = note.IndexOf("Text length", 60);
+            if(indx < 0)
+                return new string[0];
+
+            indx += 12;
+            int end = indx + 1;
+            for (; end < note.Length && note[end] != '\n'; ++end);
+            if (note[end] != '\n')
+                return new string[0];
+
+            tmpStr = note.Substring(indx, end - indx);
+            if (!int.TryParse(tmpStr, out int textLen) || textLen == 0)
+                return new string[0];
+
+            indx = end + 1;
+            if (textLen + indx > data.Length)
+                return new string[0];
+            // yeackk
+            note = Util.UTF8.GetString(data, indx, textLen);
+            textLen = note.Length;
+            indx = 0;
+            var lines = new List<string>();
+            while (indx < textLen)
+            {
+                end = indx;
+                for (; end < textLen && note[end] != '\n'; ++end);
+                if(end == indx)
+                    lines.Add(String.Empty);
+                else
+                    lines.Add(note.Substring(indx, end - indx));
+                indx = end + 1;
+            }
+            // notes only seem to have one text section
+
+            if(lines.Count == 0)
+                return new string[0];
+            return lines.ToArray();
         }
 
-        /// <summary>
-        /// Parse a notecard in Linden format to a list of ordinary lines.
-        /// </summary>
-        /// <param name="rawInput"></param>
-        /// <returns></returns>
-        public static string[] ParseNotecardToArray(byte[] rawInput)
+        // libomv has old names on ATTACH_LEFT_PEC and ATTACH_RIGHT_PEC
+        public static readonly string[] AttachmentPointNames = new string[]
         {
-            return readNotecard(rawInput).Replace("\r", "").Split('\n');
+            string.Empty,
+            "ATTACH_CHEST", // 1
+            "ATTACH_HEAD", // 2
+            "ATTACH_LSHOULDER", // 3
+            "ATTACH_RSHOULDER", // 4
+            "ATTACH_LHAND", // 5
+            "ATTACH_RHAND", // 6
+            "ATTACH_LFOOT", // 7
+            "ATTACH_RFOOT", // 8
+            "ATTACH_BACK", // 9
+            "ATTACH_PELVIS", // 10
+            "ATTACH_MOUTH", // 11
+            "ATTACH_CHIN", // 12
+            "ATTACH_LEAR", // 13
+            "ATTACH_REAR", // 14
+            "ATTACH_LEYE", // 15
+            "ATTACH_REYE", // 16
+            "ATTACH_NOSE", // 17
+            "ATTACH_RUARM", // 18
+            "ATTACH_RLARM", // 19
+            "ATTACH_LUARM", // 20
+            "ATTACH_LLARM", // 21
+            "ATTACH_RHIP", // 22
+            "ATTACH_RULEG", // 23
+            "ATTACH_RLLEG", // 24
+            "ATTACH_LHIP", // 25
+            "ATTACH_LULEG", // 26
+            "ATTACH_LLLEG", // 27
+            "ATTACH_BELLY", // 28
+            "ATTACH_LEFT_PEC", // 29
+            "ATTACH_RIGHT_PEC", // 30
+            "ATTACH_HUD_CENTER_2", // 31
+            "ATTACH_HUD_TOP_RIGHT", // 32
+            "ATTACH_HUD_TOP_CENTER", // 33
+            "ATTACH_HUD_TOP_LEFT", // 34
+            "ATTACH_HUD_CENTER_1", // 35
+            "ATTACH_HUD_BOTTOM_LEFT", // 36
+            "ATTACH_HUD_BOTTOM", // 37
+            "ATTACH_HUD_BOTTOM_RIGHT", // 38
+            "ATTACH_NECK", // 39
+            "ATTACH_AVATAR_CENTER", // 40
+            "ATTACH_LHAND_RING1", // 41
+            "ATTACH_RHAND_RING1", // 42
+            "ATTACH_TAIL_BASE", // 43
+            "ATTACH_TAIL_TIP", // 44
+            "ATTACH_LWING", // 45
+            "ATTACH_RWING", // 46
+            "ATTACH_FACE_JAW", // 47
+            "ATTACH_FACE_LEAR", // 48
+            "ATTACH_FACE_REAR", // 49
+            "ATTACH_FACE_LEYE", // 50
+            "ATTACH_FACE_REYE", // 51
+            "ATTACH_FACE_TONGUE", // 52
+            "ATTACH_GROIN", // 53
+            "ATTACH_HIND_LFOOT", // 54
+            "ATTACH_HIND_RFOOT" // 55
+        };
+
+        public static string GetAttachmentName(int point)
+        {
+            if(point < AttachmentPointNames.Length)
+                return AttachmentPointNames[point];
+            return "Unknown";
         }
     }
 }

@@ -571,145 +571,141 @@ namespace OpenSim.Framework
         public virtual void Unpack(OSDMap args, IScene scene, EntityTransferContext ctx)
         {
             //m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Unpack data");
+            OSD tmp;
+            if (args.TryGetValue("region_id", out tmp) && tmp != null)
+                UUID.TryParse(tmp.AsString(), out RegionID);
 
-            if (args.ContainsKey("region_id"))
-                UUID.TryParse(args["region_id"].AsString(), out RegionID);
+            if (args.TryGetValue("circuit_code", out tmp) && tmp != null)
+                UInt32.TryParse(tmp.AsString(), out CircuitCode);
 
-            if (args["circuit_code"] != null)
-                UInt32.TryParse((string)args["circuit_code"].AsString(), out CircuitCode);
+            if (args.TryGetValue("agent_uuid", out tmp) && tmp != null)
+                AgentID = tmp.AsUUID();
 
-            if (args["agent_uuid"] != null)
-                AgentID = args["agent_uuid"].AsUUID();
+            if (args.TryGetValue("session_uuid", out tmp) && tmp != null)
+                SessionID = tmp.AsUUID();
 
-            if (args["session_uuid"] != null)
-                SessionID = args["session_uuid"].AsUUID();
+            if (args.TryGetValue("position", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out Position);
 
-            if (args["position"] != null)
-                Vector3.TryParse(args["position"].AsString(), out Position);
+            if (args.TryGetValue("velocity", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out Velocity);
 
-            if (args["velocity"] != null)
-                Vector3.TryParse(args["velocity"].AsString(), out Velocity);
+            if (args.TryGetValue("center", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out Center);
 
-            if (args["center"] != null)
-                Vector3.TryParse(args["center"].AsString(), out Center);
+            if (args.TryGetValue("size", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out Size);
 
-            if (args["size"] != null)
-                Vector3.TryParse(args["size"].AsString(), out Size);
+            if (args.TryGetValue("at_axis", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out AtAxis);
 
-            if (args["at_axis"] != null)
-                Vector3.TryParse(args["at_axis"].AsString(), out AtAxis);
+            if (args.TryGetValue("left_axis", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out AtAxis);
 
-            if (args["left_axis"] != null)
-                Vector3.TryParse(args["left_axis"].AsString(), out AtAxis);
+            if (args.TryGetValue("up_axis", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out AtAxis);
 
-            if (args["up_axis"] != null)
-                Vector3.TryParse(args["up_axis"].AsString(), out AtAxis);
+            if (args.TryGetValue("wait_for_root", out tmp) && tmp != null)
+                SenderWantsToWaitForRoot = tmp.AsBoolean();
 
-            if (args.ContainsKey("wait_for_root") && args["wait_for_root"] != null)
-                SenderWantsToWaitForRoot = args["wait_for_root"].AsBoolean();
+            if (args.TryGetValue("far", out tmp) && tmp != null)
+                Far = (float)(tmp.AsReal());
 
-            if (args["far"] != null)
-                Far = (float)(args["far"].AsReal());
+            if (args.TryGetValue("aspect", out tmp) && tmp != null)
+                Aspect = (float)tmp.AsReal();
 
-            if (args["aspect"] != null)
-                Aspect = (float)args["aspect"].AsReal();
+            if (args.TryGetValue("throttles", out tmp) && tmp != null)
+                Throttles = tmp.AsBinary();
 
-            if (args["throttles"] != null)
-                Throttles = args["throttles"].AsBinary();
+            if (args.TryGetValue("locomotion_state", out tmp) && tmp != null)
+                UInt32.TryParse(tmp.AsString(), out LocomotionState);
 
-            if (args["locomotion_state"] != null)
-                UInt32.TryParse(args["locomotion_state"].AsString(), out LocomotionState);
+            if (args.TryGetValue("head_rotation", out tmp) && tmp != null)
+                Quaternion.TryParse(tmp.AsString(), out HeadRotation);
 
-            if (args["head_rotation"] != null)
-                Quaternion.TryParse(args["head_rotation"].AsString(), out HeadRotation);
+            if (args.TryGetValue("body_rotation", out tmp) && tmp != null)
+                Quaternion.TryParse(tmp.AsString(), out BodyRotation);
 
-            if (args["body_rotation"] != null)
-                Quaternion.TryParse(args["body_rotation"].AsString(), out BodyRotation);
+            if (args.TryGetValue("control_flags", out tmp) && tmp != null)
+                UInt32.TryParse(tmp.AsString(), out ControlFlags);
 
-            if (args["control_flags"] != null)
-                UInt32.TryParse(args["control_flags"].AsString(), out ControlFlags);
+            if (args.TryGetValue("energy_level", out tmp) && tmp != null)
+                EnergyLevel = (float)(tmp.AsReal());
 
-            if (args["energy_level"] != null)
-                EnergyLevel = (float)(args["energy_level"].AsReal());
+            if (args.TryGetValue("god_data", out tmp) && tmp != null)
+                GodData = tmp;
 
-            //if (args["god_level"] != null)
-            //    Byte.TryParse(args["god_level"].AsString(), out GodLevel);
+            if (args.TryGetValue("always_run", out tmp) && tmp != null)
+                AlwaysRun = tmp.AsBoolean();
 
-            if (args.ContainsKey("god_data") && args["god_data"] != null)
-                GodData = args["god_data"];
+            if (args.TryGetValue("prey_agent", out tmp) && tmp != null)
+                PreyAgent = tmp.AsUUID();
 
-            if (args["always_run"] != null)
-                AlwaysRun = args["always_run"].AsBoolean();
+            if (args.TryGetValue("agent_access", out tmp) && tmp != null)
+                Byte.TryParse(tmp.AsString(), out AgentAccess);
 
-            if (args["prey_agent"] != null)
-                PreyAgent = args["prey_agent"].AsUUID();
+            if (args.TryGetValue("agent_cof", out tmp) && tmp != null)
+                agentCOF = tmp.AsUUID();
 
-            if (args["agent_access"] != null)
-                Byte.TryParse(args["agent_access"].AsString(), out AgentAccess);
-
-            if (args.ContainsKey("agent_cof") && args["agent_cof"] != null)
-                agentCOF = args["agent_cof"].AsUUID();
-
-            if (args.ContainsKey("crossingflags") && args["crossingflags"] != null)
-                CrossingFlags = (byte)args["crossingflags"].AsInteger();
+            if (args.TryGetValue("crossingflags", out tmp) && tmp != null)
+                CrossingFlags = (byte)tmp.AsInteger();
 
             if(CrossingFlags != 0)
             {
-                if (args.ContainsKey("crossExtraFlags") && args["crossExtraFlags"] != null)
-                    CrossExtraFlags = (byte)args["crossExtraFlags"].AsInteger();
+                if (args.TryGetValue("crossExtraFlags", out tmp) && tmp != null)
+                    CrossExtraFlags = (byte)tmp.AsInteger();
             }
 
-            if (args.ContainsKey("active_group_id") && args["active_group_id"] != null)
-                ActiveGroupID = args["active_group_id"].AsUUID();
+            if (args.TryGetValue("active_group_id", out tmp) && tmp != null)
+                ActiveGroupID = tmp.AsUUID();
 
-            if (args.ContainsKey("active_group_name") && args["active_group_name"] != null)
-                ActiveGroupName = args["active_group_name"].AsString();
+            if (args.TryGetValue("active_group_name", out tmp) && tmp != null)
+                ActiveGroupName = tmp.AsString();
 
-            if(args.ContainsKey("active_group_title") && args["active_group_title"] != null)
-                ActiveGroupTitle = args["active_group_title"].AsString();
+            if(args.TryGetValue("active_group_title", out tmp) && tmp != null)
+                ActiveGroupTitle = tmp.AsString();
 
-            if (args.ContainsKey("children_seeds") && (args["children_seeds"] != null) &&
-                            (args["children_seeds"].Type == OSDType.Array))
+            if (args.TryGetValue("children_seeds", out tmp) && tmp is OSDArray)
             {
-                OSDArray childrenSeeds = (OSDArray)(args["children_seeds"]);
+                OSDArray childrenSeeds = (OSDArray)tmp;
                 ChildrenCapSeeds = new Dictionary<ulong, string>();
                 foreach (OSD o in childrenSeeds)
                 {
-                    if (o.Type == OSDType.Map)
+                    if (o is OSDMap)
                     {
                         ulong handle = 0;
                         string seed = "";
                         OSDMap pair = (OSDMap)o;
-                        if (pair["handle"] != null)
-                            if (!UInt64.TryParse(pair["handle"].AsString(), out handle))
+                        if (pair.TryGetValue("handle", out tmp))
+                            if (!UInt64.TryParse(tmp.AsString(), out handle))
                                 continue;
-                        if (pair["seed"] != null)
-                            seed = pair["seed"].AsString();
+                        if (pair.TryGetValue("seed", out tmp))
+                            seed = tmp.AsString();
                         if (!ChildrenCapSeeds.ContainsKey(handle))
                             ChildrenCapSeeds.Add(handle, seed);
                     }
                 }
             }
 
-            if ((args["animations"] != null) && (args["animations"]).Type == OSDType.Array)
+            if (args.TryGetValue("animations", out tmp) && tmp is OSDArray)
             {
-                OSDArray anims = (OSDArray)(args["animations"]);
+                OSDArray anims = (OSDArray)tmp;
                 Anims = new Animation[anims.Count];
                 int i = 0;
                 foreach (OSD o in anims)
                 {
-                    if (o.Type == OSDType.Map)
+                    if (o is OSDMap)
                     {
                         Anims[i++] = new Animation((OSDMap)o);
                     }
                 }
             }
 
-            if (args["default_animation"] != null)
+            if (args.TryGetValue("default_animation", out tmp) && tmp is OSDMap)
             {
                 try
                 {
-                    DefaultAnim = new Animation((OSDMap)args["default_animation"]);
+                    DefaultAnim = new Animation((OSDMap)tmp);
                 }
                 catch
                 {
@@ -717,11 +713,11 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (args["animation_state"] != null)
+            if (args.TryGetValue("animation_state", out tmp) && tmp is OSDMap)
             {
                 try
                 {
-                    AnimState = new Animation((OSDMap)args["animation_state"]);
+                    AnimState = new Animation((OSDMap)tmp);
                 }
                 catch
                 {
@@ -731,9 +727,9 @@ namespace OpenSim.Framework
 
             MovementAnimationOverRides.Clear();
 
-            if (args["movementAO"] != null && args["movementAO"].Type == OSDType.Array)
+            if (args.TryGetValue("movementAO", out tmp) && tmp is OSDArray)
             {
-                OSDArray AOs = (OSDArray)(args["movementAO"]);
+                OSDArray AOs = (OSDArray)tmp;
                 int count = AOs.Count;
 
                 for (int i = 0; i < count; i++)
@@ -748,8 +744,8 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (args.ContainsKey("motion_state"))
-                MotionState = (byte)args["motion_state"].AsInteger();
+            if (args.TryGetValue("motion_state", out tmp) && tmp != null)
+                MotionState = (byte)tmp.AsInteger();
 
             //if ((args["agent_textures"] != null) && (args["agent_textures"]).Type == OSDType.Array)
             //{
@@ -762,10 +758,10 @@ namespace OpenSim.Framework
 
 
             // packed_appearence should contain all appearance information
-            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
+            if (args.TryGetValue("packed_appearance", out tmp) && tmp is OSDMap)
             {
                 m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
-                Appearance = new AvatarAppearance((OSDMap)args["packed_appearance"]);
+                Appearance = new AvatarAppearance((OSDMap)tmp);
             }
             else
             {
@@ -777,19 +773,19 @@ namespace OpenSim.Framework
                 // The code to unpack textures, visuals, wearables and attachments
                 // should be removed; packed appearance contains the full appearance
                 // This is retained for backward compatibility only
-                if (args["texture_entry"] != null)
+                if (args.TryGetValue("texture_entry", out tmp) && tmp != null)
                 {
-                    byte[] rawtextures = args["texture_entry"].AsBinary();
+                    byte[] rawtextures = tmp.AsBinary();
                     Primitive.TextureEntry textures = new Primitive.TextureEntry(rawtextures, 0, rawtextures.Length);
                     Appearance.SetTextureEntries(textures);
                 }
 
-                if (args["visual_params"] != null)
-                    Appearance.SetVisualParams(args["visual_params"].AsBinary());
+                if (args.TryGetValue("visual_params", out tmp) && tmp != null)
+                    Appearance.SetVisualParams(tmp.AsBinary());
 
-                if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
+                if (args.TryGetValue("wearables", out tmp) && tmp is OSDArray)
                 {
-                    OSDArray wears = (OSDArray)(args["wearables"]);
+                    OSDArray wears = (OSDArray)tmp;
 
                     for (int i = 0; i < wears.Count / 2; i++)
                     {
@@ -798,12 +794,12 @@ namespace OpenSim.Framework
                     }
                 }
 
-                if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
+                if (args.TryGetValue("attachments", out tmp) && tmp is OSDArray)
                 {
-                    OSDArray attachs = (OSDArray)(args["attachments"]);
+                    OSDArray attachs = (OSDArray)tmp;
                     foreach (OSD o in attachs)
                     {
-                        if (o.Type == OSDType.Map)
+                        if (o is OSDMap)
                         {
                             // We know all of these must end up as attachments so we
                             // append rather than replace to ensure multiple attachments
@@ -816,35 +812,35 @@ namespace OpenSim.Framework
                 // end of code to remove
             }
 
-            if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
+            if (args.TryGetValue("controllers", out tmp) && tmp is OSDArray)
             {
-                OSDArray controls = (OSDArray)(args["controllers"]);
+                OSDArray controls = (OSDArray)tmp;
                 Controllers = new ControllerData[controls.Count];
                 int i = 0;
                 foreach (OSD o in controls)
                 {
-                    if (o.Type == OSDType.Map)
+                    if (o is OSDMap)
                     {
                         Controllers[i++] = new ControllerData((OSDMap)o);
                     }
                 }
             }
 
-            if (args["callback_uri"] != null)
-                CallbackURI = args["callback_uri"].AsString();
+            if (args.TryGetValue("callback_uri", out tmp) && tmp != null)
+                CallbackURI = tmp.AsString();
 
-            if (args["cb_uri"] != null)
-                NewCallbackURI = args["cb_uri"].AsString();
+            if (args.TryGetValue("cb_uri", out tmp) && tmp != null)
+                NewCallbackURI = tmp.AsString();
 
             // Attachment objects
-            if (args["attach_objects"] != null && args["attach_objects"].Type == OSDType.Array)
+            if (args.TryGetValue("attach_objects", out tmp) && tmp is OSDArray)
             {
-                OSDArray attObjs = (OSDArray)(args["attach_objects"]);
+                OSDArray attObjs = (OSDArray)tmp;
                 AttachmentObjects = new List<ISceneObject>();
                 AttachmentObjectStates = new List<string>();
                 foreach (OSD o in attObjs)
                 {
-                    if (o.Type == OSDType.Map)
+                    if (o is OSDMap)
                     {
                         OSDMap info = (OSDMap)o;
                         ISceneObject so = scene.DeserializeObject(info["sog"].AsString());
@@ -856,10 +852,10 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (args["parent_part"] != null)
-                ParentPart = args["parent_part"].AsUUID();
-            if (args["sit_offset"] != null)
-                Vector3.TryParse(args["sit_offset"].AsString(), out SitOffset);
+            if (args.TryGetValue("parent_part", out tmp) && tmp != null)
+                ParentPart = tmp.AsUUID();
+            if (args.TryGetValue("sit_offset", out tmp) && tmp != null)
+                Vector3.TryParse(tmp.AsString(), out SitOffset);
         }
 
         public AgentData()

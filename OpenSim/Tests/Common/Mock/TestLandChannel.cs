@@ -93,6 +93,11 @@ namespace OpenSim.Tests.Common
             return GetNoLand();
         }
 
+        public ILandObject GetLandObjectClippedXY(float x, float y)
+        {
+            return GetNoLand();
+        }
+
         public ILandObject GetLandObject(int localID)
         {
             return GetNoLand();
@@ -120,5 +125,6 @@ namespace OpenSim.Tests.Common
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id) {}
         public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id) {}
         public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay) { }
+        public void ClearAllEnvironments(){ }
     }
 }

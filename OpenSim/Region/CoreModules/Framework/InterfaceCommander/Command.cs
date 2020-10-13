@@ -147,6 +147,9 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
                         case "Integer":
                             m_args[i].ArgumentValue = Int32.Parse(arg.ToString());
                             break;
+                        case "Float":
+                            m_args[i].ArgumentValue = float.Parse(arg.ToString(), OpenSim.Framework.Culture.NumberFormatInfo);
+                            break;
                         case "Double":
                             m_args[i].ArgumentValue = Double.Parse(arg.ToString(), OpenSim.Framework.Culture.NumberFormatInfo);
                             break;

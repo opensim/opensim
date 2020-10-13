@@ -35,29 +35,31 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
     {
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            strength = TerrainUtil.MetersToSphericalStrength(strength);
-
             int x, y;
+            float distancefactor;
+            float dx2;
+
+            size *= size;
 
             for (x = startX; x <= endX; x++)
             {
+                dx2 = (x - rx) * (x - rx);
                 for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x, y])
                         continue;
 
                     // Calculate a sphere and add it to the heighmap
-                    double z = strength;
-                    z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor > 1.0f)
+                        continue;
 
-                    double noise = TerrainUtil.PerlinNoise2D(x / (double) map.Width, y / (double) map.Height, 8, 1.0);
-
-                    if (z > 0.0)
-                        map[x, y] += noise * z * duration;
+                    distancefactor = strength * (1.0f - distancefactor);
+                    float noise = (float)TerrainUtil.PerlinNoise2D(x / (double) map.Width, y / (double) map.Height, 8, 1.0);
+                    map[x, y] += noise * distancefactor;
                 }
             }
         }

@@ -34,7 +34,7 @@ namespace Amib.Threading.Internal
         private bool _isWorkItemsQueueActive = true;
 
 
-#if (WINDOWS_PHONE)
+#if (WINDOWS_PHONE) 
         private static readonly Dictionary<int, WaiterEntry> _waiterEntries = new Dictionary<int, WaiterEntry>();
 #elif (_WINDOWS_CE)
         private static LocalDataStoreSlot _waiterEntrySlot = Thread.AllocateDataSlot();
@@ -50,7 +50,7 @@ namespace Amib.Threading.Internal
         /// </summary>
         private static WaiterEntry CurrentWaiterEntry
         {
-#if (WINDOWS_PHONE)
+#if (WINDOWS_PHONE) 
             get
             {
                 lock (_waiterEntries)
@@ -92,8 +92,8 @@ namespace Amib.Threading.Internal
         }
 
         /// <summary>
-        /// A flag that indicates if the WorkItemsQueue has been disposed.
-        /// </summary>
+		/// A flag that indicates if the WorkItemsQueue has been disposed.
+		/// </summary>
         private bool _isDisposed = false;
 
         #endregion
@@ -136,15 +136,15 @@ namespace Amib.Threading.Internal
             // WaitForWorkItem() method to indicate timeout or cancel
             if (null == workItem)
             {
-                throw new ArgumentNullException("workItem" , "workItem cannot be null");
+                throw new ArgumentNullException("workItem", "workItem cannot be null");
             }
 
             bool enqueue = true;
 
-            // First check if there is a waiter waiting for work item. During
-            // the check, timed out waiters are ignored. If there is no
+            // First check if there is a waiter waiting for work item. During 
+            // the check, timed out waiters are ignored. If there is no 
             // waiter then the work item is queued.
-            lock(this)
+            lock (this)
             {
                 ValidateNotDisposed();
 
@@ -153,7 +153,7 @@ namespace Amib.Threading.Internal
                     return false;
                 }
 
-                while(_waitersCount > 0)
+                while (_waitersCount > 0)
                 {
                     // Dequeue a waiter.
                     WaiterEntry waiterEntry = PopWaiter();
@@ -187,15 +187,15 @@ namespace Amib.Threading.Internal
             WaitHandle cancelEvent)
         {
             // This method cause the caller to wait for a work item.
-            // If there is at least one waiting work item then the
+            // If there is at least one waiting work item then the 
             // method returns immidiately with it.
-            //
-            // If there are no waiting work items then the caller
+            // 
+            // If there are no waiting work items then the caller 
             // is queued between other waiters for a work item to arrive.
-            //
-            // If a work item didn't come within millisecondsTimeout or
-            // the user canceled the wait by signaling the cancelEvent
-            // then the method returns null to indicate that the caller
+            // 
+            // If a work item didn't come within millisecondsTimeout or 
+            // the user canceled the wait by signaling the cancelEvent 
+            // then the method returns null to indicate that the caller 
             // didn't get a work item.
 
             WaiterEntry waiterEntry;
@@ -221,15 +221,15 @@ namespace Amib.Threading.Internal
             }
 
             // Prepare array of wait handle for the WaitHandle.WaitAny()
-            WaitHandle [] waitHandles = new WaitHandle[] {
+            WaitHandle[] waitHandles = new WaitHandle[] {
                                                                 waiterEntry.WaitHandle,
                                                                 cancelEvent };
 
             // Wait for an available resource, cancel event, or timeout.
 
-            // During the wait we are supposes to exit the synchronization
+            // During the wait we are supposes to exit the synchronization 
             // domain. (Placing true as the third argument of the WaitAny())
-            // It just doesn't work, I don't know why, so I have two lock(this)
+            // It just doesn't work, I don't know why, so I have two lock(this) 
             // statments instead of one.
 
             int index = STPEventWaitHandle.WaitAny(
@@ -237,7 +237,7 @@ namespace Amib.Threading.Internal
                 millisecondsTimeout,
                 true);
 
-            lock(this)
+            lock (this)
             {
                 // success is true if it got a work item.
                 bool success = (0 == index);
@@ -254,7 +254,7 @@ namespace Amib.Threading.Internal
 
                     // On timeout remove the waiter from the queue.
                     // Note that the complexity is O(1).
-                    if(timeout)
+                    if (timeout)
                     {
                         RemoveWaiter(waiterEntry, false);
                     }
@@ -279,12 +279,12 @@ namespace Amib.Threading.Internal
         }
 
         /// <summary>
-        /// Cleanup the work items queue, hence no more work
+        /// Cleanup the work items queue, hence no more work 
         /// items are allowed to be queue
         /// </summary>
         private void Cleanup()
         {
-            lock(this)
+            lock (this)
             {
                 // Deactivate only once
                 if (!_isWorkItemsQueueActive)
@@ -295,7 +295,7 @@ namespace Amib.Threading.Internal
                 // Don't queue more work items
                 _isWorkItemsQueueActive = false;
 
-                foreach(WorkItem workItem in _workItems)
+                foreach (WorkItem workItem in _workItems)
                 {
                     workItem.DisposeOfState();
                 }
@@ -303,15 +303,15 @@ namespace Amib.Threading.Internal
                 // Clear the work items that are already queued
                 _workItems.Clear();
 
-                // Note:
-                // I don't iterate over the queue and dispose of work items's states,
-                // since if a work item has a state object that is still in use in the
+                // Note: 
+                // I don't iterate over the queue and dispose of work items's states, 
+                // since if a work item has a state object that is still in use in the 
                 // application then I must not dispose it.
 
                 // Tell the waiters that they were timed out.
                 // It won't signal them to exit, but to ignore their
                 // next work item.
-                while(_waitersCount > 0)
+                while (_waitersCount > 0)
                 {
                     WaiterEntry waiterEntry = PopWaiter();
                     waiterEntry.Timeout();
@@ -362,18 +362,18 @@ namespace Amib.Threading.Internal
         /// <param name="newWaiterEntry">A waiter to put in the stack</param>
         public void PushWaiter(WaiterEntry newWaiterEntry)
         {
-            // Remove the waiter if it is already in the stack and
+            // Remove the waiter if it is already in the stack and 
             // update waiter's count as needed
             RemoveWaiter(newWaiterEntry, false);
 
-            // If the stack is empty then newWaiterEntry is the new head of the stack
+            // If the stack is empty then newWaiterEntry is the new head of the stack 
             if (null == _headWaiterEntry._nextWaiterEntry)
             {
                 _headWaiterEntry._nextWaiterEntry = newWaiterEntry;
                 newWaiterEntry._prevWaiterEntry = _headWaiterEntry;
 
             }
-            // If the stack is not empty then put newWaiterEntry as the new head
+            // If the stack is not empty then put newWaiterEntry as the new head 
             // of the stack.
             else
             {
@@ -470,7 +470,7 @@ namespace Amib.Threading.Internal
 
         #endregion
 
-        #region WaiterEntry class
+        #region WaiterEntry class 
 
         // A waiter entry in the _waiters queue.
         public sealed class WaiterEntry : IDisposable
@@ -484,21 +484,21 @@ namespace Amib.Threading.Internal
             private AutoResetEvent _waitHandle = EventWaitHandleFactory.CreateAutoResetEvent();
 
             /// <summary>
-            /// Flag to know if this waiter already quited from the queue
+            /// Flag to know if this waiter already quited from the queue 
             /// because of a timeout.
             /// </summary>
             private bool _isTimedout = false;
 
             /// <summary>
-            /// Flag to know if the waiter was signaled and got a work item.
+            /// Flag to know if the waiter was signaled and got a work item. 
             /// </summary>
             private bool _isSignaled = false;
 
             /// <summary>
-            /// A work item that passed directly to the waiter withou going
+            /// A work item that passed directly to the waiter withou going 
             /// through the queue
             /// </summary>
-            private WorkItem _workItem = null;
+			private WorkItem _workItem = null;
 
             private bool _isDisposed = false;
 
@@ -539,7 +539,7 @@ namespace Amib.Threading.Internal
             /// The method fails if Timeout() preceded its call
             public bool Signal(WorkItem workItem)
             {
-                lock(this)
+                lock (this)
                 {
                     if (!_isTimedout)
                     {
@@ -559,13 +559,13 @@ namespace Amib.Threading.Internal
             /// The method fails if Signal() preceded its call
             public bool Timeout()
             {
-                lock(this)
+                lock (this)
                 {
                     // Time out can happen only if the waiter wasn't marked as
                     // signaled
                     if (!_isSignaled)
                     {
-                        // We don't remove the waiter from the queue, the DequeueWorkItem
+                        // We don't remove the waiter from the queue, the DequeueWorkItem 
                         // method skips _waiters that were timed out.
                         _isTimedout = true;
                         return true;
@@ -622,17 +622,23 @@ namespace Amib.Threading.Internal
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             if (!_isDisposed)
             {
+                _isDisposed = true;
                 Cleanup();
                 _headWaiterEntry.Close();
             }
-            _isDisposed = true;
         }
 
         private void ValidateNotDisposed()
         {
-            if(_isDisposed)
+            if (_isDisposed)
             {
                 throw new ObjectDisposedException(GetType().ToString(), "The SmartThreadPool has been shutdown");
             }

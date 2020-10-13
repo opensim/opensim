@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
                 {
                     try
                     {
@@ -75,6 +75,32 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         Util.LogFailedXML("[SERIALIZER]:", fixedData);
                         return null;
                     }
+                }
+            }
+        }
+
+        public static SceneObjectGroup FromOriginalXmlData(byte[] data)
+        {
+            int len = data.Length;
+            if(len < 32)
+                return null;
+            if(data[len -1 ] == 0)
+                --len;
+
+            XmlReaderSettings xset = new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, CloseInput = true };
+            XmlParserContext xpc = new XmlParserContext(null, null, null, XmlSpace.None);
+            xpc.Encoding = Util.UTF8NoBomEncoding;
+            MemoryStream ms = new MemoryStream(data, 0, len, false);
+            using (XmlReader reader = XmlReader.Create(ms, xset, xpc))
+            {
+                try
+                {
+                    return FromOriginalXmlFormat(reader);
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[SERIALIZER]: Deserialization of xml data failed ", e);
+                    return null;
                 }
             }
         }
@@ -110,15 +136,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                 }
                 while (reader.ReadToNextSibling("Part"));
-            reader.ReadEndElement();
+                reader.ReadEndElement();
             }
+            else
+                reader.Read();
 
             if (reader.Name == "KeyframeMotion" && reader.NodeType == XmlNodeType.Element)
             {
-
                 string innerkeytxt = reader.ReadElementContentAsString();
-                sceneObject.RootPart.KeyframeMotion = 
-                    KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
+                sceneObject.RootPart.KeyframeMotion = KeyframeMotion.FromData(sceneObject, Convert.FromBase64String(innerkeytxt));
             }
             else
                 sceneObject.RootPart.KeyframeMotion = null;
@@ -445,6 +471,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("SitTargetPosition", ProcessSitTargetPosition);
             m_SOPXmlProcessors.Add("SitTargetPositionLL", ProcessSitTargetPositionLL);
             m_SOPXmlProcessors.Add("SitTargetOrientationLL", ProcessSitTargetOrientationLL);
+            m_SOPXmlProcessors.Add("StandTarget", ProcessStandTarget);
             m_SOPXmlProcessors.Add("ParentID", ProcessParentID);
             m_SOPXmlProcessors.Add("CreationDate", ProcessCreationDate);
             m_SOPXmlProcessors.Add("Category", ProcessCategory);
@@ -499,6 +526,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("SoundQueueing", ProcessSoundQueueing);
 
             m_SOPXmlProcessors.Add("SOPAnims", ProcessSOPAnims);
+
+            m_SOPXmlProcessors.Add("SitActRange", ProcessSitActRange);
 
             #endregion
 
@@ -793,6 +822,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             obj.SoundQueueing = Util.ReadBoolean(reader);
         }
 
+        private static void ProcessSitActRange(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.SitActiveRange = reader.ReadElementContentAsFloat("SitActRange", String.Empty);
+        }
+
         private static void ProcessVehicle(SceneObjectPart obj, XmlReader reader)
         {
             SOPVehicle vehicle = SOPVehicle.FromXml2(reader);
@@ -884,6 +918,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessSitTargetOrientationLL(SceneObjectPart obj, XmlReader reader)
         {
             obj.SitTargetOrientationLL = Util.ReadQuaternion(reader, "SitTargetOrientationLL");
+        }
+
+        private static void ProcessStandTarget(SceneObjectPart obj, XmlReader reader)
+        {
+            obj.StandOffset = Util.ReadVector(reader, "StandTarget");
         }
 
         private static void ProcessParentID(SceneObjectPart obj, XmlReader reader)
@@ -1533,6 +1572,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
+            if(sop.StandOffset != Vector3.Zero)
+                WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
             writer.WriteElementString("Category", sop.Category.ToString());
@@ -1621,7 +1662,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if(data != null && data.Length > 0)
                     writer.WriteElementString("SOPAnims", Convert.ToBase64String(data));
             }
-
+            if(Math.Abs(sop.SitActiveRange) > 1e-5)
+                writer.WriteElementString("SitActRange", sop.SitActiveRange.ToString(Culture.FormatProvider));
             writer.WriteEndElement();
         }
 

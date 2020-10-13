@@ -11,12 +11,14 @@
     ; MySql
     ; Uncomment these lines if you want to use mysql storage
     ; Change the connection string to your db details
+    ; Remove SslMode=None if you need secure connection to the local mysql
+    ; In most cases ssl is just a pure waste of resources, specially when mySql is on same machine, and closed to outside
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
-    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;SslMode=None;"
     ; Uncomment this line if you are using MySQL and want to use a different database for estates
     ; The usual application for this is to allow estates to be spread out across multiple simulators by share the same database.
     ; Most people won't need to do this so only uncomment if you know what you're doing.
-    ;EstateConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ;EstateConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;SslMode=None;"
 
     ; MSSQL
     ; Uncomment these lines if you want to use MSSQL storage
@@ -33,24 +35,33 @@
     ;ConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
 
 [Hypergrid]
-    ; Uncomment the variables in this section only if you are in
+    ; Uncomment the variable GatekeeperURI in this section to enable
     ; Hypergrid configuration. Otherwise, ignore.
-
-    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
-    ;; If this is a standalone world, this is the address of this instance.
-    ;; If this is a grided simulator, this is the address of the external robust server that
-    ;; runs the UserAgentsService.
-    ;; For example http://myworld.com:9000 or http://myworld.com:8002
-    ;; This is a default that can be overwritten in some sections.
-    ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
     ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
     ;; If this is a standalone world, this is the address of this instance.
     ;; If this is a grided simulator, this is the address of the external robust server
     ;; that runs the Gatekeeper service.
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
-    ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;; comma separated list, 
+    ;; in case there was for example a dns change, etc
+    ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
+
+    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+    ;; If this is a standalone world, this is the address of this instance.
+    ;; If this is a grided simulator, this is the address of the external robust server that
+    ;; runs the UserAgentsService.
+    ;; For example http://myworld.com:9000 or http://myworld.com:8002
+    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
+
+    ;# {HomeURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;; comma separated list, 
+    ;; in case there was for example a dns change, etc but it is still same grid
+    ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
+
 
 [Modules]
     ;; Choose one cache module and the corresponding config file, if it exists.
@@ -150,7 +161,7 @@
 
 [GridUserService]
     ;
-    ; Change this to your grid-wide user accounts server
+    ; Change this to your grid-wide user server
     ;
     GridUserServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
@@ -172,8 +183,6 @@
     ; Change this to your server
     ; accessible from other grids
     ;
-    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
-    Gatekeeper = "${Const|BaseURL}:${Const|PublicPort}"
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; set this to false. You may want to do this on sims that have licensed content.
     ;; Default is true.
@@ -194,11 +203,6 @@
 [HGAssetService]
     ;
     ; === HG ONLY ===
-    ; Change this to your server
-    ; accessible from other grids
-    ;
-    HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
-
     ;; The asset types that this grid can export to / import from other grids.
     ;; Comma separated.
     ;; Valid values are all the asset types in OpenMetaverse.AssetType, namely:
@@ -215,13 +219,6 @@
     ; User level required to be able to send friendship invitations to foreign users
     ;LevelHGFriends = 0;
 
-[UserAgentService]
-    ;
-    ; === HG ONLY ===
-    ; Change this to your user agent server (HG robust)
-    ;
-    UserAgentServerURI = "${Const|BaseURL}:${Const|PublicPort}"
-
 [MapImageService]
     MapImageServerURI = "${Const|PrivURL}:${Const|PrivatePort}"
 
@@ -235,13 +232,6 @@
     ; Example:
     ; Region_Test_1 = "DisallowForeigners"
 
-;; Uncomment if you are using SimianGrid for grid services
-[SimianGrid]
-    ;; SimianGrid services URL
-    ;; SimianServiceURL = "http://grid.sciencesim.com/Grid/"
-
-    ;; Capability assigned by the grid administrator for the simulator
-    ;; SimulatorCapability = "00000000-0000-0000-0000-000000000000"
 
 [MuteListService]
     MuteListServerURI = "${Const|PrivURL}:${Const|PrivatePort}"

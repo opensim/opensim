@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
@@ -51,9 +52,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool KeepAlive { get; }
         NameValueCollection QueryString { get; }
         Hashtable Query { get; }
+        HashSet<string> QueryFlags { get; }
+        Dictionary<string, string> QueryAsDictionary { get; } //faster than Query
         string RawUrl { get; }
         IPEndPoint RemoteIPEndPoint { get; }
+        IPEndPoint LocalIPEndPoint { get; }
         Uri Url { get; }
+        string UriPath { get; }
         string UserAgent { get; }
+        double ArrivalTS { get; }
     }
 }

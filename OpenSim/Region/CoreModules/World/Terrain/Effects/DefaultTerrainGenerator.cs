@@ -30,23 +30,27 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.Effects
 {
-    internal class DefaultTerrainGenerator : ITerrainEffect
+    public class DefaultTerrainGenerator : ITerrainEffect
     {
         #region ITerrainEffect Members
 
         public void RunEffect(ITerrainChannel map)
         {
             int x, y;
+            int cx = map.Width / 2;
+            int cy = map.Height / 2;
+            float h;
+            float b;
+
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 3, 0.25) * 10;
-                    double spherFac = TerrainUtil.SphericalFactor(x, y, map.Width / 2, map.Height / 2, 50) * 0.01;
-                    if (map[x, y] < spherFac)
-                    {
-                        map[x, y] = spherFac;
-                    }
+                    h = 25 * TerrainUtil.SphericalFactor(x - cx, y - cy, 50);
+                    b = 10 * TerrainUtil.SphericalFactor(x - cx, y - cy, 100);
+                    if (h < b)
+                        h = b;
+                    map[x, y] = h;
                 }
             }
         }

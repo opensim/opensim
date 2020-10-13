@@ -86,6 +86,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_StackSize = stackSize;
             m_StackLeft = stackSize;
             m_HeapSize = heapSize;
+            m_localsHeapUsed = 0;
+            m_arraysHeapUsed = 0;
             m_CompilerErrors = errors;
             m_StateFileName = GetStateFileName(scriptBasePath, m_ItemID);
 
@@ -124,10 +126,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             suspendOnCheckRunHold = false;
             suspendOnCheckRunTemp = false;
-
-            // Declare which events the script's current state can handle.
-            int eventMask = GetStateEventFlags(stateCode);
-            m_Part.SetScriptEvents(m_ItemID, eventMask);
         }
 
         private void InitScriptApi(Yengine engine, string api, IScriptApi scriptApi)
@@ -527,9 +525,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             XmlElement doGblInitN = (XmlElement)scriptStateN.SelectSingleNode("DoGblInit");
             doGblInit = bool.Parse(doGblInitN.InnerText);
 
+            if (m_XMRLSLApi != null)
+            {
+                XmlElement scpttimeN = (XmlElement)scriptStateN.SelectSingleNode("scrpTime");
+                if (scpttimeN != null && Double.TryParse(scpttimeN.InnerText, out double t))
+                {
+                    m_XMRLSLApi.SetLSLTimer(Util.GetTimeStampMS() - t);
+                }
+            }
+
             double minEventDelay = 0.0;
             XmlElement minEventDelayN = (XmlElement)scriptStateN.SelectSingleNode("mEvtDly");
-            if(minEventDelayN != null)
+            if (minEventDelayN != null)
                 minEventDelay = Double.Parse(minEventDelayN.InnerText);
 
             // get values used by stuff like llDetectedGrab, etc.
@@ -571,9 +578,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_EventCounts[i] = 0;
                 foreach(EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode eventCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                             evt.EventName);
-                    m_EventCounts[(int)eventCode]++;
+                    if(m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode eventCode))
+                        m_EventCounts[(int)eventCode]++;
                 }
             }
 
@@ -903,7 +909,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 glblVars.iarStrings = strings;
                 glblVars.iarLists = lists;
 
-                AddHeapUse(heapsz);
+                AddArraysHeapUse(heapsz);
                 CheckRunLockInvariants(true);
             }
 
@@ -918,9 +924,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_EventCounts[i] = 0;
                 foreach (EventParams evt in m_EventQueue)
                 {
-                    ScriptEventCode evtCode = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode),
-                                                                             evt.EventName);
-                    m_EventCounts[(int)evtCode]++;
+                    if(m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evtCode))
+                        m_EventCounts[(int)evtCode]++;
                 }
             }
 

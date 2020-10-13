@@ -737,7 +737,7 @@
     ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule Offline Message Module V2:Offline Message Module V2} {URL of offline messaging service} {}
     ;; URL of web service for offline message storage. Leave it commented if your service is local to the sim.
     ; OfflineMessageURL = ${Const|BaseURL}/Offline.php
-    ; OfflineMessageURL = ${Const|BaseURL}:${Const|PrivatePort}
+    ; OfflineMessageURL = ${Const|PrivURL}:${Const|PrivatePort}
 
     ;# {StorageProvider} {Offline Message Module V2:Offline Message Module V2} {DLL that provides the storage interface} {OpenSim.Data.MySQL.dll}
     ;; For standalones, this is the storage dll.
@@ -916,6 +916,10 @@
     ; To use other modules you need to override this setting
     ; economymodule = BetaGridLikeMoneyModule
 
+    ; the url of the economy service.
+    ; this must match the grid economy setting (also known as helperURI or CurrencyServer, etc)
+    ; economy = https://the.currency.machine.fdqn:port/folder/folder...
+
     ;# {SellEnabled} {} {Enable selling for 0?} {true false} true
     ; The default economy module only implements just enough to allow free actions (transfer of objects, etc).
     ; There is no intention to implement anything further in core OpenSimulator.
@@ -933,17 +937,12 @@
     ; PriceGroupCreate = 0
 
 [YEngine]
-    ;; experimental engine
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
     ;; warning: scripts state is lost on TP or cross to Xengine regions (cars stop, etc)
 	;; ignore its extensions (subset of original XMRengine), those are still undefined.
-    Enabled = false
-    ScriptStackSize = 256
-    ScriptHeapSize = 256
-    UseSourceHashCode = true
-    MinTimerInterval = 0.1
-    ;ScriptBasePath="ScriptEngines"
+    ; Enabled = false
+
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
@@ -1058,10 +1057,9 @@
     ; ScriptEnginesPath = "ScriptEngines"
 
 [OSSL]
-    ;# {Include-osslEnable} {} {Include file for enabling and permissions for OSSL functions} {}
-    ;; Optionally include file to enable OSSL functions and set permissions on who can use which.
+    ;# {Include-osslDefaultEnable} {} {Include file for enabling and permissions for OSSL functions} {}
     ;; If this INI file is not included, the OSSL functions are disabled.
-    Include-osslEnable = "config-include/osslEnable.ini"
+    Include-osslDefaultEnable = "config-include/osslDefaultEnable.ini"
 
 
 [FreeSwitchVoice]
@@ -1088,10 +1086,9 @@
     ;; Minimum user level required to create groups
     ; LevelGroupCreate = 0
 
-    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam/Simian)} {Default "Groups Module V2"} Default
+    ;# {Module} {Enabled:true} {Groups module to use? (Use GroupsModule to use Flotsam)} {Default "Groups Module V2"} Default
     ;; The default module can use a PHP XmlRpc server from the Flotsam project at
     ;; http://code.google.com/p/flotsam/
-    ;; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ; Module = Default
     ;; or... use Groups Module V2, which works for standalones and robust grids
     ; Module = "Groups Module V2"
@@ -1099,10 +1096,9 @@
     ;# {StorageProvider} {Module:Groups Module V2} {The DLL that provides the storage for V2} {OpenSim.Data.MySQL.dll}
     ; StorageProvider = OpenSim.Data.MySQL.dll
 
-    ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
+    ;# {ServicesConnectorModule} {Module:GroupsModule Module:Groups Module V2} {Service connector to use for groups} {XmlRpcGroupsServicesConnector "Groups Local Service Connector" "Groups Remote Service Connector" "Groups HG Service Connector"} XmlRpcGroupsServicesConnector
     ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one as follows:
     ;; -- for Flotsam Groups use XmlRpcGroupsServicesConnector
-    ;; -- for Simian Groups use SimianGroupsServicesConnector
     ;; -- for V2 Groups, standalone, non-HG use "Groups Local Service Connector"
     ;; -- for V2 Groups, grided sim, non-HG use "Groups Remote Service Connector"
     ;; -- for V2 Groups, HG, both standalone and grided sim, use "Groups HG Service Connector"
@@ -1120,8 +1116,7 @@
     ;# {GroupsServerURI} {Module:GroupsModule (ServicesConnectorModule:Groups Remote Service Connector or (ServicesConnectorModule:Groups HG Service Connector and LocalService:remote))} {Groups Server URI} {}
     ;; URI for the groups services of this grid
     ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
-    ;; or http://mygridserver.com:82/Grid/ for SimianGrid
-    ;; or ${Const|BaseURL}:${Const|PrivatePort} for robust, V2
+    ;; or ${Const|PrivURL}:${Const|PrivatePort} for robust, V2
     ;; Leave it commented for standalones, V2
     ; GroupsServerURI = ""
 
@@ -1227,7 +1222,7 @@
   ;# {URL} {} {Set URL for Baked texture service} {}
   ;; Sets the URL for the baked texture ROBUST service.
   ;; Disabled when unset.
-  ;; URL = ${Const|BaseURL}:${Const|PrivatePort}
+  ;; URL = ${Const|PrivURL}:${Const|PrivatePort}
 
 ;;
 ;; Optional module to highlight God names in the viewer.
@@ -1239,7 +1234,7 @@
 ;    Surnames = "Kryztlsk"
 
 [Architecture]
-    ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
+    ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini} config-include/Standalone.ini
     ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,
     ;; uncomment Include-Architecture = "config-include/Standalone.ini"
     ;;
@@ -1254,5 +1249,3 @@
     ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
     ; Include-Architecture = "config-include/Grid.ini"
     ; Include-Architecture = "config-include/GridHypergrid.ini"
-    ; Include-Architecture = "config-include/SimianGrid.ini"
-    ; Include-Architecture = "config-include/HyperSimianGrid.ini"

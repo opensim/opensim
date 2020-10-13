@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         AssetBase asset = null;
 
                         // asset cache indexes are strings
-                        string cacheName ="MAP-Patch" + textureIDs[i].ToString();
+                        string cacheName ="MAP" + textureIDs[i].ToString();
 
                         // Try to fetch a cached copy of the decoded/resized version of this texture
                         asset = assetService.GetCached(cacheName);

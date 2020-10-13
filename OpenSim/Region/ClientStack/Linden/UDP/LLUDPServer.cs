@@ -326,7 +326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
-        protected ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCache<IPEndPoint, Queue<UDPPacketBuffer>>();
+        protected ExpiringCacheOS<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCacheOS<IPEndPoint, Queue<UDPPacketBuffer>>(10000);
 
         protected int m_defaultRTO = 0;
         protected int m_maxRTO = 0;
@@ -417,7 +417,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (config != null)
             {
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
-                sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
+                sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 6250000);
 
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
 
@@ -863,14 +863,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Queue or Send
 
-            bool highPriority = false;
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
-
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
             // If we were not provided a method for handling unacked, use the UDPServer default method
@@ -880,8 +872,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
             // packet so that it isn't sent before a queued update packet.
-            bool requestQueue = type == PacketType.KillObject;
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
             {
                 SendPacketFinal(outgoingPacket);
                 return true;
@@ -952,18 +943,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public void SendUDPPacket(
-            LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method, bool forcequeue, bool zerocode)
+            LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method, bool zerocode)
         {
-            bool highPriority = false;
-
             if (zerocode)
                 buffer = ZeroEncode(buffer);
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
@@ -971,27 +954,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
                 outgoingPacket.UnackedMethod = ((method == null) ? delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, forcequeue, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
         public void SendUDPPacket(LLUDPClient udpClient, UDPPacketBuffer buffer, ThrottleOutPacketType category)
         {
-            bool highPriority = false;
-
-            if (category != ThrottleOutPacketType.Unknown && (category & ThrottleOutPacketType.HighPriority) != 0)
-            {
-                category = (ThrottleOutPacketType)((int)category & 127);
-                highPriority = true;
-            }
-
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
 
             // If we were not provided a method for handling unacked, use the UDPServer default method
             if ((outgoingPacket.Buffer.Data[0] & Helpers.MSG_RELIABLE) != 0)
                 outgoingPacket.UnackedMethod = delegate (OutgoingPacket oPacket) { ResendUnacked(oPacket); };
 
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false, highPriority))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
@@ -1056,11 +1031,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             data[7] = udpClient.CurrentPingSequence++;
             // older seq number of our un ack packets, so viewers could clean deduplication lists TODO
-            //Utils.UIntToBytes(0, data, 8);
-            data[8] = 0;
-            data[9] = 0;
-            data[10] = 0;
-            data[11] = 0;
+            Utils.UIntToBytes(udpClient.NeedAcks.Oldest(), data, 8);
 
             buf.DataLength = 12;
             SendUDPPacket(udpClient, buf, ThrottleOutPacketType.Unknown);
@@ -1140,9 +1111,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Bump up the resend count on this packet
             Interlocked.Increment(ref outgoingPacket.ResendCount);
-
             // Requeue or resend the packet
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
         }
 
@@ -1162,7 +1132,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             LLUDPClient udpClient = outgoingPacket.Client;
             if (!udpClient.IsConnected)
+            {
+                FreeUDPBuffer(buffer);
                 return;
+            }
 
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
@@ -1211,10 +1184,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
             PacketsSentCount++;
+
             SyncSend(buffer);
 
             // Keep track of when this packet was sent out (right now)
-            outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
+            Interlocked.Exchange(ref outgoingPacket.TickCount, Environment.TickCount & Int32.MaxValue);
 
             if (outgoingPacket.UnackedMethod == null)
                 FreeUDPBuffer(buffer);
@@ -1364,8 +1338,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If this is a pending connection, enqueue, don't process yet
             lock (m_pendingCache)
             {
-                Queue<UDPPacketBuffer> queue;
-                if (m_pendingCache.TryGetValue(endPoint, out queue))
+                if (m_pendingCache.TryGetValue(endPoint, out Queue<UDPPacketBuffer> queue))
                 {
                     //m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
                     queue.Enqueue(buffer);
@@ -1680,12 +1653,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         return;
                     }
 
-                    // Now we know we can handle more data
-                    //Thread.Sleep(200);
 
                     // Obtain the pending queue and remove it from the cache
                     Queue<UDPPacketBuffer> queue = null;
-
                     lock (m_pendingCache)
                     {
                         if (!m_pendingCache.TryGetValue(endPoint, out queue))
@@ -1935,7 +1905,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         m_resendUnacked = true;
                         m_elapsedMSOutgoingPacketHandler = 0.0;
-                        m_elapsed100MSOutgoingPacketHandler += 1;
+                        ++m_elapsed100MSOutgoingPacketHandler;
                     }
 
                     // Check for pending outgoing ACKs every 500ms
@@ -1943,7 +1913,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         m_sendAcks = true;
                         m_elapsed100MSOutgoingPacketHandler = 0;
-                        m_elapsed500MSOutgoingPacketHandler += 1;
+                        ++m_elapsed500MSOutgoingPacketHandler;
                     }
 
                     // Send pings to clients every 5000ms

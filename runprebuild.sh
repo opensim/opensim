@@ -5,7 +5,6 @@ case "$1" in
   'clean')
 
     mono bin/Prebuild.exe /clean
-
   ;;
 
 
@@ -24,3 +23,5 @@ case "$1" in
   ;;
 
 esac
+    rm -fr bin/addin-db-002
+

@@ -1484,7 +1484,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(type.ToHeapTrackerType() != null)
             {
                 localBuilder = scg.ilGen.DeclareLocal(type.ToHeapTrackerType(), name);
-                scg.HeapLocals.Add(localBuilder);
                 scg.PushXMRInst();
                 scg.ilGen.Emit(type, OpCodes.Newobj, type.GetHeapTrackerCtor());
                 scg.ilGen.Emit(type, OpCodes.Stloc, localBuilder);
@@ -1548,11 +1547,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 scg.ilGen.Emit(errorAt, OpCodes.Ldloc, localBuilder);
                 scg.ilGen.Emit(errorAt, OpCodes.Ldloc, htpop);
                 type.CallHeapTrackerPopMeth(errorAt, scg.ilGen);
-                scg.HeapLocals.Add(htpop);
-            }
+             }
             else
             {
-
                 /*
                  * Not a heap-tracked local var, just pop directly into it.
                  */

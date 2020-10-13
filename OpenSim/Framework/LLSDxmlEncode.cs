@@ -51,9 +51,9 @@ namespace OpenSim.Framework
         public const string LLSDEmpty = "<llsd><map /></llsd>";
 
         // got tired of creating a stringbuilder all the time;
-        public static StringBuilder Start(int size = 256, bool addxmlversion = false)
+        public static StringBuilder Start(int size = 4096, bool addxmlversion = false)
         {
-            StringBuilder sb = new StringBuilder(size);
+            StringBuilder sb = osStringBuilderCache.Acquire(size);
             if(addxmlversion)
                 sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><llsd>"); // legacy llsd xml name still valid
             else
@@ -69,7 +69,13 @@ namespace OpenSim.Framework
         public static string End(StringBuilder sb)
         {
             sb.Append("</llsd>");
-            return sb.ToString();
+            return osStringBuilderCache.GetStringAndRelease(sb);
+        }
+
+        public static byte[] EndToNBBytes(StringBuilder sb)
+        {
+            sb.Append("</llsd>");
+            return Util.UTF8NBGetbytes(osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         // map == a list of key value pairs
@@ -120,7 +126,7 @@ namespace OpenSim.Framework
             if(e)
                 sb.Append("<boolean>1</boolean>");
             else
-                sb.Append("<boolean />");
+                sb.Append("<boolean>0</boolean>");
         }
 
         public static void AddElem(byte e, StringBuilder sb)
@@ -142,7 +148,22 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<binary>"); // encode64 is default
-                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));     
+                base64Encode(e, sb);
+                sb.Append("</binary>");
+            }
+        }
+
+        public static void AddElem(byte[] e, int start, int length, StringBuilder sb)
+        {
+            if (start + length >= e.Length)
+                length = e.Length - start;
+
+            if (e == null || e.Length == 0 || length <= 0)
+                sb.Append("binary />");
+            else
+            {
+                sb.Append("<binary>"); // encode64 is default
+                base64Encode(e, start, length, sb);
                 sb.Append("</binary>");
             }
         }
@@ -172,7 +193,7 @@ namespace OpenSim.Framework
         public static void AddElem(float e, StringBuilder sb)
         {
             if(e == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -186,7 +207,7 @@ namespace OpenSim.Framework
             sb.Append("<array>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -195,7 +216,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -209,7 +230,7 @@ namespace OpenSim.Framework
             sb.Append("<array>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -218,7 +239,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -227,7 +248,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Z == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -238,10 +259,10 @@ namespace OpenSim.Framework
 
         public static void AddElem(Quaternion e, StringBuilder sb)
         {
-            sb.Append("<array><key>x</key>");
+            sb.Append("<array>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -250,7 +271,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -258,7 +279,7 @@ namespace OpenSim.Framework
                 sb.Append("</real>");
             }
             if(e.Z == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -267,7 +288,7 @@ namespace OpenSim.Framework
             }
 
             if(e.W == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -279,7 +300,7 @@ namespace OpenSim.Framework
         public static void AddElem(double e, StringBuilder sb)
         {
             if(e == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -295,7 +316,7 @@ namespace OpenSim.Framework
             else
             {
                 sb.Append("<uuid>");
-                EscapeToXML(e.ToString(), sb);     
+                EscapeToXML(e.ToString(), sb);
                 sb.Append("</uuid>");
             }
         }
@@ -317,7 +338,7 @@ namespace OpenSim.Framework
             if(String.IsNullOrEmpty(e))
                 return;
 
-            sb.Append(e);     
+            sb.Append(e);
         }
 
         public static void AddElem(Uri e, StringBuilder sb)
@@ -420,7 +441,7 @@ namespace OpenSim.Framework
             if(e)
                 sb.Append("<boolean>1</boolean>");
             else
-                sb.Append("<boolean />");
+                sb.Append("<boolean>0</boolean>");
         }
 
         public static void AddElem(string name, byte e, StringBuilder sb)
@@ -445,12 +466,31 @@ namespace OpenSim.Framework
             sb.Append(name);
             sb.Append("</key>");
 
-            if(e == null || e.Length == 0)
+            if (e == null || e.Length == 0)
                 sb.Append("binary />");
             else
             {
                 sb.Append("<binary>"); // encode64 is default
-                sb.Append(Convert.ToBase64String(e,Base64FormattingOptions.None));
+                base64Encode(e, sb);
+                sb.Append("</binary>");
+            }
+        }
+
+        public static void AddElem(string name, byte[] e, int start, int length, StringBuilder sb)
+        {
+            sb.Append("<key>");
+            sb.Append(name);
+            sb.Append("</key>");
+
+            if (start + length >= e.Length)
+                length = e.Length - start;
+
+            if (e == null || e.Length == 0 || length <= 0)
+                sb.Append("binary />");
+            else
+            {
+                sb.Append("<binary>"); // encode64 is default
+                base64Encode(e, start, length, sb);
                 sb.Append("</binary>");
             }
         }
@@ -488,7 +528,7 @@ namespace OpenSim.Framework
             sb.Append("</key>");
 
             if(e == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -504,7 +544,7 @@ namespace OpenSim.Framework
             sb.Append("</key><array>>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -513,7 +553,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -529,7 +569,7 @@ namespace OpenSim.Framework
             sb.Append("</key><array>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -538,7 +578,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -547,7 +587,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Z == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -563,7 +603,7 @@ namespace OpenSim.Framework
             sb.Append("</key><array>");
 
             if(e.X == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -572,7 +612,7 @@ namespace OpenSim.Framework
             }
 
             if(e.Y == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -580,7 +620,7 @@ namespace OpenSim.Framework
                 sb.Append("</real>");
             }
             if(e.Z == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -589,7 +629,7 @@ namespace OpenSim.Framework
             }
 
             if(e.W == 0)
-                sb.Append("<real /></array>");
+                sb.Append("<real>0</real></array>");
             else
             {
                 sb.Append("<real>");
@@ -605,7 +645,7 @@ namespace OpenSim.Framework
             sb.Append("</key>");
 
             if(e == 0)
-                sb.Append("<real />");
+                sb.Append("<real>0</real>");
             else
             {
                 sb.Append("<real>");
@@ -724,11 +764,8 @@ namespace OpenSim.Framework
 
         public static void EscapeToXML(string s, StringBuilder sb)
         {
-            int i;
             char c;
-            int len = s.Length;
-
-            for (i = 0; i < len; i++)
+            for (int i = 0; i < s.Length; ++i)
             {
                 c = s[i];
                 switch (c)
@@ -779,6 +816,98 @@ namespace OpenSim.Framework
                 (byte)(value >> 8),
                 (byte)value
             };
+        }
+
+        static readonly char[] base64Chars = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+                                              'P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d',
+                                              'e','f','g','h','i','j','k','l','m','n','o','p','q','r','s',
+                                              't','u','v','w','x','y','z','0','1','2','3','4','5','6','7',
+                                              '8','9','+','/'};
+
+        public static unsafe void base64Encode(byte[] data, StringBuilder sb)
+        {
+            int lenMod3 = data.Length % 3;
+            int len = data.Length - lenMod3;
+
+            fixed (byte* d = data)
+            {
+                fixed (char* b64 = base64Chars)
+                {
+                    int i = 0;
+                    while(i < len)
+                    {
+                        sb.Append(b64[d[i] >> 2]);
+                        sb.Append(b64[((d[i] & 0x03) << 4) | ((d[i + 1] & 0xf0) >> 4)]);
+                        sb.Append(b64[((d[i + 1] & 0x0f) << 2) | ((d[i + 2] & 0xc0) >> 6)]);
+                        sb.Append(b64[d[i + 2] & 0x3f]);
+                        i += 3;
+                    }
+
+                    switch (lenMod3)
+                    {
+                        case 2:
+                        {
+                            i = len;
+                            sb.Append(b64[d[i] >> 2]);
+                            sb.Append(b64[((d[i] & 0x03) << 4) | ((d[i + 1] & 0xf0) >> 4)]);
+                            sb.Append(b64[((d[i + 1] & 0x0f) << 2)]);
+                            sb.Append('=');
+                            break;
+                        }
+                        case 1:
+                        {
+                            i = len;
+                            sb.Append(b64[d[i] >> 2]);
+                            sb.Append(b64[(d[i] & 0x03) << 4]);
+                            sb.Append("==");
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static unsafe void base64Encode(byte[] data, int start, int length, StringBuilder sb)
+        {
+            int lenMod3 = length % 3;
+            int len = start + (length - lenMod3);
+
+            fixed (byte* d = data)
+            {
+                fixed (char* b64 = base64Chars)
+                {
+                    int i = start;
+                    while(i < len)
+                    {
+                        sb.Append(b64[(d[i] & 0xfc) >> 2]);
+                        sb.Append(b64[((d[i] & 0x03) << 4) | (d[i + 1] >> 4)]);
+                        sb.Append(b64[((d[i + 1] & 0x0f) << 2) | (d[i + 2] >> 6)]);
+                        sb.Append(b64[d[i + 2] & 0x3f]);
+                        i += 3;
+                    }
+
+                    switch (lenMod3)
+                    {
+                        case 2:
+                        {
+                            i = len;
+                            sb.Append(b64[d[i] >> 2]);
+                            sb.Append(b64[((d[i] & 0x03) << 4) | (d[i + 1] >> 4)]);
+                            sb.Append(b64[((d[i + 1] & 0x0f) << 2)]);
+                            sb.Append('=');
+                            break;
+                        }
+                        case 1:
+                        {
+                            i = len;
+                            sb.Append(b64[d[i] >> 2]);
+                            sb.Append(b64[(d[i] & 0x03) << 4]);
+                            sb.Append("==");
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

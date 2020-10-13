@@ -25,24 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class Constants
     {
+        public const int MaxAgentAttachments = 38;
+        public const int MaxAgentGroups = 60;
+
         // 'RegionSize' is the legacy region size.
         // DO NOT USE THIS FOR ANY NEW CODE. Use Scene.RegionInfo.RegionSize[XYZ] as a region might not
         //      be the legacy region size.
         public const uint RegionSize = 256;
         public const uint RegionHeight = 4096;
-        // This could be a parameters but, really, a region of greater than this is pretty unmanageable
-        public const uint MaximumRegionSize = 8192;
+
+        public const uint MaximumRegionSize = 4096;
 
         // Since terrain is stored in 16x16 heights, regions must be a multiple of this number and that is the minimum
-        public const int MinRegionSize = 16;
+        // but for placement on a grid min must be 256m
+        public const int MinRegionSize = 256;
         public const int TerrainPatchSize = 16;
 
+        public const float MinSimulationHeight = -100f;
+        public const float MaxSimulationHeight = 50000f;
+        public const float MinTerrainHeightmap = -100f;
+        public const float MaxTerrainHeightmap = 4000f;
+
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
+
+        public static readonly UUID m_MrOpenSimID = new UUID("11111111-1111-0000-0000-000100bba000");
+        public static readonly DateTime m_MrOpenSimBorn = new DateTime(2007, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public enum EstateAccessCodex : uint
         {

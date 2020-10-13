@@ -140,7 +140,7 @@ namespace OpenSim.Framework.Servers
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
             m_log.InfoFormat(
                 "[SERVER BASE]: Operating system version: {0}, .NET platform {1}, {2}-bit",
-                Environment.OSVersion, Environment.OSVersion.Platform, Util.Is64BitProcess() ? "64" : "32");
+                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
         }
 
         public void RegisterCommonAppenders(IConfig startupConfig)
@@ -326,6 +326,8 @@ namespace OpenSim.Framework.Servers
                 "shutdown",
                 "Quit the application", (mod, args) => Shutdown());
 
+            m_console.SetCntrCHandler(Shutdown);
+
             ChecksManager.RegisterConsoleCommands(m_console);
             StatsManager.RegisterConsoleCommands(m_console);
         }
@@ -492,18 +494,18 @@ namespace OpenSim.Framework.Servers
 
             if (!int.TryParse(rawLevel, out newLevel))
             {
-                MainConsole.Instance.Output("{0} is not a valid debug level", null, rawLevel);
+                MainConsole.Instance.Output("{0} is not a valid debug level", rawLevel);
                 return;
             }
 
             if (newLevel < 0 || newLevel > Util.MAX_THREADPOOL_LEVEL)
             {
-                MainConsole.Instance.Output("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, null, newLevel);
+                MainConsole.Instance.Output("{0} is outside the valid debug level range of 0.." + Util.MAX_THREADPOOL_LEVEL, newLevel);
                 return;
             }
 
             Util.LogThreadPool = newLevel;
-            MainConsole.Instance.Output("LogThreadPool set to {0}", null, newLevel);
+            MainConsole.Instance.Output("LogThreadPool set to {0}", newLevel);
         }
 
         private void HandleForceGc(string module, string[] args)
@@ -684,6 +686,11 @@ namespace OpenSim.Framework.Servers
 
         private void ShowLogLevel()
         {
+            if (null == m_consoleAppender)
+            {
+                Notice("No appender named Console found (see the log4net config file for this executable)!");
+                return;
+            }
             Notice("Console log level is {0}", m_consoleAppender.Threshold);
         }
 
@@ -736,10 +743,10 @@ namespace OpenSim.Framework.Servers
         /// <returns></returns>
         protected string GetUptimeReport()
         {
-            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
-            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
-            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
-
+            StringBuilder sb = new StringBuilder(512);
+            sb.AppendFormat("Time now is {0}\n", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            sb.AppendFormat("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime.ToString("yyyy-MM-dd HH:mm:ss"));
+            sb.AppendFormat("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime);
             return sb.ToString();
         }
 
@@ -758,20 +765,10 @@ namespace OpenSim.Framework.Servers
         {
             string buildVersion = string.Empty;
 
-            // The subversion information is deprecated and will be removed at a later date
-            // Add subversion revision information if available
-            // Try file "svn_revision" in the current directory first, then the .svn info.
-            // This allows to make the revision available in simulators not running from the source tree.
-            // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
-            // elsewhere as well
+            string manualVersionFileName = ".version";
+
             string gitDir = "../.git/";
             string gitRefPointerPath = gitDir + "HEAD";
-
-            string svnRevisionFileName = "svn_revision";
-            string svnFileName = ".svn/entries";
-            string manualVersionFileName = ".version";
-            string inputLine;
-            int strcmp;
 
             if (File.Exists(manualVersionFileName))
             {
@@ -810,40 +807,6 @@ namespace OpenSim.Framework.Servers
                         }
                     }
                 }
-            }
-            else
-            {
-                // Remove the else logic when subversion mirror is no longer used
-                if (File.Exists(svnRevisionFileName))
-                {
-                    StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
-                    buildVersion = RevisionFile.ReadLine();
-                    buildVersion = buildVersion.Trim();
-                    RevisionFile.Close();
-                }
-
-                if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
-                {
-                    StreamReader EntriesFile = File.OpenText(svnFileName);
-                    inputLine = EntriesFile.ReadLine();
-                    while (inputLine != null)
-                    {
-                        // using the dir svn revision at the top of entries file
-                        strcmp = String.Compare(inputLine, "dir");
-                        if (strcmp == 0)
-                       {
-                            buildVersion = EntriesFile.ReadLine();
-                            break;
-                        }
-                        else
-                        {
-                            inputLine = EntriesFile.ReadLine();
-                        }
-                    }
-                    EntriesFile.Close();
-                }
-
-                m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
             }
         }
 
@@ -991,9 +954,9 @@ namespace OpenSim.Framework.Servers
             }
 
             if (Watchdog.AbortThread(threadId))
-                MainConsole.Instance.Output("Aborted thread with id {0}", null, threadId);
+                MainConsole.Instance.Output("Aborted thread with id {0}", threadId);
             else
-                MainConsole.Instance.Output("ERROR - Thread with id {0} not found in managed threads", null, threadId);
+                MainConsole.Instance.Output("ERROR - Thread with id {0} not found in managed threads", threadId);
         }
 
         /// <summary>
@@ -1020,7 +983,7 @@ namespace OpenSim.Framework.Servers
         protected void Notice(string format, params object[] components)
         {
             if (m_console != null)
-                m_console.Output(format, null, components);
+                m_console.Output(format, components);
         }
 
         public virtual void Shutdown()

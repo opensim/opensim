@@ -28,10 +28,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Net;
 using System.Reflection;
-using System.IO;
-using System.Web;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -68,7 +66,8 @@ namespace OpenSim.Capabilities.Handlers
             {"jpeg_id", AssetType.ImageJPEG},
             {"animatn_id", AssetType.Animation},
             {"gesture_id", AssetType.Gesture},
-            {"mesh_id", AssetType.Mesh}
+            {"mesh_id", AssetType.Mesh},
+            {"settings_id", AssetType.Settings}
         };
 
         private IAssetService m_assetService;
@@ -78,82 +77,81 @@ namespace OpenSim.Capabilities.Handlers
             m_assetService = assService;
         }
 
-        public Hashtable Handle(Hashtable request)
+        public void Handle(OSHttpRequest req, OSHttpResponse response, string serviceURL = null)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["content_type"] = "text/plain";
-            responsedata["int_bytes"] = 0;
+            response.ContentType = "text/plain";
 
             if (m_assetService == null)
             {
-                responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.ServiceUnavailable;
-                responsedata["str_response_string"] = "The asset service is unavailable";
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                response.KeepAlive = false;
+                return;
             }
 
-            responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.BadRequest;
+            response.StatusCode = (int)HttpStatusCode.BadRequest;
 
-            string[] queries = null;
-            if(request.Contains("querystringkeys"))
-                queries = (string[])request["querystringkeys"];
-            
-            if(queries == null || queries.Length == 0)
-                return responsedata;
+            var queries = req.QueryAsDictionary;
+            if(queries.Count == 0)
+                return;
 
-            string query = queries[0];
-            if(!queryTypes.ContainsKey(query))
-            {
-                m_log.Warn("[GETASSET]: Unknown type: " + query);
-                return responsedata;
-            }
-
-            AssetType type = queryTypes[query];
-
+            AssetType type = AssetType.Unknown;
             string assetStr = string.Empty;
-            if (request.ContainsKey(query))
-                assetStr = request[query].ToString();
+            foreach (KeyValuePair<string,string> kvp in queries)
+            {
+                if (queryTypes.ContainsKey(kvp.Key))
+                {
+                    type = queryTypes[kvp.Key];
+                    assetStr = kvp.Value;
+                    break;
+                }
+            }
+
+            if(type == AssetType.Unknown)
+            {
+                //m_log.Warn("[GETASSET]: Unknown type: " + query);
+                m_log.Warn("[GETASSET]: Unknown type");
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
             if (String.IsNullOrEmpty(assetStr))
-                return responsedata;
+                return;
 
             UUID assetID = UUID.Zero;
             if(!UUID.TryParse(assetStr, out assetID))
-                return responsedata;
+                return;
 
             AssetBase asset = m_assetService.Get(assetID.ToString());
-            if(asset == null)
+            if (asset == null)
             {
+                if (String.IsNullOrWhiteSpace(serviceURL))
+                {
+                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
+
+                string newid = serviceURL + "/" + assetID.ToString();
+                asset = m_assetService.Get(newid);
+                if (asset == null)
+                {
+                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return;
+                }
                 // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
-                responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
-                responsedata["str_response_string"] = "Asset not found.";
-                return responsedata;
             }
 
             if (asset.Type != (sbyte)type)
-            {
-                responsedata["str_response_string"] = "Got wrong asset type";
-                return responsedata;
-            }
+                return;
 
-            if(type == AssetType.Mesh || type == AssetType.Texture)
-                responsedata["throttle"] = true;
+            int len = asset.Data.Length;
 
-            responsedata["content_type"] = asset.Metadata.ContentType;
-            responsedata["bin_response_data"] = asset.Data;
-            responsedata["int_bytes"] = asset.Data.Length;
-            responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.OK;
-
-            string range = String.Empty;
-            if (((Hashtable)request["headers"])["range"] != null)
-               range = (string)((Hashtable)request["headers"])["range"];
-            else if (((Hashtable)request["headers"])["Range"] != null)
-                range = (string)((Hashtable)request["headers"])["Range"];
-            else
-                return responsedata; // full asset
-
-            if (String.IsNullOrEmpty(range))
-                return responsedata; // full asset
+            string range = null;
+            if (req.Headers["Range"] != null)
+                range = req.Headers["Range"];
+            else if (req.Headers["range"] != null)
+                range = req.Headers["range"];
 
             // range request
             int start, end;
@@ -163,8 +161,8 @@ namespace OpenSim.Capabilities.Handlers
                 // sending back the last byte instead of an error status
                 if (start >= asset.Data.Length)
                 {
-                    responsedata["str_response_string"] = "This range doesnt exist.";
-                    return responsedata;
+                    response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
+                    return;
                 }
 
                 if (end == -1)
@@ -173,20 +171,33 @@ namespace OpenSim.Capabilities.Handlers
                     end = Utils.Clamp(end, 0, asset.Data.Length - 1);
 
                 start = Utils.Clamp(start, 0, end);
-                int len = end - start + 1;
+                len = end - start + 1;
 
                 //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
-                Hashtable headers = new Hashtable();
-                headers["Content-Range"] = String.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length);
-                responsedata["headers"] = headers;
-                responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
-                responsedata["bin_start"] = start;
-                responsedata["int_bytes"] = len;
-                return responsedata;
+                response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length));
+                response.StatusCode = (int)HttpStatusCode.PartialContent;
+                response.RawBufferStart = start;
             }
+            else
+                response.StatusCode = (int)HttpStatusCode.OK;
 
-            m_log.Warn("[GETASSETS]: Failed to parse a range, sending full asset: " + assetStr);
-            return responsedata;
+            response.ContentType = asset.Metadata.ContentType;
+            response.RawBuffer = asset.Data;
+            response.RawBufferLen = len;
+            if (type == AssetType.Mesh || type == AssetType.Texture)
+            {
+                if(len > 8196)
+                {
+                    //if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
+                    //    responsedata["prio"] = 1;
+                    //else
+                    response.Priority = 2;
+                }
+                else
+                    response.Priority = 1;
+            }
+            else
+                response.Priority = -1;
         }
     }
 }

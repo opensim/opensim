@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Collections;
+using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -34,7 +34,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Mono.Addins;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -45,13 +44,11 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ObjectAdd")]
     public class ObjectAdd : INonSharedRegionModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        // private static readonly ILog m_log =
+        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
         #region INonSharedRegionModule Members
-
         public void Initialise(IConfigSource pSource)
         {
         }
@@ -93,36 +90,23 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
+            // m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
-            //            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
-
-            caps.RegisterHandler(
-                "ObjectAdd",
-                new RestHTTPHandler(
-                    "POST",
-                    capUrl,
-                    httpMethod => ProcessAdd(httpMethod, agentID, caps),
-                    "ObjectAdd",
-                    agentID.ToString())); ;
+            caps.RegisterSimpleHandler("ObjectAdd", new SimpleOSDMapHandler("POST", "/" + UUID.Random(),
+                delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+                {
+                    ProcessAdd(httpRequest, httpResponse, map, agentID);
+                }));
         }
 
-        public Hashtable ProcessAdd(Hashtable request, UUID AgentId, Caps cap)
+        public void ProcessAdd(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map, UUID avatarID)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 400; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = "Request wasn't what was expected";
-            ScenePresence avatar;
-
-            if (!m_scene.TryGetScenePresence(AgentId, out avatar))
-                return responsedata;
-
-
-            OSD r = OSDParser.DeserializeLLSDXml((string)request["requestbody"]);
-            if (r.Type != OSDType.Map) // not a proper req
-                return responsedata;
+            httpResponse.KeepAlive = false;
+            if(!m_scene.TryGetScenePresence(avatarID, out ScenePresence sp))
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.Gone;
+                return;
+            }
 
             //UUID session_id = UUID.Zero;
             bool bypass_raycast = false;
@@ -160,14 +144,13 @@ namespace OpenSim.Region.ClientStack.Linden
             int state = 0;
             int lastattach = 0;
 
-            OSDMap rm = (OSDMap)r;
             OSD tmpOSD;
-            if (rm.TryGetValue("ObjectData", out tmpOSD)) //v2
+            if (map.TryGetValue("ObjectData", out tmpOSD)) //v2
             {
                 if (tmpOSD.Type != OSDType.Map)
                 {
-                    responsedata["str_response_string"] = "Has ObjectData key, but data not in expected format";
-                    return responsedata;
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
                 }
 
                 OSDMap ObjMap = (OSDMap)tmpOSD;
@@ -184,8 +167,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     if (tmpOSD.Type != OSDType.Map)
                     {
-                        responsedata["str_response_string"] = "Has Path key, but data not in expected format";
-                        return responsedata;
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return;
                     }
 
                     OSDMap PathMap = (OSDMap)tmpOSD;
@@ -209,8 +192,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     if (tmpOSD.Type != OSDType.Map)
                     {
-                        responsedata["str_response_string"] = "Has Profile key, but data not in expected format";
-                        return responsedata;
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return;
                     }
 
                     OSDMap ProfileMap = (OSDMap)tmpOSD;
@@ -234,16 +217,16 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 catch (Exception)
                 {
-                    responsedata["str_response_string"] = "RayEnd, RayStart, Scale or Rotation wasn't in the expected format";
-                    return responsedata;
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
                 }
 
-                if (rm.TryGetValue("AgentData", out tmpOSD))
+                if (map.TryGetValue("AgentData", out tmpOSD))
                 {
                     if (tmpOSD.Type != OSDType.Map)
                     {
-                        responsedata["str_response_string"] = "Has AgentData key, but data not in expected format";
-                        return responsedata;
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return;
                     }
 
                     OSDMap AgentDataMap = (OSDMap)tmpOSD;
@@ -255,58 +238,63 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             { //v1
-                bypass_raycast = rm["bypass_raycast"].AsBoolean();
+                bypass_raycast = map["bypass_raycast"].AsBoolean();
 
-                everyone_mask = ReadUIntVal(rm["everyone_mask"]);
-                flags = ReadUIntVal(rm["flags"]);
-                group_id = rm["group_id"].AsUUID();
-                group_mask = ReadUIntVal(rm["group_mask"]);
-                hollow = rm["hollow"].AsInteger();
-                material = rm["material"].AsInteger();
-                next_owner_mask = ReadUIntVal(rm["next_owner_mask"]);
-                hollow = rm["hollow"].AsInteger();
-                p_code = rm["p_code"].AsInteger();
-                path_begin = rm["path_begin"].AsInteger();
-                path_curve = rm["path_curve"].AsInteger();
-                path_end = rm["path_end"].AsInteger();
-                path_radius_offset = rm["path_radius_offset"].AsInteger();
-                path_revolutions = rm["path_revolutions"].AsInteger();
-                path_scale_x = rm["path_scale_x"].AsInteger();
-                path_scale_y = rm["path_scale_y"].AsInteger();
-                path_shear_x = rm["path_shear_x"].AsInteger();
-                path_shear_y = rm["path_shear_y"].AsInteger();
-                path_skew = rm["path_skew"].AsInteger();
-                path_taper_x = rm["path_taper_x"].AsInteger();
-                path_taper_y = rm["path_taper_y"].AsInteger();
-                path_twist = rm["path_twist"].AsInteger();
-                path_twist_begin = rm["path_twist_begin"].AsInteger();
-                profile_begin = rm["profile_begin"].AsInteger();
-                profile_curve = rm["profile_curve"].AsInteger();
-                profile_end = rm["profile_end"].AsInteger();
+                everyone_mask = ReadUIntVal(map["everyone_mask"]);
+                flags = ReadUIntVal(map["flags"]);
+                group_id = map["group_id"].AsUUID();
+                group_mask = ReadUIntVal(map["group_mask"]);
+                hollow = map["hollow"].AsInteger();
+                material = map["material"].AsInteger();
+                next_owner_mask = ReadUIntVal(map["next_owner_mask"]);
+                hollow = map["hollow"].AsInteger();
+                p_code = map["p_code"].AsInteger();
+                path_begin = map["path_begin"].AsInteger();
+                path_curve = map["path_curve"].AsInteger();
+                path_end = map["path_end"].AsInteger();
+                path_radius_offset = map["path_radius_offset"].AsInteger();
+                path_revolutions = map["path_revolutions"].AsInteger();
+                path_scale_x = map["path_scale_x"].AsInteger();
+                path_scale_y = map["path_scale_y"].AsInteger();
+                path_shear_x = map["path_shear_x"].AsInteger();
+                path_shear_y = map["path_shear_y"].AsInteger();
+                path_skew = map["path_skew"].AsInteger();
+                path_taper_x = map["path_taper_x"].AsInteger();
+                path_taper_y = map["path_taper_y"].AsInteger();
+                path_twist = map["path_twist"].AsInteger();
+                path_twist_begin = map["path_twist_begin"].AsInteger();
+                profile_begin = map["profile_begin"].AsInteger();
+                profile_curve = map["profile_curve"].AsInteger();
+                profile_end = map["profile_end"].AsInteger();
 
-                ray_end_is_intersection = rm["ray_end_is_intersection"].AsBoolean();
+                ray_end_is_intersection = map["ray_end_is_intersection"].AsBoolean();
 
-                ray_target_id = rm["ray_target_id"].AsUUID();
+                ray_target_id = map["ray_target_id"].AsUUID();
 
 
                 //session_id = rm["session_id"].AsUUID();
-                state = rm["state"].AsInteger();
-                lastattach = rm["last_attach_point"].AsInteger();
+                state = map["state"].AsInteger();
+                lastattach = map["last_attach_point"].AsInteger();
                 try
                 {
-                    ray_end = ((OSDArray)rm["ray_end"]).AsVector3();
-                    ray_start = ((OSDArray)rm["ray_start"]).AsVector3();
-                    rotation = ((OSDArray)rm["rotation"]).AsQuaternion();
-                    scale = ((OSDArray)rm["scale"]).AsVector3();
+                    ray_end = ((OSDArray)map["ray_end"]).AsVector3();
+                    ray_start = ((OSDArray)map["ray_start"]).AsVector3();
+                    rotation = ((OSDArray)map["rotation"]).AsQuaternion();
+                    scale = ((OSDArray)map["scale"]).AsVector3();
                 }
-                catch (Exception)
+                catch
                 {
-                    responsedata["str_response_string"] = "RayEnd, RayStart, Scale or Rotation wasn't in the expected format";
-                    return responsedata;
+                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return;
                 }
             }
 
             Vector3 pos = m_scene.GetNewRezLocation(ray_start, ray_end, ray_target_id, rotation, (bypass_raycast) ? (byte)1 : (byte)0, (ray_end_is_intersection) ? (byte)1 : (byte)0, true, scale, false);
+            if (!m_scene.Permissions.CanRezObject(1, avatarID, pos))
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
+            }
 
             PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
 
@@ -333,18 +321,7 @@ namespace OpenSim.Region.ClientStack.Linden
             pbs.State = (byte)state;
             pbs.LastAttachPoint = (byte)lastattach;
 
-            SceneObjectGroup obj = null; ;
-
-            if (m_scene.Permissions.CanRezObject(1, avatar.UUID, pos))
-            {
-                // rez ON the ground, not IN the ground
-                // pos.Z += 0.25F;
-
-                obj = m_scene.AddNewPrim(avatar.UUID, group_id, pos, rotation, pbs);
-            }
-
-            if (obj == null)
-                return responsedata;
+            SceneObjectGroup obj = m_scene.AddNewPrim(avatarID, group_id, pos, rotation, pbs);
 
             SceneObjectPart rootpart = obj.RootPart;
             rootpart.Shape = pbs;
@@ -359,13 +336,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
             m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
 
-            responsedata["int_response_code"] = 200; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(obj.LocalId));
-
-            return responsedata;
-        }
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.RawBuffer = Util.UTF8NBGetbytes(String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(obj.LocalId)));
+         }
 
         private uint ReadUIntVal(OSD obj)
         {
@@ -380,8 +353,7 @@ namespace OpenSim.Region.ClientStack.Linden
             byte[] resultbytes = Utils.UIntToBytes(val);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(resultbytes);
-            return String.Format("<binary encoding=\"base64\">{0}</binary>", Convert.ToBase64String(resultbytes));
+            return String.Format("<binary>{0}</binary>", Convert.ToBase64String(resultbytes));
         }
-
     }
 }

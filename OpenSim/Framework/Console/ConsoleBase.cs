@@ -35,6 +35,32 @@ using log4net;
 
 namespace OpenSim.Framework.Console
 {
+    public class ConsoleLevel
+    {
+        public string m_string;
+
+        ConsoleLevel(string v)
+        {
+            m_string = v;
+        }
+
+        static public implicit operator ConsoleLevel(string s)
+        {
+            return new ConsoleLevel(s);
+        }
+
+        public static string ToString(ConsoleLevel s)
+        {
+            return s.m_string;
+        }
+
+        public override string ToString()
+        {
+            return m_string;
+        }
+    }
+
+
     public class ConsoleBase : IConsole
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,29 +84,75 @@ namespace OpenSim.Framework.Console
         {
         }
 
-        public void Output(string format, params object[] components)
+        public virtual void Output(string format)
         {
-            Output(format, null, components);
+            System.Console.WriteLine(format);
         }
 
-        public virtual void Output(string format, string level, params object[] components)
+        public virtual void Output(string format, params object[] components)
         {
-            System.Console.WriteLine(format, components);
+            string level = null;
+            if (components != null && components.Length > 0)
+            {
+                if (components[0] == null || components[0] is ConsoleLevel)
+                {
+                    if (components[0] is ConsoleLevel)
+                        level = ((ConsoleLevel)components[0]).ToString();
+
+                    if (components.Length > 1)
+                    {
+                        object[] tmp = new object[components.Length - 1];
+                        Array.Copy(components, 1, tmp, 0, components.Length - 1);
+                        components = tmp;
+                    }
+                    else
+                        components = null;
+                }
+
+            }
+            string text;
+            if (components == null || components.Length == 0)
+                text = format;
+            else
+                text = String.Format(format, components);
+
+            System.Console.WriteLine(text);
         }
 
         public string Prompt(string p)
         {
-            return Prompt(p, null, null, true);
+            return ReadLine(String.Format("{0}: ", p), false, true);
         }
 
         public string Prompt(string p, string def)
         {
-            return Prompt(p, def, null, true);
+            string ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, true);
+            if (ret == String.Empty)
+                ret = def;
+
+            return ret;
         }
 
         public string Prompt(string p, List<char> excludedCharacters)
         {
-            return Prompt(p, null, excludedCharacters, true);
+            bool itisdone = false;
+            string ret = String.Empty;
+            while (!itisdone)
+            {
+                itisdone = true;
+                ret = Prompt(p);
+
+                foreach (char c in excludedCharacters)
+                {
+                    if (ret.Contains(c.ToString()))
+                    {
+                        System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
+                        itisdone = false;
+                    }
+                }
+            }
+
+            return ret;
         }
 
         public virtual string Prompt(string p, string def, List<char> excludedCharacters, bool echo = true)
@@ -91,7 +163,7 @@ namespace OpenSim.Framework.Console
             {
                 itisdone = true;
 
-                if (def != null)
+                if (def == null)
                     ret = ReadLine(String.Format("{0}: ", p), false, echo);
                 else
                     ret = ReadLine(String.Format("{0} [{1}]: ", p, def), false, echo);

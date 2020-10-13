@@ -150,6 +150,8 @@ namespace OpenSim.Framework.Console
                 m_log.InfoFormat("[LOCAL CONSOLE]: Creating new empty command line history file {0}", m_historyPath);
                 File.Create(m_historyPath).Dispose();
             }
+
+            System.Console.TreatControlCAsInput = true;
         }
 
         private void AddToHistory(string text)
@@ -389,9 +391,36 @@ namespace OpenSim.Framework.Console
             System.Console.WriteLine();
         }
 
-        public override void Output(string format, string level, params object[] components)
+        public override void Output(string format)
         {
-            string text = String.Format(format, components);
+            Output(format, null);
+        }
+
+        public override void Output(string format, params object[] components)
+        {
+            string level = null;
+            if(components != null && components.Length > 0)
+            {
+                if(components[0] == null || components[0] is ConsoleLevel)
+                {
+                    if(components[0] is ConsoleLevel)
+                        level = ((ConsoleLevel)components[0]).ToString();
+
+                    if (components.Length > 1)
+                    {
+                        object[] tmp = new object[components.Length - 1];
+                        Array.Copy(components, 1, tmp, 0, components.Length - 1);
+                        components = tmp;
+                    }
+                    else
+                        components = null;
+                }
+            }
+            string text;
+            if (components == null || components.Length == 0)
+                text = format;
+            else
+                text = String.Format(format, components);
 
             FireOnOutput(text);
 
@@ -464,6 +493,13 @@ namespace OpenSim.Framework.Console
                 Show();
 
                 ConsoleKeyInfo key = System.Console.ReadKey(true);
+
+                if((key.Modifiers & ConsoleModifiers.Control) != 0 && key.Key == ConsoleKey.C)
+                {
+                    System.Console.Write(Environment.NewLine);
+                    LocalCancelKeyPressed();
+                    return string.Empty;
+                }
                 char enteredChar = key.KeyChar;
 
                 if (!Char.IsControl(enteredChar))

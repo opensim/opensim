@@ -49,10 +49,8 @@ namespace OpenSim.Server.Handlers.Simulation
             // This one MUST be a stream handler because compressed fatpacks
             // are pure binary and shoehorning that into a string with UTF-8
             // encoding breaks it
-            server.AddStreamHandler(new AgentPostHandler(m_LocalSimulationService));
-            server.AddStreamHandler(new AgentPutHandler(m_LocalSimulationService));
-            server.AddHTTPHandler("/agent/", new AgentHandler(m_LocalSimulationService).Handler);
-            server.AddHTTPHandler("/object/", new ObjectHandler(m_LocalSimulationService).Handler);
+            server.AddSimpleStreamHandler(new AgentSimpleHandler(m_LocalSimulationService), true);
+            server.AddSimpleStreamHandler(new ObjectSimpleHandler(m_LocalSimulationService), true);
         }
     }
 }

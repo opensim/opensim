@@ -63,7 +63,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PostEvent(EventParams evt)
         {
-            ScriptEventCode evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+            if(!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
+                return;
 
              // Put event on end of event queue.
             bool startIt = false;
@@ -175,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
                             {
                                 EventParams evt2 = lln2.Value;
-                                ScriptEventCode evc2 = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt2.EventName);
+                                m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
                                 if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
                                     break;
                             }
@@ -237,6 +238,30 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
+        public void CancelEvent(string eventName)
+        {
+            if (!m_eventCodeMap.TryGetValue(eventName, out ScriptEventCode evc))
+                return;
+
+            lock (m_QueueLock)
+            {
+                if(m_EventQueue.Count == 0)
+                    return;
+
+                LinkedListNode<EventParams> lln2 = null;
+                for (lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                {
+                    EventParams evt2 = lln2.Value;
+                    if(evt2.EventName.Equals(eventName))
+                    {
+                        m_EventQueue.Remove(lln2);
+                        if (evc >= 0 && m_EventCounts[(int)evc] > 0)
+                            m_EventCounts[(int)evc]--;
+                    }
+                }
+            }
+        }
+
          // This is called in the script thread to step script until it calls
          // CheckRun().  It returns what the instance's next state should be,
          // ONSLEEPQ, ONYIELDQ, SUSPENDED or FINISHED.
@@ -278,7 +303,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Exception e = null;
 
                  // Maybe it has been Disposed()
-                if(m_Part == null)
+                if(m_Part == null || m_Part.Inventory == null)
                 {
                     m_RunOnePhase = "runone saw it disposed";
                     return XMRInstState.DISPOSED;
@@ -342,7 +367,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(m_EventQueue.First != null)
                         {
                             evt = m_EventQueue.First.Value;
-                            evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+                            m_eventCodeMap.TryGetValue(evt.EventName, out evc);
                             if (m_DetachQuantum > 0)
                             {
                                 if(evc != ScriptEventCode.attach)
@@ -359,7 +384,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 }
                             }
                             m_EventQueue.RemoveFirst();
-                            if((int)evc >= 0)
+                            if(evc >= 0)
                                 m_EventCounts[(int)evc]--;
                         }
 
@@ -503,10 +528,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             eventCode = ScriptEventCode.None;
             stackFrames = null;
 
+            if(m_Part == null || m_Part.Inventory == null)
+            {
+                //we are gone and don't know it still
+                m_SleepUntil = DateTime.MaxValue;
+                return;
+            }
+
             if (e is ScriptDeleteException)
             {
-                 // Script did something like llRemoveInventory(llGetScriptName());
-                 // ... to delete itself from the object.
+                // Script did something like llRemoveInventory(llGetScriptName());
+                // ... to delete itself from the object.
                 m_SleepUntil = DateTime.MaxValue;
                 Verbose("[YEngine]: script self-delete {0}", m_ItemID);
                 m_Part.Inventory.RemoveInventoryItem(m_ItemID);
@@ -539,10 +571,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void SendScriptErrorMessage(Exception e, ScriptEventCode ev)
         {
             StringBuilder msg = new StringBuilder();
-
+            bool toowner = false;
             msg.Append("YEngine: ");
             if (e.Message != null)
-                msg.Append(e.Message);
+            {
+                string text = e.Message;
+                if (text.StartsWith("(OWNER)"))
+                {
+                    text = text.Substring(7);
+                    toowner = true;
+                }
+                msg.Append(text);
+            }
 
             msg.Append(" (script: ");
             msg.Append(m_Item.Name);
@@ -563,8 +603,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (msgst.Length > 1000)
                 msgst = msgst.Substring(0, 1000);
 
-            m_Engine.World.SimChat(Utils.StringToBytes(msgst),
-                                                           ChatTypeEnum.DebugChannel, 2147483647,
+            if (toowner)
+            {
+                ScenePresence sp = m_Engine.World.GetScenePresence(m_Part.OwnerID);
+                if (sp != null && !sp.IsNPC)
+                    m_Engine.World.SimChatToAgent(m_Part.OwnerID, Utils.StringToBytes(msgst), 0x7FFFFFFF, m_Part.AbsolutePosition,
+                                                           m_Part.Name, m_Part.UUID, false);
+            }
+            else
+                m_Engine.World.SimChat(Utils.StringToBytes(msgst),
+                                                           ChatTypeEnum.DebugChannel, 0x7FFFFFFF,
                                                            m_Part.AbsolutePosition,
                                                            m_Part.Name, m_Part.UUID, false);
             m_log.Debug(string.Format(
@@ -824,11 +872,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void ResetLocked(string from)
         {
             m_RunOnePhase = "ResetLocked: releasing controls";
-            ReleaseControls();
+            ReleaseControlsOrPermissions(true);
+            m_Part.CollisionSound = UUID.Zero;
+
+            if (m_XMRLSLApi != null)
+                m_XMRLSLApi.llResetTime();
 
             m_RunOnePhase = "ResetLocked: removing script";
-            m_Part.Inventory.GetInventoryItem(m_ItemID).PermsMask = 0;
-            m_Part.Inventory.GetInventoryItem(m_ItemID).PermsGranter = UUID.Zero;
             IUrlModule urlModule = m_Engine.World.RequestModuleInterface<IUrlModule>();
             if(urlModule != null)
                 urlModule.ScriptRemoved(m_ItemID);
@@ -841,7 +891,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_SleepUntil = DateTime.MinValue;     // not doing llSleep()
             m_ResetCount++;                        // has been reset once more
 
-            heapUsed = 0;
+            m_localsHeapUsed = 0;
+            m_arraysHeapUsed = 0;
             glblVars.Clear();
 
              // Tell next call to 'default state_entry()' to reset all global
@@ -857,6 +908,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // 'state_entry()' event handler.
             m_RunOnePhase = "ResetLocked: posting default:state_entry() event";
             stateCode = 0;
+            m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(0));
             PostEvent(new EventParams("state_entry",
                                       zeroObjectArray,
@@ -868,31 +920,33 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_RunOnePhase = "ResetLocked: reset complete";
         }
 
-        private void ReleaseControls()
+        private void ReleaseControlsOrPermissions(bool fullPermissions)
         {
-            if(m_Part != null)
+            if(m_Part != null && m_Part.TaskInventory != null)
             {
-                bool found;
                 int permsMask;
                 UUID permsGranter;
-
-                try
+                m_Part.TaskInventory.LockItemsForWrite(true);
+                if (!m_Part.TaskInventory.TryGetValue(m_ItemID, out TaskInventoryItem item))
                 {
-                    permsGranter = m_Part.TaskInventory[m_ItemID].PermsGranter;
-                    permsMask = m_Part.TaskInventory[m_ItemID].PermsMask;
-                    found = true;
+                    m_Part.TaskInventory.LockItemsForWrite(false);
+                    return;
                 }
-                catch
+                permsGranter = item.PermsGranter;
+                permsMask = item.PermsMask;
+                if(fullPermissions)
                 {
-                    permsGranter = UUID.Zero;
-                    permsMask = 0;
-                    found = false;
+                    item.PermsGranter = UUID.Zero;
+                    item.PermsMask = 0;
                 }
+                else
+                    item.PermsMask = permsMask & ~(ScriptBaseClass.PERMISSION_TAKE_CONTROLS | ScriptBaseClass.PERMISSION_CONTROL_CAMERA);
+                m_Part.TaskInventory.LockItemsForWrite(false);
 
-                if(found && ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0))
+                if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                 {
                     ScenePresence presence = m_Engine.World.GetScenePresence(permsGranter);
-                    if(presence != null)
+                    if (presence != null)
                         presence.UnRegisterControlEventsToScript(m_LocalID, m_ItemID);
                 }
             }
@@ -960,6 +1014,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             lock(m_QueueLock)
             {
+                m_SuspendCount = 0;
                 m_Suspended = false;
                 m_DetachQuantum = 0;
                 m_DetachReady.Set();
@@ -981,6 +1036,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             lock(m_QueueLock)
             {
+                m_SuspendCount = 1;
                 m_Suspended = true;
             }
         }

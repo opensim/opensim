@@ -68,9 +68,7 @@ namespace OpenSim.Services.Connectors
 
         public virtual GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
-            uint x = 0, y = 0;
-            Util.RegionHandleToWorldLoc(regionHandle, out x, out y);
-            GridRegion regInfo = m_GridService.GetRegionByPosition(thisRegion.ScopeID, (int)x, (int)y);
+            GridRegion regInfo = m_GridService.GetRegionByHandle(thisRegion.ScopeID, regionHandle);
             if ((regInfo != null) &&
                 // Don't remote-call this instance; that's a startup hickup
                 !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
@@ -87,13 +85,30 @@ namespace OpenSim.Services.Connectors
         public bool DoHelloNeighbourCall(GridRegion region, RegionInfo thisRegion)
         {
             string uri = region.ServerURI + "region/" + thisRegion.RegionID + "/";
-//            m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
+            //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
 
-            WebRequest helloNeighbourRequest;
-
+            byte[] buffer = null;
             try
             {
-                helloNeighbourRequest = WebRequest.Create(uri);
+                OSDMap args = thisRegion.PackRegionInfoData();
+                args["destination_handle"] = OSD.FromString(region.RegionHandle.ToString());
+                buffer = Util.UTF8NoBomEncoding.GetBytes(OSDParser.SerializeJsonString(args));
+            }
+            catch (Exception e)
+            {
+                m_log.Warn(string.Format(
+                    "[NEIGHBOUR SERVICES CONNECTOR]: PackRegionInfoData failed for HelloNeighbour from {0} to {1}.  Exception {2} ",
+                    thisRegion.RegionName, region.RegionName, e.Message), e);
+                return false;
+            }
+
+            if(buffer == null || buffer.Length == 0)
+                return false;
+
+            HttpWebRequest helloNeighbourRequest;
+            try
+            {
+                helloNeighbourRequest = (HttpWebRequest)WebRequest.Create(uri);
             }
             catch (Exception e)
             {
@@ -108,64 +123,23 @@ namespace OpenSim.Services.Connectors
             helloNeighbourRequest.ContentType = "application/json";
             helloNeighbourRequest.Timeout = 10000;
 
-            // Fill it in
-            OSDMap args = null;
             try
             {
-                args = thisRegion.PackRegionInfoData();
-            }
-            catch (Exception e)
-            {
-                m_log.Warn(string.Format(
-                    "[NEIGHBOUR SERVICES CONNECTOR]: PackRegionInfoData failed for HelloNeighbour from {0} to {1}.  Exception {2} ",
-                    thisRegion.RegionName, region.RegionName, e.Message), e);
-
-                return false;
-            }
-
-            // Add the regionhandle of the destination region
-            args["destination_handle"] = OSD.FromString(region.RegionHandle.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                buffer = Util.UTF8NoBomEncoding.GetBytes(strBuffer);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn(string.Format(
-                    "[NEIGHBOUR SERVICES CONNECTOR]: Exception thrown on serialization of HelloNeighbour from {0} to {1}.  Exception {2} ",
-                    thisRegion.RegionName, region.RegionName, e.Message), e);
-
-                return false;
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                helloNeighbourRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = helloNeighbourRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
+                helloNeighbourRequest.ContentLength = buffer.Length;
+                using (var os = helloNeighbourRequest.GetRequestStream())
+                    os.Write(buffer, 0, buffer.Length);
+                buffer = null;
                 //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
             }
-//            catch (Exception e)
+            // catch (Exception e)
             catch
             {
-//                m_log.WarnFormat(
-//                    "[NEIGHBOUR SERVICE CONNCTOR]: Unable to send HelloNeighbour from {0} to {1}.  Exception {2}{3}",
-//                    thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
+                //m_log.WarnFormat(
+                //    "[NEIGHBOUR SERVICE CONNCTOR]: Unable to send HelloNeighbour from {0} to {1}.  Exception {2}{3}",
+                //    thisRegion.RegionName, region.RegionName, e.Message, e.StackTrace);
 
                 return false;
             }
-            finally
-            {
-                if (os != null)
-                    os.Dispose();
-            }
-
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
 
@@ -173,34 +147,22 @@ namespace OpenSim.Services.Connectors
             {
                 using (WebResponse webResponse = helloNeighbourRequest.GetResponse())
                 {
-                    if (webResponse == null)
+                    using (StreamReader sr = new StreamReader(webResponse.GetResponseStream()))
                     {
-                        m_log.DebugFormat(
-                            "[NEIGHBOUR SERVICES CONNECTOR]: Null reply on DoHelloNeighbourCall post from {0} to {1}",
-                            thisRegion.RegionName, region.RegionName);
-                    }
-
-                    using (Stream s = webResponse.GetResponseStream())
-                    {
-                        using (StreamReader sr = new StreamReader(s))
-                        {
-                            sr.ReadToEnd(); // just try to read
-                            //reply = sr.ReadToEnd().Trim();
-                            //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
-                        }
+                        sr.ReadToEnd(); // just try to read
+                        //reply = sr.ReadToEnd().Trim();
+                        //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
                     }
                 }
+                return true;
             }
             catch (Exception e)
             {
                 m_log.Warn(string.Format(
                     "[NEIGHBOUR SERVICES CONNECTOR]: Exception on reply of DoHelloNeighbourCall from {0} back to {1}.  Exception {2} ",
                     region.RegionName, thisRegion.RegionName, e.Message), e);
-
-                return false;
             }
-
-            return true;
+            return false;
         }
     }
 }

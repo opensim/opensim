@@ -90,7 +90,7 @@ namespace OpenSim.Data.MySQL
             else
                 pattern = string.Format("Name LIKE '%{0}%'", MySqlHelper.EscapeString(pattern));
 
-            return m_Groups.Get(string.Format("ShowInList=1 AND ({0}) ORDER BY Name LIMIT 100", pattern));
+            return m_Groups.Get(string.Format("ShowInList=1 AND ({0})", pattern));
         }
 
         public bool DeleteGroup(UUID groupID)

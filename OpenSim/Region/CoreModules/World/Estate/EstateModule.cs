@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             // Instantiate the request handler
             IHttpServer server = MainServer.GetHttpServer(port);
-            server.AddStreamHandler(new EstateRequestHandler(this, token));
+            server.AddSimpleStreamHandler(new EstateSimpleRequestHandler(this, token));
         }
 
         public void PostInitialise()

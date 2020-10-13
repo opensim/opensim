@@ -191,11 +191,11 @@ namespace OpenSim.Region.CoreModules.Framework
 
             lock (m_capsObjects)
             {
-                if (m_capsObjects.ContainsKey(circuitCode))
+                if (m_capsObjects.TryGetValue(circuitCode, out Caps cp))
                 {
-                    m_capsObjects[circuitCode].DeregisterHandlers();
-                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsObjects[circuitCode]);
+                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, cp);
                     m_capsObjects.Remove(circuitCode);
+                    cp.Dispose();
                 }
                 else
                 {
@@ -203,9 +203,9 @@ namespace OpenSim.Region.CoreModules.Framework
                     {
                         if (kvp.Value.AgentID == agentId)
                         {
-                            kvp.Value.DeregisterHandlers();
                             m_scene.EventManager.TriggerOnDeregisterCaps(agentId, kvp.Value);
                             m_capsObjects.Remove(kvp.Key);
+                            kvp.Value.Dispose();
                             return;
                         }
                     }
@@ -339,8 +339,11 @@ namespace OpenSim.Region.CoreModules.Framework
             {
                 foreach (KeyValuePair<uint, Caps> kvp in m_capsObjects)
                 {
-                    capsReport.AppendFormat("** Circuit {0}:\n", kvp.Key);
                     Caps caps = kvp.Value;
+                    string name = string.Empty;
+                    if(m_scene.TryGetScenePresence(caps.AgentID, out ScenePresence sp) && sp!=null)
+                        name = sp.Name;
+                    capsReport.AppendFormat("** Circuit {0}; {1} {2}:\n", kvp.Key, caps.AgentID,name);
 
                     for (IDictionaryEnumerator kvp2 = caps.CapsHandlers.GetCapsDetails(false, null).GetEnumerator(); kvp2.MoveNext(); )
                     {

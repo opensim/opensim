@@ -79,10 +79,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
 
         }
 
-        public override double operate(double[,] map, TerrainModifierData data, int x, int y)
+        public override float operate(float[,] map, TerrainModifierData data, int x, int y)
         {
-            double factor = this.computeBevel(data, x, y);
-            double result = map[x, y] + (data.elevation - (data.elevation - data.bevelevation) * factor);
+            float factor = this.computeBevel(data, x, y);
+            float result = map[x, y] + (data.elevation - (data.elevation - data.bevelevation) * factor);
             return result;
         }
 

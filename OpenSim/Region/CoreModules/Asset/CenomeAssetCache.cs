@@ -208,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="asset">
         /// The asset that is being cached.
         /// </param>
-        public void Cache(AssetBase asset)
+        public void Cache(AssetBase asset, bool replace = true)
         {
             if (asset != null)
             {

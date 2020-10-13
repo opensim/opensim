@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Xml;
 
@@ -44,47 +45,61 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
     
 //    public class FriendsRequestHandler : BaseStreamHandlerBasicDOSProtector
-    public class FriendsRequestHandler : BaseStreamHandler
+    public class FriendsSimpleRequestHandler : SimpleStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private FriendsModule m_FriendsModule;
         /*
-                public FriendsRequestHandler(FriendsModule fmodule)
-                        : base("POST", "/friends", new BasicDosProtectorOptions()
-                                                  {
-                                                      AllowXForwardedFor = true,
-                                                      ForgetTimeSpan = TimeSpan.FromMinutes(2),
-                                                      MaxRequestsInTimeframe = 20,
-                                                      ReportingName = "FRIENDSDOSPROTECTOR",
-                                                      RequestTimeSpan = TimeSpan.FromSeconds(5),
-                                                      ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
-                                                  })
-        */
         public FriendsRequestHandler(FriendsModule fmodule)
-                : base("POST", "/friends")
+                : base("POST", "/friends", new BasicDosProtectorOptions()
+                                            {
+                                                AllowXForwardedFor = true,
+                                                ForgetTimeSpan = TimeSpan.FromMinutes(2),
+                                                MaxRequestsInTimeframe = 20,
+                                                ReportingName = "FRIENDSDOSPROTECTOR",
+                                                RequestTimeSpan = TimeSpan.FromSeconds(5),
+                                                ThrottledAction = BasicDOSProtector.ThrottleAction.DoThrottledMethod
+                                            })
+        */
+        public FriendsSimpleRequestHandler(FriendsModule fmodule) : base("/friends")
         {
             m_FriendsModule = fmodule;
         }
 
-        protected override byte[] ProcessRequest(
-            string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            string body;
-            using(StreamReader sr = new StreamReader(requestData))
-                body = sr.ReadToEnd();
+            if (m_FriendsModule == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
+                return;
+            }
 
-            body = body.Trim();
+            if (httpRequest.HttpMethod != "POST")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
 
+            httpResponse.KeepAlive = false;
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.ContentType = "text/xml";
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
 
             try
             {
-                Dictionary<string, object> request =
-                        ServerUtils.ParseQueryString(body);
+                string body;
+                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                    body = sr.ReadToEnd();
+
+                body = body.Trim();
+                Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
                 if (!request.ContainsKey("METHOD"))
-                    return FailureResult();
+                {
+                    httpResponse.RawBuffer = FailureResult();
+                    return;
+                }
 
                 string method = request["METHOD"].ToString();
                 request.Remove("METHOD");
@@ -92,25 +107,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 switch (method)
                 {
                     case "friendship_offered":
-                        return FriendshipOffered(request);
+                        httpResponse.RawBuffer = FriendshipOffered(request);
+                        return;
                     case "friendship_approved":
-                        return FriendshipApproved(request);
+                        httpResponse.RawBuffer = FriendshipApproved(request);
+                        return;
                     case "friendship_denied":
-                        return FriendshipDenied(request);
+                        httpResponse.RawBuffer = FriendshipDenied(request);
+                        return;
                     case "friendship_terminated":
-                        return FriendshipTerminated(request);
+                        httpResponse.RawBuffer = FriendshipTerminated(request);
+                        return;
                     case "grant_rights":
-                        return GrantRights(request);
+                        httpResponse.RawBuffer = GrantRights(request);
+                        return;
                     case "status":
-                        return StatusNotification(request);
+                        httpResponse.RawBuffer = StatusNotification(request);
+                        return;
                 }
             }
             catch (Exception e)
             {
                 m_log.Debug("[FRIENDS]: Exception {0}" + e.ToString());
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+
             }
 
-            return FailureResult();
+            httpResponse.RawBuffer = FailureResult();
         }
 
         byte[] FriendshipOffered(Dictionary<string, object> request)

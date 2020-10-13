@@ -115,7 +115,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     else
                         ResetDefaultAnimation();
                 }
-                else if (HasAnimation(animID))
+                else
                 {
                     for (int i = 0; i < m_animations.Count; i++)
                     {
@@ -171,9 +171,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                "[ANIMATION SET]: Setting default animation {0}, sequence number {1}, object id {2}",
 //                anim, sequenceNum, objectID);
 
-            if (DefaultAvatarAnimations.AnimsUUID.ContainsKey(anim))
+            if (DefaultAvatarAnimations.AnimsUUIDbyName.TryGetValue(anim, out UUID id))
             {
-                return SetDefaultAnimation(DefaultAvatarAnimations.AnimsUUID[anim], sequenceNum, objectID);
+                return SetDefaultAnimation(id, sequenceNum, objectID);
             }
             return false;
         }
@@ -182,9 +182,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                int j = 0;
-                if (m_defaultAnimation.AnimID != UUID.Zero)
-                    ++j;
+                int j = m_defaultAnimation.AnimID == UUID.Zero ? 0 : 1;
 
                 int defaultSize = m_animations.Count + j;
                 animIDs = new UUID[defaultSize];

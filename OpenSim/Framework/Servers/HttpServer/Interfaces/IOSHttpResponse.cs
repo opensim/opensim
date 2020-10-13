@@ -92,16 +92,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         Stream OutputStream { get; }
 
         string ProtocolVersion { get; set; }
+        int Priority { get; set; }
+        byte[] RawBuffer { get; set; }
+        int RawBufferStart { get; set; }
+        int RawBufferLen { get; set; }
 
         /// <summary>
         /// Return the output stream feeding the body.
         /// </summary>
         Stream Body { get; }
-
-        /// <summary>
-        /// Set a redirct location.
-        /// </summary>
-        string RedirectLocation { set; }
 
         /// <summary>
         /// Chunk transfers.
@@ -117,6 +116,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// HTTP status description.
         /// </summary>
         string StatusDescription { get; set; }
+
+        double RequestTS { get; }
 
         /// <summary>
         /// Add a header field and content to the response.

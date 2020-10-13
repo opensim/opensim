@@ -191,28 +191,24 @@ namespace OpenSim.Region.CoreModules.World.Estate
             try
             {
                 string url = "";
-                if(port != 0)
-                    url = "http://" + region.ExternalHostName + ":" + port + "/";
+                if(region.HttpPort != 0)
+                    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
                 else
                     url = region.ServerURI;
 
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                         url + "estate",
                         reqString);
+
                 if (reply != string.Empty)
                 {
-                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-                    if (replyData.ContainsKey("RESULT"))
+                    if (reply != string.Empty)
                     {
-                        if (replyData["RESULT"].ToString().ToLower() == "true")
+                        int indx = reply.IndexOf("true", StringComparison.InvariantCultureIgnoreCase);
+                        if (indx > 0)
                             return true;
-                        else
-                            return false;
+                        return false;
                     }
-                    else
-                        m_log.DebugFormat("[XESTATE CONNECTOR]: reply data does not contain result field");
-
                 }
                 else
                     m_log.DebugFormat("[XESTATE CONNECTOR]: received empty reply");

@@ -29,17 +29,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Text;
 
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
+
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -126,38 +129,33 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            string capUrl = "/CAPS/" + UUID.Random() + "/";
-
-            caps.RegisterHandler(
-                "EstateAccess",
-                new RestHTTPHandler(
-                    "GET",
-                    capUrl,
-                    httpMethod => ProcessRequest(httpMethod, agentID, caps),
-                    "EstateAccess",
-                    agentID.ToString())); ;
+            caps.RegisterSimpleHandler("EstateAccess",
+                new SimpleStreamHandler("/" + UUID.Random(),
+                delegate(IOSHttpRequest request, IOSHttpResponse response)
+                {
+                    ProcessRequest(request, response, agentID);
+                }));
         }
 
-        public Hashtable ProcessRequest(Hashtable request, UUID AgentId, Caps cap)
+        public void ProcessRequest(IOSHttpRequest request, IOSHttpResponse response, UUID AgentId)
         {
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 200; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-
-            ScenePresence avatar;
-            if (!m_scene.TryGetScenePresence(AgentId, out avatar))
+            if(request.HttpMethod != "GET")
             {
-                responsedata["str_response_string"] = "<llsd><array /></llsd>"; ;
-                responsedata["keepalive"] = false;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
             }
 
-            if (m_scene.RegionInfo == null 
-                || m_scene.RegionInfo.EstateSettings == null
-                ||!m_scene.Permissions.CanIssueEstateCommand(AgentId, false))
+            ScenePresence avatar;
+            if (!m_scene.TryGetScenePresence(AgentId, out avatar) || m_scene.RegionInfo == null || m_scene.RegionInfo.EstateSettings == null)
             {
-                responsedata["str_response_string"] = "<llsd><array /></llsd>"; ;
-                return responsedata;
+                response.StatusCode = (int)HttpStatusCode.Gone;
+                return;
+            }
+
+            if (!m_scene.Permissions.CanIssueEstateCommand(AgentId, false))
+            {
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                return;
             }
 
             EstateSettings regionSettings = m_scene.RegionInfo.EstateSettings;
@@ -166,77 +164,85 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID[] groups = regionSettings.EstateGroups;
             EstateBan[] EstateBans = regionSettings.EstateBans;
 
-            StringBuilder sb = LLSDxmlEncode.Start();
-            LLSDxmlEncode.AddMap(sb);
+            osUTF8 sb = LLSDxmlEncode2.Start();
+            LLSDxmlEncode2.AddMap(sb);
 
             if (allowed != null && allowed.Length > 0)
             {
-                LLSDxmlEncode.AddArray("AllowedAgents", sb);
+                LLSDxmlEncode2.AddArray("AllowedAgents", sb);
                 for (int i = 0; i < allowed.Length; ++i)
                 {
                     UUID id = allowed[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
+            else
+                LLSDxmlEncode2.AddEmptyArray("AllowedAgents", sb);
 
             if (groups != null && groups.Length > 0)
             {
-                LLSDxmlEncode.AddArray("AllowedGroups", sb);
+                LLSDxmlEncode2.AddArray("AllowedGroups", sb);
                 for (int i = 0; i < groups.Length; ++i)
                 {
                     UUID id = groups[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
+            else
+                LLSDxmlEncode2.AddEmptyArray("AllowedGroups", sb);
 
             if (EstateBans != null && EstateBans.Length > 0)
             {
-                LLSDxmlEncode.AddArray("BannedAgents", sb);
+                LLSDxmlEncode2.AddArray("BannedAgents", sb);
                 for (int i = 0; i < EstateBans.Length; ++i)
                 {
                     EstateBan ban = EstateBans[i];
                     UUID id = ban.BannedUserID;
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                        LLSDxmlEncode.AddElem("banning_id", ban.BanningUserID, sb);
-                        LLSDxmlEncode.AddElem("last_login_date", "na", sb); // We will not have this. This information is far at grid
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                        LLSDxmlEncode2.AddElem("banning_id", ban.BanningUserID, sb);
+                        LLSDxmlEncode2.AddElem("last_login_date", "na", sb); // We will not have this. This information is far at grid
                         if (ban.BanTime == 0)
-                            LLSDxmlEncode.AddElem("ban_date", "0000-00-00 00:00", sb);
+                            LLSDxmlEncode2.AddElem("ban_date", "0000-00-00 00:00", sb);
                         else
-                            LLSDxmlEncode.AddElem("ban_date", (Util.ToDateTime(ban.BanTime)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                            LLSDxmlEncode2.AddElem("ban_date", (Util.ToDateTime(ban.BanTime)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
+            else
+                LLSDxmlEncode2.AddEmptyArray("BannedAgents", sb);
 
             if (managers != null && managers.Length > 0)
             {
-                LLSDxmlEncode.AddArray("Managers", sb);
+                LLSDxmlEncode2.AddArray("Managers", sb);
                 for (int i = 0; i < managers.Length; ++i)
                 {
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("agent_id", managers[i], sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("agent_id", managers[i], sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
+            else
+                LLSDxmlEncode2.AddEmptyArray("Managers", sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
-            responsedata["str_response_string"] = LLSDxmlEncode.End(sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
-            return responsedata;
+            response.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
+            response.StatusCode = (int)HttpStatusCode.OK;
         }
     }
 }

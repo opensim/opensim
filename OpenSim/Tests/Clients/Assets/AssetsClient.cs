@@ -80,8 +80,6 @@ namespace OpenSim.Tests.Clients.AssetsClient
             ThreadPool.GetMinThreads(out max1, out max2);
             m_log.InfoFormat("[ASSET CLIENT]: Post set min threads = {1} - {2}", serverURI, max1, max2);
 
-            ServicePointManager.DefaultConnectionLimit = 12;
-
             AssetServicesConnector m_Connector = new AssetServicesConnector(serverURI);
             m_Connector.MaxAssetRequestConcurrency = 30;
 

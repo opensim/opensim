@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -96,11 +97,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const int DEBUG_CHANNEL = 2147483647;
+        private const int DEBUG_CHANNEL = 0x7fffffff;
 
         private ListenerManager m_listenerManager;
-        private Queue m_pending;
-        private Queue m_pendingQ;
+        private ConcurrentQueue<ListenerInfo> m_pending;
         private Scene m_scene;
         private int m_whisperdistance = 10;
         private int m_saydistance = 20;
@@ -131,6 +131,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             {
             }
 
+            m_whisperdistance *= m_whisperdistance;
+            m_saydistance *= m_saydistance;
+            m_shoutdistance *= m_shoutdistance;
+
             if (maxlisteners < 1)
                 maxlisteners = int.MaxValue;
             if (maxhandles < 1)
@@ -140,8 +144,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 maxlisteners = maxhandles;
 
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
-            m_pendingQ = new Queue();
-            m_pending = Queue.Synchronized(m_pendingQ);
+            m_pending = new ConcurrentQueue<ListenerInfo>();
         }
 
         public void PostInitialise()
@@ -315,46 +318,54 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             // m_log.DebugFormat("[WorldComm] got[2] type {0}, channel {1}, name {2}, id {3}, msg {4}",
             //                   type, channel, name, id, msg);
 
+            // validate type and set range
+            float maxDistanceSQ;
+            switch (type)
+            {
+                case ChatTypeEnum.Whisper:
+                    maxDistanceSQ = m_whisperdistance;
+                    break;
+
+                case ChatTypeEnum.Say:
+                    maxDistanceSQ = m_saydistance;
+                    break;
+
+                case ChatTypeEnum.Shout:
+                    maxDistanceSQ = m_shoutdistance;
+                    break;
+
+                case ChatTypeEnum.Region:
+                    maxDistanceSQ = -1f;
+                    break;
+
+                default:
+                    return;
+            }
+
             // Determine which listen event filters match the given set of arguments, this results
             // in a limited set of listeners, each belonging a host. If the host is in range, add them
             // to the pending queue.
 
-            foreach (ListenerInfo li
-                    in m_listenerManager.GetListeners(UUID.Zero, channel,
-                    name, id, msg))
+            UUID hostID;
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
             {
+                hostID = li.GetHostID();
                 // Dont process if this message is from yourself!
-                if (li.GetHostID().Equals(id))
+                if (id == hostID)
                     continue;
 
-                SceneObjectPart sPart = m_scene.GetSceneObjectPart(
-                        li.GetHostID());
+                if(maxDistanceSQ < 0)
+                {
+                    QueueMessage(new ListenerInfo(li, name, id, msg));
+                    continue;
+                }
+
+                SceneObjectPart sPart = m_scene.GetSceneObjectPart(hostID);
                 if (sPart == null)
                     continue;
 
-                double dis = Util.GetDistanceTo(sPart.AbsolutePosition,
-                        position);
-                switch (type)
-                {
-                    case ChatTypeEnum.Whisper:
-                        if (dis < m_whisperdistance)
-                            QueueMessage(new ListenerInfo(li, name, id, msg));
-                        break;
-
-                    case ChatTypeEnum.Say:
-                        if (dis < m_saydistance)
-                            QueueMessage(new ListenerInfo(li, name, id, msg));
-                        break;
-
-                    case ChatTypeEnum.Shout:
-                        if (dis < m_shoutdistance)
-                            QueueMessage(new ListenerInfo(li, name, id, msg));
-                        break;
-
-                    case ChatTypeEnum.Region:
-                        QueueMessage(new ListenerInfo(li, name, id, msg));
-                        break;
-                }
+                if(maxDistanceSQ > Vector3.DistanceSquared(sPart.AbsolutePosition, position))
+                    QueueMessage(new ListenerInfo(li, name, id, msg));
             }
         }
 
@@ -453,10 +464,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         protected void QueueMessage(ListenerInfo li)
         {
-            lock (m_pending.SyncRoot)
-            {
-                m_pending.Enqueue(li);
-            }
+            m_pending.Enqueue(li);
         }
 
         /// <summary>
@@ -474,13 +482,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <returns>ListenerInfo with filter filled in</returns>
         public IWorldCommListenerInfo GetNextMessage()
         {
-            ListenerInfo li = null;
-
-            lock (m_pending.SyncRoot)
-            {
-                li = (ListenerInfo)m_pending.Dequeue();
-            }
-
+            m_pending.TryDequeue(out ListenerInfo li);
             return li;
         }
 
@@ -520,8 +522,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
     public class ListenerManager
     {
-        private Dictionary<int, List<ListenerInfo>> m_listeners =
-                new Dictionary<int, List<ListenerInfo>>();
+        private object mainLock = new object();
+        private Dictionary<int, List<ListenerInfo>> m_listenersByChannel = new Dictionary<int, List<ListenerInfo>>();
         private int m_maxlisteners;
         private int m_maxhandles;
         private int m_curlisteners;
@@ -533,8 +535,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             get
             {
-                lock (m_listeners)
-                    return m_listeners.Count;
+                lock (mainLock)
+                    return m_listenersByChannel.Count;
             }
         }
 
@@ -557,8 +559,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 int regexBitfield)
         {
             // do we already have a match on this particular filter event?
-            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id,
-                    msg);
+            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
 
             if (coll.Count > 0)
             {
@@ -567,7 +568,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 return coll[0].GetHandle();
             }
 
-            lock (m_listeners)
+            lock (mainLock)
             {
                 if (m_curlisteners < m_maxlisteners)
                 {
@@ -579,12 +580,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                                 itemID, hostID, channel, name, id, msg,
                                 regexBitfield);
 
-                        List<ListenerInfo> listeners;
-                        if (!m_listeners.TryGetValue(
-                                channel, out listeners))
+                        if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
                         {
                             listeners = new List<ListenerInfo>();
-                            m_listeners.Add(channel, listeners);
+                            m_listenersByChannel.Add(channel, listeners);
                         }
                         listeners.Add(li);
                         m_curlisteners++;
@@ -598,20 +597,18 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public void Remove(UUID itemID, int handle)
         {
-            lock (m_listeners)
+            lock (mainLock)
             {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis
-                        in m_listeners)
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
                 {
                     foreach (ListenerInfo li in lis.Value)
                     {
-                        if (li.GetItemID().Equals(itemID) &&
-                                li.GetHandle().Equals(handle))
+                        if (handle == li.GetHandle() && itemID == li.GetItemID())
                         {
                             lis.Value.Remove(li);
                             m_curlisteners--;
                             if (lis.Value.Count == 0)
-                                m_listeners.Remove(lis.Key); // bailing of loop so this does not smoke
+                                m_listenersByChannel.Remove(lis.Key); // bailing of loop so this does not smoke
                             // there should be only one, so we bail out early
                             return;
                         }
@@ -625,53 +622,44 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             List<int> emptyChannels = new List<int>();
             List<ListenerInfo> removedListeners = new List<ListenerInfo>();
 
-            lock (m_listeners)
+            lock (mainLock)
             {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis
-                        in m_listeners)
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
                 {
                     foreach (ListenerInfo li in lis.Value)
                     {
-                        if (li.GetItemID().Equals(itemID))
-                        {
-                            // store them first, else the enumerated bails on
-                            // us
+                        if (itemID == li.GetItemID())
                             removedListeners.Add(li);
-                        }
                     }
+
                     foreach (ListenerInfo li in removedListeners)
                     {
                         lis.Value.Remove(li);
                         m_curlisteners--;
                     }
+
                     removedListeners.Clear();
                     if (lis.Value.Count == 0)
-                    {
-                        // again, store first, remove later
                         emptyChannels.Add(lis.Key);
-                    }
                 }
                 foreach (int channel in emptyChannels)
                 {
-                    m_listeners.Remove(channel);
+                    m_listenersByChannel.Remove(channel);
                 }
             }
         }
 
         public void Activate(UUID itemID, int handle)
         {
-            lock (m_listeners)
+            lock (mainLock)
             {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis
-                        in m_listeners)
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
                 {
                     foreach (ListenerInfo li in lis.Value)
                     {
-                        if (li.GetItemID().Equals(itemID) &&
-                                li.GetHandle() == handle)
+                        if (handle == li.GetHandle() && itemID == li.GetItemID())
                         {
                             li.Activate();
-                            // only one, bail out
                             return;
                         }
                     }
@@ -681,18 +669,15 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public void Dectivate(UUID itemID, int handle)
         {
-            lock (m_listeners)
+            lock (mainLock)
             {
-                foreach (KeyValuePair<int, List<ListenerInfo>> lis
-                        in m_listeners)
+                foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
                 {
                     foreach (ListenerInfo li in lis.Value)
                     {
-                        if (li.GetItemID().Equals(itemID) &&
-                                li.GetHandle() == handle)
+                        if (handle == li.GetHandle() && itemID == li.GetItemID())
                         {
                             li.Deactivate();
-                            // only one, bail out
                             return;
                         }
                     }
@@ -711,11 +696,11 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             List<int> handles = new List<int>();
 
             // build a list of used keys for this specific itemID...
-            foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listeners)
+            foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
             {
                 foreach (ListenerInfo li in lis.Value)
                 {
-                    if (li.GetItemID().Equals(itemID))
+                    if (itemID == li.GetItemID())
                         handles.Add(li.GetHandle());
                 }
             }
@@ -755,8 +740,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <remarks>
         /// Theres probably a more clever and efficient way to do this, maybe
         /// with regex.
-        /// PM2008: Ha, one could even be smart and define a specialized
-        /// Enumerator.
         /// </remarks>
         /// <param name="itemID"></param>
         /// <param name="channel"></param>
@@ -769,42 +752,52 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             List<ListenerInfo> collection = new List<ListenerInfo>();
 
-            lock (m_listeners)
+            lock (mainLock)
             {
                 List<ListenerInfo> listeners;
-                if (!m_listeners.TryGetValue(channel, out listeners))
+                if (!m_listenersByChannel.TryGetValue(channel, out listeners))
                 {
                     return collection;
                 }
 
+                bool itemIDNotZero = itemID != UUID.Zero;
                 foreach (ListenerInfo li in listeners)
                 {
                     if (!li.IsActive())
-                    {
                         continue;
+
+                    if (itemIDNotZero && itemID != li.GetItemID())
+                        continue;
+
+                    if (li.GetID() != UUID.Zero && id != li.GetID())
+                        continue;
+
+                    if (li.GetName().Length > 0)
+                    {
+                        if((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME)
+                        {
+                            if (!Regex.IsMatch(name, li.GetName()))
+                                continue;
+                        }
+                        else
+                        {
+                            if (!li.GetName().Equals(name))
+                                continue;
+                        }
                     }
-                    if (!itemID.Equals(UUID.Zero) &&
-                            !li.GetItemID().Equals(itemID))
+
+                    if (li.GetMessage().Length > 0)
                     {
-                        continue;
-                    }
-                    if (li.GetName().Length > 0 && (
-                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) != OS_LISTEN_REGEX_NAME && !li.GetName().Equals(name)) ||
-                        ((li.RegexBitfield & OS_LISTEN_REGEX_NAME) == OS_LISTEN_REGEX_NAME && !Regex.IsMatch(name, li.GetName()))
-                    ))
-                    {
-                        continue;
-                    }
-                    if (!li.GetID().Equals(UUID.Zero) && !li.GetID().Equals(id))
-                    {
-                        continue;
-                    }
-                    if (li.GetMessage().Length > 0 && (
-                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) != OS_LISTEN_REGEX_MESSAGE && !li.GetMessage().Equals(msg)) ||
-                        ((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE && !Regex.IsMatch(msg, li.GetMessage()))
-                    ))
-                    {
-                        continue;
+                        if((li.RegexBitfield & OS_LISTEN_REGEX_MESSAGE) == OS_LISTEN_REGEX_MESSAGE)
+                        {
+                            if(!Regex.IsMatch(msg, li.GetMessage()))
+                                continue;
+                        }
+                        else
+                        {
+                            if(!li.GetMessage().Equals(msg))
+                                continue;
+                        }
                     }
                     collection.Add(li);
                 }
@@ -816,9 +809,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             List<Object> data = new List<Object>();
 
-            lock (m_listeners)
+            lock (mainLock)
             {
-                foreach (List<ListenerInfo> list in m_listeners.Values)
+                foreach (List<ListenerInfo> list in m_listenersByChannel.Values)
                 {
                     foreach (ListenerInfo l in list)
                     {
@@ -846,14 +839,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 ListenerInfo info =
                         ListenerInfo.FromData(localID, itemID, hostID, item);
 
-                lock (m_listeners)
+                lock (mainLock)
                 {
-                    if (!m_listeners.ContainsKey((int)item[2]))
+                    if (!m_listenersByChannel.ContainsKey((int)item[2]))
                     {
-                        m_listeners.Add((int)item[2],
-                                new List<ListenerInfo>());
+                        m_listenersByChannel.Add((int)item[2], new List<ListenerInfo>());
                     }
-                    m_listeners[(int)item[2]].Add(info);
+                    m_listenersByChannel[(int)item[2]].Add(info);
                 }
 
                 idx += dataItemLength;

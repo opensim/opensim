@@ -80,7 +80,9 @@ namespace OpenSim.Server
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.DefaultConnectionLimit = 32;
+            ServicePointManager.MaxServicePointIdleTime = 30000;
+
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
@@ -157,12 +159,15 @@ namespace OpenSim.Server
                 if (parts.Length > 1)
                     friendlyName = parts[1];
 
-                IHttpServer server;
+                BaseHttpServer server;
 
                 if (port != 0)
-                    server = MainServer.GetHttpServer(port);
+                    server = (BaseHttpServer)MainServer.GetHttpServer(port);
                 else
                     server = MainServer.Instance;
+
+                if (friendlyName == "LLLoginServiceInConnector")
+                    server.AddSimpleStreamHandler(new IndexPHPHandler(server));
 
                 m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, server.Port);
 

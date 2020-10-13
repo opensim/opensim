@@ -81,8 +81,12 @@ namespace OpenSim.Tests
 
             ini = new IniConfigSource();
             config = ini.AddConfig("IncludeTest");
-            config.Set("Include-absolute", "absolute/*/config/*.ini");
-            config.Set("Include-relative", "../" + m_testSubdirectory + "/relative/*/config/*.ini");
+            config.Set("Include-absolute", "absolute/one/config/setting.ini");
+            config.Set("Include-absolute1", "absolute/two/config/setting1.ini");
+            config.Set("Include-absolute2", "absolute/two/config/setting2.ini");
+            config.Set("Include-relative", "../" + m_testSubdirectory + "/relative/one/config/setting.ini");
+            config.Set("Include-relative1", "../" + m_testSubdirectory + "/relative/two/config/setting1.ini");
+            config.Set("Include-relative2", "../" + m_testSubdirectory + "/relative/two/config/setting2.ini");
             CreateIni(mainIniFile, ini);
 
             ini = new IniConfigSource();
@@ -130,9 +134,6 @@ namespace OpenSim.Tests
             // Finally, we are able to check the result
             Assert.AreEqual(m_config.ToString(), source.Source.ToString(),
                 "Configuration with includes does not contain all settings.");
-            // The following would be preferable but fails due to a type mismatch which I am not able to resolve
-            //CollectionAssert.AreEquivalent(m_config.Configs, source.Source.Configs,
-            //    String.Format("Configuration with includes does not contain all settings.\nAll settings:\n{0}\nSettings read:\n{1}", m_config, source.Source));
         }
 
         private void CreateIni(string filepath, IniConfigSource source)

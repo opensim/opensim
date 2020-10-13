@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using HttpServer;
+using OSHttpServer;
 using log4net.Config;
 using Nini.Config;
 using NUnit.Framework;

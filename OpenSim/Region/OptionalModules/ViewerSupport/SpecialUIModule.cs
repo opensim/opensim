@@ -119,20 +119,18 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             m_log.DebugFormat("[SPECIAL UI]: OnSimulatorFeaturesRequest in {0}", m_scene.RegionInfo.RegionName);
             if (m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
-                OSDMap extrasMap;
+                OSD extrasMap;
                 OSDMap specialUI = new OSDMap();
                 using (StreamReader s = new StreamReader(Path.Combine(VIEWER_SUPPORT_DIR, "panel_toolbar.xml")))
                 {
-                    if (features.ContainsKey("OpenSimExtras"))
-                        extrasMap = (OSDMap)features["OpenSimExtras"];
-                    else
+                    if (!features.TryGetValue("OpenSimExtras", out extrasMap))
                     {
                         extrasMap = new OSDMap();
                         features["OpenSimExtras"] = extrasMap;
                     }
 
                     specialUI["toolbar"] = OSDMap.FromString(s.ReadToEnd());
-                    extrasMap["special-ui"] = specialUI;
+                    ((OSDMap)extrasMap)["special-ui"] = specialUI;
                 }
                 m_log.DebugFormat("[SPECIAL UI]: Sending panel_toolbar.xml in {0}", m_scene.RegionInfo.RegionName);
 

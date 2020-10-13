@@ -41,35 +41,34 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 
         #region ITerrainPaintableEffect Members
 
-        public void PaintEffect(ITerrainChannel map, bool[,] mask, double rx, double ry, double rz,
-            double strength, double duration, int startX, int endX, int startY, int endY)
+        public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
+            float size, float strength, int startX, int endX, int startY, int endY)
         {
-            strength = TerrainUtil.MetersToSphericalStrength(strength);
-            duration = 0.03; //MCP Should be read from ini file
-
-            if (duration > 1.0)
-                duration = 1.0;
-            if (duration < 0)
+             if (strength < 0)
                 return;
 
-            int x,y;
+            if (strength > 1.0f)
+                strength = 1.0f;
+
+            int x, y;
+            float distancefactor;
+            float dx2;
+
             for (x = startX; x <= endX; x++)
             {
+                dx2 = (x - rx) * (x - rx);
                 for (y = startY; y <= endY; y++)
                 {
                     if (!mask[x, y])
                         continue;
 
                     // Calculate a sphere and add it to the heighmap
-                    double z = strength;
-                    z *= z;
-                    z -= ((x - rx) * (x - rx)) + ((y - ry) * (y - ry));
+                    distancefactor = (dx2 + (y - ry) * (y - ry)) / size;
+                    if (distancefactor > 1.0f)
+                        continue;
 
-                    if (z > 0.0)
-                    {
-                        z *= duration;
-                        map[x, y] = (map[x, y] * (1.0 - z)) + (m_revertmap[x, y] * z);
-                    }
+                    distancefactor = strength * (1.0f - distancefactor);
+                    map[x, y] = (map[x, y] * (1.0f - distancefactor)) + (m_revertmap[x, y] * distancefactor);
                 }
             }
         }

@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.Net;
-using OpenSim.Framework.Client;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Agent.IPBan
@@ -41,43 +41,58 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
         // private SceneBase m_scene;
         public SceneBanner(SceneBase scene, List<string> banList)
         {
-            scene.EventManager.OnClientConnect += EventManager_OnClientConnect;
+            scene.EventManager.OnNewClient += EventManager_OnClientConnect;
 
             bans = banList;
             // m_scene = scene;
         }
 
-        void EventManager_OnClientConnect(IClientCore client)
+        void EventManager_OnClientConnect(IClientAPI client)
         {
             // Only need to run through all this if there are entries in the ban list
             if (bans.Count > 0)
             {
-                IClientIPEndpoint ipEndpoint;
-                if (client.TryGet(out ipEndpoint) && ipEndpoint.RemoteEndPoint != null)
+                IPAddress end = client.RemoteEndPoint.Address;
+                string endstr = end.ToString();
+                string hostName = null;
+                try
                 {
-                    IPAddress end = ipEndpoint.RemoteEndPoint.Address;
+                    IPHostEntry rDNS = Dns.GetHostEntry(end);
+                    hostName = rDNS.HostName;
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    //m_log.WarnFormat("[IPBAN] IP address \"{0}\" cannot be resolved via DNS", end);
+                    hostName = null;
+                }
 
-                    try
+                if(string.IsNullOrEmpty(hostName))
+                {
+                    // just try possible ip match
+                    foreach (string ban in bans)
                     {
-                        IPHostEntry rDNS = Dns.GetHostEntry(end);
-                        foreach (string ban in bans)
+                        if (endstr.StartsWith(ban))
                         {
-                            if (rDNS.HostName.Contains(ban) ||
-                                end.ToString().StartsWith(ban))
-                            {
-                                client.Disconnect("Banned - network \"" + ban + "\" is not allowed to connect to this server.");
-                                m_log.Warn("[IPBAN] Disconnected '" + end + "' due to '" + ban + "' ban.");
-                                return;
-                            }
+                            client.Disconnect("Banned - network \"" + ban + "\" is not allowed to connect to this server.");
+                            m_log.Warn("[IPBAN] Disconnected '" + end + "' due to '" + ban + "' ban.");
+                            return;
                         }
                     }
-                    catch (System.Net.Sockets.SocketException)
+                }
+                else
+                {
+                    foreach (string ban in bans)
                     {
-                        m_log.WarnFormat("[IPBAN] IP address \"{0}\" cannot be resolved via DNS", end);
+                        if (hostName.Contains(ban) || end.ToString().StartsWith(ban))
+                        {
+                            client.Disconnect("Banned - network \"" + ban + "\" is not allowed to connect to this server.");
+                            m_log.Warn("[IPBAN] Disconnected '" + end + "' due to '" + ban + "' ban.");
+                            return;
+                        }
                     }
-                    // m_log.DebugFormat("[IPBAN] User \"{0}\" not in any ban lists. Allowing connection.", end);
                 }
             }
+            // m_log.DebugFormat("[IPBAN] User \"{0}\" not in any ban lists. Allowing connection.", end);
         }
     }
 }

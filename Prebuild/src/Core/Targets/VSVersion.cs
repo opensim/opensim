@@ -58,10 +58,11 @@ namespace Prebuild.Core.Targets
 		/// Visual Studio 2013 
 		/// </summary>
 		VS12,
-        /// <summary>
-        /// Visual Studio 2015 
-        /// </summary>
-        VS15
-
+		/// <summary>
+		/// Visual Studio 2015 
+		/// </summary>
+		VS15,
+		VS17,
+		VS19
 	}
 }

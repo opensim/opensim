@@ -45,6 +45,57 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    public class RegionStatsSimpleHandler : SimpleStreamHandler
+    {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private string osXStatsURI = String.Empty;
+        //private string osSecret = String.Empty;
+        private OpenSim.Framework.RegionInfo regionInfo;
+        public string localZone = TimeZone.CurrentTimeZone.StandardName;
+        public TimeSpan utcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+
+        public RegionStatsSimpleHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
+        {
+            regionInfo = region_info;
+            osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
+        }
+
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        {
+            if (regionInfo == null)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
+                return;
+            }
+
+            if (httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(Report());
+        }
+
+        private string Report()
+        {
+            OSDMap args = new OSDMap(30);
+            //int time = Util.ToUnixTime(DateTime.Now);
+            args["OSStatsURI"] = OSD.FromString("http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");
+            args["TimeZoneName"] = OSD.FromString(localZone);
+            args["TimeZoneOffs"] = OSD.FromReal(utcOffset.TotalHours);
+            args["UxTime"] = OSD.FromInteger(Util.ToUnixTime(DateTime.Now));
+            args["Memory"] = OSD.FromReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0));
+            args["Version"] = OSD.FromString(VersionInfo.Version);
+
+            string strBuffer = "";
+            strBuffer = OSDParser.SerializeJsonString(args);
+
+            return strBuffer;
+         }
+    }
+
+    // legacy do not use. This will removed in future
     public class RegionStatsHandler : BaseStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -88,6 +139,6 @@ namespace OpenSim.Region.Framework.Scenes
             strBuffer = OSDParser.SerializeJsonString(args);
 
             return strBuffer;
-         }
+        }
     }
 }

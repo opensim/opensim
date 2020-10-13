@@ -26,14 +26,8 @@
  */
 
 using System;
-using System.Collections;
-using System.IO;
 using System.Reflection;
 using System.Net;
-using System.Text;
-
-using OpenSim.Server.Base;
-using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
@@ -41,94 +35,68 @@ using OpenSim.Framework.Servers.HttpServer;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-using Nini.Config;
 using log4net;
 
 
 namespace OpenSim.Server.Handlers.Simulation
 {
-    public class ObjectHandler
+    public class ObjectSimpleHandler : SimpleStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private ISimulationService m_SimulationService;
+        protected bool m_Proxy = false;
 
-        public ObjectHandler() { }
-
-        public ObjectHandler(ISimulationService sim)
+        public ObjectSimpleHandler(ISimulationService service) : base("/object")
         {
-            m_SimulationService = sim;
+            m_SimulationService = service;
         }
 
-        public Hashtable Handler(Hashtable request)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            //m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
+            httpResponse.KeepAlive = false;
 
-            //m_log.Debug("---------------------------");
-            //m_log.Debug(" >> uri=" + request["uri"]);
-            //m_log.Debug(" >> content-type=" + request["content-type"]);
-            //m_log.Debug(" >> http-method=" + request["http-method"]);
-            //m_log.Debug("---------------------------\n");
-
-            Culture.SetCurrentCulture();
-
-            Hashtable responsedata = new Hashtable();
-            responsedata["content_type"] = "text/html";
-
-            UUID objectID;
-            UUID regionID;
-            string action;
-            if (!Utils.GetParams((string)request["uri"], out objectID, out regionID, out action))
+            if (m_SimulationService == null)
             {
-                m_log.InfoFormat("[OBJECT HANDLER]: Invalid parameters for object message {0}", request["uri"]);
-                responsedata["int_response_code"] = 404;
-                responsedata["str_response_string"] = "false";
-
-                return responsedata;
-            }
-
-            try
-            {
-                // Next, let's parse the verb
-                string method = (string)request["http-method"];
-                if (method.Equals("POST"))
-                {
-                    DoObjectPost(request, responsedata, regionID);
-                    return responsedata;
-                }
-                //else if (method.Equals("DELETE"))
-                //{
-                //    DoObjectDelete(request, responsedata, agentID, action, regionHandle);
-                //    return responsedata;
-                //}
-                else
-                {
-                    m_log.InfoFormat("[OBJECT HANDLER]: method {0} not supported in object message", method);
-                    responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
-                    responsedata["str_response_string"] = "Method not allowed";
-
-                    return responsedata;
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[OBJECT HANDLER]: Caught exception {0}", e.StackTrace);
-                responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
-                responsedata["str_response_string"] = "Internal server error";
-
-                return responsedata;
-
-            }
-        }
-
-        protected void DoObjectPost(Hashtable request, Hashtable responsedata, UUID regionID)
-        {
-            OSDMap args = Utils.GetOSDMap((string)request["body"]);
-            if (args == null)
-            {
-                responsedata["int_response_code"] = 400;
-                responsedata["str_response_string"] = "false";
+                httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                httpResponse.RawBuffer = Util.UTF8.GetBytes("false");
                 return;
             }
+
+            /*this things are ignored
+            if (!Utils.GetParams(httpRequest.UriPath, out UUID objectID, out UUID regionID, out string action))
+            {
+                m_log.InfoFormat("[OBJECT HANDLER]: Invalid parameters for object message {0}", httpRequest.UriPath);
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+            */
+
+            switch (httpRequest.HttpMethod)
+            {
+                case "POST":
+                {
+                    OSDMap args = Utils.DeserializeOSMap(httpRequest);
+                    if (args == null)
+                    {
+                        httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
+                        httpResponse.RawBuffer = Util.UTF8.GetBytes("false");
+                        return;
+                    }
+                    DoObjectPost(args, httpResponse);
+                    break;
+                }
+                case "DELETE":
+                default:
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                    return;
+                }
+            }
+        }
+
+        protected void DoObjectPost(OSDMap args, IOSHttpResponse httpResponse)
+        {
             // retrieve the input arguments
             int x = 0, y = 0;
             UUID uuid = UUID.Zero;
@@ -169,8 +137,7 @@ namespace OpenSim.Server.Handlers.Simulation
             catch (Exception ex)
             {
                 m_log.InfoFormat("[OBJECT HANDLER]: exception on deserializing scene object {0}", ex.Message);
-                responsedata["int_response_code"] = HttpStatusCode.BadRequest;
-                responsedata["str_response_string"] = "Bad request";
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
 
@@ -205,10 +172,11 @@ namespace OpenSim.Server.Handlers.Simulation
             catch (Exception e)
             {
                 m_log.DebugFormat("[OBJECT HANDLER]: Exception in CreateObject: {0}", e.StackTrace);
+                result = false;
             }
 
-            responsedata["int_response_code"] = HttpStatusCode.OK;
-            responsedata["str_response_string"] = result.ToString();
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.RawBuffer = Util.UTF8.GetBytes(result.ToString());
         }
 
         // subclasses can override this

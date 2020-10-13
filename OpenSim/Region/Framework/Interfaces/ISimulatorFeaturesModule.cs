@@ -40,8 +40,10 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         event SimulatorFeaturesRequestDelegate OnSimulatorFeaturesRequest;
         void AddFeature(string name, OSD value);
+        void AddOpenSimExtraFeature(string name, OSD value);
         bool RemoveFeature(string name);
         bool TryGetFeature(string name, out OSD value);
+        bool TryGetOpenSimExtraFeature(string name, out OSD value);
         OSDMap GetFeatures();
     }
 }

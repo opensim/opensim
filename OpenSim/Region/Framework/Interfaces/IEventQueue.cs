@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using OpenMetaverse;
@@ -35,12 +36,49 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public struct GroupChatListAgentUpdateData
+    {
+        public UUID agentID;
+        public bool enterOrLeave; // true means enter
+        public bool isModerator;
+        public bool mutedText;
+        public bool canVoice;
+
+        public GroupChatListAgentUpdateData(UUID ID)
+        {
+            agentID = ID;
+            canVoice = false;
+            isModerator = false;
+            mutedText = false;
+            enterOrLeave = true;
+        }
+
+        public GroupChatListAgentUpdateData(UUID ID, bool eOL)
+        {
+            agentID = ID;
+            canVoice = false;
+            isModerator = false;
+            mutedText = false;
+            enterOrLeave = eOL;
+        }
+
+        public GroupChatListAgentUpdateData(UUID ID, bool cv, bool isMod, bool mtd, bool eOrL)
+        {
+            agentID = ID;
+            enterOrLeave = eOrL;
+            isModerator = isMod;
+            mutedText = mtd;
+            canVoice = cv;
+        }
+    }
+
     public interface IEventQueue
     {
         bool Enqueue(OSD o, UUID avatarID);
+        bool Enqueue(byte[] o, UUID avatarID);
+        bool Enqueue(osUTF8 o, UUID avatarID);
 
-        // These are required to decouple Scenes from EventQueueHelper
-//        void DisableSimulator(ulong handle, UUID avatarID);
+        //        void DisableSimulator(ulong handle, UUID avatarID);
         void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY);
         void EstablishAgentCommunication(UUID avatarID, IPEndPoint endPoint,
                                          string capsPath, ulong regionHandle, int regionSizeX, int regionSizeY);
@@ -56,16 +94,20 @@ namespace OpenSim.Region.Framework.Interfaces
                                 UUID fromAgent, string message, UUID toAgent, string fromName, byte dialog,
                                 uint timeStamp, bool offline, int parentEstateID, Vector3 position,
                                 uint ttl, UUID transactionID, bool fromGroup, byte[] binaryBucket);
-        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID fromAgent, UUID anotherAgent,
-                                bool canVoiceChat, bool isModerator, bool textMute, bool isEnterorLeave);
+        void ChatterBoxSessionStartReply(UUID sessionID, string sessionName, int type,
+                                bool voiceEnabled, bool voiceModerated, UUID tmpSessionID,
+                                bool sucess, string error,
+                                UUID toAgent);
+        void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID toAgent, List<GroupChatListAgentUpdateData> updates);
         void ChatterBoxForceClose(UUID toAgent, UUID sessionID, string reason);
         //void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembershipData(UUID receiverAgent, GroupMembershipData[] data);
         void ScriptRunningEvent(UUID objectID, UUID itemID, bool running, UUID avatarID);
-        OSD BuildEvent(string eventName, OSD eventBody);
+        byte[] BuildEvent(string eventName, OSD eventBody);
         void partPhysicsProperties(uint localID, byte physhapetype, float density, float friction, float bounce, float gravmod, UUID avatarID);
-
-        StringBuilder StartEvent(string eventName);
-        string EndEvent(StringBuilder sb);
+        void WindlightRefreshEvent(int interpolate, UUID avatarID);
+        osUTF8 StartEvent(string eventName);
+        osUTF8 StartEvent(string eventName, int cap);
+        byte[] EndEventToBytes(osUTF8 sb);
     }
 }

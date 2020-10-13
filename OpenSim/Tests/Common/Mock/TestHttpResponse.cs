@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
-using HttpServer;
+using OSHttpServer;
 
 namespace OpenSim.Tests.Common
 {

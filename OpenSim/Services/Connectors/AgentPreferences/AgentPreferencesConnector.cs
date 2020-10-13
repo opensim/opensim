@@ -154,20 +154,10 @@ namespace OpenSim.Services.Connectors
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
-                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-                    if (replyData.ContainsKey("result"))
-                    {
-                        if (replyData["result"].ToString().ToLower() == "success")
-                            return true;
-                        else
-                            return false;
-                    }
-                    else
-                    {
-                        m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: StoreAgentPreferences reply data does not contain result field");
-                    }
-
+                    int indx = reply.IndexOf("success", StringComparison.InvariantCultureIgnoreCase);
+                    if (indx > 0)
+                        return true;
+                    return false;
                 }
                 else
                     m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: StoreAgentPreferences received empty reply");

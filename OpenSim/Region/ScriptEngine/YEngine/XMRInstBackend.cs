@@ -55,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void InitXMRLSLApi(XMRInstance i)
         {
-            acm = AsyncCommands;
+            acm = m_AsyncCommands;
             inst = i;
         }
 
@@ -76,6 +76,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public override void llDie()
         {
             inst.Die();
+        }
+
+        public void SetLSLTimer(double time)
+        {
+            m_timer = time;
+        }
+
+        public double getLSLTimer()
+        {
+            return(m_timer);
         }
 
         /**
@@ -218,6 +228,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // do not do llResetScript on entry
             if(eventCode == ScriptEventCode.state_entry && stateCode == 0)
                 return;
+
+            if (m_XMRLSLApi != null)
+                m_XMRLSLApi.llResetTime();
+
             // do clear the events queue on reset
             ClearQueue();
             //ClearQueueExceptLinkMessages();
@@ -260,8 +274,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                  // Say how long to sleep.
                 m_SleepUntil = DateTime.UtcNow + TimeSpan.FromMilliseconds(ms);
-
-                 // Don't wake on any events.
+                // Don't wake on any events.
                 m_SleepEventMask1 = 0;
                 m_SleepEventMask2 = 0;
             }
@@ -360,7 +373,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 for(lln = m_EventQueue.First; lln != null; lln = lln.Next)
                 {
                     evt = lln.Value;
-                    evc = (ScriptEventCode)Enum.Parse(typeof(ScriptEventCode), evt.EventName);
+                    m_eventCodeMap.TryGetValue(evt.EventName, out evc);
                     evc1 = (int)evc;
                     evc2 = evc1 - 32;
                     if((((uint)evc1 < (uint)32) && (((mask1 >> evc1) & 1) != 0)) ||
@@ -595,7 +608,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
             m_XMRLSLApi.acm.TimerPlugin.CreateFromData(m_LocalID, m_ItemID, UUID.Zero, timers);
 
-             // Tell whoever cares which event handlers the new state has.
+            // Tell whoever cares which event handlers the new state has.
+            m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(stateCode));
 
             // keep link messages

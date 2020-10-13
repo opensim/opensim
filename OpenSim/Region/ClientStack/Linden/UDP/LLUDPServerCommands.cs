@@ -222,7 +222,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
                 return;
 
-            m_console.Output("Throttles for {0}", null, m_udpServer.Scene.Name);
+            m_console.Output("Throttles for {0}", m_udpServer.Scene.Name);
             ConsoleDisplayList cdl = new ConsoleDisplayList();
             cdl.AddRow("Adaptive throttles", m_udpServer.ThrottleRates.AdaptiveThrottlesEnabled);
 
@@ -238,7 +238,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_console.Output(cdl.ToString());
 
-            m_console.Output("{0}\n", null, GetServerThrottlesReport(m_udpServer));
+            m_console.Output("{0}\n", GetServerThrottlesReport(m_udpServer));
         }
 
         private string GetServerThrottlesReport(LLUDPServer udpServer)
@@ -314,7 +314,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     MainConsole.Instance.Output(
                         "Data debug for {0} ({1}) set to {2} in {3}",
-                        null,
                         sp.Name, sp.IsChildAgent ? "child" : "root", level, m_udpServer.Scene.Name);
 
                     ((LLClientView)sp.ControllingClient).UDPClient.DebugDataOutLevel = level;
@@ -356,7 +355,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     MainConsole.Instance.Output(
                         "Throttle log level for {0} ({1}) set to {2} in {3}",
-                        null,
                         sp.Name, sp.IsChildAgent ? "child" : "root", level, m_udpServer.Scene.Name);
 
                     ((LLClientView)sp.ControllingClient).UDPClient.ThrottleDebugLevel = level;
@@ -403,7 +401,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         MainConsole.Instance.Output(
                             "Setting param {0} to {1} for {2} ({3}) in {4}",
-                            null,
                             param, newValue, sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
                         LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
@@ -427,7 +424,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         MainConsole.Instance.Output(
                             "Setting param {0} to {1} for {2} ({3}) in {4}",
-                            null,
                             param, newValue, sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
                         LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
@@ -449,7 +445,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         MainConsole.Instance.Output(
                             "Setting param {0} to {1} for {2} ({3}) in {4}",
-                            null,
                             param, newValue, sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
                         LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
@@ -489,7 +484,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_console.Output(
                         "Status for {0} ({1}) in {2}",
-                        null,
                         sp.Name, sp.IsChildAgent ? "child" : "root", m_udpServer.Scene.Name);
 
                     LLUDPClient udpClient = ((LLClientView)sp.ControllingClient).UDPClient;
@@ -510,7 +504,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (SceneManager.Instance.CurrentScene != null && SceneManager.Instance.CurrentScene != m_udpServer.Scene)
                 return;
 
-            m_console.Output("Debug settings for {0}", null, m_udpServer.Scene.Name);
+            m_console.Output("Debug settings for {0}", m_udpServer.Scene.Name);
             ConsoleDisplayList cdl = new ConsoleDisplayList();
 
             long maxSceneDripRate = (long)m_udpServer.Throttle.MaxDripRate;
@@ -561,7 +555,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            m_console.Output("{0} set to {1} in {2}", null, param, rawValue, m_udpServer.Scene.Name);
+            m_console.Output("{0} set to {1} in {2}", param, rawValue, m_udpServer.Scene.Name);
         }
 
 /* not in use, nothing to set/get from lludp
@@ -654,7 +648,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         MainConsole.Instance.Output(
                             "Packet debug for {0} clients set to {1} in {2}",
-                            null,
                             (setAll ? "all" : "future"), m_udpServer.DefaultClientPacketDebugLevel, m_udpServer.Scene.Name);
 
                         if (setAll)
@@ -663,7 +656,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                        {
                                 MainConsole.Instance.Output(
                                     "Packet debug for {0} ({1}) set to {2} in {3}",
-                                    null,
                                     sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_udpServer.Scene.Name);
 
                                 sp.ControllingClient.DebugPacketLevel = newDebug;
@@ -678,7 +670,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 MainConsole.Instance.Output(
                                     "Packet debug for {0} ({1}) set to {2} in {3}",
-                                    null,
                                     sp.Name, sp.IsChildAgent ? "child" : "root", newDebug, m_udpServer.Scene.Name);
 
                                 sp.ControllingClient.DebugPacketLevel = newDebug;
@@ -712,7 +703,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 MainConsole.Instance.Output(
                     "Adding packet {0} to {1} drop list for all connections in {2}",
-                    null,
                     direction, packetName, m_udpServer.Scene.Name);
 
                 m_udpServer.Scene.ForEachScenePresence(
@@ -731,7 +721,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 MainConsole.Instance.Output(
                     "Removing packet {0} from {1} drop list for all connections in {2}",
-                    null,
                     direction, packetName, m_udpServer.Scene.Name);
 
                 m_udpServer.Scene.ForEachScenePresence(
@@ -805,13 +794,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             MainConsole.Instance.Output(
-                "IN  LLUDP packet processing for {0} is {1}", null, m_udpServer.Scene.Name, m_udpServer.IsRunningInbound ? "enabled" : "disabled");
+                "IN  LLUDP packet processing for {0} is {1}", m_udpServer.Scene.Name, m_udpServer.IsRunningInbound ? "enabled" : "disabled");
 
             MainConsole.Instance.Output(
-                "OUT LLUDP packet processing for {0} is {1}", null, m_udpServer.Scene.Name, m_udpServer.IsRunningOutbound ? "enabled" : "disabled");
+                "OUT LLUDP packet processing for {0} is {1}", m_udpServer.Scene.Name, m_udpServer.IsRunningOutbound ? "enabled" : "disabled");
 
             MainConsole.Instance.Output(
-                "Packet debug level for new clients is {0}", null, m_udpServer.DefaultClientPacketDebugLevel);
+                "Packet debug level for new clients is {0}", m_udpServer.DefaultClientPacketDebugLevel);
         }
 
         private void HandleOqreCommand(string module, string[] args)
@@ -830,25 +819,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (subCommand == "stop")
             {
                 m_udpServer.OqrEngine.Stop();
-                MainConsole.Instance.Output("Stopped OQRE for {0}", null, m_udpServer.Scene.Name);
+                MainConsole.Instance.Output("Stopped OQRE for {0}", m_udpServer.Scene.Name);
             }
             else if (subCommand == "start")
             {
                 m_udpServer.OqrEngine.Start();
-                MainConsole.Instance.Output("Started OQRE for {0}", null, m_udpServer.Scene.Name);
+                MainConsole.Instance.Output("Started OQRE for {0}", m_udpServer.Scene.Name);
             }
             else if (subCommand == "status")
             {
-                MainConsole.Instance.Output("OQRE in {0}", null, m_udpServer.Scene.Name);
-                MainConsole.Instance.Output("Running: {0}", null, m_udpServer.OqrEngine.IsRunning);
+                MainConsole.Instance.Output("OQRE in {0}", m_udpServer.Scene.Name);
+                MainConsole.Instance.Output("Running: {0}", m_udpServer.OqrEngine.IsRunning);
                 MainConsole.Instance.Output(
                     "Requests waiting: {0}",
-                    null,
                     m_udpServer.OqrEngine.IsRunning ? m_udpServer.OqrEngine.JobsWaiting.ToString() : "n/a");
             }
             else
             {
-                MainConsole.Instance.Output("Unrecognized OQRE subcommand {0}", null, subCommand);
+                MainConsole.Instance.Output("Unrecognized OQRE subcommand {0}", subCommand);
             }
         }
     }

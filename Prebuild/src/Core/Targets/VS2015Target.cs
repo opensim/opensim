@@ -106,18 +106,25 @@ namespace Prebuild.Core.Targets
         {
             switch (frameworkVersion)
             {
-            case FrameworkVersion.v4_6_1:
-            case FrameworkVersion.v4_6:
-                return "ToolsVersion=\"14.0\"";
-            case FrameworkVersion.v4_5:
-                return "ToolsVersion=\"12.0\"";
-            case FrameworkVersion.v4_0:
-            case FrameworkVersion.v3_5:
-                return "ToolsVersion=\"4.0\"";
-            case FrameworkVersion.v3_0:
-                return "ToolsVersion=\"3.0\"";
-            default:
-                return "ToolsVersion=\"2.0\"";
+                case FrameworkVersion.v4_8:
+                case FrameworkVersion.v4_7_2:
+                case FrameworkVersion.v4_7_1:
+                case FrameworkVersion.v4_7:
+                case FrameworkVersion.v4_6_2:
+                case FrameworkVersion.v4_6_1:
+                case FrameworkVersion.v4_6:
+                    return "ToolsVersion=\"14.0\"";
+                case FrameworkVersion.v4_5_2:
+                    return "ToolsVersion=\"12.0\"";
+                case FrameworkVersion.v4_5_1:
+                case FrameworkVersion.v4_5:
+                case FrameworkVersion.v4_0:
+                case FrameworkVersion.v3_5:
+                    return "ToolsVersion=\"4.0\"";
+                case FrameworkVersion.v3_0:
+                    return "ToolsVersion=\"3.0\"";
+                default:
+                    return "ToolsVersion=\"2.0\"";
             }
         }
 

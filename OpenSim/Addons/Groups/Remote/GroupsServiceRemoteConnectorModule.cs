@@ -192,10 +192,10 @@ namespace OpenSim.Groups
             });
         }
 
-        public List<DirGroupsReplyData> FindGroups(string RequestingAgentID, string search)
+        public List<DirGroupsReplyData> FindGroups(string RequestingAgentIDstr, string search)
         {
             // TODO!
-            return m_GroupsService.FindGroups(RequestingAgentID, search);
+            return m_GroupsService.FindGroups(RequestingAgentIDstr, search);
         }
 
         public bool AddAgentToGroup(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, string token, out string reason)

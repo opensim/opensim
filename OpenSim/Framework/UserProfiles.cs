@@ -132,6 +132,7 @@ namespace OpenSim.Framework
         public Dictionary<UUID, string> classifiedsLists;
         public Dictionary<UUID, UserClassifiedAdd> classifieds;
         public UserProfileProperties props;
+        public GroupMembershipData[] avatarGroups;
         public string born;
         public byte[] membershipType;
         public uint flags;

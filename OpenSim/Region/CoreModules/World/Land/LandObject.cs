@@ -47,18 +47,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly string LogHeader = "[LAND OBJECT]";
 
+        protected const int GROUPMEMBERCACHETIMEOUT = 30000;  // cache invalidation after 30s
+
         private readonly int landUnit = 4;
 
         private int m_lastSeqId = 0;
         private int m_expiryCounter = 0;
 
         protected Scene m_scene;
-        protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
-        private Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
-        private object m_listTransactionsLock = new object();
+        protected readonly List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
+        private readonly Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
+        private readonly object m_listTransactionsLock = new object();
 
-        protected ExpiringCache<UUID, bool> m_groupMemberCache = new ExpiringCache<UUID, bool>();
-        protected TimeSpan m_groupMemberCacheTimeout = TimeSpan.FromSeconds(30);  // cache invalidation after 30 seconds
+        protected readonly ExpiringCacheOS<UUID, bool> m_groupMemberCache = new ExpiringCacheOS<UUID, bool>();
         IDwellModule m_dwellModule;
 
         private bool[,] m_landBitmap;
@@ -83,6 +84,46 @@ namespace OpenSim.Region.CoreModules.World.Land
             get { return m_landData; }
 
             set { m_landData = value; }
+        }
+
+        public UUID GlobalID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.GlobalID;
+            }
+        }
+
+        public UUID FakeID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.FakeID;
+            }
+        }
+
+        public UUID OwnerID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.OwnerID;
+            }
+        }
+
+        public UUID GroupID
+        {
+            get
+            {
+                return m_landData == null ? UUID.Zero : m_landData.GroupID;
+            }
+        }
+
+        public int LocalID
+        {
+            get
+            {
+                return m_landData == null ? -1 : m_landData.LocalID;
+            }
         }
 
         public IPrimCounts PrimCounts { get; set; }
@@ -121,6 +162,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return m_centerPoint;
             }
+        }
+
+        public ISceneObject[] GetSceneObjectGroups()
+        {
+            return primsOverMe.ToArray();
         }
 
         public Vector2? GetNearestPoint(Vector3 pos)
@@ -306,7 +352,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if(m_scene != null)
                  m_scene.EventManager.OnFrame -= OnFrame;
-            LandData = null;     
+            LandData = null;
         }
 
 
@@ -488,6 +534,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (!LandData.IsGroupOwned)
                 {
                     newData.GroupID = args.GroupID;
+                    if(newData.GroupID != LandData.GroupID)
+                        m_groupMemberCache.Clear();
 
                     allowedDelta |= (uint)(ParcelFlags.AllowDeedToGroup |
                             ParcelFlags.ContributeWithDeed |
@@ -541,26 +589,42 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.UseEstateVoiceChan);
             }
 
-            // don't allow passes on group owned until we can give money to groups
-            if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+            if(!m_scene.RegionInfo.EstateSettings.TaxFree)
             {
-                newData.PassHours = args.PassHours;
-                newData.PassPrice = args.PassPrice;
+                // don't allow passes on group owned until we can give money to groups
+                if (!newData.IsGroupOwned && m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandManagePasses, false))
+                {
+                    newData.PassHours = args.PassHours;
+                    newData.PassPrice = args.PassPrice;
 
-                allowedDelta |= (uint)ParcelFlags.UsePassList;
+                    allowedDelta |= (uint)ParcelFlags.UsePassList;
+                }
+
+                if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed, false))
+                {
+                    allowedDelta |= (uint)(ParcelFlags.UseAccessGroup |
+                            ParcelFlags.UseAccessList);
+                }
+
+                if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned, false))
+                {
+                    allowedDelta |= (uint)(ParcelFlags.UseBanList |
+                            ParcelFlags.DenyAnonymous |
+                            ParcelFlags.DenyAgeUnverified);
+                }
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageAllowed, false))
+            // enforce estate age and payinfo limitations
+            if (m_scene.RegionInfo.EstateSettings.DenyMinors)
             {
-                allowedDelta |= (uint)(ParcelFlags.UseAccessGroup |
-                        ParcelFlags.UseAccessList);
+                args.ParcelFlags |= (uint)ParcelFlags.DenyAgeUnverified;
+                allowedDelta |= (uint)ParcelFlags.DenyAgeUnverified;
             }
 
-            if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId, this, GroupPowers.LandManageBanned, false))
+            if (m_scene.RegionInfo.EstateSettings.DenyAnonymous)
             {
-                allowedDelta |= (uint)(ParcelFlags.UseBanList |
-                        ParcelFlags.DenyAnonymous |
-                        ParcelFlags.DenyAgeUnverified);
+                args.ParcelFlags |= (uint)ParcelFlags.DenyAnonymous;
+                allowedDelta |= (uint)ParcelFlags.DenyAnonymous;
             }
 
             if (allowedDelta != (uint)ParcelFlags.None)
@@ -598,10 +662,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             UUID previousOwner = LandData.OwnerID;
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-//            m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            SendLandUpdateToAvatarsOverMe(true);
-
-            if (sellObjects) SellLandObjects(previousOwner);
+            if (sellObjects)
+                SellLandObjects(previousOwner);
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
         }
 
         public void DeedToGroup(UUID groupID)
@@ -616,11 +679,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            SendLandUpdateToAvatarsOverMe(true);
         }
 
         public bool IsEitherBannedOrRestricted(UUID avatar)
         {
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return false;
+
             if (IsBannedFromLand(avatar))
             {
                 return true;
@@ -634,6 +699,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool CanBeOnThisLand(UUID avatar, float posHeight)
         {
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return true;
+
             if (posHeight < m_scene.LandChannel.BanLineSafeHeight && IsBannedFromLand(avatar))
             {
                 return false;
@@ -649,15 +717,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
             {
-                ScenePresence sp;
-                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                if (m_groupMemberCache.TryGetValue(avatar, out bool isMember))
                 {
-                    bool isMember;
-                    if (m_groupMemberCache.TryGetValue(avatar, out isMember))
-                    {
-                        m_groupMemberCache.Update(avatar, isMember, m_groupMemberCacheTimeout);
-                        return isMember;
-                    }
+                    m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
+                    return isMember;
+                }
+
+                if (!m_scene.TryGetScenePresence(avatar, out ScenePresence sp))
+                {
 
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
@@ -666,7 +733,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
                     if (membership == null || membership.Length == 0)
                     {
-                        m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                        m_groupMemberCache.Add(avatar, false, GROUPMEMBERCACHETIMEOUT);
                         return false;
                     }
 
@@ -674,15 +741,19 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (d.GroupID == LandData.GroupID)
                         {
-                            m_groupMemberCache.Add(avatar, true, m_groupMemberCacheTimeout);
+                            m_groupMemberCache.Add(avatar, true, GROUPMEMBERCACHETIMEOUT);
                             return true;
                         }
                     }
-                    m_groupMemberCache.Add(avatar, false, m_groupMemberCacheTimeout);
+                    m_groupMemberCache.Add(avatar, false, GROUPMEMBERCACHETIMEOUT);
                     return false;
                 }
-
-                return sp.ControllingClient.IsGroupMember(LandData.GroupID);
+                else
+                {
+                    isMember = sp.ControllingClient.IsGroupMember(LandData.GroupID);
+                    m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
+                    return isMember;
+                }
             }
             return false;
         }
@@ -690,6 +761,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool IsBannedFromLand(UUID avatar)
         {
             ExpireAccessList();
+
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // region access control only
+                return false;
 
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
@@ -718,8 +792,34 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+            if (m_scene.RegionInfo.EstateSettings.TaxFree) // estate access only
                 return false;
+
+            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) == 0)
+            {
+                bool adults = m_scene.RegionInfo.EstateSettings.DoDenyMinors &&
+                    (m_scene.RegionInfo.EstateSettings.DenyMinors || ((LandData.Flags & (uint)ParcelFlags.DenyAgeUnverified) != 0));
+                bool anonymous = m_scene.RegionInfo.EstateSettings.DoDenyAnonymous &&
+                    (m_scene.RegionInfo.EstateSettings.DenyAnonymous || ((LandData.Flags & (uint)ParcelFlags.DenyAnonymous) != 0));
+                if(adults || anonymous)
+                {
+                    int userflags;
+                    if(m_scene.TryGetScenePresence(avatar, out ScenePresence snp))
+                    {
+                        if(snp.IsNPC)
+                            return false;
+                        userflags = snp.UserFlags;
+                    }
+                    else
+                        userflags = m_scene.GetUserFlags(avatar);
+
+                    if(adults && ((userflags & 32) == 0))
+                        return true;
+                    if(anonymous && ((userflags & 4) == 0))
+                        return true;
+                }
+                return false;
+            }
 
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
@@ -797,6 +897,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             m_scene.ForEachRootScenePresence(delegate(ScenePresence avatar)
             {
+                if (avatar.IsNPC)
+                    return;
+
                 ILandObject over = null;
                 try
                 {
@@ -823,6 +926,49 @@ namespace OpenSim.Region.CoreModules.World.Land
                         avatar.currentParcelUUID = LandData.GlobalID;
                     }
                 }
+            });
+        }
+
+        public void SendLandUpdateToAvatars()
+        {
+            m_scene.ForEachScenePresence(delegate (ScenePresence avatar)
+            {
+                if (avatar.IsNPC)
+                    return;
+
+                if(avatar.IsChildAgent)
+                {
+                    SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
+                    return;
+                }
+                ILandObject over = null;
+                try
+                {
+                    over =
+                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.X), 0, ((int)m_scene.RegionInfo.RegionSizeX - 1)),
+                                                        Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.Y), 0, ((int)m_scene.RegionInfo.RegionSizeY - 1)));
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " +
+                            Math.Round(avatar.AbsolutePosition.Y));
+                }
+
+                if (over != null)
+                {
+                    if (over.LandData.LocalID == LandData.LocalID)
+                    {
+                        if (m_scene.RegionInfo.RegionSettings.AllowDamage)
+                            avatar.Invulnerable = false;
+                        else
+                            avatar.Invulnerable = (over.LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
+
+                        avatar.currentParcelUUID = LandData.GlobalID;
+                        SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
+                        return;
+                    }
+                }
+                SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
             });
         }
 
@@ -1020,11 +1166,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             int regionSizeX = (int)Constants.RegionSize;
             int regionSizeY = (int)Constants.RegionSize;
+            ulong regionHandle;
 
             if(m_scene != null)
             {
-                regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
-                regionSizeY = (int)m_scene.RegionInfo.RegionSizeX;
+                RegionInfo ri = m_scene.RegionInfo;
+                regionSizeX = (int)ri.RegionSizeX;
+                regionSizeY = (int)ri.RegionSizeY;
+                regionHandle = ri.RegionHandle;
+                //create a fake ID
+                LandData.FakeID = Util.BuildFakeParcelID(regionHandle, (uint)(lastX * landUnit), (uint)(lastY * landUnit));
             }
 
             int tx = min_x * landUnit;
@@ -1095,14 +1246,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true)
         {
-            // Empty bitmap for the whole region
-            bool[,] tempBitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
-            tempBitmap.Initialize();
-
-            // Fill the bitmap square area specified by state and end
-            tempBitmap = ModifyLandBitmapSquare(tempBitmap, start_x, start_y, end_x, end_y, set_value);
-            // m_log.DebugFormat("{0} GetSquareLandBitmap. tempBitmapSize=<{1},{2}>",
-            //                         LogHeader, tempBitmap.GetLength(0), tempBitmap.GetLength(1));
+            bool[,] tempBitmap = ModifyLandBitmapSquare(null, start_x, start_y, end_x, end_y, set_value);
             return tempBitmap;
         }
 
@@ -1119,18 +1263,26 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y,
                                               bool set_value)
         {
-            int x, y;
-            for (y = 0; y < land_bitmap.GetLength(1); y++)
+            if(land_bitmap == null)
             {
-                for (x = 0; x < land_bitmap.GetLength(0); x++)
+                land_bitmap = new bool[m_scene.RegionInfo.RegionSizeX / landUnit, m_scene.RegionInfo.RegionSizeY / landUnit];
+                if(!set_value)
+                    return land_bitmap;
+            }
+
+            start_x /= landUnit;
+            end_x /= landUnit;
+            start_y /= landUnit;
+            end_y /= landUnit;
+
+            for (int x = start_x; x < end_x; ++x)
+            {
+                for (int y = start_y; y < end_y; ++y)
                 {
-                    if (x >= start_x / landUnit && x < end_x / landUnit
-                        && y >= start_y / landUnit && y < end_y / landUnit)
-                    {
-                        land_bitmap[x, y] = set_value;
-                    }
+                    land_bitmap[x, y] = set_value;
                 }
             }
+
             // m_log.DebugFormat("{0} ModifyLandBitmapSquare. startXY=<{1},{2}>, endXY=<{3},{4}>, val={5}, landBitmapSize=<{6},{7}>",
             //                         LogHeader, start_x, start_y, end_x, end_y, set_value, land_bitmap.GetLength(0), land_bitmap.GetLength(1));
             return land_bitmap;
@@ -1177,7 +1329,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        public bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        public bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow)
         {
             // get the size of the incoming bitmap
             int baseX = bitmap_base.GetLength(0);
@@ -1276,10 +1428,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             //                            baseX, baseY, dispX, dispY, radianRotation, offsetX, offsetY, startX, startY, endX, endY, cosR, sinR, newX, newY);
 
             isEmptyNow = true;
-            int minX = newX;
-            int minY = newY;
-            int maxX = 0;
-            int maxY = 0;
 
             int dx, dy;
             for (y = startY; y < endY; y++)
@@ -1296,10 +1444,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                             {
                                 bitmap_new[dx, dy] = true;
                                 isEmptyNow = false;
-                                if (dx < minX) minX = dx;
-                                if (dy < minY) minY = dy;
-                                if (dx > maxX) maxX = dx;
-                                if (dy > maxY) maxY = dy;
                             }
                         }
                         catch (Exception)   //just in case we've still not taken care of every way the arrays might go out of bounds! ;)
@@ -1309,15 +1453,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
             }
-            if (isEmptyNow)
-            {
-                //m_log.DebugFormat("{0} RemapLandBitmap: Land bitmap is marked as Empty", LogHeader);
-                minX = 0;
-                minY = 0;
-            }
-
-            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
-            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
             return bitmap_new;
         }
 
@@ -1331,7 +1466,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        public bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax)
+        public bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow)
         {
             // get the size of the incoming bitmaps
             int baseX = bitmap_base.GetLength(0);
@@ -1346,10 +1481,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             isEmptyNow = true;
-            int minX = baseX;
-            int minY = baseY;
-            int maxX = 0;
-            int maxY = 0;
 
             for (int x = 0; x < baseX; x++)
             {
@@ -1359,21 +1490,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     if (bitmap_base[x, y])
                     {
                         isEmptyNow = false;
-                        if (x < minX) minX = x;
-                        if (y < minY) minY = y;
-                        if (x > maxX) maxX = x;
-                        if (y > maxY) maxY = y;
                     }
                 }
             }
-            if (isEmptyNow)
-            {
-                //m_log.DebugFormat("{0} RemoveFromLandBitmap: Land bitmap is marked as Empty", LogHeader);
-                minX = 0;
-                minY = 0;
-            }
-            AABBMin = new Vector3(minX * landUnit, minY * landUnit, 0);
-            AABBMax = new Vector3(maxX * landUnit, maxY * landUnit, 0);
             return bitmap_base;
         }
 
@@ -1661,7 +1780,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 foreach (SceneObjectGroup obj in primsOverMe)
                 {
                     if(m_scene.Permissions.CanSellObject(previousOwner,obj, (byte)SaleType.Original))
-                        m_BuySellModule.BuyObject(sp.ControllingClient, UUID.Zero, obj.LocalId, 1, 0);
+                        m_BuySellModule.BuyObject(sp.ControllingClient, UUID.Zero, obj.LocalId, (byte)SaleType.Original, 0);
                 }
             }
         }
@@ -1787,7 +1906,21 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="url"></param>
         public void SetMediaUrl(string url)
         {
-            LandData.MediaURL = url;
+            if (String.IsNullOrWhiteSpace(url))
+                LandData.MediaURL = String.Empty;
+            else
+            {
+                try
+                {
+                    Uri dummmy = new Uri(url, UriKind.Absolute);
+                    LandData.MediaURL = url;
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[LAND OBJECT]: SetMediaUrl error: {0}", e.Message);
+                    return;
+                }
+            }
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
             SendLandUpdateToAvatarsOverMe();
         }
@@ -1798,7 +1931,21 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="url"></param>
         public void SetMusicUrl(string url)
         {
-            LandData.MusicURL = url;
+            if (String.IsNullOrWhiteSpace(url))
+                LandData.MusicURL =  String.Empty;
+            else
+            {
+                try
+                {
+                    Uri dummmy = new Uri(url, UriKind.Absolute);
+                    LandData.MusicURL = url;
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[LAND OBJECT]: SetMusicUrl error: {0}", e.Message);
+                    return;
+                }
+            }
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
             SendLandUpdateToAvatarsOverMe();
         }
@@ -1885,6 +2032,24 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (delete.Count > 0)
                 m_scene.EventManager.TriggerLandObjectUpdated((uint)LandData.LocalID, this);
+        }
+
+        public void StoreEnvironment(ViewerEnvironment VEnv)
+        {
+            int lastVersion = LandData.EnvironmentVersion;
+            LandData.Environment = VEnv;
+            if (VEnv == null)
+                LandData.EnvironmentVersion = -1;
+            else
+            {
+                ++LandData.EnvironmentVersion;
+                VEnv.version = LandData.EnvironmentVersion;
+            }
+            if(lastVersion != LandData.EnvironmentVersion)
+            {
+                m_scene.LandChannel.UpdateLandObject(LandData.LocalID, LandData);
+                SendLandUpdateToAvatarsOverMe();
+            }
         }
     }
 }

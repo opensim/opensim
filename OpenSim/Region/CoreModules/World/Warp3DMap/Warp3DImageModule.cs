@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         internal IJ2KDecoder m_imgDecoder;
 
         // caches per rendering 
-        private Dictionary<string, warp_Texture> m_warpTextures = new Dictionary<string, warp_Texture>();
+        private Dictionary<UUID, warp_Texture> m_warpTextures = new Dictionary<UUID, warp_Texture>();
         private Dictionary<UUID, int> m_colors = new Dictionary<UUID, int>();
 
         private IConfigSource m_config;
@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             float waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f);
+            renderer.AddPlane("Water", m_scene.RegionInfo.RegionSizeX * 0.5f, false);
             renderer.Scene.sceneobject("Water").setPos(m_scene.RegionInfo.RegionSizeX * 0.5f,
                                                        waterHeight,
                                                        m_scene.RegionInfo.RegionSizeY * 0.5f);
@@ -518,13 +518,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 if (omvPrim.Sculpt != null && omvPrim.Sculpt.SculptTexture != UUID.Zero)
                 {
                     // Try fetchinng the asset
-                    byte[] sculptAsset = m_scene.AssetService.GetData(omvPrim.Sculpt.SculptTexture.ToString());
+                    AssetBase sculptAsset = m_scene.AssetService.Get(omvPrim.Sculpt.SculptTexture.ToString());
                     if (sculptAsset != null)
                     {
                         // Is it a mesh?
                         if (omvPrim.Sculpt.Type == SculptType.Mesh)
                         {
-                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset);
+                            AssetMesh meshAsset = new AssetMesh(omvPrim.Sculpt.SculptTexture, sculptAsset.Data);
                             FacetedMesh.TryDecodeFromAsset(omvPrim, meshAsset, lod, out renderMesh);
                             meshAsset = null;
                         }
@@ -532,7 +532,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         {
                             if (m_imgDecoder != null)
                             {
-                                Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset);
+                                Image sculpt = m_imgDecoder.DecodeToImage(sculptAsset.Data);
                                 if (sculpt != null)
                                 {
                                     renderMesh = m_primMesher.GenerateFacetedSculptMesh(omvPrim, (Bitmap)sculpt, lod);
@@ -784,29 +784,27 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Texture ret = null;
             if (id == UUID.Zero)
                 return ret;
-
-            if (m_warpTextures.TryGetValue(id.ToString(), out ret))
+            if (m_warpTextures.TryGetValue(id, out ret))
                 return ret;
 
-            byte[] asset = m_scene.AssetService.GetData(id.ToString());
-
+            AssetBase asset = m_scene.AssetService.Get(id.ToString());
             if (asset != null)
             {
                 try
                 {
-                    using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset))
+                    using (Bitmap img = (Bitmap)m_imgDecoder.DecodeToImage(asset.Data))
                         ret = new warp_Texture(img, 8); // reduce textures size to 256x256
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[Warp3D]: Failed to decode texture {0} for prim {1} at {2}, exception {3} ", id.ToString(), sop.Name, sop.GetWorldPosition().ToString(), e.Message);
+                    m_log.WarnFormat("[Warp3D]: Failed to decode texture {0} for prim {1} at {2}, exception {3}", id.ToString(), sop.Name, sop.GetWorldPosition().ToString(), e.Message);
                 }
             }
             else
                 m_log.WarnFormat("[Warp3D]: missing texture {0} data for prim {1} at {2}",
                     id.ToString(), sop.Name, sop.GetWorldPosition().ToString());
 
-            m_warpTextures[id.ToString()] = ret;
+            m_warpTextures[id] = ret;
             return ret;
         }
 

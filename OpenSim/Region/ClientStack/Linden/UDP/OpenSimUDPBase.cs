@@ -192,6 +192,7 @@ namespace OpenMetaverse
                     m_udpBuffersPool[m_udpBuffersPoolPtr] = null;
                     m_udpBuffersPoolPtr--;
                     buf.RemoteEndPoint = remoteEndpoint;
+                    buf.DataLength = 0;
                     return buf;
                 }
             }
@@ -202,10 +203,13 @@ namespace OpenMetaverse
         {
             lock (m_udpBuffersPoolLock)
             {
+                if(buf.DataLength < 0)
+                    return; // avoid duplicated free that may still happen
+
                 if (m_udpBuffersPoolPtr < 999)
                 {
                     buf.RemoteEndPoint = null;
-                    buf.DataLength = 0;
+                    buf.DataLength = -1;
                     m_udpBuffersPoolPtr++;
                     m_udpBuffersPool[m_udpBuffersPoolPtr] = buf;
                 }
@@ -258,18 +262,7 @@ namespace OpenMetaverse
 
                 try
                 {
-                    // This udp socket flag is not supported under mono,
-                    // so we'll catch the exception and continue
-                    // Try does not protect some mono versions on mac
-                    if(Util.IsWindows())
-                    {
-                        m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
-                        m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag set");
-                    }               
-                    else
-                    {
-                        m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
-                    }
+                    m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
                 }
                 catch
                 {

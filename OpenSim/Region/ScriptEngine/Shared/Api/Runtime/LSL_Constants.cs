@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     public partial class ScriptBaseClass
     {
         // SCRIPTS CONSTANTS
-        public static readonly LSLInteger OS_APIVERSION = 8;
+        public static readonly LSLInteger OS_APIVERSION = 15;
 
         public static readonly LSLInteger TRUE = 1;
         public static readonly LSLInteger FALSE = 0;
@@ -218,6 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int INVENTORY_BODYPART = 13;
         public const int INVENTORY_ANIMATION = 20;
         public const int INVENTORY_GESTURE = 21;
+        public const int INVENTORY_SETTING = 56;
 
         public const int ATTACH_CHEST = 1;
         public const int ATTACH_HEAD = 2;
@@ -535,11 +536,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int MASK_EVERYONE = 3;
         public const int MASK_NEXT = 4;
 
-        public const int PERM_TRANSFER = 8192;
-        public const int PERM_MODIFY = 16384;
-        public const int PERM_COPY = 32768;
-        public const int PERM_MOVE = 524288;
-        public const int PERM_ALL = 2147483647;
+        public const int PERM_TRANSFER = 0x2000;
+        public const int PERM_MODIFY = 0x4000;
+        public const int PERM_COPY = 0x8000;
+        public const int PERM_MOVE = 0x80000;
+        public const int PERM_ALL = 0x7fffffff;
 
         public const int PARCEL_MEDIA_COMMAND_STOP = 0;
         public const int PARCEL_MEDIA_COMMAND_PAUSE = 1;
@@ -664,6 +665,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int OBJECT_GROUP_TAG = 33;
         public const int OBJECT_TEMP_ATTACHED = 34;
         public const int OBJECT_ATTACHED_SLOTS_AVAILABLE = 35;
+        public const int OBJECT_CREATION_TIME = 36;
+        public const int OBJECT_SELECT_COUNT = 37;
+        public const int OBJECT_SIT_COUNT = 38;
+        public const int OBJECT_ANIMATED_COUNT = 39;
+        public const int OBJECT_ANIMATED_SLOTS_AVAILABLE = 40;
+
 
         // Pathfinding types
         //ApiDesc not supported
@@ -964,5 +971,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string IMG_USE_BAKED_AUX1    = "9742065b-19b5-297c-858a-29711d539043";
         public const string IMG_USE_BAKED_AUX2    = "03642e83-2bd1-4eb9-34b4-4c47ed586d2d";
         public const string IMG_USE_BAKED_AUX3    = "edd51b77-fc10-ce7a-4b3d-011dfc349e4f";
+
+        // llTargetedEmail
+        public const int TARGETED_EMAIL_ROOT_CREATOR = 1;
+        public const int TARGETED_EMAIL_OBJECT_OWNER = 2;
     }
 }

@@ -50,11 +50,11 @@ namespace OpenSim.Region.CoreModules.Terrain.Tests
 
             // Fillheight of 30
             {
-                double fillHeight = 30;
+                float fillHeight = 30;
 
                 tm.InterfaceFillTerrain(new object[] { fillHeight });
 
-                double height = scene.Heightmap[128, 128];
+                float height = scene.Heightmap[128, 128];
 
                 Assert.AreEqual(fillHeight, height);
             }
@@ -62,11 +62,11 @@ namespace OpenSim.Region.CoreModules.Terrain.Tests
             // Max fillheight of 30
             // According to http://wiki.secondlife.com/wiki/Tips_for_Creating_Heightfields_and_Details_on_Terrain_RAW_Files#Notes_for_Creating_Height_Field_Maps_for_Second_Life
             {
-                double fillHeight = 508;
+                float fillHeight = 508;
 
                 tm.InterfaceFillTerrain(new object[] { fillHeight });
 
-                double height = scene.Heightmap[128, 128];
+                float height = scene.Heightmap[128, 128];
 
                 Assert.AreEqual(fillHeight, height);
             }

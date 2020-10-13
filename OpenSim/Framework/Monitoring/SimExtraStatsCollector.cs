@@ -435,21 +435,19 @@ Asset service request failures: {3}" + Environment.NewLine,
             // Get the amount of physical memory, allocated with the instance of this program, in kilobytes;
             // the working set is the set of memory pages currently visible to this program in physical RAM
             // memory and includes both shared (e.g. system libraries) and private data
-            double memUsage = Process.GetCurrentProcess().WorkingSet64 / 1024.0;
-
-            // Get the number of threads from the system that are currently
-            // running
             int numberThreadsRunning = 0;
-            foreach (ProcessThread currentThread in
-                Process.GetCurrentProcess().Threads)
+            double memUsage = 0;
+            using(Process p = Process.GetCurrentProcess())
             {
-                // A known issue with the current process .Threads property is
-                // that it can return null threads, thus don't count those as
-                // running threads and prevent the program function from failing
-                if (currentThread != null &&
-                    currentThread.ThreadState == ThreadState.Running)
+                memUsage = p.WorkingSet64 / 1024.0;
+
+                // Get the number of threads from the system that are currently
+                // running
+                
+                foreach (ProcessThread currentThread in p.Threads)
                 {
-                    numberThreadsRunning++;
+                    if (currentThread != null && currentThread.ThreadState == ThreadState.Running)
+                        numberThreadsRunning++;
                 }
             }
 

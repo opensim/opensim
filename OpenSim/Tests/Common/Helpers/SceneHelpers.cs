@@ -152,6 +152,8 @@ namespace OpenSim.Tests.Common
             regInfo.RegionID = id;
             regInfo.RegionSizeX = sizeX;
             regInfo.RegionSizeY = sizeY;
+            regInfo.ServerURI = "http://127.0.0.1:9000/";
+
 
             TestScene testScene = new TestScene(
                 regInfo, m_acm, SimDataService, m_estateDataService, configSource, null);

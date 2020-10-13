@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -73,12 +73,14 @@ namespace OpenSim.Framework
 
         private float[,] m_heightmap;
         // Remember subregions of the heightmap that has changed.
-        private bool[,] m_taint;
+
+        private BitArray m_taint;
+        private int m_taintSizeX;
+        private int m_taintSizeY;
 
         // legacy CompressionFactor
         public float CompressionFactor { get; private set; }
 
-        // Terrain always is a square
         public int SizeX { get; protected set; }
         public int SizeY { get; protected set; }
         public int SizeZ { get; protected set; }
@@ -104,7 +106,8 @@ namespace OpenSim.Framework
                 if (m_heightmap[x, y] != value)
                 {
                     m_heightmap[x, y] = value;
-                    m_taint[x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize] = true;
+                    int yy = y / Constants.TerrainPatchSize;
+                    m_taint[x / Constants.TerrainPatchSize + yy * m_taintSizeX] = true;
                 }
             }
         }
@@ -117,19 +120,17 @@ namespace OpenSim.Framework
 
         public void ClearTaint()
         {
-            SetAllTaint(false);
+            m_taint.SetAll(false);
         }
 
         public void TaintAllTerrain()
         {
-            SetAllTaint(true);
+            m_taint.SetAll(true);
         }
 
         private void SetAllTaint(bool setting)
         {
-            for (int ii = 0; ii < m_taint.GetLength(0); ii++)
-                for (int jj = 0; jj < m_taint.GetLength(1); jj++)
-                    m_taint[ii, jj] = setting;
+            m_taint.SetAll(setting);
         }
 
         public void ClearLand()
@@ -147,24 +148,65 @@ namespace OpenSim.Framework
         // Return 'true' of the patch that contains these region coordinates has been modified.
         // Note that checking the taint clears it.
         // There is existing code that relies on this feature.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy, bool clearOnTest)
         {
-            int tx = xx / Constants.TerrainPatchSize;
-            int ty = yy / Constants.TerrainPatchSize;
-            bool ret = m_taint[tx, ty];
+            yy /= Constants.TerrainPatchSize;
+            int indx = xx / Constants.TerrainPatchSize + yy * m_taintSizeX;
+            bool ret = m_taint[indx];
             if (ret && clearOnTest)
-                m_taint[tx, ty] = false;
+                m_taint[indx] = false;
             return ret;
         }
 
-        // Old form that clears the taint flag when we check it.
-        // ubit: this dangerus naming should be only check without clear
-        // keeping for old modules outthere
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public bool IsTaintedAt(int xx, int yy)
         {
-            return IsTaintedAt(xx, yy, true /* clearOnTest */);
+            yy /= Constants.TerrainPatchSize;
+            return m_taint[xx / Constants.TerrainPatchSize + yy * m_taintSizeX];
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool IsTaintedAtPatch(int xx, int yy, bool clearOnTest)
+        {
+            int indx = xx + yy * m_taintSizeX;
+            bool ret = m_taint[indx];
+            if (ret && clearOnTest)
+                m_taint[indx] = false;
+            return ret;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool IsTaintedAtPatch(int xx, int yy)
+        {
+            return m_taint[xx + yy * m_taintSizeX];
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool IsTaintedAtPatch(int indx, bool clearOnTest)
+        {
+            bool ret = m_taint[indx];
+            if (ret && clearOnTest)
+                m_taint[indx] = false;
+            return ret;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool IsTaintedAtPatchWithClear(int indx)
+        {
+            if(m_taint[indx])
+            {
+                m_taint[indx] = false;
+                return true;
+            }
+            return false;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public bool IsTaintedAtPatch(int indx)
+        {
+            return m_taint[indx];
+        }
         // TerrainData.GetDatabaseBlob
         // The user wants something to store in the database.
         public bool GetDatabaseBlob(out int DBRevisionCode, out Array blob)
@@ -194,9 +236,6 @@ namespace OpenSim.Framework
             return ret;
         }
 
-        // This one dimensional version is ordered so height = map[y*sizeX+x];
-        // DEPRECATED: don't use this function as it does not retain the dimensions of the terrain
-        //     and the caller will probably do the wrong thing if the terrain is not the legacy 256x256.
         public float[] GetFloatsSerialized()
         {
             int points = SizeX * SizeY;
@@ -247,7 +286,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public unsafe void GetPatchBlock(float[] _block, int px, int py, float sub, float premult)
+        public unsafe void GetPatchBlock(float* block, int px, int py, float sub, float premult)
         {
             int k = 0;
             int stride = m_heightmap.GetLength(1);
@@ -255,7 +294,7 @@ namespace OpenSim.Framework
             int startX = px * 16 * stride;
             int endX = (px + 1) * 16 * stride;
             int startY = py * 16;
-            fixed(float* block = _block, map = m_heightmap)
+            fixed(float* map = m_heightmap)
             {
                 for (int y = startY; y < startY + 16; y++)
                 {
@@ -309,6 +348,9 @@ namespace OpenSim.Framework
         {
             SizeX = pTerrain.GetLength(0);
             SizeY = pTerrain.GetLength(1);
+            m_taintSizeX = SizeX / Constants.TerrainPatchSize;
+            m_taintSizeY = SizeY / Constants.TerrainPatchSize;
+
             SizeZ = (int)Constants.RegionHeight;
             CompressionFactor = 100.0f;
 
@@ -323,8 +365,7 @@ namespace OpenSim.Framework
             }
             // m_log.DebugFormat("{0} new by doubles. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
 
-            m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
-            ClearTaint();
+            m_taint = new BitArray(m_taintSizeX * m_taintSizeY, false);
         }
 
         // Create underlying structures but don't initialize the heightmap assuming the caller will immediately do that
@@ -333,11 +374,13 @@ namespace OpenSim.Framework
             SizeX = pX;
             SizeY = pY;
             SizeZ = pZ;
+            m_taintSizeX = SizeX / Constants.TerrainPatchSize;
+            m_taintSizeY = SizeY / Constants.TerrainPatchSize;
             CompressionFactor = 100.0f;
             m_heightmap = new float[SizeX, SizeY];
-            m_taint = new bool[SizeX / Constants.TerrainPatchSize, SizeY / Constants.TerrainPatchSize];
+            m_taint = new BitArray(m_taintSizeX * m_taintSizeY, false);
+
             // m_log.DebugFormat("{0} new by dimensions. sizeX={1}, sizeY={2}, sizeZ={3}", LogHeader, SizeX, SizeY, SizeZ);
-            ClearTaint();
             ClearLand(0f);
         }
 
@@ -485,7 +528,8 @@ namespace OpenSim.Framework
                         for (int yy = 0; yy < SizeY; yy++)
                             for (int xx = 0; xx < SizeX; xx++)
                             {
-                                bw.Write((float)m_heightmap[xx, yy]);
+                                //bw.Write((float)m_heightmap[xx, yy]);
+                                bw.Write((float)Math.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
                             }
 
                         bw.Flush();

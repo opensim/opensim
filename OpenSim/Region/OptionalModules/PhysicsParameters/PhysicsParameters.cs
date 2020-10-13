@@ -256,13 +256,13 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
         private void WriteOut(string msg, params object[] args)
         {
             // m_log.InfoFormat(msg, args);
-            MainConsole.Instance.Output(msg, null, args);
+            MainConsole.Instance.Output(msg, args);
         }
 
         private void WriteError(string msg, params object[] args)
         {
             // m_log.ErrorFormat(msg, args);
-            MainConsole.Instance.Output(msg, null, args);
+            MainConsole.Instance.Output(msg, args);
         }
     }
 }

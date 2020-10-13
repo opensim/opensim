@@ -44,6 +44,12 @@ namespace OpenSim.Framework
         bool[,] LandBitmap { get; set; }
         UUID RegionUUID { get; }
 
+        UUID GlobalID { get; }
+        UUID FakeID { get; }
+        int LocalID { get; }
+        UUID OwnerID { get; }
+        UUID GroupID { get; }
+
         /// <summary>
         /// Prim counts for this land object.
         /// </summary>
@@ -73,6 +79,7 @@ namespace OpenSim.Framework
         ILandObject Copy();
 
         void SendLandUpdateToAvatarsOverMe();
+        void SendLandUpdateToAvatars();
 
         void SendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
         bool UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client, out bool snap_selection, out bool needOverlay);
@@ -99,7 +106,8 @@ namespace OpenSim.Framework
         bool[,] BasicFullRegionLandBitmap();
 
         /// <summary>
-        /// Create a square land bitmap.
+        /// Create a land bitmap.
+        /// Square name is wrong kept bc legacy
         /// </summary>
         /// <remarks>
         /// Land co-ordinates are zero indexed.  The inputs are treated as points.  So if you want to create a bitmap
@@ -116,6 +124,7 @@ namespace OpenSim.Framework
         /// <param name="end_y"></param>
         /// <param name="set_value"></param>
         /// <returns>The bitmap created.</returns>
+        
         bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y, bool set_value = true);
 
         bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
@@ -142,7 +151,7 @@ namespace OpenSim.Framework
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax);
+        bool[,] RemapLandBitmap(bool[,] bitmap_base, Vector2 displacement, float rotationDegrees, Vector2 boundingOrigin, Vector2 boundingSize, Vector2 regionSize, out bool isEmptyNow);
 
         /// <summary>
         /// Clears any parcel data in bitmap_base where there exists parcel data in bitmap_new. In other words the parcel data
@@ -154,7 +163,7 @@ namespace OpenSim.Framework
         /// <param name="AABBMin">out: parcel.AABBMin &lt;x,y,0&gt;</param>
         /// <param name="AABBMax">out: parcel.AABBMax &lt;x,y,0&gt</param>
         /// <returns>New parcel bitmap</returns>
-        bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow, out Vector3 AABBMin, out Vector3 AABBMax);
+        bool[,] RemoveFromLandBitmap(bool[,] bitmap_base, bool[,] bitmap_new, out bool isEmptyNow);
 
         byte[] ConvertLandBitmapToBytes();
         bool[,] ConvertBytesToLandBitmap(bool overrideRegionSize = false);
@@ -171,6 +180,8 @@ namespace OpenSim.Framework
 
         void SetParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void SetSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
+        
+        void StoreEnvironment(ViewerEnvironment VEnv);
 
         /// <summary>
         /// Set the media url for this land parcel
@@ -191,5 +202,6 @@ namespace OpenSim.Framework
         string GetMusicUrl();
 
         void Clear();
+        ISceneObject[] GetSceneObjectGroups();
     }
 }

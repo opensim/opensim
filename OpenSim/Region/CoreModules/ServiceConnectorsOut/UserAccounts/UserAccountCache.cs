@@ -36,22 +36,43 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
     public class UserAccountCache : IUserAccountCacheModule
     {
-        private const double CACHE_ALIEN_EXPIRATION_SECONDS = 172800; // 48 hours
-        private const double CACHE_EXPIRATION_SECONDS = 3600.0; // 1 hour!
-        private const double CACHE_NULL_EXPIRATION_SECONDS = 600; // 10minutes
+        private const int CACHE_ALIEN_EXPIRATION_SECONDS = 172800; // 48 hours
+        private const int CACHE_EXPIRATION_SECONDS = 3600; // 1 hour!
+        private const int CACHE_NULL_EXPIRATION_SECONDS = 600; // 10minutes
 
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ExpiringCache<UUID, UserAccount> m_UUIDCache;
-        private ExpiringCache<string, UUID> m_NameCache;
-        private object accessLock = new object();
+        //5min expire checks
+        private ExpiringCacheOS<UUID, UserAccount> m_UUIDCache = new ExpiringCacheOS<UUID, UserAccount>(300000);
+        private ExpiringCacheOS<string, UserAccount> m_NameCache = new ExpiringCacheOS<string, UserAccount>(300000);
+        private readonly object accessLock = new object();
 
         public UserAccountCache()
         {
-            m_UUIDCache = new ExpiringCache<UUID, UserAccount>();
-            m_NameCache = new ExpiringCache<string, UUID>();
+        }
+
+        ~UserAccountCache()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool disposed;
+        private void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                m_UUIDCache.Dispose();
+                m_NameCache.Dispose();
+                m_UUIDCache = null;
+                m_NameCache = null;
+            }
         }
 
         public void Cache(UUID userID, UserAccount account)
@@ -64,72 +85,61 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 else if(account.LocalToGrid)
                 {
                     m_UUIDCache.AddOrUpdate(userID, account, CACHE_EXPIRATION_SECONDS);
-                    m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_EXPIRATION_SECONDS);
+                    m_NameCache.AddOrUpdate(account.Name.ToLowerInvariant(), account, CACHE_EXPIRATION_SECONDS);
                 }
                 else
                 {
                     m_UUIDCache.AddOrUpdate(userID, account, CACHE_ALIEN_EXPIRATION_SECONDS);
-                    m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_ALIEN_EXPIRATION_SECONDS);
+                    m_NameCache.AddOrUpdate(account.Name.ToLowerInvariant(), account, CACHE_ALIEN_EXPIRATION_SECONDS);
                 }
             //m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
             }
         }
 
-
         public UserAccount Get(UUID userID, out bool inCache)
         {
-            UserAccount account = null;
-            inCache = false;
             lock(accessLock)
             {
-                if (m_UUIDCache.TryGetValue(userID, out account))
+                if (m_UUIDCache.TryGetValue(userID, out UserAccount account))
                 {
                     //m_log.DebugFormat("[USER CACHE]: Account {0} {1} found in cache", account.FirstName, account.LastName);
                     inCache = true;
                     return account;
                 }
             }
+            inCache = false;
             return null;
         }
 
         public UserAccount Get(string name, out bool inCache)
         {
-            inCache = false;
             lock(accessLock)
             {
-                if (!m_NameCache.Contains(name))
-                    return null;
-
-                UserAccount account = null;
-                UUID uuid = UUID.Zero;
-                if (m_NameCache.TryGetValue(name, out uuid))
+                if (m_NameCache.TryGetValue(name.ToLowerInvariant(), out UserAccount account))
                 {
-                    if (m_UUIDCache.TryGetValue(uuid, out account))
-                    {
-                        inCache = true;
-                        return account;
-                    }
+                    inCache = true;
+                    return account;
                 }
             }
+            inCache = false;
             return null;
         }
 
         public void Invalidate(UUID userID)
         {
-                m_UUIDCache.Remove(userID);
+            Remove(userID); //??
         }
 
         public void Remove(UUID id)
         {
             lock(accessLock)
             {
-                if (!m_UUIDCache.Contains(id))
-                    return;
-
-                UserAccount account = null;
-                if (m_UUIDCache.TryGetValue(id, out account) && account != null)
-                    m_NameCache.Remove(account.Name);
-                m_UUIDCache.Remove(id);
+                if (m_UUIDCache.TryGetValue(id, out UserAccount account))
+                {
+                    m_UUIDCache.Remove(id);
+                    if (account != null)
+                        m_NameCache.Remove(account.Name.ToLowerInvariant());
+                }
             }
         }
 
@@ -137,14 +147,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         {
             lock(accessLock)
             {
-                if (!m_NameCache.Contains(name))
-                    return;
-
-                UUID uuid = UUID.Zero;
-                if (m_NameCache.TryGetValue(name, out uuid))
+                if (m_NameCache.TryGetValue(name.ToLowerInvariant(), out UserAccount account))
                 {
                     m_NameCache.Remove(name);
-                    m_UUIDCache.Remove(uuid);
+                    if (account != null)
+                        m_UUIDCache.Remove(account.PrincipalID);
                 }
             }
         }

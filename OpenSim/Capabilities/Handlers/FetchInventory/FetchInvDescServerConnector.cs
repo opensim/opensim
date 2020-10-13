@@ -29,9 +29,12 @@ using System;
 using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
+
 
 namespace OpenSim.Capabilities.Handlers
 {
@@ -67,16 +70,16 @@ namespace OpenSim.Capabilities.Handlers
             m_LibraryService =
                     ServerUtils.LoadPlugin<ILibraryService>(libService, args);
 
-            FetchInvDescHandler webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, null);
-            IRequestHandler reqHandler
-                = new RestStreamHandler(
-                    "POST",
-                    "/CAPS/WebFetchInvDesc/" /*+ UUID.Random()*/,
-                    webFetchHandler.FetchInventoryDescendentsRequest,
-                    "FetchInvDescendents",
-                    null);
-            server.AddStreamHandler(reqHandler);
-        }
+            ExpiringKey<UUID> m_badRequests = new ExpiringKey<UUID>(30000);
 
+            FetchInvDescHandler webFetchHandler = new FetchInvDescHandler(m_InventoryService, m_LibraryService, null);
+            ISimpleStreamHandler reqHandler
+                = new SimpleStreamHandler("/CAPS/WebFetchInvDesc/", delegate(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+                { 
+                    webFetchHandler.FetchInventoryDescendentsRequest(httpRequest, httpResponse, m_badRequests);
+                });
+
+            server.AddSimpleStreamHandler(reqHandler);
+        }
     }
 }

@@ -119,7 +119,7 @@ namespace OpenSim.Services.Connectors
                                 regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
                             if(hash["Dwell"] != null)
                                 landData.Dwell = Convert.ToSingle((string)hash["Dwell"]);
-                            m_log.DebugFormat("[LAND CONNECTOR]: Got land data for parcel {0}", landData.Name);
+                            //m_log.DebugFormat("[LAND CONNECTOR]: Got land data for parcel {0}", landData.Name);
                         }
                         catch (Exception e)
                         {

@@ -34,12 +34,13 @@ using OpenMetaverse;
 namespace OpenSim.Framework
 {
     [Flags]
+    // this enum is stuck, can not be changed or will break compatibilty with any version older than that change
     public enum AssetFlags : int
     {
         Normal = 0,         // Immutable asset
         Maptile = 1,        // What it says
         Rewritable = 2,     // Content can be rewritten
-        Collectable = 4     // Can be GC'ed after some time
+        Collectable = 4,     // Can be GC'ed after some time
     }
 
     /// <summary>

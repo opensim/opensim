@@ -115,25 +115,28 @@ namespace OpenSim.Framework
 
         // Used by the sim
         //
-        private bool m_UseGlobalTime = true;
+        private bool m_UseGlobalTime = false;
         public bool UseGlobalTime
         {
             get { return m_UseGlobalTime; }
-            set { m_UseGlobalTime = value; }
+            //set { m_UseGlobalTime = value; }
+            set { m_UseGlobalTime = false; }
         }
 
         private bool m_FixedSun = false;
         public bool FixedSun
         {
             get { return m_FixedSun; }
-            set { m_FixedSun = value; }
+            // set { m_FixedSun = value; }
+            set { m_FixedSun = false; }
         }
 
         private double m_SunPosition = 0.0;
         public double SunPosition
         {
             get { return m_SunPosition; }
-            set { m_SunPosition = value; }
+            //set { m_SunPosition = value; }
+            set { m_SunPosition = 0; }
         }
 
         private bool m_AllowVoice = true;
@@ -202,7 +205,7 @@ namespace OpenSim.Framework
         }
 
         private bool m_TaxFree = false;
-        public bool TaxFree // this is now AllowAccessOverride, keeping same name to reuse DB entries
+        public bool TaxFree // this is now !AllowAccessOverride, keeping same name to reuse DB entries
         {
             get { return m_TaxFree; }
             set { m_TaxFree = value; }
@@ -235,6 +238,13 @@ namespace OpenSim.Framework
         {
             get { return (DoDenyMinors && m_DenyMinors); }
             set { m_DenyMinors = value; }
+        }
+
+        private bool m_AllowEnviromentOverride = false; //keep the mispell so not to go change the dbs
+        public bool AllowEnvironmentOverride
+        {
+            get { return m_AllowEnviromentOverride; }
+            set { m_AllowEnviromentOverride = value; }
         }
 
         // All those lists...

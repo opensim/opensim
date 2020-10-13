@@ -157,17 +157,10 @@ namespace OpenSim.Services.Connectors
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST", m_ServerURI, reqString, m_Auth);
                 if (reply != string.Empty)
                 {
-                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-                    if (replyData.ContainsKey("result"))
-                    {
-                        if (replyData["result"].ToString().ToLower() == "success")
-                            return true;
-                        else
-                            return false;
-                    }
-                    else
-                        m_log.DebugFormat("[MUTELIST CONNECTOR]: {0} reply data does not contain result field", meth);
+                    int indx = reply.IndexOf("success", StringComparison.InvariantCultureIgnoreCase);
+                    if (indx > 0)
+                        return true;
+                    return false;
                 }
                 else
                     m_log.DebugFormat("[MUTELIST CONNECTOR]: {0} received empty reply", meth);

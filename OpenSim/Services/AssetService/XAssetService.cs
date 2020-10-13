@@ -86,7 +86,6 @@ namespace OpenSim.Services.AssetService
                     }
 
                     m_log.Debug("[XASSET SERVICE]: Local asset service enabled");
-                    m_log.Error("[XASSET SERVICE]: THIS ASSET SERVICE HAS BEEN MARKED OBSOLETE. PLEASE USE FSAssetService");
                 }
             }
         }

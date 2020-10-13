@@ -46,9 +46,10 @@ namespace OpenSim.Framework.Serialization.External
         /// <param name="serializedSettings"></param>
         /// <returns></returns>
         /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(byte[] serializedSettings)
+        public static RegionSettings Deserialize(byte[] serializedSettings, out ViewerEnvironment regionEnv)
         {
-            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length));
+            // encoding is wrong. old oars seem to be on utf-16
+            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length), out regionEnv);
         }
 
         /// <summary>
@@ -57,9 +58,10 @@ namespace OpenSim.Framework.Serialization.External
         /// <param name="serializedSettings"></param>
         /// <returns></returns>
         /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(string serializedSettings)
+        public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv)
         {
             RegionSettings settings = new RegionSettings();
+            regionEnv = null;
 
             StringReader sr = new StringReader(serializedSettings);
             XmlTextReader xtr = new XmlTextReader(sr);
@@ -192,21 +194,46 @@ namespace OpenSim.Framework.Serialization.External
 
             if (xtr.IsStartElement("Telehub"))
             {
-                xtr.ReadStartElement("Telehub");
-
-                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                if (xtr.IsEmptyElement)
+                    xtr.Read();
+                else
                 {
-                    switch (xtr.Name)
+                    xtr.ReadStartElement("Telehub");
+                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
                     {
-                        case "TelehubObject":
-                            settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
-                            break;
-                        case "SpawnPoint":
-                            string str = xtr.ReadElementContentAsString();
-                            SpawnPoint sp = SpawnPoint.Parse(str);
-                            settings.AddSpawnPoint(sp);
-                            break;
+                        switch (xtr.Name)
+                        {
+                            case "TelehubObject":
+                                settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
+                                break;
+                            case "SpawnPoint":
+                                string str = xtr.ReadElementContentAsString();
+                                SpawnPoint sp = SpawnPoint.Parse(str);
+                                settings.AddSpawnPoint(sp);
+                                break;
+                        }
                     }
+                    xtr.ReadEndElement();
+                }
+            }
+
+            if (xtr.IsStartElement("Environment"))
+            {
+                if (xtr.IsEmptyElement)
+                    xtr.Read();
+                else
+                {
+                    xtr.ReadStartElement("Environment");
+                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                    {
+                        switch (xtr.Name)
+                        {
+                            case "data":
+                                regionEnv = ViewerEnvironment.FromOSDString(xtr.ReadElementContentAsString());
+                                break;
+                        }
+                    }
+                    xtr.ReadEndElement();
                 }
             }
 
@@ -216,7 +243,7 @@ namespace OpenSim.Framework.Serialization.External
             return settings;
         }
 
-        public static string Serialize(RegionSettings settings)
+        public static string Serialize(RegionSettings settings, ViewerEnvironment RegionEnv)
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
@@ -263,8 +290,6 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("UseEstateSun", settings.UseEstateSun.ToString());
             xtw.WriteElementString("FixedSun", settings.FixedSun.ToString());
             xtw.WriteElementString("SunPosition", settings.SunPosition.ToString());
-            // Note: 'SunVector' isn't saved because this value is owned by the Sun Module, which
-            // calculates it automatically according to the date and other factors.
             xtw.WriteEndElement();
 
             xtw.WriteStartElement("Telehub");
@@ -275,6 +300,13 @@ namespace OpenSim.Framework.Serialization.External
                     xtw.WriteElementString("SpawnPoint", sp.ToString());
             }
             xtw.WriteEndElement();
+
+            if (RegionEnv != null)
+            {
+                xtw.WriteStartElement("Environment");
+                xtw.WriteElementString("data", ViewerEnvironment.ToOSDString(RegionEnv));
+                xtw.WriteEndElement();
+            }
 
             xtw.WriteEndElement();
 

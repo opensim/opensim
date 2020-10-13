@@ -330,11 +330,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         private void SaveFileCacheForAsset(UUID AssetId, OpenJPEG.J2KLayerInfo[] Layers)
         {
-            m_decodedCache.AddOrUpdate(AssetId, Layers, TimeSpan.FromMinutes(10));
+            m_decodedCache.AddOrUpdate(AssetId, Layers, TimeSpan.FromMinutes(1));
 
             if (Cache != null)
             {
-                string assetID = "j2kCache_" + AssetId.ToString();
+                string assetID = "j2k" + AssetId.ToString();
 
                 AssetBase layerDecodeAsset = new AssetBase(assetID, assetID, (sbyte)AssetType.Notecard, m_CreatorID.ToString());
                 layerDecodeAsset.Local = true;

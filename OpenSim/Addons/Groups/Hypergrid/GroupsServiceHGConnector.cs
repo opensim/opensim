@@ -268,10 +268,17 @@ namespace OpenSim.Groups
             sendData["METHOD"] = method;
 
             string reply = string.Empty;
-            lock (m_Lock)
-                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+            try
+            {
+                lock (m_Lock)
+                    reply = SynchronousRestFormsRequester.MakeRequest("POST",
                          m_ServerURI + "hg-groups",
                          ServerUtils.BuildQueryString(sendData));
+            }
+            catch
+            {
+                return null;
+            }
 
             //m_log.DebugFormat("[XXX]: reply was {0}", reply);
 

@@ -35,6 +35,13 @@ namespace OpenSim.Region.Framework.Interfaces
     public delegate void ScriptRemoved(UUID script);
     public delegate void ObjectRemoved(UUID prim);
 
+    public class ScriptTopStatsData
+    {
+        public uint localID;
+        public float time;
+        public int memory;
+    };
+
     public interface IScriptModule: INonSharedRegionModule
     {
         /// <summary>
@@ -70,13 +77,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Suspends a script.
         /// </summary>
         /// <param name="itemID">The item ID of the script.</param>
-        void SuspendScript(UUID itemID);
+        bool SuspendScript(UUID itemID);
 
         /// <summary>
         /// Resumes a script.
         /// </summary>
         /// <param name="itemID">The item ID of the script.</param>
-        void ResumeScript(UUID itemID);
+        bool ResumeScript(UUID itemID);
 
         ArrayList GetScriptErrors(UUID itemID);
 
@@ -102,6 +109,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A float the value is a representative execution time in milliseconds of all scripts in that Array.
         /// </returns>
         float GetScriptExecutionTime(List<UUID> itemIDs);
+        int GetScriptsMemory(List<UUID> itemIDs);
 
         /// <summary>
         /// Get the execution times of all scripts in each object.
@@ -111,5 +119,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// and the value is a representative execution time in milliseconds of all scripts in that linkset.
         /// </returns>
         Dictionary<uint, float> GetObjectScriptsExecutionTimes();
+
+        /// <summary>
+        /// Get the used memory and exec time of all scripts in each object.
+        /// if time or memory is higher than min values;
+        /// </summary>
+        /// <returns>
+        /// A dictionary where the key is the root object ID of a linkset
+        /// and the value is a class with  amount of bytes being used by the script
+        /// </returns>
+        ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory);
     }
 }

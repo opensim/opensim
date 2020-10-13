@@ -489,7 +489,7 @@ namespace OpenSim
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
 
             // TODO : Try setting resource for region xstats here on scene
-            MainServer.Instance.AddStreamHandler(new RegionStatsHandler(regionInfo));
+            MainServer.Instance.AddSimpleStreamHandler(new RegionStatsSimpleHandler(regionInfo));
 
             if (scene.SnmpService != null)
             {
@@ -593,7 +593,7 @@ namespace OpenSim
                 estateOwnerPassword = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateOwnerPassword", null);
             }
 
-            MainConsole.Instance.Output("Estate {0} has no owner set.", null, regionInfo.EstateSettings.EstateName);
+            MainConsole.Instance.Output("Estate {0} has no owner set.", regionInfo.EstateSettings.EstateName);
             List<char> excluded = new List<char>(new char[1]{' '});
 
 
@@ -829,19 +829,15 @@ namespace OpenSim
         /// <remarks>
         /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
         /// </remarks>
-        public class SimStatusHandler : BaseStreamHandler
+        public class SimStatusHandler : SimpleStreamHandler
         {
-            public SimStatusHandler() : base("GET", "/simstatus", "SimStatus", "Simulator Status") {}
+            public SimStatusHandler() : base("/simstatus", "SimStatus") {}
 
-            protected override byte[] ProcessRequest(string path, Stream request,
-                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
-                return Util.UTF8.GetBytes("OK");
-            }
-
-            public override string ContentType
-            {
-                get { return "text/plain"; }
+                httpResponse.KeepAlive = false;
+                httpResponse.RawBuffer = Util.UTF8.GetBytes("OK");
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
             }
         }
 
@@ -849,27 +845,31 @@ namespace OpenSim
         /// Handler to supply the current extended status of this sim
         /// Sends the statistical data in a json serialization
         /// </summary>
-        public class XSimStatusHandler : BaseStreamHandler
+        public class XSimStatusHandler : SimpleStreamHandler
         {
             OpenSimBase m_opensim;
 
             public XSimStatusHandler(OpenSimBase sim)
-                : base("GET", "/" + Util.SHA1Hash(sim.osSecret), "XSimStatus", "Simulator XStatus")
+                : base("/" + Util.SHA1Hash(sim.osSecret), "XSimStatus")
             {
                 m_opensim = sim;
             }
 
-            protected override byte[] ProcessRequest(string path, Stream request,
-                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
-                return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
-            }
-
-            public override string ContentType
-            {
-                get { return "text/plain"; }
+                httpResponse.KeepAlive = false;
+                try
+                {
+                    httpResponse.RawBuffer = Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
+                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                }
+                catch
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
             }
         }
+
 
         /// <summary>
         /// Handler to supply the current extended status of this sim to a user configured URI
@@ -877,45 +877,48 @@ namespace OpenSim
         /// If the request contains a key, "callback" the response will be wrappend in the
         /// associated value for jsonp used with ajax/javascript
         /// </summary>
-        protected class UXSimStatusHandler : BaseStreamHandler
+        protected class UXSimStatusHandler : SimpleStreamHandler
         {
             OpenSimBase m_opensim;
 
             public UXSimStatusHandler(OpenSimBase sim)
-                : base("GET", "/" + sim.userStatsURI, "UXSimStatus", "Simulator UXStatus")
+                : base("/" + sim.userStatsURI, "UXSimStatus")
             {
                 m_opensim = sim;
             }
 
-            protected override byte[] ProcessRequest(string path, Stream request,
-                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
-                return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
-            }
-
-            public override string ContentType
-            {
-                get { return "text/plain"; }
+                httpResponse.KeepAlive = false;
+                try
+                {
+                    httpResponse.RawBuffer = Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
+                    httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                }
+                catch
+                {
+                    httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
             }
         }
 
         /// <summary>
         /// handler to supply serving http://domainname:port/robots.txt
         /// </summary>
-        public class SimRobotsHandler : BaseStreamHandler
+        public class SimRobotsHandler : SimpleStreamHandler
         {
-            public SimRobotsHandler() : base("GET", "/robots.txt", "SimRobots.txt", "Simulator Robots.txt") {}
-
-            protected override byte[] ProcessRequest(string path, Stream request,
-                                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+            private readonly byte[] binmsg;
+            public SimRobotsHandler() : base("/robots.txt", "SimRobots")
             {
-                string robots = "# go away\nUser-agent: *\nDisallow: /\n";
-                return Util.UTF8.GetBytes(robots);
+                binmsg = Util.UTF8.GetBytes("# go away\nUser-agent: *\nDisallow: /\n");
             }
 
-            public override string ContentType
+            protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
             {
-                get { return "text/plain"; }
+                httpResponse.KeepAlive = false;
+                httpResponse.RawBuffer = binmsg;
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                return;
             }
         }
 
@@ -1003,7 +1006,7 @@ namespace OpenSim
 
             if (estatesByName.ContainsKey(newName))
             {
-                MainConsole.Instance.Output("An estate named {0} already exists.  Please try again.", null, newName);
+                MainConsole.Instance.Output("An estate named {0} already exists.  Please try again.", newName);
                 return false;
             }
 
