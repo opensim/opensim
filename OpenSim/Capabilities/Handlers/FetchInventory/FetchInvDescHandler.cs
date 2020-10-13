@@ -131,16 +131,16 @@ namespace OpenSim.Capabilities.Handlers
                     return;
                 }
 
-                osUTF8 sb = OSUTF8Cached.Acquire();
-                sb.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by Unknown user:");
+                osUTF8 osu = OSUTF8Cached.Acquire();
+                osu.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by Unknown user:");
                 int limit = 5;
                 int count = 0;
                 foreach (UUID bad in bad_folders)
                 {
                     if (BadRequests.ContainsKey(bad))
                         continue;
-                    sb.Append((byte)' ');
-                    sb.AppendASCII(bad.ToString());
+                    osu.Append((byte)' ');
+                    osu.AppendASCII(bad.ToString());
                     ++count;
                     if (--limit < 0)
                         break;
@@ -149,21 +149,21 @@ namespace OpenSim.Capabilities.Handlers
                 if(count > 0)
                 {
                     if (limit < 0)
-                        sb.AppendASCII(" ...");
-                    m_log.Warn(sb.ToString());
+                        osu.AppendASCII(" ...");
+                    m_log.Warn(osu.ToString());
                 }
 
-                sb.Clear();
+                osu.Clear();
 
-                sb.AppendASCII("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
+                osu.AppendASCII("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
                 foreach (UUID bad in bad_folders)
                 {
-                    sb.AppendASCII("<map><key>folder_id</key><uuid>");
-                    sb.AppendASCII(bad.ToString());
-                    sb.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
+                    osu.AppendASCII("<map><key>folder_id</key><uuid>");
+                    osu.AppendASCII(bad.ToString());
+                    osu.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
                 }
-                sb.AppendASCII("</array></map></llsd>");
-                httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(sb);
+                osu.AppendASCII("</array></map></llsd>");
+                httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(osu);
                 return;
             }
 

@@ -30,7 +30,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Xml;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
@@ -38,15 +37,13 @@ using OpenMetaverse;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-using Nwc.XmlRpc;
 using OpenSim.Framework;
 
-using OpenSim.Framework.Capabilities;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Capabilities.Caps;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 {
@@ -593,22 +590,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 VivoxPassword(agentname, password);
 
                 // fast foward encode
-                StringBuilder lsl = LLSDxmlEncode.Start(512);
-                LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("username", agentname, lsl);
-                LLSDxmlEncode.AddElem("password", password, lsl);
-                LLSDxmlEncode.AddElem("voice_sip_uri_hostname", m_vivoxSipUri, lsl);
-                LLSDxmlEncode.AddElem("voice_account_server_name", m_vivoxVoiceAccountApi, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
+                osUTF8 lsl = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(lsl);
+                LLSDxmlEncode2.AddElem("username", agentname, lsl);
+                LLSDxmlEncode2.AddElem("password", password, lsl);
+                LLSDxmlEncode2.AddElem("voice_sip_uri_hostname", m_vivoxSipUri, lsl);
+                LLSDxmlEncode2.AddElem("voice_account_server_name", m_vivoxVoiceAccountApi, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
 
-                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                response.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
                 return;
             }
             catch (Exception e)
             {
                 m_log.DebugFormat("[VivoxVoice][PROVISIONVOICE]: : {0} failed", e.ToString());
             }
-            response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
+            response.RawBuffer = osUTF8.GetASCIIBytes("<llsd><undef /></llsd>");
         }
 
         /// <summary>
@@ -693,17 +690,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
                 //      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
                 // fast foward encode
-                StringBuilder lsl = LLSDxmlEncode.Start(512);
-                LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("parcel_local_id", land.LocalID, lsl);
-                LLSDxmlEncode.AddElem("region_name", scene.Name, lsl);
-                LLSDxmlEncode.AddMap("voice_credentials",lsl);
-                LLSDxmlEncode.AddElem("channel_uri", channel_uri, lsl);
-                //LLSDxmlEncode.AddElem("channel_credentials", channel_credentials, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
+                osUTF8 lsl = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(lsl);
+                LLSDxmlEncode2.AddElem("parcel_local_id", land.LocalID, lsl);
+                LLSDxmlEncode2.AddElem("region_name", scene.Name, lsl);
+                LLSDxmlEncode2.AddMap("voice_credentials",lsl);
+                LLSDxmlEncode2.AddElem("channel_uri", channel_uri, lsl);
+                //LLSDxmlEncode2.AddElem("channel_credentials", channel_credentials, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
 
-                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                response.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
                 return;
             }
             catch (Exception e)

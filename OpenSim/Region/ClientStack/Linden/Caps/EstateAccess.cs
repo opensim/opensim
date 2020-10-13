@@ -35,12 +35,14 @@ using System.Text;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
+
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -162,84 +164,84 @@ namespace OpenSim.Region.ClientStack.Linden
             UUID[] groups = regionSettings.EstateGroups;
             EstateBan[] EstateBans = regionSettings.EstateBans;
 
-            StringBuilder sb = LLSDxmlEncode.Start();
-            LLSDxmlEncode.AddMap(sb);
+            osUTF8 sb = LLSDxmlEncode2.Start();
+            LLSDxmlEncode2.AddMap(sb);
 
             if (allowed != null && allowed.Length > 0)
             {
-                LLSDxmlEncode.AddArray("AllowedAgents", sb);
+                LLSDxmlEncode2.AddArray("AllowedAgents", sb);
                 for (int i = 0; i < allowed.Length; ++i)
                 {
                     UUID id = allowed[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
             else
-                LLSDxmlEncode.AddEmptyArray("AllowedAgents", sb);
+                LLSDxmlEncode2.AddEmptyArray("AllowedAgents", sb);
 
             if (groups != null && groups.Length > 0)
             {
-                LLSDxmlEncode.AddArray("AllowedGroups", sb);
+                LLSDxmlEncode2.AddArray("AllowedGroups", sb);
                 for (int i = 0; i < groups.Length; ++i)
                 {
                     UUID id = groups[i];
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
             else
-                LLSDxmlEncode.AddEmptyArray("AllowedGroups", sb);
+                LLSDxmlEncode2.AddEmptyArray("AllowedGroups", sb);
 
             if (EstateBans != null && EstateBans.Length > 0)
             {
-                LLSDxmlEncode.AddArray("BannedAgents", sb);
+                LLSDxmlEncode2.AddArray("BannedAgents", sb);
                 for (int i = 0; i < EstateBans.Length; ++i)
                 {
                     EstateBan ban = EstateBans[i];
                     UUID id = ban.BannedUserID;
                     if (id == UUID.Zero)
                         continue;
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("id", id, sb);
-                        LLSDxmlEncode.AddElem("banning_id", ban.BanningUserID, sb);
-                        LLSDxmlEncode.AddElem("last_login_date", "na", sb); // We will not have this. This information is far at grid
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("id", id, sb);
+                        LLSDxmlEncode2.AddElem("banning_id", ban.BanningUserID, sb);
+                        LLSDxmlEncode2.AddElem("last_login_date", "na", sb); // We will not have this. This information is far at grid
                         if (ban.BanTime == 0)
-                            LLSDxmlEncode.AddElem("ban_date", "0000-00-00 00:00", sb);
+                            LLSDxmlEncode2.AddElem("ban_date", "0000-00-00 00:00", sb);
                         else
-                            LLSDxmlEncode.AddElem("ban_date", (Util.ToDateTime(ban.BanTime)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                            LLSDxmlEncode2.AddElem("ban_date", (Util.ToDateTime(ban.BanTime)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture), sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
             else
-                LLSDxmlEncode.AddEmptyArray("BannedAgents", sb);
+                LLSDxmlEncode2.AddEmptyArray("BannedAgents", sb);
 
             if (managers != null && managers.Length > 0)
             {
-                LLSDxmlEncode.AddArray("Managers", sb);
+                LLSDxmlEncode2.AddArray("Managers", sb);
                 for (int i = 0; i < managers.Length; ++i)
                 {
-                    LLSDxmlEncode.AddMap(sb);
-                        LLSDxmlEncode.AddElem("agent_id", managers[i], sb);
-                    LLSDxmlEncode.AddEndMap(sb);
+                    LLSDxmlEncode2.AddMap(sb);
+                        LLSDxmlEncode2.AddElem("agent_id", managers[i], sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
                 }
-                LLSDxmlEncode.AddEndArray(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
             }
             else
-                LLSDxmlEncode.AddEmptyArray("Managers", sb);
+                LLSDxmlEncode2.AddEmptyArray("Managers", sb);
 
-            LLSDxmlEncode.AddEndMap(sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
-            response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+            response.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             response.StatusCode = (int)HttpStatusCode.OK;
         }
     }

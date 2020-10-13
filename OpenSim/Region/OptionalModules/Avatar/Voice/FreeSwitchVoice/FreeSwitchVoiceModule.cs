@@ -367,21 +367,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 string accounturl = String.Format("http://{0}:{1}{2}/", m_openSimWellKnownHTTPAddress,
                                                               m_freeSwitchServicePort, m_freeSwitchAPIPrefix);
                 // fast foward encode
-                StringBuilder lsl = LLSDxmlEncode.Start(512);
-                LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("username", agentname, lsl);
-                LLSDxmlEncode.AddElem("password", password, lsl);
-                LLSDxmlEncode.AddElem("voice_sip_uri_hostname", m_freeSwitchRealm, lsl);
-                LLSDxmlEncode.AddElem("voice_account_server_name", accounturl, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
-                response.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                osUTF8 lsl = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(lsl);
+                LLSDxmlEncode2.AddElem("username", agentname, lsl);
+                LLSDxmlEncode2.AddElem("password", password, lsl);
+                LLSDxmlEncode2.AddElem("voice_sip_uri_hostname", m_freeSwitchRealm, lsl);
+                LLSDxmlEncode2.AddElem("voice_account_server_name", accounturl, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
+                response.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}, retry later", avatarName, e.Message);
                 m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1} failed", avatarName, e.ToString());
 
-                response.RawBuffer = Util.UTF8.GetBytes("<llsd>undef</llsd>");
+                response.RawBuffer = osUTF8.GetASCIIBytes("<llsd>undef</llsd>");
             }
         }
 
@@ -465,17 +465,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 }
 
                 // fast foward encode
-                StringBuilder lsl = LLSDxmlEncode.Start(512);
-                LLSDxmlEncode.AddMap(lsl);
-                LLSDxmlEncode.AddElem("parcel_local_id", land.LocalID, lsl);
-                LLSDxmlEncode.AddElem("region_name", scene.Name, lsl);
-                LLSDxmlEncode.AddMap("voice_credentials", lsl);
-                LLSDxmlEncode.AddElem("channel_uri", channelUri, lsl);
-                //LLSDxmlEncode.AddElem("channel_credentials", channel_credentials, lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
-                LLSDxmlEncode.AddEndMap(lsl);
+                osUTF8 lsl = LLSDxmlEncode2.Start(512);
+                LLSDxmlEncode2.AddMap(lsl);
+                LLSDxmlEncode2.AddElem("parcel_local_id", land.LocalID, lsl);
+                LLSDxmlEncode2.AddElem("region_name", scene.Name, lsl);
+                LLSDxmlEncode2.AddMap("voice_credentials", lsl);
+                LLSDxmlEncode2.AddElem("channel_uri", channelUri, lsl);
+                //LLSDxmlEncode2.AddElem("channel_credentials", channel_credentials, lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
+                LLSDxmlEncode2.AddEndMap(lsl);
 
-                response.RawBuffer= Util.UTF8.GetBytes(LLSDxmlEncode.End(lsl));
+                response.RawBuffer= LLSDxmlEncode2.EndToBytes(lsl);
             }
             catch (Exception e)
             {

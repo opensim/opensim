@@ -444,13 +444,13 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
             }
 
-            StringBuilder sb = LLSDxmlEncode.Start();
-            LLSDxmlEncode.AddMap(sb);
-            LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
-            LLSDxmlEncode.AddElem("regionID", regionID, sb);
-            LLSDxmlEncode.AddElem("success", true, sb);
-            LLSDxmlEncode.AddEndMap(sb);
-            httpResponse.RawBuffer = Util.UTF8.GetBytes(LLSDxmlEncode.End(sb));
+            osUTF8 sb = LLSDxmlEncode2.Start();
+            LLSDxmlEncode2.AddMap(sb);
+            LLSDxmlEncode2.AddElem("messageID", UUID.Zero, sb);
+            LLSDxmlEncode2.AddElem("regionID", regionID, sb);
+            LLSDxmlEncode2.AddElem("success", true, sb);
+            LLSDxmlEncode2.AddEndMap(sb);
+            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -498,14 +498,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             byte[] envBytes = VEnv.ToCapBytes(regionID, parcelid);
             if(envBytes == null)
             {
-                StringBuilder sb = LLSDxmlEncode.Start();
-                LLSDxmlEncode.AddArray(sb);
-                LLSDxmlEncode.AddMap(sb);
-                LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
-                LLSDxmlEncode.AddElem("regionID", regionID, sb);
-                LLSDxmlEncode.AddEndMap(sb);
-                LLSDxmlEncode.AddEndArray(sb);
-                httpResponse.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
+                osUTF8 sb = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddArray(sb);
+                LLSDxmlEncode2.AddMap(sb);
+                LLSDxmlEncode2.AddElem("messageID", UUID.Zero, sb);
+                LLSDxmlEncode2.AddElem("regionID", regionID, sb);
+                LLSDxmlEncode2.AddEndMap(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
+                httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             }
             else
                 httpResponse.RawBuffer = envBytes;
@@ -520,7 +520,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             int parcel = -1;
             int track = -1;
 
-            StringBuilder sb = LLSDxmlEncode.Start();
+            osUTF8 sb = LLSDxmlEncode2.Start();
 
             ScenePresence sp = m_scene.GetScenePresence(agentID);
             if (sp == null || sp.IsChildAgent || sp.IsNPC)
@@ -653,12 +653,12 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     m_log.InfoFormat("[{0}]: ExtEnvironment region {1} settings from agentID {2} saved",
                                                     Name, caps.RegionName, agentID);
 
-                    LLSDxmlEncode.AddMap(sb);
-                    LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
-                    LLSDxmlEncode.AddElem("regionID", regionID, sb);
-                    LLSDxmlEncode.AddElem("success", success, sb);
-                    LLSDxmlEncode.AddEndMap(sb);
-                    httpResponse.RawBuffer = Util.UTF8NBGetbytes(LLSDxmlEncode.End(sb));
+                    LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("messageID", UUID.Zero, sb);
+                    LLSDxmlEncode2.AddElem("regionID", regionID, sb);
+                    LLSDxmlEncode2.AddElem("success", success, sb);
+                    LLSDxmlEncode2.AddEndMap(sb);
+                    httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     return;
                 }
@@ -673,16 +673,13 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
 
         Error:
-            string response;
-
-            LLSDxmlEncode.AddMap(sb);
-                LLSDxmlEncode.AddElem("success", success, sb);
+            LLSDxmlEncode2.AddMap(sb);
+                LLSDxmlEncode2.AddElem("success", success, sb);
                 if(!success)
-                    LLSDxmlEncode.AddElem("message", message, sb);
-            LLSDxmlEncode.AddEndMap(sb);
-            response = LLSDxmlEncode.End(sb);
+                    LLSDxmlEncode2.AddElem("message", message, sb);
+            LLSDxmlEncode2.AddEndMap(sb);
 
-            httpResponse.RawBuffer = Util.UTF8NBGetbytes(response);
+            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -717,14 +714,14 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             byte[] envBytes = VEnv.ToCapWLBytes(UUID.Zero, regionID);
             if(envBytes == null)
             {
-                StringBuilder sb = LLSDxmlEncode.Start();
-                    LLSDxmlEncode.AddArray(sb);
-                        LLSDxmlEncode.AddMap(sb);
-                            LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
-                            LLSDxmlEncode.AddElem("regionID", regionID, sb);
-                        LLSDxmlEncode.AddEndMap(sb);
-                LLSDxmlEncode.AddEndArray(sb);
-                response.RawBuffer = LLSDxmlEncode.EndToNBBytes(sb);
+                osUTF8 sb = LLSDxmlEncode2.Start();
+                    LLSDxmlEncode2.AddArray(sb);
+                        LLSDxmlEncode2.AddMap(sb);
+                            LLSDxmlEncode2.AddElem("messageID", UUID.Zero, sb);
+                            LLSDxmlEncode2.AddElem("regionID", regionID, sb);
+                        LLSDxmlEncode2.AddEndMap(sb);
+                LLSDxmlEncode2.AddEndArray(sb);
+                response.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             }
             else
                 response.RawBuffer = envBytes;
@@ -789,15 +786,15 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
 
             Error:
-            StringBuilder sb = LLSDxmlEncode.Start();
-                LLSDxmlEncode.AddMap(sb);
-                    LLSDxmlEncode.AddElem("messageID", UUID.Zero, sb);
-                    LLSDxmlEncode.AddElem("regionID", regionID, sb);
-                    LLSDxmlEncode.AddElem("success", success, sb);
+            osUTF8 sb = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("messageID", UUID.Zero, sb);
+                    LLSDxmlEncode2.AddElem("regionID", regionID, sb);
+                    LLSDxmlEncode2.AddElem("success", success, sb);
                     if(!success)
-                        LLSDxmlEncode.AddElem("fail_reason", fail_reason, sb);
-                LLSDxmlEncode.AddEndMap(sb);
-            response.RawBuffer = Util.UTF8NBGetbytes(LLSDxmlEncode.End(sb));
+                        LLSDxmlEncode2.AddElem("fail_reason", fail_reason, sb);
+                LLSDxmlEncode2.AddEndMap(sb);
+            response.RawBuffer = LLSDxmlEncode2.EndToBytes(sb);
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 

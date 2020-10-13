@@ -749,8 +749,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         {
             // this are not true assets, should had never been...
             AssetBase asset = null;
-            string txt = fm.toLLSDxml();
-            byte[] data = System.Text.Encoding.ASCII.GetBytes(txt);
+            byte[] data = fm.toLLSDxml();
 
             asset = new AssetBase(fm.ID, "llmaterial", (sbyte)OpenSimAssetType.Material, "00000000-0000-0000-0000-000000000000");
             asset.Data = data;
