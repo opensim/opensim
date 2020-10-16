@@ -43,8 +43,9 @@ For rebuilding and debugging use the msbuild option switches
 
 
 # Configure a Standalone
-Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section correcting for your case 
-On `[Architecture]` section uncomment only the line with Standalone.ini if you do now want HG or the line with StandaloneHypergrid.ini if you do
+Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section, correcting for your case.
+
+On `[Architecture]` section uncomment only the line with Standalone.ini if you do now want HG, or the line with StandaloneHypergrid.ini if you do
 
 copy the `StandaloneCommon.ini.example` to `StandaloneCommon.ini` in the `bin/config-include` directory.
 
@@ -54,8 +55,9 @@ The StandaloneCommon.ini file describes the database and backend services that O
 # Configure in grid mode
 Each grid may have its own requirements, so FOLLOW your Grid instructions!
 in general:
-Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section correcting for oyur case 
-On `[Architecture]` section uncomment only the line with Grid.ini if you do now want HG or the line with GridHypergrid.ini if you do
+Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section, correcting for your case
+ 
+On `[Architecture]` section uncomment only the line with Grid.ini if you do now want HG, or the line with GridHypergrid.ini if you do
 
 and copy the `GridCommon.ini.example` file to `GridCommon.ini` inside the `bin/config-include` directory and edit as necessary
 
