@@ -113,5 +113,6 @@ OpenSim/Tests/test-results/
 test-results/
 doc/html
 doc/doxygen.error.log
+bin/config-include/OpenSim.ini
 
 *.patch
