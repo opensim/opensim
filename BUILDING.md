@@ -5,18 +5,14 @@
 
   * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2015 or later
 
-### Building Standalone
+### Building
  To create the project files, run   
 
  ```runprebuild.bat```
 
 Load the generated OpenSim.sln into Visual Studio .NET and build the solution.
 
-Copy `OpenSim.ini.exmple` to `OpenSim.ini` in the `bin/config-include` directory, and verify that the `[Const]` and `[Architecture]` sections are what you want.
-
-copy the `StandaloneCommon.ini.example` to `StandaloneCommon.ini` in the `bin/config-include` directory.
-
-The StandaloneCommon.ini file describes the database and backend services that OpenSim will use, and is set to use sqlite by default, which requires no setup.
+Configure, see below
 
 Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
@@ -29,18 +25,14 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
  *	msbuild or xbuild(deprecated) if still supported by the mono version
  *   See [the wiki](http://opensimulator.org/wiki/Dependencies) for more information.
 
-### Building Standalone
+### Building
   To create the project files, run:
 
   ```./runprebuild.sh```
 
   then run ```msbuild``` or ```xbuild``` if xbuild was installed.
 
- Copy `OpenSim.ini.exmple` to `OpenSim.ini` in the `bin/config-include` directory, and verify that the `[Const]` and `[Architecture]` sections are what you want.
-
-copy the `StandaloneCommon.ini.example` to `StandaloneCommon.ini` in the `bin/config-include` directory.
-
- The StandaloneCommon.ini file describes the database and backend services that OpenSim will use, and is set to use sqlite by default, which requires no setup.
+Configure. See below
 
 run `./opensim.sh` from the `bin` folder, and set up the region
 
@@ -50,17 +42,26 @@ For rebuilding and debugging use the msbuild option switches
   *  release: `msbuild /property:Configuration=Release`
 
 
-# Building other versions
-Other versions of OpenSim can be built by changing the .ini files in bin/config-include
+# Configure a Standalone
+Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section correcting for your case 
+On `[Architecture]` section uncomment only the line with Standalone.ini if you do now want HG or the line with StandaloneHypergrid.ini if you do
 
-For example, if you wanted to create an instance of OpenSim running in grid mode, comment the version that you currently have, (by default it is Standalone.ini) and uncomment
-```Include-Architecture = "config-include/Grid.ini"```
-and copy the `GridCommon.ini.example` file to `GridCommon.ini` inside the `bin/config-include` directory.
+copy the `StandaloneCommon.ini.example` to `StandaloneCommon.ini` in the `bin/config-include` directory.
 
-The same can be done for `StandaloneHypergrid.ini`, and `GridHyperGrid.ini`.
+The StandaloneCommon.ini file describes the database and backend services that OpenSim will use, and is set to use sqlite by default, which requires no setup.
+
+
+# Configure in grid mode
+Each grid may have its own requirements, so FOLLOW your Grid instructions!
+in general:
+Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section correcting for oyur case 
+On `[Architecture]` section uncomment only the line with Grid.ini if you do now want HG or the line with GridHypergrid.ini if you do
+
+and copy the `GridCommon.ini.example` file to `GridCommon.ini` inside the `bin/config-include` directory and edit as necessary
+
 
 
 # References
 
-Helpful resources:
 * http://opensimulator.org/wiki/Build_Instructions
+* http://opensimulator.org/wiki/Configuration
