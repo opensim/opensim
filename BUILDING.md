@@ -42,7 +42,7 @@ For rebuilding and debugging use the msbuild option switches
   *  release: `msbuild /property:Configuration=Release`
 
 
-# Configure a Standalone #
+# Configure #
 ## Standalone mode ##
 Copy `OpenSim.ini.example` to `OpenSim.ini` in the `bin/` directory, and verify the `[Const]' section, correcting for your case.
 
