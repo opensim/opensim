@@ -193,7 +193,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         if (im.binaryBucket.Length >= 34 && im.binaryBucket.Length % 17 == 0)
                         {
                             byte[] iddata = im.binaryBucket;
-                            for (int i = 17; i < im.binaryBucket.Length - 17; i += 17)
+                            for (int i = 17; i <= im.binaryBucket.Length - 17; i += 17)
                                 ids[new UUID(iddata, i + 1)] = (AssetType)im.binaryBucket[i];
                         }
 
