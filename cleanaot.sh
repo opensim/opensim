@@ -9,7 +9,7 @@ rm CSJ2K.dll.so
 rm Npgslq.dll.so
 rm RestSharp.dll.so
 rm Mono*.dll.so
-rm MuSql*.dll.so
+rm MySql*.dll.so
 rm OpenMetaverse*.dll.so
 rm OpenSim*.dll.so
 rm OpenSim*.exe.so
