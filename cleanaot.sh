@@ -3,10 +3,10 @@ cd bin
 rm Nini.dll.so
 rm DotNetOpen*.dll.so
 rm Ionic.Zip.dll.so
-rm Newtonsoft.Json.*.dll.so
+rm Newtonsoft.Json.dll.so
 rm C5.dll.so
 rm CSJ2K.dll.so
-rm Npgslq.dll.so
+rm Npgsql.dll.so
 rm RestSharp.dll.so
 rm Mono*.dll.so
 rm MySql*.dll.so

@@ -1,17 +1,17 @@
 #!/bin/sh
 cd bin
-mono --aot -O=all Nini.dll
-mono --aot -O=all DotNetOpen*.dll
-mono --aot -O=all Ionic.Zip.dll
-mono --aot -O=all Newtonsoft.Json.*.dll
-mono --aot -O=all C5.dll
-mono --aot -O=all CSJ2K.dll
-mono --aot -O=all Npgslq.dll
-mono --aot -O=all RestSharp.dll
-mono --aot -O=all Mono*.dll
-mono --aot -O=all MySql*.dll
-mono --aot -O=all OpenMetaverse*.dll
-mono --aot -O=all OpenSim*.dll
-mono --aot -O=all OpenSim*.exe
-mono --aot -O=all Robust*.exe
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Nini.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all DotNetOpen*.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Ionic.Zip.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Newtonsoft.Json.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all C5.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all CSJ2K.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Npgsql.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all RestSharp.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Mono*.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all MySql*.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all OpenMetaverse*.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all OpenSim*.dll
+mono --aot=mcpu=native,bind-to-runtime-version -O=all OpenSim*.exe
+mono --aot=mcpu=native,bind-to-runtime-version -O=all Robust*.exe
 cd ..
