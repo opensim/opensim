@@ -64,15 +64,11 @@
 
 
 [Modules]
-    ;; Choose one cache module and the corresponding config file, if it exists.
-    ;; Copy the config .example file into your own .ini file and adapt that.
-    ;; We recommend the use of the FlotsamAssetCache since this is most actively maintained.
+    ;; Asset cache module.
+    ;; Warning this is required for several region features
 
     AssetCaching = "FlotsamAssetCache"
     Include-FlotsamCache = "config-include/FlotsamCache.ini"
-
-    ;AssetCaching = "CenomeMemoryAssetCache"
-    ;Include-CenomeCache = "config-include/CenomeCache.ini"
 
     ;; Optionally, the port for the LLProxyLoginModule module can be changed
     ;Setup_LLProxyLoginModule = "9090/"
