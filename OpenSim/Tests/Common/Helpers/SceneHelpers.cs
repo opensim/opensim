@@ -34,14 +34,10 @@ using OpenSim.Data.Null;
 using OpenSim.Framework;
 
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Avatar.Gods;
-using OpenSim.Region.CoreModules.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
@@ -50,7 +46,6 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Region.PhysicsModule.BasicPhysics;
 using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Tests.Common
 {
@@ -76,13 +71,13 @@ namespace OpenSim.Tests.Common
         private LocalUserAccountServicesConnector m_userAccountService;
         private LocalPresenceServicesConnector m_presenceService;
 
-        private CoreAssetCache m_cache;
+        private TestsAssetCache m_cache;
 
         private PhysicsScene m_physicsScene;
 
         public SceneHelpers() : this(null) {}
 
-        public SceneHelpers(CoreAssetCache cache)
+        public SceneHelpers(TestsAssetCache cache)
         {
             SceneManager = new SceneManager();
 
@@ -202,7 +197,6 @@ namespace OpenSim.Tests.Common
             m_presenceService.RegionLoaded(testScene);
             testScene.AddRegionModule(m_presenceService.Name, m_presenceService);
 
-
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel(testScene);
@@ -216,7 +210,7 @@ namespace OpenSim.Tests.Common
             return testScene;
         }
 
-        private static LocalAssetServicesConnector StartAssetService(CoreAssetCache cache)
+        private static LocalAssetServicesConnector StartAssetService(TestsAssetCache cache)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -232,7 +226,7 @@ namespace OpenSim.Tests.Common
             {
                 IConfigSource cacheConfig = new IniConfigSource();
                 cacheConfig.AddConfig("Modules");
-                cacheConfig.Configs["Modules"].Set("AssetCaching", "CoreAssetCache");
+                cacheConfig.Configs["Modules"].Set("AssetCaching", "TestsAssetCache");
                 cacheConfig.AddConfig("AssetCache");
 
                 cache.Initialise(cacheConfig);
