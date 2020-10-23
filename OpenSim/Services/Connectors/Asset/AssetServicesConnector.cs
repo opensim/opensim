@@ -36,6 +36,7 @@ using System.Timers;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
@@ -339,25 +340,23 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                if (!m_Cache.Get(uuidstr, out asset))
-                    return null;
+                //if (!m_Cache.Get(uuidstr, out asset))
+                //    return null;
+                m_Cache.Get(uuidstr, out asset); // negative cache is a fail on HG
             }
 
             if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
+                IServiceAuth auth = null;
                 if (type == 0)
+                {
                     uri = MapServer(uuidstr) + "/assets/" + uuidstr;
+                    auth = m_Auth;
+                }
                 else
                     uri = uri + "/assets/" + uuidstr;
 
-                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
-                if (m_Cache != null)
-                {
-                    if (asset != null)
-                        m_Cache.Cache(asset);
-                    else
-                        m_Cache.CacheNegative(id);
-                }
+                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, auth);
             }
             return asset;
         }
@@ -396,12 +395,16 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Metadata;
             }
 
+            IServiceAuth auth = null;
             if (type == 0)
+            {
+                auth = m_Auth;
                 uri = MapServer(uuidstr) + "/assets/" + uuidstr + "/metadata";
+            }
             else
                 uri = uri + "/assets/" + uuidstr + "/metadata";
 
-            AssetMetadata asset = SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, m_Auth);
+            AssetMetadata asset = SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, auth);
             return asset;
         }
 
@@ -447,15 +450,19 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Data;
             }
 
+            IServiceAuth auth = null;
             if (type == 0)
+            {
                 uri = MapServer(uuidstr);
+                auth = m_Auth;
+            }
 
             using (RestClient rc = new RestClient(uri))
             {
                 rc.AddResourcePath("assets/" + id + "/Data");
                 rc.RequestMethod = "GET";
 
-                using (MemoryStream s = rc.Request(m_Auth))
+                using (MemoryStream s = rc.Request(auth))
                 {
                     if (s == null || s.Length == 0)
                         return null;
@@ -468,6 +475,7 @@ namespace OpenSim.Services.Connectors
         {
             public string uri;
             public string id;
+            public IServiceAuth auth;
         }
 
         public virtual bool Get(string id, object sender, AssetRetrieved handler)
@@ -503,6 +511,7 @@ namespace OpenSim.Services.Connectors
                     QueuedAssetRequest request = new QueuedAssetRequest();
                     request.id = id;
                     request.uri = uri;
+                    request.auth = m_Auth;
                     m_requestQueue.Add(request);
                 }
             }
@@ -525,14 +534,17 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                if (!m_Cache.Get(uuidstr, out asset))
-                    return false;
+                m_Cache.Get(uuidstr, out asset);
             }
 
             if (asset == null)
             {
+                IServiceAuth auth = null;
                 if (type == 0)
+                {
                     uri = MapServer(uuidstr) + "/assets/" + uuidstr;
+                    auth = m_Auth;
+                }
                 else
                     uri = uri + "/assets/" + uuidstr;
 
@@ -556,6 +568,7 @@ namespace OpenSim.Services.Connectors
                     QueuedAssetRequest request = new QueuedAssetRequest();
                     request.id = id;
                     request.uri = uri;
+                    request.auth = m_Auth;
                     m_requestQueue.Add(request);
                 }
             }
@@ -587,7 +600,7 @@ namespace OpenSim.Services.Connectors
 
                 try
                 {
-                    AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", r.uri, 0, 30000, m_Auth);
+                    AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", r.uri, 0, 30000, r.auth);
 
                     if (a != null && m_Cache != null)
                         m_Cache.Cache(a);
@@ -641,11 +654,13 @@ namespace OpenSim.Services.Connectors
         {
             public string assetID;
             public int index;
+            public IServiceAuth auth;
 
-            public AssetAndIndex(string assetID, int index)
+            public AssetAndIndex(string assetID, int index, IServiceAuth auth)
             {
                 this.assetID = assetID;
                 this.index = index;
+                this.auth = auth;
             }
         }
 
@@ -660,8 +675,13 @@ namespace OpenSim.Services.Connectors
                 int ltype = Util.ParseForeignAssetID(ids[i], out string lurl, out string luuidstr);
                 if (ltype > 0)
                 {
+                    IServiceAuth auth = null;
+
                     if (ltype == 0)
+                    {
                         lurl = m_ServerURI;
+                        auth = m_Auth;
+                    }
 
                     List < AssetAndIndex > lst;
                     if (!url2assets.TryGetValue(lurl, out lst))
@@ -669,7 +689,7 @@ namespace OpenSim.Services.Connectors
                         lst = new List<AssetAndIndex>();
                         url2assets.Add(lurl, lst);
                     }
-                    lst.Add(new AssetAndIndex(luuidstr, i));
+                    lst.Add(new AssetAndIndex(luuidstr, i, auth));
                 }
             }
 
@@ -678,7 +698,8 @@ namespace OpenSim.Services.Connectors
             {
                 List<AssetAndIndex> curAssets = kvp.Value;
                 string[] assetIDs = new string[curAssets.Count];
-                for(int i = 0; i < assetIDs.Length;++i)
+                IServiceAuth auth = curAssets[0].auth;
+                for (int i = 0; i < assetIDs.Length;++i)
                     assetIDs[i] = curAssets[i].assetID;
 
                 string uri = kvp.Key + "/get_assets_exist";
@@ -686,7 +707,7 @@ namespace OpenSim.Services.Connectors
                 bool[] curExist = null;
                 try
                 {
-                    curExist = SynchronousRestObjectRequester.MakeRequest<string[], bool[]>("POST", uri, assetIDs, m_Auth);
+                    curExist = SynchronousRestObjectRequester.MakeRequest<string[], bool[]>("POST", uri, assetIDs, auth);
                 }
                 catch (Exception)
                 {
@@ -816,15 +837,19 @@ namespace OpenSim.Services.Connectors
                 return asset.ID;
             }
 
+            IServiceAuth auth = null;
             if(type == 0)
+            {
                 uri = MapServer(uuidstr) + "/assets/";
+                auth = m_Auth;
+            }
             else
                 uri += "/assets/";
 
             string newID = null;
             try
             {
-                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, 10000, m_Auth);
+                newID = SynchronousRestObjectRequester.MakeRequest<AssetBase, string>("POST", uri, asset, 30000, auth);
             }
             catch
             {
@@ -833,33 +858,12 @@ namespace OpenSim.Services.Connectors
 
             if (string.IsNullOrEmpty(newID) || newID == stringUUIDZero)
             {
-                //The asset upload failed, try later
-                lock (m_sendRetries)
-                {
-                    if (m_Cache == null)
-                    {
-                        if (m_sendRetries[0] == null)
-                            m_sendRetries[0] = new List<AssetBase>();
-                        m_sendRetries[0].Add(asset);
-                    }
-                    else
-                    {
-                        if (m_sendCachedRetries[0] == null)
-                            m_sendCachedRetries[0] = new List<string>();
-                        m_sendCachedRetries[0].Add(asset.ID);
-                    }
-
-                    m_log.WarnFormat("[Assets] Upload failed: {0} type {1} will retry later",
-                            asset.ID.ToString(), asset.Type.ToString());
-                    m_retryTimer.Start();
-                }
+                return string.Empty;
             }
             else
             {
                 if (newID != asset.ID)
                 {
-                    // Placing this here, so that this work with old asset servers that don't send any reply back
-                    // SynchronousRestObjectRequester returns somethins that is not an empty string
                     asset.ID = newID;
                     if (m_Cache != null)
                         m_Cache.Cache(asset);

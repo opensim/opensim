@@ -40,12 +40,9 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteAssetServicesConnector")]
-    public class RemoteAssetServicesConnector :
-            AssetServicesConnector, ISharedRegionModule, IAssetService
+    public class RemoteAssetServicesConnector : AssetServicesConnector, ISharedRegionModule, IAssetService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
         private IAssetCache m_Cache;

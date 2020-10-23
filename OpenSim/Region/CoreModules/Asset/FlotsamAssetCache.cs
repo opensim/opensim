@@ -166,7 +166,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         m_negativeCacheEnabled = assetConfig.GetBoolean("NegativeCacheEnabled", m_negativeCacheEnabled);
                         m_negativeExpiration = assetConfig.GetInt("NegativeCacheTimeout", m_negativeExpiration);
-                        
 
                         m_updateFileTimeOnCacheHit = assetConfig.GetBoolean("UpdateFileTimeOnCacheHit", m_updateFileTimeOnCacheHit);
                         m_updateFileTimeOnCacheHit &= m_FileCacheEnabled;

@@ -75,24 +75,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return;
                     }
 
-                    string serviceDll = assetConfig.GetString("LocalServiceModule", String.Empty);
-
-                    if (serviceDll == String.Empty)
+                    string serviceDll = assetConfig.GetString("LocalServiceModule", string.Empty);
+                    if (string.IsNullOrEmpty(serviceDll))
                     {
                         m_log.Error("[LOCAL ASSET SERVICES CONNECTOR]: No LocalServiceModule named in section AssetService");
                         return;
                     }
-                    else
-                    {
-                        m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Loading asset service at {0}", serviceDll);
-                    }
 
-                    Object[] args = new Object[] { source };
+                    //m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Loading asset service at {0}", serviceDll);
+
+                    object[] args = new object[] { source };
                     m_AssetService = ServerUtils.LoadPlugin<IAssetService>(serviceDll, args);
 
                     if (m_AssetService == null)
                     {
-                        m_log.Error("[LOCAL ASSET SERVICES CONNECTOR]: Can't load asset service");
+                        m_log.Error("[LOCAL ASSET SERVICES CONNECTOR]: Fail to load asset service " + serviceDll);
                         return;
                     }
                     m_Enabled = true;
@@ -134,13 +131,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     m_Cache = null;
             }
 
-            m_log.DebugFormat(
-                "[LOCAL ASSET SERVICES CONNECTOR]: Enabled connector for region {0}", scene.RegionInfo.RegionName);
-
             if (m_Cache != null)
             {
                 m_log.DebugFormat(
-                    "[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset caching for region {0}",
+                    "[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset connector with caching for region {0}",
                     scene.RegionInfo.RegionName);
             }
             else
@@ -154,8 +148,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public AssetBase Get(string id)
         {
-//            m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Synchronously requesting asset {0}", id);
-
             AssetBase asset = null;
             if (m_Cache != null)
             {
@@ -166,11 +158,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (asset == null)
             {
                 asset = m_AssetService.Get(id);
-                if ((m_Cache != null) && (asset != null))
+                if ((m_Cache != null) && (asset != null) && asset.ID != id)
                     m_Cache.Cache(asset);
 
-//                if (null == asset)
-//                    m_log.WarnFormat("[LOCAL ASSET SERVICES CONNECTOR]: Could not synchronously find asset with id {0}", id);
+            //if (null == asset)
+            //    m_log.WarnFormat("[LOCAL ASSET SERVICES CONNECTOR]: Could not synchronously find asset with id {0}", id);
             }
 
             return asset;
@@ -248,8 +240,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 if (asset != null)
                 {
-                    Util.FireAndForget(
-                        o => handler(id, sender, asset), null, "LocalAssetServiceConnector.GotFromCacheCallback");
+                    Util.FireAndForget(o => handler(id, sender, asset), null, "LocalAssetServiceConnector.GotFromCacheCallback");
                     return true;
                 }
             }
@@ -262,8 +253,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 //                if (null == a)
 //                    m_log.WarnFormat("[LOCAL ASSET SERVICES CONNECTOR]: Could not asynchronously find asset with id {0}", id);
 
-                Util.FireAndForget(
-                    o => handler(assetID, s, a), null, "LocalAssetServiceConnector.GotFromServiceCallback");
+                Util.FireAndForget(o => handler(assetID, s, a), null, "LocalAssetServiceConnector.GotFromServiceCallback");
             });
         }
 

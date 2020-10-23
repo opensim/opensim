@@ -213,12 +213,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public void Get(UUID assetID, UUID ownerID, string userAssetURL)
         {
-            // Get the item from the remote asset server onto the local AssetService
-
-            AssetMetadata meta = FetchMetadata(userAssetURL, assetID);
-            if (meta == null)
-                return;
-
             // The act of gathering UUIDs downloads some assets from the remote server
             // but not all...
             HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, userAssetURL);
@@ -228,8 +222,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             m_log.DebugFormat("[HG ASSET MAPPER]: Preparing to get {0} assets", uuidGatherer.GatheredUuids.Count);
             bool success = true;
             foreach (UUID uuid in uuidGatherer.GatheredUuids.Keys)
+            {
                 if (FetchAsset(userAssetURL, uuid) == null)
                     success = false;
+            }
+            if(uuidGatherer.FailedUUIDs.Count > 0)
+                success = false;
 
             // maybe all pieces got here...
             if (!success)
