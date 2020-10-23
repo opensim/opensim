@@ -50,8 +50,9 @@ namespace OpenSim.Framework
         public int Port;
         public IPAddress IP;
         public readonly string Host;
-        public readonly string URI;
+        public readonly string URL;
         public readonly string Path;
+        public readonly string URI;
 
         public OSHTTPURI(string uri, bool withDNSResolve = false)
         {
@@ -60,6 +61,7 @@ namespace OpenSim.Framework
             IP = null;
             Host = string.Empty;
             URI = string.Empty;
+            URL = string.Empty;
             Path = string.Empty;
 
             if (string.IsNullOrEmpty(uri))
@@ -80,7 +82,8 @@ namespace OpenSim.Framework
                 if (Path[Path.Length - 1] == '/')
                     Path = Path.Substring(0, Path.Length - 1);
 
-                URI = m_checkuri.Scheme + "://" + Host + ":" + Port + Path;
+                URL = m_checkuri.Scheme + "://" + Host + ":" + Port;
+                URI = URL + Path;
 
                 if (withDNSResolve)
                 {

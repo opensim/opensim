@@ -1485,30 +1485,41 @@ namespace OpenSim.Framework
         /// <param name="url">The URL: http://grid.example.com:8002</param>
         /// <param name="assetID">The asset ID: 00000000-0000-0000-0000-000000000000. Returned even if 'id' isn't foreign.</param>
         /// <returns>True: this is a foreign asset ID; False: it isn't</returns>
-        public static bool ParseForeignAssetID(string id, out string url, out string assetID)
+        public static int ParseForeignAssetID(string id, out string url, out string assetID)
         {
-            url = String.Empty;
-            assetID = String.Empty;
+            url = string.Empty;
+            assetID = string.Empty;
 
-            if (UUID.TryParse(id, out UUID uuid))
+            if (id.Length == 0)
+                return -1;
+
+            if(id[0] != 'h' && id[0] != 'H')
             {
-                assetID = uuid.ToString();
-                return false;
+                if (UUID.TryParse(id, out UUID luuid))
+                {
+                    assetID = id;
+                    return 0;
+                }
+                return -1;
             }
 
-            if ((id.Length == 0) || (id[0] != 'h' && id[0] != 'H'))
-                return false;
-
-            if (!Uri.TryCreate(id, UriKind.Absolute, out Uri assetUri) || assetUri.Scheme != Uri.UriSchemeHttp)
-                return false;
-
-            url = "http://" + assetUri.Authority;
-            assetID = assetUri.LocalPath.Trim(new char[] { '/' });
-
-            if (!UUID.TryParse(assetID, out uuid))
-                return false;
-
-            return true;
+            OSHTTPURI uri = new OSHTTPURI(id, true);
+            if(uri.IsResolvedHost)
+            {
+                url = uri.URL;
+                string tmp = uri.Path;
+                if(tmp.Length < 36)
+                    return -3;
+                if(tmp[0] =='/')
+                    tmp = tmp.Substring(1);
+                if (UUID.TryParse(tmp, out UUID uuid))
+                {
+                    assetID = tmp;
+                    return 1;
+                }
+                return -1;
+            }
+            return -2;
         }
 
         /// <summary>

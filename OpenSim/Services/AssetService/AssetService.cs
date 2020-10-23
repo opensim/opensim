@@ -40,9 +40,7 @@ namespace OpenSim.Services.AssetService
 {
     public class AssetService : AssetServiceBase, IAssetService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static AssetService m_RootInstance;
 

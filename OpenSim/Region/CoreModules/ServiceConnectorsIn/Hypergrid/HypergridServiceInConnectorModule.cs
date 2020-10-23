@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
 
         private IConfigSource m_Config;
         private bool m_Registered = false;
-        private string m_LocalServiceDll = String.Empty;
+        private string m_LocalServiceDll = string.Empty;
         private GatekeeperServiceInConnector m_HypergridHandler;
         private UserAgentServerConnector m_UASHandler;
 
@@ -71,13 +71,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
                     if (fconfig != null)
                     {
                         m_LocalServiceDll = fconfig.GetString("LocalServiceModule", m_LocalServiceDll);
-                        if (m_LocalServiceDll == String.Empty)
+                        if (m_LocalServiceDll == string.Empty)
                             m_log.WarnFormat("[HGGRID IN CONNECTOR]: Friends LocalServiceModule config missing");
                     }
                 }
-
             }
-
         }
 
         public void PostInitialise()
@@ -123,7 +121,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
 
                 ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
                 IFriendsSimConnector friendsConn = scene.RequestModuleInterface<IFriendsSimConnector>();
-                Object[] args = new Object[] { m_Config };
+                object[] args = new object[] { m_Config };
 //                IFriendsService friendsService = ServerUtils.LoadPlugin<IFriendsService>(m_LocalServiceDll, args)
                 ServerUtils.LoadPlugin<IFriendsService>(m_LocalServiceDll, args);
 
