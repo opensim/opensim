@@ -83,7 +83,7 @@ namespace OpenSim.Services.GridService
 
             string assetService = gridConfig.GetString("AssetService", string.Empty);
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
 
             if (assetService != string.Empty)
                 m_AssetService = ServerUtils.LoadPlugin<IAssetService>(assetService, args);
@@ -92,7 +92,7 @@ namespace OpenSim.Services.GridService
             if (scope != string.Empty)
                 UUID.TryParse(scope, out m_ScopeID);
 
-//                m_Check4096 = gridConfig.GetBoolean("Check4096", true);
+            //m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
             m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 

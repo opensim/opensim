@@ -52,7 +52,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender.Tests
 
         private void SetupScene(bool reuseTextures)
         {
-            m_scene = new SceneHelpers().SetupScene();
+            
+            TestsAssetCache cache = new TestsAssetCache();
+            m_scene = new SceneHelpers(cache).SetupScene();
 
             m_dtm = new DynamicTextureModule();
             m_dtm.ReuseTextures = reuseTextures;
