@@ -33,7 +33,6 @@ using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Server.Base;
 using OpenSim.Services.Connectors;
 using OpenSim.Services.Interfaces;
 
@@ -41,11 +40,9 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HGAssetBroker")]
-    public class HGAssetBroker : AssetServicesConnector, ISharedRegionModule, IAssetService
+    public class HGAssetBroker : RegionBaseAssetServicesConnector, ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
-
-        private IAssetCache m_Cache = null;
 
         private Scene m_aScene;
 
@@ -70,7 +67,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             Initialise(config);
         }
 
-        public override void Initialise(IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
@@ -78,17 +75,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 string name = moduleConfig.GetString("AssetServices", "");
                 if (name == Name)
                 {
-                    IConfig assetConfig = source.Configs["AssetService"];
-                    if (assetConfig == null)
-                    {
-                        m_log.Error("[HG ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
-                        return;
-                    }
-
                     IConfig hgConfig = source.Configs["HGAssetService"];
-                    m_AssetPerms = new AssetPermissions(hgConfig); // it's ok if arg is null
+                    if(hgConfig != null)
+                        m_AssetPerms = new AssetPermissions(hgConfig); // it's ok if arg is null
 
-                    base.Initialise(source);
+                    baseInitialise(source);
                     m_Enabled = true;
                     m_log.Info("[HG ASSET CONNECTOR]: HG asset broker enabled");
                 }
@@ -128,8 +119,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;
-                else
-                    SetCache(m_Cache);
             }
 
             if (m_Cache != null)

@@ -40,6 +40,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="id"></param>
         /// <returns></returns>
         AssetBase Get(string id);
+        AssetBase Get(string id, string ForeignAssetService);
 
         /// <summary>
         /// Get an asset's metadata

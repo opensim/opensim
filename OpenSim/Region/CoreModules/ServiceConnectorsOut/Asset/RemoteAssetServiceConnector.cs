@@ -40,13 +40,11 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RemoteAssetServicesConnector")]
-    public class RemoteAssetServicesConnector : AssetServicesConnector, ISharedRegionModule, IAssetService
+    public class RemoteAssetServicesConnector : RegionBaseAssetServicesConnector, ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private IAssetCache m_Cache;
-
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -57,7 +55,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             get { return "RemoteAssetServicesConnector"; }
         }
 
-        public override void Initialise(IConfigSource source)
+        public  void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
@@ -65,16 +63,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 string name = moduleConfig.GetString("AssetServices", "");
                 if (name == Name)
                 {
-                    IConfig assetConfig = source.Configs["AssetService"];
-                    if (assetConfig == null)
-                    {
-                        m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
-                        return;
-                    }
-
+                    baseInitialise(source);
                     m_Enabled = true;
-
-                    base.Initialise(source);
 
                     m_log.Info("[ASSET CONNECTOR]: Remote assets enabled");
                 }
@@ -115,17 +105,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 //
                 if (!(m_Cache is ISharedRegionModule))
                     m_Cache = null;
-                else
-                    SetCache(m_Cache);
-
             }
-
-            m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets for region {0}", scene.RegionInfo.RegionName);
 
             if (m_Cache != null)
-            {
-                m_log.InfoFormat("[ASSET CONNECTOR]: Enabled asset caching for region {0}", scene.RegionInfo.RegionName);
-            }
+                m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets with caching for region {0}", scene.RegionInfo.RegionName);
+            else
+                m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets without caching for region {0}", scene.RegionInfo.RegionName);
         }
     }
 }

@@ -92,6 +92,12 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            IAssetService connector = GetConnector(ForeignAssetService);
+            return connector.Get(id);
+        }
+
         public AssetBase GetCached(string id)
         {
             string url = string.Empty;

@@ -562,6 +562,11 @@ namespace OpenSim.Region.CoreModules.Asset
             return asset;
         }
 
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            return null;
+        }
+
         public bool Get(string id, out AssetBase asset)
         {
             asset = null;

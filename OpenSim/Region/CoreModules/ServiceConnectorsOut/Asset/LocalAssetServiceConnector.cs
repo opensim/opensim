@@ -131,19 +131,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     m_Cache = null;
             }
 
-            if (m_Cache != null)
-            {
-                m_log.DebugFormat(
-                    "[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset connector with caching for region {0}",
+            if (m_Cache == null)
+                m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset connector with caching for region {0}",
                     scene.RegionInfo.RegionName);
-            }
             else
-            {
-                // Short-circuit directly to storage layer.  This ends up storing temporary and local assets.
-                //
-                scene.UnregisterModuleInterface<IAssetService>(this);
-                scene.RegisterModuleInterface<IAssetService>(m_AssetService);
-            }
+                m_log.DebugFormat("[LOCAL ASSET SERVICES CONNECTOR]: Enabled asset connector without caching for region {0}",
+                    scene.RegionInfo.RegionName);
         }
 
         public AssetBase Get(string id)
@@ -166,6 +159,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             }
 
             return asset;
+        }
+
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            return null;
         }
 
         public AssetBase GetCached(string id)

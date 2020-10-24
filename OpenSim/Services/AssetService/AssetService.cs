@@ -113,6 +113,11 @@ namespace OpenSim.Services.AssetService
             }
         }
 
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            return null;
+        }
+
         public virtual AssetBase GetCached(string id)
         {
             return Get(id);

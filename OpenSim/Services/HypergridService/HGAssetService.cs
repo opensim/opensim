@@ -125,6 +125,11 @@ namespace OpenSim.Services.HypergridService
             return asset;
         }
 
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            return null;
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             AssetMetadata meta = m_assetService.GetMetadata(id);
