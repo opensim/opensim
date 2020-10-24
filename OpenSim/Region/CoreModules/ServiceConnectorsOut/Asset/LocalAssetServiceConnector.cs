@@ -151,8 +151,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (asset == null)
             {
                 asset = m_AssetService.Get(id);
-                if ((m_Cache != null) && (asset != null) && asset.ID != id)
-                    m_Cache.Cache(asset);
+                if (m_Cache != null)
+                {
+                    if(asset != null)
+                        m_Cache.Cache(asset);
+                    else
+                        m_Cache.CacheNegative(id);
+                }
 
             //if (null == asset)
             //    m_log.WarnFormat("[LOCAL ASSET SERVICES CONNECTOR]: Could not synchronously find asset with id {0}", id);
@@ -243,7 +248,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 }
             }
 
-            return m_AssetService.Get(id, sender, delegate (string assetID, Object s, AssetBase a)
+            return m_AssetService.Get(id, sender, delegate (string assetID, object s, AssetBase a)
             {
                 if ((a != null) && (m_Cache != null))
                     m_Cache.Cache(a);

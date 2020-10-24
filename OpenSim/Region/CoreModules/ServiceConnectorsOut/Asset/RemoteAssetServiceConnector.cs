@@ -112,5 +112,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             else
                 m_log.InfoFormat("[ASSET CONNECTOR]: Enabled remote assets without caching for region {0}", scene.RegionInfo.RegionName);
         }
+
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            return Get(id); // no hg
+        }
     }
 }

@@ -98,10 +98,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (string.IsNullOrEmpty(url))
                     return null;
 
-                if (!url.EndsWith("/") && !url.EndsWith("="))
-                    url = url + "/";
-
-                asset = m_scene.AssetService.Get(url + assetIDstr);
+                asset = m_scene.AssetService.Get(assetIDstr, url);
 
                 //if (asset != null)
                 //    m_log.DebugFormat("[HG ASSET MAPPER]: Fetched asset {0} of type {1} from {2} ", assetID, asset.Metadata.Type, url);

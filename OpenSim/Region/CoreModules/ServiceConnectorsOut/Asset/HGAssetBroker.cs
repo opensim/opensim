@@ -153,6 +153,41 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return asset;
         }
 
+        public AssetBase Get(string id, string ForeignAssetService)
+        {
+            // assumes id and ForeignAssetService are valid and resolved
+            AssetBase asset = null;
+            if (m_Cache != null)
+            {
+                m_Cache.Get(id, out asset); // negative cache is a fail on HG
+            }
+
+            if (asset == null)
+            {
+                asset = GetFromLocal(id);
+                if (asset == null)
+                {
+                    asset = GetFromForeign(id, ForeignAssetService);
+                    if (asset != null)
+                    {
+                        if (m_AssetPerms.AllowedImport(asset.Type))
+                            base.Store(asset);
+                        else
+                        {
+                            if (m_Cache != null)
+                                m_Cache.CacheNegative(id);
+                            return null;
+                        }
+                    }
+                    else if (m_Cache != null)
+                        m_Cache.CacheNegative(id);
+                }
+                else if (m_Cache != null)
+                    m_Cache.Cache(asset);
+            }
+            return asset;
+        }
+
         public override AssetMetadata GetMetadata(string id)
         {
             if (IsHG(id))

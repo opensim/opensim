@@ -313,11 +313,9 @@ namespace OpenSim.Services.Connectors
                     return null;
             }
 
-            if (asset == null || asset.Data == null || asset.Data.Length == 0)
+            if (asset == null)
             {
-                string uri = MapServer(id) + "/assets/" + id;
-
-                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
+                asset = GetFromLocal(id);
                 if (m_Cache != null)
                 {
                     if (asset != null)
@@ -329,28 +327,21 @@ namespace OpenSim.Services.Connectors
             return asset;
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase GetFromLocal(string id)
         {
-            // assumes id and ForeignAssetService are valid and resolved
-            AssetBase asset = null;
-            if (m_Cache != null)
-            {
-                m_Cache.Get(id, out asset); // negative cache is a fail on HG
-            }
+            string local = MapServer(id) + "/assets/" + id;
+            return SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", local, 0, m_Auth);
+        }
 
-            if (asset == null)
-            {
-                IServiceAuth auth = null;
-                if (ForeignAssetService.Equals(m_ServerURI))
-                {
-                    ForeignAssetService = MapServer(id) + "/assets/" + id;
-                    auth = m_Auth;
-                }
-                else
-                    ForeignAssetService = ForeignAssetService + "/assets/" + id;
-                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", ForeignAssetService, 0, auth);
-            }
-            return asset;
+        public AssetBase GetFromForeign(string id, string ForeignAssetService)
+        {
+            if(string.IsNullOrEmpty(ForeignAssetService) || ForeignAssetService.Equals(m_ServerURI))
+                return null;
+            if(ForeignAssetService.EndsWith("/"))
+                ForeignAssetService = ForeignAssetService + "assets/" + id;
+            else
+                ForeignAssetService = ForeignAssetService + "/assets/" + id;
+            return SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", ForeignAssetService, 0, null);
         }
 
         public AssetBase GetForeign(string id)
@@ -367,7 +358,7 @@ namespace OpenSim.Services.Connectors
                 m_Cache.Get(uuidstr, out asset); // negative cache is a fail on HG
             }
 
-            if (asset == null || asset.Data == null || asset.Data.Length == 0)
+            if (asset == null)
             {
                 IServiceAuth auth = null;
                 if (type == 0)
