@@ -56,7 +56,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (part.ParentGroup.RootPart == part)
             {
                 if ((change & ObjectChangeType.Position) != 0)
-                    data.position = part.ParentGroup.AbsolutePosition;
+                {
+                    if (part.ParentGroup.IsAttachment)
+                        data.position = part.AttachedPos;
+                    else
+                        data.position = part.ParentGroup.AbsolutePosition;
+				}
                 if ((change & ObjectChangeType.Rotation) != 0)
                     data.rotation = part.RotationOffset;
                 if ((change & ObjectChangeType.Scale) != 0)
