@@ -4704,6 +4704,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key llGetLinkKey(int linknum)
         {
             m_host.AddScriptLPS(1);
+            if(linknum < 0)
+            {
+                if (linknum == ScriptBaseClass.LINK_ROOT)
+                    return m_host.ParentGroup.RootPart.UUID.ToString();
+                if (linknum == ScriptBaseClass.LINK_THIS)
+                    return m_host.UUID.ToString();
+                return ScriptBaseClass.NULL_KEY;
+            }
+
             SceneObjectPart part = m_host.ParentGroup.GetLinkNumPart(linknum);
             if (part != null)
             {
