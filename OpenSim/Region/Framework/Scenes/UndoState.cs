@@ -52,16 +52,11 @@ namespace OpenSim.Region.Framework.Scenes
             data = new ObjectChangeData();
             data.change = change;
             creationtime = DateTime.UtcNow;
-
-            if (part.ParentGroup.RootPart == part)
+            SceneObjectGroup sog = part.ParentGroup;
+            if (sog.RootPart == part)
             {
                 if ((change & ObjectChangeType.Position) != 0)
-                {
-                    if (part.ParentGroup.IsAttachment)
-                        data.position = part.AttachedPos;
-                    else
-                        data.position = part.ParentGroup.AbsolutePosition;
-				}
+                    data.position = sog.IsAttachment ? part.AttachedPos : sog.AbsolutePosition;
                 if ((change & ObjectChangeType.Rotation) != 0)
                     data.rotation = part.RotationOffset;
                 if ((change & ObjectChangeType.Scale) != 0)
