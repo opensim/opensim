@@ -212,6 +212,7 @@ namespace OpenSim.Framework
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
+                request.AllowWriteStreamBuffering = false;
             }
             catch (Exception ex)
             {
@@ -258,7 +259,7 @@ namespace OpenSim.Framework
                     buffer = null;
                 }
 
-                using (WebResponse response = request.GetResponse())
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                     {
@@ -381,13 +382,14 @@ namespace OpenSim.Framework
             HttpWebRequest request = null;
             try
             {
-                request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = "POST";
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
                 request.ReadWriteTimeout = timeout / 2;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
+                request.AllowWriteStreamBuffering = false;
             }
             catch (Exception ex)
             {
@@ -414,14 +416,14 @@ namespace OpenSim.Framework
                     buffer = null;
                 }
 
-                using (WebResponse response = request.GetResponse())
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                     {
                         string responseStr = reader.ReadToEnd();
                         rcvlen = responseStr.Length;
-                        if (WebUtil.DebugLevel >= 5)
-                            WebUtil.LogResponseDetail(reqnum, responseStr);
+                        if (DebugLevel >= 5)
+                            LogResponseDetail(reqnum, responseStr);
                         OSD responseOSD = OSDParser.Deserialize(responseStr);
 
                         if (responseOSD.Type == OSDType.Map)
@@ -784,6 +786,8 @@ namespace OpenSim.Framework
             if (auth != null)
                 auth.AddAuthorization(request.Headers);
 
+            request.AllowWriteStreamBuffering = false;
+
             if (maxConnections > 0 && request.ServicePoint.ConnectionLimit < maxConnections)
                 request.ServicePoint.ConnectionLimit = maxConnections;
 
@@ -976,13 +980,14 @@ namespace OpenSim.Framework
             {
                 request = (HttpWebRequest)WebRequest.Create(requestUrl);
                 request.Method = verb;
-                request.AllowWriteStreamBuffering = false;
                 if (timeoutsecs > 0)
                     request.Timeout = timeoutsecs * 1000;
                 if(!keepalive)
                     request.KeepAlive = false;
                 if (auth != null)
                     auth.AddAuthorization(request.Headers);
+
+                request.AllowWriteStreamBuffering = false;
                 request.ContentType = "application/x-www-form-urlencoded";
             }
             catch (Exception e)
@@ -1079,6 +1084,8 @@ namespace OpenSim.Framework
                     request.KeepAlive = false;
                 if (auth != null)
                     auth.AddAuthorization(request.Headers);
+
+                request.AllowWriteStreamBuffering = false;
                 request.ContentType = "application/x-www-form-urlencoded";
             }
             catch (Exception e)
@@ -1225,7 +1232,7 @@ namespace OpenSim.Framework
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SynchronousRestObject {1} to {2}",
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjectRequest {1} {2}",
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
@@ -1240,23 +1247,20 @@ namespace OpenSim.Framework
                 if (auth != null)
                     auth.AddAuthorization(request.Headers);
 
+                request.AllowWriteStreamBuffering = false;
+
                 if (pTimeout != 0)
                     request.Timeout = pTimeout;
 
-                if (maxConnections > 0 && request.ServicePoint.ConnectionLimit < maxConnections)
-                    request.ServicePoint.ConnectionLimit = maxConnections;
 
-                request.AllowWriteStreamBuffering = false;
                 request.Method = verb;
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[SynchronousRestObjectRequester]: Exception in creating request {0} {1}: {2}{3}",
+                m_log.DebugFormat("[SRestObjectRequest]: Exception in creating request {0} {1}: {2}{3}",
                     verb, requestUrl, e.Message, e.StackTrace);
                 return deserial;
             }
-
-            int sendlen = 0;
 
             try
             {
@@ -1275,7 +1279,7 @@ namespace OpenSim.Framework
                         data = ms.ToArray();
                     }
 
-                    sendlen = data.Length;
+                    int sendlen = data.Length;
                     request.ContentLength = sendlen;
 
                     if (WebUtil.DebugLevel >= 5)
@@ -1289,7 +1293,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.DebugFormat(
-                    "[SynchronousRestObjectRequester]: Exception in making request {0} {1}: {2}{3}",
+                    "[SRestObjectRequest]: Exception in making request {0} {1}: {2}{3}",
                     verb, requestUrl, e.Message, e.StackTrace);
 
                 return deserial;
@@ -1312,7 +1316,7 @@ namespace OpenSim.Framework
                     }
                     else
                     {
-                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}",
+                        m_log.DebugFormat("[SRestObjectRequest]: Oops! no content found in response stream from {0} {1}",
                             verb, requestUrl);
                     }
                 }
@@ -1325,38 +1329,38 @@ namespace OpenSim.Framework
                     {
                         if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                         {
-                            m_log.ErrorFormat("[SynchronousRestObjectRequester]: Web request {0} requires authentication",
+                            m_log.ErrorFormat("[SRestObjectRequest]: {0} requires authentication",
                                 requestUrl);
                         }
                         else if(hwr.StatusCode != HttpStatusCode.NotFound)
                         {
-                            m_log.WarnFormat("[SynchronousRestObjectRequester]: Web request {0} returned error: {1}",
+                            m_log.WarnFormat("[SRestObjectRequest]: {0} returned error: {1}",
                                 requestUrl, hwr.StatusCode);
                         }
                     }
                     else
                         m_log.ErrorFormat(
-                            "[SynchronousRestObjectRequester]: WebException for {0} {1} {2} {3}",
+                            "[SRestObjectRequest]: WebException for {0} {1} {2} {3}",
                             verb, requestUrl, typeof(TResponse).ToString(), e.Message);
                 }
             }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
-                m_log.DebugFormat("[SynchronousRestObjectRequester]: Invalid XML from {0} {1} {2}",
+                m_log.DebugFormat("[SRestObjectRequest]: Invalid XML from {0} {1} {2}",
                     verb, requestUrl, typeof(TResponse).ToString());
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}: {2}",
+                m_log.DebugFormat("[SRestObjectRequest]: Exception on response from {0} {1}: {2}",
                     verb, requestUrl, e.Message);
             }
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
             {
-                m_log.InfoFormat("[LOGHTTP]: Slow SynchronousRestObject request {0} {1} to {2} took {3}ms, {4}/{5}bytes",
-                    reqnum, verb, requestUrl, tickdiff, sendlen, rcvlen);
+                m_log.InfoFormat("[LOGHTTP]: Slow SRestObjectRequest {0} {1} {2} took {3}ms, {4}bytes",
+                    reqnum, verb, requestUrl, tickdiff, rcvlen);
             }
             else if (WebUtil.DebugLevel >= 4)
             {
