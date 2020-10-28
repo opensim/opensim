@@ -269,6 +269,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             }
             else
             {
+                if (m_Cache != null)
+                {
+                    if(!m_Cache.Get(id, out asset))
+                        return null;
+                    if (asset != null)
+                        return asset;
+                }
                 asset = GetFromLocal(id);
                 if(m_Cache != null)
                 {
