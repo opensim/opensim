@@ -217,7 +217,7 @@ namespace OpenSim.Framework
             catch (Exception ex)
             {
                 errorMessage = ex.Message;
-                m_log.Debug("[WEB UTIL]: ServiceOSD error creating request " + ex.Message);
+                m_log.Debug("[WEB UTIL]: SvcOSD error creating request " + ex.Message);
                 return ErrorResponseMap(errorMessage);
             }
 
@@ -291,7 +291,7 @@ namespace OpenSim.Framework
                 if (tickdiff > LongCallTime)
                 {
                     m_log.InfoFormat(
-                        "[WEB UTIL]: ServiceOSD request {0} {1} {2} took {3}ms, {4}/{5}bytes",
+                        "[WEB UTIL]: SvcOSD {0} {1} {2} took {3}ms, {4}/{5}bytes",
                         reqnum, method, url, tickdiff, sendlen, rcvlen );
                 }
                 else if (DebugLevel >= 4)
@@ -324,10 +324,10 @@ namespace OpenSim.Framework
             result["_RawResult"] = OSD.FromString(response);
             result["_Result"] = new OSDMap();
 
-            if (response.Equals("true",System.StringComparison.OrdinalIgnoreCase))
+            if (response.Equals("true", StringComparison.OrdinalIgnoreCase))
                 return result;
 
-            if (response.Equals("false",System.StringComparison.OrdinalIgnoreCase))
+            if (response.Equals("false", StringComparison.OrdinalIgnoreCase))
             {
                 result["Success"] = OSD.FromBoolean(false);
                 result["success"] = OSD.FromBoolean(false);

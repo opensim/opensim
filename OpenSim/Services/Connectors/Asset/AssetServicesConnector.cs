@@ -46,8 +46,9 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IAssetCache m_Cache = null;
         public readonly object ConnectorLock = new object();
+
+        protected IAssetCache m_Cache = null;
 
         private string m_ServerURI = string.Empty;
 
@@ -64,7 +65,8 @@ namespace OpenSim.Services.Connectors
 
         public AssetServicesConnector(string serverURI)
         {
-            m_ServerURI = serverURI.TrimEnd('/');
+            OSHHTPHost tmp = new OSHHTPHost(serverURI, true);
+            m_ServerURI = tmp.IsResolvedHost ? tmp.URI : null;
         }
 
         public AssetServicesConnector(IConfigSource source) 
@@ -138,7 +140,7 @@ namespace OpenSim.Services.Connectors
                     return null;
             }
 
-            if (asset == null || asset.Data == null || asset.Data.Length == 0)
+            if (asset == null && m_ServerURI != null)
             {
                 string uri = m_ServerURI + "/assets/" + id;
 
@@ -171,10 +173,11 @@ namespace OpenSim.Services.Connectors
                     return fullAsset.Metadata;
             }
 
-            string uri =m_ServerURI + "/assets/" + id + "/metadata";
+            if (m_ServerURI == null)
+                return null;
 
-            AssetMetadata asset = SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, m_Auth);
-            return asset;
+            string uri = m_ServerURI + "/assets/" + id + "/metadata";
+            return SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, m_Auth);
         }
 
 
@@ -188,6 +191,9 @@ namespace OpenSim.Services.Connectors
                 if (fullAsset != null)
                     return fullAsset.Data;
             }
+
+            if (m_ServerURI == null)
+                return null;
 
             using (RestClient rc = new RestClient(m_ServerURI))
             {
@@ -212,7 +218,7 @@ namespace OpenSim.Services.Connectors
                     return false;
             }
 
-            if (asset == null)
+            if (asset == null && m_ServerURI != null)
             {
                 string uri = m_ServerURI + "/assets/" + id;
 
@@ -290,6 +296,9 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool[] AssetsExist(string[] ids)
         {
+            if (m_ServerURI == null)
+                return null;
+
             string uri = m_ServerURI + "/get_assets_exist";
 
             bool[] exist = null;
@@ -350,6 +359,9 @@ namespace OpenSim.Services.Connectors
                 return asset.ID;
             }
 
+            if (m_ServerURI == null)
+                return null;
+
             string uri = m_ServerURI + "/assets/";
 
             string newID = null;
@@ -383,9 +395,13 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool UpdateContent(string id, byte[] data)
         {
+            if (m_ServerURI == null)
+                return false;
+
             AssetBase asset = null;
 
             m_Cache?.Get(id, out asset);
+
 
             if (asset == null)
             {
@@ -410,6 +426,9 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool Delete(string id)
         {
+            if (m_ServerURI == null)
+                return false;
+
             string uri = m_ServerURI + "/assets/" + id;
 
             if (SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0, m_Auth))

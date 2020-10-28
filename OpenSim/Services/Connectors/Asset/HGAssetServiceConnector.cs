@@ -27,14 +27,10 @@
 
 using log4net;
 using Nini.Config;
-using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Reflection;
-using System.Web;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Connectors.Hypergrid;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
@@ -42,7 +38,7 @@ namespace OpenSim.Services.Connectors
     public class HGAssetServiceConnector : IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private ExpiringCacheOS<string, AssetServicesConnector> m_connectors = new ExpiringCacheOS<string, AssetServicesConnector>(120000);
+        private ExpiringCacheOS<string, AssetServicesConnector> m_connectors = new ExpiringCacheOS<string, AssetServicesConnector>(60000);
 
         public HGAssetServiceConnector(IConfigSource source)
         {
@@ -67,10 +63,8 @@ namespace OpenSim.Services.Connectors
             AssetServicesConnector connector = null;
             lock (m_connectors)
             {
-                if (!m_connectors.TryGetValue(url, 120000, out connector))
+                if (!m_connectors.TryGetValue(url, 60000, out connector))
                 {
-                    // Still not as flexible as I would like this to be,
-                    // but good enough for now
                     connector = new AssetServicesConnector(url);
                     m_connectors.Add(url, connector);
                 }
@@ -88,7 +82,6 @@ namespace OpenSim.Services.Connectors
                 IAssetService connector = GetConnector(url);
                 return connector.Get(assetID);
             }
-
             return null;
         }
 
@@ -108,7 +101,6 @@ namespace OpenSim.Services.Connectors
                 IAssetService connector = GetConnector(url);
                 return connector.GetCached(assetID);
             }
-
             return null;
         }
 
@@ -159,11 +151,6 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool[] AssetsExist(string[] ids)
         {
-            // This method is a bit complicated because it works even if the assets belong to different
-            // servers; that requires sending separate requests to each server.
-
-            // Group the assets by the server they belong to
-
             var url2assets = new Dictionary<string, List<AssetAndIndex>>();
 
             for (int i = 0; i < ids.Length; i++)
