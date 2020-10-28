@@ -90,7 +90,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private AssetBase FetchAsset(string url, UUID assetID)
         {
-            return m_scene.AssetService.Get(url, assetID.ToString(), true);
+            return m_scene.AssetService.Get(assetID.ToString(), url, true);
         }
 
         public bool PostAsset(string url, AssetBase asset, bool verbose = true)
