@@ -113,6 +113,11 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
+        public AssetBase GetCached(string id)
+        {
+            return (AssetBase)m_Cache.Get(id);
+        }
+
         public void Expire(string id)
         {
             m_Cache.Remove(id);
