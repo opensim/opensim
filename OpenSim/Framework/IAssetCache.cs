@@ -50,6 +50,8 @@ namespace OpenSim.Framework
         /// <param name='asset'>Will be set to null if no asset was found</param>
         /// <returns>False if the asset has been negative-cached</returns>
         bool Get(string id, out AssetBase asset);
+        // as get without negative cache check
+        AssetBase GetCached(string id);
 
         /// <summary>
         /// Check whether an asset with the specified id exists in the cache.
