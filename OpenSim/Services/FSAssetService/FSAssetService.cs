@@ -420,7 +420,7 @@ namespace OpenSim.Services.FSAssetService
             return Get(id, out hash);
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase Get(string id, string ForeignAssetService, bool dummy)
         {
             return null;
         }

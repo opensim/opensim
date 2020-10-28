@@ -85,7 +85,7 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase Get(string id, string ForeignAssetService, bool dummy)
         {
             IAssetService connector = GetConnector(ForeignAssetService);
             return connector.Get(id);

@@ -129,7 +129,7 @@ namespace OpenSim.Services.AssetService
             }
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase Get(string id, string ForeignAssetService, bool dummy)
         {
             return null;
         }

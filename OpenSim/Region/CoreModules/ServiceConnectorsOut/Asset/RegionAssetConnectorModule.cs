@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             if (m_HGConnector == null || string.IsNullOrEmpty(ForeignAssetService))
                 return null;
-            return m_HGConnector.Get(id , ForeignAssetService);
+            return m_HGConnector.Get(id , ForeignAssetService, true);
         }
 
         public AssetBase GetForeign(string id)
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return asset;
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase Get(string id, string ForeignAssetService, bool StoreOnLocalGrid)
         {
             // assumes id and ForeignAssetService are valid and resolved
             AssetBase asset = null;
@@ -311,7 +311,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                             m_Cache.CacheNegative(id);
                         return null;
                     }
-                    Store(asset);
+                    if(StoreOnLocalGrid)
+                        Store(asset);
+                    else if (m_Cache != null)
+                        m_Cache.Cache(asset);
                 }
                 else if (m_Cache != null)
                     m_Cache.CacheNegative(id);

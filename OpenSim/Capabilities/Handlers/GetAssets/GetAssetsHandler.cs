@@ -121,29 +121,13 @@ namespace OpenSim.Capabilities.Handlers
             if(!UUID.TryParse(assetStr, out assetID))
                 return;
 
-            AssetBase asset = m_assetService.Get(assetID.ToString());
-            if (asset == null)
+            AssetBase asset = m_assetService.Get(assetID.ToString(), serviceURL, false);
+            if (asset == null || asset.Type != (sbyte)type)
             {
-                if (String.IsNullOrWhiteSpace(serviceURL))
-                {
-                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
-
-                string newid = serviceURL + "/" + assetID.ToString();
-                asset = m_assetService.Get(newid);
-                if (asset == null)
-                {
-                    // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
                 // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
-            }
-
-            if (asset.Type != (sbyte)type)
+                response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
+            }
 
             int len = asset.Data.Length;
 

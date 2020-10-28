@@ -125,7 +125,7 @@ namespace OpenSim.Services.HypergridService
             return asset;
         }
 
-        public AssetBase Get(string id, string ForeignAssetService)
+        public AssetBase Get(string id, string ForeignAssetService, bool dummy)
         {
             return null;
         }

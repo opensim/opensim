@@ -1891,7 +1891,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(string.IsNullOrWhiteSpace(assetServerURI))
                 return;
 
-            Scene.AssetService.Get(imageID.ToString(), assetServerURI);
+            Scene.AssetService.Get(imageID.ToString(), assetServerURI, false);
         }
 
         /// <summary>

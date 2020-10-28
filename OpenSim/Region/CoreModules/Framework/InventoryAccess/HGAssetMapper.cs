@@ -90,24 +90,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private AssetBase FetchAsset(string url, UUID assetID)
         {
-            string assetIDstr = assetID.ToString();
-            // Test if it's already here
-            AssetBase asset = m_scene.AssetService.Get(assetIDstr);
-            if (asset == null)
-            {
-                if (string.IsNullOrEmpty(url))
-                    return null;
-
-                asset = m_scene.AssetService.Get(assetIDstr, url);
-
-                //if (asset != null)
-                //    m_log.DebugFormat("[HG ASSET MAPPER]: Fetched asset {0} of type {1} from {2} ", assetID, asset.Metadata.Type, url);
-                //else
-                //    m_log.DebugFormat("[HG ASSET MAPPER]: Unable to fetch asset {0} from {1} ", assetID, url);
-
-            }
-
-            return asset;
+            return m_scene.AssetService.Get(url, assetID.ToString(), true);
         }
 
         public bool PostAsset(string url, AssetBase asset, bool verbose = true)
