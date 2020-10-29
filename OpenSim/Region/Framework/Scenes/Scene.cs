@@ -1263,6 +1263,11 @@ namespace OpenSim.Region.Framework.Scenes
                 fm.AddOpenSimExtraFeature("SimulatorFPSFactor", OSD.FromReal(statisticsFPSfactor));
                 fm.AddOpenSimExtraFeature("SimulatorFPSWarnPercent", OSD.FromInteger(FrameTimeWarnPercent));
                 fm.AddOpenSimExtraFeature("SimulatorFPSCritPercent", OSD.FromInteger(FrameTimeCritPercent));
+
+                fm.AddOpenSimExtraFeature("MinPrimScale", OSD.FromReal(m_minNonphys));
+                fm.AddOpenSimExtraFeature("MaxPrimScale", OSD.FromReal(m_maxNonphys));
+                fm.AddOpenSimExtraFeature("MinPhysPrimScale", OSD.FromReal(m_minPhys));
+                fm.AddOpenSimExtraFeature("MaxPhysPrimScale", OSD.FromReal(m_maxPhys));
             }
         }
 
