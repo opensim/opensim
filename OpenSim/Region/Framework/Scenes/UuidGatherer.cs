@@ -1250,13 +1250,11 @@ namespace OpenSim.Region.Framework.Scenes
             : base(assetService, collector)
         {
             m_assetServerURL = assetServerURL;
-            if (!String.IsNullOrWhiteSpace(assetServerURL) && !m_assetServerURL.EndsWith("/") && !m_assetServerURL.EndsWith("="))
-                m_assetServerURL = m_assetServerURL + "/";
         }
 
         protected override AssetBase GetAsset(UUID uuid)
         {
-            if (String.IsNullOrWhiteSpace(m_assetServerURL))
+            if (string.IsNullOrWhiteSpace(m_assetServerURL))
                 return base.GetAsset(uuid);
             else
                 return FetchAsset(uuid);
@@ -1264,19 +1262,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public AssetBase FetchAsset(UUID assetID)
         {
-            // Test if it's already here
-            AssetBase asset = m_assetService.Get(assetID.ToString());
-            if (asset == null)
-            {
-                // It's not, so fetch it from abroad
-                asset = m_assetService.Get(m_assetServerURL + assetID.ToString());
-                if (asset != null)
-                    m_log.DebugFormat("[HGUUIDGatherer]: Copied asset {0} from {1} to local asset server", assetID, m_assetServerURL);
-                else
-                    m_log.DebugFormat("[HGUUIDGatherer]: Failed to fetch asset {0} from {1}", assetID, m_assetServerURL);
-            }
-            //else
-            //    m_log.DebugFormat("[HGUUIDGatherer]: Asset {0} from {1} was already here", assetID, m_assetServerURL);
+            AssetBase asset = m_assetService.Get(assetID.ToString(), m_assetServerURL, true);
+            if (asset != null)
+                m_log.DebugFormat("[HGUUIDGatherer]: Copied asset {0} from {1} to local asset server", assetID, m_assetServerURL);
+            else
+                m_log.DebugFormat("[HGUUIDGatherer]: Failed to fetch asset {0} from {1}", assetID, m_assetServerURL);
 
             return asset;
         }
