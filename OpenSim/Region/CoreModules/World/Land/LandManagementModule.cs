@@ -452,7 +452,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             avatar.AbsolutePosition = position.Value;
             avatar.lastKnownAllowedPosition = position.Value;
             avatar.Velocity = Vector3.Zero;
-            if(avatar.IsSatOnObject)
+            if(avatar.IsSitting)
                 avatar.StandUp();
             forcedPosition.Add(avatar.UUID);
         }

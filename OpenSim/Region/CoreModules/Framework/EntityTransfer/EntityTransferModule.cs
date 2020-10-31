@@ -436,8 +436,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         return;
                     }
 
-                    // Reset animations; the viewer does that in teleports.
-                    sp.Animator.ResetAnimations();
                     destinationRegionName = sp.Scene.RegionInfo.RegionName;
 
                     TeleportAgentWithinRegion(sp, position, lookAt, teleportFlags);
@@ -787,7 +785,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
             // both regions
-            if (sp.ParentID != (uint)0)
+            if (sp.IsSitting)
                 sp.StandUp();
             else if (sp.Flying)
                 teleportFlags |= (uint)TeleportFlags.IsFlying;
