@@ -274,8 +274,8 @@
     ;# {DefaultScriptEngine} {} {Default script engine} {XEngine} XEngine
     ;; Default script engine to use (Xengine if all commented)
     ; DefaultScriptEngine = "XEngine"
-    ;; ***DANGER***DANGER***
-    ;; experimental engine
+
+    ;; new alternative engine
     ;; see section [YEngine] below
     ; DefaultScriptEngine = "YEngine"
     
