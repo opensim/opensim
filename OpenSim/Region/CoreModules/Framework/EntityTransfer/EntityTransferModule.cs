@@ -442,9 +442,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 else // Another region possibly in another simulator
                 {
-                    // Reset animations; the viewer does that in teleports.
-                    sp.Animator.ResetAnimations();
-
                     GridRegion finalDestination = null;
                     try
                     {
