@@ -142,13 +142,8 @@ namespace OpenSim.Capabilities.Handlers
             if (Util.TryParseHttpRange(range, out start, out end))
             {
                 // viewers do send broken start, then flag good assets as bad
-                if (start >= asset.Data.Length)
-                {
-                    start = 0;
-                    end = asset.Data.Length - 1;
-                    //response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
-                    //return;
-                }
+                if (start < asset.Data.Length)
+                    response.StatusCode = (int)HttpStatusCode.OK;
                 else
                 {
                     if (end == -1)
@@ -158,12 +153,12 @@ namespace OpenSim.Capabilities.Handlers
 
                     start = Utils.Clamp(start, 0, end);
                     len = end - start + 1;
-                }
 
                 //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
                 response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length));
                 response.StatusCode = (int)HttpStatusCode.PartialContent;
                 response.RawBufferStart = start;
+                }
             }
             else
                 response.StatusCode = (int)HttpStatusCode.OK;
