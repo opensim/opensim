@@ -143,11 +143,12 @@ namespace OpenSim.Capabilities.Handlers
             {
                 // Before clamping start make sure we can satisfy it in order to avoid
                 // sending back the last byte instead of an error status
-                if (start >= asset.Data.Length)
-                {
-                    response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
-                    return;
-                }
+                // viewers do send broken start, then flag good assets as bad
+                //if (start >= asset.Data.Length)
+                //{
+                //    response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
+                //    return;
+                //}
 
                 if (end == -1)
                     end = asset.Data.Length - 1;
