@@ -113,6 +113,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_GridName = config.GetString("GridName", string.Empty);
                 if (m_GridName == string.Empty)
                     m_GridName = Util.GetConfigVarFromSections<string>(
+                        source, "GridName", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
+                if (m_GridName == string.Empty)
+                    m_GridName = Util.GetConfigVarFromSections<string>(
                         source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
                 m_doScriptSyntax = config.GetBoolean("ScriptSyntax", m_doScriptSyntax);
             }

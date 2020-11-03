@@ -141,25 +141,27 @@ namespace OpenSim.Capabilities.Handlers
             int start, end;
             if (Util.TryParseHttpRange(range, out start, out end))
             {
-                // Before clamping start make sure we can satisfy it in order to avoid
-                // sending back the last byte instead of an error status
                 // viewers do send broken start, then flag good assets as bad
-                //if (start >= asset.Data.Length)
-                //{
-                //    response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
-                //    return;
-                //}
-
-                if (end == -1)
+                if (start >= asset.Data.Length)
+                {
+                    start = 0;
                     end = asset.Data.Length - 1;
+                    //response.StatusCode = (int)HttpStatusCode.RequestedRangeNotSatisfiable;
+                    //return;
+                }
                 else
-                    end = Utils.Clamp(end, 0, asset.Data.Length - 1);
+                {
+                    if (end == -1)
+                        end = asset.Data.Length - 1;
+                    else
+                        end = Utils.Clamp(end, 0, asset.Data.Length - 1);
 
-                start = Utils.Clamp(start, 0, end);
-                len = end - start + 1;
+                    start = Utils.Clamp(start, 0, end);
+                    len = end - start + 1;
+                }
 
                 //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
-                response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length));
+                response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", start, end, asset.Data.Length));
                 response.StatusCode = (int)HttpStatusCode.PartialContent;
                 response.RawBufferStart = start;
             }
