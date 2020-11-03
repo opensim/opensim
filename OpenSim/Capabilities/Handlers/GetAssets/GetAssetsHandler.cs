@@ -114,7 +114,7 @@ namespace OpenSim.Capabilities.Handlers
                 return;
             }
 
-            if (String.IsNullOrEmpty(assetStr))
+            if (string.IsNullOrEmpty(assetStr))
                 return;
 
             UUID assetID = UUID.Zero;
@@ -122,9 +122,23 @@ namespace OpenSim.Capabilities.Handlers
                 return;
 
             AssetBase asset = m_assetService.Get(assetID.ToString(), serviceURL, false);
-            if (asset == null || asset.Type != (sbyte)type)
+            if (asset == null)
             {
                 // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            if (asset.Type != (sbyte)type)
+            {
+                m_log.Warn("[GETASSET]: asset with wrong type: " + assetStr + " " + asset.Type.ToString() + " != " + ((sbyte)type).ToString());
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                return;
+            }
+
+            if (asset.Data.Length == 0)
+            {
+                m_log.Warn("[GETASSET]: asset with empty data: " + assetStr +" type " + asset.Type.ToString());
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
             }
