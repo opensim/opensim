@@ -250,11 +250,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
                             OSHttpResponse resp = response.osresponse;
 
-                            if(Util.GetTimeStamp() - resp.RequestTS > (resp.RawBufferLen > 2000000 ? 200 : 90))
+                            if(Util.GetTimeStamp() - resp.RequestTS > (resp.RawBufferLen > 2000000 ? 10 : 5))
                                 return sp.CapCanSendAsset(2, resp.RawBufferLen);
 
-                            if (resp.Priority > 1)
-                                return sp.CapCanSendAsset(1, resp.RawBufferLen);
+                            if (resp.Priority > 0)
+                                return sp.CapCanSendAsset(resp.Priority, resp.RawBufferLen);
                             return sp.CapCanSendAsset(2, resp.RawBufferLen);
                         }
                         return false;
