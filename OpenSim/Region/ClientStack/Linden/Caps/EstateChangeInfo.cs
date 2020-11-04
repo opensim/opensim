@@ -182,13 +182,14 @@ namespace OpenSim.Region.ClientStack.Linden
                 bool denyAgeUnverified = r["deny_age_unverified"].AsBoolean();
                 bool alloVoiceChat = r["allow_voice_chat"].AsBoolean();
                 // taxfree is now !AllowAccessOverride
+                OSD tmp;
                 bool overridePublicAccess = !m_scene.RegionInfo.EstateSettings.TaxFree;
-                if (r.ContainsKey("override_public_access"))
-                    overridePublicAccess = !r["override_public_access"].AsBoolean();
-
+                if (r.TryGetValue("override_public_access", out tmp))
+                    overridePublicAccess = !tmp.AsBoolean();
+    
                 bool allowEnvironmentOverride = m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride;
-                if (r.ContainsKey("override_environment"))
-                    allowEnvironmentOverride = !r["override_environment"].AsBoolean();
+                if (r.TryGetValue("override_environment", out tmp))
+                    allowEnvironmentOverride = tmp.AsBoolean();
 
                 ok = m_EstateModule.handleEstateChangeInfoCap(estateName, invoice,
                         externallyVisible, allowDirectTeleport, denyAnonymous, denyAgeUnverified,
