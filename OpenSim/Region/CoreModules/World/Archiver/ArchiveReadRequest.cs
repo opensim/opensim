@@ -437,9 +437,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 WorkManager.RunInThread(o =>
                 {
-                    Thread.Sleep(15000);
                     m_log.Info("[ARCHIVER]: Starting scripts in scene objects...");
-
                     foreach (DearchiveContext sceneContext in sceneContexts.Values)
                     {
                         foreach (SceneObjectGroup sceneObject in sceneContext.SceneObjects)
@@ -632,8 +630,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
                     sceneObjectsLoadedCount++;
-                    sceneObject.CreateScriptInstances(0, false, scene.DefaultScriptEngine, 0);
-                    sceneObject.ResumeScripts();
+                    sceneObjects.Add(sceneObject);
+
+                    //sceneObject.CreateScriptInstances(0, false, scene.DefaultScriptEngine, 0);
+                    //sceneObject.ResumeScripts();
                 }
             }
 
