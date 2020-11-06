@@ -865,12 +865,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </summary>
         public void Clear(bool setupDefaultParcel)
         {
-            Dictionary<int, ILandObject> landworkList;
+            List<UUID> landworkList = new List<UUID>(m_landList.Count);
             // move to work pointer since we are deleting it all
             lock (m_landList)
             {
-                landworkList = m_landList;
-                m_landList.Clear();
+                foreach (ILandObject lo in m_landList.Values)
+                    landworkList.Add(lo.LandData.GlobalID);
             }
 
             // this 2 methods have locks (now)
@@ -880,10 +880,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 CreateDefaultParcel();
 
             // fire outside events unlocked
-            foreach (ILandObject lo in landworkList.Values)
+            foreach (UUID id in landworkList)
             {
                 //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
-                m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
+                m_scene.EventManager.TriggerLandObjectRemoved(id);
             }
             landworkList.Clear();
         }
