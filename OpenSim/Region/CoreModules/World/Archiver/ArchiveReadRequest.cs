@@ -604,6 +604,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     if (m_displacement != Vector3.Zero)
                     {
                         pos += m_displacement;
+                        if (pos.X < 0 || pos.X >= scene.RegionInfo.RegionSizeX
+                            || pos.Y < 0 || pos.Y >= scene.RegionInfo.RegionSizeY
+                            || pos.Z < Constants.MinSimulationHeight || pos.Z > Constants.MaxSimulationHeight)
+                        {
+                            if (m_debug) m_log.DebugFormat("[ARCHIVER]: Skipping object from OAR After displacement clip {0}.", pos.ToString());
+                            continue;
+                        }
                         if (m_debug) m_log.DebugFormat("[ARCHIVER]: After displacement, object from OAR is at scene position {0}.", pos.ToString());
                     }
                     sceneObject.AbsolutePosition = pos;
