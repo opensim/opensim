@@ -110,8 +110,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             String defaultUser = "";
             float rotation = 0f;
             Vector3 rotationCenter = new Vector3(Scene.RegionInfo.RegionSizeX / 2f, Scene.RegionInfo.RegionSizeY / 2f, 0);
-            Vector3 boundingOrigin = new Vector3(0f, 0f, 0f);
-            Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue);
+            Vector3 boundingOrigin = new Vector3(0f, 0f, Constants.MinSimulationHeight);
+            Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, Constants.MaxSimulationHeight - Constants.MinSimulationHeight);
             bool debug = false;
             
             OptionSet options = new OptionSet();
