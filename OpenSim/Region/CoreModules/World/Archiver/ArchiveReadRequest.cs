@@ -221,7 +221,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
 
             m_boundingOrigin = Vector3.Zero;
-            m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, float.MaxValue);
+            m_boundingOrigin.Z = Constants.MinSimulationHeight;
+            m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, Constants.MaxSimulationHeight - Constants.MinSimulationHeight);
 
             if (options.ContainsKey("bounding-origin"))
             {
