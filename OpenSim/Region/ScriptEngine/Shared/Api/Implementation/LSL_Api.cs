@@ -5016,13 +5016,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                             }
                                         }
                                     }
+                                    m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
                                 }
-
-                                m_PresenceInfoCache.AddOrUpdate(uuid, pinfo, m_llRequestAgentDataCacheTimeout);
-                                if (pinfo != null && pinfo.RegionID != UUID.Zero)
-                                    reply = "1";
-                                else
-                                    reply = "0";
+                                reply = pinfo == null ? "0" : "1";
                             }
                         }
                     }
