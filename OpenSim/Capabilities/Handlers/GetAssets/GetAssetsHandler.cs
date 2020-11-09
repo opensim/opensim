@@ -83,6 +83,7 @@ namespace OpenSim.Capabilities.Handlers
 
             if (m_assetService == null)
             {
+                //m_log.Warn("[GETASSET]: no service"); 
                 response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                 response.KeepAlive = false;
                 return;
@@ -156,8 +157,11 @@ namespace OpenSim.Capabilities.Handlers
             if (Util.TryParseHttpRange(range, out start, out end))
             {
                 // viewers do send broken start, then flag good assets as bad
-                if (start < asset.Data.Length)
+                if (start >= asset.Data.Length)
+                {
+                    //m_log.Warn("[GETASSET]: bad start: " + range);
                     response.StatusCode = (int)HttpStatusCode.OK;
+                }
                 else
                 {
                     if (end == -1)
