@@ -217,7 +217,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             Scene scene = c.Scene as Scene;
             UUID destination = c.Destination;
             Vector3 fromPos = c.Position;
-            Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
 
             bool checkParcelHide = false;
             UUID sourceParcelID = UUID.Zero;
@@ -236,6 +235,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             {
                 case ChatSourceType.Agent:
                     ScenePresence avatar = (scene as Scene).GetScenePresence(c.Sender.AgentId);
+                    if(avatar == null)
+                        return;
                     fromPos = avatar.AbsolutePosition;
                     fromName = avatar.Name;
                     fromID = c.Sender.AgentId;
@@ -293,6 +294,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
             }
 
+            Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
             scene.ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
