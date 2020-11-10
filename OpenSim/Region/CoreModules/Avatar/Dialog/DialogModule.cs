@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             ownerFirstName = string.Empty;
             ownerLastName = string.Empty;
             string username = m_scene.UserManagementModule.GetUserName(ownerID);
-            if (!string.IsNullOrEmpty(username) && !username.StartsWith("unknown",StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrEmpty(username) && !username.StartsWith("UnknownUMM2", StringComparison.InvariantCulture))
             {
                 string[] parts = username.Split(' ');
                 ownerFirstName = parts[0];
