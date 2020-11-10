@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 string[] parts = username.Split(' ');
                 ownerFirstName = parts[0];
                 if (parts.Length > 1)
-                    ownerLastName = username.Split(' ')[1];
+                    ownerLastName = parts[1];
             }
             else
             {
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             if(string.IsNullOrEmpty(ownerFirstName))
             {
                 ownerFirstName = "(unknown";
-                ownerLastName = "user)";
+                ownerLastName = string.Empty;
             }
         }
 
