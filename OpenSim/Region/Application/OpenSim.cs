@@ -537,7 +537,7 @@ namespace OpenSim
                         }
                     }
 
-                        // kick client...
+                    // kick client...
                     if (alert != null)
                         presence.ControllingClient.Kick(alert);
                     else

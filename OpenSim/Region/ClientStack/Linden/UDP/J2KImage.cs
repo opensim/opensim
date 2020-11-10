@@ -194,7 +194,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Check for missing image asset data
                     if (m_asset == null)
                     {
-                        m_log.Warn("[J2KIMAGE]: RunUpdate() called with missing asset data (no missing image texture?). Canceling texture transfer");
+                        //m_log.Warn("[J2KIMAGE]: RunUpdate() called with missing asset data (no missing image texture?). Canceling texture transfer");
                         m_currentPacket = m_stopPacket;
                         return;
                     }
@@ -415,6 +415,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (asset != null)
             {
                 assetID = asset.FullID;
+                if(asset.Type != (byte)AssetType.Texture)
+                    asset = null;
             }
             else if ((InventoryAccessModule != null) && (sender != InventoryAccessModule))
             {
