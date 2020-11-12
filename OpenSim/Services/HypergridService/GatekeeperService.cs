@@ -69,8 +69,11 @@ namespace OpenSim.Services.HypergridService
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
-        private static string m_ExternalName;
-        private static Uri m_Uri;
+
+        private static OSHHTPHost m_gatekeeperHost;
+        private static string m_gatekeeperURL;
+        private HashSet<OSHHTPHost> m_gateKeeperAlias;
+
         private static GridRegion m_DefaultGatewayRegion;
         private bool m_allowDuplicatePresences = false;
         private static string m_messageKey;
@@ -85,14 +88,13 @@ namespace OpenSim.Services.HypergridService
                 if (serverConfig == null)
                     throw new Exception(String.Format("No section GatekeeperService in config file"));
 
-                string accountService = serverConfig.GetString("UserAccountService", String.Empty);
+                string accountService = serverConfig.GetString("UserAccountService", string.Empty);
                 string homeUsersService = serverConfig.GetString("UserAgentService", string.Empty);
-                string gridService = serverConfig.GetString("GridService", String.Empty);
-                string presenceService = serverConfig.GetString("PresenceService", String.Empty);
-                string simulationService = serverConfig.GetString("SimulationService", String.Empty);
-                string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
-                string bansService = serverConfig.GetString("BansService", String.Empty);
-
+                string gridService = serverConfig.GetString("GridService", string.Empty);
+                string presenceService = serverConfig.GetString("PresenceService", string.Empty);
+                string simulationService = serverConfig.GetString("SimulationService", string.Empty);
+                string gridUserService = serverConfig.GetString("GridUserService", string.Empty);
+                string bansService = serverConfig.GetString("BansService", string.Empty);
                 // These are mandatory, the others aren't
                 if (gridService == string.Empty || presenceService == string.Empty)
                     throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
@@ -101,22 +103,38 @@ namespace OpenSim.Services.HypergridService
                 UUID.TryParse(scope, out m_ScopeID);
                 //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
                 m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
-                m_ExternalName = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
-                    new string[] { "Startup", "Hypergrid", "GatekeeperService" }, String.Empty);
-                m_ExternalName = serverConfig.GetString("ExternalName", m_ExternalName);
-                if (m_ExternalName != string.Empty && !m_ExternalName.EndsWith("/"))
-                    m_ExternalName = m_ExternalName + "/";
 
-                try
+                string[] sections = new string[] { "Const, Startup", "Hypergrid", "GatekeeperService" };
+                string externalName = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", sections, string.Empty);
+                if(string.IsNullOrEmpty(externalName))
+                    externalName = serverConfig.GetString("ExternalName", string.Empty);
+
+                m_gatekeeperHost = new OSHHTPHost(externalName, true);
+                if (!m_gatekeeperHost.IsResolvedHost)
                 {
-                    m_Uri = new Uri(m_ExternalName);
+                    m_log.Error((m_gatekeeperHost.IsValidHost ? "Could not resolve GatekeeperURI" : "GatekeeperURI is a invalid host ") + externalName ?? "");
+                    throw new Exception("GatekeeperURI is invalid");
                 }
-                catch
+                m_gatekeeperURL = m_gatekeeperHost.URIwEndSlash;
+
+                string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, string.Empty);
+
+                if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
                 {
-                    m_log.WarnFormat("[GATEKEEPER SERVICE]: Malformed gatekeeper address {0}", m_ExternalName);
+                    string[] alias = gatekeeperURIAlias.Split(',');
+                    for (int i = 0; i < alias.Length; ++i)
+                    {
+                        OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
+                        if (tmp.IsValidHost)
+                        {
+                            if (m_gateKeeperAlias == null)
+                                m_gateKeeperAlias = new HashSet<OSHHTPHost>();
+                            m_gateKeeperAlias.Add(tmp);
+                        }
+                    }
                 }
 
-                Object[] args = new Object[] { config };
+                object[] args = new object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
 
@@ -182,7 +200,7 @@ namespace OpenSim.Services.HypergridService
             regionHandle = 0;
             sizeX = (int)Constants.RegionSize;
             sizeY = (int)Constants.RegionSize;
-            externalName = m_ExternalName + ((regionName != string.Empty) ? " " + regionName : "");
+            externalName = m_gatekeeperURL + ((regionName != string.Empty) ? " " + regionName : "");
             imageURL = string.Empty;
             reason = string.Empty;
             GridRegion region = null;
@@ -349,7 +367,7 @@ namespace OpenSim.Services.HypergridService
                     // Make sure this is the user coming home, and not a foreign user with same UUID as a local user
                     if (m_UserAgentService != null)
                     {
-                        if (!m_UserAgentService.IsAgentComingHome(aCircuit.SessionID, m_ExternalName))
+                        if (!m_UserAgentService.IsAgentComingHome(aCircuit.SessionID, m_gatekeeperURL))
                         {
                             // Can't do, sorry
                             reason = "Unauthorized";
@@ -548,13 +566,14 @@ namespace OpenSim.Services.HypergridService
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
 
-            if (userURL == string.Empty)
+            OSHHTPHost userHomeHost = new OSHHTPHost(userURL, true);
+            if(!userHomeHost.IsResolvedHost)
             {
                 m_log.DebugFormat("[GATEKEEPER SERVICE]: Agent did not provide an authentication server URL");
                 return false;
             }
 
-            if (userURL == m_ExternalName)
+            if (m_gatekeeperHost.Equals(userHomeHost))
             {
                 return m_UserAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
             }
@@ -582,23 +601,20 @@ namespace OpenSim.Services.HypergridService
             if (parts.Length < 2)
                 return false;
 
-            char[] trailing_slash = new char[] { '/' };
-            string addressee = parts[0].TrimEnd(trailing_slash);
-            string externalname = m_ExternalName.TrimEnd(trailing_slash);
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, externalname);
-
-            Uri uri;
-            try
+            OSHHTPHost reqGrid = new OSHHTPHost(parts[0], false);
+            if(!reqGrid.IsValidHost)
             {
-                uri = new Uri(addressee);
-            }
-            catch
-            {
-                m_log.DebugFormat("[GATEKEEPER SERVICE]: Visitor provided malformed service address {0}", addressee);
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Visitor provided malformed gird address {0}", parts[0]);
                 return false;
             }
 
-            return string.Equals(uri.GetLeftPart(UriPartial.Authority), m_Uri.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase) ;
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying grid {0} against {1}", reqGrid.URI, m_gatekeeperHost.URI);
+
+            if(m_gatekeeperHost.Equals(reqGrid))
+                return true;
+            if (m_gateKeeperAlias != null && m_gateKeeperAlias.Contains(reqGrid))
+                return true;
+            return false;
         }
 
         #endregion

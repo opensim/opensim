@@ -197,6 +197,12 @@
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
+    # {GatekeeperURIAlias} {Hypergrid} {old http schema (default http://), hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;; comma separated list, 
+    ;; in case there was for example a dns change, etc
+    ;; or you have other grid url for local users
+    ; GatekeeperURIAlias = "login.osgrid.org"
+
 [AccessControl]
     ;# {AllowedClients} {} {Bar (|) separated list of allowed clients} {}
     ;; Bar (|) separated list of viewers which may gain access to the regions.

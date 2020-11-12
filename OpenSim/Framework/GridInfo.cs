@@ -396,7 +396,7 @@ namespace OpenSim.Framework
 
             m_gridUrl = m_gateKeeperURL.URI;
 
-            string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, String.Empty);
+            string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, string.Empty);
 
             if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
             {
@@ -694,7 +694,7 @@ namespace OpenSim.Framework
                 if (tmp.IsResolvedHost)
                     m_gridUrl = tmp.URI;
                 else
-                    m_log.Error(tmp.IsValidHost ? "Could not resolve GridUrl" : "GridUrl is a invalid host " + value ?? "");
+                    m_log.Error((tmp.IsValidHost ? "Could not resolve GridUrl" : "GridUrl is a invalid host ") + value ?? "");
             }
         }
 
@@ -707,7 +707,7 @@ namespace OpenSim.Framework
                 if (tmp.IsResolvedHost)
                     m_SearchURL = tmp.URIwEndSlash;
                 else
-                    m_log.Error(tmp.IsValidHost ? "Could not resolve SearchURL" : "SearchURL is a invalid host " + value??"");
+                    m_log.Error((tmp.IsValidHost ? "Could not resolve SearchURL" : "SearchURL is a invalid host ") + value??"");
             }
         }
 
@@ -720,7 +720,7 @@ namespace OpenSim.Framework
                 if (tmp.IsResolvedHost)
                     m_DestinationGuideURL = tmp.URIwEndSlash;
                 else
-                    m_log.Error(tmp.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host " + value ?? "");
+                    m_log.Error((tmp.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host ") + value ?? "");
             }
         }
 
@@ -733,7 +733,7 @@ namespace OpenSim.Framework
                 if (tmp.IsResolvedHost)
                     m_economyURL = tmp.URIwEndSlash;
                 else
-                    m_log.Error(tmp.IsValidHost ? "Could not resolve EconomyURL" : "EconomyURL is a invalid host " + value ?? "");
+                    m_log.Error((tmp.IsValidHost ? "Could not resolve EconomyURL" : "EconomyURL is a invalid host ") + value ?? "");
             }
         }
     }

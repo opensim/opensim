@@ -45,7 +45,7 @@
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;# {GatekeeperURIAlias} {Hypergrid} {Old http schema (default http://), hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
     ;; comma separated list, 
     ;; in case there was for example a dns change, etc
     ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
@@ -57,7 +57,7 @@
     ;; For example http://myworld.com:9000 or http://myworld.com:8002
     HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ;# {HomeURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;# {HomeURIAlias} {Hypergrid} {Old http schema (default http://), hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
     ;; comma separated list, 
     ;; in case there was for example a dns change, etc but it is still same grid
     ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
