@@ -394,7 +394,7 @@ namespace OpenSim.Framework
                 throw new Exception("GatekeeperURI configuration error");
             }
 
-            m_gridUrl = m_gateKeeperURL.URIwEndSlash;
+            m_gridUrl = m_gateKeeperURL.URI;
 
             string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, String.Empty);
 
