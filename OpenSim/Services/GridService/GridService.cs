@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using Nini.Config;
 using log4net;
 using OpenSim.Framework;
@@ -186,6 +187,33 @@ namespace OpenSim.Services.GridService
                 m_ExtraFeatures["GridName"] = configVal;
 
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
+
+            string[] sections = new string[] { "Const, Startup", "Hypergrid", "GatekeeperService" };
+            string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, string.Empty);
+
+            if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
+            {
+                string[] alias = gatekeeperURIAlias.Split(',');
+                if(alias.Length > 0)
+                {
+                    StringBuilder sb = osStringBuilderCache.Acquire();
+                    int last = alias.Length -1;
+                    for (int i = 0; i < alias.Length; ++i)
+                    {
+                        OSHHTPHost tmp = new OSHHTPHost(alias[i], false);
+                        if (tmp.IsValidHost)
+                        {
+                            sb.Append(tmp.URI);
+                            if(i < last)
+                                sb.Append(',');
+                        }
+                    }
+                    if(sb.Length > 0)
+                        m_ExtraFeatures["GridURLAlias"] = osStringBuilderCache.GetStringAndRelease(sb);
+                    else
+                        osStringBuilderCache.Release(sb);
+                }
+            }
         }
 
         #region IGridService

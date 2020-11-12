@@ -656,9 +656,9 @@ namespace OpenSim.Framework
                     }
                     if (m_gateKeeperAlias != null && m_gateKeeperAlias.Count > 0)
                     {
-                        m_gridUrlAlias = new string[m_homeURLAlias.Count];
+                        m_gridUrlAlias = new string[m_gateKeeperAlias.Count];
                         int i = 0;
-                        foreach (OSHHTPHost a in m_homeURLAlias)
+                        foreach (OSHHTPHost a in m_gateKeeperAlias)
                             m_gridUrlAlias[i++] = a.URI;
                     }
                 }
