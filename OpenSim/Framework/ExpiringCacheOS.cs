@@ -29,7 +29,7 @@
 using System;
 using System.Threading;
 using System.Collections.Generic;
-using Timer = System.Threading.Timer ;
+using Timer = System.Threading.Timer;
 
 namespace OpenSim.Framework
 {
@@ -125,7 +125,8 @@ namespace OpenSim.Framework
                 List<TKey1> expired = new List<TKey1>(m_expireControl.Count);
                 foreach(KeyValuePair<TKey1, int> kvp in m_expireControl)
                 {
-                    if(kvp.Value < now)
+                    int expire = kvp.Value;
+                    if(expire > 0 && expire < now)
                         expired.Add(kvp.Key);
                 }
 
@@ -213,8 +214,14 @@ namespace OpenSim.Framework
         public void Add(TKey1 key, TValue1 val, int expireMS)
         {
             bool gotLock = false;
-            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
-            int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+            int now;
+            if (expireMS > 0)
+            {
+                expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+            }
+            else
+                now = int.MinValue;
 
             try
             {
@@ -345,8 +352,14 @@ namespace OpenSim.Framework
                             m_rwLock.EnterWriteLock();
                             gotWriteLock = true;
                         }
-                        expireMS = (expireMS > m_expire) ? expireMS : m_expire;
-                        int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        int now;
+                        if(expireMS > 0)
+                        {
+                            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                            now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        }
+                        else
+                            now = int.MinValue;
 
                         m_expireControl[key] = now;
                         return true;
@@ -417,8 +430,14 @@ namespace OpenSim.Framework
                             m_rwLock.EnterWriteLock();
                             gotWriteLock = true;
                         }
-                        expireMS = (expireMS > m_expire) ? expireMS : m_expire;
-                        int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        int now;
+                        if(expireMS > 0)
+                        {
+                            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                            now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        }
+                        else
+                            now = int.MinValue;
 
                         m_expireControl[key] = now;
                     }

@@ -143,7 +143,7 @@ namespace OpenSim.Framework
 
         public string URIwEndSlash
         {
-            get { return Flags != OSHTTPURIFlags.None ? "" : URI + "/";}
+            get { return Flags == OSHTTPURIFlags.None ? "" : URI + "/";}
         }
 
         public int CompareTo(OSHTTPURI other)
@@ -319,18 +319,18 @@ namespace OpenSim.Framework
 
         public int CompareTo(OSHHTPHost other)
         {
-            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
+            if (((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                return Host.CompareTo(other.Host);
+                return URI.CompareTo(other.Host);
             }
             return -1;
         }
 
         public bool Equals(OSHHTPHost other)
         {
-            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
+            if (((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                return Host.Equals(other.Host);
+                return URI.Equals(other.URI);
             }
             return false;
         }
@@ -351,10 +351,17 @@ namespace OpenSim.Framework
 
         private OSHHTPHost m_homeURL;
         private HashSet<OSHHTPHost> m_homeURLAlias;
+        private string m_gridUrl = string.Empty;
+        private string[] m_gridUrlAlias = null;
+        private string m_GridName = string.Empty;
+        private string m_GridNick = string.Empty;
+        private string m_SearchURL = string.Empty;
+        private string m_DestinationGuideURL = string.Empty;
+        private string m_economyURL = string.Empty;
 
         public GridInfo (IConfigSource config, string defaultURI = "")
         {
-            string[] sections = new string[] { "Startup", "Hypergrid"};
+            string[] sections = new string[] {"Const", "Startup", "Hypergrid"};
 
             string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI", sections, String.Empty);
             if (string.IsNullOrEmpty(gatekeeper))
@@ -387,6 +394,8 @@ namespace OpenSim.Framework
                 throw new Exception("GatekeeperURI configuration error");
             }
 
+            m_gridUrl = m_gateKeeperURL.URIwEndSlash;
+
             string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, String.Empty);
 
             if (!string.IsNullOrWhiteSpace(gatekeeperURIAlias))
@@ -402,6 +411,14 @@ namespace OpenSim.Framework
                         m_gateKeeperAlias.Add(tmp);
                     }
                 }
+            }
+
+            if (m_gateKeeperAlias != null && m_gateKeeperAlias.Count > 0)
+            {
+                m_gridUrlAlias = new string[m_gateKeeperAlias.Count];
+                int i = 0;
+                foreach (OSHHTPHost a in m_gateKeeperAlias)
+                    m_gridUrlAlias[i++] = a.URI;
             }
 
             string home = Util.GetConfigVarFromSections<string>(config, "HomeURI", sections, string.Empty);
@@ -436,6 +453,57 @@ namespace OpenSim.Framework
                         m_homeURLAlias.Add(tmp);
                     }
                 }
+            }
+
+            string[] namessections = new string[] { "Const", "GridInfo", "SimulatorFeatures" };
+            m_GridName = Util.GetConfigVarFromSections<string>(config, "GridName", namessections, string.Empty);
+            if (string.IsNullOrEmpty(m_GridName))
+                m_GridName = Util.GetConfigVarFromSections<string>(config, "gridname", namessections, string.Empty);
+
+            m_GridNick = Util.GetConfigVarFromSections<string>(config, "GridNick", namessections, string.Empty);
+
+            if (m_GridName == string.Empty)
+                m_GridName = "Another bad configured grid";
+
+            OSHTTPURI tmpuri;
+            m_SearchURL = Util.GetConfigVarFromSections<string>(config,"SearchServerURI", namessections, string.Empty);
+            if (!string.IsNullOrEmpty(m_SearchURL))
+            {
+                tmpuri = new OSHTTPURI(m_SearchURL.Trim(), true);
+                if (!tmpuri.IsResolvedHost)
+                {
+                    m_log.Error(tmpuri.IsValidHost ? "Could not resolve SearchServerURI" : "SearchServerURI is a invalid host");
+                    throw new Exception("SearchServerURI configuration error");
+                }
+                m_SearchURL = tmpuri.URIwEndSlash;
+            }
+
+            m_DestinationGuideURL = Util.GetConfigVarFromSections<string>(config, "DestinationGuideURI",namessections, string.Empty);
+
+            if (string.IsNullOrEmpty(m_DestinationGuideURL)) // Make this consistent with the variable in the LoginService config
+                m_DestinationGuideURL = Util.GetConfigVarFromSections<string>(config, "DestinationGuide", namessections, string.Empty);
+
+            if (!string.IsNullOrEmpty(m_DestinationGuideURL))
+            {
+                tmpuri = new OSHTTPURI(m_DestinationGuideURL.Trim(), true);
+                if (!tmpuri.IsResolvedHost)
+                {
+                    m_log.Error(tmpuri.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host");
+                    throw new Exception("DestinationGuideURL configuration error");
+                }
+                m_DestinationGuideURL = tmpuri.URIwEndSlash;
+            }
+
+            m_economyURL = Util.GetConfigVarFromSections<string>(config, "economy", new string[] { "Economy", "GridInfo" });
+            if (!string.IsNullOrEmpty(m_economyURL))
+            {
+                tmpuri = new OSHTTPURI(m_economyURL.Trim(), true);
+                if (!tmpuri.IsResolvedHost)
+                {
+                    m_log.Error(tmpuri.IsValidHost ? "Could not resolve economyURL" : "economyURL is a invalid host");
+                    throw new Exception("economyURL configuration error");
+                }
+                m_economyURL = tmpuri.URIwEndSlash;
             }
         }
 
@@ -567,6 +635,106 @@ namespace OpenSim.Framework
                 return tmp.ResolveDNS() ? 0 : -2;
             }
             return 0;
+        }
+
+        public string[] GridUrlAlias
+        {
+            get { return m_gridUrlAlias; }
+            set
+            {
+                if(value.Length > 0)
+                {
+                    for (int i = 0; i < value.Length; ++i)
+                    {
+                        OSHHTPHost tmp = new OSHHTPHost(value[i].Trim(), false);
+                        if (tmp.IsValidHost)
+                        {
+                            if (m_gateKeeperAlias == null)
+                                m_gateKeeperAlias = new HashSet<OSHHTPHost>();
+                            m_gateKeeperAlias.Add(tmp);
+                        }
+                    }
+                    if (m_gateKeeperAlias != null && m_gateKeeperAlias.Count > 0)
+                    {
+                        m_gridUrlAlias = new string[m_homeURLAlias.Count];
+                        int i = 0;
+                        foreach (OSHHTPHost a in m_homeURLAlias)
+                            m_gridUrlAlias[i++] = a.URI;
+                    }
+                }
+            }
+        }
+
+        public string GridName
+        {
+            get { return m_GridName; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                    m_GridName = value;
+            }
+        }
+
+        public string GridNick
+        {
+            get { return m_GridNick; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                    m_GridNick = value;
+            }
+        }
+
+        public string GridUrl
+        {
+            get { return m_gridUrl; }
+            set
+            {
+                OSHHTPHost tmp = new OSHHTPHost(value, true);
+                if (tmp.IsResolvedHost)
+                    m_gridUrl = tmp.URI;
+                else
+                    m_log.Error(tmp.IsValidHost ? "Could not resolve GridUrl" : "GridUrl is a invalid host");
+            }
+        }
+
+        public string SearchURL
+        {
+            get { return m_SearchURL; }
+            set
+            {
+                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                if (tmp.IsResolvedHost)
+                    m_SearchURL = tmp.URIwEndSlash;
+                else
+                    m_log.Error(tmp.IsValidHost ? "Could not resolve SearchURL" : "SearchURL is a invalid host");
+            }
+        }
+
+        public string DestinationGuideURL
+        {
+            get { return m_DestinationGuideURL; }
+            set
+            {
+                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                if (tmp.IsResolvedHost)
+                    m_DestinationGuideURL = tmp.URIwEndSlash;
+                else
+                    m_log.Error(tmp.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host");
+            }
+        }
+
+        public string EconomyURL
+        {
+            get { return m_economyURL; }
+            set
+            {
+                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                if (tmp.IsResolvedHost)
+                    m_economyURL = tmp.URIwEndSlash;
+                else
+                    m_log.Error(tmp.IsValidHost ? "Could not resolve EconomyURL" : "EconomyURL is a invalid host");
+            }
         }
     }
 }

@@ -72,19 +72,13 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </summary>
         private OSDMap m_features = new OSDMap();
 
-        private string m_SearchURL = string.Empty;
-        private string m_DestinationGuideURL = string.Empty;
         private bool m_ExportSupported = false;
-        private string m_GridName = string.Empty;
-        private string m_GridURL = string.Empty;
 
         private bool m_doScriptSyntax;
 
         static private object m_scriptSyntaxLock = new object();
         static private UUID m_scriptSyntaxID = UUID.Zero;
         static private byte[] m_scriptSyntaxXML = null;
-
-        static private string m_economyURL = null;
 
         #region ISharedRegionModule Members
 
@@ -94,33 +88,9 @@ namespace OpenSim.Region.ClientStack.Linden
             m_doScriptSyntax = true;
             if (config != null)
             {
-                //
-                // All this is obsolete since getting these features from the grid service!!
-                // Will be removed after the next release
-                //
-                m_SearchURL = config.GetString("SearchServerURI", m_SearchURL);
-
-                m_DestinationGuideURL = config.GetString ("DestinationGuideURI", m_DestinationGuideURL);
-
-                if (m_DestinationGuideURL == string.Empty) // Make this consistent with the variable in the LoginService config
-                    m_DestinationGuideURL = config.GetString("DestinationGuide", m_DestinationGuideURL);
-
                 m_ExportSupported = config.GetBoolean("ExportSupported", m_ExportSupported);
-
-                m_GridURL = Util.GetConfigVarFromSections<string>(
-                    source, "GatekeeperURI", new string[] { "Startup", "Hypergrid", "SimulatorFeatures" }, String.Empty);
-
-                m_GridName = config.GetString("GridName", string.Empty);
-                if (m_GridName == string.Empty)
-                    m_GridName = Util.GetConfigVarFromSections<string>(
-                        source, "GridName", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
-                if (m_GridName == string.Empty)
-                    m_GridName = Util.GetConfigVarFromSections<string>(
-                        source, "gridname", new string[] { "GridInfo", "SimulatorFeatures" }, String.Empty);
                 m_doScriptSyntax = config.GetBoolean("ScriptSyntax", m_doScriptSyntax);
             }
-
-            m_economyURL = Util.GetConfigVarFromSections<string>(source, "economy", new string[] { "Economy", "GridInfo" });
 
             ReadScriptSyntax();
             AddDefaultFeatures();
@@ -208,19 +178,8 @@ namespace OpenSim.Region.ClientStack.Linden
                 extrasMap["MinHeightmap"] = Constants.MinTerrainHeightmap;
                 extrasMap["MaxHeightmap"] = Constants.MaxTerrainHeightmap;
 
-                // TODO: Take these out of here into their respective modules, like map-server-url
-                if (!string.IsNullOrWhiteSpace(m_SearchURL))
-                    extrasMap["search-server-url"] = m_SearchURL;
-                if (!string.IsNullOrEmpty(m_DestinationGuideURL))
-                    extrasMap["destination-guide-url"] = m_DestinationGuideURL;
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
-                if (!string.IsNullOrWhiteSpace(m_GridURL))
-                    extrasMap["GridURL"] = m_GridURL;
-                if (!string.IsNullOrWhiteSpace(m_GridName))
-                    extrasMap["GridName"] = m_GridName;
-                if(!string.IsNullOrWhiteSpace(m_economyURL))
-                    extrasMap["currency-base-uri"] = Util.AppendEndSlash(m_economyURL);
                 if (extrasMap.Count > 0)
                     m_features["OpenSimExtras"] = extrasMap;
             }
@@ -363,6 +322,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
+            GridInfo ginfo = scene.SceneGridInfo;
             lock (m_features)
             {
                 OSDMap extrasMap;
@@ -375,12 +335,41 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 foreach (string key in extraFeatures.Keys)
                 {
-                    extrasMap[key] = (string)extraFeatures[key];
-
-                    if (key == "ExportSupported")
+                    string val = (string)extraFeatures[key];
+                    switch(key)
                     {
-                        bool.TryParse(extraFeatures[key].ToString(), out m_ExportSupported);
+                        case "GridName":
+                            ginfo.GridName = val;
+                            break;
+                        case "GridNick":
+                            ginfo.GridNick = val;
+                            break;
+                        case "GridURL":
+                            ginfo.GridUrl = val;
+                            break;
+                        case "GridURLAlias":
+                            string[] vals = val.Split(',');
+                            if(vals.Length > 0)
+                                ginfo.GridUrlAlias = vals;
+                            break;
+                        case "search-server-url":
+                            ginfo.SearchURL = val;
+                            break;
+                        case "destination-guide-url":
+                            ginfo.DestinationGuideURL = val;
+                            break;
+                        case "currency-base-uri":
+                            ginfo.EconomyURL = val;
+                            break;
+                        default:
+                            extrasMap[key] = val;
+                            if (key == "ExportSupported")
+                            {
+                                bool.TryParse(val, out m_ExportSupported);
+                            }
+                            break;
                     }
+
                 }
                 m_features["OpenSimExtras"] = extrasMap;
             }

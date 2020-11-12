@@ -406,6 +406,13 @@ namespace OpenSim
         /// <returns></returns>
         public void CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init, out IScene mscene)
         {
+            IRegionModulesController controller;
+            if (!ApplicationRegistry.TryGet(out controller))
+            {
+                m_log.Fatal("REGIONMODULES]: The new RegionModulesController is missing...");
+                Environment.Exit(0);
+            }
+
             int port = regionInfo.InternalEndPoint.Port;
 
             // set initial RegionID to originRegionID in RegionInfo. (it needs for loding prims)
@@ -429,7 +436,6 @@ namespace OpenSim
                 regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName +
                          ":" + regionInfo.HttpPort.ToString() + "/";
 
-
             regionInfo.osSecret = m_osSecret;
 
             if ((proxyUrl.Length > 0) && (portadd_flag))
@@ -442,16 +448,9 @@ namespace OpenSim
 
             Scene scene = SetupScene(regionInfo, proxyOffset, Config);
 
-            m_log.Info("[MODULES]: Loading Region's modules (old style)");
-
-            // Use this in the future, the line above will be deprecated soon
-            m_log.Info("[REGIONMODULES]: Loading Region's modules (new style)");
-            IRegionModulesController controller;
-            if (ApplicationRegistry.TryGet(out controller))
-            {
+            m_log.Info("[REGIONMODULES]: Loading Region's modules");
+            if (controller != null)
                 controller.AddRegionToModules(scene);
-            }
-            else m_log.Error("[REGIONMODULES]: The new RegionModulesController is missing...");
 
             if (m_securePermissionsLoading)
             {
@@ -520,8 +519,7 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("Grid Registration done", scene);
             }
 
-            // We need to do this after we've initialized the
-            // scripting engines.
+            // We need to do this after we've initialized the scripting engines.
             scene.CreateScriptInstances();
 
             if (scene.SnmpService != null)

@@ -1268,6 +1268,69 @@ namespace OpenSim.Region.Framework.Scenes
                 fm.AddOpenSimExtraFeature("MaxPrimScale", OSD.FromReal(m_maxNonphys));
                 fm.AddOpenSimExtraFeature("MinPhysPrimScale", OSD.FromReal(m_minPhys));
                 fm.AddOpenSimExtraFeature("MaxPhysPrimScale", OSD.FromReal(m_maxPhys));
+
+                if(SceneGridInfo != null)
+                {
+                    OSD osdtmp;
+                    string tmp;
+                    if (!fm.TryGetOpenSimExtraFeature("GridName", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.GridName;
+                        if (!string.IsNullOrEmpty(tmp))
+                            fm.AddOpenSimExtraFeature("GridName", tmp);
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("GridNick", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.GridNick;
+                        if (!string.IsNullOrEmpty(tmp))
+                            fm.AddOpenSimExtraFeature("GridNick", tmp);
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("GridURL", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.GridUrl;
+                        fm.AddOpenSimExtraFeature("GridURL", tmp);
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("GridURLAlias", out osdtmp))
+                    {
+                        string[] alias = SceneGridInfo.GridUrlAlias;
+                        if(alias != null && alias.Length > 0)
+                        {
+                            StringBuilder sb = osStringBuilderCache.Acquire();
+                            int i = 0;
+                            for(; i < alias.Length - 1; ++i)
+                            {
+                                sb.Append(alias[i]);
+                                sb.Append(',');
+                            }
+                            sb.Append(alias[i]);
+                            fm.AddOpenSimExtraFeature("GridURLAlias", osStringBuilderCache.GetStringAndRelease(sb));
+                        }
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("search-server-url", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.SearchURL;
+                        if (!string.IsNullOrEmpty(tmp))
+                            fm.AddOpenSimExtraFeature("search-server-url", tmp);
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("destination-guide-url", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.DestinationGuideURL;
+                        if (!string.IsNullOrEmpty(tmp))
+                            fm.AddOpenSimExtraFeature("destination-guide-url", tmp);
+                    }
+
+                    if (!fm.TryGetOpenSimExtraFeature("currency-base-uri", out osdtmp))
+                    {
+                        tmp = SceneGridInfo.EconomyURL;
+                        if (!string.IsNullOrEmpty(tmp))
+                        fm.AddOpenSimExtraFeature("currency-base-uri", tmp);
+                    }
+                }
             }
         }
 
