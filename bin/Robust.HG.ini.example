@@ -197,10 +197,10 @@
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    # {GatekeeperURIAlias} {Hypergrid} {alternative hostnames (FQDN), or IPs of the gatekeeper of this grid and port (default 80 or 443 if alias starts with https://)} {}
+    ;# {GatekeeperURIAlias} {Hypergrid} {alternative hostnames (FQDN), or IPs of the gatekeeper of this grid and port (default 80 or 443 if alias starts with https://)} {}
     ;; comma separated list,
     ;; this is to allow this grid to identify this as references to itself
-    ;; entries can be unsecure url (host:port) if using ssl, direct login url if diferent, old grid url, etc
+    ;; entries can be unsecure url (host:port) if using ssl, direct login url if different, old grid url, etc
     ; GatekeeperURIAlias = "login.osgrid.org"
 
 [AccessControl]
@@ -633,10 +633,6 @@
     ; HG address of the gatekeeper, if you have one
     ; this is the entry point for all the regions of the world
     ; gatekeeper = ${Const|BaseURL}:${Const|PublicPort}/
-
-    ; HG user domain, if you have one
-    ; this is the entry point for all user-related HG services
-    ; uas = ${Const|BaseURL}:${Const|PublicPort}/
 
 
 [GatekeeperService]
