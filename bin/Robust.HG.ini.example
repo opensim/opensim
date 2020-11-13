@@ -183,24 +183,24 @@
 
 
 [Hypergrid]
-    ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
+    ;# {HomeURI} {Hypergrid} {The Home URL of this grid} {}
     ;; This is the address of the external robust server that
     ;; runs the UserAgentsService, possibly this server.
     ;; For example http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
     ; HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this world} {}
+    ;# {GatekeeperURI} {Hypergrid} {The URL of the gatekeeper of this grid} {}
     ;; This is the address of the external robust server
     ;; that runs the Gatekeeper service, possibly this server.
     ;; For example http://myworld.com:8002
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    # {GatekeeperURIAlias} {Hypergrid} {old http schema (default http://), hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
-    ;; comma separated list, 
-    ;; in case there was for example a dns change, etc
-    ;; or you have other grid url for local users
+    # {GatekeeperURIAlias} {Hypergrid} {alternative hostnames (FQDN), or IPs of the gatekeeper of this grid and port (default 80 or 443 if alias starts with https://)} {}
+    ;; comma separated list,
+    ;; this is to allow this grid to identify this as references to itself
+    ;; entries can be unsecure url (host:port) if using ssl, direct login url if diferent, old grid url, etc
     ; GatekeeperURIAlias = "login.osgrid.org"
 
 [AccessControl]

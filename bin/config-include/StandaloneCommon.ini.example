@@ -47,9 +47,10 @@
     ;; This is a default that can be overwritten in some sections.
     ; GatekeeperURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ;# {GatekeeperURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
-    ;; comma separated list, 
-    ;; in case there was for example a dns change, etc
+    ;# {GatekeeperURIAlias} {Hypergrid} {alternative hostnames (FQDN) or IPs of the gatekeeper of this world and port (default 80 or 443 if entry starts with https://)} {}
+    ;; comma separated list,
+    ;; this is to allow this world to identify this entries also as references to itself
+    ;; entries can be unsecure url (host:port) if using ssl, direct login url if diferent, old grid url, etc
     ; GatekeeperURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043
 
     ;# {HomeURI} {Hypergrid} {The Home URL of this world} {}
@@ -60,9 +61,9 @@
     ;; This is a default that can be overwritten in some sections.
     HomeURI = "${Const|BaseURL}:${Const|PublicPort}"
 
-    ;# {HomeURIAlias} {Hypergrid} {Old hostnames (FQDN), or IPs of the gatekeeper of this world and port (default 80 or 443)} {}
+    ;# {HomeURIAlias} {Hypergrid} {alternative hostnames (FQDN), or IPs of the home service of this world and port (default 80 or 443)} {}
     ;; comma separated list, 
-    ;; in case there was for example a dns change, etc
+    ;; see GatekeeperURIAlias
     ; HomeURIAlias = myoldname.something.org, 127.0.0.1,127.0.0.1:8043	
 
 [Modules]

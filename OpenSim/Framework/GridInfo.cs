@@ -319,18 +319,18 @@ namespace OpenSim.Framework
 
         public int CompareTo(OSHHTPHost other)
         {
-            if (((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                return URI.CompareTo(other.Host);
+                return Host.CompareTo(other.Host);
             }
             return -1;
         }
 
         public bool Equals(OSHHTPHost other)
         {
-            if (((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
+            if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
             {
-                return URI.Equals(other.URI);
+                return Host.Equals(other.Host);
             }
             return false;
         }
