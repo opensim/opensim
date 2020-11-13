@@ -174,17 +174,25 @@ namespace OpenSim.Services.GridService
                 m_ExtraFeatures["destination-guide-url"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, String.Empty);
+                    config, "GatekeeperURI", new string[] { "Startup", "Hypergrid" }, string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridURL"] = configVal;
 
             configVal = Util.GetConfigVarFromSections<string>(
-                config, "GridName", new string[] { "Const", "Hypergrid" }, String.Empty);
+                config, "GridName", new string[] { "Const", "Hypergrid" }, string.Empty);
             if (string.IsNullOrEmpty(configVal))
                 configVal = Util.GetConfigVarFromSections<string>(
-                    config, "gridname", new string[] { "GridInfo" }, String.Empty);
+                    config, "gridname", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridName"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridNick", new string[] { "Const", "Hypergrid" }, string.Empty);
+            if (string.IsNullOrEmpty(configVal))
+                configVal = Util.GetConfigVarFromSections<string>(
+                    config, "gridnick", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridNick"] = configVal;
 
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
 
