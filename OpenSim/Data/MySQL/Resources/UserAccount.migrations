@@ -12,13 +12,13 @@ CREATE TABLE IF NOT EXISTS `UserAccounts` (
   `Created` int(11) DEFAULT NULL,
   `UserLevel` int(11) NOT NULL DEFAULT '0',
   `UserFlags` int(11) NOT NULL DEFAULT '0',
-  `UserTitle` varchar(64) NOT NULL DEFAULT '',
+  `UserTitle` varchar(64) CHARACTER SET utf8 NOT NULL DEFAULT '',
   UNIQUE KEY `PrincipalID` (`PrincipalID`),
   KEY `Email` (`Email`),
   KEY `FirstName` (`FirstName`),
   KEY `LastName` (`LastName`),
   KEY `Name` (`FirstName`,`LastName`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 COMMIT;
 

@@ -5,8 +5,8 @@ BEGIN;
 CREATE TABLE `os_groups_groups` (
   `GroupID` char(36) NOT NULL default '',
   `Location` varchar(255) NOT NULL default '',
-  `Name` varchar(255) NOT NULL default '',
-  `Charter` text NOT NULL,
+  `Name` varchar(255) CHARACTER SET utf8 NOT NULL default '',
+  `Charter` text CHARACTER SET utf8 NOT NULL,
   `InsigniaID` char(36) NOT NULL default '',
   `FounderID` char(36) NOT NULL default '',
   `MembershipFee` int(11) NOT NULL default '0',
@@ -18,7 +18,7 @@ CREATE TABLE `os_groups_groups` (
   PRIMARY KEY  (`GroupID`),
   UNIQUE KEY `Name` (`Name`),
   FULLTEXT KEY `Name_2` (`Name`)
-) ENGINE=MyISAM;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE `os_groups_membership` (
@@ -31,19 +31,19 @@ CREATE TABLE `os_groups_membership` (
   `AccessToken` char(36) NOT NULL default '',
   PRIMARY KEY  (`GroupID`,`PrincipalID`),
   KEY `PrincipalID` (`PrincipalID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE `os_groups_roles` (
   `GroupID` char(36) NOT NULL default '',
   `RoleID` char(36) NOT NULL default '',
-  `Name` varchar(255) NOT NULL default '',
-  `Description` varchar(255) NOT NULL default '',
-  `Title` varchar(255) NOT NULL default '',
+  `Name` varchar(255)  CHARACTER SET utf8 NOT NULL default '',
+  `Description` varchar(255) CHARACTER SET utf8 NOT NULL default '',
+  `Title` varchar(255) CHARACTER SET utf8 NOT NULL default '',
   `Powers` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (`GroupID`,`RoleID`),
   KEY `GroupID` (`GroupID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE `os_groups_rolemembership` (
@@ -52,7 +52,7 @@ CREATE TABLE `os_groups_rolemembership` (
   `PrincipalID` VARCHAR(255) NOT NULL default '',
   PRIMARY KEY  (`GroupID`,`RoleID`,`PrincipalID`),
   KEY `PrincipalID` (`PrincipalID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE `os_groups_invites` (
@@ -63,7 +63,7 @@ CREATE TABLE `os_groups_invites` (
   `TMStamp` timestamp NOT NULL,
   PRIMARY KEY  (`InviteID`),
   UNIQUE KEY `PrincipalGroup` (`GroupID`,`PrincipalID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 CREATE TABLE `os_groups_notices` (
@@ -71,8 +71,8 @@ CREATE TABLE `os_groups_notices` (
   `NoticeID` char(36) NOT NULL default '',
   `TMStamp` int(10) unsigned NOT NULL default '0',
   `FromName` varchar(255) NOT NULL default '',
-  `Subject` varchar(255) NOT NULL default '',
-  `Message` text NOT NULL,
+  `Subject` varchar(255) CHARACTER SET utf8 NOT NULL default '',
+  `Message` text CHARACTER SET utf8 NOT NULL,
   `HasAttachment` int(4) NOT NULL default '0',
   `AttachmentType` int(4) NOT NULL default '0',
   `AttachmentName` varchar(128) NOT NULL default '',
@@ -81,13 +81,13 @@ CREATE TABLE `os_groups_notices` (
   PRIMARY KEY  (`NoticeID`),
   KEY  `GroupID` (`GroupID`),
   KEY `TMStamp` (`TMStamp`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 CREATE TABLE `os_groups_principals` (
   `PrincipalID` VARCHAR(255) NOT NULL default '',
   `ActiveGroupID` char(36) NOT NULL default '',
   PRIMARY KEY  (`PrincipalID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 COMMIT;
 

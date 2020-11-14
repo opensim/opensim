@@ -12,7 +12,7 @@ CREATE TABLE `hg_traveling_data` (
     `TMStamp` timestamp NOT NULL,
     PRIMARY KEY  (`SessionID`),
 	KEY (`UserID`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 COMMIT;
 
