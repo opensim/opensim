@@ -358,9 +358,11 @@ namespace OpenSim.Region.ClientStack.Linden
                         case "destination-guide-url":
                             ginfo.DestinationGuideURL = val;
                             break;
+                        /* keep this local to avoid issues with diferent modules
                         case "currency-base-uri":
                             ginfo.EconomyURL = val;
                             break;
+                        */
                         default:
                             extrasMap[key] = val;
                             if (key == "ExportSupported")
