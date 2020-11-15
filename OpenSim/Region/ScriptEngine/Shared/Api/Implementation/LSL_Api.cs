@@ -4184,14 +4184,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llStringLength(string str)
         {
             m_host.AddScriptLPS(1);
-            if (str.Length > 0)
-            {
-                return str.Length;
-            }
-            else
-            {
+            if(str == null || str.Length <= 0)
                 return 0;
-            }
+            return str.Length;
         }
 
         public void llStartAnimation(string anim)
