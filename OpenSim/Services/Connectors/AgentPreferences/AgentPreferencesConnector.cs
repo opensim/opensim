@@ -71,9 +71,9 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Agent Preferences connector init error");
             }
 
-            string serviceURI = gridConfig.GetString("AgentPreferencesServerURI", String.Empty);
+            string serviceURI = gridConfig.GetString("AgentPreferencesServerURI", string.Empty);
 
-            if (serviceURI == String.Empty)
+            if (string.IsNullOrEmpty(serviceURI))
             {
                 m_log.Error("[AGENT PREFERENCES CONNECTOR]: No Server URI named in section AgentPreferences");
                 throw new Exception("Agent Preferences connector init error");
@@ -100,7 +100,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
-                if (String.IsNullOrEmpty(reply))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: GetAgentPreferences received null or empty reply");
                     return null;
@@ -114,7 +114,7 @@ namespace OpenSim.Services.Connectors
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
             if (replyData != null)
             {
-                if (replyData.ContainsKey("result") &&
+                if (replyData.ContainsKey("result") && 
                     (replyData["result"].ToString() == "null" || replyData["result"].ToString() == "Failure"))
                 {
                     m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: GetAgentPreferences received Failure response");
@@ -145,7 +145,7 @@ namespace OpenSim.Services.Connectors
             sendData["PermGroup"] = data.PermGroup.ToString();
             sendData["PermNextOwner"] = data.PermNextOwner.ToString();
 
-            string uri = String.Concat(m_ServerURI, "/agentprefs");
+            string uri = string.Concat(m_ServerURI, "/agentprefs");
             string reqString = ServerUtils.BuildQueryString(sendData);
             // m_log.DebugFormat("[AGENT PREFS CONNECTOR]: queryString = {0}", reqString);
 
@@ -178,13 +178,13 @@ namespace OpenSim.Services.Connectors
             sendData["METHOD"] = "getagentlang";
             sendData["UserID"] = principalID.ToString();
 
-            string uri = String.Concat(m_ServerURI, "/agentprefs");
+            string uri = string.Concat(m_ServerURI, "/agentprefs");
             string reqString = ServerUtils.BuildQueryString(sendData);
 
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
-                if (String.IsNullOrEmpty(reply))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: GetLang received null or empty reply");
                     return "en-us"; // I guess? Gotta return somethin'!

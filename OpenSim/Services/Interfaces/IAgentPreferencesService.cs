@@ -49,7 +49,7 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Language"))
                 Language = kvp["Language"];
             if (kvp.ContainsKey("LanguageIsPublic"))
-                LanguageIsPublic = bool.Parse(kvp["LanguageIsPublic"]);
+                LanguageIsPublic = kvp["LanguageIsPublic"] =="1";
             if (kvp.ContainsKey("PermEveryone"))
                 PermEveryone = int.Parse(kvp["PermEveryone"]);
             if (kvp.ContainsKey("PermGroup"))
