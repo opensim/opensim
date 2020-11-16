@@ -40,42 +40,47 @@ namespace OpenSim.Services.Interfaces
 
         public AgentPrefs(Dictionary<string, string> kvp)
         {
-            if (kvp.ContainsKey("PrincipalID"))
-                UUID.TryParse(kvp["PrincipalID"], out PrincipalID);
-            if (kvp.ContainsKey("AccessPrefs"))
-                AccessPrefs = kvp["AccessPrefs"];
-            if (kvp.ContainsKey("HoverHeight"))
-                HoverHeight = float.Parse(kvp["HoverHeight"]);
-            if (kvp.ContainsKey("Language"))
-                Language = kvp["Language"];
-            if (kvp.ContainsKey("LanguageIsPublic"))
-                LanguageIsPublic = kvp["LanguageIsPublic"] =="1";
-            if (kvp.ContainsKey("PermEveryone"))
-                PermEveryone = int.Parse(kvp["PermEveryone"]);
-            if (kvp.ContainsKey("PermGroup"))
-                PermGroup = int.Parse(kvp["PermGroup"]);
-            if (kvp.ContainsKey("PermNextOwner"))
-                PermNextOwner = int.Parse(kvp["PermNextOwner"]);
+            string tmp;
+            if (kvp.TryGetValue("PrincipalID", out tmp))
+                UUID.TryParse(tmp, out PrincipalID);
+            if (kvp.TryGetValue("AccessPrefs", out tmp))
+                AccessPrefs = tmp;
+            if (kvp.TryGetValue("HoverHeight", out tmp))
+                HoverHeight = float.Parse(tmp);
+            if (kvp.TryGetValue("Language", out tmp))
+                Language = tmp;
+            if (kvp.TryGetValue("LanguageIsPublic", out tmp))
+                LanguageIsPublic = tmp =="1" || tmp[0] == 't' || tmp[0] == 'T';
+            if (kvp.TryGetValue("PermEveryone", out tmp))
+                PermEveryone = int.Parse(tmp);
+            if (kvp.TryGetValue("PermGroup", out tmp))
+                PermGroup = int.Parse(tmp);
+            if (kvp.TryGetValue("PermNextOwner", out tmp))
+                PermNextOwner = int.Parse(tmp);
         }
 
         public AgentPrefs(Dictionary<string, object> kvp)
         {
-            if (kvp.ContainsKey("PrincipalID"))
-                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
-            if (kvp.ContainsKey("AccessPrefs"))
-                AccessPrefs = kvp["AccessPrefs"].ToString();
-            if (kvp.ContainsKey("HoverHeight"))
-                HoverHeight = float.Parse(kvp["HoverHeight"].ToString());
-            if (kvp.ContainsKey("Language"))
-                Language = kvp["Language"].ToString();
-            if (kvp.ContainsKey("LanguageIsPublic"))
-                LanguageIsPublic = bool.Parse(kvp["LanguageIsPublic"].ToString());
-            if (kvp.ContainsKey("PermEveryone"))
-                PermEveryone = int.Parse(kvp["PermEveryone"].ToString());
-            if (kvp.ContainsKey("PermGroup"))
-                PermGroup = int.Parse(kvp["PermGroup"].ToString());
-            if (kvp.ContainsKey("PermNextOwner"))
-                PermNextOwner = int.Parse(kvp["PermNextOwner"].ToString());
+            object tmp;
+            if (kvp.TryGetValue("PrincipalID", out tmp))
+                UUID.TryParse(tmp.ToString(), out PrincipalID);
+            if (kvp.TryGetValue("AccessPrefs", out tmp))
+                AccessPrefs = tmp.ToString();
+            if (kvp.TryGetValue("HoverHeight", out tmp))
+                HoverHeight = float.Parse(tmp.ToString());
+            if (kvp.TryGetValue("Language", out tmp))
+                Language = tmp.ToString();
+            if (kvp.TryGetValue("LanguageIsPublic", out tmp))
+            {
+                string s = tmp as string;
+                LanguageIsPublic = s == "1" || s[0] == 't' || s[0] == 'T';
+            }
+            if (kvp.TryGetValue("PermEveryone", out tmp))
+                PermEveryone = int.Parse(tmp.ToString());
+            if (kvp.TryGetValue("PermGroup", out tmp))
+                PermGroup = int.Parse(tmp.ToString());
+            if (kvp.TryGetValue("PermNextOwner", out tmp))
+                PermNextOwner = int.Parse(tmp.ToString());
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
