@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             }
             if(string.IsNullOrEmpty(ownerFirstName))
             {
-                ownerFirstName = "(unknown";
+                ownerFirstName = "(unknown)";
                 ownerLastName = string.Empty;
             }
         }
