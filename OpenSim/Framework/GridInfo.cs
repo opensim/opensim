@@ -80,9 +80,9 @@ namespace OpenSim.Framework
                 Port = m_checkuri.Port;
                 Path = m_checkuri.AbsolutePath;
                 URL = m_checkuri.Scheme + "://" + Host + ":" + Port;
-                if (Path == "/")
-                    URI = URL;
-                else
+                //if (Path == "/")
+                //    URI = URL;
+                //else
                     URI = URL + Path;
 
                 if (withDNSResolve)
