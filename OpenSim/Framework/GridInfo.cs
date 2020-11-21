@@ -79,11 +79,11 @@ namespace OpenSim.Framework
 
                 Port = m_checkuri.Port;
                 Path = m_checkuri.AbsolutePath;
-                if (Path[Path.Length - 1] == '/')
-                    Path = Path.Substring(0, Path.Length - 1);
-
                 URL = m_checkuri.Scheme + "://" + Host + ":" + Port;
-                URI = URL + Path;
+                if (Path == "/")
+                    URI = URL;
+                else
+                    URI = URL + Path;
 
                 if (withDNSResolve)
                 {
@@ -721,7 +721,7 @@ namespace OpenSim.Framework
             {
                 OSHTTPURI tmp = new OSHTTPURI(value, true);
                 if (tmp.IsResolvedHost)
-                    m_SearchURL = tmp.URIwEndSlash;
+                    m_SearchURL = tmp.URI;
                 else
                     m_log.Error((tmp.IsValidHost ? "Could not resolve SearchURL" : "SearchURL is a invalid host ") + value??"");
             }
@@ -734,7 +734,7 @@ namespace OpenSim.Framework
             {
                 OSHTTPURI tmp = new OSHTTPURI(value, true);
                 if (tmp.IsResolvedHost)
-                    m_DestinationGuideURL = tmp.URIwEndSlash;
+                    m_DestinationGuideURL = tmp.URI;
                 else
                     m_log.Error((tmp.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host ") + value ?? "");
             }
@@ -747,7 +747,7 @@ namespace OpenSim.Framework
             {
                 OSHTTPURI tmp = new OSHTTPURI(value, true);
                 if (tmp.IsResolvedHost)
-                    m_economyURL = tmp.URIwEndSlash;
+                    m_economyURL = tmp.URI;
                 else
                     m_log.Error((tmp.IsValidHost ? "Could not resolve EconomyURL" : "EconomyURL is a invalid host ") + value ?? "");
             }
