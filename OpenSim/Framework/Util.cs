@@ -475,6 +475,8 @@ namespace OpenSim.Framework
             return false;
         }
 
+
+        
         public static bool buildHGRegionURI(string inputName, out string serverURI, out string regionName)
         {
             serverURI = string.Empty;
@@ -490,7 +492,7 @@ namespace OpenSim.Framework
                 //          grid.example.com
 
                 string host;
-                uint port = 80;
+                int port = 80;
 
                 string[] parts = inputName.Split(new char[] { ':' });
                 int indx;
@@ -518,7 +520,7 @@ namespace OpenSim.Framework
                         if(indx < 0)
                         {
                             // If it's a number then assume it's a port. Otherwise, it's a region name.
-                            if (!UInt32.TryParse(parts[1], out port))
+                            if (!int.TryParse(parts[1], out port))
                             {
                                 port = 80;
                                 regionName = parts[1];
@@ -529,7 +531,7 @@ namespace OpenSim.Framework
                             string portstr = parts[1].Substring(0, indx);
                             if(indx + 2 < parts[1].Length)
                                 regionName = parts[1].Substring(indx + 1);
-                            if (!UInt32.TryParse(portstr, out port))
+                            if (!int.TryParse(portstr, out port))
                                 port = 80;
                         }
                     }
@@ -3596,28 +3598,53 @@ namespace OpenSim.Framework
         /// <param name="secret">the secret part</param>
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
-            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "UserUPUUI"; secret = string.Empty;
+            uuid = UUID.Zero;
+            url = string.Empty;
+            firstname = "Unknown";
+            lastname = "UserUPUUI";
+            secret = string.Empty;
 
             string[] parts = value.Split(';');
-            if (parts.Length >= 1)
-                if (!UUID.TryParse(parts[0], out uuid))
-                    return false;
+            if (parts.Length < 1)
+                return false;
+
+            if (!UUID.TryParse(parts[0], out uuid))
+                return false;
 
             if (parts.Length >= 2)
-                url = parts[1];
-
-            if (parts.Length >= 3)
             {
-                string[] name = parts[2].Split();
-                if (name.Length == 2)
+                url = parts[1].ToLower();
+
+                if (parts.Length >= 3)
                 {
-                    firstname = name[0];
-                    lastname = name[1];
+                    string[] name = parts[2].Split();
+                    if (name.Length == 2)
+                    {
+                        firstname = name[0];
+                        lastname = name[1];
+                    }
+
+                    if (parts.Length >= 4)
+                        secret = parts[3];
                 }
             }
-            if (parts.Length >= 4)
-                secret = parts[3];
+            return true;
+        }
 
+        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url)
+        {
+            uuid = UUID.Zero;
+            url = string.Empty;
+
+            string[] parts = value.Split(';');
+            if (parts.Length < 1)
+                return false;
+
+            if (!UUID.TryParse(parts[0], out uuid))
+                return false;
+
+            if (parts.Length >= 2)
+                url = parts[1].ToLower();
             return true;
         }
 

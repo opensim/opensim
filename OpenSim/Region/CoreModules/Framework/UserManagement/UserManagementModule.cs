@@ -50,6 +50,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
     public class UserManagementModule : ISharedRegionModule, IUserManagement, IPeople
     {
         private const int BADURLEXPIRE = 2 * 60;
+        private const int NOEXPIRE = int.MinValue;
+        private const int LOCALEXPIRE = 3600000;
+        private const int HGEXPIRE = 3600000;
+        private const int BADEXPIRE = 3600000;
+        private const int BADHGEXPIRE =600000;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled;
@@ -62,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected GridInfo m_thisGridInfo;
 
         // The cache
-        protected ExpiringCacheOS<UUID, UserData> m_userCacheByID = new ExpiringCacheOS<UUID, UserData>(60000);
+        protected ExpiringCacheOS<UUID, UserData> m_userCacheByID = new ExpiringCacheOS<UUID, UserData>(120000);
 
         protected bool m_DisplayChangingHomeURI = false;
 
@@ -246,29 +252,16 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             client.SendAvatarPickerReply(RequestID, users);
         }
 
-        public bool CheckUrl(string url, out bool islocal, out Uri uri)
+        public bool CheckUrl(string url, out bool islocal, out OSHHTPHost host)
         {
-            islocal = false;
-            if (string.IsNullOrWhiteSpace(url))
+            host = new OSHHTPHost(url);
+            int type = m_thisGridInfo.IsLocalGrid(host);
+            if(type < 0 )
             {
-                uri = null;
-                islocal = true;
-                return true;
-            }
-            try
-            {
-                uri = new Uri(url, UriKind.Absolute);
-            }
-            catch
-            {
-                uri = null;
-                islocal = true;
+                islocal = false;
                 return false;
             }
-
-            string host = uri.DnsSafeHost.ToLower();
-
-            islocal = m_thisGridInfo.IsLocalHome(host) == 1;
+            islocal = type == 1;
             return true;
         }
 
@@ -474,7 +467,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(userdata.LastWebFail > 0)
             {
-                if(Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE) // 5 minutes
+                if(Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
                     return string.Empty;
                 userdata.LastWebFail = -1;
             }
@@ -656,7 +649,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     userdata.IsUnknownUser = false;
                     userdata.IsLocal = true;
                     userdata.HasGridUserTried = true;
-                    AddUser(account);
                 }
             }
 
@@ -673,9 +665,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     UUID u;
                     if (uInfo.UserID.Length >= 36 && Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
                     {
-                        bool islocal;
-                        Uri uri;
-                        bool isvalid = CheckUrl(url, out islocal, out uri);
+                        bool isvalid = CheckUrl(url, out bool islocal, out OSHHTPHost host);
 
                         if (isvalid)
                         {
@@ -690,8 +680,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             else
                             {
                                 userdata.FirstName = first.Replace(" ", ".") + "." + last.Replace(" ", ".");
-                                userdata.HomeURL = uri.AbsoluteUri;
-                                userdata.LastName = "@" + uri.Authority;
+                                userdata.HomeURL = host.URI;
+                                userdata.LastName = "@" + host.HostAndPort;
                                 userdata.IsLocal = false;
                                 userdata.IsUnknownUser = false;
                             }
@@ -704,65 +694,61 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             /* END: do not wrap this code in any lock here */
 
+            m_userCacheByID.Add(uuid, userdata, 1800000);
             return !userdata.IsUnknownUser;
         }
 
         public void AddUser(UserAccount account)
         {
             UUID id = account.PrincipalID;
-            if (!m_userCacheByID.ContainsKey(id))
-            {
-                UserData user = new UserData();
-                user.Id = id;
-                user.FirstName = account.FirstName;
-                user.LastName = account.LastName;
-                user.HomeURL = string.Empty;
-                user.IsUnknownUser = false;
-                user.HasGridUserTried = true;
-                user.IsLocal = account.LocalToGrid;
-                m_userCacheByID.Add(id, user, 1800000);
-            }
+            bool local = account.LocalToGrid;
+
+            UserData user = new UserData();
+            user.Id = id;
+            user.FirstName = account.FirstName;
+            user.LastName = account.LastName;
+            user.HomeURL = string.Empty;
+            user.IsUnknownUser = false;
+            user.HasGridUserTried = true;
+            user.IsLocal = local;
+            m_userCacheByID.Add(id, user, local ? LOCALEXPIRE : HGEXPIRE);
         }
 
-        public virtual void AddUser(UUID uuid, string first, string last, bool isNPC = false, int expire = 1800000)
+        public virtual void AddUser(UUID uuid, string first, string last, bool isNPC = false, int expire = LOCALEXPIRE)
         {
-            if (!m_userCacheByID.ContainsKey(uuid))
+            UserData user = new UserData();
+            user.Id = uuid;
+            user.FirstName = first;
+            user.LastName = last;
+            user.HasGridUserTried = isNPC;
+            if (!isNPC && last.StartsWith("@"))
             {
-                UserData user = new UserData();
-                user.Id = uuid;
-                user.FirstName = first;
-                user.LastName = last;
-                user.HasGridUserTried = isNPC;
-                if (!isNPC && last.StartsWith("@"))
+                string url = last.Substring(1);
+                bool local;
+                if (CheckUrl(url, out local, out OSHHTPHost host))
                 {
-                     string url = last.Substring(1);
-                     bool local;
-                     Uri uri;
-                     if(CheckUrl(url, out local, out uri))
-                     {
-                        if(local)
-                        {
-                            user.IsLocal = true;
-                            user.HomeURL = string.Empty;
-                            user.HasGridUserTried = true;
-                        }
-                        else
-                        {
-                            user.IsLocal = false;
-                            user.HomeURL = uri.AbsoluteUri;
-                            user.HasGridUserTried = false;
-                        }
-                        user.IsUnknownUser = false;
+                    if (local)
+                    {
+                        user.IsLocal = true;
+                        user.HomeURL = string.Empty;
+                        user.HasGridUserTried = true;
                     }
-                }
-                else
-                {
+                    else
+                    {
+                        user.IsLocal = false;
+                        user.HomeURL = host.URI;
+                        user.HasGridUserTried = false;
+                    }
                     user.IsUnknownUser = false;
-                    user.IsLocal = true;
-                    user.HasGridUserTried = true;
                 }
-                m_userCacheByID.Add(uuid, user, isNPC ? int.MaxValue / 16 : expire);
             }
+            else
+            {
+                user.IsUnknownUser = false;
+                user.IsLocal = true;
+                user.HasGridUserTried = true;
+            }
+            m_userCacheByID.Add(uuid, user, isNPC ? NOEXPIRE : expire);
         }
 
         public virtual void AddUser(UUID uuid, string first, string last, string homeURL)
@@ -790,8 +776,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             oldUser.IsUnknownUser = false;
 
             bool local;
-            Uri uri;
-            if (CheckUrl(homeURL, out local, out uri))
+            if (CheckUrl(homeURL, out local, out OSHHTPHost host))
             {
                 if (local)
                 {
@@ -800,13 +785,15 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     oldUser.IsLocal = true;
                     oldUser.HomeURL = string.Empty;
                     oldUser.HasGridUserTried = true;
+                    m_userCacheByID.Add(uuid, oldUser, LOCALEXPIRE);
                 }
                 else
                 {
                     oldUser.FirstName = first.Replace(" ", ".") + "." + last.Replace(" ", ".");
-                    oldUser.LastName = "@" + uri.Authority;
-                    oldUser.HomeURL = uri.AbsoluteUri;
+                    oldUser.LastName = "@" + host.HostAndPort;
+                    oldUser.HomeURL = host.URI;
                     oldUser.IsLocal = false;
+                    m_userCacheByID.Add(uuid, oldUser, HGEXPIRE);
                 }
             }
             else
@@ -817,8 +804,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 oldUser.HomeURL = string.Empty;
                 oldUser.HasGridUserTried = true;
                 oldUser.IsUnknownUser = true;
+                m_userCacheByID.Add(uuid, oldUser, BADEXPIRE);
             }
-            m_userCacheByID.Add(uuid, oldUser, 300000);
         }
 
         public virtual void AddUser(UUID id, string creatorData)
@@ -869,14 +856,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
 
             bool local;
-            Uri uri;
 
             var oldUser = new UserData();
             oldUser.Id = id;
             oldUser.HasGridUserTried = false;
             oldUser.IsUnknownUser = false;
 
-            if (CheckUrl(homeURL, out local, out uri))
+            if (CheckUrl(homeURL, out local, out OSHHTPHost host))
             {
                 if (local)
                 {
@@ -889,8 +875,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 else
                 {
                     oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
-                    oldUser.LastName = "@" + uri.Authority;
-                    oldUser.HomeURL = uri.AbsoluteUri;
+                    oldUser.LastName = "@" + host.HostAndPort;
+                    oldUser.HomeURL = host.URI;
                     oldUser.IsLocal = false;
                 }
             }
@@ -942,8 +928,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         protected virtual void Init(IConfigSource config)
         {
-            AddUser(UUID.Zero, "Unknown", "User", false, int.MaxValue / 16);
-            AddUser(Constants.m_MrOpenSimID, "Mr", "Opensim", false, int.MaxValue / 16);
+            AddUser(UUID.Zero, "Unknown", "User", false, NOEXPIRE);
+            AddUser(Constants.m_MrOpenSimID, "Mr", "Opensim", false, NOEXPIRE);
             RegisterConsoleCmds();
 
             IConfig userManagementConfig = config.Configs["UserManagement"];

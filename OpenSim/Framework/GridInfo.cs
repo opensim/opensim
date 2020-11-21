@@ -317,6 +317,11 @@ namespace OpenSim.Framework
             get { return (Flags == OSHTTPURIFlags.None) ? "" : URI + "/"; }
         }
 
+        public string HostAndPort
+        {
+            get { return (Flags == OSHTTPURIFlags.None) ? "" : Host + ":" + Port.ToString(); }
+        }
+
         public int CompareTo(OSHHTPHost other)
         {
             if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)
@@ -337,7 +342,7 @@ namespace OpenSim.Framework
 
         public override int GetHashCode()
         {
-            return URI.GetHashCode();
+            return Host.GetHashCode() + Port;
         }
     }
 
@@ -603,6 +608,17 @@ namespace OpenSim.Framework
                     return 0;
                 return tmp.ResolveDNS() ? 0 : -2;
             }
+            return 0;
+        }
+
+        public int IsLocalGrid(OSHHTPHost othergatekeeper)
+        {
+            if (!othergatekeeper.IsValidHost)
+                return -1;
+            if (othergatekeeper.Equals(m_gateKeeperURL))
+                return 1;
+            if (m_gateKeeperAlias != null && m_gateKeeperAlias.Contains(othergatekeeper))
+                return 1;
             return 0;
         }
 

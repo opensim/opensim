@@ -120,7 +120,8 @@ namespace OpenSim.Framework
                 List<Tkey1> expired = new List<Tkey1>(m_dictionary.Count);
                 foreach(KeyValuePair<Tkey1,int> kvp in m_dictionary)
                 {
-                    if(kvp.Value < now)
+                    int expire = kvp.Value;
+                    if (expire > 0 && expire < now)
                         expired.Add(kvp.Key);
                 }
 
@@ -186,8 +187,14 @@ namespace OpenSim.Framework
         public void Add(Tkey1 key, int expireMS)
         {
             bool gotLock = false;
-            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
-            int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+            int now;
+            if (expireMS > 0)
+            {
+                expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+            }
+            else
+                now = int.MinValue;
 
             try
             {
@@ -303,8 +310,14 @@ namespace OpenSim.Framework
                             m_rwLock.EnterWriteLock();
                             gotWriteLock = true;
                         }
-                        expireMS = (expireMS > m_expire) ? expireMS : m_expire;
-                        int now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        int now;
+                        if (expireMS > 0)
+                        {
+                            expireMS = (expireMS > m_expire) ? expireMS : m_expire;
+                            now = (int)(Util.GetTimeStampMS() - m_startTS) + expireMS;
+                        }
+                        else
+                            now = int.MinValue;
 
                         m_dictionary[key] = now;
                         return true;
