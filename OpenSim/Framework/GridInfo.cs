@@ -80,10 +80,7 @@ namespace OpenSim.Framework
                 Port = m_checkuri.Port;
                 Path = m_checkuri.AbsolutePath;
                 URL = m_checkuri.Scheme + "://" + Host + ":" + Port;
-                //if (Path == "/")
-                //    URI = URL;
-                //else
-                    URI = URL + Path;
+                URI = m_checkuri.AbsoluteUri;
 
                 if (withDNSResolve)
                 {
@@ -480,7 +477,7 @@ namespace OpenSim.Framework
                     m_log.Error(tmpuri.IsValidHost ? "Could not resolve SearchServerURI" : "SearchServerURI is a invalid host");
                     throw new Exception("SearchServerURI configuration error");
                 }
-                m_SearchURL = tmpuri.URIwEndSlash;
+                m_SearchURL = tmpuri.URI;
             }
 
             m_DestinationGuideURL = Util.GetConfigVarFromSections<string>(config, "DestinationGuideURI",namessections, string.Empty);
@@ -496,7 +493,7 @@ namespace OpenSim.Framework
                     m_log.Error(tmpuri.IsValidHost ? "Could not resolve DestinationGuideURL" : "DestinationGuideURL is a invalid host");
                     throw new Exception("DestinationGuideURL configuration error");
                 }
-                m_DestinationGuideURL = tmpuri.URIwEndSlash;
+                m_DestinationGuideURL = tmpuri.URI;
             }
 
             m_economyURL = Util.GetConfigVarFromSections<string>(config, "economy", new string[] { "Economy", "GridInfo" });
@@ -508,7 +505,7 @@ namespace OpenSim.Framework
                     m_log.Error(tmpuri.IsValidHost ? "Could not resolve economyURL" : "economyURL is a invalid host");
                     throw new Exception("economyURL configuration error");
                 }
-                m_economyURL = tmpuri.URIwEndSlash;
+                m_economyURL = tmpuri.URI;
             }
         }
 
