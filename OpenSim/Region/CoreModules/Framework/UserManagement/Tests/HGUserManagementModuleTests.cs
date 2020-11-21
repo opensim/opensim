@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement.Tests
             UUID userId = TestHelpers.ParseStem("11");
             string firstName = "Fred";
             string lastName = "Astaire";
-            string homeUri = "example.com";
+            string homeUri = "example.com:8002";
 
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
