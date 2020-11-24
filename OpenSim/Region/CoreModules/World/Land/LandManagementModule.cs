@@ -1536,7 +1536,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (start_x < 0 || start_y < 0 || end_x < 0 || end_y < 0)
                 return;
-            if (start_x >= m_regionSizeX || start_y >= m_regionSizeX || end_x >= m_regionSizeY || end_y >= m_regionSizeY)
+            if (start_x >= m_regionSizeX || start_y >= m_regionSizeX || end_x > m_regionSizeX || end_y > m_regionSizeY)
                 return;
 
             if (end_x - start_x <= LandUnit &&
