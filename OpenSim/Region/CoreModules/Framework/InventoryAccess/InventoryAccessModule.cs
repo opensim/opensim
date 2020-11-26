@@ -1409,7 +1409,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item = invService.GetItem(agentID, itemID);
 
             if (item != null && item.CreatorData != null && item.CreatorData != string.Empty)
-                UserManagementModule.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                UserManagementModule.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
 
             return item;
         }
