@@ -1317,9 +1317,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected void AddUserData(SceneObjectGroup sog)
         {
-            UserManagementModule.AddUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
+            UserManagementModule.AddCreatorUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
             foreach (SceneObjectPart sop in sog.Parts)
-                UserManagementModule.AddUser(sop.CreatorID, sop.CreatorData);
+                UserManagementModule.AddCreatorUser(sop.CreatorID, sop.CreatorData);
         }
 
         public virtual void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)

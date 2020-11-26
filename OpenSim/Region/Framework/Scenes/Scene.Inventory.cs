@@ -680,7 +680,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             IUserManagement uman = RequestModuleInterface<IUserManagement>();
             if (uman != null)
-                uman.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                uman.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
 
             if (!Permissions.BypassPermissions())
             {

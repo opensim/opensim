@@ -406,7 +406,7 @@ namespace OpenSim.Services.UserAccountService
                     else
                         break;
                 }
-                if (String.IsNullOrWhiteSpace(password))
+                if (string.IsNullOrWhiteSpace(password))
                 {
                     MainConsole.Instance.Output("create user aborted");
                     return;

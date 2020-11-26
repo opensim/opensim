@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 {
                     foreach (InventoryItemBase item in items)
                         if (!string.IsNullOrEmpty(item.CreatorData))
-                            UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                            UserManager.AddCreatorUser(item.CreatorIdAsUuid, item.CreatorData);
                 }, null, string.Format("GetFolderContent (user {0}, folder {1})", userID, folderID));
             }
 

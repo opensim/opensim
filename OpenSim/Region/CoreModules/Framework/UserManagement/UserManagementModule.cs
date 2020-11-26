@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected IServiceThrottleModule m_ServiceThrottle;
         protected IUserAccountService m_userAccountService = null;
         protected IGridUserService m_gridUserService = null;
-        
+
         protected GridInfo m_thisGridInfo;
 
         // The cache
@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 //            m_log.DebugFormat(
 //                "[USER MANAGEMENT MODULE]: Handling request for name binding of UUID {0} from {1}",
 //                uuid, remote_client.Name);
-            if(m_Scenes.Count <= 0)
+            if(!m_Enabled || m_Scenes.Count <= 0)
                 return;
 
             if (m_userCacheByID.TryGetValue(uuid, out UserData user))
@@ -331,13 +331,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         protected virtual void CacheCreators(SceneObjectGroup sog)
         {
             //m_log.DebugFormat("[USER MANAGEMENT MODULE]: processing {0} {1}; {2}", sog.RootPart.Name, sog.RootPart.CreatorData, sog.RootPart.CreatorIdentification);
-            AddUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
+            AddCreatorUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
 
             foreach (SceneObjectPart sop in sog.Parts)
             {
-                AddUser(sop.CreatorID, sop.CreatorData);
+                AddCreatorUser(sop.CreatorID, sop.CreatorData);
                 foreach (TaskInventoryItem item in sop.TaskInventory.Values)
-                    AddUser(item.CreatorID, item.CreatorData);
+                    AddCreatorUser(item.CreatorID, item.CreatorData);
             }
         }
 
@@ -732,41 +732,34 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             m_userCacheByID.Add(id, user, local ? LOCALEXPIRE : HGEXPIRE);
         }
 
-        public virtual void AddUser(UUID uuid, string first, string last, bool isNPC = false, int expire = LOCALEXPIRE)
+        public void AddSystemUser(UUID uuid, string first, string last)
         {
-            UserData user = new UserData();
-            user.Id = uuid;
-            user.FirstName = first;
-            user.LastName = last;
-            user.HasGridUserTried = isNPC;
-            if (!isNPC && last.StartsWith("@"))
+            UserData user = new UserData()
             {
-                string url = last.Substring(1);
-                bool local;
-                if (CheckUrl(url, out local, out OSHHTPHost host))
-                {
-                    if (local)
-                    {
-                        user.IsLocal = true;
-                        user.HomeURL = string.Empty;
-                        user.HasGridUserTried = true;
-                    }
-                    else
-                    {
-                        user.IsLocal = false;
-                        user.HomeURL = host.URI;
-                        user.HasGridUserTried = false;
-                    }
-                    user.IsUnknownUser = false;
-                }
-            }
-            else
+                Id = uuid,
+                FirstName = first,
+                LastName = last,
+                IsLocal = true,
+                HasGridUserTried = true,
+                HomeURL = string.Empty,
+                IsUnknownUser = false
+            };
+            m_userCacheByID.Add(uuid, user, NOEXPIRE);
+        }
+
+        public void AddNPCUser(UUID uuid, string first, string last)
+        {
+            UserData user = new UserData()
             {
-                user.IsUnknownUser = false;
-                user.IsLocal = true;
-                user.HasGridUserTried = true;
-            }
-            m_userCacheByID.Add(uuid, user, isNPC ? NOEXPIRE : expire);
+                Id = uuid,
+                FirstName = first,
+                LastName = last,
+                HasGridUserTried = true,
+                IsLocal = true,
+                HomeURL = string.Empty,
+                IsUnknownUser = false
+            };
+            m_userCacheByID.Add(uuid, user, NOEXPIRE);
         }
 
         public virtual void AddUser(UUID uuid, string first, string last, string homeURL)
@@ -826,7 +819,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
-        public virtual void AddUser(UUID id, string creatorData)
+        public virtual void AddCreatorUser(UUID id, string creatorData)
         {
             // m_log.InfoFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, creatorData {1}", id, creatorData);
 
@@ -849,13 +842,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     return;
                 firstname = nameparts[0];
                 for(int xi = 1; xi < nameparts.Length; ++xi)
-                {
-                    if(xi != 1)
-                    {
-                        lastname += " ";
-                    }
                     lastname += nameparts[xi];
-                }
+
                 if (string.IsNullOrWhiteSpace(firstname))
                     return;
                 if (string.IsNullOrWhiteSpace(lastname))
@@ -865,22 +853,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 return;
 
             homeURL = parts[0];
-            if(homeURL.Length > 10)
-            {
-                string test = homeURL.Substring(10);
-                int indx = test.IndexOf("/");
-                if(indx > 0 && indx != test.Length - 1)
-                    homeURL = homeURL.Substring(0, indx + 10);
-            }
-
-            bool local;
 
             var oldUser = new UserData();
             oldUser.Id = id;
             oldUser.HasGridUserTried = false;
             oldUser.IsUnknownUser = false;
 
-            if (CheckUrl(homeURL, out local, out OSHHTPHost host))
+            if (CheckUrl(homeURL, out bool local, out OSHHTPHost host))
             {
                 if (local)
                 {
@@ -907,7 +886,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 oldUser.HasGridUserTried = true;
                 oldUser.IsUnknownUser = true;
             }
-            m_userCacheByID.Add(id, oldUser, int.MaxValue / 16);
+            m_userCacheByID.Add(id, oldUser, NOEXPIRE);
         }
 
         public bool RemoveUser(UUID uuid)
@@ -946,8 +925,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         protected virtual void Init(IConfigSource config)
         {
-            AddUser(UUID.Zero, "Unknown", "User", false, NOEXPIRE);
-            AddUser(Constants.m_MrOpenSimID, "Mr", "Opensim", false, NOEXPIRE);
+            AddSystemUser(UUID.Zero, "Unknown", "User");
+            AddSystemUser(Constants.m_MrOpenSimID, "Mr", "Opensim");
             RegisterConsoleCmds();
 
             IConfig userManagementConfig = config.Configs["UserManagement"];

@@ -682,7 +682,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         part.CreatorID = m_defaultUser;
                 }
                 if (UserManager != null)
-                    UserManager.AddUser(part.CreatorID, part.CreatorData);
+                    UserManager.AddCreatorUser(part.CreatorID, part.CreatorData);
 
                 if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
                     part.OwnerID = m_defaultUser;
@@ -727,7 +727,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         }
 
                         if (UserManager != null)
-                            UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+                            UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
 
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
                             kvp.Value.GroupID = UUID.Zero;

@@ -64,8 +64,11 @@ namespace OpenSim.Framework
         /// <returns>UUID.Zero if no user with that name is found or if the name is "Unknown User"</returns>
         UUID GetUserIdByName(string firstName, string lastName);
 
+
+        void AddSystemUser(UUID uuid, string first, string last);
+        void AddNPCUser(UUID uuid, string first, string last);
         /// <summary>
-        /// Add a user.
+        /// Add a creator user.
         /// </summary>
         /// <remarks>
         /// If an account is found for the UUID, then the names in this will be used rather than any information
@@ -73,29 +76,16 @@ namespace OpenSim.Framework
         /// </remarks>
         /// <param name="uuid"></param>
         /// <param name="creatorData">The creator data for this user.</param>
-        void AddUser(UUID uuid, string creatorData);
+        void AddCreatorUser(UUID uuid, string creatorData);
 
         /// <summary>
         /// Add a user.
         /// </summary>
         /// <remarks>
-        /// The UUID is related to the name without any other checks being performed, such as user account presence.
         /// </remarks>
         /// <param name="uuid"></param>
         /// <param name="firstName"></param>
-        /// <param name="lastName"></param>
-        void AddUser(UUID uuid, string first, string last, bool isNPC = false, int expire = 1800000);
-
-        /// <summary>
-        /// Add a user.
-        /// </summary>
-        /// <remarks>
-        /// The arguments apart from uuid are formed into a creatorData string and processing proceeds as for the
-        /// AddUser(UUID uuid, string creatorData) method.
-        /// </remarks>
-        /// <param name="uuid"></param>
-        /// <param name="firstName"></param>
-        /// <param name="profileURL"></param>
+        /// <param name="homeURL"></param>
         void AddUser(UUID uuid, string firstName, string lastName, string homeURL);
         bool RemoveUser(UUID uuid);
         bool IsLocalGridUser(UUID uuid);

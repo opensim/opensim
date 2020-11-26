@@ -1022,13 +1022,9 @@ namespace OpenSim.Framework
             {
                 m_log.ErrorFormat(
                     "[UTIL]: Couldn't find native Windows library at {0}", nativeLibraryPath);
-
                 return false;
             }
-            else
-            {
-                return true;
-            }
+            return true;
         }
 
         public static bool IsEnvironmentSupported(ref string reason)
