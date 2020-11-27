@@ -176,17 +176,54 @@ namespace OpenSim.Services.UserAccountService
         {
             GridUserInfo info = new GridUserInfo();
             info.UserID = d.UserID;
-            info.HomeRegionID = new UUID(d.Data["HomeRegionID"]);
-            info.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
-            info.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
+            Dictionary<string, string> kvp = d.Data;
+            string tmpstr;
 
-            info.LastRegionID = new UUID(d.Data["LastRegionID"]);
-            info.LastPosition = Vector3.Parse(d.Data["LastPosition"]);
-            info.LastLookAt = Vector3.Parse(d.Data["LastLookAt"]);
+            if (kvp.TryGetValue("HomeRegionID", out tmpstr))
+                info.HomeRegionID = new UUID(tmpstr);
+            else
+                info.HomeRegionID = UUID.Zero;
 
-            info.Online = bool.Parse(d.Data["Online"]);
-            info.Login = Util.ToDateTime(Convert.ToInt32(d.Data["Login"]));
-            info.Logout = Util.ToDateTime(Convert.ToInt32(d.Data["Logout"]));
+            if (kvp.TryGetValue("HomePosition", out tmpstr))
+                info.HomePosition = Vector3.Parse(tmpstr);
+            else
+                info.HomePosition = Vector3.Zero;
+
+            if (kvp.TryGetValue("HomeLookAt", out tmpstr))
+                info.HomeLookAt = Vector3.Parse(tmpstr);
+            else
+                info.HomeLookAt = Vector3.Zero;
+
+            if (kvp.TryGetValue("LastRegionID", out tmpstr))
+                info.LastRegionID = new UUID(tmpstr);
+            else
+                info.LastRegionID = UUID.Zero;
+
+            if (kvp.TryGetValue("LastPosition", out tmpstr))
+                info.LastPosition = Vector3.Parse(tmpstr);
+            else
+                info.LastPosition = Vector3.Zero;
+
+            if (kvp.TryGetValue("LastLookAt", out tmpstr))
+                info.LastLookAt = Vector3.Parse(tmpstr);
+            else
+                info.LastLookAt = Vector3.Zero;
+
+            if (kvp.TryGetValue("Online", out tmpstr))
+                info.Online = bool.Parse(tmpstr);
+            else
+                info.Online = false;
+
+            if (kvp.TryGetValue("Login", out tmpstr))
+                info.Login = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            else
+                info.Login = Util.UnixEpoch;
+
+            if (kvp.TryGetValue("Logout", out tmpstr))
+                info.Logout = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            else
+                info.Logout = Util.UnixEpoch;
+
             return info;
         }
 
