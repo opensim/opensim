@@ -922,10 +922,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if(request.InputStream != null && request.InputStream.CanRead)
                     request.InputStream.Close();
 
-                // Every month or so this will wrap and give bad numbers, not really a problem
-                // since its just for reporting
                 int tickdiff = requestEndTick - requestStartTick;
-                if (tickdiff > 3000 && (requestHandler == null || requestHandler.Name == null || requestHandler.Name != "GetTexture"))
+                if (tickdiff > 3000)
                 {
                     m_log.InfoFormat(
                         "[LOGHTTP] Slow handling of {0} {1} {2} {3} {4} from {5} took {6}ms",
@@ -1184,19 +1182,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             //m_log.Debug(requestBody);
             requestBody = requestBody.Replace("<base64></base64>", "");
 
-            bool gridproxy = false;
-            if (requestBody.Contains("encoding=\"utf-8"))
-            {
-                int channelindx = -1;
-                int optionsindx = requestBody.IndexOf(">options<");
-                if(optionsindx >0)
-                {
-                    channelindx = requestBody.IndexOf(">channel<");
-                    if (optionsindx < channelindx)
-                        gridproxy = true;
-                }
-            }
-
             XmlRpcRequest xmlRprcRequest = null;
             try
             {
@@ -1265,9 +1250,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
 
-                if (gridproxy)
-                    xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
-
                 // reserve this for
                 // ... by Fumi.Iseki for DTLNSLMoneyServer
                 // BUT make its presence possible to detect/parse
@@ -1318,13 +1300,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                     writer.Formatting = Formatting.None;
                     XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
                     writer.Flush();
-                    outs.Seek(0, SeekOrigin.Begin);
-                    using (StreamReader sr = new StreamReader(outs))
-                        responseString = sr.ReadToEnd();
+                    //outs.Seek(0, SeekOrigin.Begin);
+                    //using (StreamReader sr = new StreamReader(outs))
+                    //    responseString = sr.ReadToEnd();
+                    response.RawBuffer = outs.GetBuffer();
+                    response.RawBufferLen = (int)outs.Length;
                 }
             }
 
-            response.RawBuffer = Util.UTF8NBGetbytes(responseString);
+           //response.RawBuffer = Util.UTF8NBGetbytes(responseString);
             response.StatusCode = (int)HttpStatusCode.OK;
         }
 
@@ -1366,19 +1350,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             //m_log.Debug(requestBody);
             requestBody = requestBody.Replace("<base64></base64>", "");
-
-            bool gridproxy = false;
-            if (requestBody.Contains("encoding=\"utf-8"))
-            {
-                int channelindx = -1;
-                int optionsindx = requestBody.IndexOf(">options<");
-                if (optionsindx > 0)
-                {
-                    channelindx = requestBody.IndexOf(">channel<");
-                    if (optionsindx < channelindx)
-                        gridproxy = true;
-                }
-            }
 
             XmlRpcRequest xmlRprcRequest = null;
             try
@@ -1442,9 +1413,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
 
-                if (gridproxy)
-                    xmlRprcRequest.Params.Add("gridproxy");  // Param[4]
-
                 // reserve this for
                 // ... by Fumi.Iseki for DTLNSLMoneyServer
                 // BUT make its presence possible to detect/parse
@@ -1486,23 +1454,25 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             string responseString = String.Empty;
-            using (MemoryStream outs = new MemoryStream())
+            using (MemoryStream outs = new MemoryStream(64 * 1024))
             {
                 using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
                 {
                     writer.Formatting = Formatting.None;
                     XmlRpcResponseSerializer.Singleton.Serialize(writer, xmlRpcResponse);
                     writer.Flush();
-                    outs.Seek(0, SeekOrigin.Begin);
-                    using (StreamReader sr = new StreamReader(outs))
-                        responseString = sr.ReadToEnd();
+                    //outs.Seek(0, SeekOrigin.Begin);
+                    //using (StreamReader sr = new StreamReader(outs))
+                    //    responseString = sr.ReadToEnd();
+                    response.RawBuffer = outs.GetBuffer();
+                    response.RawBufferLen = (int)outs.Length;
                 }
             }
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.ContentType = "text/xml";
             response.KeepAlive = false;
-            response.RawBuffer = Util.UTF8NBGetbytes(responseString);
+            //response.RawBuffer = Util.UTF8NBGetbytes(responseString);
         }
 
         // JsonRpc (v2.0 only)
@@ -2186,8 +2156,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 throw e;
             }
 
-            m_requestsProcessedStat
-                = new Stat(
+            m_requestsProcessedStat = new Stat(
                     "HTTPRequestsServed",
                     "Number of inbound HTTP requests processed",
                     "",
