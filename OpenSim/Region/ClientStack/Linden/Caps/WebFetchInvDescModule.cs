@@ -304,6 +304,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.reqID = requestID;
                     reqinfo.request = request;
                     m_queue.Add(reqinfo);
+                    return null;
                 };
 
                 NoEvents = (x, y) =>

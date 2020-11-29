@@ -138,7 +138,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             lock(m_loadLock)
             {
-                if (m_assetService == null && m_NumberScenes == 0)
+                if (m_assetService == null)
                 {
                     m_assetService = s.RequestModuleInterface<IAssetService>();
                     // We'll reuse the same handler for all requests.
@@ -300,6 +300,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.request = request;
 
                     m_queue.Add(reqinfo);
+                    return null;
                 };
 
                 // this should never happen except possible on shutdown

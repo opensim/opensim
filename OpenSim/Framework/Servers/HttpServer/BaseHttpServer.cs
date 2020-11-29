@@ -610,8 +610,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     psEvArgs.RequestsReceived++;
                     PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, request);
-                    psEvArgs.Request?.Invoke(psreq.RequestID, osRequest);
-                    m_pollServiceManager.Enqueue(psreq);
+                    if(psEvArgs.Request == null)
+                        m_pollServiceManager.Enqueue(psreq);
+                    else
+                    {
+                        OSHttpResponse resp = psEvArgs.Request.Invoke(psreq.RequestID, osRequest);
+                        if(resp == null)
+                            m_pollServiceManager.Enqueue(psreq);
+                        else
+                            resp.Send();
+                    }
                     psreq = null;
                 }
                 else
@@ -621,7 +629,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch (Exception e)
             {
-                m_log.Error(String.Format("[BASE HTTP SERVER]: OnRequest() failed: {0} ", e.Message), e);
+                m_log.Error(string.Format("[BASE HTTP SERVER]: OnRequest() failed: {0} ", e.Message), e);
             }
         }
 

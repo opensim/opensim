@@ -68,7 +68,7 @@ namespace OSHttpServer
         public ConnectionType Connection
         {
             get { return m_Connetion; }
-            set { return; }
+            set { m_Connetion = value; }
         }
 
         private int m_priority = 0;
@@ -327,21 +327,22 @@ namespace OSHttpServer
             }
 
             m_headerBytes = GetHeaders();
-
+            /*
             if (RawBuffer != null)
             {
                 int tlen = m_headerBytes.Length + RawBufferLen;
                 if(RawBufferLen > 0 && tlen < 16384)
                 {
                     byte[] tmp = new byte[tlen];
-                    Array.Copy(m_headerBytes, tmp, m_headerBytes.Length);
-                    Array.Copy(RawBuffer, RawBufferStart, tmp, m_headerBytes.Length, RawBufferLen);
+                    Buffer.BlockCopy(m_headerBytes, 0, tmp, 0, m_headerBytes.Length);
+                    Buffer.BlockCopy(RawBuffer, RawBufferStart, tmp, m_headerBytes.Length, RawBufferLen);
                     m_headerBytes = null;
                     RawBuffer = tmp;
                     RawBufferStart = 0;
                     RawBufferLen = tlen;
                 }
             }
+            */
             m_context.StartSendResponse(this);
         }
 
