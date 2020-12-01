@@ -91,15 +91,15 @@ namespace OpenSim.Server.Base
             }
             else
             {
-                string cert_path = networkConfig.GetString("cert_path",String.Empty);
-                if (cert_path == String.Empty)
+                string cert_path = networkConfig.GetString("cert_path", string.Empty);
+                if (cert_path == string.Empty)
                 {
                     System.Console.WriteLine("ERROR: Path to X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
                 }
 
-                string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
-                if (cert_pass == String.Empty)
+                string cert_pass = networkConfig.GetString("cert_pass", string.Empty);
+                if (cert_pass == string.Empty)
                 {
                     System.Console.WriteLine("ERROR: Password for X509 certificate is missing, server can't start.");
                     Environment.Exit(1);
@@ -119,14 +119,14 @@ namespace OpenSim.Server.Base
                 m_log.WarnFormat("[SSL]: External flag is {0}", ssl_external);
                 if (!ssl_external)
                 {
-                    string cert_path = networkConfig.GetString("cert_path",String.Empty);
-                    if ( cert_path == String.Empty )
+                    string cert_path = networkConfig.GetString("cert_path", string.Empty);
+                    if ( cert_path == string.Empty )
                     {
                         System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
                         Thread.CurrentThread.Abort();
                     }
-                    string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
-                    if ( cert_pass == String.Empty )
+                    string cert_pass = networkConfig.GetString("cert_pass", string.Empty);
+                    if ( cert_pass == string.Empty )
                     {
                         System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
                         Thread.CurrentThread.Abort();

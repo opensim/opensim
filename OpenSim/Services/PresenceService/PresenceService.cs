@@ -149,11 +149,9 @@ namespace OpenSim.Services.PresenceService
         {
             try
             {
-                bool inCache = false;
-                if(!BySessionCache.TryGetValue(sessionID, out PresenceData presence))
+                bool inCache = BySessionCache.TryGetValue(sessionID, out PresenceData presence);
+                if(!inCache)
                     presence = m_Database.Get(sessionID);
-                else
-                    inCache = true;
 
                 bool success;
                 if (presence == null)

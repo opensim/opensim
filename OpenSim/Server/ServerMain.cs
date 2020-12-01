@@ -49,9 +49,7 @@ namespace OpenSim.Server
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static HttpServerBase m_Server = null;
-
-        protected static List<IServiceConnector> m_ServiceConnectors =
-                new List<IServiceConnector>();
+        protected static List<IServiceConnector> m_ServiceConnectors = new List<IServiceConnector>();
 
         protected static PluginLoader loader;
         private static bool m_NoVerifyCertChain = false;
@@ -80,7 +78,7 @@ namespace OpenSim.Server
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
-            ServicePointManager.DefaultConnectionLimit = 32;
+            ServicePointManager.DefaultConnectionLimit = 64;
             ServicePointManager.MaxServicePointIdleTime = 30000;
 
             ServicePointManager.Expect100Continue = true; // needed now to suport auto redir without writecache
@@ -105,7 +103,7 @@ namespace OpenSim.Server
             m_NoVerifyCertHostname = serverConfig.GetBoolean("NoVerifyCertHostname", m_NoVerifyCertHostname);
 
 
-            string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
+            string connList = serverConfig.GetString("ServiceConnectors", string.Empty);
 
             registryLocation = serverConfig.GetString("RegistryLocation",".");
 
@@ -113,28 +111,27 @@ namespace OpenSim.Server
             if (servicesConfig != null)
             {
                 List<string> servicesList = new List<string>();
-                if (connList != String.Empty)
+                if (!string.IsNullOrEmpty(connList))
                     servicesList.Add(connList);
 
                 foreach (string k in servicesConfig.GetKeys())
                 {
                     string v = servicesConfig.GetString(k);
-                    if (v != String.Empty)
+                    if (!string.IsNullOrEmpty(v))
                         servicesList.Add(v);
                 }
 
-                connList = String.Join(",", servicesList.ToArray());
+                connList = string.Join(",", servicesList.ToArray());
             }
 
             string[] conns = connList.Split(new char[] {',', ' ', '\n', '\r', '\t'});
 
-//            int i = 0;
             foreach (string c in conns)
             {
-                if (c == String.Empty)
+                if (string.IsNullOrEmpty(c))
                     continue;
 
-                string configName = String.Empty;
+                string configName = string.Empty;
                 string conn = c;
                 uint port = 0;
 
@@ -173,12 +170,12 @@ namespace OpenSim.Server
 
                 IServiceConnector connector = null;
 
-                Object[] modargs = new Object[] { m_Server.Config, server, configName };
+                object[] modargs = new object[] { m_Server.Config, server, configName };
                 connector = ServerUtils.LoadPlugin<IServiceConnector>(conn, modargs);
 
                 if (connector == null)
                 {
-                    modargs = new Object[] { m_Server.Config, server };
+                    modargs = new object[] { m_Server.Config, server };
                     connector = ServerUtils.LoadPlugin<IServiceConnector>(conn, modargs);
                 }
 
