@@ -143,7 +143,6 @@ namespace OSHttpServer
                 basecontextID = 1;
 
             contextID = basecontextID;
-            sock.NoDelay = true;
         }
 
         public bool CanSend()

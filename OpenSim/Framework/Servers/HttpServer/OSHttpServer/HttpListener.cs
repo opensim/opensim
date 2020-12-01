@@ -154,6 +154,7 @@ namespace OSHttpServer
 
                 if(socket.Connected)
                 {
+                    socket.NoDelay = true;
 
                     m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
 
