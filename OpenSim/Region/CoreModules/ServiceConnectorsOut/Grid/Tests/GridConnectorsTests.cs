@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
     [TestFixture]
     public class GridConnectorsTests : OpenSimTestCase
     {
-        LocalGridServicesConnector m_LocalConnector;
+        RegionGridServicesConnector m_LocalConnector;
 
         [SetUp]
         public override void SetUp()
@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
-            config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
+            config.Configs["Modules"].Set("GridServices", "RegionGridServicesConnector");
             config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
             config.Configs["GridService"].Set("Region_Test_Region_1", "DefaultRegion");
@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             config.Configs["GridService"].Set("Region_Test_Region_3", "FallbackRegion");
             config.Configs["GridService"].Set("Region_Other_Region_4", "FallbackRegion");
 
-            m_LocalConnector = new LocalGridServicesConnector(config, null);
+            m_LocalConnector = new RegionGridServicesConnector(config);
         }
 
         /// <summary>

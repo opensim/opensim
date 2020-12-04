@@ -67,7 +67,7 @@ namespace OpenSim.Tests.Common
         private LocalAssetServicesConnector m_assetService;
         private LocalAuthenticationServicesConnector m_authenticationService;
         private LocalInventoryServicesConnector m_inventoryService;
-        private LocalGridServicesConnector m_gridService;
+        private RegionGridServicesConnector m_gridService;
         private LocalUserAccountServicesConnector m_userAccountService;
         private LocalPresenceServicesConnector m_presenceService;
 
@@ -266,17 +266,17 @@ namespace OpenSim.Tests.Common
             return inventoryService;
         }
 
-        private static LocalGridServicesConnector StartGridService()
+        private static RegionGridServicesConnector StartGridService()
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
-            config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
+            config.Configs["Modules"].Set("GridServices", "RegionGridServicesConnector");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
             config.Configs["GridService"].Set("ConnectionString", "!static");
 
-            LocalGridServicesConnector gridService = new LocalGridServicesConnector();
+            RegionGridServicesConnector gridService = new RegionGridServicesConnector();
             gridService.Initialise(config);
 
             return gridService;
