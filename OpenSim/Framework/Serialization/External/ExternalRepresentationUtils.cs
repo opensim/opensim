@@ -215,8 +215,9 @@ namespace OpenSim.Framework.Serialization.External
             if (xmlData == string.Empty || homeURL == string.Empty || userService == null)
                 return xmlData;
 
-            // Deal with bug
-            xmlData = ExternalRepresentationUtils.SanitizeXml(xmlData);
+            // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+            // Fix bad assets before sending them elsewhere
+            xmlData = SanitizeXml(xmlData);
 
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
@@ -400,6 +401,7 @@ namespace OpenSim.Framework.Serialization.External
         /// <returns></returns>
         public static string SanitizeXml(string xmlData)
         {
+            xmlData = xmlData.Replace("xmlns:xmlns:xmlns:", "xmlns:"); // temp fix, things do show this
             return xmlData.Replace("xmlns:xmlns:", "xmlns:");
         }
     }
