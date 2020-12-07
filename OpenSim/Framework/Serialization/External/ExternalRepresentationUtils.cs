@@ -215,7 +215,7 @@ namespace OpenSim.Framework.Serialization.External
             if (xmlData == string.Empty || homeURL == string.Empty || userService == null)
                 return xmlData;
 
-            // Deal with bug introduced in Oct. 20 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
+            // Deal with bug introduced in Oct. 20 2014 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
             // Fix bad assets before sending them elsewhere
             xmlData = SanitizeXml(xmlData);
             using (StringWriter sw = new StringWriter())
@@ -402,9 +402,16 @@ namespace OpenSim.Framework.Serialization.External
         {
             if (!string.IsNullOrWhiteSpace(xmlData))
             {
-                // Loop, because it may contain multiple
-                while (xmlData.Contains("xmlns:xmlns:"))
-                    xmlData = xmlData.Replace("xmlns:xmlns:", "xmlns:");
+                int indx = xmlData.IndexOf("xmlns:xmlns:");
+                if(indx > 0)
+                {
+                    int indx2 = indx + 12;
+                    while(xmlData[indx2 + 5] == ':')
+                        indx2 += 6;
+
+                    string bad = xmlData.Substring(indx, indx2 - indx);
+                    xmlData = xmlData.Replace(bad, "xmlns:");
+                }
             }
             return xmlData;
         }
