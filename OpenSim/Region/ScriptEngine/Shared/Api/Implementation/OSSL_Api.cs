@@ -5178,11 +5178,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SoundModule == null)
                 return;
 
-            SceneObjectPart sop = GetSingleLinkPart(linknum);
-            if(sop == null)
+            InitLSL();
+            if(m_LSL_Api == null)
                 return;
 
-            m_SoundModule.StopSound(sop.UUID);
+            List<SceneObjectPart> sops = m_LSL_Api.GetLinkParts(linknum);
+            if(sops == null || sops.Count == 0)
+                return;
+            for(int i = 0; i < sops.Count; ++i)
+                m_SoundModule.StopSound(sops[i].UUID);
         }
 
         public void osPreloadSound(LSL_Integer linknum, LSL_String sound)
