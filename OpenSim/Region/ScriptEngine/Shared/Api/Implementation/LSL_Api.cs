@@ -14231,8 +14231,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 position = m_host.AbsolutePosition;
             Vector3 velocity = m_host.Velocity;
-            Quaternion rotation = m_host.RotationOffset;
-            string ownerName = String.Empty;
+            Quaternion rotation = m_host.GetWorldRotation()
+;
+            string ownerName = string.Empty;
             ScenePresence scenePresence = World.GetScenePresence(m_host.OwnerID);
             if (scenePresence == null)
                 ownerName = resolveName(m_host.OwnerID);
@@ -14250,10 +14251,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 shard = config.Configs["Network"].GetString("shard", shard);
             }
 
-            httpHeaders["X-SecondLife-Shard"] = shard;
+            //httpHeaders["X-SecondLife-Shard"] = shard;
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
             httpHeaders["X-SecondLife-Object-Key"] = m_host.UUID.ToString();
-            httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.RegionLocX, regionInfo.RegionLocY);
+            httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.WorldLocX, regionInfo.WorldLocY);
             httpHeaders["X-SecondLife-Local-Position"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", position.X, position.Y, position.Z);
             httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
