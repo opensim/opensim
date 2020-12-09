@@ -249,7 +249,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_SayShoutCount = 0;
         DateTime m_lastSayShoutCheck;
 
-        private Dictionary<string, string> MovementAnimationsForLSL =
+        private string m_lsl_shard = "OpenSim";
+        private string m_lsl_user_agent = string.Empty;
+
+        private static readonly Dictionary<string, string> MovementAnimationsForLSL =
                 new Dictionary<string, string> {
                         {"CROUCH", "Crouching"},
                         {"CROUCHWALK", "CrouchWalking"},
@@ -276,7 +279,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //An array of HTTP/1.1 headers that are not allowed to be used
         //as custom headers by llHTTPRequest.
-        private HashSet<string> HttpStandardHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        private static readonly HashSet<string> HttpStandardHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
         {
             "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language",
             "Accept-Ranges", "Age", "Allow", "Authorization", "Cache-Control",
@@ -289,6 +292,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
             "TE", "Trailer", "Transfer-Encoding", "Upgrade", "User-Agent",
             "Vary", "Via", "Warning", "WWW-Authenticate"
+        };
+
+        private static readonly HashSet<string> HttpForbiddenInHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            "x-secondlife-shard", "x-secondlife-object-name",  "x-secondlife-object-key",
+            "x-secondlife-region", "x-secondlife-local-position", "x-secondlife-local-velocity",
+            "x-secondlife-local-rotation",  "x-secondlife-owner-name", "x-secondlife-owner-key",
+            "connection", "content-length", "from", "host", "proxy-authorization",
+            "referer", "trailer", "transfer-encoding", "via", "authorization"
         };
 
         public void Initialize(
@@ -356,6 +368,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (seConfigSource != null)
             {
+                IConfig netConfig = seConfigSource.Configs["Network"];
+                if (netConfig != null)
+                {
+                    m_lsl_shard = netConfig.GetString("shard", m_lsl_shard);
+                    m_lsl_user_agent = netConfig.GetString("user_agent", m_lsl_user_agent);
+                }
+
                 IConfig lslConfig = seConfigSource.Configs["LL-Functions"];
                 if (lslConfig != null)
                 {
@@ -1894,8 +1913,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Is it the embeded browser?
             string userAgent = m_UrlModule.GetHttpHeader(id, "user-agent");
+            if(string.IsNullOrEmpty(userAgent))
+                return;
+
             if (userAgent.IndexOf("SecondLife") < 0)
-                return; // Not the embedded browser. Is this check good enough?
+                return; // Not the embedded browser
 
             // Use the IP address of the client and check against the request
             // seperate logins from the same IP will allow all of them to get non-text/plain as long
@@ -14231,8 +14253,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 position = m_host.AbsolutePosition;
             Vector3 velocity = m_host.Velocity;
-            Quaternion rotation = m_host.GetWorldRotation()
-;
+            Quaternion rotation = m_host.GetWorldRotation();
+
             string ownerName = string.Empty;
             ScenePresence scenePresence = World.GetScenePresence(m_host.OwnerID);
             if (scenePresence == null)
@@ -14244,14 +14266,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
 
-            string shard = "OpenSim";
-            IConfigSource config = m_ScriptEngine.ConfigSource;
-            if (config.Configs["Network"] != null)
-            {
-                shard = config.Configs["Network"].GetString("shard", shard);
-            }
-
-            //httpHeaders["X-SecondLife-Shard"] = shard;
+            if (!string.IsNullOrWhiteSpace(m_lsl_shard))
+                httpHeaders["X-SecondLife-Shard"] = m_lsl_shard;
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
             httpHeaders["X-SecondLife-Object-Key"] = m_host.UUID.ToString();
             httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.WorldLocX, regionInfo.WorldLocY);
@@ -14260,9 +14276,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
             httpHeaders["X-SecondLife-Owner-Name"] = ownerName;
             httpHeaders["X-SecondLife-Owner-Key"] = m_host.OwnerID.ToString();
-            string userAgent = config.Configs["Network"].GetString("user_agent", null);
-            if (userAgent != null)
-                httpHeaders["User-Agent"] = userAgent;
+            if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
+                httpHeaders["User-Agent"] = m_lsl_user_agent;
 
             // See if the URL contains any header hacks
             string[] urlParts = url.Split(new char[] {'\n'});
@@ -14273,7 +14288,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // The rest of those would be added to the body in SL.
                     // Let's not do that.
-                    if (urlParts[i] == String.Empty)
+                    if (urlParts[i] == string.Empty)
                         break;
 
                     // See if this could be a valid header
@@ -14282,32 +14297,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         continue;
 
                     string headerName = headerParts[0].Trim();
-                    string headerValue = headerParts[1].Trim();
-
-                    // Filter out headers that could be used to abuse
-                    // another system or cloak the request
-                    if (headerName.ToLower() == "x-secondlife-shard" ||
-                        headerName.ToLower() == "x-secondlife-object-name" ||
-                        headerName.ToLower() == "x-secondlife-object-key" ||
-                        headerName.ToLower() == "x-secondlife-region" ||
-                        headerName.ToLower() == "x-secondlife-local-position" ||
-                        headerName.ToLower() == "x-secondlife-local-velocity" ||
-                        headerName.ToLower() == "x-secondlife-local-rotation" ||
-                        headerName.ToLower() == "x-secondlife-owner-name" ||
-                        headerName.ToLower() == "x-secondlife-owner-key" ||
-                        headerName.ToLower() == "connection" ||
-                        headerName.ToLower() == "content-length" ||
-                        headerName.ToLower() == "from" ||
-                        headerName.ToLower() == "host" ||
-                        headerName.ToLower() == "proxy-authorization" ||
-                        headerName.ToLower() == "referer" ||
-                        headerName.ToLower() == "trailer" ||
-                        headerName.ToLower() == "transfer-encoding" ||
-                        headerName.ToLower() == "via" ||
-                        headerName.ToLower() == "authorization")
-                        continue;
-
-                    httpHeaders[headerName] = headerValue;
+                    if(!HttpForbiddenInHeaders.Contains(headerName))
+                    {
+                        string headerValue = headerParts[1].Trim();
+                        httpHeaders[headerName] = headerValue;
+                    }
                 }
 
                 // Finally, strip any protocol specifier from the URL

@@ -52,48 +52,14 @@ using Amib.Threading;
  * Implements the llHttpRequest and http_response
  * callback.
  *
- * Some stuff was already in LSLLongCmdHandler, and then
- * there was this file with a stub class in it.  So,
- * I am moving some of the objects and functions out of
- * LSLLongCmdHandler, such as the HttpRequestClass, the
- * start and stop methods, and setting up pending and
- * completed queues.  These are processed in the
- * LSLLongCmdHandler polling loop.  Similiar to the
- * XMLRPCModule, since that seems to work.
- *
- * //TODO
- *
- * This probably needs some throttling mechanism but
- * it's wide open right now.  This applies to both
- * number of requests and data volume.
- *
- * Linden puts all kinds of header fields in the requests.
- * Not doing any of that:
- * User-Agent
- * X-SecondLife-Shard
- * X-SecondLife-Object-Name
- * X-SecondLife-Object-Key
- * X-SecondLife-Region
- * X-SecondLife-Local-Position
- * X-SecondLife-Local-Velocity
- * X-SecondLife-Local-Rotation
- * X-SecondLife-Owner-Name
- * X-SecondLife-Owner-Key
- *
- * HTTPS support
- *
- * Configurable timeout?
- * Configurable max response size?
- * Configurable
- *
- * **************************************************/
+  * **************************************************/
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "HttpRequestModule")]
     public class HttpRequestModule : ISharedRegionModule, IHttpRequestModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly object m_httpListLock = new object();
         private int m_httpTimeout = 30000;

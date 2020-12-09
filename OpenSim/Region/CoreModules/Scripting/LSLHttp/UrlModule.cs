@@ -95,6 +95,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         protected IHttpServer m_HttpServer = null;
         protected IHttpServer m_HttpsServer = null;
 
+        private string m_lsl_shard = "OpenSim";
+        private string m_lsl_user_agent = string.Empty;
+
         public string ExternalHostNameForLSL { get; protected set; }
 
         /// <summary>
@@ -124,6 +127,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             if (networkConfig != null)
             {
+                m_lsl_shard = networkConfig.GetString("shard", m_lsl_shard);
+                m_lsl_user_agent = networkConfig.GetString("user_agent", m_lsl_user_agent);
+
                 ExternalHostNameForLSL = config.Configs["Network"].GetString("ExternalHostNameForLSL", null);
 
                 bool ssl_enabled = config.Configs["Network"].GetBoolean("https_listener", false);
@@ -656,7 +662,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     Vector3 velocity = sop.Velocity;
                     Quaternion rotation = sop.GetWorldRotation();
 
-                    //headers["X-SecondLife-Shard"] = shard;
+                    if (!string.IsNullOrWhiteSpace(m_lsl_shard))
+                        headers["X-SecondLife-Shard"] = m_lsl_shard;
                     headers["X-SecondLife-Object-Name"] = sop.Name;
                     headers["X-SecondLife-Object-Key"] = sop.UUID.ToString();
                     headers["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", ri.RegionName, ri.WorldLocX, ri.WorldLocY);
@@ -665,9 +672,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     headers["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
                     //headers["X-SecondLife-Owner-Name"] = ownerName;
                     headers["X-SecondLife-Owner-Key"] = sop.OwnerID.ToString();
-                    //string userAgent = config.Configs["Network"].GetString("user_agent", null);
-                    //if (userAgent != null)
-                    //    httpHeaders["User-Agent"] = userAgent;
+                    if (!string.IsNullOrWhiteSpace(m_lsl_user_agent))
+                        headers["User-Agent"] = m_lsl_user_agent;
                 }
             }
             if(url.isSsl)
