@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             int regionSizeY = (int)m_regionSizeY;
 
             int regionX = (int)m_regionGlobalX;
-            int regionY = (int)m_regionGlobalX;
+            int regionY = (int)m_regionGlobalY;
 
             int startX = regionX - regionsView;
             int startY = regionY - regionsView;
