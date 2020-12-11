@@ -66,7 +66,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 #pragma warning disable 414
         private static string LogHeader = "[WARP 3D IMAGE MODULE]";
 #pragma warning restore 414
-        private const float m_cameraHeight = 4096f;
 
         internal Scene m_scene;
         private IRendering m_primMesher;
@@ -83,6 +82,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private bool m_texturePrims = true;     // true if should texture the rendered prims
         private float m_texturePrimSize = 48f;  // size of prim before we consider texturing it
         private bool m_renderMeshes = false;    // true if to render meshes rather than just bounding boxes
+
+        private const float m_cameraHeight = 4096f;
         private float m_renderMinHeight = -100f;
         private float m_renderMaxHeight = 4096f;
 
@@ -122,7 +123,14 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             m_renderMaxHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMaxHeight", configSections, m_renderMaxHeight);
             m_renderMinHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderMinHeight", configSections, m_renderMinHeight);
+            /*
+            m_cameraHeight = Util.GetConfigVarFromSections<float>(m_config, "RenderCameraHeight", configSections, m_cameraHeight);
 
+            if (m_cameraHeight < 250f)
+                m_cameraHeight = 250f;
+            else if (m_cameraHeight > 4096f)
+                m_cameraHeight = 4096f;
+            */
             if (m_renderMaxHeight < 100f)
                 m_renderMaxHeight = 100f;
             else if (m_renderMaxHeight > m_cameraHeight - 10f)
@@ -205,9 +213,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             viewHeight = (int)m_scene.RegionInfo.RegionSizeY;
             orto = true;
 
-//            fov = warp_Math.rad2deg(2f * (float)Math.Atan2(viewWitdh, 4096f));
-//            orto = false;
-
             Bitmap tile = GenImage();
             // image may be reloaded elsewhere, so no compression format
             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
@@ -261,7 +266,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             #endregion Camera
 
             renderer.Scene.setAmbient(warp_Color.getColor(192, 191, 173));
-            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(0f, 1f, 8f), warp_Color.White, 0, 320, 40));
+            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(0f, 1f, 8f), warp_Color.White, 0, 200, 20));
 
             CreateWater(renderer);
             CreateTerrain(renderer);
@@ -501,7 +506,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             if (screenFactor < 0)
                 return;
 
-            int p2 = (int)(-(float)Math.Log(screenFactor) * 1.442695f * 0.5 - 1);
+            const float log2inv = -1.442695f;
+            int p2 = (int)((float)Math.Log(screenFactor) * log2inv * 0.25 - 1);
 
             if (p2 < 0)
                 p2 = 0;
@@ -578,12 +584,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 if (faceColor.A == 0)
                     continue;
 
-                string materialName = String.Empty;
+                string materialName = string.Empty;
                 if (m_texturePrims)
                 {
-                    //                    if(lod > DetailLevel.Low)
+                    // if(lod > DetailLevel.Low)
                     {
-                        //                    materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, lod == DetailLevel.Low);
+                        // materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, lod == DetailLevel.Low);
                         materialName = GetOrCreateMaterial(renderer, faceColor, teFace.TextureID, false, prim);
                         if (String.IsNullOrEmpty(materialName))
                             continue;
@@ -812,21 +818,25 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         #region Static Helpers
         // Note: axis change.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private static warp_Vector ConvertVector(float x, float y, float z)
         {
             return new warp_Vector(x, z, y);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private static warp_Vector ConvertVector(Vector3 vector)
         {
             return new warp_Vector(vector.X, vector.Z, vector.Y);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private static warp_Quaternion ConvertQuaternion(Quaternion quat)
         {
             return new warp_Quaternion(quat.X, quat.Z, quat.Y, -quat.W);
         }
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private static int ConvertColor(Color4 color)
         {
             int c = warp_Color.getColor((byte)(color.R * 255f), (byte)(color.G * 255f), (byte)(color.B * 255f), (byte)(color.A * 255f));
