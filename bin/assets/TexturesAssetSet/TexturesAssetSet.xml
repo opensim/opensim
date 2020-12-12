@@ -270,11 +270,17 @@
     <Key Name="fileName" Value="water3.jp2" />
   </Section>
   <Section Name="Sea">
-    <Key Name="assetID" Value="2bfd3884-7e27-69b9-ba3a-3e673f680004" />
+    <Key Name="assetID" Value="482E671B-9244-4B86-A036-68953A898D11" />
     <Key Name="name" Value="Sea" />
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="water3.jp2" />
   </Section>
+  <Section Name="SeaWaterTrasp">
+    <Key Name="assetID" Value="2bfd3884-7e27-69b9-ba3a-3e673f680004" />
+    <Key Name="name" Value="SeaWaterTrasp" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="seaWaterTransp.j2c" />
+  </Section>  
   <Section Name="wood1 Texture">
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001043" />
     <Key Name="name" Value="wood1" />
