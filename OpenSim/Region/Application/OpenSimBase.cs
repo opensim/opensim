@@ -1040,11 +1040,54 @@ namespace OpenSim
             foreach (EstateSettings estate in estates)
                 estatesByName[estate.EstateName] = estate;
 
-            string defaultEstateName = null;
+            //##
+            // Target Estate Specified in Region.ini
+            string targetEstateName = regInfo.GetSetting("TargetEstate");
 
+            if (targetEstateName != null && targetEstateName != string.Empty)
+            {
+                bool targetEstateJoined = false;
+
+                if (Int32.TryParse(targetEstateName, out int targetEstateID) && targetEstateID > 99)
+                {
+                    // Attempt to join the target estate given in Config by ID
+                    foreach (EstateSettings estate in estates)
+                    {
+                        if (estate.EstateID == targetEstateID)
+                        {
+                            if (EstateDataService.LinkRegion(regInfo.RegionID, targetEstateID))
+                                targetEstateJoined = true;
+
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Attempt to join the target estate given in Config by name
+                    EstateSettings targetEstate;
+                    
+                    if (estatesByName.ContainsKey(targetEstateName))
+                    {
+                        targetEstate = estatesByName[targetEstateName];
+
+                        if (EstateDataService.LinkRegion(regInfo.RegionID, (int)targetEstate.EstateID))
+                            targetEstateJoined = true;
+                    }
+                }
+
+                if (targetEstateJoined)
+                    return true; // need to update the database
+                else
+                    m_log.ErrorFormat(
+                        "[OPENSIM BASE]: Joining target estate specified in region config {0} failed", targetEstateName);
+            }
+            //##
+
+            // Default Estate
             if (Config.Configs[ESTATE_SECTION_NAME] != null)
             {
-                defaultEstateName = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
+                string defaultEstateName = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
 
                 if (defaultEstateName != null)
                 {

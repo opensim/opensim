@@ -1,0 +1,18 @@
+; * This is an example estate config file.
+; * 
+; * If a Region is loaded without an estate, OpenSimulator will ask you configuration questions to create or join an existing estate.
+; * So there is no need to change this file directly, it is only for reference.
+; * However, if you prefer you can also copy this file to Estates.ini and appropriately change the parameters below.
+; * Only files ending with .ini and .xml in this directly will be loaded by OpenSimulator.
+; *
+; * You can add multiple estates into one file or make one file per estate
+; * The section name is the estate name
+; *
+
+[Example Estate]
+
+; *
+; * You MUST change this! It will NOT be done for you!
+; *
+
+Owner = 11111111-2222-3333-4444-555555555555
