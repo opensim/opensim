@@ -182,7 +182,7 @@ namespace OpenSim.Framework.Servers
 
             if (m_logFileAppender != null && startupConfig != null)
             {
-                string cfgFileName = startupConfig.GetString("LogFile", null);
+                string cfgFileName = startupConfig.GetString("logfile", null);
                 if (cfgFileName != null)
                 {
                     m_logFileAppender.File = cfgFileName;
