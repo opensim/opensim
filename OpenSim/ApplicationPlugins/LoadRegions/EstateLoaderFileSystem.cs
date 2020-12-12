@@ -28,16 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
@@ -63,25 +58,30 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             string estateConfigPath = Path.Combine(Util.configDir(), "Estates");
 
+            IConfig startupConfig = m_configSource.Configs["Startup"];
+            if(startupConfig == null)
+                return;
+
+            estateConfigPath = startupConfig.GetString("regionload_estatesdir", estateConfigPath).Trim();
+            if(string.IsNullOrWhiteSpace(estateConfigPath))
+                return;
+
+            if (!Directory.Exists(estateConfigPath))
+                return; // if nothing there, don't bother
+
+            string[] iniFiles = null;
             try
             {
-                IConfig startupConfig = m_configSource.Configs["Startup"];
-                estateConfigPath = startupConfig.GetString("regionload_estatesdir", estateConfigPath).Trim();
+                iniFiles = Directory.GetFiles(estateConfigPath, "*.ini");
             }
-            catch (Exception)
+            catch
             {
-                // No INI setting recorded.
+                m_log.Info("[ESTATE LOADER FILE SYSTEM]: could not open " + estateConfigPath);
+                return;
             }
-
-            if (Directory.Exists(estateConfigPath) == false)
-            {
-                Directory.CreateDirectory(estateConfigPath);
-            }
-
-            string[] iniFiles = Directory.GetFiles(estateConfigPath, "*.ini");
 
             // No Estate.ini Found
-            if (iniFiles.Length == 0)
+            if (iniFiles == null || iniFiles.Length == 0)
                 return;
 
             m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: Loading estate config files from {0}", estateConfigPath);
@@ -93,19 +93,37 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: Loading config file {0}", file);
 
-                IConfigSource source = new IniConfigSource(file);
+                IConfigSource source = null;
+                try
+                {
+                    source = new IniConfigSource(file);
+                }
+                catch
+                {
+                    m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: failed to parse file {0}", file);
+                }
+
+                if(source == null)
+                    continue;
 
                 foreach (IConfig config in source.Configs)
                 {
                     // Read Estate Config From Source File
                     string estateName = config.Name;
+                    if (string.IsNullOrWhiteSpace(estateName))
+                        continue;
+
+                    if (estateName.Length > 64) // need check this and if utf8 is valid
+                    {
+                        m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: Estate name {0} is too large, ignoring", estateName);
+                        continue;
+                    }
+
                     string ownerString = config.GetString("Owner", string.Empty);
+                    if (string.IsNullOrWhiteSpace(ownerString))
+                        continue;
 
-                    if (UUID.TryParse(ownerString, out UUID estateOwner) == false)
-                        estateOwner = UUID.Zero;
-
-                    // Check Name Is Valid
-                    if (estateName == string.Empty || estateOwner == UUID.Zero)
+                    if (!UUID.TryParse(ownerString, out UUID estateOwner) || estateOwner == UUID.Zero)
                         continue;
 
                     // Check If Estate Exists (Skip If So)
@@ -130,7 +148,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     i++;
                 }
             }
-
         }
     }
 }
