@@ -11074,7 +11074,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch
             {
                 Error("llBase64ToString", "Error encoding string");
-                return String.Empty;
+                return string.Empty;
             }
         }
 
@@ -11089,7 +11089,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             catch
             {
                 Error("llBase64ToString", "Error decoding string");
-                return String.Empty;
+                return string.Empty;
             }
         }
 
@@ -14116,10 +14116,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 str2.TrimEnd(new char[] { '=' });
 
                 len = str2.Length;
+                if(len == 0)
+                    return str1;
+
                 int mod = len % 4;
 
                 if (mod == 1)
-                    str2 = str2.Substring(0, str2.Length - 1);
+                    str2 = str2.Substring(0, len - 1);
                 else if (mod == 2)
                     str2 += "==";
                 else if (mod == 3)
@@ -14135,31 +14138,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             catch (Exception)
             {
-                return new LSL_String(String.Empty);
+                return string.Empty;
             }
 
-            byte[] d2 = new Byte[data1.Length];
-            int pos = 0;
+            int len2 = data2.Length;
+            if (len2 == 0)
+                return str1;
 
-            if (data1.Length <= data2.Length)
+            for (int pos = 0, pos2 = 0; pos < data1.Length; pos++)
             {
-                Array.Copy(data2, 0, d2, 0, data1.Length);
+                data1[pos] ^= data2[pos2];
+                if (++pos2 >= len2)
+                    pos2 = 0;
             }
-            else
-            {
-                while (pos < data1.Length)
-                {
-                    len = data1.Length - pos;
-                    if (len > data2.Length)
-                        len = data2.Length;
-
-                    Array.Copy(data2, 0, d2, pos, len);
-                    pos += len;
-                }
-            }
-
-            for (pos = 0 ; pos < data1.Length ; pos++ )
-                data1[pos] ^= d2[pos];
 
             return Convert.ToBase64String(data1);
         }
@@ -14231,10 +14222,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return string.Empty;
             }
 
+            int len2 = data2.Length;
+            if (len2 == 0)
+                return str1;
+
             for (int pos = 0, pos2 = 0; pos < data1.Length; pos++)
             {
                 data1[pos] ^= data2[pos2];
-                if(++pos2 >= data2.Length)
+                if (++pos2 >= len2)
                     pos2 = 0;
             }
 
