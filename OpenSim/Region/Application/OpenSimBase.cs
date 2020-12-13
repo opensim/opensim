@@ -1040,21 +1040,56 @@ namespace OpenSim
             foreach (EstateSettings estate in estates)
                 estatesByName[estate.EstateName] = estate;
 
-            string defaultEstateName = null;
+            //##
+            // Target Estate Specified in Region.ini
+            string targetEstateIDstr = regInfo.GetSetting("TargetEstate");
 
+            if (!string.IsNullOrWhiteSpace(targetEstateIDstr))
+            {
+                bool targetEstateJoined = false;
+
+                if (Int32.TryParse(targetEstateIDstr, out int targetEstateID) && targetEstateID > 99)
+                {
+                    // Attempt to join the target estate given in Config by ID
+                    foreach (EstateSettings estate in estates)
+                    {
+                        if (estate.EstateID == targetEstateID)
+                        {
+                            if (EstateDataService.LinkRegion(regInfo.RegionID, targetEstateID))
+                                targetEstateJoined = true;
+
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Attempt to join the target estate given in Config by name
+                    if (estatesByName.TryGetValue(targetEstateIDstr, out EstateSettings targetEstate))
+                    {
+                        if (EstateDataService.LinkRegion(regInfo.RegionID, (int)targetEstate.EstateID))
+                            targetEstateJoined = true;
+                    }
+                }
+
+                if (targetEstateJoined)
+                    return true; // need to update the database
+                else
+                    m_log.ErrorFormat(
+                        "[OPENSIM BASE]: Joining target estate specified in region config {0} failed", targetEstateIDstr);
+            }
+            //##
+
+            // Default Estate
             if (Config.Configs[ESTATE_SECTION_NAME] != null)
             {
-                defaultEstateName = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
+                string defaultEstateName = Config.Configs[ESTATE_SECTION_NAME].GetString("DefaultEstateName", null);
 
                 if (defaultEstateName != null)
                 {
-                    EstateSettings defaultEstate;
                     bool defaultEstateJoined = false;
-
-                    if (estatesByName.ContainsKey(defaultEstateName))
+                    if (estatesByName.TryGetValue(defaultEstateName, out EstateSettings defaultEstate))
                     {
-                        defaultEstate = estatesByName[defaultEstateName];
-
                         if (EstateDataService.LinkRegion(regInfo.RegionID, (int)defaultEstate.EstateID))
                             defaultEstateJoined = true;
                     }
@@ -1086,8 +1121,7 @@ namespace OpenSim
                 }
                 else
                 {
-                    string response
-                        = MainConsole.Instance.Prompt(
+                    string response = MainConsole.Instance.Prompt(
                             string.Format(
                                 "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName),
                                 "yes",

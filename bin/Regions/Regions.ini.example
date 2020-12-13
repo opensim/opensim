@@ -23,6 +23,10 @@ InternalPort = 9000
 AllowAlternatePorts = False
 ExternalHostName = SYSTEMIP
 
+;; Estate ID or Name to connect region to, leave blank for console prompt, remember estate id can not be less than 100
+;; this value is only used when creating a region and after that will be ignored. 0 Will use the next auto id provided by the database
+;TargetEstate = 0
+
 ; *
 ; * Variable-sized regions allows the creation of large, borderless spaces.
 ; * The default is 256 meters. For larger spaces, set these to multiples of 256.
