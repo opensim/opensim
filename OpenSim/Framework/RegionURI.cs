@@ -70,6 +70,8 @@ namespace OpenSim.Framework
         {
             originalURI = _originalURI;
             Parse(_originalURI);
+            if (!HasHost)
+                Flags |= URIFlags.IsLocalGrid;
         }
 
         public RegionURI(string _originalURI, GridInfo gi)
@@ -77,7 +79,12 @@ namespace OpenSim.Framework
             originalURI = _originalURI;
             Parse(_originalURI);
 
-            if(!HasHost || gi == null)
+            if(!HasHost)
+            {
+                Flags |= URIFlags.IsLocalGrid;
+                return;
+            }
+            if(gi == null)
                 return;
 
             if (gi.IsLocalGrid(HostUrl) == 1)
