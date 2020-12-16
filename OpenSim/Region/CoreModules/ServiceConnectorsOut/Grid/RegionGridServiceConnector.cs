@@ -342,42 +342,36 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
-            List<GridRegion> rinfo = m_LocalGridService.GetRegionsByName(scopeID, name, maxNumber);
+            var ruri = new RegionURI(name, m_ThisGridInfo);
+            return GetRegionsByURI(scopeID, ruri, maxNumber);
+        }
+
+        public List<GridRegion> GetRegionsByURI(UUID scopeID, RegionURI uri, int maxNumber)
+        {
+            if(!uri.IsValid)
+                return null;
+
+            List<GridRegion> rinfo = m_LocalGridService.GetRegionsByURI(scopeID, uri, maxNumber);
             //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Local GetRegionsByName {0} found {1} regions", name, rinfo.Count);
 
-            if(m_RemoteGridService == null)
+            if (m_RemoteGridService == null || !uri.IsLocalGrid)
                 return rinfo;
-            // HG urls should not get here, strip them
-            // side effect is that local regions with same name as HG may also be found
-            // this mb good or bad
-            string regionName = name;
-            if(name.Contains("."))
-            {
-                if(!m_ThisGridInfo.HasHGConfig)
-                    return rinfo; // no HG
-
-                string regionURI = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
-                    return rinfo; // invalid
-                if (m_ThisGridInfo.IsLocalGrid(regionURI) != 1)
-                    return rinfo; // not local grid
-            }
 
             List<GridRegion> grinfo = null;
-            if (string.IsNullOrEmpty(regionName))
+            if (!uri.HasRegionName)
             {
                 List<GridRegion> grinfos = m_RemoteGridService.GetDefaultRegions(scopeID);
                 if (grinfos == null || grinfos.Count == 0)
-                    m_log.Warn("[REMOTE GRID CONNECTOR] returned no default regions");
+                    m_log.Info("[REMOTE GRID CONNECTOR] returned no default regions");
                 else
                 {
-                    m_log.WarnFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
+                    m_log.InfoFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
                     // only return first
-                    grinfo = new List<GridRegion>(){grinfos[0]};
+                    grinfo = new List<GridRegion>() { grinfos[0] };
                 }
             }
             else
-                grinfo = m_RemoteGridService.GetRegionsByName(scopeID, regionName, maxNumber);
+                grinfo = m_RemoteGridService.GetRegionsByName(scopeID, uri.RegionName, maxNumber);
 
             if (grinfo != null)
             {
@@ -385,7 +379,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 foreach (GridRegion r in grinfo)
                 {
                     m_RegionInfoCache.Cache(r);
-                    if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                    if (rinfo.Find(delegate (GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
                 }
             }

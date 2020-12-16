@@ -290,7 +290,7 @@ namespace OpenSim.Services.HypergridService
 
             m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}, desired region: {2}", m_GridName, gridName, region.RegionID);
 
-            if (m_GridName == gridName)
+            if (m_GridName.Equals(gridName, StringComparison.InvariantCultureIgnoreCase))
             {
                 success = m_GatekeeperService.LoginAgent(source, agentCircuit, finalDestination, out reason);
             }

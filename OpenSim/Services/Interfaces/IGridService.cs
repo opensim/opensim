@@ -98,6 +98,7 @@ namespace OpenSim.Services.Interfaces
         /// grid-server couldn't be contacted or returned an error, return null.
         /// </returns>
         List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber);
+        List<GridRegion> GetRegionsByURI(UUID scopeID, RegionURI uri, int maxNumber);
 
         List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
