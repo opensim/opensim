@@ -513,6 +513,17 @@ namespace OpenSim.Framework
             }
         }
 
+        public string RegionHostPortSpaceName
+        {
+            get
+            {
+                string ret = (Flags & URIFlags.HasHost) != 0 ? (Host + ":" + Port + "/ ") : ""; // space needed for compatibility
+                if ((Flags & URIFlags.HasRegionName) != 0)
+                    ret += RegionName;
+                return ret;
+            }
+        }
+
         // this needs to be set before get
         public bool IsLocalGrid
         {

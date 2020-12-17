@@ -561,21 +561,25 @@ namespace OpenSim.Services.GridService
             if (!nameURI.IsValid)
                 return new List<GridRegion>();
 
-            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(nameURI.RegionUrlAndName) + "%", scopeID);
-
             int count = 0;
+
+            string mapname = nameURI.RegionHostPortSpaceName;
+            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(mapname) + "%", scopeID);
             List<GridRegion> rinfos = new List<GridRegion>();
 
             if (m_AllowHypergridMapSearch && nameURI.HasHost)
             {
-                string mapname = nameURI.RegionUrlAndName;
-                bool haveMatch = false;
                 if (rdatas != null && (rdatas.Count > 0))
                 {
+                    bool haveMatch = false;
                     // m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
                     foreach (RegionData rdata in rdatas)
                     {
-                        if (mapname.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
+                        int indx = rdata.RegionName.IndexOf("://");
+                        if(indx < 0)
+                            continue;
+                        string rname = rdata.RegionName.Substring(indx + 3);
+                        if (mapname.Equals(rname, StringComparison.InvariantCultureIgnoreCase))
                         {
                             haveMatch = true;
                             rinfos.Insert(0, RegionData2RegionInfo(rdata));
@@ -597,20 +601,32 @@ namespace OpenSim.Services.GridService
                     rinfos.Add(r);
                 }
             }
-            else if (rdatas != null && (rdatas.Count > 0))
+            else
             {
-                string name = nameURI.RegionName;
-                //m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
-                foreach (RegionData rdata in rdatas)
+                if (!nameURI.HasRegionName)
                 {
-                    if (name.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
+                    List<GridRegion> dinfos = GetDefaultRegions(scopeID);
+                    if(dinfos != null && dinfos.Count >0)
+                        rinfos.Add(dinfos[0]);
+                }
+                else
+                {
+                    string name = nameURI.RegionName;
+                    if (rdatas != null && (rdatas.Count > 0))
                     {
-                        rinfos.Insert(0, RegionData2RegionInfo(rdata));
-                        if (count == maxNumber)
-                            rinfos.RemoveAt(count - 1);
+                        //m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
+                        foreach (RegionData rdata in rdatas)
+                        {
+                            if (name.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                rinfos.Insert(0, RegionData2RegionInfo(rdata));
+                                if (count == maxNumber)
+                                    rinfos.RemoveAt(count - 1);
+                            }
+                            else if (count++ < maxNumber)
+                                rinfos.Add(RegionData2RegionInfo(rdata));
+                        }
                     }
-                    else if (count++ < maxNumber)
-                        rinfos.Add(RegionData2RegionInfo(rdata));
                 }
             }
             return rinfos;

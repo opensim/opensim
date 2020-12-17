@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return rinfo;
 
             List<GridRegion> grinfo = null;
-            if (!uri.HasRegionName)
+            if (!uri.HasRegionName && (rinfo == null || rinfo.Count == 0))
             {
                 List<GridRegion> grinfos = m_RemoteGridService.GetDefaultRegions(scopeID);
                 if (grinfos == null || grinfos.Count == 0)
