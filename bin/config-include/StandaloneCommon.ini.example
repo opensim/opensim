@@ -252,6 +252,11 @@
     ; this is the entry point for all user-related HG services
     ; uas = ${Const|BaseURL}:${Const|PublicPort}/
 
+    // a http page for grid status
+    ;GridStatus = ${Const|BaseURL}:${Const|PublicPort}/GridStatus
+    // a RSS page for grid status
+    ;GridStatusRSS = ${Const|BaseURL}:${Const|PublicPort}/GridStatusRSS
+
 [MapImageService]
     ; Set this if you want to change the default
     ; TilesStoragePath = "maptiles"

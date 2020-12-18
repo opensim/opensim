@@ -194,6 +194,16 @@ namespace OpenSim.Services.GridService
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridNick"] = configVal;
 
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridStatus", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridStatus"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridStatusRSS", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridStatusRSS"] = configVal;
+
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
 
             string[] sections = new string[] { "Const, Startup", "Hypergrid", "GatekeeperService" };
