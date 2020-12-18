@@ -13221,6 +13221,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llLoadURL(string avatar_id, string message, string url)
         {
             m_host.AddScriptLPS(1);
+            if(m_host.OwnerID == m_host.GroupID)
+                return;
+            try
+            {
+                Uri m_checkuri = new Uri(url);
+                if (m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
+                {
+                    Error("llLoadURL","Invalid url schema");
+                    ScriptSleep(200);
+                    return;
+                }
+            }
+            catch
+            {
+                Error("llLoadURL","Invalid url");
+                ScriptSleep(200);
+                return;
+            }
 
             IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
             if (null != dm)
