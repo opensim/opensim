@@ -5827,7 +5827,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 sp.Environment = null;
                 m_envModule.WindlightRefreshForced(sp, transition);
-                return -9;
+                return -5;
             }
             return 1;
         }
