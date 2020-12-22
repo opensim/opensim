@@ -294,7 +294,7 @@ namespace OpenSim.Data.MySQL
                         string sqlparams;
                         if (uuids.Count > 1)
                         {
-                            StringBuilder sb = new StringBuilder(uuids.Count * 37);
+                            StringBuilder sb = new StringBuilder(uuids.Count * 39 + 5);
                             sb.Append("IN (");
                             for(int i = 0; i < uuids.Count - 1; ++i )
                             {
