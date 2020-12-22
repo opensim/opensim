@@ -369,6 +369,11 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
+        public GridRegion GetRegionByURI(UUID scopeID, RegionURI uri)
+        {
+            return null;
+        }
+
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

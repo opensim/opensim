@@ -83,6 +83,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionName"></param>
         /// <returns>Returns the region information if the name matched.  Null otherwise.</returns>
         GridRegion GetRegionByName(UUID scopeID, string regionName);
+        GridRegion GetRegionByURI(UUID scopeID, RegionURI uri);
 
         /// <summary>
         /// Get information about regions starting with the provided name.

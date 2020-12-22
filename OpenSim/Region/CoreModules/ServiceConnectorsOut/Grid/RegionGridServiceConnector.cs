@@ -300,33 +300,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (inCache)
                 return rinfo;
 
-            rinfo = m_LocalGridService.GetRegionByName(scopeID, name);
+            var ruri = new RegionURI(name, m_ThisGridInfo);
+            return GetRegionByURI(scopeID, ruri);
+        }
+
+        public GridRegion GetRegionByURI(UUID scopeID, RegionURI uri)
+        {
+            GridRegion rinfo = m_LocalGridService.GetRegionByURI(scopeID, uri);
             if (rinfo != null)
             {
                 m_RegionInfoCache.Cache(scopeID, rinfo);
                 return rinfo;
             }
 
-            if(m_RemoteGridService == null)
-                return null;
+            if (m_RemoteGridService == null || !uri.IsLocalGrid)
+                return rinfo;
 
-            // HG urls should not get here, strip them
-            // side effect is that local regions with same name as HG may also be found
-            // this mb good or bad
-            string regionName = name;
-            if(name.Contains("."))
-            {
-                if(!m_ThisGridInfo.HasHGConfig)
-                    return rinfo; // no HG
-
-                string regionURI = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
-                    return rinfo; // invalid
-                if (m_ThisGridInfo.IsLocalGrid(regionURI) != 1)
-                    return rinfo; // not local grid
-            }
-
-            if (string.IsNullOrEmpty(regionName))
+            if (uri.HasRegionName)
+                rinfo = m_RemoteGridService.GetRegionByName(scopeID, uri.RegionName);
+            else
             {
                 rinfo = m_RemoteGridService.GetDefaultRegions(UUID.Zero)[0];
                 if (rinfo == null)
@@ -334,8 +326,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 else
                     m_log.WarnFormat("[REMOTE GRID CONNECTOR] returned default region {0}", rinfo.RegionName);
             }
-            else
-                rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
+
             m_RegionInfoCache.Cache(scopeID, rinfo);
             return rinfo;
         }
