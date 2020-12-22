@@ -322,32 +322,6 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        /// <summary>
-        /// Remove all persisted items of the given prim.
-        /// The caller must acquire the necessrary synchronization locks
-        /// </summary>
-        /// <param name="uuid">the Item UUID</param>
-        private void RemoveItems(UUID uuid)
-        {
-            // locked by caller
-//            lock (m_dbLock)
-            {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        cmd.CommandText = "delete from primitems where primID = ?PrimID";
-                        cmd.Parameters.AddWithValue("primID", uuid.ToString());
-
-                        ExecuteNonQuery(cmd);
-                    }
-                    dbcon.Close();
-                }
-            }
-        }
-
         public virtual List<SceneObjectGroup> LoadObjects(UUID regionID)
         {
             const int ROWS_PER_QUERY = 5000;
@@ -1607,6 +1581,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+
             if (prim.AttachedPos != null)
             {
                 cmd.Parameters.AddWithValue("AttachedPosX", prim.AttachedPos.X);
@@ -1912,17 +1887,24 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dbLock)
             {
-                RemoveItems(primID);
-
-                if (items.Count == 0)
-                    return;
-
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
+                        cmd.CommandText = "delete from primitems where primID = ?PrimID";
+                        cmd.Parameters.AddWithValue("primID", primID.ToString());
+
+                        ExecuteNonQuery(cmd);
+
+                        if (items.Count == 0)
+                        {
+                            dbcon.Close();
+                            return;
+                        }
+
+                        cmd.Parameters.Clear();
                         cmd.CommandText = "insert into primitems (" +
                                 "invType, assetType, name, " +
                                 "description, creationDate, nextPermissions, " +
