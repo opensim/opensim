@@ -721,6 +721,21 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        // helper for services responses.
+        // they send identical messages, but each own chars case 
+        public static byte[] sucessResultSuccess = osUTF8.GetASCIIBytes("<?xml version =\"1.0\"?><ServerResponse><Result>Success</Result></ServerResponse>");
+
+        public static byte[] ResultFailureMessageStart = osUTF8.GetASCIIBytes("<?xml version =\"1.0\"?><ServerResponse><Result>Failure</Result><Message>");
+        public static byte[] ResultFailureMessageEnd = osUTF8.GetASCIIBytes("</Message></ServerResponse>");
+        public static byte[] ResultFailureMessage(string message)
+        {
+            osUTF8  res = new osUTF8(ResultFailureMessageStart.Length + ResultFailureMessageEnd.Length + message.Length);
+            res.Append(ResultFailureMessageStart);
+            res.Append(message);
+            res.Append(ResultFailureMessageEnd);
+            return res.ToArray();
+        }
+
         public static byte[] DocToBytes(XmlDocument doc)
         {
             using (MemoryStream ms = new MemoryStream())
