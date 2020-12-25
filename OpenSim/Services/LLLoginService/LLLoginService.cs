@@ -365,6 +365,12 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
+                if (account.PrincipalID == Constants.servicesGodAgentID)
+                {
+                    // really?
+                    return LLFailedLoginResponse.UserProblem;
+                }
+
                 // If a scope id is requested, check that the account is in
                 // that scope, or unscoped.
                 //
@@ -399,11 +405,7 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
-                if(account.PrincipalID == new UUID("6571e388-6218-4574-87db-f9379718315e"))
-                {
-                    // really?
-                    return LLFailedLoginResponse.UserProblem;
-                }
+
 
                 string PrincipalIDstr = account.PrincipalID.ToString();
                 GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(PrincipalIDstr);
@@ -1143,14 +1145,13 @@ namespace OpenSim.Services.LLLoginService
                 return false;
 
             string regURL = regInfo.ServerURI;
-            if(String.IsNullOrEmpty(regURL))
+            if(string.IsNullOrEmpty(regURL))
                 return false;
-            
-            UUID guuid = new UUID("6571e388-6218-4574-87db-f9379718315e");
+
 
             GridInstantMessage msg = new GridInstantMessage();
             msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = guuid.Guid;
+            msg.fromAgentID = Constants.servicesGodAgentID.Guid;
             msg.toAgentID = agentID.Guid;
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
             msg.fromAgentName = "GRID";

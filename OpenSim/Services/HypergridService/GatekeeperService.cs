@@ -652,14 +652,12 @@ namespace OpenSim.Services.HypergridService
                 return false;
 
             string regURL = regInfo.ServerURI;
-            if(String.IsNullOrEmpty(regURL))
+            if(string.IsNullOrEmpty(regURL))
                 return false;
-            
-            UUID guuid = new UUID("6571e388-6218-4574-87db-f9379718315e");
 
             GridInstantMessage msg = new GridInstantMessage();
             msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = guuid.Guid;
+            msg.fromAgentID = Constants.servicesGodAgentID.Guid;
             msg.toAgentID = agentID.Guid;
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
             msg.fromAgentName = "GRID";

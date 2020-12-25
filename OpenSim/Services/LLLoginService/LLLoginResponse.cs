@@ -855,7 +855,7 @@ namespace OpenSim.Services.LLLoginService
         {
             //for now create random inventory library owner
             Hashtable TempHash = new Hashtable();
-            TempHash["agent_id"] = "11111111-1111-0000-0000-000100bba000"; // libFolder.Owner
+            TempHash["agent_id"] = Constants.m_MrOpenSimID.ToString(); // libFolder.Owner
             ArrayList inventoryLibOwner = new ArrayList();
             inventoryLibOwner.Add(TempHash);
             return inventoryLibOwner;
