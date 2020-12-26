@@ -195,7 +195,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 // TODO: Remove HGInventoryServiceConstructorArg after 0.9 release
                 string hgInvServiceArg = m_LoginServerConfig.GetString("HGInventoryServiceConstructorArg", string.Empty);
-                if (string.IsNullOrWhiteSpace(hgInvServiceArg))
+                if (!string.IsNullOrWhiteSpace(hgInvServiceArg))
                 {
                     m_log.Warn("[LLOGIN SERVICE]: You are using HGInventoryServiceConstructorArg, which is deprecated. See example file for correct syntax.");
                     hgInvServicePlugin = hgInvServiceArg + "@" + hgInvServicePlugin;
@@ -212,7 +212,7 @@ namespace OpenSim.Services.LLLoginService
                 m_log.DebugFormat("[LLOGIN SERVICE]: Using LibraryService given as argument");
                 m_LibraryService = libraryService;
             }
-            else if (libService != string.Empty)
+            else if (!string.IsNullOrWhiteSpace(libService))
             {
                 m_log.DebugFormat("[LLOGIN SERVICE]: Using instantiated LibraryService");
                 m_LibraryService = ServerUtils.LoadPlugin<ILibraryService>(libService, args);
