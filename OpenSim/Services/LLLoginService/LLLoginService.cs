@@ -38,7 +38,6 @@ using Nini.Config;
 using OpenMetaverse;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Connectors.InstantMessage;
 using OpenSim.Services.Interfaces;
@@ -153,7 +152,7 @@ namespace OpenSim.Services.LLLoginService
             }
 
             // Clean up some of these vars
-            if (m_MapTileURL != string.Empty)
+            if (!string.IsNullOrWhiteSpace(m_MapTileURL))
             {
                 m_MapTileURL = m_MapTileURL.Trim();
                 if (!m_MapTileURL.EndsWith("/"))
@@ -898,7 +897,7 @@ namespace OpenSim.Services.LLLoginService
                 if(simConnector == null)
                     return null;
 
-                circuitCode = (uint)Util.RandomClass.Next(); ;
+                circuitCode = (uint)Util.RandomClass.Next();
                 aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position,
                     clientIP.Address.ToString(), viewer, channel, mac, id0);
 
