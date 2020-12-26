@@ -130,10 +130,15 @@ namespace OpenSim.Server.Handlers.Grid
             return response;
         }
 
-        public string RestGetGridInfoMethod(string request, string path, string param,
-                                            IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void RestGetGridInfoMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StringBuilder sb = new StringBuilder();
+            if (httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder(4096);
 
             sb.Append("<gridinfo>\n");
             foreach (string k in _info.Keys)
@@ -142,7 +147,7 @@ namespace OpenSim.Server.Handlers.Grid
             }
             sb.Append("</gridinfo>\n");
 
-            return sb.ToString();
+            httpResponse.RawBuffer = Util.UTF8Getbytes(sb.ToString());
         }
 
         /// <summary>
@@ -152,14 +157,6 @@ namespace OpenSim.Server.Handlers.Grid
         /// <returns>
         /// json string
         /// </returns>
-        /// <param name='request'>
-        /// Request.
-        /// </param>
-        /// <param name='path'>
-        ///  /json_grid_info
-        /// </param>
-        /// <param name='param'>
-        /// Parameter.
         /// </param>
         /// <param name='httpRequest'>
         /// Http request.
@@ -167,9 +164,14 @@ namespace OpenSim.Server.Handlers.Grid
         /// <param name='httpResponse'>
         /// Http response.
         /// </param>
-        public string JsonGetGridInfoMethod(string request, string path, string param,
-                                            IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        public void JsonGetGridInfoMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            if (httpRequest.HttpMethod != "GET")
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                return;
+            }
+
             OSDMap map = new OSDMap();
 
             foreach (string k in _info.Keys)
@@ -180,7 +182,7 @@ namespace OpenSim.Server.Handlers.Grid
             string HomeURI = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
                 new string[] { "Startup", "Hypergrid" }, String.Empty);
 
-            if (!String.IsNullOrEmpty(HomeURI))
+            if (!string.IsNullOrEmpty(HomeURI))
                 map["home"] = OSD.FromString(HomeURI);
             else // Legacy. Remove soon!
             {
@@ -189,11 +191,11 @@ namespace OpenSim.Server.Handlers.Grid
                 if (null != cfg)
                     HomeURI = cfg.GetString("SRV_HomeURI", HomeURI);
 
-                if (!String.IsNullOrEmpty(HomeURI))
+                if (!string.IsNullOrEmpty(HomeURI))
                     map["home"] = OSD.FromString(HomeURI);
             }
 
-            return OSDParser.SerializeJsonString(map).ToString();
+            httpResponse.RawBuffer =  OSDParser.SerializeJsonToBytes(map);
         }
     }
 }
