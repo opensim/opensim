@@ -127,6 +127,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         public void RestGetGridInfoMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            httpResponse.KeepAlive = false;
             if (httpRequest.HttpMethod != "GET")
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
@@ -165,6 +166,8 @@ namespace OpenSim.Server.Handlers.Grid
         /// </param>
         public void JsonGetGridInfoMethod(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
+            httpResponse.KeepAlive = false;
+
             if (httpRequest.HttpMethod != "GET")
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
