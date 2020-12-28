@@ -115,10 +115,9 @@ namespace OpenSim.Server.Handlers.BakedTextures
 
             if (p.Length == 0)
                 return;
-
-            using (StreamReader sr = new StreamReader(httpRequest.InputStream))
-                m_BakesService.Store(p[0], sr.ReadToEnd());
+            byte[] data = ((MemoryStream)httpRequest.InputStream).ToArray();
             httpRequest.InputStream.Dispose();
+            m_BakesService.Store(p[0], data);
         }
 
         public string[] SplitParams(string path)

@@ -75,7 +75,6 @@ namespace OpenSim.Server.Handlers.BakedTextures
             try
             {
                 byte[] content = File.ReadAllBytes(diskFile);
-
                 return content;
             }
             catch
@@ -84,7 +83,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
             return new byte[0];
         }
 
-        public void Store(string id, string sdata)
+        public void Store(string id, byte[] data)
         {
             string file = HashToFile(id);
             string diskFile = Path.Combine(m_FSBase, file);
@@ -92,9 +91,6 @@ namespace OpenSim.Server.Handlers.BakedTextures
             Directory.CreateDirectory(Path.GetDirectoryName(diskFile));
 
             File.Delete(diskFile);
-
-            byte[] data = Encoding.UTF8.GetBytes(sdata);
-
             using (FileStream fs = File.Create(diskFile))
                 fs.Write(data, 0, data.Length);
         }
