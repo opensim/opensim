@@ -1620,7 +1620,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static bool IsRealLogin(TeleportFlags teleportFlags)
         {
-            return ((teleportFlags & TeleportFlags.ViaLogin) != 0) && ((teleportFlags & TeleportFlags.ViaHGLogin) == 0);
+            return (teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaHGLogin)) == TeleportFlags.ViaLogin;
         }
 
         /// <summary>
