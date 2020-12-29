@@ -1155,14 +1155,14 @@ namespace OpenSim.Framework
         public static char LowNibbleToHexByteCharHighcaps(byte b)
         {
             b &= 0x0f;
-            return (char)(b > 9 ? b + 0x57 : b + '0');
+            return (char)(b > 9 ? b + 0x37 : b + '0');
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static char HighNibbleToHexByteCharHighcaps(byte b)
         {
             b >>= 4;
-            return (char)(b > 9 ? b + 0x57 : b + '0');
+            return (char)(b > 9 ? b + 0x37 : b + '0');
         }
 
         public static string bytesToHexString(byte[] bytes, bool lowerCaps)
