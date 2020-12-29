@@ -2622,10 +2622,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     builder.Append(bytes[i].ToString("x2"));  
                 }  
                 return builder.ToString();
-	    }
+            }
         }
-
-
 
         /// <summary>
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
