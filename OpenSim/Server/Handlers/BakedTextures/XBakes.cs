@@ -83,7 +83,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
             return new byte[0];
         }
 
-        public void Store(string id, byte[] data)
+        public void Store(string id, byte[] data, int dataLength)
         {
             string file = HashToFile(id);
             string diskFile = Path.Combine(m_FSBase, file);
@@ -92,7 +92,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
 
             File.Delete(diskFile);
             using (FileStream fs = File.Create(diskFile))
-                fs.Write(data, 0, data.Length);
+                fs.Write(data, 0, dataLength);
         }
 
         private void HandleDeleteBakes(string module, string[] args)

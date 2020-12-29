@@ -115,9 +115,13 @@ namespace OpenSim.Server.Handlers.BakedTextures
 
             if (p.Length == 0)
                 return;
-            byte[] data = ((MemoryStream)httpRequest.InputStream).ToArray();
-            httpRequest.InputStream.Dispose();
-            m_BakesService.Store(p[0], data);
+            // httpRequest.InputStream is a memorystream with origin = 0
+            // so no need to copy to another array
+            MemoryStream ms = (MemoryStream)httpRequest.InputStream;
+            int len = (int)ms.Length;
+            byte[] data = ms.GetBuffer();
+            httpRequest.InputStream.Dispose(); // the buffer stays in data
+            m_BakesService.Store(p[0], data, len);
         }
 
         public string[] SplitParams(string path)
