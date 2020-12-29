@@ -38,6 +38,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -1136,6 +1137,61 @@ namespace OpenSim.Framework
         /// <param name="data"></param>
         /// <returns></returns>
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char LowNibbleToHexByteCharLowcaps(byte b)
+        {
+            b &= 0x0f;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char HighNibbleToHexByteCharLowcaps(byte b)
+        {
+            b >>= 4;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char LowNibbleToHexByteCharHighcaps(byte b)
+        {
+            b &= 0x0f;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char HighNibbleToHexByteCharHighcaps(byte b)
+        {
+            b >>= 4;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        public static string bytesToHexString(byte[] bytes, bool lowerCaps)
+        {
+            if(bytes == null || bytes.Length == 0)
+                return string.Empty;
+
+            char[] chars = new char[2* bytes.Length];
+            if(lowerCaps)
+            {
+                for (int i = 0, j = 0; i < bytes.Length; ++i)
+                {
+                    byte b = bytes[i];
+                    chars[j++] = HighNibbleToHexByteCharLowcaps(b);
+                    chars[j++] = LowNibbleToHexByteCharLowcaps(b);
+                }
+            }
+            else
+            {
+                for (int i = 0, j = 0; i < bytes.Length; ++i)
+                {
+                    byte b = bytes[i];
+                    chars[j++] = HighNibbleToHexByteCharHighcaps(b);
+                    chars[j++] = LowNibbleToHexByteCharHighcaps(b);
+                }
+            }
+            return new string(chars);
+        }
+
         public static string SHA1Hash(string data, Encoding enc)
         {
             return SHA1Hash(enc.GetBytes(data));
@@ -1154,7 +1210,7 @@ namespace OpenSim.Framework
         public static string SHA1Hash(byte[] data)
         {
             byte[] hash = ComputeSHA1Hash(data);
-            return BitConverter.ToString(hash).Replace("-", String.Empty);
+            return bytesToHexString(hash, false);
         }
 
         private static byte[] ComputeSHA1Hash(byte[] src)
