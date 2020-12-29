@@ -44,7 +44,6 @@ namespace OpenSim.Services.UserAccountService
     public class UserAccountService : UserAccountServiceBase, IUserAccountService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly UUID UUID_GRID_GOD = new UUID("6571e388-6218-4574-87db-f9379718315e");
         private static UserAccountService m_RootInstance;
 
         /// <summary>
@@ -92,13 +91,13 @@ namespace OpenSim.Services.UserAccountService
                 m_RootInstance = this;
 
                 //  create a system grid god account
-                UserAccount ggod = GetUserAccount(UUID.Zero, UUID_GRID_GOD);
+                UserAccount ggod = GetUserAccount(UUID.Zero, Constants.servicesGodAgentID);
                 if(ggod == null)
                 {
                     UserAccountData d = new UserAccountData();
                     d.FirstName = "GRID";
                     d.LastName = "SERVICES";
-                    d.PrincipalID = UUID_GRID_GOD;
+                    d.PrincipalID = Constants.servicesGodAgentID;
                     d.ScopeID = UUID.Zero;
                     d.Data = new Dictionary<string, string>();
                     d.Data["Email"] = string.Empty;

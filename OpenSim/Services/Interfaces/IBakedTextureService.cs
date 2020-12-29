@@ -32,7 +32,7 @@ namespace OpenSim.Services.Interfaces
 {
     public interface IBakedTextureService
     {
-        string Get(string id);
-        void Store(string id, string data);
+        byte[] Get(string id);
+        void Store(string id, byte[] data, int datalenght);
     }
 }

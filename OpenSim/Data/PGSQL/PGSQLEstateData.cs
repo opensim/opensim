@@ -177,10 +177,12 @@ namespace OpenSim.Data.PGSQL
             return es;
         }
 
-        public EstateSettings CreateNewEstate()
+        public EstateSettings CreateNewEstate(int estateID)
         {
             EstateSettings es = new EstateSettings();
+            
             es.OnSave += StoreEstateSettings;
+            es.EstateID = Convert.ToUInt32(estateID);
 
             DoCreate(es);
 
@@ -197,7 +199,9 @@ namespace OpenSim.Data.PGSQL
         {
             List<string> names = new List<string>(FieldList);
 
-            names.Remove("EstateID");
+            // Remove EstateID and use AutoIncrement
+            if (es.EstateID < 100)
+                names.Remove("EstateID");
 
             string sql = string.Format("insert into estate_settings (\"{0}\") values ( :{1} )", String.Join("\",\"", names.ToArray()), String.Join(", :", names.ToArray()));
 
@@ -215,10 +219,9 @@ namespace OpenSim.Data.PGSQL
                 //insertCommand.Parameters.Add(idParameter);
                 conn.Open();
 
-                es.EstateID = 100;
-
-                if (insertCommand.ExecuteNonQuery() > 0)
+                if (insertCommand.ExecuteNonQuery() > 0 && es.EstateID < 100)
                 {
+                    // Only get Auto ID if we actually used it
                     insertCommand.CommandText = "Select cast(lastval() as int) as ID ;";
 
                     using (NpgsqlDataReader result = insertCommand.ExecuteReader())

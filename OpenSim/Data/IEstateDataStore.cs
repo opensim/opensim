@@ -55,12 +55,12 @@ namespace OpenSim.Data
         EstateSettings LoadEstateSettings(int estateID);
 
         /// <summary>
-        /// Create a new estate.
+        /// Create a new estate. Zero estateID for auto increment id
         /// </summary>
         /// <returns>
         /// A <see cref="EstateSettings"/>
         /// </returns>
-        EstateSettings CreateNewEstate();
+        EstateSettings CreateNewEstate(int estateID);
 
         /// <summary>
         /// Load/Get all estate settings.
