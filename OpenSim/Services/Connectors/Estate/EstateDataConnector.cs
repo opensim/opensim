@@ -248,7 +248,7 @@ namespace OpenSim.Services.Connectors
         /// Forbidden operation
         /// </summary>
         /// <returns></returns>
-        public EstateSettings CreateNewEstate()
+        public EstateSettings CreateNewEstate(int estateID)
         {
             // No can do
             return null;

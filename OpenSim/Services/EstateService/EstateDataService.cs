@@ -88,9 +88,9 @@ namespace OpenSim.Services.EstateService
             return m_database.LoadEstateSettings(estateID);
         }
 
-        public EstateSettings CreateNewEstate()
+        public EstateSettings CreateNewEstate(int estateID = 0)
         {
-            return m_database.CreateNewEstate();
+            return m_database.CreateNewEstate(estateID);
         }
 
         public List<EstateSettings> LoadEstateSettingsAll()

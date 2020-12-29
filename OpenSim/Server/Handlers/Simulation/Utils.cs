@@ -42,6 +42,8 @@ namespace OpenSim.Server.Handlers.Simulation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static byte[] falseStrBytes = osUTF8.GetASCIIBytes("false");
+
         /// <summary>
         /// Extract the param from an uri.
         /// </summary>
@@ -74,34 +76,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
         }
 
-        public static OSDMap GetOSDMap(string data)
-        {
-            OSDMap args = null;
-            try
-            {
-                OSD buffer;
-                // We should pay attention to the content-type, but let's assume we know it's Json
-                buffer = OSDParser.DeserializeJson(data);
-                if (buffer.Type == OSDType.Map)
-                {
-                    args = (OSDMap)buffer;
-                    return args;
-                }
-                else
-                {
-                    // uh?
-                    m_log.Debug(("[REST COMMS]: Got OSD of unexpected type " + buffer.Type.ToString()));
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.Debug("[REST COMMS]: exception on parse of REST message " + ex.Message);
-                return null;
-            }
-        }
-
-        public static OSDMap DeserializeOSMap(IOSHttpRequest httpRequest)
+        public static OSDMap DeserializeJSONOSMap(IOSHttpRequest httpRequest)
         {
             Stream inputStream = httpRequest.InputStream;
             Stream innerStream = null;
@@ -122,6 +97,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 if (innerStream != null)
                     innerStream.Dispose();
+                inputStream.Dispose();
             }
         }
     }
