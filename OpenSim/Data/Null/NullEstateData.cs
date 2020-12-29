@@ -98,7 +98,7 @@ namespace OpenSim.Data.Null
             return GetEstate();
         }
 
-        public EstateSettings CreateNewEstate()
+        public EstateSettings CreateNewEstate(int estateID)
         {
             return new EstateSettings();
         }

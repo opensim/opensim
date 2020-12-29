@@ -194,6 +194,16 @@ namespace OpenSim.Services.GridService
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridNick"] = configVal;
 
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridStatus", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridStatus"] = configVal;
+
+            configVal = Util.GetConfigVarFromSections<string>(
+                config, "GridStatusRSS", new string[] { "GridInfo", "GridInfoService" }, string.Empty);
+            if (!string.IsNullOrEmpty(configVal))
+                m_ExtraFeatures["GridStatusRSS"] = configVal;
+
             m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
 
             string[] sections = new string[] { "Const, Startup", "Hypergrid", "GatekeeperService" };
@@ -519,168 +529,167 @@ namespace OpenSim.Services.GridService
 
         public GridRegion GetRegionByName(UUID scopeID, string name)
         {
-            RegionData rdata = m_Database.GetSpecific(name, scopeID);
-            if (rdata != null)
-                return RegionData2RegionInfo(rdata);
+            var nameURI = new RegionURI(name);
+            if (!nameURI.IsValid)
+                return null;
+            return GetRegionByURI(scopeID, nameURI);
+        }
 
-            if (m_AllowHypergridMapSearch)
+        public GridRegion GetRegionByURI(UUID scopeID, RegionURI uri)
+        {
+            if (!uri.IsValid)
+                return null;
+
+            bool localGrid = true;
+            if (uri.HasHost)
             {
-                GridRegion r = GetHypergridRegionByName(scopeID, name);
-                if (r != null)
-                    return r;
+                if (!uri.ResolveDNS())
+                    return null;
+                localGrid = m_HypergridLinker.IsLocalGrid(uri.HostUrl);
+                uri.IsLocalGrid = localGrid;
             }
 
-            return null;
+            if (localGrid)
+            {
+                if(uri.HasRegionName)
+                {
+                    RegionData rdata = m_Database.GetSpecific(uri.RegionName, scopeID);
+                    if (rdata != null)
+                        return RegionData2RegionInfo(rdata);
+                }
+                else
+                {
+                    List<GridRegion> defregs = GetDefaultRegions(scopeID);
+                    if (defregs != null)
+                        return defregs[0];
+                }
+                return null;
+            }
+
+            if (!m_AllowHypergridMapSearch)
+                return null;
+
+            string mapname = uri.RegionHostPortSpaceName;
+            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(mapname), scopeID);
+            if (rdatas != null && rdatas.Count > 0)
+            {
+                foreach (RegionData rdata in rdatas)
+                {
+                    int indx = rdata.RegionName.IndexOf("://");
+                    if (indx < 0)
+                        continue;
+                    string rname = rdata.RegionName.Substring(indx + 3);
+                    if (mapname.Equals(rname, StringComparison.InvariantCultureIgnoreCase))
+                        return RegionData2RegionInfo(rdata);
+                }
+            }
+
+            GridRegion r = m_HypergridLinker.LinkRegion(scopeID, uri);
+            return r;
         }
 
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
-//            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
+            // m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
 
-            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(name) + "%", scopeID);
+            var nameURI = new RegionURI(name);
+            if (!nameURI.IsValid)
+                return new List<GridRegion>();
+
+            return GetRegionsByURI(scopeID, nameURI, maxNumber);
+        }
+
+        public List<GridRegion> GetRegionsByURI(UUID scopeID, RegionURI nameURI, int maxNumber)
+        {
+            // m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
+            if (!nameURI.IsValid)
+                return new List<GridRegion>();
+
+            bool localGrid;
+            if (nameURI.HasHost)
+            {
+                if (!nameURI.ResolveDNS())
+                    return new List<GridRegion>();
+                localGrid = m_HypergridLinker.IsLocalGrid(nameURI.HostUrl);
+                nameURI.IsLocalGrid = localGrid;
+                if (!nameURI.IsValid)
+                    return new List<GridRegion>();
+            }
+            else
+                localGrid = true;
 
             int count = 0;
+
+            string mapname = nameURI.RegionHostPortSpaceName;
+            List<RegionData> rdatas = m_Database.Get("%" + Util.EscapeForLike(mapname) + "%", scopeID);
             List<GridRegion> rinfos = new List<GridRegion>();
 
-            if (m_AllowHypergridMapSearch && name.Contains("."))
+            if(localGrid)
             {
-                string regionURI = "";
-                string regionName = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
-                    return null;
-
-                string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
-                if (localGrid)
+                if (!nameURI.HasRegionName)
                 {
-                    if (String.IsNullOrWhiteSpace(regionName))
-                        return GetDefaultRegions(scopeID);
-                    mapname = regionName;
+                    List<GridRegion> dinfos = GetDefaultRegions(scopeID);
+                    if (dinfos != null && dinfos.Count > 0)
+                        rinfos.Add(dinfos[0]);
                 }
                 else
-                    mapname = regionURI + regionName;
-
-                bool haveMatch = false;
-
-                if (rdatas != null && (rdatas.Count > 0))
                 {
-//                    m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
-                    foreach (RegionData rdata in rdatas)
+                    string name = nameURI.RegionName;
+                    if (rdatas != null && (rdatas.Count > 0))
                     {
-                        if (count++ < maxNumber)
-                            rinfos.Add(RegionData2RegionInfo(rdata));
-                        if(mapname.Equals(rdata.RegionName,StringComparison.InvariantCultureIgnoreCase))
+                        //m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
+                        foreach (RegionData rdata in rdatas)
                         {
-                            haveMatch = true;
-                            if(count == maxNumber)
+                            if (name.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                rinfos.RemoveAt(count - 1);
-                                rinfos.Add(RegionData2RegionInfo(rdata));
+                                rinfos.Insert(0, RegionData2RegionInfo(rdata));
+                                if (count == maxNumber)
+                                    rinfos.RemoveAt(count - 1);
                             }
+                            else if (count++ < maxNumber)
+                                rinfos.Add(RegionData2RegionInfo(rdata));
                         }
                     }
-                    if(haveMatch)
-                        return rinfos;
                 }
-
-                rdatas = m_Database.Get(Util.EscapeForLike(mapname)+ "%", scopeID);
-                if (rdatas != null && (rdatas.Count > 0))
-                {
-//                    m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
-                    foreach (RegionData rdata in rdatas)
-                    {
-                        if (count++ < maxNumber)
-                            rinfos.Add(RegionData2RegionInfo(rdata));
-                        if (mapname.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            haveMatch = true;
-                            if(count == maxNumber)
-                            {
-                                rinfos.RemoveAt(count - 1);
-                                rinfos.Add(RegionData2RegionInfo(rdata));
-                                break;
-                            }
-                        }
-                    }
-                    if(haveMatch)
-                        return rinfos;
-                }
-                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
-                {
-                    string HGname = regionURI +" "+ regionName; // include space for compatibility
-                    GridRegion r = m_HypergridLinker.LinkRegion(scopeID, HGname);
-                    if (r != null)
-                    {
-                        if( count == maxNumber)
-                            rinfos.RemoveAt(count - 1);
-                        rinfos.Add(r);
-                    }
-                }
+                return rinfos;
             }
-            else if (rdatas != null && (rdatas.Count > 0))
+
+            if (!m_AllowHypergridMapSearch)
+                return rinfos;
+
+            if (rdatas != null && (rdatas.Count > 0))
             {
-                //m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
+                bool haveMatch = false;
+                // m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
                 foreach (RegionData rdata in rdatas)
                 {
-                    if (count++ < maxNumber)
-                        rinfos.Add(RegionData2RegionInfo(rdata));
-                    if (name.Equals(rdata.RegionName, StringComparison.InvariantCultureIgnoreCase))
+                    int indx = rdata.RegionName.IndexOf("://");
+                    if(indx < 0)
+                        continue;
+                    string rname = rdata.RegionName.Substring(indx + 3);
+                    if (mapname.Equals(rname, StringComparison.InvariantCultureIgnoreCase))
                     {
+                        haveMatch = true;
+                        rinfos.Insert(0, RegionData2RegionInfo(rdata));
                         if (count == maxNumber)
-                        {
                             rinfos.RemoveAt(count - 1);
-                            rinfos.Add(RegionData2RegionInfo(rdata));
-                            break;
-                        }
                     }
+                    else if (count++ < maxNumber)
+                        rinfos.Add(RegionData2RegionInfo(rdata));
                 }
+                if (haveMatch)
+                    return rinfos;
+            }
+
+            GridRegion r = m_HypergridLinker.LinkRegion(scopeID, nameURI);
+            if (r != null)
+            {
+                if (count == maxNumber)
+                    rinfos.RemoveAt(count - 1);
+                rinfos.Add(r);
             }
 
             return rinfos;
-        }
-
-        /// <summary>
-        /// Get a hypergrid region.
-        /// </summary>
-        /// <param name="scopeID"></param>
-        /// <param name="name"></param>
-        /// <returns>null if no hypergrid region could be found.</returns>
-        protected GridRegion GetHypergridRegionByName(UUID scopeID, string name)
-        {
-            if (name.Contains("."))
-            {
-                string regionURI = "";
-                string regionName = "";
-                if (!Util.buildHGRegionURI(name, out regionURI, out regionName))
-                    return null;
-
-                string mapname;
-                bool localGrid = m_HypergridLinker.IsLocalGrid(regionURI);
-                if (localGrid)
-                {
-                    if (String.IsNullOrWhiteSpace(regionName))
-                    {
-                        List< GridRegion> defregs = GetDefaultRegions(scopeID);
-                        if(defregs == null)
-                            return null;
-                        return defregs[0];
-                    }
-                    mapname = regionName;
-                }
-                else
-                    mapname = regionURI + regionName;
-
-                List<RegionData> rdatas = m_Database.Get(Util.EscapeForLike(mapname), scopeID);
-                if ((rdatas != null) && (rdatas.Count > 0))
-                    return RegionData2RegionInfo(rdatas[0]); // get the first
-
-                if(!localGrid && !string.IsNullOrWhiteSpace(regionURI))
-                {
-                    string HGname = regionURI +" "+ regionName;
-                    return m_HypergridLinker.LinkRegion(scopeID, HGname);
-                }
-            }
-            return null;
         }
 
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)

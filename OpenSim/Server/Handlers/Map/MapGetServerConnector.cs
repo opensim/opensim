@@ -44,8 +44,7 @@ namespace OpenSim.Server.Handlers.MapImage
 {
     public class MapGetServiceConnector : ServiceConnector
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
 
         private string m_ConfigName = "MapImageService";
@@ -57,13 +56,12 @@ namespace OpenSim.Server.Handlers.MapImage
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string gridService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string gridService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
-            if (gridService == String.Empty)
+            if (string.IsNullOrWhiteSpace(gridService))
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(gridService, args);
 
             server.AddStreamHandler(new MapServerGetHandler(m_MapService));
@@ -72,9 +70,9 @@ namespace OpenSim.Server.Handlers.MapImage
 
     class MapServerGetHandler : BaseStreamHandler
     {
-        public static ManualResetEvent ev = new ManualResetEvent(true);
+        public static readonly object ev = new object();
 
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IMapImageService m_MapService;
 
@@ -86,21 +84,23 @@ namespace OpenSim.Server.Handlers.MapImage
 
         protected override byte[] ProcessRequest(string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            ev.WaitOne();
-            lock (ev)
+            if(!Monitor.TryEnter(ev, 5000))
             {
-                ev.Reset();
+                httpResponse.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                httpResponse.AddHeader("Retry-After", "10");
+                return new byte[0];
             }
 
             byte[] result = new byte[0];
             string format = string.Empty;
 
-//            UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+            //UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
             UUID scopeID = UUID.Zero;
 
             // This will be map/tilefile.ext, but on multitenancy it will be
             // map/scope/teilefile.ext
-            string[] bits = path.Trim('/').Split(new char[] {'/'});
+            path = path.Trim('/');
+            string[] bits = path.Split(new char[] {'/'});
             if (bits.Length > 2)
             {
                 try
@@ -112,8 +112,17 @@ namespace OpenSim.Server.Handlers.MapImage
                     return new byte[9];
                 }
                 path = bits[2];
+                path = path.Trim('/');
             }
-            result = m_MapService.GetMapTile(path.Trim('/'), scopeID, out format);
+
+            if(path.Length == 0)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
+                httpResponse.ContentType = "text/plain";
+                return new byte[0];
+            }
+
+            result = m_MapService.GetMapTile(path, scopeID, out format);
             if (result.Length > 0)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -128,13 +137,9 @@ namespace OpenSim.Server.Handlers.MapImage
                 httpResponse.ContentType = "text/plain";
             }
 
-            lock (ev)
-            {
-                ev.Set();
-            }
+            Monitor.Exit(ev);
 
             return result;
         }
-
     }
 }

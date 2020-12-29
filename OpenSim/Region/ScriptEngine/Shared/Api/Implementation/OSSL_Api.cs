@@ -47,6 +47,7 @@ using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Security.Cryptography;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
@@ -2606,6 +2607,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retval;
         }
 
+        public string osSHA256(string input)
+        {
+            // Create a SHA256   
+            using (SHA256 sha256Hash = SHA256.Create())  
+            {  
+                // ComputeHash - returns byte array
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));  
+                return Util.bytesToHexString(bytes, true);
+            }
+        }
+
         /// <summary>
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
         /// </summary>
@@ -2635,16 +2647,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
 
-            string name = String.Empty;
-            IConfigSource config = m_ScriptEngine.ConfigSource;
+            if(World.SceneGridInfo == null)
+                return string.Empty;
 
-            if (config.Configs[GridInfoServiceConfigSectionName] != null)
-                name = config.Configs[GridInfoServiceConfigSectionName].GetString("gridname", name);
-
-            if (String.IsNullOrEmpty(name))
-                name = GridUserInfo(InfoType.Name);
-
-            return name;
+            return World.SceneGridInfo.GridName;
         }
 
         public string osGetGridLoginURI()
@@ -2667,14 +2673,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
 
-            return World.SceneGridInfo.HGHomeURLNoEndSlash;
+            return World.SceneGridInfo.HomeURLNoEndSlash;
         }
 
         public string osGetGridGatekeeperURI()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
 
-            return World.SceneGridInfo.HGGateKeeperURLNoEndSlash;
+            return World.SceneGridInfo.GateKeeperURLNoEndSlash;
         }
 
         public string osGetGridCustom(string key)
@@ -2706,21 +2712,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if (returnValue == "")
-            {
-                IConfigSource config = m_ScriptEngine.ConfigSource;
-                returnValue = Util.GetConfigVarFromSections<string>(config, "HomeURI",
-                    new string[] { "Startup", "Hypergrid" }, String.Empty);
-
-                if (!string.IsNullOrEmpty(returnValue))
-                    return returnValue;
-
-                // Legacy. Remove soon!
-                if (config.Configs["LoginService"] != null)
-                    returnValue = config.Configs["LoginService"].GetString("SRV_HomeURI", returnValue);
-
-                if (String.IsNullOrEmpty(returnValue))
-                    returnValue = GridUserInfo(InfoType.Home);
-            }
+                return World.SceneGridInfo.HomeURLNoEndSlash;
 
             return returnValue;
         }
@@ -5847,7 +5839,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 sp.Environment = null;
                 m_envModule.WindlightRefreshForced(sp, transition);
-                return -9;
+                return -5;
             }
             return 1;
         }

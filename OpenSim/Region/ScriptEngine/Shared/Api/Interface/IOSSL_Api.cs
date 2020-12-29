@@ -283,6 +283,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osAvatarName2Key(string firstname, string lastname);
         string osKey2Name(string id);
+        string osSHA256(string input);
 
         // Grid Info Functions
         string osGetGridNick();
