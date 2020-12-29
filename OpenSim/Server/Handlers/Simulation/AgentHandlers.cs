@@ -221,6 +221,7 @@ namespace OpenSim.Server.Handlers.Simulation
             httpResponse.ContentType = "application/json";
             if (m_SimulationService == null)
             {
+                m_log.Debug("[AGENT HANDLER]: ProcessRequest called with null Simulation Service");
                 httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
                 httpResponse.RawBuffer = Utils.falseStrBytes;
                 return;
