@@ -249,6 +249,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_SayShoutCount = 0;
         DateTime m_lastSayShoutCheck;
 
+        private int m_whisperdistance = 10;
+        private int m_saydistance = 20;
+        private int m_shoutdistance = 100;
+
         private string m_lsl_shard = "OpenSim";
         private string m_lsl_user_agent = string.Empty;
 
@@ -435,6 +439,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     EMAIL_PAUSE_TIME = smtpConfig.GetInt("email_pause_time", EMAIL_PAUSE_TIME);
 
                     m_internalObjectHost = smtpConfig.GetString("internal_object_host", m_internalObjectHost);
+                }
+
+                IConfig chatConfig = seConfigSource.Configs["SMTP"];
+                if(chatConfig != null)
+                {
+                    m_whisperdistance = chatConfig.GetInt("whisper_distance", m_whisperdistance);
+                    m_saydistance = chatConfig.GetInt("say_distance", m_saydistance);
+                    m_shoutdistance = chatConfig.GetInt("shout_distance", m_shoutdistance);
                 }
             }
             m_sleepMsOnEmail = EMAIL_PAUSE_TIME * 1000;
@@ -6360,7 +6372,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetEnv(LSL_String name)
         {
             m_host.AddScriptLPS(1);
-            switch(name)
+            string sname = name;
+            sname = sname.ToLower();
+            switch(sname)
             {
                 case "agent_limit":
                     return World.RegionInfo.RegionSettings.AgentLimit.ToString();
@@ -6414,6 +6428,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 case "region_object_bonus":
                     return World.RegionInfo.RegionSettings.ObjectBonus.ToString();
+
+                case "whisper_range":
+                    return m_whisperdistance.ToString();
+
+                case "chat_range":
+                    return m_saydistance.ToString();
+
+                case "shout_range":
+                    return m_shoutdistance.ToString();
 
                 default:
                     return "";
