@@ -551,6 +551,10 @@
     ; password help: optional: page providing password assistance for users of your grid
     ;password = ${Const|BaseURL}/password
 
+    ; a http page for grid status
+    ;GridStatus = ${Const|BaseURL}:${Const|PublicPort}/GridStatus
+    ; a RSS page for grid status
+    ;GridStatusRSS = ${Const|BaseURL}:${Const|PublicPort}/GridStatusRSS
 
 [Messaging]
     ; OfflineIM

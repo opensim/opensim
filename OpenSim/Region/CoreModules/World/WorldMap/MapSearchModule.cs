@@ -42,24 +42,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MapSearchModule")]
     public class MapSearchModule : ISharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        Scene m_scene = null; // only need one for communication with GridService
-        List<Scene> m_scenes = new List<Scene>();
-        List<UUID> m_Clients;
-
-        IWorldMapModule m_WorldMap;
-        IWorldMapModule WorldMap
-        {
-            get
-            {
-                if (m_WorldMap == null)
-                    m_WorldMap = m_scene.RequestModuleInterface<IWorldMapModule>();
-                return m_WorldMap;
-            }
-
-        }
+        IGridService m_gridservice = null;
+        UUID m_stupidScope = UUID.Zero;
 
         #region ISharedRegionModule Members
         public void Initialise(IConfigSource source)
@@ -68,23 +54,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void AddRegion(Scene scene)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-
-            m_scenes.Add(scene);
             scene.EventManager.OnNewClient += OnNewClient;
-            m_Clients = new List<UUID>();
+        }
 
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_gridservice == null)
+            {
+                m_gridservice = scene.GridService;
+                m_stupidScope = scene.RegionInfo.ScopeID;
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
-            m_scenes.Remove(scene);
-            if (m_scene == scene && m_scenes.Count > 0)
-                m_scene = m_scenes[0];
-
             scene.EventManager.OnNewClient -= OnNewClient;
         }
 
@@ -94,8 +77,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void Close()
         {
-            m_scene = null;
-            m_scenes.Clear();
+            m_gridservice = null;
         }
 
         public string Name
@@ -108,9 +90,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             get { return null; }
         }
 
-        public void RegionLoaded(Scene scene)
-        {
-        }
         #endregion
 
         private void OnNewClient(IClientAPI client)
@@ -120,138 +99,117 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private void OnMapNameRequestHandler(IClientAPI remoteClient, string mapName, uint flags)
         {
-            lock (m_Clients)
+            if (m_gridservice == null)
+                return;
+
+            try
             {
-                if (m_Clients.Contains(remoteClient.AgentId))
-                    return;
-
-                m_Clients.Add(remoteClient.AgentId);
-            }
-
-            OnMapNameRequest(remoteClient, mapName, flags);
-        }
-
-        private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
-        {
-            Util.FireAndForget(x =>
-            {
-                try
+                List<MapBlockData> blocks = new List<MapBlockData>();
+                if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
                 {
-                    List<MapBlockData> blocks = new List<MapBlockData>();
-                    if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
-                    {
-                        // final block, closing the search result
-                        AddFinalBlock(blocks,mapName);
-
-                        // flags are agent flags sent from the viewer.
-                        // they have different values depending on different viewers, apparently
-                        remoteClient.SendMapBlock(blocks, flags);
-                        remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
-                        return;
-                    }
-
-                    //m_log.DebugFormat("MAP NAME=({0})", mapName);
-
-                    // Hack to get around the fact that ll V3 now drops the port from the
-                    // map name. See https://jira.secondlife.com/browse/VWR-28570
-                    //
-                    // Caller, use this magic form instead:
-                    // secondlife://http|!!mygrid.com|8002|Region+Name/128/128
-                    // or url encode if possible.
-                    // the hacks we do with this viewer...
-                    //
-                    bool needOriginalName = false;
-                    string mapNameOrig = mapName;
-                    if (mapName.Contains("|"))
-                    {
-                        mapName = mapName.Replace('|', ':');
-                        needOriginalName = true;
-                    }
-                    if (mapName.Contains("+"))
-                    {
-                        mapName = mapName.Replace('+', ' ');
-                        needOriginalName = true;
-                    }
-                    if (mapName.Contains("!"))
-                    {
-                        mapName = mapName.Replace('!', '/');
-                        needOriginalName = true;
-                    }
-                    if (mapName.Contains("."))
-                        needOriginalName = true;
-
-                    // try to fetch from GridServer
-                    List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-        //            if (regionInfos.Count == 0)
-        //                remoteClient.SendAlertMessage("Hyperlink could not be established.");
-
-                    //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
-
-                    MapBlockData data;
-                    if (regionInfos != null && regionInfos.Count > 0)
-                    {
-                        foreach (GridRegion info in regionInfos)
-                        {
-                            data = new MapBlockData();
-                            data.Agents = 0;
-                            data.Access = info.Access;
-                            MapBlockData block = new MapBlockData();
-                            WorldMap.MapBlockFromGridRegion(block, info, flags);
-
-                            if (flags == 2 &&  regionInfos.Count == 1 && needOriginalName)
-                                    block.Name = mapNameOrig;
-                            blocks.Add(block);
-                        }
-                    }
-
                     // final block, closing the search result
-                    AddFinalBlock(blocks,mapNameOrig);
+                    AddFinalBlock(blocks, mapName);
 
                     // flags are agent flags sent from the viewer.
                     // they have different values depending on different viewers, apparently
                     remoteClient.SendMapBlock(blocks, flags);
+                    remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
+                    return;
+                }
 
-                    // send extra user messages for V3
-                    // because the UI is very confusing
-                    // while we don't fix the hard-coded urls
-                    if (flags == 2)
+                //m_log.DebugFormat("MAP NAME=({0})", mapName);
+                string mapNameOrig = mapName;
+                int indx = mapName.IndexOfAny(new char[] {'.', '!','+','|',':','%'});
+                bool needOriginalName = indx >= 0;
+
+                // try to fetch from GridServer
+                List<GridRegion> regionInfos = m_gridservice.GetRegionsByName(m_stupidScope, mapName, 20);
+
+                if (!remoteClient.IsActive)
+                    return;
+
+                //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
+
+                MapBlockData data;
+                if (regionInfos != null && regionInfos.Count > 0)
+                {
+                    foreach (GridRegion info in regionInfos)
                     {
-                        if (regionInfos == null || regionInfos.Count == 0)
-                            remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
-    //                    else if (regionInfos.Count == 1)
-    //                        remoteClient.SendAgentAlertMessage("Region found!", false);
+                        data = new MapBlockData();
+                        data.Agents = 0;
+                        data.Access = info.Access;
+                        MapBlockData block = new MapBlockData();
+                        MapBlockFromGridRegion(block, info, flags);
+
+                        if (needOriginalName && flags == 2 &&  regionInfos.Count == 1)
+                            block.Name = mapNameOrig;
+                        blocks.Add(block);
                     }
                 }
-                finally
+
+                // final block, closing the search result
+                AddFinalBlock(blocks, mapNameOrig);
+
+                // flags are agent flags sent from the viewer.
+                // they have different values depending on different viewers, apparently
+                remoteClient.SendMapBlock(blocks, flags);
+
+                // send extra user messages for V3
+                // because the UI is very confusing
+                // while we don't fix the hard-coded urls
+                if (flags == 2)
                 {
-                    lock (m_Clients)
-                        m_Clients.Remove(remoteClient.AgentId);
+                    if (regionInfos == null || regionInfos.Count == 0)
+                        remoteClient.SendAgentAlertMessage("No regions found with that name.", true);
                 }
-            });
+            }
+            catch{ }
+        }
+
+        private static void MapBlockFromGridRegion(MapBlockData block, GridRegion r, uint flag)
+        {
+            if (r == null)
+            {
+                block.Access = (byte)SimAccess.NonExistent;
+                block.MapImageId = UUID.Zero;
+                return;
+            }
+
+            block.Access = r.Access;
+            switch (flag)
+            {
+                case 0:
+                    block.MapImageId = r.TerrainImage;
+                    break;
+                case 2:
+                    block.MapImageId = r.ParcelImage;
+                    break;
+                default:
+                    block.MapImageId = UUID.Zero;
+                    break;
+            }
+            block.Name = r.RegionName;
+            block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
+            block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
+            block.SizeX = (ushort)r.RegionSizeX;
+            block.SizeY = (ushort)r.RegionSizeY;
         }
 
         private void AddFinalBlock(List<MapBlockData> blocks,string name)
         {
                 // final block, closing the search result
-                MapBlockData data = new MapBlockData();
-                data.Agents = 0;
-                data.Access = (byte)SimAccess.NonExistent;
-                data.MapImageId = UUID.Zero;
-                data.Name = name;
-                data.RegionFlags = 0;
-                data.WaterHeight = 0; // not used
-                data.X = 0;
-                data.Y = 0;
+                MapBlockData data = new MapBlockData()
+                {
+                    Agents = 0,
+                    Access = (byte)SimAccess.NonExistent,
+                    MapImageId = UUID.Zero,
+                    Name = name,
+                    RegionFlags = 0,
+                    WaterHeight = 0, // not used
+                    X = 0,
+                    Y = 0
+                };
                 blocks.Add(data);
         }
-//        private Scene GetClientScene(IClientAPI client)
-//        {
-//            foreach (Scene s in m_scenes)
-//            {
-//                if (client.Scene.RegionInfo.RegionHandle == s.RegionInfo.RegionHandle)
-//                    return s;
-//            }
-//            return m_scene;
-//        }
     }
 }

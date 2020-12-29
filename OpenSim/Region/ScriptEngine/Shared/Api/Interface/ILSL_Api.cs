@@ -445,6 +445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
          LSL_Float llWater(LSL_Vector offset);
               void llWhisper(int channelID, string text);
         LSL_Vector llWind(LSL_Vector offset);
+        LSL_String llXorBase64(string str1, string str2);
         LSL_String llXorBase64Strings(string str1, string str2);
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
        LSL_Integer llGetLinkNumberOfSides(LSL_Integer link);
