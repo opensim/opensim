@@ -143,9 +143,7 @@ namespace Amib.Threading.Internal
         /// <param name="millisecondsTimeout">Timeout in milliseconds</param>
         /// <param name="cancelEvent">Cancel wait handle</param>
         /// <returns>Returns true if the resource was granted</returns>
-        public WorkItem DequeueWorkItem(
-            int millisecondsTimeout,
-            WaitHandle cancelEvent)
+        public WorkItem DequeueWorkItem( int millisecondsTimeout, WaitHandle cancelEvent)
         {
             // This method cause the caller to wait for a work item.
             // If there is at least one waiting work item then the 
@@ -182,9 +180,7 @@ namespace Amib.Threading.Internal
             }
 
             // Prepare array of wait handle for the WaitHandle.WaitAny()
-            WaitHandle[] waitHandles = new WaitHandle[] {
-                                                                waiterEntry.WaitHandle,
-                                                                cancelEvent };
+            WaitHandle[] waitHandles = new WaitHandle[] { waiterEntry.WaitHandle, cancelEvent };
 
             // Wait for an available resource, cancel event, or timeout.
 
@@ -193,10 +189,7 @@ namespace Amib.Threading.Internal
             // It just doesn't work, I don't know why, so I have two lock(this) 
             // statments instead of one.
 
-            int index = STPEventWaitHandle.WaitAny(
-                waitHandles,
-                millisecondsTimeout,
-                true);
+            int index = STPEventWaitHandle.WaitAny( waitHandles, millisecondsTimeout, true);
 
             lock (this)
             {
