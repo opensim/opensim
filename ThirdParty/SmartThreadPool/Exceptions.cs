@@ -1,7 +1,5 @@
 using System;
-#if !(_WINDOWS_CE)
 using System.Runtime.Serialization;
-#endif
 
 namespace Amib.Threading
 {

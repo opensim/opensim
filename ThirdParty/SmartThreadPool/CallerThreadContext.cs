@@ -1,6 +1,4 @@
 
-#if !(_WINDOWS_CE) && !(_SILVERLIGHT) && !(WINDOWS_PHONE)
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -97,4 +95,3 @@ namespace Amib.Threading.Internal
 
     #endregion
 }
-#endif

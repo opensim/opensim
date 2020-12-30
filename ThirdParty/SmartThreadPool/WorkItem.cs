@@ -142,9 +142,6 @@ namespace Amib.Threading.Internal
 
         #region Performance Counter fields
 
-
-
-
         /// <summary>
         /// Stores how long the work item waited on the stp queue
         /// </summary>
@@ -468,10 +465,7 @@ namespace Amib.Threading.Internal
         /// <returns>
         /// true when every work item in waitableResults has completed; otherwise false.
         /// </returns>
-        internal static bool WaitAll(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext,
+        internal static bool WaitAll( IWaitableResult[] waitableResults, int millisecondsTimeout, bool exitContext,
             WaitHandle cancelWaitHandle)
         {
             if (0 == waitableResults.Length)
