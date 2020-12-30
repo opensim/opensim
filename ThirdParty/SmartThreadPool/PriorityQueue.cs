@@ -26,7 +26,7 @@ namespace Amib.Threading.Internal
         private readonly LinkedList<IHasWorkItemPriority>[] _queues = new LinkedList<IHasWorkItemPriority>[_queuesCount];
 
         /// <summary>
-        /// The total number of work items within the queues
+        /// The total number of work items within the queues 
         /// </summary>
         private int _workItemsCount;
 
@@ -110,7 +110,7 @@ namespace Amib.Threading.Internal
         }
 
         /// <summary>
-        /// The number of work items
+        /// The number of work items 
         /// </summary>
         public int Count
         {
@@ -121,7 +121,7 @@ namespace Amib.Threading.Internal
         }
 
         /// <summary>
-        /// Clear all the work items
+        /// Clear all the work items 
         /// </summary>
         public void Clear()
         {

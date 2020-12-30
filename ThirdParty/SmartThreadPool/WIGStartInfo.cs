@@ -56,10 +56,10 @@ namespace Amib.Threading
         public virtual bool UseCallerCallContext
         {
             get { return _useCallerCallContext; }
-            set
-            {
-                ThrowIfReadOnly();
-                _useCallerCallContext = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _useCallerCallContext = value; 
             }
         }
 
@@ -70,10 +70,10 @@ namespace Amib.Threading
         public virtual bool UseCallerHttpContext
         {
             get { return _useCallerHttpContext; }
-            set
-            {
-                ThrowIfReadOnly();
-                _useCallerHttpContext = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _useCallerHttpContext = value; 
             }
         }
 
@@ -84,10 +84,10 @@ namespace Amib.Threading
         public virtual bool DisposeOfStateObjects
         {
             get { return _disposeOfStateObjects; }
-            set
-            {
-                ThrowIfReadOnly();
-                _disposeOfStateObjects = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _disposeOfStateObjects = value; 
             }
         }
 
@@ -98,10 +98,10 @@ namespace Amib.Threading
         public virtual CallToPostExecute CallToPostExecute
         {
             get { return _callToPostExecute; }
-            set
-            {
-                ThrowIfReadOnly();
-                _callToPostExecute = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _callToPostExecute = value; 
             }
         }
 
@@ -112,10 +112,10 @@ namespace Amib.Threading
         public virtual PostExecuteWorkItemCallback PostExecuteWorkItemCallback
         {
             get { return _postExecuteWorkItemCallback; }
-            set
-            {
-                ThrowIfReadOnly();
-                _postExecuteWorkItemCallback = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _postExecuteWorkItemCallback = value; 
             }
         }
 
@@ -127,10 +127,10 @@ namespace Amib.Threading
         public virtual bool StartSuspended
         {
             get { return _startSuspended; }
-            set
-            {
-                ThrowIfReadOnly();
-                _startSuspended = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _startSuspended = value; 
             }
         }
 
@@ -152,10 +152,10 @@ namespace Amib.Threading
         public virtual bool FillStateWithArgs
         {
             get { return _fillStateWithArgs; }
-            set
-            {
-                ThrowIfReadOnly();
-                _fillStateWithArgs = value;
+            set 
+            { 
+                ThrowIfReadOnly();  
+                _fillStateWithArgs = value; 
             }
         }
 

@@ -251,14 +251,12 @@ namespace Amib.Threading
         /// Signaled when the thread pool is idle, i.e. no thread is busy
         /// and the work items queue is empty
         /// </summary>
-        //private ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
-        private ManualResetEvent _isIdleWaitHandle = EventWaitHandleFactory.CreateManualResetEvent(true);
+        private ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
 
         /// <summary>
         /// An event to signal all the threads to quit immediately.
         /// </summary>
-        //private ManualResetEvent _shuttingDownEvent = new ManualResetEvent(false);
-        private ManualResetEvent _shuttingDownEvent = EventWaitHandleFactory.CreateManualResetEvent(false);
+        private ManualResetEvent _shuttingDownEvent = new ManualResetEvent(false);
 
         /// <summary>
         /// A flag to indicate if the Smart Thread Pool is now suspended.

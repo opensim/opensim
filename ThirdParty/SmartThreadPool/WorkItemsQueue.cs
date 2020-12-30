@@ -33,16 +33,8 @@ namespace Amib.Threading.Internal
         /// </summary>
         private bool _isWorkItemsQueueActive = true;
 
-
-#if (WINDOWS_PHONE) 
-        private static readonly Dictionary<int, WaiterEntry> _waiterEntries = new Dictionary<int, WaiterEntry>();
-#elif (_WINDOWS_CE)
-        private static LocalDataStoreSlot _waiterEntrySlot = Thread.AllocateDataSlot();
-#else
-
         [ThreadStatic]
         private static WaiterEntry _waiterEntry;
-#endif
 
 
         /// <summary>
@@ -50,36 +42,6 @@ namespace Amib.Threading.Internal
         /// </summary>
         private static WaiterEntry CurrentWaiterEntry
         {
-#if (WINDOWS_PHONE) 
-            get
-            {
-                lock (_waiterEntries)
-                {
-                    WaiterEntry waiterEntry;
-                    if (_waiterEntries.TryGetValue(Thread.CurrentThread.ManagedThreadId, out waiterEntry))
-                    {
-                        return waiterEntry;
-                    }
-                }
-                return null;
-            }
-            set
-            {
-                lock (_waiterEntries)
-                {
-                    _waiterEntries[Thread.CurrentThread.ManagedThreadId] = value;
-                }
-            }
-#elif (_WINDOWS_CE)
-            get
-            {
-                return Thread.GetData(_waiterEntrySlot) as WaiterEntry;
-            }
-            set
-            {
-                Thread.SetData(_waiterEntrySlot, value);
-            }
-#else
             get
             {
                 return _waiterEntry;
@@ -88,12 +50,11 @@ namespace Amib.Threading.Internal
             {
                 _waiterEntry = value;
             }
-#endif
         }
 
         /// <summary>
-		/// A flag that indicates if the WorkItemsQueue has been disposed.
-		/// </summary>
+        /// A flag that indicates if the WorkItemsQueue has been disposed.
+        /// </summary>
         private bool _isDisposed = false;
 
         #endregion
@@ -481,7 +442,7 @@ namespace Amib.Threading.Internal
             /// Event to signal the waiter that it got the work item.
             /// </summary>
             //private AutoResetEvent _waitHandle = new AutoResetEvent(false);
-            private AutoResetEvent _waitHandle = EventWaitHandleFactory.CreateAutoResetEvent();
+            private AutoResetEvent _waitHandle = new AutoResetEvent(false);
 
             /// <summary>
             /// Flag to know if this waiter already quited from the queue 
@@ -498,7 +459,7 @@ namespace Amib.Threading.Internal
             /// A work item that passed directly to the waiter withou going 
             /// through the queue
             /// </summary>
-			private WorkItem _workItem = null;
+            private WorkItem _workItem = null;
 
             private bool _isDisposed = false;
 

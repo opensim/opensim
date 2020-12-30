@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Amib.Threading.Internal
 {
 
-    #region WorkItemsGroup class
+    #region WorkItemsGroup class 
 
     /// <summary>
     /// Summary description for WorkItemsGroup.
@@ -18,7 +18,7 @@ namespace Amib.Threading.Internal
         private readonly object _lock = new object();
 
         /// <summary>
-        /// A reference to the SmartThreadPool instance that created this
+        /// A reference to the SmartThreadPool instance that created this 
         /// WorkItemsGroup.
         /// </summary>
         private readonly SmartThreadPool _stp;
@@ -39,7 +39,7 @@ namespace Amib.Threading.Internal
         private int _concurrency;
 
         /// <summary>
-        /// Priority queue to hold work items before they are passed
+        /// Priority queue to hold work items before they are passed 
         /// to the SmartThreadPool.
         /// </summary>
         private readonly PriorityQueue _workItemsQueue;
@@ -53,7 +53,7 @@ namespace Amib.Threading.Internal
 
         /// <summary>
         /// Indicate how many work items are currently running in the SmartThreadPool.
-        /// This value is used with the Cancel, to calculate if we can send new
+        /// This value is used with the Cancel, to calculate if we can send new 
         /// work items to the STP.
         /// </summary>
         private int _workItemsExecutingInStp = 0;
@@ -66,8 +66,7 @@ namespace Amib.Threading.Internal
         /// <summary>
         /// Signaled when all of the WorkItemsGroup's work item completed.
         /// </summary>
-        //private readonly ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
-        private readonly ManualResetEvent _isIdleWaitHandle = EventWaitHandleFactory.CreateManualResetEvent(true);
+        private readonly ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
 
         /// <summary>
         /// A common object for all the work items that this work items group
@@ -75,23 +74,21 @@ namespace Amib.Threading.Internal
         /// </summary>
         private CanceledWorkItemsGroup _canceledWorkItemsGroup = new CanceledWorkItemsGroup();
 
-        #endregion
+        #endregion 
 
         #region Construction
 
         public WorkItemsGroup(
-            SmartThreadPool stp,
-            int concurrency,
+            SmartThreadPool stp, 
+            int concurrency, 
             WIGStartInfo wigStartInfo)
         {
             if (concurrency <= 0)
             {
                 throw new ArgumentOutOfRangeException(
                     "concurrency",
-#if !(_WINDOWS_CE) && !(_SILVERLIGHT) && !(WINDOWS_PHONE)
                     concurrency,
-#endif
- "concurrency must be greater than zero");
+                    "concurrency must be greater than zero");
             }
             _stp = stp;
             _concurrency = concurrency;
@@ -106,7 +103,7 @@ namespace Amib.Threading.Internal
             _isSuspended = _workItemsGroupStartInfo.StartSuspended;
         }
 
-        #endregion
+        #endregion 
 
         #region WorkItemsGroupBase Overrides
 
@@ -165,7 +162,7 @@ namespace Amib.Threading.Internal
                 return;
             }
             _isSuspended = false;
-
+            
             EnqueueToSTPNextNWorkItem(Math.Min(_workItemsQueue.Count, _concurrency));
         }
 
@@ -200,7 +197,7 @@ namespace Amib.Threading.Internal
             remove { _onIdle -= value; }
         }
 
-        #endregion
+        #endregion 
 
         #region Private methods
 
@@ -217,7 +214,7 @@ namespace Amib.Threading.Internal
             {
                 return;
             }
-
+            
             EnqueueToSTPNextNWorkItem(_concurrency);
         }
 
@@ -308,7 +305,7 @@ namespace Amib.Threading.Internal
                     _workItemsQueue.Enqueue(workItem);
                     //_stp.IncrementWorkItemsCount();
 
-                    if ((1 == _workItemsQueue.Count) &&
+                    if ((1 == _workItemsQueue.Count) && 
                         (0 == _workItemsInStpQueue))
                     {
                         _stp.RegisterWorkItemsGroup(this);

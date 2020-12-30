@@ -11,15 +11,15 @@ using System.Runtime.Remoting.Messaging;
 
 namespace Amib.Threading.Internal
 {
-#region CallerThreadContext class
+    #region CallerThreadContext class
 
     /// <summary>
     /// This class stores the caller call context in order to restore
-    /// it when the work item is executed in the thread pool environment.
+    /// it when the work item is executed in the thread pool environment. 
     /// </summary>
     internal class CallerThreadContext
     {
-#region Prepare reflection information
+        #region Prepare reflection information
 
         // Cached type information.
         private static readonly MethodInfo getLogicalCallContextMethodInfo =
@@ -36,7 +36,7 @@ namespace Amib.Threading.Internal
 
             if (fi != null)
             {
-                return (string) fi.GetValue(null);
+                return (string)fi.GetValue(null);
             }
 
             return "HttpContext";
@@ -44,7 +44,7 @@ namespace Amib.Threading.Internal
 
         #endregion
 
-#region Private fields
+        #region Private fields
 
         private HttpContext _httpContext;
         private LogicalCallContext _callContext;
@@ -88,7 +88,7 @@ namespace Amib.Threading.Internal
 
             // TODO: In NET 2.0, redo using the new feature of ExecutionContext class - Capture()
             // Capture Call Context
-            if(captureCallContext && (getLogicalCallContextMethodInfo != null))
+            if (captureCallContext && (getLogicalCallContextMethodInfo != null))
             {
                 callerThreadContext._callContext = (LogicalCallContext)getLogicalCallContextMethodInfo.Invoke(Thread.CurrentThread, null);
                 if (callerThreadContext._callContext != null)
@@ -124,7 +124,7 @@ namespace Amib.Threading.Internal
                 setLogicalCallContextMethodInfo.Invoke(Thread.CurrentThread, new object[] { callerThreadContext._callContext });
             }
 
-            // Restore HttpContext
+            // Restore HttpContext 
             if (callerThreadContext._httpContext != null)
             {
                 HttpContext.Current = callerThreadContext._httpContext;

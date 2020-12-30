@@ -2,7 +2,7 @@ using System;
 
 namespace Amib.Threading.Internal
 {
-    #region WorkItemFactory class
+    #region WorkItemFactory class 
 
     public class WorkItemFactory
     {
@@ -32,7 +32,7 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             WorkItemPriority workItemPriority)
         {
             return CreateWorkItem(workItemsGroup, wigStartInfo, callback, null, workItemPriority);
@@ -49,14 +49,14 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemInfo workItemInfo,
+            WorkItemInfo workItemInfo, 
             WorkItemCallback callback)
         {
             return CreateWorkItem(
                 workItemsGroup,
                 wigStartInfo,
-                workItemInfo,
-                callback,
+                workItemInfo, 
+                callback, 
                 null);
         }
 
@@ -67,17 +67,17 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <returns>Returns a work item</returns>
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             object state)
         {
             ValidateCallback(callback);
-
+            
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
             workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
@@ -89,7 +89,7 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
             return workItem;
         }
@@ -101,15 +101,15 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <param name="workItemPriority">The work item priority</param>
         /// <returns>Returns a work item</returns>
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
-            object state,
+            WorkItemCallback callback, 
+            object state, 
             WorkItemPriority workItemPriority)
         {
             ValidateCallback(callback);
@@ -125,7 +125,7 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
 
             return workItem;
@@ -139,7 +139,7 @@ namespace Amib.Threading.Internal
         /// <param name="workItemInfo">Work item information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <returns>Returns a work item</returns>
         public static WorkItem CreateWorkItem(
@@ -168,7 +168,7 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -177,7 +177,7 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             object state,
             PostExecuteWorkItemCallback postExecuteWorkItemCallback)
         {
@@ -195,7 +195,7 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
 
             return workItem;
@@ -208,7 +208,7 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -218,7 +218,7 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             object state,
             PostExecuteWorkItemCallback postExecuteWorkItemCallback,
             WorkItemPriority workItemPriority)
@@ -237,7 +237,7 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
 
             return workItem;
@@ -250,7 +250,7 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -260,7 +260,7 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             object state,
             PostExecuteWorkItemCallback postExecuteWorkItemCallback,
             CallToPostExecute callToPostExecute)
@@ -279,7 +279,7 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
 
             return workItem;
@@ -292,7 +292,7 @@ namespace Amib.Threading.Internal
         /// <param name="wigStartInfo">Work item group start information</param>
         /// <param name="callback">A callback to execute</param>
         /// <param name="state">
-        /// The context object of the work item. Used for passing arguments to the work item.
+        /// The context object of the work item. Used for passing arguments to the work item. 
         /// </param>
         /// <param name="postExecuteWorkItemCallback">
         /// A delegate to call after the callback completion
@@ -303,7 +303,7 @@ namespace Amib.Threading.Internal
         public static WorkItem CreateWorkItem(
             IWorkItemsGroup workItemsGroup,
             WIGStartInfo wigStartInfo,
-            WorkItemCallback callback,
+            WorkItemCallback callback, 
             object state,
             PostExecuteWorkItemCallback postExecuteWorkItemCallback,
             CallToPostExecute callToPostExecute,
@@ -324,9 +324,9 @@ namespace Amib.Threading.Internal
             WorkItem workItem = new WorkItem(
                 workItemsGroup,
                 workItemInfo,
-                callback,
+                callback, 
                 state);
-
+            
             return workItem;
         }
 
