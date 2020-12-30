@@ -80,7 +80,6 @@ namespace Amib.Threading.Internal
             
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = wigStartInfo.PostExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = wigStartInfo.CallToPostExecute;
             workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
@@ -116,7 +115,6 @@ namespace Amib.Threading.Internal
 
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = wigStartInfo.PostExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = wigStartInfo.CallToPostExecute;
             workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
@@ -186,7 +184,6 @@ namespace Amib.Threading.Internal
 
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = wigStartInfo.CallToPostExecute;
             workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
@@ -228,7 +225,6 @@ namespace Amib.Threading.Internal
 
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = wigStartInfo.CallToPostExecute;
             workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
@@ -270,7 +266,6 @@ namespace Amib.Threading.Internal
 
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = callToPostExecute;
             workItemInfo.DisposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
@@ -315,7 +310,6 @@ namespace Amib.Threading.Internal
 
             WorkItemInfo workItemInfo = new WorkItemInfo();
             workItemInfo.UseCallerCallContext = wigStartInfo.UseCallerCallContext;
-            workItemInfo.UseCallerHttpContext = wigStartInfo.UseCallerHttpContext;
             workItemInfo.PostExecuteWorkItemCallback = postExecuteWorkItemCallback;
             workItemInfo.CallToPostExecute = callToPostExecute;
             workItemInfo.WorkItemPriority = workItemPriority;

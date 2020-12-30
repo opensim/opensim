@@ -208,9 +208,9 @@ namespace Amib.Threading.Internal
             _workItemsGroup = workItemsGroup;
             _workItemInfo = workItemInfo;
 
-            if (_workItemInfo.UseCallerCallContext || _workItemInfo.UseCallerHttpContext)
+            if (_workItemInfo.UseCallerCallContext)
             {
-                _callerContext = CallerThreadContext.Capture(_workItemInfo.UseCallerCallContext, _workItemInfo.UseCallerHttpContext);
+                _callerContext = CallerThreadContext.Capture(_workItemInfo.UseCallerCallContext);
             }
 
             _callback = callback;
@@ -359,7 +359,7 @@ namespace Amib.Threading.Internal
             CallerThreadContext ctc = null;
             if (null != _callerContext)
             {
-                ctc = CallerThreadContext.Capture(_callerContext.CapturedCallContext, _callerContext.CapturedHttpContext);
+                ctc = CallerThreadContext.Capture(_callerContext.CapturedCallContext);
                 CallerThreadContext.Apply(_callerContext);
             }
 
