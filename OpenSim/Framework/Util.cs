@@ -2898,7 +2898,8 @@ namespace OpenSim.Framework
                 ThreadPoolName = "Util",
                 IdleTimeout = 20000,
                 MaxWorkerThreads = maxThreads,
-                MinWorkerThreads = minThreads
+                MinWorkerThreads = minThreads,
+                SuppressFlow = true
             };
 
             m_ThreadPool = new SmartThreadPool(startInfo);

@@ -17,6 +17,7 @@ namespace Amib.Threading
         private bool _enableLocalPerformanceCounters;
         private string _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
         private int? _maxStackSize = SmartThreadPool.DefaultMaxStackSize;
+        private bool _supressflow = false;
 
         public STPStartInfo()
         {
@@ -39,6 +40,7 @@ namespace Amib.Threading
             _threadPoolName = stpStartInfo._threadPoolName;
             _areThreadsBackground = stpStartInfo.AreThreadsBackground;
             _apartmentState = stpStartInfo._apartmentState;
+            _supressflow = stpStartInfo._supressflow;
         }
 
         /// <summary>
@@ -189,6 +191,16 @@ namespace Amib.Threading
                     throw new ArgumentOutOfRangeException("value", "Value must be greater than 0.");
                 }
                 _maxStackSize = value;
+            }
+        }
+
+        public bool SuppressFlow
+        {
+            get { return _supressflow; }
+            set
+            {
+                ThrowIfReadOnly();
+                _supressflow = value;
             }
         }
     }

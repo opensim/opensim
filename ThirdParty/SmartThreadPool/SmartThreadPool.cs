@@ -608,12 +608,24 @@ namespace Amib.Threading
                     }
 
                     // Create a new thread
-
-                    Thread workerThread =
-                        _stpStartInfo.MaxStackSize.HasValue
-                        ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
-                        : new Thread(ProcessQueuedItems);
-
+                    Thread workerThread;
+                    if(_stpStartInfo.SuppressFlow)
+                    {
+                        using(ExecutionContext.SuppressFlow())
+                        {
+                            workerThread =
+                                _stpStartInfo.MaxStackSize.HasValue
+                                ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
+                                : new Thread(ProcessQueuedItems);
+                         }
+                    }
+                    else
+                    {
+                        workerThread =
+                                _stpStartInfo.MaxStackSize.HasValue
+                                ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
+                                : new Thread(ProcessQueuedItems);
+                    }
                     // Configure the new thread and start it
                     workerThread.IsBackground = _stpStartInfo.AreThreadsBackground;
 
