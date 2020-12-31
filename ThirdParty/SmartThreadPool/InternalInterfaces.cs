@@ -19,9 +19,4 @@ namespace Amib.Threading.Internal
         /// </summary>   
         IWorkItemResult GetWorkItemResult();
     }
-
-    public interface IHasWorkItemPriority
-    {
-        WorkItemPriority WorkItemPriority { get; }
-    }
 }

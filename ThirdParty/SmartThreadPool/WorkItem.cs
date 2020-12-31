@@ -7,7 +7,7 @@ namespace Amib.Threading.Internal
     /// <summary>
     /// Holds a callback delegate and the state for that delegate.
     /// </summary>
-    public partial class WorkItem : IHasWorkItemPriority
+    public partial class WorkItem
     {
         #region WorkItemState enum
 
@@ -955,22 +955,7 @@ namespace Amib.Threading.Internal
         }
 
         #endregion
-
-        #region IHasWorkItemPriority Members
-
-        /// <summary>
-        /// Returns the priority of the work item
-        /// </summary>
-        public WorkItemPriority WorkItemPriority
-        {
-            get
-            {
-                return _workItemInfo.WorkItemPriority;
-            }
-        }
-
-        #endregion
-
+ 
         internal event WorkItemStateCallback OnWorkItemStarted
         {
             add

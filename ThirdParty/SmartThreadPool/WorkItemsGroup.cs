@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
@@ -42,7 +43,7 @@ namespace Amib.Threading.Internal
         /// Priority queue to hold work items before they are passed 
         /// to the SmartThreadPool.
         /// </summary>
-        private readonly PriorityQueue _workItemsQueue;
+        private readonly Queue<WorkItem> _workItemsQueue;
 
         /// <summary>
         /// Indicate how many work items are waiting in the SmartThreadPool
@@ -93,7 +94,7 @@ namespace Amib.Threading.Internal
             _stp = stp;
             _concurrency = concurrency;
             _workItemsGroupStartInfo = new WIGStartInfo(wigStartInfo).AsReadOnly();
-            _workItemsQueue = new PriorityQueue();
+            _workItemsQueue = new Queue<WorkItem>();
             Name = "WorkItemsGroup";
 
             // The _workItemsInStpQueue gets the number of currently executing work items,

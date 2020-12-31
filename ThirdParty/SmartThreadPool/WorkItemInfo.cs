@@ -13,7 +13,6 @@ namespace Amib.Threading
             DisposeOfStateObjects = SmartThreadPool.DefaultDisposeOfStateObjects;
             CallToPostExecute = SmartThreadPool.DefaultCallToPostExecute;
             PostExecuteWorkItemCallback = SmartThreadPool.DefaultPostExecuteWorkItemCallback;
-            WorkItemPriority = SmartThreadPool.DefaultWorkItemPriority;
         }
 
         public WorkItemInfo(WorkItemInfo workItemInfo)
@@ -22,7 +21,6 @@ namespace Amib.Threading
             DisposeOfStateObjects = workItemInfo.DisposeOfStateObjects;
             CallToPostExecute = workItemInfo.CallToPostExecute;
             PostExecuteWorkItemCallback = workItemInfo.PostExecuteWorkItemCallback;
-            WorkItemPriority = workItemInfo.WorkItemPriority;
             Timeout = workItemInfo.Timeout;
         }
 
@@ -45,11 +43,6 @@ namespace Amib.Threading
         /// Get/Set the post execute callback
         /// </summary>
         public PostExecuteWorkItemCallback PostExecuteWorkItemCallback { get; set; }
-
-        /// <summary>
-        /// Get/Set the work item's priority
-        /// </summary>
-        public WorkItemPriority WorkItemPriority { get; set; }
 
         /// <summary>
         /// Get/Set the work item's timout in milliseconds.

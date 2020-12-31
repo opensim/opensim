@@ -152,11 +152,6 @@ namespace Amib.Threading
         public static readonly PostExecuteWorkItemCallback DefaultPostExecuteWorkItemCallback;
 
         /// <summary>
-        /// The default work item priority (WorkItemPriority.Normal)
-        /// </summary>
-        public const WorkItemPriority DefaultWorkItemPriority = WorkItemPriority.Normal;
-
-        /// <summary>
         /// The default is to work on work items as soon as they arrive
         /// and not to wait for the start. (false)
         /// </summary>

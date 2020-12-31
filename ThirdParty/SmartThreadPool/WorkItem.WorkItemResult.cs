@@ -112,14 +112,6 @@ namespace Amib.Threading.Internal
                 }
             }
 
-            public WorkItemPriority WorkItemPriority
-            {
-                get
-                {
-                    return _workItem._workItemInfo.WorkItemPriority;
-                }
-            }
-
             /// <summary>
             /// Return the result, same as GetResult()
             /// </summary>

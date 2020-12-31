@@ -12,7 +12,6 @@ namespace Amib.Threading
         private CallToPostExecute _callToPostExecute;
         private PostExecuteWorkItemCallback _postExecuteWorkItemCallback;
         private bool _startSuspended;
-        private WorkItemPriority _workItemPriority;
         private bool _fillStateWithArgs;
 
         protected bool _readOnly;
@@ -20,7 +19,6 @@ namespace Amib.Threading
         public WIGStartInfo()
         {
             _fillStateWithArgs = SmartThreadPool.DefaultFillStateWithArgs;
-            _workItemPriority = SmartThreadPool.DefaultWorkItemPriority;
             _startSuspended = SmartThreadPool.DefaultStartSuspended;
             _postExecuteWorkItemCallback = SmartThreadPool.DefaultPostExecuteWorkItemCallback;
             _callToPostExecute = SmartThreadPool.DefaultCallToPostExecute;
@@ -34,7 +32,6 @@ namespace Amib.Threading
             _disposeOfStateObjects = wigStartInfo.DisposeOfStateObjects;
             _callToPostExecute = wigStartInfo.CallToPostExecute;
             _postExecuteWorkItemCallback = wigStartInfo.PostExecuteWorkItemCallback;
-            _workItemPriority = wigStartInfo.WorkItemPriority;
             _startSuspended = wigStartInfo.StartSuspended;
             _fillStateWithArgs = wigStartInfo.FillStateWithArgs;
         }
@@ -115,16 +112,6 @@ namespace Amib.Threading
                 ThrowIfReadOnly();  
                 _startSuspended = value; 
             }
-        }
-
-
-        /// <summary>
-        /// Get/Set the default priority that a work item gets when it is enqueued
-        /// </summary>
-        public virtual WorkItemPriority WorkItemPriority
-        {
-            get { return _workItemPriority; }
-            set { _workItemPriority = value; }
         }
 
         /// <summary>
