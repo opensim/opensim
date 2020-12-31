@@ -54,7 +54,8 @@ namespace Amib.Threading.Internal
         /// <summary>
         /// Callback delegate for the callback.
         /// </summary>
-        private readonly WorkItemCallback _callback;
+        private WorkItemCallback _callback;
+        private WaitCallback _callbackNoResult;
 
         /// <summary>
         /// State with which to call the callback delegate.
@@ -196,11 +197,7 @@ namespace Amib.Threading.Internal
         /// 
         /// We assume that the WorkItem object is created within the thread
         /// that meant to run the callback
-        public WorkItem(
-            IWorkItemsGroup workItemsGroup,
-            WorkItemInfo workItemInfo,
-            WorkItemCallback callback,
-            object state)
+        public WorkItem(IWorkItemsGroup workItemsGroup, WorkItemInfo workItemInfo, WorkItemCallback callback, object state)
         {
             _workItemsGroup = workItemsGroup;
             _workItemInfo = workItemInfo;
@@ -208,13 +205,34 @@ namespace Amib.Threading.Internal
             if (_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
             {
                 ExecutionContext ec = ExecutionContext.Capture();
-                if(ec != null)
-                _callerContext = ec.CreateCopy();
+                if (ec != null)
+                    _callerContext = ec.CreateCopy();
                 ec.Dispose();
                 ec = null;
             }
 
             _callback = callback;
+            _callbackNoResult = null;
+            _state = state;
+            _workItemResult = new WorkItemResult(this);
+            Initialize();
+        }
+
+        public WorkItem(IWorkItemsGroup workItemsGroup, WorkItemInfo workItemInfo, WaitCallback callback, object state)
+        {
+            _workItemsGroup = workItemsGroup;
+            _workItemInfo = workItemInfo;
+
+            if (_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
+            {
+                ExecutionContext ec = ExecutionContext.Capture();
+                if (ec != null)
+                    _callerContext = ec.CreateCopy();
+                ec.Dispose();
+                ec = null;
+            }
+
+            _callbackNoResult = callback;
             _state = state;
             _workItemResult = new WorkItemResult(this);
             Initialize();
@@ -358,16 +376,33 @@ namespace Amib.Threading.Internal
             {
                 try
                 {
-                    if(_callerContext == null)
-                        result = _callback(_state);
+                    if(_callbackNoResult == null)
+                    {
+                        if(_callerContext == null)
+                            result = _callback(_state);
+                        else
+                        {
+                            ContextCallback _ccb = new ContextCallback( o =>
+                            {
+                                result =_callback(o);
+                            });
+
+                            ExecutionContext.Run(_callerContext, _ccb, _state);
+                        }
+                    }
                     else
                     {
-                        ContextCallback _ccb = new ContextCallback( o =>
+                        if (_callerContext == null)
+                            _callbackNoResult(_state);
+                        else
                         {
-                            result =_callback(o);
-                        });
+                            ContextCallback _ccb = new ContextCallback(o =>
+                            {
+                                _callbackNoResult(o);
+                            });
 
-                        ExecutionContext.Run(_callerContext, _ccb, _state);
+                            ExecutionContext.Run(_callerContext, _ccb, _state);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -977,6 +1012,8 @@ namespace Amib.Threading.Internal
                     _state = null;
                 }
             }
+            _callback = null;
+            _callbackNoResult = null;
         }
     }
 }

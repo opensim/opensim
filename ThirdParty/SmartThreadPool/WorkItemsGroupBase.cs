@@ -87,6 +87,35 @@ namespace Amib.Threading.Internal
 
         #region QueueWorkItem
 
+        public IWorkItemResult QueueWorkItem(WaitCallback callback)
+        {
+            WorkItem workItem = WorkItemFactory.CreateWorkItem(this, WIGStartInfo, callback, null);
+            Enqueue(workItem);
+            return workItem.GetWorkItemResult();
+        }
+
+        public IWorkItemResult QueueWorkItem(WaitCallback callback, object state)
+        {
+            WorkItem workItem = WorkItemFactory.CreateWorkItem(this, WIGStartInfo, callback, state);
+            Enqueue(workItem);
+            return workItem.GetWorkItemResult();
+        }
+
+        public IWorkItemResult QueueWorkItem(WorkItemInfo workItemInfo, WaitCallback callback)
+        {
+            PreQueueWorkItem();
+            WorkItem workItem = WorkItemFactory.CreateWorkItem(this, WIGStartInfo, workItemInfo, callback, null);
+            Enqueue(workItem);
+            return workItem.GetWorkItemResult();
+        }
+
+        public IWorkItemResult QueueWorkItem(WorkItemInfo workItemInfo, WaitCallback callback, object state)
+        {
+            PreQueueWorkItem();
+            WorkItem workItem = WorkItemFactory.CreateWorkItem(this, WIGStartInfo, workItemInfo, callback, state);
+            Enqueue(workItem);
+            return workItem.GetWorkItemResult();
+        }
         /// <summary>
         /// Queue a work item
         /// </summary>
@@ -187,9 +216,7 @@ namespace Amib.Threading.Internal
         /// A delegate to call after the callback completion
         /// </param>
         /// <returns>Returns a work item result</returns>
-        public IWorkItemResult QueueWorkItem(
-            WorkItemCallback callback,
-            object state,
+        public IWorkItemResult QueueWorkItem( WorkItemCallback callback, object state,
             PostExecuteWorkItemCallback postExecuteWorkItemCallback)
         {
             PreQueueWorkItem();
@@ -210,10 +237,7 @@ namespace Amib.Threading.Internal
         /// </param>
         /// <param name="workItemPriority">The work item priority</param>
         /// <returns>Returns a work item result</returns>
-        public IWorkItemResult QueueWorkItem(
-            WorkItemCallback callback,
-            object state,
-            PostExecuteWorkItemCallback postExecuteWorkItemCallback,
+        public IWorkItemResult QueueWorkItem( WorkItemCallback callback, object state, PostExecuteWorkItemCallback postExecuteWorkItemCallback,
             WorkItemPriority workItemPriority)
         {
             PreQueueWorkItem();
@@ -234,11 +258,8 @@ namespace Amib.Threading.Internal
         /// </param>
         /// <param name="callToPostExecute">Indicates on which cases to call to the post execute callback</param>
         /// <returns>Returns a work item result</returns>
-        public IWorkItemResult QueueWorkItem(
-            WorkItemCallback callback,
-            object state,
-            PostExecuteWorkItemCallback postExecuteWorkItemCallback,
-            CallToPostExecute callToPostExecute)
+        public IWorkItemResult QueueWorkItem( WorkItemCallback callback, object state,
+            PostExecuteWorkItemCallback postExecuteWorkItemCallback, CallToPostExecute callToPostExecute)
         {
             PreQueueWorkItem();
             WorkItem workItem = WorkItemFactory.CreateWorkItem(this, WIGStartInfo, callback, state, postExecuteWorkItemCallback, callToPostExecute);
@@ -259,11 +280,8 @@ namespace Amib.Threading.Internal
         /// <param name="callToPostExecute">Indicates on which cases to call to the post execute callback</param>
         /// <param name="workItemPriority">The work item priority</param>
         /// <returns>Returns a work item result</returns>
-        public IWorkItemResult QueueWorkItem(
-            WorkItemCallback callback,
-            object state,
-            PostExecuteWorkItemCallback postExecuteWorkItemCallback,
-            CallToPostExecute callToPostExecute,
+        public IWorkItemResult QueueWorkItem( WorkItemCallback callback, object state,
+            PostExecuteWorkItemCallback postExecuteWorkItemCallback, CallToPostExecute callToPostExecute,
             WorkItemPriority workItemPriority)
         {
             PreQueueWorkItem();

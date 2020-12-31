@@ -3142,7 +3142,7 @@ namespace OpenSim.Framework
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)
                             InitThreadPool(2, 15);
-                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem((cb, o) => {cb(o); cb = null;}, realCallback, obj);
+                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem(realCallback, obj);
                         break;
                     case FireAndForgetMethod.Thread:
                         Thread thread = new Thread(delegate(object o) { realCallback(o); realCallback = null;});
