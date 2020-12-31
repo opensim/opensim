@@ -64,7 +64,7 @@ namespace Amib.Threading.Internal
         /// <summary>
         /// Stores the caller's context
         /// </summary>
-        private readonly CallerThreadContext _callerContext;
+        private  ExecutionContext _callerContext = null;
 
         /// <summary>
         /// Holds the result of the mehtod
@@ -205,9 +205,13 @@ namespace Amib.Threading.Internal
             _workItemsGroup = workItemsGroup;
             _workItemInfo = workItemInfo;
 
-            if (_workItemInfo.UseCallerCallContext)
+            if (_workItemInfo.UseCallerCallContext && !ExecutionContext.IsFlowSuppressed())
             {
-                _callerContext = CallerThreadContext.Capture(_workItemInfo.UseCallerCallContext);
+                ExecutionContext ec = ExecutionContext.Capture();
+                if(ec != null)
+                _callerContext = ec.CreateCopy();
+                ec.Dispose();
+                ec = null;
             }
 
             _callback = callback;
@@ -326,10 +330,7 @@ namespace Amib.Threading.Internal
         {
             try
             {
-                if (null != _workItemCompletedEvent)
-                {
-                    _workItemCompletedEvent(this);
-                }
+                _workItemCompletedEvent?.Invoke(this);
             }
             catch // Suppress exceptions
             { }
@@ -339,10 +340,7 @@ namespace Amib.Threading.Internal
         {
             try
             {
-                if (null != _workItemStartedEvent)
-                {
-                    _workItemStartedEvent(this);
-                }
+                _workItemStartedEvent?.Invoke(this);
             }
             catch // Suppress exceptions
             { }
@@ -353,13 +351,6 @@ namespace Amib.Threading.Internal
         /// </summary>
         private void ExecuteWorkItem()
         {
-            CallerThreadContext ctc = null;
-            if (null != _callerContext)
-            {
-                ctc = CallerThreadContext.Capture(_callerContext.CapturedCallContext);
-                CallerThreadContext.Apply(_callerContext);
-            }
-
             Exception exception = null;
             object result = null;
 
@@ -367,7 +358,17 @@ namespace Amib.Threading.Internal
             {
                 try
                 {
-                    result = _callback(_state);
+                    if(_callerContext == null)
+                        result = _callback(_state);
+                    else
+                    {
+                        ContextCallback _ccb = new ContextCallback( o =>
+                        {
+                            result =_callback(o);
+                        });
+
+                        ExecutionContext.Run(_callerContext, _ccb, _state);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -400,12 +401,6 @@ namespace Amib.Threading.Internal
                     Thread.ResetAbort();
                 }
             }
-
-            if (null != _callerContext)
-            {
-                CallerThreadContext.Apply(ctc);
-            }
-
 
             if (!SmartThreadPool.IsWorkItemCanceled)
             {
@@ -967,6 +962,12 @@ namespace Amib.Threading.Internal
 
         public void DisposeOfState()
         {
+            if(_callerContext != null)
+            {
+                _callerContext.Dispose();
+                _callerContext = null;
+            }
+
             if (_workItemInfo.DisposeOfStateObjects)
             {
                 IDisposable disp = _state as IDisposable;
