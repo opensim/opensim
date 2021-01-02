@@ -292,14 +292,13 @@ namespace Amib.Threading.Internal
             {
                 if (IsCanceled)
                 {
-                    bool result = false;
                     if ((_workItemInfo.PostExecuteWorkItemCallback != null) &&
                         ((_workItemInfo.CallToPostExecute & CallToPostExecute.WhenWorkItemCanceled) == CallToPostExecute.WhenWorkItemCanceled))
                     {
-                        result = true;
+                        return true;
                     }
 
-                    return result;
+                    return false;
                 }
 
                 Debug.Assert(WorkItemState.InQueue == GetWorkItemState());
