@@ -13363,14 +13363,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (commandList.Data[i + 1] is LSL_String)
                             {
                                 url = (LSL_String)commandList.Data[i + 1];
-                                try
+                                if(string.IsNullOrWhiteSpace(url))
+                                    url = string.Empty;
+                                else
                                 {
-                                    Uri dummy = new Uri(url, UriKind.Absolute);
-                                }
-                                catch
-                                {
-                                    Error("llParcelMediaCommandList", "invalid PARCEL_MEDIA_COMMAND_URL");
-                                    return;
+                                    try
+                                    {
+                                        Uri dummy = new Uri(url, UriKind.Absolute);
+                                    }
+                                    catch
+                                    {
+                                        Error("llParcelMediaCommandList", "invalid PARCEL_MEDIA_COMMAND_URL");
+                                        return;
+                                    }
                                 }
                                 update = true;
                             }
