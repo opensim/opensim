@@ -72,23 +72,42 @@ namespace OSHttpServer
                 if (m_internalThread != null)
                     return;
 
-                m_lastTimeOutCheckTime = GetTimeStampMS();
-                m_internalThread = new Thread(ThreadRunProcess);
-                m_internalThread.Priority = ThreadPriority.Normal;
-                m_internalThread.IsBackground = true;
-                m_internalThread.CurrentCulture = new CultureInfo("en-US", false);
-                m_internalThread.Name = "HttpServerMain";
-                m_internalThread.Start();
+                Task.Factory.StartNew(() =>
+                {
+                    while (!m_shuttingDown)
+                    {
+                        m_processWaitEven.WaitOne(500);
+
+                        if (m_shuttingDown)
+                            return;
+
+                        double now = GetTimeStamp();
+                        if (m_contexts.Count > 0)
+                        {
+                            ProcessSendQueues(now);
+
+                            if (now - m_lastTimeOutCheckTime > 1.0)
+                            {
+                                ProcessContextTimeouts();
+                                m_lastTimeOutCheckTime = now;
+                            }
+                        }
+                        else
+                            m_lastTimeOutCheckTime = now;
+                    }
+                    ProcessShutDown();
+                }, TaskCreationOptions.LongRunning);
             }
         }
 
         public static void Stop()
         {
             m_shuttingDown = true;
-            m_internalThread.Join();
-            ProcessShutDown();
+            m_processWaitEven.Set();
+            //m_internalThread.Join();
+            //ProcessShutDown();
         }
-
+        /*
         private static void ThreadRunProcess()
         {
             while (!m_shuttingDown)
@@ -113,7 +132,7 @@ namespace OSHttpServer
                     m_lastTimeOutCheckTime = now;
             }
         }
-
+        */
         public static void ProcessShutDown()
         {
             try
