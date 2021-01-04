@@ -16,12 +16,7 @@ namespace Amib.Threading.Internal
     {
         /// <summary>
         /// This method is intent for internal use.
-        /// </summary>
+        /// </summary>   
         IWorkItemResult GetWorkItemResult();
-    }
-
-    public interface IHasWorkItemPriority
-    {
-        WorkItemPriority WorkItemPriority { get; }
     }
 }
