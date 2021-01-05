@@ -72,31 +72,15 @@ namespace OSHttpServer
                 if (m_internalThread != null)
                     return;
 
-                Task.Factory.StartNew(() =>
-                {
-                    while (!m_shuttingDown)
-                    {
-                        m_processWaitEven.WaitOne(500);
+                m_lastTimeOutCheckTime = GetTimeStampMS();
+                using(ExecutionContext.SuppressFlow())
+                    m_internalThread = new Thread(ThreadRunProcess);
 
-                        if (m_shuttingDown)
-                            return;
-
-                        double now = GetTimeStamp();
-                        if (m_contexts.Count > 0)
-                        {
-                            ProcessSendQueues(now);
-
-                            if (now - m_lastTimeOutCheckTime > 1.0)
-                            {
-                                ProcessContextTimeouts();
-                                m_lastTimeOutCheckTime = now;
-                            }
-                        }
-                        else
-                            m_lastTimeOutCheckTime = now;
-                    }
-                    ProcessShutDown();
-                }, TaskCreationOptions.LongRunning);
+                m_internalThread.Priority = ThreadPriority.Normal;
+                m_internalThread.IsBackground = true;
+                m_internalThread.CurrentCulture = new CultureInfo("en-US", false);
+                m_internalThread.Name = "HttpServerMain";
+                m_internalThread.Start();
             }
         }
 
@@ -107,7 +91,7 @@ namespace OSHttpServer
             //m_internalThread.Join();
             //ProcessShutDown();
         }
-        /*
+
         private static void ThreadRunProcess()
         {
             while (!m_shuttingDown)
@@ -132,7 +116,7 @@ namespace OSHttpServer
                     m_lastTimeOutCheckTime = now;
             }
         }
-        */
+
         public static void ProcessShutDown()
         {
             try
@@ -181,8 +165,8 @@ namespace OSHttpServer
 
             dt /= curConcurrentLimit;
             int curbytesLimit = (int)(m_maxBandWidth * dt);
-            if(curbytesLimit < 8192)
-                curbytesLimit = 8192;
+            if(curbytesLimit < 1024)
+                curbytesLimit = 1024;
 
             HttpClientContext ctx;
             int sent;
