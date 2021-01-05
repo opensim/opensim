@@ -207,8 +207,15 @@ namespace OSHttpServer
         /// </remarks>
         public virtual void Start()
         {
-            Task tk = new Task(() => ReceiveLoop());
-            tk.Start();
+            try
+            {
+                m_stream.BeginRead(m_ReceiveBuffer, 0, m_ReceiveBuffer.Length, OnReceive, null);
+            }
+            catch (IOException err)
+            {
+                LogWriter.Write(this, LogPrio.Debug, err.ToString());
+            }
+            //Task.Run(async () => await ReceiveLoop()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -341,7 +348,105 @@ namespace OSHttpServer
             }
         }
 
-        private async void ReceiveLoop()
+        private void OnReceive(IAsyncResult ar)
+        {
+            try
+            {
+                int bytesRead = 0;
+                if (m_stream == null)
+                    return;
+                try
+                {
+                    bytesRead = m_stream.EndRead(ar);
+                }
+                catch (NullReferenceException)
+                {
+                    Disconnect(SocketError.ConnectionReset);
+                    return;
+                }
+
+                if (bytesRead == 0)
+                {
+                    Disconnect(SocketError.Success);
+                    return;
+                }
+
+                if (m_isClosing)
+                    return;
+
+                m_ReceiveBytesLeft += bytesRead;
+
+                int offset = m_parser.Parse(m_ReceiveBuffer, 0, m_ReceiveBytesLeft);
+                if (m_stream == null)
+                    return; // "Connection: Close" in effect.
+
+                while (offset != 0)
+                {
+                    int nextBytesleft = m_ReceiveBytesLeft - offset;
+                    if (nextBytesleft <= 0)
+                        break;
+
+                    int nextOffset = m_parser.Parse(m_ReceiveBuffer, offset, nextBytesleft);
+
+                    if (m_stream == null)
+                        return; // "Connection: Close" in effect.
+
+                    if (nextOffset == 0)
+                        break;
+
+                    offset = nextOffset;
+                }
+
+                // copy unused bytes to the beginning of the array
+                if (offset > 0 && m_ReceiveBytesLeft > offset)
+                    Buffer.BlockCopy(m_ReceiveBuffer, offset, m_ReceiveBuffer, 0, m_ReceiveBytesLeft - offset);
+
+                m_ReceiveBytesLeft -= offset;
+                if (StreamPassedOff)
+                    return; //?
+                m_stream.BeginRead(m_ReceiveBuffer, m_ReceiveBytesLeft, m_ReceiveBuffer.Length - m_ReceiveBytesLeft, OnReceive, null);
+            }
+            catch (BadRequestException err)
+            {
+                LogWriter.Write(this, LogPrio.Warning, "Bad request, responding with it. Error: " + err);
+                try
+                {
+                    Respond("HTTP/1.1", HttpStatusCode.BadRequest, err.Message);
+                }
+                catch (Exception err2)
+                {
+                    LogWriter.Write(this, LogPrio.Fatal, "Failed to reply to a bad request. " + err2);
+                }
+                //Disconnect(SocketError.NoRecovery);
+                Disconnect(SocketError.Success); // try to flush
+            }
+            catch (IOException err)
+            {
+                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
+                if (err.InnerException is SocketException)
+                    Disconnect((SocketError)((SocketException)err.InnerException).ErrorCode);
+                else
+                    Disconnect(SocketError.ConnectionReset);
+            }
+            catch (ObjectDisposedException err)
+            {
+                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : " + err.Message);
+                Disconnect(SocketError.NotSocket);
+            }
+            catch (NullReferenceException err)
+            {
+                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive : NullRef: " + err.Message);
+                Disconnect(SocketError.NoRecovery);
+            }
+            catch (Exception err)
+            {
+                LogWriter.Write(this, LogPrio.Debug, "Failed to end receive: " + err.Message);
+                Disconnect(SocketError.NoRecovery);
+            }
+        }
+
+        /*
+        private async Task ReceiveLoop()
         {
             m_ReceiveBytesLeft = 0;
             try
@@ -432,6 +537,7 @@ namespace OSHttpServer
                 Disconnect(SocketError.NoRecovery);
             }
         }
+        */
 
         private void OnRequestCompleted(object source, EventArgs args)
         {
