@@ -90,7 +90,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             List<int> existingEstateIDs = m_application.EstateDataService.GetEstatesAll();
 
-            int i = 0;
             foreach (string file in iniFiles)
             {
                 m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: Loading config file {0}", file);
@@ -165,8 +164,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     m_application.EstateDataService.StoreEstateSettings(estateSettings);
 
                     m_log.InfoFormat("[ESTATE LOADER FILE SYSTEM]: Loaded config for estate {0}", estateName);
-
-                    i++;
                 }
             }
         }
