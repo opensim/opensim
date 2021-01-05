@@ -91,11 +91,6 @@ namespace Amib.Threading.Internal
             return _workItemResult.Cancel(abortExecution);
         }
 
-        public WorkItemPriority WorkItemPriority
-        {
-            get { return _workItemResult.WorkItemPriority; }
-        }
-
         public TResult Result
         {
             get { return (TResult)_workItemResult.Result; }

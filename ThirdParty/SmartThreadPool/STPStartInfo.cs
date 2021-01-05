@@ -11,21 +11,18 @@ namespace Amib.Threading
         private int _idleTimeout = SmartThreadPool.DefaultIdleTimeout;
         private int _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
         private int _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
-#if !(WINDOWS_PHONE)
         private ThreadPriority _threadPriority = SmartThreadPool.DefaultThreadPriority;
-#endif
         private string _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
         private bool _areThreadsBackground = SmartThreadPool.DefaultAreThreadsBackground;
         private bool _enableLocalPerformanceCounters;
         private string _threadPoolName = SmartThreadPool.DefaultThreadPoolName;
         private int? _maxStackSize = SmartThreadPool.DefaultMaxStackSize;
+        private bool _supressflow = false;
 
         public STPStartInfo()
         {
             _performanceCounterInstanceName = SmartThreadPool.DefaultPerformanceCounterInstanceName;
-#if !(WINDOWS_PHONE)
             _threadPriority = SmartThreadPool.DefaultThreadPriority;
-#endif
             _maxWorkerThreads = SmartThreadPool.DefaultMaxWorkerThreads;
             _idleTimeout = SmartThreadPool.DefaultIdleTimeout;
             _minWorkerThreads = SmartThreadPool.DefaultMinWorkerThreads;
@@ -37,16 +34,13 @@ namespace Amib.Threading
             _idleTimeout = stpStartInfo.IdleTimeout;
             _minWorkerThreads = stpStartInfo.MinWorkerThreads;
             _maxWorkerThreads = stpStartInfo.MaxWorkerThreads;
-#if !(WINDOWS_PHONE)
             _threadPriority = stpStartInfo.ThreadPriority;
-#endif
             _performanceCounterInstanceName = stpStartInfo.PerformanceCounterInstanceName;
             _enableLocalPerformanceCounters = stpStartInfo._enableLocalPerformanceCounters;
             _threadPoolName = stpStartInfo._threadPoolName;
             _areThreadsBackground = stpStartInfo.AreThreadsBackground;
-#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
             _apartmentState = stpStartInfo._apartmentState;
-#endif
+            _supressflow = stpStartInfo._supressflow;
         }
 
         /// <summary>
@@ -63,7 +57,6 @@ namespace Amib.Threading
             }
         }
 
-
         /// <summary>
         /// Get/Set the lower limit of threads in the pool.
         /// </summary>
@@ -76,7 +69,6 @@ namespace Amib.Threading
                 _minWorkerThreads = value;
             }
         }
-
 
         /// <summary>
         /// Get/Set the upper limit of threads in the pool.
@@ -91,7 +83,6 @@ namespace Amib.Threading
             }
         }
 
-#if !(WINDOWS_PHONE)
         /// <summary>
         /// Get/Set the scheduling priority of the threads in the pool.
         /// The Os handles the scheduling.
@@ -105,15 +96,16 @@ namespace Amib.Threading
                 _threadPriority = value;
             }
         }
-#endif
+
         /// <summary>
         /// Get/Set the thread pool name. Threads will get names depending on this.
         /// </summary>
-        public virtual string ThreadPoolName {
+        public virtual string ThreadPoolName
+        {
             get { return _threadPoolName; }
             set
             {
-                ThrowIfReadOnly ();
+                ThrowIfReadOnly();
                 _threadPoolName = value;
             }
         }
@@ -134,7 +126,7 @@ namespace Amib.Threading
 
         /// <summary>
         /// Enable/Disable the local performance counter.
-        /// This enables the user to get some performance information about the SmartThreadPool
+        /// This enables the user to get some performance information about the SmartThreadPool 
         /// without using Windows performance counters. (Useful on WindowsCE, Silverlight, etc.)
         /// The default is false.
         /// </summary>
@@ -152,14 +144,14 @@ namespace Amib.Threading
         /// Get/Set backgroundness of thread in thread pool.
         /// </summary>
         public virtual bool AreThreadsBackground
-         {
-             get { return _areThreadsBackground; }
-             set
-             {
-                 ThrowIfReadOnly ();
-                 _areThreadsBackground = value;
-             }
-         }
+        {
+            get { return _areThreadsBackground; }
+            set
+            {
+                ThrowIfReadOnly();
+                _areThreadsBackground = value;
+            }
+        }
 
         /// <summary>
         /// Get a readonly version of this STPStartInfo.
@@ -169,8 +161,6 @@ namespace Amib.Threading
         {
             return new STPStartInfo(this) { _readOnly = true };
         }
-
-#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
 
         private ApartmentState _apartmentState = SmartThreadPool.DefaultApartmentState;
 
@@ -186,8 +176,6 @@ namespace Amib.Threading
                 _apartmentState = value;
             }
         }
-
-#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
 
         /// <summary>
         /// Get/Set the max stack size of threads in the thread pool
@@ -205,8 +193,15 @@ namespace Amib.Threading
                 _maxStackSize = value;
             }
         }
-#endif
 
-#endif
+        public bool SuppressFlow
+        {
+            get { return _supressflow; }
+            set
+            {
+                ThrowIfReadOnly();
+                _supressflow = value;
+            }
+        }
     }
 }
