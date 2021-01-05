@@ -73,7 +73,9 @@ namespace OSHttpServer
                     return;
 
                 m_lastTimeOutCheckTime = GetTimeStampMS();
-                m_internalThread = new Thread(ThreadRunProcess);
+                using(ExecutionContext.SuppressFlow())
+                    m_internalThread = new Thread(ThreadRunProcess);
+
                 m_internalThread.Priority = ThreadPriority.Normal;
                 m_internalThread.IsBackground = true;
                 m_internalThread.CurrentCulture = new CultureInfo("en-US", false);
@@ -85,8 +87,9 @@ namespace OSHttpServer
         public static void Stop()
         {
             m_shuttingDown = true;
-            m_internalThread.Join();
-            ProcessShutDown();
+            m_processWaitEven.Set();
+            //m_internalThread.Join();
+            //ProcessShutDown();
         }
 
         private static void ThreadRunProcess()
@@ -162,8 +165,8 @@ namespace OSHttpServer
 
             dt /= curConcurrentLimit;
             int curbytesLimit = (int)(m_maxBandWidth * dt);
-            if(curbytesLimit < 8192)
-                curbytesLimit = 8192;
+            if(curbytesLimit < 1024)
+                curbytesLimit = 1024;
 
             HttpClientContext ctx;
             int sent;
