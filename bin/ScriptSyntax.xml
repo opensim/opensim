@@ -1,4 +1,4 @@
-0ca3945b-ad46-5155-6d66-6b6c74370dd2
+cd5e081a-b88a-07b6-21a5-612aab0b3398
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1111,6 +1111,10 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>10</string>
  </map>
+ <key>INVENTORY_SETTING</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>56</string>
+ </map>
  <key>INVENTORY_SOUND</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
@@ -1577,7 +1581,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>15</string>
+  <key>value</key><string>16</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -6225,6 +6229,14 @@
    <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
+ <key>llXorBase64</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>str1</key><map><key>type</key><string>string</string></map></map>
+   <map><key>str2</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llXorBase64Strings</key>
  <map>
   <key>return</key><string>string</string>
@@ -7143,6 +7155,7 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcCreate</key>
@@ -7153,7 +7166,6 @@
    <map><key>name</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>options</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osNpcGetOwner</key>
@@ -7330,7 +7342,6 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osOwnerSaveAppearance</key>
@@ -7338,6 +7349,7 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osParcelJoin</key>
@@ -7410,6 +7422,7 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
+   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionRestart</key>
@@ -7417,7 +7430,6 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>seconds</key><map><key>type</key><string>float</string></map></map>
-   <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osReplaceAgentEnvironment</key>
@@ -7435,19 +7447,6 @@
   <key>arguments</key><array>
    <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
-  </array>
- </map>
- <key>osReplaceRegionEnvironment</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
-   <map><key>daylen</key><map><key>type</key><string>float</string></map></map>
-   <map><key>dayoffset</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude1</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude2</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude3</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osReplaceString</key>
@@ -7705,6 +7704,17 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>prim</key><map><key>type</key><string>key</string></map></map>
+   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
+   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
+   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
+   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osSetProjectionParams</key>
+ <map>
+  <key>arguments</key><array>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7716,17 +7726,6 @@
  <map>
   <key>arguments</key><array>
    <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>texture</key><map><key>type</key><string>key</string></map></map>
-   <map><key>fov</key><map><key>type</key><string>float</string></map></map>
-   <map><key>focus</key><map><key>type</key><string>float</string></map></map>
-   <map><key>amb</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osSetProjectionParams</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>prim</key><map><key>type</key><string>key</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7774,12 +7773,6 @@
    <map><key>v</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
- <key>osSetStateEvents</key>
- <map>
-  <key>arguments</key><array>
-   <map><key>events</key><map><key>type</key><string>integer</string></map></map>
-  </array>
- </map>
  <key>osSetSunParam</key>
  <map>
   <key>arguments</key><array>
@@ -7817,6 +7810,22 @@
    <map><key>plugin</key><map><key>type</key><string>string</string></map></map>
    <map><key>param</key><map><key>type</key><string>string</string></map></map>
    <map><key>value</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osSHA256</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>input</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osSlerp</key>
+ <map>
+  <key>return</key><string>vector</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>b</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>amount</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osSlerp</key>
@@ -7953,8 +7962,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7963,7 +7971,8 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7981,8 +7990,6 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7990,6 +7997,8 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

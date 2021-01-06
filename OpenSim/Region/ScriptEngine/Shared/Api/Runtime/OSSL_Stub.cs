@@ -1432,6 +1432,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSlerp(a, b, amount);
         }
 
+        public vector osSlerp(vector a, vector b, LSL_Float amount)
+        {
+            return m_OSSL_Functions.osSlerp(a, b, amount);
+        }
+
         public void osResetAllScripts(LSL_Integer allLinkSet)
         {
             m_OSSL_Functions.osResetAllScripts(allLinkSet);

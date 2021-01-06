@@ -5647,6 +5647,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Rotation.Slerp(a, b, amount);
         }
 
+        public LSL_Vector osSlerp(LSL_Vector a, LSL_Vector b, LSL_Float amount)
+        {
+            if (amount < 0)
+                amount = 0;
+            else if (amount > 1.0)
+                amount = 1.0;
+
+            return LSL_Vector.Slerp(a, b, amount);
+        }
+
         public void osResetAllScripts(LSL_Integer linkset)
         {
             UUID me = m_item.ItemID;
