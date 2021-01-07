@@ -447,9 +447,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     {
                         string name = uac.FirstName + " " + uac.LastName;
                         UUID id = uac.PrincipalID;
-                        ret[id] = name;
-                        missing.Remove(uac.PrincipalID.ToString()); // slowww
-                        untried.Remove(uac.PrincipalID);
 
                         var userdata = new UserData();
                         userdata.Id = id;
@@ -457,8 +454,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.LastName = uac.LastName;
                         userdata.HomeURL = string.Empty;
                         userdata.IsUnknownUser = false;
+                        userdata.IsLocal = true;
                         userdata.HasGridUserTried = true;
                         m_userCacheByID.Add(id, userdata, 1800000);
+
+                        ret[id] = name;
+                        missing.Remove(id.ToString()); // slowww
+                        untried.Remove(id);
                     }
                 }
             }
@@ -586,6 +588,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.LastName = uac.LastName;
                         userdata.HomeURL = string.Empty;
                         userdata.IsUnknownUser = false;
+                        userdata.IsLocal = true;
                         userdata.HasGridUserTried = true;
                         m_userCacheByID.Add(id, userdata, 1800000);
 
@@ -832,18 +835,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         {
             if (GetUser(userID, out UserData ud) && ud != null)
             {
-                string homeURL = ud.HomeURL;
-                string first = ud.FirstName,
-                last = ud.LastName;
                 if (ud.LastName.StartsWith("@"))
                 {
                     string[] parts = ud.FirstName.Split('.');
                     if (parts.Length >= 2)
-                    {
-                        first = parts[0];
-                        last = parts[1];
-                    }
-                    uui = userID.ToString() + ";" + homeURL + ";" + first + " " + last;
+                        uui = userID.ToString() + ";" + ud.HomeURL + ";" + parts[0] + " " + parts[1];
+                    else
+                        uui = userID.ToString() + ";" + ud.HomeURL + ";" + ud.FirstName + " " + ud.LastName;
                 }
                 else
                     uui = userID.ToString();
