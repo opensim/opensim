@@ -1086,9 +1086,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             oldUser.HasGridUserTried = false;
             oldUser.IsUnknownUser = false;
 
-            if (CheckUrl(homeURL, out bool local, out OSHHTPHost host))
+            OSHTTPURI homeuri = new OSHTTPURI(homeURL);
+            if (homeuri.IsValidHost)
             {
-                if (local)
+                if (m_thisGridInfo.IsLocalGrid(homeuri.URL) == 1) // local
                 {
                     oldUser.FirstName = firstname;
                     oldUser.LastName = lastname;
@@ -1099,8 +1100,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 else
                 {
                     oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
-                    oldUser.LastName = "@" + host.HostAndPort;
-                    oldUser.HomeURL = host.URI;
+                    oldUser.LastName = "@" + homeuri.HostAndPort;
+                    oldUser.HomeURL = homeuri.URL;
                     oldUser.IsLocal = false;
                 }
             }
