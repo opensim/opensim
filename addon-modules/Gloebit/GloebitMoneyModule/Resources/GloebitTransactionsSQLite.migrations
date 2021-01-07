@@ -1,0 +1,93 @@
+:VERSION 1
+
+BEGIN TRANSACTION;
+
+-- gloebittransactions table
+CREATE TABLE IF NOT EXISTS GloebitTransactions (
+    TransactionID           CHAR(36)        NOT NULL,
+    PayerID                 CHAR(36)        NOT NULL,
+    PayerName               VARCHAR(255)    NOT NULL,
+    PayeeID                 CHAR(36)        NOT NULL,
+    PayeeName               VARCHAR(255)    NOT NULL,
+    Amount                  INT(11)         NOT NULL,
+    TransactionType         INT(4)          NOT NULL,
+    TransactionTypeString   VARCHAR(64)     NOT NULL,
+    IsSubscriptionDebit     TINYINT(1)      NOT NULL,
+    SubscriptionID          CHAR(36)        NOT NULL,
+    PartID                  CHAR(36),
+    PartName                VARCHAR(64),
+    PartDescription         VARCHAR(128),
+    CategoryID              CHAR(36),
+    LocalID                 BIGINT(10),
+    SaleType                INT(1),
+    Submitted               TINYINT(1)      NOT NULL,
+    ResponseReceived        TINYINT(1)      NOT NULL,
+    ResponseSuccess         TINYINT(1)      NOT NULL,
+    ResponseStatus          VARCHAR(64)     NOT NULL,
+    ResponseReason          VARCHAR(255)    NOT NULL,
+    PayerEndingBalance      INT(11)         NOT NULL,
+    enacted                 TINYINT(1)      NOT NULL,
+    consumed                TINYINT(1)      NOT NULL,
+    canceled                TINYINT(1)      NOT NULL,
+    cTime                   TIMESTAMP       NOT NULL,
+    enactedTime             TIMESTAMP,
+    finishedTime            TIMESTAMP,
+    PRIMARY KEY (TransactionID)
+);
+
+CREATE INDEX IF NOT EXISTS ix_payerid ON GloebitTransactions(PayerID);
+CREATE INDEX IF NOT EXISTS ix_payeeid ON GloebitTransactions(PayerID);
+CREATE INDEX IF NOT EXISTS ix_tt ON GloebitTransactions(TransactionType);
+CREATE INDEX IF NOT EXISTS ix_sid ON GloebitTransactions(SubscriptionID);
+CREATE INDEX IF NOT EXISTS ix_pid ON GloebitTransactions(PartID);
+CREATE INDEX IF NOT EXISTS ix_cts ON GloebitTransactions(cTime);
+
+COMMIT;
+
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+DROP TABLE IF EXISTS GloebitTransactions;
+
+-- gloebittransactions table
+CREATE TABLE IF NOT EXISTS GloebitTransactions (
+TransactionID           CHAR(36)        NOT NULL,
+PayerID                 CHAR(36)        NOT NULL,
+PayerName               VARCHAR(255)    NOT NULL,
+PayeeID                 CHAR(36)        NOT NULL,
+PayeeName               VARCHAR(255)    NOT NULL,
+Amount                  INT(11)         NOT NULL,
+TransactionType         INT(4)          NOT NULL,
+TransactionTypeString   VARCHAR(64)     NOT NULL,
+IsSubscriptionDebit     TINYINT(1)      NOT NULL,
+SubscriptionID          CHAR(36)        NOT NULL,
+PartID                  CHAR(36),
+PartName                VARCHAR(64),
+PartDescription         VARCHAR(128),
+CategoryID              CHAR(36),
+SaleType                INT(1),
+Submitted               TINYINT(1)      NOT NULL,
+ResponseReceived        TINYINT(1)      NOT NULL,
+ResponseSuccess         TINYINT(1)      NOT NULL,
+ResponseStatus          VARCHAR(64)     NOT NULL,
+ResponseReason          VARCHAR(255)    NOT NULL,
+PayerEndingBalance      INT(11)         NOT NULL,
+enacted                 TINYINT(1)      NOT NULL,
+consumed                TINYINT(1)      NOT NULL,
+canceled                TINYINT(1)      NOT NULL,
+cTime                   TIMESTAMP       NOT NULL,
+enactedTime             TIMESTAMP,
+finishedTime            TIMESTAMP,
+PRIMARY KEY (TransactionID)
+);
+
+CREATE INDEX IF NOT EXISTS ix_payerid ON GloebitTransactions(PayerID);
+CREATE INDEX IF NOT EXISTS ix_payeeid ON GloebitTransactions(PayerID);
+CREATE INDEX IF NOT EXISTS ix_tt ON GloebitTransactions(TransactionType);
+CREATE INDEX IF NOT EXISTS ix_sid ON GloebitTransactions(SubscriptionID);
+CREATE INDEX IF NOT EXISTS ix_pid ON GloebitTransactions(PartID);
+CREATE INDEX IF NOT EXISTS ix_cts ON GloebitTransactions(cTime);
+
+COMMIT;
