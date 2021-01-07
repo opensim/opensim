@@ -1,0 +1,53 @@
+:VERSION 1         # -------------------------------
+
+BEGIN TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS GloebitTransactions (
+    "TransactionID"         UUID            NOT NULL,
+    "PayerID"               CHAR(36)        NOT NULL,
+    "PayerName"             VARCHAR(255)    NOT NULL,
+    "PayeeID"               CHAR(36)        NOT NULL,
+    "PayeeName"             VARCHAR(255)    NOT NULL,
+    "Amount"                INT             NOT NULL,
+    "TransactionType"       INT             NOT NULL,
+    "TransactionTypeString" VARCHAR(64)     NOT NULL,
+    "IsSubscriptionDebit"   BOOLEAN         NOT NULL,
+    "SubscriptionID"        UUID            NOT NULL,
+    "PartID"                UUID,
+    "PartName"              VARCHAR(64),
+    "PartDescription"       VARCHAR(128),
+    "CategoryID"            CHAR(36),
+    "LocalID"               BIGINT,
+    "SaleType"              INT,
+    "Submitted"             BOOLEAN         NOT NULL,
+    "ResponseReceived"      BOOLEAN         NOT NULL,
+    "ResponseSuccess"       BOOLEAN         NOT NULL,
+    "ResponseStatus"        VARCHAR(64)     NOT NULL,
+    "ResponseReason"        VARCHAR(255)    NOT NULL,
+    "PayerEndingBalance"    INT             NOT NULL,
+    "enacted"               BOOLEAN         NOT NULL,
+    "consumed"              BOOLEAN         NOT NULL,
+    "canceled"              BOOLEAN         NOT NULL,
+    "cTime"                 TIMESTAMP       NOT NULL,
+    "enactedTime"           TIMESTAMP       NULL,
+    "finishedTime"          TIMESTAMP       NULL,
+    PRIMARY KEY ("TransactionID")
+);
+
+CREATE INDEX ix_payerid ON GloebitTransactions ("PayerID");
+CREATE INDEX ix_payeeid ON GloebitTransactions ("PayeeID");
+CREATE INDEX ix_tt ON GloebitTransactions ("TransactionType");
+CREATE INDEX ix_sid ON GloebitTransactions ("SubscriptionID");
+CREATE INDEX ix_pid ON GloebitTransactions ("PartID");
+CREATE INDEX ix_cts ON GloebitTransactions ("cTime");
+
+COMMIT;
+
+
+:VERSION 2         # -------------------------------
+
+BEGIN TRANSACTION;
+
+ALTER TABLE GloebitTransactions DROP COLUMN IF EXISTS "LocalID";
+
+COMMIT;
