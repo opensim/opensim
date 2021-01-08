@@ -116,7 +116,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of jobs waiting to be processed.
         /// </summary>
-        public int JobsWaiting { get { return m_jobQueue == null ? 0 : m_jobQueue.Count; } }
+        public int Count { get { return m_jobQueue == null ? 0 : m_jobQueue.Count; } }
 
         public void Cancel()
         {
