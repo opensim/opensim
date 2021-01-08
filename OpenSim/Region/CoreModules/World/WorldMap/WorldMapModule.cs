@@ -1562,8 +1562,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void DeregisterMap()
         {
-            if (m_mapImageServiceModule != null)
-                m_mapImageServiceModule.RemoveMapTiles(m_scene);
+            //if (m_mapImageServiceModule != null)
+            //    m_mapImageServiceModule.RemoveMapTiles(m_scene);
         }
 
         private void GenerateMaptile(Bitmap mapbmp)
