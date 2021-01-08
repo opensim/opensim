@@ -65,9 +65,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
     public class ODEMeshWorker
     {
-        private ILog m_log;
-        private ODEScene m_scene;
-        private IMesher m_mesher;
+        private readonly ILog m_log;
+        private readonly ODEScene m_scene;
+        private readonly IMesher m_mesher;
 
         public bool meshSculptedPrim = true;
         public float meshSculptLOD = 32;
@@ -77,7 +77,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private BlockingCollection<ODEPhysRepData> workQueue = new BlockingCollection<ODEPhysRepData>();
         private bool m_running;
 
-        private Thread m_thread;
+        private bool hasthread = false;
+        private readonly object m_threadLock = new object();
 
         public ODEMeshWorker(ODEScene pScene, ILog pLog, IMesher pMesher, IConfig pConfig)
         {
@@ -93,23 +94,42 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 MeshSculptphysicalLOD = pConfig.GetFloat("mesh_physical_lod", MeshSculptphysicalLOD);
             }
             m_running = true;
-            m_thread = new Thread(DoWork);
-            m_thread.Name = "OdeMeshWorker";
-            m_thread.Start();
+            Util.FireAndForget(DoCacheExpire, null, "OdeCacheExpire", false);
         }
 
-        private void DoWork()
+        private void DoCacheExpire(object o)
         {
             m_mesher.ExpireFileCache();
-            ODEPhysRepData nextRep;
+        }
 
+        private void Enqueue(ODEPhysRepData rep)
+        {
+            lock(m_threadLock)
+            {
+                if(!hasthread)
+                {
+                    hasthread = true;
+                    Util.FireAndForget(DoWork, null, "OdeMeshWorker", false);
+                }
+            }
+            workQueue.Add(rep);
+        }
+
+        private void DoWork(object o)
+        {
             while(m_running)
             {
-                workQueue.TryTake(out nextRep, -1);
+                workQueue.TryTake(out ODEPhysRepData nextRep, 2000);
                 if(!m_running)
                     return;
                 if (nextRep == null)
-                    continue;
+                {
+                    lock(m_threadLock)
+                    {
+                        hasthread = false;
+                        return;
+                    }
+                }
                 if (m_scene.haveActor(nextRep.actor))
                 {
                     switch (nextRep.comand)
@@ -133,7 +153,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             try
             {
-                m_thread.Abort();
+                m_running = false;
  //               workQueue.Dispose();
             }
             catch
@@ -191,7 +211,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 repData.meshState = MeshState.loadingAsset;
 
                 repData.comand = meshWorkerCmnds.getmesh;
-                workQueue.Add(repData);
+                Enqueue(repData);
             }
         }
 
@@ -237,7 +257,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (needsMeshing(repData)) // no need for pbs now?
                 {
                     repData.comand = meshWorkerCmnds.changefull;
-                    workQueue.Add(repData);
+                    Enqueue(repData);
                 }
             }
             else
