@@ -41,11 +41,10 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private BlockingCollection<PollServiceHttpRequest> m_requests = new BlockingCollection<PollServiceHttpRequest>();
         private ConcurrentQueue<PollServiceHttpRequest> m_retryRequests = new ConcurrentQueue<PollServiceHttpRequest>();
 
-        private uint m_WorkerThreadCount = 0;
-        private Thread[] m_workerThreads;
+        private int m_WorkerThreadCount = 0;
+        private ObjectJobEngine m_workerPool;
         private Thread m_retrysThread;
 
         private bool m_running = false;
@@ -53,8 +52,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public PollServiceRequestManager(
             bool performResponsesAsync, uint pWorkerThreadCount, int pTimeout)
         {
-            m_WorkerThreadCount = pWorkerThreadCount;
-            m_workerThreads = new Thread[m_WorkerThreadCount];
+            m_WorkerThreadCount = (int)pWorkerThreadCount;
         }
 
         public void Start()
@@ -62,22 +60,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             if(m_running)
                 return;
             m_running = true;
-            //startup worker threads
-            for (uint i = 0; i < m_WorkerThreadCount; i++)
-            {
-                m_workerThreads[i]
-                    = WorkManager.StartThread(
-                        PoolWorkerJob,
-                        string.Format("PollServiceWorkerThread {0}", i),
-                        ThreadPriority.Normal,
-                        true,
-                        false,
-                        null,
-                        int.MaxValue);
-            }
+            m_workerPool = new ObjectJobEngine(PoolWorkerJob, "PollServiceWorker", 4000, m_WorkerThreadCount);
 
             m_retrysThread = WorkManager.StartThread(
-                this.CheckRetries,
+                CheckRetries,
                 string.Format("PollServiceWatcherThread"),
                 ThreadPriority.Normal,
                 true,
@@ -95,7 +81,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Enqueue(PollServiceHttpRequest req)
         {
             if(m_running)
-                m_requests.Add(req);
+                m_workerPool.Enqueue(req);
         }
 
         private void CheckRetries()
@@ -106,7 +92,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 Thread.Sleep(100);
                 Watchdog.UpdateThread();
                 while (m_running && m_retryRequests.TryDequeue(out preq))
-                    m_requests.Add(preq);
+                    m_workerPool.Enqueue(preq);
             }
         }
 
@@ -119,96 +105,78 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             Thread.Sleep(100); // let the world move
 
-            foreach (Thread t in m_workerThreads)
-                Watchdog.AbortThread(t.ManagedThreadId);
-
-            PollServiceHttpRequest req;
             try
             {
-                while (m_retryRequests.TryDequeue(out req))
+                while (m_retryRequests.TryDequeue(out PollServiceHttpRequest req))
                     req.DoHTTPstop();
             }
             catch
             {
             }
 
-            try
-            {
-                while(m_requests.TryTake(out req, 0))
-                    req.DoHTTPstop();
-            }
-            catch
-            {
-            }
-            m_requests.Dispose();
+            int count = 10;
+            while(-- count > 0 && m_workerPool.Count > 0)
+                Thread.Sleep(100);
+
+            m_workerPool.Dispose();
+            m_workerPool = null;
         }
 
         // work threads
 
-        private void PoolWorkerJob()
+        private void PoolWorkerJob(object o)
         {
-            PollServiceHttpRequest req;
-            while (m_running)
+            PollServiceHttpRequest req = o as PollServiceHttpRequest;
+            if(req == null)
+                return;
+            try
             {
-                try
+                if (!req.Request.Context.CanSend())
                 {
-                    req = null;
-                    if (!m_requests.TryTake(out req, 4500) || req == null)
+                    req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
+                    return;
+                }
+
+                if(!m_running)
+                {
+                    req.DoHTTPstop();
+                    return;
+                }
+
+                if (req.Request.Context.IsSending())
+                {
+                    ReQueueEvent(req);
+                    return;
+                }
+
+                if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                {
+                    try
                     {
-                        Watchdog.UpdateThread();
-                        continue;
+                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
+                        req.DoHTTPGruntWork(responsedata);
                     }
-
-                    Watchdog.UpdateThread();
-
-                    if (!req.Request.Context.CanSend())
-                    {
-                        req.PollServiceArgs.Drop(req.RequestID, req.PollServiceArgs.Id);
-                        continue;
-                    }
-
-                    if (req.Request.Context.IsSending())
-                    {
-                        ReQueueEvent(req);
-                        continue;
-                    }
-
-                    if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
+                    catch { }
+                }
+                else
+                {
+                    if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
                     {
                         try
                         {
-                            Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id);
-                            req.DoHTTPGruntWork(responsedata);
+                            req.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
                         }
                         catch { }
                     }
                     else
                     {
-                        if ((Environment.TickCount - req.RequestTime) > req.PollServiceArgs.TimeOutms)
-                        {
-                            try
-                            {
-                                req.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id));
-                            }
-                            catch { }
-                        }
-                        else
-                        {
-                            ReQueueEvent(req);
-                        }
+                        ReQueueEvent(req);
                     }
                 }
-                catch (ThreadAbortException)
-                {
-                    Thread.ResetAbort();
-                    // Shouldn't set this to 'false', the normal shutdown should cause things to exit
-                    // but robust is still not normal neither is mono
-                    m_running = false;
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
-                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
             }
         }
     }
