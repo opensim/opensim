@@ -493,6 +493,7 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)(PermissionMask.Move | PermissionMask.Transfer);
         private PrimFlags m_flags = PrimFlags.None;
+        private PrimFlags m_localFlags = PrimFlags.None;
         private DateTime m_expires;
         private DateTime m_rezzed;
         private bool m_createSelected = false;
@@ -2501,7 +2502,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GetEffectiveObjectFlags()
         {
-            uint eff = (uint)m_flags;
+            uint eff = (uint)(m_flags | m_localFlags);
             if(m_inventory == null || m_inventory.Count == 0)
                 eff |= (uint)PrimFlags.InventoryEmpty;
             return eff;
@@ -5333,8 +5334,7 @@ namespace OpenSim.Region.Framework.Scenes
                 objectflagupdate |= (uint) PrimFlags.AllowInventoryDrop;
             }
 
-            m_flags &= ~(PrimFlags.Touch | PrimFlags.Money | PrimFlags.AllowInventoryDrop);
-            m_flags |= (PrimFlags)objectflagupdate;
+            m_localFlags |= (PrimFlags)objectflagupdate;
 
             if (ParentGroup != null && ParentGroup.RootPart == this)
             {
