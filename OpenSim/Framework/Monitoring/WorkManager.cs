@@ -225,10 +225,6 @@ namespace OpenSim.Framework.Monitoring
             else if (subCommand == "status")
             {
                 MainConsole.Instance.Output("Job engine running: {0}", JobEngine.IsRunning);
-
-                JobEngine.Job job = JobEngine.CurrentJob;
-                MainConsole.Instance.Output("Current job {0}", job != null ? job.Name : "none");
-
                 MainConsole.Instance.Output(
                     "Jobs waiting: {0}", JobEngine.IsRunning ? JobEngine.JobsWaiting.ToString() : "n/a");
                 MainConsole.Instance.Output("Log Level: {0}", JobEngine.LogLevel);
