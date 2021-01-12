@@ -6021,16 +6021,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return 1;
         }
 
-        public void osParticleSystem(LSL_List rules, LSL_Integer expire)
+        public void osParticleSystem(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
 
             InitLSL();
             if (m_LSL_Api != null)
-                m_LSL_Api.SetParticleSystem(m_host, rules, "osParticleSystem", expire == 1);
+                m_LSL_Api.SetParticleSystem(m_host, rules, "osParticleSystem", true);
         }
 
-        public void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules, LSL_Integer expire)
+        public void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules)
         {
             InitLSL();
             if (m_LSL_Api != null)
@@ -6039,7 +6039,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 foreach (SceneObjectPart part in parts)
                 {
-                    m_LSL_Api.SetParticleSystem(part, rules, "osLinkParticleSystem", expire == 1);
+                    m_LSL_Api.SetParticleSystem(part, rules, "osLinkParticleSystem", true);
                 }
             }
         }
