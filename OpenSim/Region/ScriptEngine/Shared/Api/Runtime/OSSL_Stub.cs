@@ -1533,5 +1533,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osResetEnvironment(parcelOrRegion, transition);
         }
+
+        public void osParticleSystem(LSL_List rules, LSL_Integer expire)
+        {
+            m_OSSL_Functions.osParticleSystem(rules, expire);
+        }
+
+        public void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules, LSL_Integer expire)
+        {
+            m_OSSL_Functions.osLinkParticleSystem(linknumber, rules, expire);
+        }
     }
 }

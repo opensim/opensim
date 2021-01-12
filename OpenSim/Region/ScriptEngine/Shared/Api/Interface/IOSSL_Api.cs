@@ -576,15 +576,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         vector osGetLinkStandTarget(LSL_Integer linkNumber);
         LSL_Integer osClearObjectAnimations();
 
-        LSL_Float osGetApparentTime();
+        LSL_Float  osGetApparentTime();
         LSL_String osGetApparentTimeString(LSL_Integer format24);
-        LSL_Float osGetApparentRegionTime();
+        LSL_Float  osGetApparentRegionTime();
         LSL_String osGetApparentRegionTimeString(LSL_Integer format24);
 
         LSL_Integer osReplaceAgentEnvironment(LSL_Key agentkey, LSL_Integer transition, LSL_String daycycle);
         LSL_Integer osReplaceParcelEnvironment(LSL_Integer transition, LSL_String daycycle);
         LSL_Integer osReplaceRegionEnvironment(LSL_Integer transition, LSL_String daycycle,
-           LSL_Float daylen, LSL_Float dayoffset, LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3);
+          LSL_Float daylen, LSL_Float dayoffset, LSL_Float altitude1, LSL_Float altitude2, LSL_Float altitude3);
         LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition);
+
+        void osParticleSystem(LSL_List rules, LSL_Integer expire);
+        void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules, LSL_Integer expire);
     }
 }
