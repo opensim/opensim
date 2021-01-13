@@ -335,7 +335,7 @@ namespace Amib.Threading.Internal
                 {
                     if (_workItemsInStpQueue < _concurrency)
                     {
-                        WorkItem nextWorkItem = _workItemsQueue.Dequeue() as WorkItem;
+                        WorkItem nextWorkItem = _workItemsQueue.Dequeue();
                         try
                         {
                             _stp.Enqueue(nextWorkItem);

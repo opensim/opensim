@@ -540,7 +540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OqrEngine = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
-                    "OUTGOING QUEUE REFILL ENGINE");
+                    "OUTGOING QUEUE REFILL ENGINE", 2000);
 
             StatsManager.RegisterStat(
                 new Stat(
@@ -1225,7 +1225,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            m_log.DebugFormat(
 //                "[LLUDPSERVER]: Packet received from {0} in {1}", buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
-            LLUDPClient udpClient = null;
             Packet packet = null;
             int packetEnd = buffer.DataLength - 1;
             IPEndPoint endPoint = (IPEndPoint)buffer.RemoteEndPoint;
@@ -1307,9 +1306,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Packet to Client Mapping
 
-            // If there is already a client for this endpoint, don't process UseCircuitCode
-            IClientAPI client = null;
-            if (!Scene.TryGetClient(endPoint, out client) || !(client is LLClientView))
+            // usecircuitcode handling
+            if (!Scene.TryGetClient(endPoint, out IClientAPI client) || !(client is LLClientView))
             {
                 // UseCircuitCode handling
                 if (packet.Type == PacketType.UseCircuitCode)
@@ -1363,7 +1361,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            udpClient = ((LLClientView)client).UDPClient;
+            LLUDPClient udpClient = ((LLClientView)client).UDPClient;
 
             if (!udpClient.IsConnected)
             {
@@ -1631,10 +1629,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     "[LLUDPSERVER]: Handling UseCircuitCode request for circuit {0} to {1} from IP {2}",
                     uccp.CircuitCode.Code, Scene.RegionInfo.RegionName, endPoint);
 
-                AuthenticateResponse sessionInfo;
-                if (IsClientAuthorized(uccp, out sessionInfo))
+                if (IsClientAuthorized(uccp, out AuthenticateResponse sessionInfo))
                 {
-                    AgentCircuitData aCircuit = Scene.AuthenticateHandler.GetAgentCircuitData(uccp.CircuitCode.Code);
+                    AgentCircuitData aCircuit = m_circuitManager.GetAgentCircuitData(uccp.CircuitCode.Code);
 
                     // Begin the process of adding the client to the simulator
                     client
