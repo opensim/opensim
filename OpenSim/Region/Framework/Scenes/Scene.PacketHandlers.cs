@@ -323,7 +323,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
                 (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, offsetPos, remoteClient, surfaceArg);
+                if ((obj.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
+                    EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, offsetPos, remoteClient, surfaceArg);
             }
         }
 
@@ -362,7 +363,10 @@ namespace OpenSim.Region.Framework.Scenes
             // or if we're meant to pass on touches anyway.
             if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
                 (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
-                EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
+            {
+                if ((group.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
+                    EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
+            }
         }
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
@@ -384,7 +388,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (((part.ScriptEvents & scriptEvents.touch_end) == 0) ||
                 (part.PassTouches && (part.LocalId != grp.RootPart.LocalId)))
             {
-                EventManager.TriggerObjectDeGrab(grp.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
+                if ((grp.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
+                    EventManager.TriggerObjectDeGrab(grp.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
             }
         }
 

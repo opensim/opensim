@@ -77,9 +77,8 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private static IAssetService m_assetService = null;
         private static GetAssetsHandler m_getAssetHandler;
-        private static Thread[] m_workerThreads = null;
+        private static ObjectJobEngine m_workerpool = null;
         private static int m_NumberScenes = 0;
-        private static BlockingCollection<APollRequest> m_queue = new BlockingCollection<APollRequest>();
         private static object m_loadLock = new object();
         protected IUserManagement m_UserManagement = null;
 
@@ -158,37 +157,17 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_NumberScenes++;
 
-                if (m_workerThreads == null)
-                {
-                    m_workerThreads = new Thread[3];
-                    for (uint i = 0; i < 3; i++)
-                    {
-                        m_workerThreads[i] = WorkManager.StartThread(DoAssetRequests,
-                                String.Format("GetCapsAssetWorker{0}", i),
-                                ThreadPriority.Normal,
-                                true,
-                                false,
-                                null,
-                                int.MaxValue);
-                    }
-                }
+                if (m_workerpool == null)
+                    m_workerpool = new ObjectJobEngine(DoAssetRequests, "GetCapsAssetWorker", 1000, 3);
             }
         }
 
         public void Close()
         {
-            if(m_NumberScenes <= 0 && m_workerThreads != null)
+            if(m_NumberScenes <= 0 && m_workerpool != null)
             {
-                m_log.DebugFormat("[GetAssetsModule] Closing");
-                foreach (Thread t in m_workerThreads)
-                    Watchdog.AbortThread(t.ManagedThreadId);
-                // This will fail on region shutdown. Its harmless.
-                // Prevent red ink.
-                try
-                {
-                    m_queue.Dispose();
-                }
-                catch {}
+                m_workerpool.Dispose();
+                m_workerpool = null;
             }
         }
 
@@ -196,29 +175,13 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
-        private static void DoAssetRequests()
+        private static void DoAssetRequests(object o)
         {
-            try
-            {
-                while (m_NumberScenes > 0)
-                {
-                    APollRequest poolreq;
-                    if (m_queue.TryTake(out poolreq, 4500))
-                    {
-                        if (m_NumberScenes <= 0)
-                            break;
-                        Watchdog.UpdateThread();
-                        if (poolreq.reqID != UUID.Zero)
-                            poolreq.thepoll.Process(poolreq);
-                        poolreq = null;
-                    }
-                    Watchdog.UpdateThread();
-                }
-            }
-            catch (ThreadAbortException)
-            {
-                Thread.ResetAbort();
-            }
+            if (m_NumberScenes <= 0)
+                return;
+            APollRequest poolreq = o as APollRequest;
+            if (poolreq != null && poolreq.reqID != UUID.Zero)
+                poolreq.thepoll.Process(poolreq);
         }
 
         private class PollServiceAssetEventArgs : PollServiceEventArgs
@@ -299,7 +262,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     reqinfo.reqID = requestID;
                     reqinfo.request = request;
 
-                    m_queue.Add(reqinfo);
+                    m_workerpool.Enqueue(reqinfo);
                     return null;
                 };
 

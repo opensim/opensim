@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         protected volatile bool m_Enabled = false;
 
         private ManualResetEvent m_mapBlockRequestEvent = new ManualResetEvent(false);
-        private BlockingCollection<MapRequestState> m_mapItemsRequests = new BlockingCollection<MapRequestState>();
+        private ObjectJobEngine m_mapItemsRequests;
         private readonly Dictionary<UUID, Queue<MapBlockRequestData>> m_mapBlockRequests = new Dictionary<UUID, Queue<MapBlockRequestData>>();
 
         private readonly List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
@@ -357,7 +357,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (!m_threadsRunning)
             {
                 m_threadsRunning = true;
-                WorkManager.StartThread(MapItemsprocess, string.Format("MapItems ({0})", m_regionName));
+                m_mapItemsRequests = new ObjectJobEngine(MapItemsprocess,string.Format("MapItems ({0})", m_regionName));
                 WorkManager.StartThread(MapBlocksProcess, string.Format("MapBlocks ({0})", m_regionName));
             }
         }
@@ -369,7 +369,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             m_threadsRunning = false;
             m_mapBlockRequestEvent.Set();
-            m_mapItemsRequests.Add(null);
+            m_mapItemsRequests.Dispose();
         }
 
         public virtual void HandleMapItemRequest(IClientAPI remoteClient, uint flags,
@@ -638,97 +638,78 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <summary>
         /// Processing thread main() loop for doing remote mapitem requests
         /// </summary>
-        public void MapItemsprocess()
+        public void MapItemsprocess(object o)
         {
+            if (m_scene == null || !m_threadsRunning)
+                return;
+
             const int MAX_ASYNC_REQUESTS = 5;
             ScenePresence av = null;
-            MapRequestState st = null;
+            MapRequestState st = o as MapRequestState;
+
+            if (st == null || st.agentID == UUID.Zero)
+                return;
+
+            if (m_blacklistedregions.ContainsKey(st.regionhandle))
+                return;
+            if (!m_scene.TryGetScenePresence(st.agentID, out av))
+                return;
+            if (av == null || av.IsChildAgent || av.IsDeleted || av.IsInTransit)
+                return;
 
             try
             {
-                while (true)
+                if (m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out OSDMap responseMap))
                 {
-                    av = null;
-                    st = null;
-
-                    m_mapItemsRequests.TryTake(out st, 4500);
-                    Watchdog.UpdateThread();
-
-                    if (m_scene == null || !m_threadsRunning)
-                        break;
-
-                    if (st == null || st.agentID == UUID.Zero)
-                        continue;
-
-                    if(!m_scene.TryGetScenePresence(st.agentID, out av))
-                        continue;
-                    if (av == null || av.IsChildAgent || av.IsDeleted || av.IsInTransit)
-                        continue;
-
-                    if(m_blacklistedregions.ContainsKey(st.regionhandle))
-                        continue;
-
-                    if (m_cachedRegionMapItemsResponses.TryGetValue(st.regionhandle, out OSDMap responseMap))
+                    if (responseMap != null)
                     {
-                        if (responseMap != null)
+                        if (responseMap.ContainsKey(st.itemtype.ToString()))
                         {
-                            if (responseMap.ContainsKey(st.itemtype.ToString()))
+                            List<mapItemReply> returnitems = new List<mapItemReply>();
+                            OSDArray itemarray = (OSDArray)responseMap[st.itemtype.ToString()];
+                            for (int i = 0; i < itemarray.Count; i++)
                             {
-                                List<mapItemReply> returnitems = new List<mapItemReply>();
-                                OSDArray itemarray = (OSDArray)responseMap[st.itemtype.ToString()];
-                                for (int i = 0; i < itemarray.Count; i++)
-                                {
-                                    OSDMap mapitem = (OSDMap)itemarray[i];
-                                    mapItemReply mi = new mapItemReply();
-                                    mi.x = (uint)mapitem["X"].AsInteger();
-                                    mi.y = (uint)mapitem["Y"].AsInteger();
-                                    mi.id = mapitem["ID"].AsUUID();
-                                    mi.Extra = mapitem["Extra"].AsInteger();
-                                    mi.Extra2 = mapitem["Extra2"].AsInteger();
-                                    mi.name = mapitem["Name"].AsString();
-                                    returnitems.Add(mi);
-                                }
-                                av.ControllingClient.SendMapItemReply(returnitems.ToArray(), st.itemtype, st.flags & 0xffff);
+                                OSDMap mapitem = (OSDMap)itemarray[i];
+                                mapItemReply mi = new mapItemReply();
+                                mi.x = (uint)mapitem["X"].AsInteger();
+                                mi.y = (uint)mapitem["Y"].AsInteger();
+                                mi.id = mapitem["ID"].AsUUID();
+                                mi.Extra = mapitem["Extra"].AsInteger();
+                                mi.Extra2 = mapitem["Extra2"].AsInteger();
+                                mi.name = mapitem["Name"].AsString();
+                                returnitems.Add(mi);
                             }
-                        }
-                        else
-                        {
-                            m_mapItemsRequests.Add(st);
-                            if(m_mapItemsRequests.Count<3)
-                                Thread.Sleep(100);
-                            if (m_scene == null || !m_threadsRunning)
-                                    break;
+                            av.ControllingClient.SendMapItemReply(returnitems.ToArray(), st.itemtype, st.flags & 0xffff);
                         }
                     }
                     else
                     {
-                        m_cachedRegionMapItemsResponses.AddOrUpdate(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
-
-                        // nothig for region, fire a request
-                        Interlocked.Increment(ref nAsyncRequests);
-                        MapRequestState rst = st;
-                        Util.FireAndForget(x =>
-                        {
-                            RequestMapItemsAsync(rst);
-                        });
+                        m_mapItemsRequests.Enqueue(st);
+                        if (m_mapItemsRequests.Count < 3)
+                            Thread.Sleep(100);
                     }
+                }
+                else
+                {
+                    m_cachedRegionMapItemsResponses.AddOrUpdate(st.regionhandle, null, expireResponsesTime); //  a bit more time for the access
 
-                    while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                    // nothig for region, fire a request
+                    Interlocked.Increment(ref nAsyncRequests);
+                    MapRequestState rst = st;
+                    Util.FireAndForget(x =>
                     {
-                        Thread.Sleep(100);
-                        if (m_scene == null || !m_threadsRunning)
-                            break;
-                        Watchdog.UpdateThread();
-                    }
+                        RequestMapItemsAsync(rst);
+                    });
+                }
+
+                while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                {
+                    Thread.Sleep(100);
                     if (m_scene == null || !m_threadsRunning)
                         break;
                 }
             }
-            catch
-            {
-            }
-
-            Watchdog.RemoveThread();
+            catch { }
         }
 
         /// <summary>
@@ -742,6 +723,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="regionhandle">Region we're looking up</param>
         public void RequestMapItems(UUID id, uint flags, uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
+            if(!m_threadsRunning)
+                return;
+
             MapRequestState st = new MapRequestState();
             st.agentID = id;
             st.flags = flags;
@@ -749,7 +733,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             st.godlike = godlike;
             st.itemtype = itemtype;
             st.regionhandle = regionhandle;
-            m_mapItemsRequests.Add(st);
+            m_mapItemsRequests.Enqueue(st);
         }
 
         private static readonly uint[] itemTypesForcedSend = new uint[] { 6, 1, 7, 10 }; // green dots, infohub, land sells
@@ -1574,6 +1558,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (m_mapImageServiceModule != null)
                     m_mapImageServiceModule.UploadMapTile(m_scene, mapbmp);
             }
+        }
+
+        public void DeregisterMap()
+        {
+            //if (m_mapImageServiceModule != null)
+            //    m_mapImageServiceModule.RemoveMapTiles(m_scene);
         }
 
         private void GenerateMaptile(Bitmap mapbmp)

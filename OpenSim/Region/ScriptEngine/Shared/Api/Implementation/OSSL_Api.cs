@@ -5647,6 +5647,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return LSL_Rotation.Slerp(a, b, amount);
         }
 
+        public LSL_Vector osSlerp(LSL_Vector a, LSL_Vector b, LSL_Float amount)
+        {
+            if (amount < 0)
+                amount = 0;
+            else if (amount > 1.0)
+                amount = 1.0;
+
+            return LSL_Vector.Slerp(a, b, amount);
+        }
+
         public void osResetAllScripts(LSL_Integer linkset)
         {
             UUID me = m_item.ItemID;
@@ -6010,5 +6020,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_envModule.WindlightRefresh(transition);
             return 1;
         }
+
+        public void osParticleSystem(LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+
+            InitLSL();
+            if (m_LSL_Api != null)
+                m_LSL_Api.SetParticleSystem(m_host, rules, "osParticleSystem", true);
+        }
+
+        public void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules)
+        {
+            InitLSL();
+            if (m_LSL_Api != null)
+            {
+                List<SceneObjectPart> parts = m_LSL_Api.GetLinkParts(linknumber);
+
+                foreach (SceneObjectPart part in parts)
+                {
+                    m_LSL_Api.SetParticleSystem(part, rules, "osLinkParticleSystem", true);
+                }
+            }
+        }
+
     }
 }

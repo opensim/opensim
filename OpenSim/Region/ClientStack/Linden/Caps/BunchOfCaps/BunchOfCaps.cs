@@ -2288,7 +2288,7 @@ namespace OpenSim.Region.ClientStack.Linden
             NameValueCollection query = httpRequest.QueryString;
             string[] ids = query.GetValues("ids");
 
-            Dictionary<UUID,string> names = m_UserManager.GetUsersNames(ids, m_scopeID);
+            Dictionary<UUID,string> names = m_UserManager.GetKnownUserNames(ids, m_scopeID);
             osUTF8 lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
             LLSDxmlEncode2.AddMap(lsl);
             int ct = 0;

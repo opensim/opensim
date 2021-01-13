@@ -1080,9 +1080,8 @@ namespace OpenSim.Groups
             msg.imSessionID = groupNoticeID.Guid;
             msg.toAgentID = agentID.Guid;
             msg.dialog = dialog;
-            // msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupNotice;
             msg.fromGroup = true;
-            msg.offline = (byte)0;
+            msg.offline = (byte)1;
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = UUID.Zero.Guid;
@@ -1094,23 +1093,24 @@ namespace OpenSim.Groups
                 msg.timestamp = info.noticeData.Timestamp;
                 msg.fromAgentName = info.noticeData.FromName;
                 msg.message = info.noticeData.Subject + "|" + info.Message;
+
                 if (info.noticeData.HasAttachment)
                 {
                     byte[] name = System.Text.Encoding.UTF8.GetBytes(info.noticeData.AttachmentName);
                     bucket = new byte[19 + name.Length];
                     bucket[0] = 1; // has attachment?
                     bucket[1] = info.noticeData.AttachmentType; // attachment type
-                    info.GroupID.ToBytes(bucket, 2);
                     name.CopyTo(bucket, 18);
                 }
                 else
                 {
                     bucket = new byte[19];
-                    bucket[0] = 0; // Has att?
-                    bucket[1] = 0; // type
-                    bucket[18] = 0; // null terminated
+                    bucket[0] = 0;      //No attachment
+                    bucket[1] = 0;      //Attachment type
+                    bucket[18] = 0;     //NUL terminate name
                 }
 
+                info.GroupID.ToBytes(bucket, 2);
                 msg.binaryBucket = bucket;
             }
             else

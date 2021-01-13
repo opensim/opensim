@@ -361,7 +361,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //  }
                 AssemblyName assemblyName = new AssemblyName();
                 assemblyName.Name = "XMRInstanceSuperAssembly";
-                AssemblyBuilder assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
                 ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule("XMRInstanceSuperModule");
                 TypeBuilder typeBuilder = moduleBuilder.DefineType("XMRInstanceSuperType", TypeAttributes.Public | TypeAttributes.Class);
                 typeBuilder.SetParent(typeof(XMRInstance));

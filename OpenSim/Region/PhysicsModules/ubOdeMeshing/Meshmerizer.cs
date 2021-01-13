@@ -1408,24 +1408,28 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
         }
 
+        private static DateTime lastExpireTime = DateTime.MinValue;
         public void ExpireFileCache()
         {
             if (!doCacheExpire)
                 return;
 
-            string controlfile = System.IO.Path.Combine(cachePath, cacheControlFilename);
-
             lock (diskLock)
             {
                 try
                 {
+                    DateTime now = DateTime.UtcNow;
+                    if(now.Subtract(lastExpireTime).TotalMinutes < 10.0)
+                        return;
+                    lastExpireTime = now;
+                    string controlfile = System.IO.Path.Combine(cachePath, cacheControlFilename);
                     if (File.Exists(controlfile))
                     {
                         int ndeleted = 0;
                         int totalfiles = 0;
                         int ndirs = 0;
                         DateTime OlderTime = File.GetLastAccessTimeUtc(controlfile) - CacheExpire;
-                        File.SetLastAccessTimeUtc(controlfile, DateTime.UtcNow);
+                        File.SetLastAccessTimeUtc(controlfile, now);
 
                         foreach (string dir in Directory.GetDirectories(cachePath))
                         {
