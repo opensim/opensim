@@ -3114,7 +3114,6 @@ namespace OpenSim.Framework
                     finally
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
-                        threadInfo.Ended();
                         activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
                         if (loggingEnabled && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
@@ -3125,7 +3124,7 @@ namespace OpenSim.Framework
                 };
             }
 
-            long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
+            Interlocked.Increment(ref numQueuedThreadFuncs);
             try
             {
                 threadInfo.LogThread = false;

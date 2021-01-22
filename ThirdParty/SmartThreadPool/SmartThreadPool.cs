@@ -665,6 +665,7 @@ namespace Amib.Threading
             // of the dictionary.
             CurrentThreadEntry = _workerThreads[Thread.CurrentThread];
 
+            bool informedCompleted = false;
             FireOnThreadInitialization();
 
             try
@@ -689,7 +690,8 @@ namespace Amib.Threading
                                 // This method must be called within this lock or else
                                 // more threads will quit and the thread pool will go
                                 // below the lower limit.
-                                //InformCompleted();
+                                InformCompleted();
+                                informedCompleted = true;
                                 break;
                             }
                         }
@@ -699,7 +701,6 @@ namespace Amib.Threading
 
                     // Wait for a work item, shutdown, or timeout
                     WorkItem workItem = Dequeue();
-
 
                     // On timeout or shut down.
                     if (workItem == null)
@@ -715,7 +716,8 @@ namespace Amib.Threading
                                     // This method must be called within this lock or else
                                     // more threads will quit and the thread pool will go
                                     // below the lower limit.
-                                    //InformCompleted();
+                                    InformCompleted();
+                                    informedCompleted = true;
                                     break;
                                 }
                             }
@@ -814,7 +816,8 @@ namespace Amib.Threading
             }
             finally
             {
-                InformCompleted();
+                if(!informedCompleted)
+                    InformCompleted();
                 FireOnThreadTermination();
                 _workItemsQueue.CloseThreadWaiter();
             }

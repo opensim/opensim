@@ -185,21 +185,23 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 return UUID.Zero;
             }
 
-            npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0,
-                    int.MaxValue);
+            agentID = npcAvatar.AgentId;
+            uint circuit = (uint)Util.RandomClass.Next(0, int.MaxValue);
+            npcAvatar.CircuitCode = circuit;
 
-//            m_log.DebugFormat(
-//                "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
-//                firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
+            //m_log.DebugFormat(
+            //    "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
+            //    firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
 
-            AgentCircuitData acd = new AgentCircuitData();
-            acd.AgentID = npcAvatar.AgentId;
-            acd.firstname = firstname;
-            acd.lastname = lastname;
-            acd.ServiceURLs = new Dictionary<string, object>();
-
-            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
-            acd.Appearance = npcAppearance;
+            AgentCircuitData acd = new AgentCircuitData()
+            {
+                circuitcode = circuit,
+                AgentID = agentID,
+                firstname = firstname,
+                lastname = lastname,
+                ServiceURLs = new Dictionary<string, object>(),
+                Appearance = new AvatarAppearance(appearance, true)
+            };
 
             /*
             for (int i = 0;
@@ -212,32 +214,25 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
             */
 
-//            ManualResetEvent ev = new ManualResetEvent(false);
+            lock (m_avatars)
+            {
+                scene.AuthenticateHandler.AddNewCircuit(acd);
+                scene.AddNewAgent(npcAvatar, PresenceType.Npc);
 
-//            Util.FireAndForget(delegate(object x) {
-                lock (m_avatars)
+                if (scene.TryGetScenePresence(agentID, out ScenePresence sp))
                 {
-                    scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
-                    scene.AddNewAgent(npcAvatar, PresenceType.Npc);
-
-                    if (scene.TryGetScenePresence(npcAvatar.AgentId, out ScenePresence sp))
-                    {
-                        npcAvatar.Born = born;
-                        npcAvatar.ActiveGroupId = groupID;
-                        sp.CompleteMovement(npcAvatar, false);
-                        sp.Grouptitle = groupTitle;
-                        m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-//                        m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
-                    }
+                    npcAvatar.Born = born;
+                    npcAvatar.ActiveGroupId = groupID;
+                    sp.CompleteMovement(npcAvatar, false);
+                    sp.Grouptitle = groupTitle;
+                    m_avatars.Add(agentID, npcAvatar);
+                    //m_log.DebugFormat("[NPC MODULE]: Created NPC {0} {1}", npcAvatar.AgentId, sp.Name);
                 }
-//                ev.Set();
-//            });
-
-//            ev.WaitOne();
+            }
 
 //            m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
 
-            return npcAvatar.AgentId;
+            return agentID;
         }
 
         public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos,
@@ -253,10 +248,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                         if (sp.IsSatOnObject || sp.SitGround)
                             return false;
 
-//                        m_log.DebugFormat(
-//                                "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
-//                                sp.Name, pos, scene.RegionInfo.RegionName,
-//                                noFly, landAtTarget);
+                    //m_log.DebugFormat(
+                    //        "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+                    //        sp.Name, pos, scene.RegionInfo.RegionName,
+                    //        noFly, landAtTarget);
 
                         sp.MoveToTarget(pos, noFly, landAtTarget, running);
 
