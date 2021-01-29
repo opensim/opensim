@@ -111,9 +111,15 @@ namespace Prebuild.Core.Nodes
 		/// </summary>
 		v4_6_1,
 		v4_6_2,
+		/// <summary>
+		/// .NET 4.7
+		/// </summary>
 		v4_7,
 		v4_7_1,
 		v4_7_2,
+		/// <summary>
+		/// .NET 4.8
+		/// </summary>
 		v4_8
 	}
 	/// <summary>
