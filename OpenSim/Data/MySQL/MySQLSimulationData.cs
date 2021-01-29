@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Reflection;
+using System.Text;
 using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
@@ -260,16 +261,7 @@ namespace OpenSim.Data.MySQL
         {
 //            m_log.DebugFormat("[REGION DB]: Deleting scene object {0} from {1} in database", obj, regionUUID);
 
-            List<UUID> uuids = new List<UUID>();
-
-            // Formerly, this used to check the region UUID.
-            // That makes no sense, as we remove the contents of a prim
-            // unconditionally, but the prim dependent on the region ID.
-            // So, we would destroy an object and cause hard to detect
-            // issues if we delete the contents only. Deleting it all may
-            // cause the loss of a prim, but is cleaner.
-            // It's also faster because it uses the primary key.
-            //
+            List<string> uuids = new List<string>();
             lock (m_dbLock)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -284,128 +276,48 @@ namespace OpenSim.Data.MySQL
                         using (IDataReader reader = ExecuteReader(cmd))
                         {
                             while (reader.Read())
-                                uuids.Add(DBGuid.FromDB(reader["UUID"].ToString()));
+                                uuids.Add(reader["UUID"].ToString());
+                        }
+
+                        if(uuids.Count == 0)
+                        {
+                            dbcon.Close();
+                            return;
                         }
 
                         // delete the main prims
                         cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
                         ExecuteNonQuery(cmd);
-                    }
-                    dbcon.Close();
-                }
-            }
 
-            // there is no way this should be < 1 unless there is
-            // a very corrupt database, but in that case be extra
-            // safe anyway.
-            if (uuids.Count > 0)
-            {
-                RemoveShapes(uuids);
-                RemoveItems(uuids);
-            }
-        }
+                        cmd.Parameters.Clear();
 
-        /// <summary>
-        /// Remove all persisted items of the given prim.
-        /// The caller must acquire the necessrary synchronization locks
-        /// </summary>
-        /// <param name="uuid">the Item UUID</param>
-        private void RemoveItems(UUID uuid)
-        {
-            // locked by caller
-//            lock (m_dbLock)
-            {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        cmd.CommandText = "delete from primitems where PrimID = ?PrimID";
-                        cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
-
-                        ExecuteNonQuery(cmd);
-                    }
-                    dbcon.Close();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Remove all persisted shapes for a list of prims
-        /// The caller must acquire the necessrary synchronization locks
-        /// </summary>
-        /// <param name="uuids">the list of UUIDs</param>
-        private void RemoveShapes(List<UUID> uuids)
-        {
-            lock (m_dbLock)
-            {
-                string sql = "delete from primshapes where ";
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        for (int i = 0; i < uuids.Count; i++)
+                        string sqlparams;
+                        if (uuids.Count > 1)
                         {
-                            if ((i + 1) == uuids.Count)
-                            {// end of the list
-                                sql += "(UUID = ?UUID" + i + ")";
-                            }
-                            else
+                            StringBuilder sb = new StringBuilder(uuids.Count * 39 + 5);
+                            sb.Append("IN (");
+                            for(int i = 0; i < uuids.Count - 1; ++i )
                             {
-                                sql += "(UUID = ?UUID" + i + ") or ";
+                                sb.Append("'");
+                                sb.Append(uuids[i]);
+                                sb.Append("',");
                             }
+                            sb.Append("'");
+                            sb.Append(uuids[uuids.Count - 1]);
+                            sb.Append("')");
+                            sqlparams = sb.ToString();
                         }
-                        cmd.CommandText = sql;
+                        else
+                            sqlparams = "='" + uuids[0] + "'";
 
-                        for (int i = 0; i < uuids.Count; i++)
-                            cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
-
+                        cmd.CommandText = "delete from primshapes where UUID " + sqlparams;
                         ExecuteNonQuery(cmd);
-                    }
-                    dbcon.Close();
-                }
-            }
-        }
 
-        /// <summary>
-        /// Remove all persisted items for a list of prims
-        /// The caller must acquire the necessrary synchronization locks
-        /// </summary>
-        /// <param name="uuids">the list of UUIDs</param>
-        private void RemoveItems(List<UUID> uuids)
-        {
-            lock (m_dbLock)
-            {
-                string sql = "delete from primitems where ";
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        for (int i = 0; i < uuids.Count; i++)
-                        {
-                            if ((i + 1) == uuids.Count)
-                            {
-                                // end of the list
-                                sql += "(PrimID = ?PrimID" + i + ")";
-                            }
-                            else
-                            {
-                                sql += "(PrimID = ?PrimID" + i + ") or ";
-                            }
-                        }
-                        cmd.CommandText = sql;
-
-                        for (int i = 0; i < uuids.Count; i++)
-                            cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
-
+                        cmd.CommandText = "delete from primitems where primID " + sqlparams;
                         ExecuteNonQuery(cmd);
+
+                        dbcon.Close();
                     }
-                    dbcon.Close();
                 }
             }
         }
@@ -1669,6 +1581,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+
             if (prim.AttachedPos != null)
             {
                 cmd.Parameters.AddWithValue("AttachedPosX", prim.AttachedPos.X);
@@ -1974,17 +1887,24 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dbLock)
             {
-                RemoveItems(primID);
-
-                if (items.Count == 0)
-                    return;
-
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
 
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
+                        cmd.CommandText = "delete from primitems where primID = ?PrimID";
+                        cmd.Parameters.AddWithValue("primID", primID.ToString());
+
+                        ExecuteNonQuery(cmd);
+
+                        if (items.Count == 0)
+                        {
+                            dbcon.Close();
+                            return;
+                        }
+
+                        cmd.Parameters.Clear();
                         cmd.CommandText = "insert into primitems (" +
                                 "invType, assetType, name, " +
                                 "description, creationDate, nextPermissions, " +

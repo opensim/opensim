@@ -120,10 +120,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public EstateSettings CreateNewEstate()
+        public EstateSettings CreateNewEstate(int estateID)
         {
             EstateSettings es = new EstateSettings();
+
             es.OnSave += StoreEstateSettings;
+            es.EstateID = Convert.ToUInt32(estateID);
 
             DoCreate(es);
 
@@ -193,7 +195,9 @@ namespace OpenSim.Data.MySQL
             // Migration case
             List<string> names = new List<string>(FieldList);
 
-            names.Remove("EstateID");
+            // Remove EstateID and use AutoIncrement
+            if (es.EstateID < 100)
+                names.Remove("EstateID");
 
             string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
 
@@ -222,16 +226,20 @@ namespace OpenSim.Data.MySQL
 
                     cmd2.ExecuteNonQuery();
 
-                    cmd2.CommandText = "select LAST_INSERT_ID() as id";
-                    cmd2.Parameters.Clear();
-
-                    using (IDataReader r = cmd2.ExecuteReader())
+                    // Only get Auto ID if we actually used it else we just get 0
+                    if (es.EstateID < 100)
                     {
-                        r.Read();
-                        es.EstateID = Convert.ToUInt32(r["id"]);
-                    }
+                        cmd2.CommandText = "select LAST_INSERT_ID() as id";
+                        cmd2.Parameters.Clear();
 
-                    es.Save();
+                        using (IDataReader r = cmd2.ExecuteReader())
+                        {
+                            r.Read();
+                            es.EstateID = Convert.ToUInt32(r["id"]);
+                        }
+
+                        es.Save();
+                    }
                 }
                 dbcon.Close();
             }

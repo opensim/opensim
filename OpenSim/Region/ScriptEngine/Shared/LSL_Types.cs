@@ -366,6 +366,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new Vector3(0, 0, 0);
             }
 
+            public static Vector3 Slerp(Vector3 v1, Vector3 v2, double amount)
+            {
+                double angle = (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z);
+                double scale;
+                double invscale;
+
+                if (angle < 0.999f)
+                {
+                    angle = Math.Acos(angle);
+                    invscale = 1.0f / Math.Sin(angle);
+                    scale = Math.Sin((1.0f - amount) * angle) * invscale;
+                    invscale *= Math.Sin((amount * angle));
+                }
+                else
+                {
+                    scale = 1.0f - amount;
+                    invscale = amount;
+                }
+                return new Vector3(
+                    v1.x * scale + v2.x * invscale,
+                    v1.y * scale + v2.y * invscale,
+                    v1.z * scale + v2.z * invscale
+                );
+            }
             #endregion
         }
 

@@ -50,12 +50,12 @@ namespace OpenSim.Services.Interfaces
         EstateSettings LoadEstateSettings(int estateID);
 
         /// <summary>
-        /// Create a new estate.
+        /// Create a new estate. Zero estateID for auto increment id
         /// </summary>
         /// <returns>
         /// A <see cref="EstateSettings"/>
         /// </returns>
-        EstateSettings CreateNewEstate();
+        EstateSettings CreateNewEstate(int estateID = 0);
 
         /// <summary>
         /// Load/Get all estate settings.
@@ -74,7 +74,7 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Get estate IDs.
         /// </summary>
-        /// <param name="search">Name of estate to search for.  This is the exact name, no parttern matching is done.</param>
+        /// <param name="search">Name of estate to search for.  This is the exact name, no pattern matching is done.</param>
         /// <returns></returns>
         List<int> GetEstates(string search);
 

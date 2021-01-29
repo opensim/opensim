@@ -197,7 +197,7 @@ namespace OpenSim.Services.Connectors
 
             using (RestClient rc = new RestClient(m_ServerURI))
             {
-                rc.AddResourcePath("assets/" + id + "/Data");
+                rc.AddResourcePath("assets/" + id + "/data");
                 rc.RequestMethod = "GET";
 
                 using (MemoryStream s = rc.Request(m_Auth))

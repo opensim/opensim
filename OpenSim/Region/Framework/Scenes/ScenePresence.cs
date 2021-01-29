@@ -1620,7 +1620,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static bool IsRealLogin(TeleportFlags teleportFlags)
         {
-            return ((teleportFlags & TeleportFlags.ViaLogin) != 0) && ((teleportFlags & TeleportFlags.ViaHGLogin) == 0);
+            return (teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaHGLogin)) == TeleportFlags.ViaLogin;
         }
 
         /// <summary>
@@ -2849,7 +2849,7 @@ namespace OpenSim.Region.Framework.Scenes
                             // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
                             // certain position.  It's only check for tolerance on returning to that position is 0.2
                             // rather than 1, at which point it removes its force target.
-                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2f : 1f, ref agent_control_v3))
+                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2f : 0.5f, ref agent_control_v3))
                                 update_movementflag = true;
                         }
                     }
@@ -3269,7 +3269,7 @@ namespace OpenSim.Region.Framework.Scenes
             Flying = shouldfly;
 
             Vector3 control = Vector3.Zero;
-            if(HandleMoveToTargetUpdate(1f, ref control))
+            if(HandleMoveToTargetUpdate(0.5f, ref control))
                 AddNewMovement(control);
         }
 
@@ -3291,6 +3291,8 @@ namespace OpenSim.Region.Framework.Scenes
             // However, the line is here rather than in the NPC module since it also appears necessary to stop a
             // viewer that uses "go here" from juddering on all subsequent avatar movements.
             AgentControlFlags = (uint)AgentManager.ControlFlags.NONE;
+            if(IsNPC)
+                Animator.UpdateMovementAnimations();
         }
 
         /// <summary>
@@ -3974,7 +3976,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
-                if(HandleMoveToTargetUpdate(1f, ref control))
+                if(HandleMoveToTargetUpdate(0.5f, ref control))
                     AddNewMovement(control);
             }
             else if(m_delayedStop > 0)

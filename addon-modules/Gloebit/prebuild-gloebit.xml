@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<Project frameworkVersion="v4_8" name="Gloebit" path="addon-modules/Gloebit/GloebitMoneyModule" type="Library">
+  <Configuration name="Debug">
+    <Options>
+      <OutputPath>../../../bin/</OutputPath>
+    </Options>
+  </Configuration>
+  <Configuration name="Release">
+    <Options>
+      <OutputPath>../../../bin/</OutputPath>
+    </Options>
+  </Configuration>
+ 
+  <ReferencePath>../../../bin/</ReferencePath>
+  <Reference name="System"/>
+  <Reference name="System.Web"/>
+  <Reference name="System.Data"/>
+  <Reference name="System.Xml"/>
+  <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+  <Reference name="OpenMetaverse" path="../../../bin/"/>
+  <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+  <Reference name="Nini" path="../../../bin/"/>
+  <Reference name="log4net" path="../../../bin/"/>
+  <Reference name="MySql.Data" path="../../../bin/"/>
+  <Reference name="OpenSim.Data"/>
+  <Reference name="OpenSim.Data.MySQL"/>
+  <Reference name="OpenSim.Data.PGSQL"/>
+  <Reference name="OpenSim.Data.SQLite"/>
+  <Reference name="OpenSim.Framework"/>
+  <Reference name="OpenSim.Framework.Servers"/>
+  <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+  <Reference name="OpenSim.Region.Framework"/>
+  <Reference name="OpenSim.Region.CoreModules"/>
+  <Reference name="OpenSim.Region.OptionalModules"/>
+  <Reference name="OpenSim.Server.Base"/>
+  <Reference name="OpenSim.Services.Interfaces"/>
+  <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+  <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
+  <Reference name="XMLRPC" path="../../../bin/"/>
+  <Reference name="Npgsql" path="../../../bin/"/>
+ 
+  <!-- To allow regions to have mono addins -->
+  <Reference name="Mono.Addins" path="../../../bin/"/>
+ 
+  <Files>
+    <Match pattern="*.cs" recurse="true"/>
+    <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
+    <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
+    <Match buildAction="Copy" pattern="*.ini.example" destination="../../../bin/"/>
+  </Files>
+ 
+</Project>

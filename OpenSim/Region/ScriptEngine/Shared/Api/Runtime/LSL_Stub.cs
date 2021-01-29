@@ -2016,6 +2016,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llWind(offset);
         }
 
+        public LSL_String llXorBase64(string str1, string str2)
+        {
+            return m_LSL_Functions.llXorBase64(str1, str2);
+        }
+
         public LSL_String llXorBase64Strings(string str1, string str2)
         {
             return m_LSL_Functions.llXorBase64Strings(str1, str2);

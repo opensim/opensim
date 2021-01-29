@@ -73,7 +73,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("link_region", hghandlers.LinkRegionRequest, false);
             server.AddXmlRPCHandler("get_region", hghandlers.GetRegion, false);
 
-            server.AddStreamHandler(new GatekeeperAgentHandler(m_GatekeeperService, m_Proxy));
+            server.AddSimpleStreamHandler(new GatekeeperAgentHandler(m_GatekeeperService, m_Proxy),true);
         }
 
         public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, string configName)

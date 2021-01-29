@@ -635,7 +635,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 return;
             }
 
-            string        avatarName = avatar.Name;
+            string avatarName = avatar.Name;
 
             // - check whether we have a region channel in our cache
             // - if not:

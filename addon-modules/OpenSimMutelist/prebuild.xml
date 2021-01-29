@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<Project frameworkVersion="v4_8" name="OpenSimMutelist.Modules" path="addon-modules/OpenSimMutelist/Modules" type="Library">
+     <Configuration name="Debug">
+       <Options>
+         <OutputPath>../../../bin/</OutputPath>
+       </Options>
+     </Configuration>
+     <Configuration name="Release">
+       <Options>
+         <OutputPath>../../../bin/</OutputPath>
+       </Options>
+     </Configuration>
+
+     <ReferencePath>../../../bin/</ReferencePath>
+     <Reference localCopy="false" name="System"/>
+     <Reference name="System.Xml"/>
+     <Reference name="OpenMetaverseTypes"/>
+     <Reference name="OpenSim.Framework"/>
+     <Reference name="OpenSim.Region.Framework"/>
+     <Reference name="OpenSim.Services.Interfaces"/>
+     <Reference name="log4net"/>
+     <Reference name="Mono.Addins"/>
+     <Reference name="Nini"/>
+     <Reference name="XMLRPC"/>
+
+     <Files>
+       <Match pattern="*.cs" recurse="true"/>
+     </Files>
+</Project>

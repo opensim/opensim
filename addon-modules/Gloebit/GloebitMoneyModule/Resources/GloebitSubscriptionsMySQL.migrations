@@ -1,0 +1,22 @@
+:VERSION 1		# -------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS `GloebitSubscriptions` (
+    `SubscriptionID`    CHAR(36),
+    `ObjectID`          CHAR(36)        NOT NULL,
+    `AppKey`            VARCHAR(64)     NOT NULL,
+    `GlbApiUrl`         VARCHAR(100)    NOT NULL,
+    `enabled`           TINYINT(1)      NOT NULL,
+    `ObjectName`        VARCHAR(64),
+    `Description`       VARCHAR(255)    NOT NULL,
+    `cTime`             TIMESTAMP       NOT NULL,
+    PRIMARY KEY pk_obj_app_api (`ObjectID`, `AppKey`, `GlbApiUrl`),
+    UNIQUE KEY k_sub_api (`SubscriptionID`, `GlbApiUrl`),
+    INDEX ix_oid (`ObjectID`),
+    INDEX ix_sid (`SubscriptionID`),
+    INDEX ix_cts (`cTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;
+

@@ -521,6 +521,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osKey2Name(id);
         }
 
+        public string osSHA256(string input)
+        {
+            return m_OSSL_Functions.osSHA256(input);
+        }
+
         public string osGetGridNick()
         {
             return m_OSSL_Functions.osGetGridNick();
@@ -1427,6 +1432,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSlerp(a, b, amount);
         }
 
+        public vector osSlerp(vector a, vector b, LSL_Float amount)
+        {
+            return m_OSSL_Functions.osSlerp(a, b, amount);
+        }
+
         public void osResetAllScripts(LSL_Integer allLinkSet)
         {
             m_OSSL_Functions.osResetAllScripts(allLinkSet);
@@ -1522,6 +1532,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer osResetEnvironment(LSL_Integer parcelOrRegion, LSL_Integer transition)
         {
             return m_OSSL_Functions.osResetEnvironment(parcelOrRegion, transition);
+        }
+
+        public void osParticleSystem(LSL_List rules)
+        {
+            m_OSSL_Functions.osParticleSystem(rules);
+        }
+
+        public void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules)
+        {
+            m_OSSL_Functions.osLinkParticleSystem(linknumber, rules);
         }
     }
 }

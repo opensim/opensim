@@ -174,9 +174,8 @@ namespace OpenSim.Services.HypergridService
 
             lock (m_UserLocationMap)
             {
-                if (m_UserLocationMap.ContainsKey(toAgentID))
+                if (m_UserLocationMap.TryGetValue(toAgentID, out object o))
                 {
-                    object o = m_UserLocationMap[toAgentID];
                     if (o is PresenceInfo)
                         upd = (PresenceInfo)o;
                     else if (o is string)
@@ -269,38 +268,23 @@ namespace OpenSim.Services.HypergridService
 
         bool SendIMToRegion(PresenceInfo upd, GridInstantMessage im, UUID toAgentID, bool foreigner)
         {
-            bool imresult = false;
             GridRegion reginfo = null;
-            if (!m_RegionCache.TryGetValue(upd.RegionID, REGIONCACHE_EXPIRATION, out reginfo))
+            if (!m_RegionCache.TryGetValue(upd.RegionID, REGIONCACHE_EXPIRATION, out reginfo) )
             {
                 reginfo = m_GridService.GetRegionByUUID(UUID.Zero /*!!!*/, upd.RegionID);
                 m_RegionCache.AddOrUpdate(upd.RegionID, reginfo, reginfo == null ? 60000 : REGIONCACHE_EXPIRATION);
             }
 
-            if (reginfo != null)
-            {
-                imresult = InstantMessageServiceConnector.SendInstantMessage(reginfo.ServerURI, im, m_messageKey);
-            }
-            else
-            {
-                m_log.DebugFormat("[HG IM SERVICE]: Failed to deliver message to {0}", reginfo.ServerURI);
+            if (reginfo == null)
                 return false;
-            }
+
+            bool imresult = InstantMessageServiceConnector.SendInstantMessage(reginfo.ServerURI, im, m_messageKey);
 
             if (imresult)
             {
                 // IM delivery successful, so store the Agent's location in our local cache.
                 lock (m_UserLocationMap)
-                {
-                    if (m_UserLocationMap.ContainsKey(toAgentID))
-                    {
-                        m_UserLocationMap[toAgentID] = upd;
-                    }
-                    else
-                    {
-                        m_UserLocationMap.Add(toAgentID, upd);
-                    }
-                }
+                    m_UserLocationMap[toAgentID] = upd;
                 return true;
             }
             else
@@ -322,16 +306,7 @@ namespace OpenSim.Services.HypergridService
             {
                 // IM delivery successful, so store the Agent's location in our local cache.
                 lock (m_UserLocationMap)
-                {
-                    if (m_UserLocationMap.ContainsKey(toAgentID))
-                    {
-                        m_UserLocationMap[toAgentID] = url;
-                    }
-                    else
-                    {
-                        m_UserLocationMap.Add(toAgentID, url);
-                    }
-                }
+                    m_UserLocationMap[toAgentID] = url;
 
                 return true;
             }

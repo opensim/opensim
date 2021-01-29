@@ -1,0 +1,52 @@
+:VERSION 1		# -------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS `GloebitTransactions` (
+    `TransactionID`         CHAR(36)        NOT NULL,
+    `PayerID`               CHAR(36)        NOT NULL,
+    `PayerName`             VARCHAR(255)    NOT NULL,
+    `PayeeID`               CHAR(36)        NOT NULL,
+    `PayeeName`             VARCHAR(255)    NOT NULL,
+    `Amount`                INT(11)         NOT NULL,
+    `TransactionType`       INT(4)          NOT NULL,
+    `TransactionTypeString` VARCHAR(64)     NOT NULL,
+    `IsSubscriptionDebit`   TINYINT(1)      NOT NULL,
+    `SubscriptionID`        CHAR(36)        NOT NULL,
+    `PartID`                CHAR(36),
+    `PartName`              VARCHAR(64),
+    `PartDescription`       VARCHAR(128),
+    `CategoryID`            CHAR(36),
+    `LocalID`               INT(10) UNSIGNED,
+    `SaleType`              INT(1),
+    `Submitted`             TINYINT(1)      NOT NULL,
+    `ResponseReceived`      TINYINT(1)      NOT NULL,
+    `ResponseSuccess`       TINYINT(1)      NOT NULL,
+    `ResponseStatus`        VARCHAR(64)     NOT NULL,
+    `ResponseReason`        VARCHAR(255)    NOT NULL,
+    `PayerEndingBalance`    INT(11)         NOT NULL,
+    `enacted`               TINYINT(1)      NOT NULL,
+    `consumed`              TINYINT(1)      NOT NULL,
+    `canceled`              TINYINT(1)      NOT NULL,
+    `cTime`                 TIMESTAMP       NOT NULL,
+    `enactedTime`           TIMESTAMP       NULL,
+    `finishedTime`          TIMESTAMP       NULL,
+    PRIMARY KEY         (`TransactionID`),
+    INDEX ix_payerid    (`PayerID`),
+    INDEX ix_payeeid    (`PayeeID`),
+    INDEX ix_tt         (`TransactionType`),
+    INDEX ix_sid        (`SubscriptionID`),
+    INDEX ix_pid        (`PartID`),
+    INDEX ix_cts        (`cTime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;
+
+
+:VERSION 2		# -------------------------
+
+BEGIN;
+
+ALTER TABLE `GloebitTransactions` DROP COLUMN `LocalID`;
+
+COMMIT;

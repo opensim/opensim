@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Net;
-using System.Xml;
 
 using Nini.Config;
 using log4net;
@@ -60,19 +59,18 @@ namespace OpenSim.Server.Handlers.MapImage
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+                throw new Exception(string.Format("No section {0} in config file", m_ConfigName));
 
-            string mapService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string mapService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
-            if (mapService == String.Empty)
+            if (string.IsNullOrWhiteSpace(mapService))
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(mapService, args);
 
-            string gridService = serverConfig.GetString("GridService", String.Empty);
-            if (gridService != string.Empty)
+            string gridService = serverConfig.GetString("GridService", string.Empty);
+            if (!string.IsNullOrWhiteSpace(gridService))
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
 
             if (m_GridService != null)
@@ -82,12 +80,11 @@ namespace OpenSim.Server.Handlers.MapImage
 
             bool proxy = serverConfig.GetBoolean("HasProxy", false);
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
-            server.AddStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy, auth));
-
+            server.AddSimpleStreamHandler(new MapServerPostHandler(m_MapService, m_GridService, proxy, auth));
         }
     }
 
-    class MapServerPostHandler : BaseStreamHandler
+    class MapServerPostHandler : SimpleStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
@@ -95,32 +92,36 @@ namespace OpenSim.Server.Handlers.MapImage
         bool m_Proxy;
 
         public MapServerPostHandler(IMapImageService service, IGridService grid, bool proxy, IServiceAuth auth) :
-            base("POST", "/map", auth)
+            base("/map", auth)
         {
             m_MapService = service;
             m_GridService = grid;
             m_Proxy = proxy;
         }
 
-        protected override byte[] ProcessRequest(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-//            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
+            //m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new StreamReader(httpRequest.InputStream))
                 body = sr.ReadToEnd();
             body = body.Trim();
+
+            httpRequest.InputStream.Dispose();
 
             try
             {
                 Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
                 if (!request.ContainsKey("X") || !request.ContainsKey("Y") || !request.ContainsKey("DATA"))
                 {
-                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                    return FailureResult("Bad request.");
+                    httpResponse.RawBuffer = Util.ResultFailureMessage("Bad request.");
+                    return;
                 }
+
                 int x = 0, y = 0;
-//                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
+                //UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
                 UUID scopeID = UUID.Zero;
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
@@ -129,10 +130,9 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
 
-//                string type = "image/jpeg";
-//
-//                if (request.ContainsKey("TYPE"))
-//                    type = request["TYPE"].ToString();
+                //string type = "image/jpeg";
+                //if (request.ContainsKey("TYPE"))
+                //    type = request["TYPE"].ToString();
 
                 if (m_GridService != null)
                 {
@@ -143,84 +143,32 @@ namespace OpenSim.Server.Handlers.MapImage
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
-                            return FailureResult("IP address of caller does not match IP address of registered region");
+                            httpResponse.RawBuffer = Util.ResultFailureMessage("IP address of caller does not match IP address of registered region");
                         }
                     }
                     else
                     {
                         m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}",
                             ipAddr, x, y);
-                        return FailureResult("Region not found at given coordinates");
+                        httpResponse.RawBuffer = Util.ResultFailureMessage("Region not found at given coordinates");
                     }
                 }
 
                 byte[] data = Convert.FromBase64String(request["DATA"].ToString());
 
-                string reason = string.Empty;
-
-                bool result = m_MapService.AddMapTile((int)x, (int)y, data, scopeID, out reason);
-
+                bool result = m_MapService.AddMapTile(x, y, data, scopeID, out string reason);
                 if (result)
-                    return SuccessResult();
+                    httpResponse.RawBuffer = Util.sucessResultSuccess;
                 else
-                    return FailureResult(reason);
-
+                    httpResponse.RawBuffer = Util.ResultFailureMessage(reason);
+                return;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[MAP SERVICE IMAGE HANDLER]: Exception {0} {1}", e.Message, e.StackTrace);
             }
 
-            return FailureResult("Unexpected server error");
-        }
-
-        private byte[] SuccessResult()
-        {
-            XmlDocument doc = new XmlDocument();
-
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "Result", "");
-            result.AppendChild(doc.CreateTextNode("Success"));
-
-            rootElement.AppendChild(result);
-
-            return Util.DocToBytes(doc);
-        }
-
-        private byte[] FailureResult(string msg)
-        {
-            XmlDocument doc = new XmlDocument();
-
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "Result", "");
-            result.AppendChild(doc.CreateTextNode("Failure"));
-
-            rootElement.AppendChild(result);
-
-            XmlElement message = doc.CreateElement("", "Message", "");
-            message.AppendChild(doc.CreateTextNode(msg));
-
-            rootElement.AppendChild(message);
-
-            return Util.DocToBytes(doc);
+            httpResponse.RawBuffer = Util.ResultFailureMessage("Unexpected server error");
         }
     }
 }

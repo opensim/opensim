@@ -255,7 +255,7 @@ namespace OpenSim.Data.Tests
             creator = UUID.Random();
             uint iserial = (uint)random.Next();
             TaskInventoryDictionary dic = new TaskInventoryDictionary();
-            uint objf = (uint) random.Next();
+            uint objf = (uint) random.Next() & (uint)~(PrimFlags.Touch | PrimFlags.Money | PrimFlags.AllowInventoryDrop);
             uuid = prim4;
             uint localid = localID+1;
             localID = localID + 1;
@@ -291,10 +291,12 @@ namespace OpenSim.Data.Tests
             pbshap.ProfileHollow = ushort.MaxValue;
             Vector3 scale = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
 
-            RegionInfo regionInfo = new RegionInfo();
-            regionInfo.RegionID = region3;
-            regionInfo.RegionLocX = 0;
-            regionInfo.RegionLocY = 0;
+            RegionInfo regionInfo = new RegionInfo()
+            {
+                RegionID = region3,
+                RegionLocX = 0,
+                RegionLocY = 0
+            };
 
             SceneObjectPart sop = new SceneObjectPart();
             SceneObjectGroup sog = new SceneObjectGroup(sop);
@@ -1064,19 +1066,23 @@ namespace OpenSim.Data.Tests
         //
         private SceneObjectGroup NewSOG(string name, UUID uuid, UUID regionId)
         {
-            RegionInfo regionInfo = new RegionInfo();
-            regionInfo.RegionID = regionId;
-            regionInfo.RegionLocX = 0;
-            regionInfo.RegionLocY = 0;
+            RegionInfo regionInfo = new RegionInfo
+            {
+                RegionID = regionId,
+                RegionLocX = 0,
+                RegionLocY = 0
+            };
 
-            SceneObjectPart sop = new SceneObjectPart();
-            sop.Name = name;
-            sop.Description = name;
-            sop.Text = RandomName();
-            sop.SitName = RandomName();
-            sop.TouchName = RandomName();
-            sop.UUID = uuid;
-            sop.Shape = PrimitiveBaseShape.Default;
+            SceneObjectPart sop = new SceneObjectPart
+            {
+                Name = name,
+                Description = name,
+                Text = RandomName(),
+                SitName = RandomName(),
+                TouchName = RandomName(),
+                UUID = uuid,
+                Shape = PrimitiveBaseShape.Default
+            };
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
 
@@ -1085,14 +1091,16 @@ namespace OpenSim.Data.Tests
 
         private SceneObjectPart NewSOP(string name, UUID uuid)
         {
-            SceneObjectPart sop = new SceneObjectPart();
-            sop.Name = name;
-            sop.Description = name;
-            sop.Text = RandomName();
-            sop.SitName = RandomName();
-            sop.TouchName = RandomName();
-            sop.UUID = uuid;
-            sop.Shape = PrimitiveBaseShape.Default;
+            SceneObjectPart sop = new SceneObjectPart
+            {
+                Name = name,
+                Description = name,
+                Text = RandomName(),
+                SitName = RandomName(),
+                TouchName = RandomName(),
+                UUID = uuid,
+                Shape = PrimitiveBaseShape.Default
+            };
             return sop;
         }
 
@@ -1100,14 +1108,16 @@ namespace OpenSim.Data.Tests
 
         private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)
         {
-            InventoryItemBase i = new InventoryItemBase();
-            i.ID = id;
-            i.Folder = parent;
-            i.Owner = owner;
-            i.CreatorId = owner.ToString();
-            i.Name = name;
-            i.Description = name;
-            i.AssetID = asset;
+            InventoryItemBase i = new InventoryItemBase
+            {
+                ID = id,
+                Folder = parent,
+                Owner = owner,
+                CreatorId = owner.ToString(),
+                Name = name,
+                Description = name,
+                AssetID = asset
+            };
             return i;
         }
 

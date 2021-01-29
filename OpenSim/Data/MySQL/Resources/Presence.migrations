@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS `Presence` (
   UNIQUE KEY `SessionID` (`SessionID`),
   KEY `UserID` (`UserID`),
   KEY `RegionID` (`RegionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 COMMIT;
