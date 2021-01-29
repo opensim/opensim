@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public int RequestsHandled { get; protected set; }
 
-        private readonly string m_path;
+        protected string m_path;
 
         public string Name { get; private set; }
 

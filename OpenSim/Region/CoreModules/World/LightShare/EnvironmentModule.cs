@@ -917,7 +917,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
 
         private void OnAvatarEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
         {
-            if (sp.Environment != null)
+            if (sp.Environment != null || sp.IsNPC)
                 return;
 
             if (!m_scene.RegionInfo.EstateSettings.AllowEnvironmentOverride)

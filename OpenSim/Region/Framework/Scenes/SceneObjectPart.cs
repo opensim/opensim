@@ -262,14 +262,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return (Flags & (PrimFlags)primFlagVolumeDetect) != 0;
+                return (m_flags & (PrimFlags)primFlagVolumeDetect) != 0;
             }
             set
             {
                 if(value)
-                    Flags |= (PrimFlags)primFlagVolumeDetect;
+                    m_flags |= (PrimFlags)primFlagVolumeDetect;
                 else
-                    Flags &= (PrimFlags)(~primFlagVolumeDetect);
+                    m_flags &= (PrimFlags)(~primFlagVolumeDetect);
             }
         }
 
@@ -294,8 +294,6 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Undoing;
 
         public bool IgnoreUndoUpdate = false;
-
-        public PrimFlags LocalFlags;
 
         private float m_damage = -1.0f;
         private byte[] m_TextureAnimation;
@@ -327,6 +325,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected SceneObjectGroup m_parentGroup;
         protected byte[] m_particleSystem = Utils.EmptyBytes;
+        protected double m_particleSystemExpire = -1;
         protected ulong m_regionHandle;
         protected Quaternion m_rotationOffset = Quaternion.Identity;
         protected PrimitiveBaseShape m_shape;
@@ -434,7 +433,7 @@ namespace OpenSim.Region.Framework.Scenes
             AngularVelocity = Vector3.Zero;
             Acceleration = Vector3.Zero;
             APIDActive = false;
-            Flags = 0;
+            m_flags = 0;
             CreateSelected = false;
             TrimPermissions();
             AggregateInnerPerms();
@@ -495,6 +494,7 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)(PermissionMask.Move | PermissionMask.Transfer);
         private PrimFlags m_flags = PrimFlags.None;
+        private PrimFlags m_localFlags = PrimFlags.None;
         private DateTime m_expires;
         private DateTime m_rezzed;
         private bool m_createSelected = false;
@@ -736,7 +736,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Byte[] ParticleSystem
         {
-            get { return m_particleSystem; }
+            get
+            {
+                if(m_particleSystemExpire > 0 && Util.GetTimeStamp() > m_particleSystemExpire)
+                {
+                    m_particleSystemExpire = -1;
+                    m_particleSystem = new byte[0];
+                }
+                return m_particleSystem;
+            }
             set { m_particleSystem = value; }
         }
 
@@ -1421,7 +1429,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 //m_log.DebugFormat("[SOP]: Setting flags for {0} {1} to {2}", UUID, Name, value);
-                m_flags = value;
+                m_flags = value & ~(PrimFlags.Touch | PrimFlags.Money | PrimFlags.AllowInventoryDrop);
             }
         }
 
@@ -1693,7 +1701,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     cost = 0.1f;
 
-                if ((Flags & PrimFlags.Physics) != 0)
+                if ((m_flags & PrimFlags.Physics) != 0)
                     cost *= (1.0f + 0.01333f * Scale.LengthSquared()); // 0.01333 == 0.04/3
                 return cost;
             }
@@ -1719,7 +1727,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // ignoring scripts. Don't like considering them for this
-                if((Flags & PrimFlags.Physics) != 0)
+                if((m_flags & PrimFlags.Physics) != 0)
                     return 1.0f;
 
                 return 0.5f;
@@ -1763,7 +1771,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if(oldv == (byte)PhysShapeType.none)
                         {
-                            ApplyPhysics((uint)Flags, VolumeDetectActive, false);
+                            ApplyPhysics((uint)m_flags, VolumeDetectActive, false);
                             UpdatePhysicsSubscribedEvents();
                         }
                     }
@@ -1941,8 +1949,12 @@ namespace OpenSim.Region.Framework.Scenes
             // m_log.Debug("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
         }
 
-        public void AddNewParticleSystem(Primitive.ParticleSystem pSystem)
+        public void AddNewParticleSystem(Primitive.ParticleSystem pSystem, bool expire)
         {
+            if(expire && pSystem.MaxAge > 0.0001)
+                m_particleSystemExpire = Util.GetTimeStamp() + pSystem.MaxAge + 0.1;
+            else
+                m_particleSystemExpire = -1;
             m_particleSystem = pSystem.GetBytes();
         }
 
@@ -2173,7 +2185,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Velocity = Velocity;
             dupe.Acceleration = Acceleration;
             dupe.AngularVelocity = AngularVelocity;
-            dupe.Flags = Flags;
+            dupe.m_flags = m_flags;
 
             dupe.OwnershipCost = OwnershipCost;
             dupe.ObjectSaleType = ObjectSaleType;
@@ -2226,7 +2238,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (userExposed)
             {
-                bool UsePhysics = ((dupe.Flags & PrimFlags.Physics) != 0);
+                bool UsePhysics = ((dupe.m_flags & PrimFlags.Physics) != 0);
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
 
@@ -2414,7 +2426,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    bool phan = ((Flags & PrimFlags.Phantom) != 0);
+                    bool phan = ((m_flags & PrimFlags.Phantom) != 0);
                     if (pa.Phantom != phan)
                         pa.Phantom = phan;
 
@@ -2447,7 +2459,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = SceneObjectSerializer.Xml2ToSOP(xmlReader);
 
             // for tempOnRez objects, we have to fix the Expire date.
-            if ((part.Flags & PrimFlags.TemporaryOnRez) != 0)
+            if ((part.m_flags & PrimFlags.TemporaryOnRez) != 0)
                 part.ResetExpire();
 
             return part;
@@ -2503,7 +2515,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GetEffectiveObjectFlags()
         {
-            uint eff = (uint)Flags | (uint)LocalFlags;
+            uint eff = (uint)(m_flags | m_localFlags);
             if(m_inventory == null || m_inventory.Count == 0)
                 eff |= (uint)PrimFlags.InventoryEmpty;
             return eff;
@@ -3042,10 +3054,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;
-            if ((Flags & flag) != 0)
+            if ((m_flags & flag) != 0)
             {
                 //m_log.Debug("Removing flag: " + ((PrimFlags)flag).ToString());
-                Flags &= ~flag;
+                m_flags &= ~flag;
             }
             //m_log.Debug("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
             //ScheduleFullUpdate();
@@ -4087,7 +4099,6 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 osUTF8Text = new osUTF8(text, 254);
-
                 if (ParentGroup != null && !osUTF8Text.Equals(old))
                 {
                     ParentGroup.HasGroupChanged = true;
@@ -4783,9 +4794,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="SetVD"></param>
         public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD, bool building)
         {
-            bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
-            bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
+            bool wasUsingPhysics = ((m_flags & PrimFlags.Physics) != 0);
+            bool wasTemporary = ((m_flags & PrimFlags.TemporaryOnRez) != 0);
+            bool wasPhantom = ((m_flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
@@ -5276,7 +5287,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             pa.OnCollisionUpdate -= PhysicsCollision;
 
-            bool hassound = (!VolumeDetectActive && CollisionSoundType >= 0 && ((Flags & PrimFlags.Physics) != 0));
+            bool hassound = (!VolumeDetectActive && CollisionSoundType >= 0 && ((m_flags & PrimFlags.Physics) != 0));
 
             scriptEvents CombinedEvents = AggregatedScriptEvents;
 
@@ -5287,7 +5298,7 @@ namespace OpenSim.Region.Framework.Scenes
             // submit to this part case
             if (VolumeDetectActive)
                 CombinedEvents &= PhyscicsVolumeDtcSubsEvents;
-            else if ((Flags & PrimFlags.Phantom) != 0)
+            else if ((m_flags & PrimFlags.Phantom) != 0)
                 CombinedEvents &= PhyscicsPhantonSubsEvents;
             else
                 CombinedEvents &= PhysicsNeededSubsEvents;
@@ -5321,12 +5332,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             uint objectflagupdate = 0;
-
-            if (
-                ((AggregatedScriptEvents & scriptEvents.touch) != 0) ||
-                ((AggregatedScriptEvents & scriptEvents.touch_end) != 0) ||
-                ((AggregatedScriptEvents & scriptEvents.touch_start) != 0)
-                )
+            if ((AggregatedScriptEvents & scriptEvents.anytouch) != 0 )
             {
                 objectflagupdate |= (uint) PrimFlags.Touch;
             }
@@ -5341,7 +5347,7 @@ namespace OpenSim.Region.Framework.Scenes
                 objectflagupdate |= (uint) PrimFlags.AllowInventoryDrop;
             }
 
-            LocalFlags = (PrimFlags)objectflagupdate;
+            m_localFlags = (PrimFlags)objectflagupdate;
 
             if (ParentGroup != null && ParentGroup.RootPart == this)
             {

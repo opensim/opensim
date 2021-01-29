@@ -987,6 +987,12 @@ namespace Amib.Threading.Internal
                 _callerContext = null;
             }
 
+            if(_workItemCompleted != null)
+            {
+                _workItemCompleted.Dispose();
+                _workItemCompleted = null;
+            }
+
             if (_workItemInfo.DisposeOfStateObjects)
             {
                 IDisposable disp = _state as IDisposable;
