@@ -29,8 +29,8 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.2.0";
-        public const string AssemblyVersionNumber = "0.9.2.0";
+        public const string VersionNumber = "0.9.2.210129";
+        public const string AssemblyVersionNumber = "0.9.2.*";
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
@@ -53,11 +53,11 @@ namespace OpenSim
 
         public static string GetVersionString(string versionNumber, Flavour flavour)
         {
-            string versionString = "OpenSim " + versionNumber + " Yeti " + flavour;
+            string versionString = "OpenSim-NGC " + versionNumber + " Yeti " + flavour;
             return versionString.PadRight(VERSIONINFO_VERSION_LENGTH);
         }
 
-        public const int VERSIONINFO_VERSION_LENGTH = 27;
+        public const int VERSIONINFO_VERSION_LENGTH = 36;
 
         /// <value>
         /// This is the external interface version.  It is separate from the OpenSimulator project version.
