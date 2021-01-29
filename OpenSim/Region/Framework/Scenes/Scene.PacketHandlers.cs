@@ -314,17 +314,22 @@ namespace OpenSim.Region.Framework.Scenes
             // the client handles rez correctly
             obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
 
+            uint partLocalId = part.LocalId;
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
-                EventManager.TriggerObjectGrab(part.LocalId, 0, offsetPos, remoteClient, surfaceArg);
+            {
+                EventManager.TriggerObjectGrab(partLocalId, 0, offsetPos, remoteClient, surfaceArg);
+                if(!part.PassTouches)
+                    return;
+            }
 
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
-            if (((part.ScriptEvents & scriptEvents.touch_start) == 0) ||
-                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
+
+            uint rootLocalId = obj.RootPart.LocalId;
+            if (partLocalId != rootLocalId &&  (obj.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
             {
-                if ((obj.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
-                    EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.LocalId, offsetPos, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrab(rootLocalId, partLocalId, offsetPos, remoteClient, surfaceArg);
             }
         }
 
@@ -356,16 +361,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 grabOffset = pos - part.AbsolutePosition;
             // If the touched prim handles touches, deliver it
+            uint partLocalId = part.LocalId;
             if ((part.ScriptEvents & scriptEvents.touch) != 0)
-                EventManager.TriggerObjectGrabbing(part.LocalId, 0, grabOffset, remoteClient, surfaceArg);
+            {
+                EventManager.TriggerObjectGrabbing(partLocalId, 0, grabOffset, remoteClient, surfaceArg);
+                if(!part.PassTouches)
+                    return;
+            }
 
+            uint rootLocalId = group.RootPart.LocalId;
             // Deliver to the root prim if the touched prim doesn't handle touches
             // or if we're meant to pass on touches anyway.
-            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
-                (part.PassTouches && (part.LocalId != group.RootPart.LocalId)))
+            if (partLocalId != rootLocalId && (group.RootPart.ScriptEvents & scriptEvents.touch) != 0)
             {
-                if ((group.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
-                    EventManager.TriggerObjectGrabbing(group.RootPart.LocalId, part.LocalId, grabOffset, remoteClient, surfaceArg);
+                EventManager.TriggerObjectGrabbing(rootLocalId, partLocalId, grabOffset, remoteClient, surfaceArg);
             }
         }
 
@@ -381,15 +390,19 @@ namespace OpenSim.Region.Framework.Scenes
             if (surfaceArgs != null && surfaceArgs.Count > 0)
                 surfaceArg = surfaceArgs[0];
 
+            uint partLocalId = part.LocalId;
             // If the touched prim handles touches, deliver it
             if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
-                EventManager.TriggerObjectDeGrab(part.LocalId, 0, remoteClient, surfaceArg);
-            // if not or PassTouchs, send it also to root.
-            if (((part.ScriptEvents & scriptEvents.touch_end) == 0) ||
-                (part.PassTouches && (part.LocalId != grp.RootPart.LocalId)))
             {
-                if ((grp.RootPart.ScriptEvents & scriptEvents.touch_start) != 0)
-                    EventManager.TriggerObjectDeGrab(grp.RootPart.LocalId, part.LocalId, remoteClient, surfaceArg);
+                EventManager.TriggerObjectDeGrab(partLocalId, 0, remoteClient, surfaceArg);
+                if(!part.PassTouches)
+                    return;
+            }
+
+            uint rootPartLocalId = grp.RootPart.LocalId;
+            if (partLocalId != rootPartLocalId && (grp.RootPart.ScriptEvents & scriptEvents.touch_end) != 0)
+            {
+                EventManager.TriggerObjectDeGrab(rootPartLocalId, partLocalId, remoteClient, surfaceArg);
             }
         }
 
