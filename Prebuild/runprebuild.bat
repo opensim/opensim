@@ -16,10 +16,10 @@ rem ## Default "configuration" choice ((r)elease, (d)ebug)
 set configuration=d
 
 rem ## Default Visual Studio edition
-set vstudio=2010
+set vstudio=2019
 
 rem ## Default Framework
-set framework=4_0
+set framework=4_8
 
 rem ## Default architecture (86 (for 32bit), 64)
 :CheckArch
@@ -37,7 +37,7 @@ rem ## Determine native framework
 set framework=4_5
 for /f "tokens=4-5 delims=. " %%i in ('ver') do set VERSION=%%i.%%j
 if %version% == 10.0 (
-	set framework=4_5
+	set framework=4_8
 	echo Windows 10
 )
 if %version% == 6.3 (
@@ -123,5 +123,6 @@ echo.
 if %framework%==4_5 set %vstudio%=2012
 
 echo Calling Prebuild for target %vstudio% with framework %framework%...
-Prebuild.exe /target vs%vstudio% /targetframework v%framework% /conditionals ISWIN;NET_%framework%
+echo ..\bin\prebuild.exe /target vs%vstudio% /targetframework v%framework% /conditionals ISWIN;NET_%framework%
+.\src\bin\Debug\prebuild.exe /target vs%vstudio% /targetframework v%framework% /conditionals ISWIN;NET_%framework%
 
