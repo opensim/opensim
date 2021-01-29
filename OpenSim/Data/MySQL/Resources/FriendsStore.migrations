@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS `Friends` (
   `Offered` varchar(32) NOT NULL DEFAULT '0',
   PRIMARY KEY (`PrincipalID`(36),`Friend`(36)),
   KEY `PrincipalID` (`PrincipalID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 COMMIT;

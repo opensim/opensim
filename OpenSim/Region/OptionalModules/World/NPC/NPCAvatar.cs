@@ -200,11 +200,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         private bool hasTouchEvents(SceneObjectPart part)
         {
-            if ((part.ScriptEvents & scriptEvents.touch) != 0 ||
-                (part.ScriptEvents & scriptEvents.touch_start) != 0 ||
-                (part.ScriptEvents & scriptEvents.touch_end) != 0)
-                return true;
-            return false;
+           return (part.ScriptEvents & scriptEvents.anytouch) != 0;
         }
 
         public void InstantMessage(UUID target, string message)

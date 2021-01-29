@@ -1,7 +1,5 @@
 using System;
-#if !(_WINDOWS_CE)
 using System.Runtime.Serialization;
-#endif
 
 namespace Amib.Threading
 {
@@ -68,7 +66,6 @@ namespace Amib.Threading
     }
 
 
-#if !(_WINDOWS_CE) && !(_SILVERLIGHT) && !(WINDOWS_PHONE)
     /// <summary>
     /// Represents an exception in case IWorkItemResult.GetResult has been canceled
     /// </summary>
@@ -104,8 +101,6 @@ namespace Amib.Threading
         {
         }
     }
-
-#endif
 
     #endregion
 }

@@ -38,6 +38,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -721,6 +722,21 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        // helper for services responses.
+        // they send identical messages, but each own chars case 
+        public static byte[] sucessResultSuccess = osUTF8.GetASCIIBytes("<?xml version =\"1.0\"?><ServerResponse><Result>Success</Result></ServerResponse>");
+
+        public static byte[] ResultFailureMessageStart = osUTF8.GetASCIIBytes("<?xml version =\"1.0\"?><ServerResponse><Result>Failure</Result><Message>");
+        public static byte[] ResultFailureMessageEnd = osUTF8.GetASCIIBytes("</Message></ServerResponse>");
+        public static byte[] ResultFailureMessage(string message)
+        {
+            osUTF8  res = new osUTF8(ResultFailureMessageStart.Length + ResultFailureMessageEnd.Length + message.Length);
+            res.Append(ResultFailureMessageStart);
+            res.Append(message);
+            res.Append(ResultFailureMessageEnd);
+            return res.ToArray();
+        }
+
         public static byte[] DocToBytes(XmlDocument doc)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -1121,6 +1137,61 @@ namespace OpenSim.Framework
         /// <param name="data"></param>
         /// <returns></returns>
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char LowNibbleToHexByteCharLowcaps(byte b)
+        {
+            b &= 0x0f;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char HighNibbleToHexByteCharLowcaps(byte b)
+        {
+            b >>= 4;
+            return (char)(b > 9 ? b + 0x57 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char LowNibbleToHexByteCharHighcaps(byte b)
+        {
+            b &= 0x0f;
+            return (char)(b > 9 ? b + 0x37 : b + '0');
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static char HighNibbleToHexByteCharHighcaps(byte b)
+        {
+            b >>= 4;
+            return (char)(b > 9 ? b + 0x37 : b + '0');
+        }
+
+        public static string bytesToHexString(byte[] bytes, bool lowerCaps)
+        {
+            if(bytes == null || bytes.Length == 0)
+                return string.Empty;
+
+            char[] chars = new char[2* bytes.Length];
+            if(lowerCaps)
+            {
+                for (int i = 0, j = 0; i < bytes.Length; ++i)
+                {
+                    byte b = bytes[i];
+                    chars[j++] = HighNibbleToHexByteCharLowcaps(b);
+                    chars[j++] = LowNibbleToHexByteCharLowcaps(b);
+                }
+            }
+            else
+            {
+                for (int i = 0, j = 0; i < bytes.Length; ++i)
+                {
+                    byte b = bytes[i];
+                    chars[j++] = HighNibbleToHexByteCharHighcaps(b);
+                    chars[j++] = LowNibbleToHexByteCharHighcaps(b);
+                }
+            }
+            return new string(chars);
+        }
+
         public static string SHA1Hash(string data, Encoding enc)
         {
             return SHA1Hash(enc.GetBytes(data));
@@ -1139,7 +1210,7 @@ namespace OpenSim.Framework
         public static string SHA1Hash(byte[] data)
         {
             byte[] hash = ComputeSHA1Hash(data);
-            return BitConverter.ToString(hash).Replace("-", String.Empty);
+            return bytesToHexString(hash, false);
         }
 
         private static byte[] ComputeSHA1Hash(byte[] src)
@@ -2827,7 +2898,8 @@ namespace OpenSim.Framework
                 ThreadPoolName = "Util",
                 IdleTimeout = 20000,
                 MaxWorkerThreads = maxThreads,
-                MinWorkerThreads = minThreads
+                MinWorkerThreads = minThreads,
+                SuppressFlow = true
             };
 
             m_ThreadPool = new SmartThreadPool(startInfo);
@@ -3042,7 +3114,6 @@ namespace OpenSim.Framework
                     finally
                     {
                         Interlocked.Decrement(ref numRunningThreadFuncs);
-                        threadInfo.Ended();
                         activeThreads.TryRemove(threadFuncNum, out ThreadInfo dummy);
                         if (loggingEnabled && threadInfo.LogThread)
                             m_log.DebugFormat("Exit threadfunc {0} ({1})", threadFuncNum, FormatDuration(threadInfo.Elapsed()));
@@ -3053,7 +3124,7 @@ namespace OpenSim.Framework
                 };
             }
 
-            long numQueued = Interlocked.Increment(ref numQueuedThreadFuncs);
+            Interlocked.Increment(ref numQueuedThreadFuncs);
             try
             {
                 threadInfo.LogThread = false;
@@ -3070,7 +3141,7 @@ namespace OpenSim.Framework
                     case FireAndForgetMethod.SmartThreadPool:
                         if (m_ThreadPool == null)
                             InitThreadPool(2, 15);
-                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem((cb, o) => {cb(o); cb = null;}, realCallback, obj);
+                        threadInfo.WorkItem = m_ThreadPool.QueueWorkItem(realCallback, obj);
                         break;
                     case FireAndForgetMethod.Thread:
                         Thread thread = new Thread(delegate(object o) { realCallback(o); realCallback = null;});

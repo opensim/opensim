@@ -47,7 +47,6 @@
 //        - Added option to start the STP and the WIG as suspended
 //        - Exception behavior changed, the real exception is returned by an 
 //          inner exception
-//        - Added option to keep the Http context of the caller thread. (Thanks to Steven T.)
 //        - Added performance counters
 //        - Added priority to the threads in the pool
 //
@@ -137,11 +136,6 @@ namespace Amib.Threading
         public const bool DefaultUseCallerCallContext = false;
 
         /// <summary>
-        /// Indicate to copy the HTTP context of the caller and then use it in the call. (false)
-        /// </summary>
-        public const bool DefaultUseCallerHttpContext = false;
-
-        /// <summary>
         /// Indicate to dispose of the state objects if they support the IDispose interface. (false)
         /// </summary>
         public const bool DefaultDisposeOfStateObjects = false;
@@ -158,11 +152,6 @@ namespace Amib.Threading
         public static readonly PostExecuteWorkItemCallback DefaultPostExecuteWorkItemCallback;
 
         /// <summary>
-        /// The default work item priority (WorkItemPriority.Normal)
-        /// </summary>
-        public const WorkItemPriority DefaultWorkItemPriority = WorkItemPriority.Normal;
-
-        /// <summary>
         /// The default is to work on work items as soon as they arrive
         /// and not to wait for the start. (false)
         /// </summary>
@@ -173,13 +162,11 @@ namespace Amib.Threading
         /// </summary>
         public static readonly string DefaultPerformanceCounterInstanceName;
 
-#if !(WINDOWS_PHONE)
-
         /// <summary>
         /// The default thread priority (ThreadPriority.Normal)
         /// </summary>
         public const ThreadPriority DefaultThreadPriority = ThreadPriority.Normal;
-#endif
+
         /// <summary>
         /// The default thread pool name. (SmartThreadPool)
         /// </summary>
@@ -201,14 +188,12 @@ namespace Amib.Threading
         /// </summary>
         public const bool DefaultAreThreadsBackground = true;
 
-#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
         /// <summary>
         /// The default apartment state of a thread in the thread pool. 
         /// The default is ApartmentState.Unknown which means the STP will not 
         /// set the apartment of the thread. It will use the .NET default.
         /// </summary>
         public const ApartmentState DefaultApartmentState = ApartmentState.Unknown;
-#endif
 
         #endregion
 
@@ -251,14 +236,12 @@ namespace Amib.Threading
         /// Signaled when the thread pool is idle, i.e. no thread is busy
         /// and the work items queue is empty
         /// </summary>
-        //private ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
-        private ManualResetEvent _isIdleWaitHandle = EventWaitHandleFactory.CreateManualResetEvent(true);
+        private ManualResetEvent _isIdleWaitHandle = new ManualResetEvent(true);
 
         /// <summary>
         /// An event to signal all the threads to quit immediately.
         /// </summary>
-        //private ManualResetEvent _shuttingDownEvent = new ManualResetEvent(false);
-        private ManualResetEvent _shuttingDownEvent = EventWaitHandleFactory.CreateManualResetEvent(false);
+        private ManualResetEvent _shuttingDownEvent = new ManualResetEvent(false);
 
         /// <summary>
         /// A flag to indicate if the Smart Thread Pool is now suspended.
@@ -280,6 +263,8 @@ namespace Amib.Threading
         /// Indicate that the SmartThreadPool has been disposed
         /// </summary>
         private bool _isDisposed;
+
+        private static long _lastThreadCreateTS = long.MinValue;
 
         /// <summary>
         /// Holds all the WorkItemsGroup instaces that have at least one 
@@ -304,16 +289,8 @@ namespace Amib.Threading
         /// </summary>
         private ISTPInstancePerformanceCounters _localPCs = NullSTPInstancePerformanceCounters.Instance;
 
-
-#if (WINDOWS_PHONE) 
-        private static readonly Dictionary<int, ThreadEntry> _threadEntries = new Dictionary<int, ThreadEntry>();
-#elif (_WINDOWS_CE)
-        private static LocalDataStoreSlot _threadEntrySlot = Thread.AllocateDataSlot();
-#else
         [ThreadStatic]
         private static ThreadEntry _threadEntry;
-
-#endif
 
         /// <summary>
         /// An event to call after a thread is created, but before 
@@ -337,37 +314,6 @@ namespace Amib.Threading
         /// </summary>
         internal static ThreadEntry CurrentThreadEntry
         {
-#if (WINDOWS_PHONE)
-            get
-            {
-                lock(_threadEntries)
-                {
-                    ThreadEntry threadEntry;
-                    if (_threadEntries.TryGetValue(Thread.CurrentThread.ManagedThreadId, out threadEntry))
-                    {
-                        return threadEntry;
-                    }
-                }
-                return null;
-            }
-            set
-            {
-                lock(_threadEntries)
-                {
-                    _threadEntries[Thread.CurrentThread.ManagedThreadId] = value;
-                }
-            }
-#elif (_WINDOWS_CE)
-            get
-            {
-                //Thread.CurrentThread.ManagedThreadId
-                return Thread.GetData(_threadEntrySlot) as ThreadEntry;
-            }
-            set
-            {
-                Thread.SetData(_threadEntrySlot, value);
-            }
-#else
             get
             {
                 return _threadEntry;
@@ -376,7 +322,6 @@ namespace Amib.Threading
             {
                 _threadEntry = value;
             }
-#endif
         }
         #endregion
 
@@ -461,12 +406,6 @@ namespace Amib.Threading
 
             _isSuspended = _stpStartInfo.StartSuspended;
 
-#if (_WINDOWS_CE) || (_SILVERLIGHT) || (_MONO) || (WINDOWS_PHONE)
-            if (null != _stpStartInfo.PerformanceCounterInstanceName)
-            {
-                throw new NotSupportedException("Performance counters are not implemented for Compact Framework/Silverlight/Mono, instead use StpStartInfo.EnableLocalPerformanceCounters");
-            }
-#else
             if (null != _stpStartInfo.PerformanceCounterInstanceName)
             {
                 try
@@ -479,7 +418,6 @@ namespace Amib.Threading
                     _windowsPCs = NullSTPInstancePerformanceCounters.Instance;
                 }
             }
-#endif
 
             if (_stpStartInfo.EnableLocalPerformanceCounters)
             {
@@ -495,13 +433,19 @@ namespace Amib.Threading
 
         private void StartOptimalNumberOfThreads()
         {
-            int threadsCount = Math.Max(_workItemsQueue.Count, _stpStartInfo.MinWorkerThreads);
-            threadsCount = Math.Min(threadsCount, _stpStartInfo.MaxWorkerThreads);
-            threadsCount -= _workerThreads.Count;
-            if (threadsCount > 0)
+            int threadsCount;
+            lock (_workerThreads.SyncRoot)
             {
-                StartThreads(threadsCount);
+                threadsCount = _workItemsQueue.Count;
+                if (threadsCount == _stpStartInfo.MinWorkerThreads)
+                    return;
+                if (threadsCount < _stpStartInfo.MinWorkerThreads)
+                    threadsCount = _stpStartInfo.MinWorkerThreads;
+                else if (threadsCount > _stpStartInfo.MaxWorkerThreads)
+                    threadsCount = _stpStartInfo.MaxWorkerThreads;
+                threadsCount -= _workerThreads.Count;
             }
+            StartThreads(threadsCount);
         }
 
         private void ValidateSTPStartInfo()
@@ -646,53 +590,62 @@ namespace Amib.Threading
         private void StartThreads(int threadsCount)
         {
             if (_isSuspended)
-            {
                 return;
-            }
 
             lock (_workerThreads.SyncRoot)
             {
                 // Don't start threads on shut down
                 if (_shutdown)
-                {
                     return;
+
+                int tmpcount = _workerThreads.Count;
+                if(tmpcount > _stpStartInfo.MinWorkerThreads)
+                {
+                    long last = Interlocked.Read(ref _lastThreadCreateTS);
+                    if (DateTime.UtcNow.Ticks - last < 50 * TimeSpan.TicksPerMillisecond)
+                        return;
                 }
 
-                for (int i = 0; i < threadsCount; ++i)
+                tmpcount = _stpStartInfo.MaxWorkerThreads - tmpcount;
+                if (threadsCount > tmpcount)
+                    threadsCount = tmpcount;
+
+                while(threadsCount > 0)
                 {
-                    // Don't create more threads then the upper limit
-                    if (_workerThreads.Count >= _stpStartInfo.MaxWorkerThreads)
+                    // Create a new thread
+                    Thread workerThread;
+                    if(_stpStartInfo.SuppressFlow)
                     {
-                        return;
+                        using(ExecutionContext.SuppressFlow())
+                        {
+                            workerThread =
+                                _stpStartInfo.MaxStackSize.HasValue
+                                ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
+                                : new Thread(ProcessQueuedItems);
+                         }
+                    }
+                    else
+                    {
+                        workerThread =
+                                _stpStartInfo.MaxStackSize.HasValue
+                                ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
+                                : new Thread(ProcessQueuedItems);
                     }
 
-                    // Create a new thread
-
-#if (_SILVERLIGHT) || (WINDOWS_PHONE)
-                    Thread workerThread = new Thread(ProcessQueuedItems);
-#else
-                    Thread workerThread =
-                        _stpStartInfo.MaxStackSize.HasValue
-                        ? new Thread(ProcessQueuedItems, _stpStartInfo.MaxStackSize.Value)
-                        : new Thread(ProcessQueuedItems);
-#endif
                     // Configure the new thread and start it
                     workerThread.IsBackground = _stpStartInfo.AreThreadsBackground;
 
-#if !(_SILVERLIGHT) && !(_WINDOWS_CE) && !(WINDOWS_PHONE)
                     if (_stpStartInfo.ApartmentState != ApartmentState.Unknown)
-                    {
                         workerThread.SetApartmentState(_stpStartInfo.ApartmentState);
-                    }
-#endif
 
-#if !(_SILVERLIGHT) && !(WINDOWS_PHONE)
                     workerThread.Priority = _stpStartInfo.ThreadPriority;
-#endif
+
                     workerThread.Name = string.Format("STP:{0}:{1}", Name, _threadCounter);
                     workerThread.Start();
 
+                    Interlocked.Exchange(ref _lastThreadCreateTS, DateTime.UtcNow.Ticks);
                     ++_threadCounter;
+                    --threadsCount;
 
                     // Add it to the dictionary and update its creation time.
                     _workerThreads[workerThread] = new ThreadEntry(this);
@@ -712,71 +665,67 @@ namespace Amib.Threading
             // of the dictionary.
             CurrentThreadEntry = _workerThreads[Thread.CurrentThread];
 
+            bool informedCompleted = false;
             FireOnThreadInitialization();
 
             try
             {
                 bool bInUseWorkerThreadsWasIncremented = false;
+                int maxworkers = _stpStartInfo.MaxWorkerThreads;
+                int minworkers = _stpStartInfo.MinWorkerThreads;
 
                 // Process until shutdown.
                 while (!_shutdown)
                 {
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    CurrentThreadEntry.IAmAlive();
-
                     // The following block handles the when the MaxWorkerThreads has been
                     // incremented by the user at run-time.
                     // Double lock for quit.
-                    if (_workerThreads.Count > _stpStartInfo.MaxWorkerThreads)
+                    if (_workerThreads.Count > maxworkers)
                     {
                         lock (_workerThreads.SyncRoot)
                         {
-                            if (_workerThreads.Count > _stpStartInfo.MaxWorkerThreads)
+                            if (_workerThreads.Count > maxworkers)
                             {
                                 // Inform that the thread is quiting and then quit.
                                 // This method must be called within this lock or else
                                 // more threads will quit and the thread pool will go
                                 // below the lower limit.
                                 InformCompleted();
+                                informedCompleted = true;
                                 break;
                             }
                         }
                     }
 
+                    CurrentThreadEntry.IAmAlive();
+
                     // Wait for a work item, shutdown, or timeout
                     WorkItem workItem = Dequeue();
 
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    CurrentThreadEntry.IAmAlive();
-
                     // On timeout or shut down.
-                    if (null == workItem)
+                    if (workItem == null)
                     {
                         // Double lock for quit.
-                        if (_workerThreads.Count > _stpStartInfo.MinWorkerThreads)
+                        if (_workerThreads.Count > minworkers)
                         {
                             lock (_workerThreads.SyncRoot)
                             {
-                                if (_workerThreads.Count > _stpStartInfo.MinWorkerThreads)
+                                if (_workerThreads.Count > minworkers)
                                 {
                                     // Inform that the thread is quiting and then quit.
                                     // This method must be called within this lock or else
                                     // more threads will quit and the thread pool will go
                                     // below the lower limit.
                                     InformCompleted();
+                                    informedCompleted = true;
                                     break;
                                 }
                             }
                         }
-                    }
-
-                    // If we didn't quit then skip to the next iteration.
-                    if (null == workItem)
-                    {
                         continue;
                     }
+
+                    CurrentThreadEntry.IAmAlive();
 
                     try
                     {
@@ -804,6 +753,7 @@ namespace Amib.Threading
                         // will return true, so the post execute can run.
                         if (!workItem.StartingWorkItem())
                         {
+                            CurrentThreadEntry.CurrentWorkItem = null;
                             continue;
                         }
 
@@ -858,9 +808,7 @@ namespace Amib.Threading
             {
                 tae.GetHashCode();
                 // Handle the abort exception gracfully.
-#if !(_WINDOWS_CE) && !(_SILVERLIGHT) && !(WINDOWS_PHONE)
                 Thread.ResetAbort();
-#endif
             }
             catch (Exception e)
             {
@@ -868,8 +816,10 @@ namespace Amib.Threading
             }
             finally
             {
-                InformCompleted();
+                if(!informedCompleted)
+                    InformCompleted();
                 FireOnThreadTermination();
+                _workItemsQueue.CloseThreadWaiter();
             }
         }
 
@@ -1017,11 +967,7 @@ namespace Amib.Threading
                 foreach (Thread thread in threads)
                 {
 
-                    if ((thread != null)
-#if !(_WINDOWS_CE)
-                        && thread.IsAlive
-#endif                        
-                        )
+                    if ((thread != null) && thread.IsAlive )
                     {
                         try
                         {
@@ -1049,8 +995,7 @@ namespace Amib.Threading
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
-        public static bool WaitAll(
-            IWaitableResult[] waitableResults)
+        public static bool WaitAll( IWaitableResult[] waitableResults)
         {
             return WaitAll(waitableResults, Timeout.Infinite, true);
         }
@@ -1066,10 +1011,7 @@ namespace Amib.Threading
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
-        public static bool WaitAll(
-            IWaitableResult[] waitableResults,
-            TimeSpan timeout,
-            bool exitContext)
+        public static bool WaitAll( IWaitableResult[] waitableResults, TimeSpan timeout, bool exitContext)
         {
             return WaitAll(waitableResults, (int)timeout.TotalMilliseconds, exitContext);
         }
@@ -1086,11 +1028,8 @@ namespace Amib.Threading
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
-        public static bool WaitAll(
-            IWaitableResult[] waitableResults,
-            TimeSpan timeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle)
+        public static bool WaitAll( IWaitableResult[] waitableResults, TimeSpan timeout,
+            bool exitContext, WaitHandle cancelWaitHandle)
         {
             return WaitAll(waitableResults, (int)timeout.TotalMilliseconds, exitContext, cancelWaitHandle);
         }
@@ -1106,10 +1045,7 @@ namespace Amib.Threading
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
-        public static bool WaitAll(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext)
+        public static bool WaitAll( IWaitableResult[] waitableResults, int millisecondsTimeout, bool exitContext)
         {
             return WorkItem.WaitAll(waitableResults, millisecondsTimeout, exitContext, null);
         }
@@ -1126,11 +1062,8 @@ namespace Amib.Threading
         /// <returns>
         /// true when every work item in workItemResults has completed; otherwise false.
         /// </returns>
-        public static bool WaitAll(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle)
+        public static bool WaitAll( IWaitableResult[] waitableResults, int millisecondsTimeout,
+            bool exitContext, WaitHandle cancelWaitHandle)
         {
             return WorkItem.WaitAll(waitableResults, millisecondsTimeout, exitContext, cancelWaitHandle);
         }
@@ -1143,8 +1076,7 @@ namespace Amib.Threading
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if any of the work items has been canceled.
         /// </returns>
-        public static int WaitAny(
-            IWaitableResult[] waitableResults)
+        public static int WaitAny( IWaitableResult[] waitableResults)
         {
             return WaitAny(waitableResults, Timeout.Infinite, true);
         }
@@ -1160,10 +1092,7 @@ namespace Amib.Threading
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
-        public static int WaitAny(
-            IWaitableResult[] waitableResults,
-            TimeSpan timeout,
-            bool exitContext)
+        public static int WaitAny( IWaitableResult[] waitableResults, TimeSpan timeout, bool exitContext)
         {
             return WaitAny(waitableResults, (int)timeout.TotalMilliseconds, exitContext);
         }
@@ -1180,11 +1109,8 @@ namespace Amib.Threading
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
-        public static int WaitAny(
-            IWaitableResult[] waitableResults,
-            TimeSpan timeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle)
+        public static int WaitAny( IWaitableResult[] waitableResults, TimeSpan timeout,
+            bool exitContext, WaitHandle cancelWaitHandle)
         {
             return WaitAny(waitableResults, (int)timeout.TotalMilliseconds, exitContext, cancelWaitHandle);
         }
@@ -1200,10 +1126,7 @@ namespace Amib.Threading
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
-        public static int WaitAny(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext)
+        public static int WaitAny( IWaitableResult[] waitableResults, int millisecondsTimeout, bool exitContext)
         {
             return WorkItem.WaitAny(waitableResults, millisecondsTimeout, exitContext, null);
         }
@@ -1220,11 +1143,8 @@ namespace Amib.Threading
         /// <returns>
         /// The array index of the work item result that satisfied the wait, or WaitTimeout if no work item result satisfied the wait and a time interval equivalent to millisecondsTimeout has passed or the work item has been canceled.
         /// </returns>
-        public static int WaitAny(
-            IWaitableResult[] waitableResults,
-            int millisecondsTimeout,
-            bool exitContext,
-            WaitHandle cancelWaitHandle)
+        public static int WaitAny( IWaitableResult[] waitableResults, int millisecondsTimeout,
+            bool exitContext, WaitHandle cancelWaitHandle)
         {
             return WorkItem.WaitAny(waitableResults, millisecondsTimeout, exitContext, cancelWaitHandle);
         }
@@ -1330,8 +1250,6 @@ namespace Amib.Threading
                 }
             }
         }
-
-
 
         #endregion
 

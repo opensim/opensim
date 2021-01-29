@@ -1,0 +1,22 @@
+Gloebit (https://www.gloebit.com) (http://dev.gloebit.com) (https://github.com/gloebit/)
+
+Creators
+* Brad Kittenbrink (https://github.com/bradkittenbrink)
+* Christopher M. Colosi - chris[at]gloebit.com - (https://github.com/colosi)
+
+
+This software was originally built as a plugin for OpenSim (http://opensimulator.org/)
+Special thanks to the whole OpenSim community for helping us test and improve this
+software at it's earliest stages.
+
+
+This software uses components from the following developers:
+* Microsoft .NET C# (https://docs.microsoft.com/en-us/dotnet/csharp/)
+* log4net (http://logging.apache.org/log4net/)
+* Nini (http://nini.sourceforge.net/)
+* XmlRpcCS (http://xmlrpccs.sf.net/)
+* Mono (https://www.mono-project.com/
+* LibOpenMetaverse (http://lib.openmetaverse.org/))
+* OpenSim (http://opensimulator.org/)
+* MySQL Connector/NET (https://dev.mysql.com/doc/connector-net/en/)
+* Npgsql (https://www.npgsql.org/)

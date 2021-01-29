@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 AssemblyName assembly = new AssemblyName();
                 assembly.Name = "CustomDelegateAssembly";
-                AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assembly, AssemblyBuilderAccess.Run);
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly, AssemblyBuilderAccess.Run);
                 delegateModuleBuilder = assemblyBuilder.DefineDynamicModule("CustomDelegateModule");
             }
 

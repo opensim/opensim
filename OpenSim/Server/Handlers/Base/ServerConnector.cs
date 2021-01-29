@@ -41,7 +41,7 @@ namespace OpenSim.Server.Handlers.Base
     {
         public virtual string ConfigURL
         {
-            get { return String.Empty; }
+            get { return string.Empty; }
         }
 
         public virtual string ConfigName

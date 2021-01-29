@@ -14,5 +14,7 @@
 ; *
 ; * You MUST change this! It will NOT be done for you!
 ; *
-
 Owner = 11111111-2222-3333-4444-555555555555
+
+; Use 0 For Auto increment ID (Recommended). When specifying a specific id, remember it can not be less than 100
+EstateID = 0

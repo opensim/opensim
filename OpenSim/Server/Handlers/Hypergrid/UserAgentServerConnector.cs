@@ -110,7 +110,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("get_uui", GetUUI, false);
             server.AddXmlRPCHandler("get_uuid", GetUUID, false);
 
-            server.AddStreamHandler(new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy));
+            server.AddSimpleStreamHandler(new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy), true);
         }
 
         public XmlRpcResponse GetHomeRegion(XmlRpcRequest request, IPEndPoint remoteClient)

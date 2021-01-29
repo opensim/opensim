@@ -54,9 +54,7 @@ namespace OpenSim.Region.CoreModules.Framework
 
         public void Initialise(IConfigSource config)
         {
-            m_processorJobEngine = new JobEngine(
-                "ServiceThrottle","ServiceThrottle");
-            m_processorJobEngine.RequestProcessTimeoutOnStop = 31000; // many webrequests have 30s expire
+            m_processorJobEngine = new JobEngine("ServiceThrottle","ServiceThrottle", 5000, 2);
             m_processorJobEngine.Start();
         }
 

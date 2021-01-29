@@ -1,0 +1,84 @@
+[Gloebit]
+    ;;;;;; ENABLE GLOBALLY OR FOR INDIVIDUAL REGIONS ;;;;;
+
+    ;# {Enabled} {[Startup]economymodule:Gloebit} {Enable Gloebit Money Module Globally?} {false, true} false
+    ;; Set to true to enable GMM for all regions controlled by this OpenSim process.
+    ;; Requires that "economymodule = Gloebit" is set in [Economy] or [Startup] section of opensim.ini
+    ;; If set to false, can be enabled for individual regions - see GLBEnabledOnlyInRegions below
+    Enabled = false
+
+    ;# {GLBEnabledOnlyInRegions} {Enabled:false} {Enable Gloebit Money Module in specific regions by region UUID (space delimited list)?} {*} ""
+    ;; If Enabled is false above, you can enable for individual regions controlled by this OpenSim process.
+    ;; Set this variable to a whitespace delimited list of region UUIDs
+    ;    GLBEnabledOnlyInRegions =
+
+    ;;;;;; CONFIGURE ENVIRONMENT AND APPLICATION ;;;;;;
+    ;; Configure GMM to environment and Gloebit application on that environment to interact with
+    ;; see http://dev.gloebit.com/opensim/configuration-instructions/ for more details.
+
+    ;; Environments:
+    ;;      sandbox - connects to sandbox.gloebit.com;  fake/sandboxed payments and gloebits;
+    ;;              https://sandbox.gloebit.com/signup/ - create sandbox account
+    ;;              https://sandbox.gloebit.com/merchant-signup/ - request ability to create apps
+    ;;              https://sandbox.gloebit.com/merchant-tools/ - create app and retrieve Key and Secret
+    ;;      production - connects to www.gloebit.com; real payments and gloebits;
+    ;;              https://www.gloebit.com/signup/ - create production account
+    ;;              https://www.gloebit.com/merchant-signup/ - request ability to create apps
+    ;;              (requires manual approval on production before gaining access to merchant tools)
+    ;;              https://www.gloebit.com/merchant-tools/ - create app and retrieve Key and Secret
+    GLBEnvironment = sandbox
+
+    ;; Application the GMM on this process will connect to within the environment specified above
+    ;; Fill in GLBKey and GLBSecret with values from app created at https://sandbox.gloebit.com/merchant-tools/
+    ;; See http://dev.gloebit.com/opensim/configuration-instructions/ for more details.
+    GLBKey = 00000000-0000-0000-0000-000000000000
+    GLBSecret = 00000000-0000-0000-0000-000000000000
+
+    ;; GLBKeyAlias is optional and can be left out.
+    ;; If included, this will be used to make some URLs more user-friendly and human-readalbe
+    ;; To use, fill this with the OAuth Key Alias registered for this application on Gloebit
+    ; GLBKeyAlias =
+
+
+    ;;;;;; CONFIGURE HELPFUL ERROR CONTACT INFO FOR USER MESSAGES ;;;;;;
+    ;; The following are supplied to users in error messages for certain errors for which they should
+    ;; contact the person who configured this GMM and app and may need to fix something
+    ;; Those messages will include a trailing instruction string formatted like:
+    ;; Please contact GLBOnwerName at GLBOwnerEmail if this problem persists.
+
+    ;; GLBOwnerName should be replaced with the neme of the person or avatar which manages this OpenSim process.
+    GLBOwnerName = Region or Grid Owner
+
+    ;; GLBOwnerEmail should be replaced with the email address (or other contact mechanism) for the person who manages this OpenSim process.
+    ; GLBOwnerEmail = Manager@example.com
+
+    ;;;;; CONFIGURE NEW SESSION MESSAGING ;;;;;
+    ;; The following determine if a user receives messaging at the start of a new session
+    ;; A new session is defined as the first time a user enters a Gloebit enabled region for a Gloebit app during a viewer login
+    ;# {GLBShowNewSessionPurchaseIM} {Show purchase gloebits IM to user at session start?} {false, true} false
+    ; GLBShowNewSessionPurchaseIM = false
+    ;# {GLBShowNewSessionAuthIM} {Show auth app IM to user at session start?} {false, true} true
+    ; GLBShowNewSessionAuthIM = true
+    ;# {GLBShowWelcomeMessage} {Show welcome message when entering a region}
+    ; GLBShowWelcomeMessage = true
+
+    ;;;;; CONFIGURE SINGLE GLOEBIT DB FOR APP OR GRID ;;;;;;
+    ;; Optional - If not configured here, Gloebit will use the DataService 
+    ;; ConnectionString
+    ;;
+    ;; Purpose - If each Sim process uses it's own database and separate
+    ;; set of DB tables from each other sim, then a user will have
+    ;; to authorize Gloebit form every sim process and will receive
+    ;; our welcome message upon entering every Sim process each
+    ;; session. However, if you configure the Gloebit system on every
+    ;; sim to point to a single DB either here, or if that is your default
+    ;; configuration for your sim, then your users will only have to authorize
+    ;; Gloebit once for your app and will only receive our welcome message
+    ;; once each session, the first time they enter a gloebit enabled region.
+    ;;
+    ;; Both of these settings must be configured together.  See StandaloneCommon.ini.example
+    ;; for ConnectionString examples and availiable StorageProviders
+    ;GLBSpecificStorageProvider = OpenSim.Data.MySQL.dll
+    ;GLBSpecificConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ;GLBSpecificStorageProvider = "OpenSim.Data.PGSQL.dll"
+    ;GLBSpecificConnectionString = "Server=localhost;Database=opensim;User Id=opensim; password=***;"
