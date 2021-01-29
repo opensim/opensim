@@ -145,6 +145,11 @@ namespace OpenSim.Framework
             get { return Flags == OSHTTPURIFlags.None ? "" : URI + "/";}
         }
 
+        public string HostAndPort
+        {
+            get { return (Flags == OSHTTPURIFlags.None) ? "" : Host + ":" + Port.ToString(); }
+        }
+
         public int CompareTo(OSHTTPURI other)
         {
             if (Port == other.Port && ((Flags & other.Flags) & OSHTTPURIFlags.ValidHost) != 0)

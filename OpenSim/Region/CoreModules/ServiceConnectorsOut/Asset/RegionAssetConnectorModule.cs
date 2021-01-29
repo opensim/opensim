@@ -70,7 +70,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         //private bool m_inRetries;
 
         private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = new Dictionary<string, List<AssetRetrievedEx>>();
-        private Thread[] m_fetchThreads;
+
+        private ObjectJobEngine m_requestQueue;
 
         public Type ReplaceableInterface
         {
@@ -134,20 +135,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                             m_AssetPerms = new AssetPermissions(hgConfig);
                     }
 
-                    //m_sendRetries = new List<AssetBase>[MAXSENDRETRIESLEN];
-                    //m_sendCachedRetries = new List<string>[MAXSENDRETRIESLEN];
-
-                    //m_retryTimer = new System.Timers.Timer();
-                    //m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
-                    //m_retryTimer.AutoReset = true;
-                    //m_retryTimer.Interval = 60000;
-
-                    m_fetchThreads = new Thread[2];
-
-                    for (int i = 0; i < m_fetchThreads.Length; i++)
-                    {
-                        m_fetchThreads[i] = WorkManager.StartThread(AssetRequestProcessor, string.Format("GetAssetsWorker{0}", i));
-                    }
+                    m_requestQueue = new ObjectJobEngine(AssetRequestProcessor, "GetAssetsWorkers", 2000, 2);
                     m_Enabled = true;
                     m_log.Info("[REGIONASSETCONNECTOR]: enabled");
                 }
@@ -160,6 +148,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public void Close()
         {
+            if (!m_Enabled)
+                return;
+
+            m_requestQueue.Dispose();
+            m_requestQueue = null;
         }
 
         public void AddRegion(Scene scene)
@@ -341,7 +334,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return null;
         }
 
-        public virtual bool Get(string id, object sender, AssetRetrieved handler)
+        public virtual bool Get(string id, object sender, AssetRetrieved callBack)
         {
             AssetBase asset = null;
             if (m_Cache != null)
@@ -354,7 +347,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             {
                 lock (m_AssetHandlers)
                 {
-                    AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate (AssetBase _asset) { handler(id, sender, _asset); });
+                    AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate (AssetBase _asset) { callBack(id, sender, _asset); });
 
                     List<AssetRetrievedEx> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
@@ -368,55 +361,51 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                     handlers.Add(handlerEx);
 
                     m_AssetHandlers.Add(id, handlers);
-                    m_requestQueue.Add(id);
+                    m_requestQueue.Enqueue(id);
                 }
             }
             else
             {
                 if (asset != null && (asset.Data == null || asset.Data.Length == 0))
                     asset = null;
-                handler(id, sender, asset);
+                callBack(id, sender, asset);
             }
             return true;
         }
 
-        private BlockingCollection<string> m_requestQueue = new BlockingCollection<string>();
-        private void AssetRequestProcessor()
+        private void AssetRequestProcessor(object o)
         {
-            while (true)
+            string id = o as string;
+            if(id == null)
+                return;
+
+            try
             {
-                if (!m_requestQueue.TryTake(out string id, 4500) || id == null)
+                AssetBase a = Get(id);
+                List<AssetRetrievedEx> handlers;
+                lock (m_AssetHandlers)
                 {
-                    Watchdog.UpdateThread();
-                    continue;
+                    handlers = m_AssetHandlers[id];
+                    m_AssetHandlers.Remove(id);
                 }
 
-                Watchdog.UpdateThread();
-                try
+                if (handlers != null)
                 {
-                    AssetBase a = Get(id);
-                    List<AssetRetrievedEx> handlers;
-                    lock (m_AssetHandlers)
+                    Util.FireAndForget(x =>
                     {
-                        handlers = m_AssetHandlers[id];
-                        m_AssetHandlers.Remove(id);
-                    }
-
-                    if (handlers != null)
-                    {
-                        Util.FireAndForget(x =>
+                        foreach (AssetRetrievedEx h in handlers)
                         {
-                            foreach (AssetRetrievedEx h in handlers)
+                            try
                             {
-                                try { h.Invoke(a); }
-                                catch { }
+                                h.Invoke(a);
                             }
-                            handlers.Clear();
-                        });
-                    }
+                            catch { }
+                        }
+                        handlers.Clear();
+                    });
                 }
-                catch { }
             }
+            catch { }
         }
 
         public bool[] AssetsExist(string[] ids)

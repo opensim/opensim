@@ -26,20 +26,15 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using OpenMetaverse;
-using Amib.Threading;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Shared.Api;
-using Action = System.Action;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 {
     public class Dataserver
     {
-        private SmartThreadPool m_ThreadPool;
+        private ObjectJobEngine m_WorkPool;
 
         public AsyncCommandManager m_CmdManager;
 
@@ -57,17 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         public Dataserver(AsyncCommandManager CmdManager)
         {
             m_CmdManager = CmdManager;
-
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.ThreadPoolName = "ScriptV";
-            startInfo.IdleTimeout = 1000;
-            startInfo.MaxWorkerThreads = 4;
-            startInfo.MinWorkerThreads = 0;
-            startInfo.ThreadPriority = ThreadPriority.Normal;
-            startInfo.StartSuspended = true;
-
-            m_ThreadPool = new SmartThreadPool(startInfo);
-            m_ThreadPool.Start();
+            m_WorkPool = new ObjectJobEngine(ProcessActions, "ScriptDataServer", 1000, 4);
         }
 
         private class DataserverRequest
@@ -150,7 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 DataserverRequests[identifier] = ds;
                 if (action != null)
-                    m_ThreadPool.QueueWorkItem((WorkItemCallback)ProcessActions, identifier);
+                    m_WorkPool.Enqueue(identifier);
 
                 return ds.ID;
             }
@@ -176,28 +161,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 DataserverRequests[identifier] = ds;
                 if (action != null)
-                    m_ThreadPool.QueueWorkItem((WorkItemCallback)ProcessActions, identifier);
+                    m_WorkPool.Enqueue(identifier);
 
                 return ds.ID;
             }
         }
 
-
-        public object ProcessActions(object st)
+        public void ProcessActions(object st)
         {
             string id = st as string;
             if(string.IsNullOrEmpty(id))
-                return null;
+                return;
 
             DataserverRequest ds = null;
             lock (DataserverRequests)
             {
                 if (!DataserverRequests.TryGetValue(id, out ds))
-                    return null;
+                    return;
             }
 
             if (ds == null || ds.action == null)
-                return null;
+                return;
             try
             {
                 ds.action.Invoke(ds.handle);
@@ -210,8 +194,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 if (DataserverRequests.TryGetValue(id, out ds))
                     DataserverRequests.Remove(id);
             }
-
-            return null;
         }
 
         //legacy ?

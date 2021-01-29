@@ -665,6 +665,7 @@ namespace Amib.Threading
             // of the dictionary.
             CurrentThreadEntry = _workerThreads[Thread.CurrentThread];
 
+            bool informedCompleted = false;
             FireOnThreadInitialization();
 
             try
@@ -676,10 +677,6 @@ namespace Amib.Threading
                 // Process until shutdown.
                 while (!_shutdown)
                 {
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    CurrentThreadEntry.IAmAlive();
-
                     // The following block handles the when the MaxWorkerThreads has been
                     // incremented by the user at run-time.
                     // Double lock for quit.
@@ -694,17 +691,16 @@ namespace Amib.Threading
                                 // more threads will quit and the thread pool will go
                                 // below the lower limit.
                                 InformCompleted();
+                                informedCompleted = true;
                                 break;
                             }
                         }
                     }
 
+                    CurrentThreadEntry.IAmAlive();
+
                     // Wait for a work item, shutdown, or timeout
                     WorkItem workItem = Dequeue();
-
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    CurrentThreadEntry.IAmAlive();
 
                     // On timeout or shut down.
                     if (workItem == null)
@@ -721,12 +717,15 @@ namespace Amib.Threading
                                     // more threads will quit and the thread pool will go
                                     // below the lower limit.
                                     InformCompleted();
+                                    informedCompleted = true;
                                     break;
                                 }
                             }
                         }
                         continue;
                     }
+
+                    CurrentThreadEntry.IAmAlive();
 
                     try
                     {
@@ -817,8 +816,10 @@ namespace Amib.Threading
             }
             finally
             {
-                InformCompleted();
+                if(!informedCompleted)
+                    InformCompleted();
                 FireOnThreadTermination();
+                _workItemsQueue.CloseThreadWaiter();
             }
         }
 
