@@ -12334,6 +12334,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (classifiedInfoUpdate.AgentData.SessionID != SessionId || classifiedInfoUpdate.AgentData.AgentID != AgentId)
                 return;
 
+            // fix classifiedFlags maturity
+            byte classifiedFlags = classifiedInfoUpdate.Data.ClassifiedFlags;
+            if ((classifiedFlags & 0x4e) == 0) // if none
+                classifiedFlags |= 0x4; // pg
+
             OnClassifiedInfoUpdate?.Invoke(
                         classifiedInfoUpdate.Data.ClassifiedID,
                         classifiedInfoUpdate.Data.Category,
@@ -12346,7 +12351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         classifiedInfoUpdate.Data.SnapshotID,
                         new Vector3(
                             classifiedInfoUpdate.Data.PosGlobal),
-                        classifiedInfoUpdate.Data.ClassifiedFlags,
+                        classifiedFlags,
                         classifiedInfoUpdate.Data.PriceForListing,
                         this);
         }
