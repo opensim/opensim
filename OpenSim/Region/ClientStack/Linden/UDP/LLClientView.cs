@@ -4207,6 +4207,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendClassifiedInfoReply(UUID classifiedID, UUID creatorID, uint creationDate, uint expirationDate, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, string simName, Vector3 globalPos, string parcelName, byte classifiedFlags, int price)
         {
+            // fix classifiedFlags maturity
+            if((classifiedFlags & 0x2e) == 0) // if none
+                classifiedFlags |= 0x4; // pg
+
             ClassifiedInfoReplyPacket cr =
                     (ClassifiedInfoReplyPacket)PacketPool.Instance.GetPacket(
                     PacketType.ClassifiedInfoReply);
