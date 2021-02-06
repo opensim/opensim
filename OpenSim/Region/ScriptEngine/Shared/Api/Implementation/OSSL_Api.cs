@@ -4268,6 +4268,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_LSL_Api.DetachFromAvatar();
         }
 
+        private bool listObjToInt(object p, out int i)
+        {
+            try
+            {
+                if (p is LSL_Integer)
+                    i = (LSL_Integer)p;
+                else if (p is int)
+                    i = (int)p;
+                else if (p is uint)
+                    i = (int)(uint)p;
+                else if (p is string)
+                    return int.TryParse((string)p, out i);
+                else if (p is LSL_String)
+                    return int.TryParse((string)(LSL_String)p, out i);
+                else
+                {
+                    i = 0;
+                    return false;
+                }
+                return true;
+            }
+            catch
+            {
+                i = 0;
+                return false;
+            }
+        }
+
         public LSL_List osGetNumberOfAttachments(LSL_Key avatar, LSL_List attachmentPoints)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetNumberOfAttachments");
@@ -4278,12 +4306,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (object point in attachmentPoints.Data)
                 {
-                    LSL_Integer ipoint = new LSL_Integer(
-                        (point is LSL_Integer || point is int || point is uint) ?
-                            (int)point :
-                            0
-                    );
-                    resp.Add(ipoint);
+                    listObjToInt(point, out int ipoint);
+                    resp.Add(new LSL_Integer(ipoint));
                     if (ipoint == 0)
                     {
                         // indicates zero attachments
