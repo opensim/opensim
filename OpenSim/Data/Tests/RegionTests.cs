@@ -337,7 +337,7 @@ namespace OpenSim.Data.Tests
             Assert.That(localid,Is.EqualTo(sop.LocalId), "Assert.That(localid,Is.EqualTo(sop.LocalId))");
             Assert.That(groupos,Is.EqualTo(sop.GroupPosition), "Assert.That(groupos,Is.EqualTo(sop.GroupPosition))");
             Assert.That(name,Is.EqualTo(sop.Name), "Assert.That(name,Is.EqualTo(sop.Name))");
-            Assert.That(rotoff,Is.EqualTo(sop.RotationOffset), "Assert.That(rotoff,Is.EqualTo(sop.RotationOffset))");
+            Assert.That(rotoff, new QuaternionToleranceConstraint(sop.RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(sop.RotationOffset))");
             Assert.That(uuid,Is.EqualTo(sop.UUID), "Assert.That(uuid,Is.EqualTo(sop.UUID))");
             Assert.That(creator,Is.EqualTo(sop.CreatorID), "Assert.That(creator,Is.EqualTo(sop.CreatorID))");
             // Modified in-class
@@ -503,10 +503,7 @@ namespace OpenSim.Data.Tests
             Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
             Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
-            Assert.That(rotoff.X, Is.EqualTo(p.RotationOffset.X).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-            Assert.That(rotoff.Y, Is.EqualTo(p.RotationOffset.Y).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-            Assert.That(rotoff.Z, Is.EqualTo(p.RotationOffset.Z).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-            Assert.That(rotoff.W, Is.EqualTo(p.RotationOffset.W).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+            Assert.That(rotoff, new QuaternionToleranceConstraint(p.RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
             Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
             Assert.That(dic,Is.EqualTo(p.TaskInventory), "Assert.That(dic,Is.EqualTo(p.TaskInventory))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
@@ -563,17 +560,13 @@ namespace OpenSim.Data.Tests
             }
 
             db.StoreObject(sog, region4);
-
             SceneObjectGroup retsog = FindSOG("Test SOG", region4);
             SceneObjectPart[] parts = retsog.Parts;
             for (int i = 0; i < 30; i++)
             {
                 SceneObjectPart cursop = mydic[parts[i].UUID];
                 Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition), "Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition))");
-                Assert.That(cursop.RotationOffset.X, Is.EqualTo(parts[i].RotationOffset.X).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-                Assert.That(cursop.RotationOffset.Y, Is.EqualTo(parts[i].RotationOffset.Y).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-                Assert.That(cursop.RotationOffset.Z, Is.EqualTo(parts[i].RotationOffset.Z).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
-                Assert.That(cursop.RotationOffset.W, Is.EqualTo(parts[i].RotationOffset.W).Within(0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+                Assert.That(cursop.RotationOffset, new QuaternionToleranceConstraint(parts[i].RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
                 Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition), "Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition))");
                 Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity), "Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity))");
                 Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity), "Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity))");
