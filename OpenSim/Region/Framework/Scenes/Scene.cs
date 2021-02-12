@@ -1669,23 +1669,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update(int frames)
         {
-            long? endFrame = null;
+            long endFrame;
 
             if (frames >= 0)
                 endFrame = Frame + frames;
+            else
+                endFrame = long.MaxValue;
 
             float physicsFPS = 0f;
             float frameTimeMS = FrameTime * 1000.0f;
 
             int previousFrameTick;
 
-            double tmpMS;
-            double tmpMS2;
+            double lastMS;
+            double nowMS;
             double framestart;
             float sleepMS;
             float sleepError = 0;
 
-            while (!m_shuttingDown && ((endFrame == null && Active) || Frame < endFrame))
+            while (!m_shuttingDown && ((endFrame == long.MaxValue && Active) || Frame < endFrame))
             {
                 framestart = Util.GetTimeStampMS();
                 ++Frame;
@@ -1700,7 +1702,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Apply taints in terrain module to terrain in physics scene
 
-                    tmpMS = Util.GetTimeStampMS();
+                    lastMS = Util.GetTimeStampMS();
 
                     if (Frame % 4 == 0)
                     {
@@ -1712,47 +1714,44 @@ namespace OpenSim.Region.Framework.Scenes
                         UpdateTerrain();
                     }
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    terrainMS = (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    terrainMS = (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
                     if (PhysicsEnabled && Frame % m_update_physics == 0)
                         m_sceneGraph.UpdatePreparePhysics();
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    physicsMS2 = (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    physicsMS2 = (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
 /*
                     // Apply any pending avatar force input to the avatar's velocity
                     if (Frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 */
-                    if (Frame % (m_update_coarse_locations) == 0 && !m_sendingCoarseLocations)
+                    if (!m_sendingCoarseLocations && GetNumberOfClients() > 0 && Frame % m_update_coarse_locations == 0)
                     {
-                        if(GetNumberOfClients() > 0)
-                        {
-                            m_sendingCoarseLocations = true;
-                            WorkManager.RunInThreadPool(
-                                delegate
+                        m_sendingCoarseLocations = true;
+                        WorkManager.RunInThreadPool(
+                            delegate
+                            {
+                                SceneGraph.GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, 60);
+                                // Send coarse locations to clients
+                                ForEachScenePresence(delegate(ScenePresence presence)
                                 {
-                                    SceneGraph.GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, 60);
-                                    // Send coarse locations to clients
-                                    ForEachScenePresence(delegate(ScenePresence presence)
-                                    {
-                                        if(!presence.IsNPC)
-                                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                                    });
-                                    m_sendingCoarseLocations = false; 
-                                }, null, string.Format("SendCoarseLocations ({0})", Name));
-                        }
+                                    if(!presence.IsNPC)
+                                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                                });
+                                m_sendingCoarseLocations = false; 
+                            }, null, string.Format("SendCoarseLocations ({0})", Name));
                     }
 
                     // Get the simulation frame time that the avatar force input
                     // took
-                    tmpMS2 = Util.GetTimeStampMS();
-                    agentMS = (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    agentMS = (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
                     // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
                     // velocity
@@ -1762,10 +1761,11 @@ namespace OpenSim.Region.Framework.Scenes
                             physicsFPS = m_sceneGraph.UpdatePhysics(FrameTime);
                     }
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    physicsMS = (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    physicsMS = (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
+                    CheckKFM(FrameTime);
                     // Check if any objects have reached their targets
                     CheckAtTargets();
 
@@ -1774,18 +1774,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    otherMS = (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    otherMS = (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
                     // Run through all ScenePresences looking for updates
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (Frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    agentMS += (float)(tmpMS2 - tmpMS);
-                    tmpMS = tmpMS2;
+                    nowMS = Util.GetTimeStampMS();
+                    agentMS += (float)(nowMS - lastMS);
+                    lastMS = nowMS;
 
                     // Delete temp-on-rez stuff
                     if (Frame % m_update_temp_cleaning == 0 && !m_cleaningTemps)
@@ -1793,27 +1793,27 @@ namespace OpenSim.Region.Framework.Scenes
                         m_cleaningTemps = true;
                         WorkManager.RunInThreadPool(
                             delegate { CleanTempObjects(); m_cleaningTemps = false; }, null, string.Format("CleanTempObjects ({0})", Name));
-                        tmpMS2 = Util.GetTimeStampMS();
-                        tempOnRezMS = (float)(tmpMS2 - tmpMS); // bad.. counts the FireAndForget, not CleanTempObjects
-                        tmpMS = tmpMS2;
+                        nowMS = Util.GetTimeStampMS();
+                        tempOnRezMS = (float)(nowMS - lastMS); // bad.. counts the FireAndForget, not CleanTempObjects
+                        lastMS = nowMS;
                     }
 
                     if (Frame % m_update_events == 0)
                     {
                         UpdateEvents();
 
-                        tmpMS2 = Util.GetTimeStampMS();
-                        eventMS = (float)(tmpMS2 - tmpMS);
-                        tmpMS = tmpMS2;
+                        nowMS = Util.GetTimeStampMS();
+                        eventMS = (float)(nowMS - lastMS);
+                        lastMS = nowMS;
                     }
 
                     if (PeriodicBackup && Frame % m_update_backup == 0)
                     {
                         UpdateStorageBackup();
 
-                        tmpMS2 = Util.GetTimeStampMS();
-                        backupMS = (float)(tmpMS2 - tmpMS);
-                        tmpMS = tmpMS2;
+                        nowMS = Util.GetTimeStampMS();
+                        backupMS = (float)(nowMS - lastMS);
+                        lastMS = nowMS;
                     }
 
                     //if (Frame % m_update_land == 0)
@@ -1895,33 +1895,33 @@ namespace OpenSim.Region.Framework.Scenes
 
                 otherMS += tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
 
-                tmpMS = Util.GetTimeStampMS();
+                lastMS = Util.GetTimeStampMS();
 
                 previousFrameTick = m_lastFrameTick;
-                m_lastFrameTick = (int)(tmpMS + 0.5);
+                m_lastFrameTick = (int)(lastMS + 0.5);
 
                 // estimate sleep time
-                tmpMS2 = tmpMS - framestart;
-                tmpMS2 = (double)frameTimeMS - tmpMS2 - sleepError;
+                nowMS = lastMS - framestart;
+                nowMS = (double)frameTimeMS - nowMS - sleepError;
 
                 // reuse frameMS as temporary
-                frameMS = (float)tmpMS2;
+                frameMS = (float)nowMS;
 
                 // sleep if we can
-                if (tmpMS2 > 0)
+                if (nowMS > 0)
                     {
-                    Thread.Sleep((int)(tmpMS2 + 0.5));
+                    Thread.Sleep((int)(nowMS + 0.5));
 
-                    tmpMS2 = Util.GetTimeStampMS();
-                    sleepMS = (float)(tmpMS2 - tmpMS);
+                    nowMS = Util.GetTimeStampMS();
+                    sleepMS = (float)(nowMS - lastMS);
                     sleepError = sleepMS - frameMS;
                     Util.Clamp(sleepError, 0.0f, 20f);
-                    frameMS = (float)(tmpMS2 - framestart);
+                    frameMS = (float)(nowMS - framestart);
                     }
                 else
                     {
-                    tmpMS2 = Util.GetTimeStampMS();
-                    frameMS = (float)(tmpMS2 - framestart);
+                    nowMS = Util.GetTimeStampMS();
+                    frameMS = (float)(nowMS - framestart);
                     sleepMS = 0.0f;
                     sleepError = 0.0f;
                     }
@@ -1930,11 +1930,6 @@ namespace OpenSim.Region.Framework.Scenes
                 float scriptTimeMS = GetAndResetScriptExecutionTime();
                 StatsReporter.AddFrameStats(TimeDilation, physicsFPS, agentMS,
                              physicsMS + physicsMS2, otherMS , sleepMS, frameMS, scriptTimeMS);
-
-
-
-                // if (Frame%m_update_avatars == 0)
-                //   UpdateInWorldTime();
 
           // Optionally warn if a frame takes double the amount of time that it should.
                 if (DebugUpdates
