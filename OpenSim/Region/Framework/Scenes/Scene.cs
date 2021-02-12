@@ -6141,41 +6141,11 @@ Environment.Exit(1);
                 return false;
             }
 
-            bool isAdmin = Permissions.IsAdministrator(agentID);
-            bool isManager = Permissions.IsEstateManager(agentID);
-
             // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
             // However, the long term fix is to make sure root agent count is always accurate.
             m_sceneGraph.RecalculateStats();
 
-            int num = m_sceneGraph.GetRootAgentCount();
-
-            if (num >= RegionInfo.RegionSettings.AgentLimit)
-            {
-                if (!(isAdmin || isManager))
-                {
-                    reason = "The region is full";
-
-                    m_log.DebugFormat(
-                        "[SCENE]: Denying presence with id {0} entry into {1} since region is at agent limit of {2}",
-                        agentID, RegionInfo.RegionName, RegionInfo.RegionSettings.AgentLimit);
-
-                    return false;
-                }
-            }
-
-            ScenePresence presence = GetScenePresence(agentID);
-            IClientAPI client = null;
-            AgentCircuitData aCircuit = null;
-
-            if (presence != null)
-            {
-                client = presence.ControllingClient;
-                if (client != null)
-                    aCircuit = client.RequestClientInfo();
-            }
-
-            // We may be called before there is a presence or a client.
+            AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
             if (aCircuit == null)
             {
@@ -6205,11 +6175,11 @@ Environment.Exit(1);
 
             // last check aditional land access restrictions and relocations
             // if crossing (viaTeleport false) check only the specified parcel
-            return CheckLandPositionAccess(agentID, viaTeleport, true, position, out reason);
+            return CheckLandPositionAccess(agentID, viaTeleport, true, true, position, out reason);
         }
 
         // check access to land.
-        public bool CheckLandPositionAccess(UUID agentID, bool NotCrossing, bool checkTeleHub, Vector3 position, out string reason)
+        public bool CheckLandPositionAccess(UUID agentID, bool NotCrossing, bool checkTeleHub, bool checkRegionAgentCount, Vector3 position, out string reason)
         {
             reason = string.Empty;
 
@@ -6225,6 +6195,18 @@ Environment.Exit(1);
             bool isManager = Permissions.IsEstateManager(agentID);
             if(isManager)
                 return true;
+
+            int num = m_sceneGraph.GetRootAgentCount();
+            if (num >= RegionInfo.RegionSettings.AgentLimit)
+            {
+                reason = "The region is full";
+
+                m_log.DebugFormat(
+                    "[SCENE]: Denying presence with id {0} entry into {1} since region is at agent limit of {2}",
+                    agentID, RegionInfo.RegionName, RegionInfo.RegionSettings.AgentLimit);
+
+                return false;
+            }
 
             if (NotCrossing)
             {
