@@ -3802,11 +3802,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_sceneGraph.removeUserCount(!isChildAgent);
 
-                    // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
-                    // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
-                    if (closeChildAgents && CapsModule != null)
-                        CapsModule.RemoveCaps(agentID, avatar.ControllingClient.CircuitCode);
-
                     if (closeChildAgents && !isChildAgent)
                     {
                         List<ulong> regions = avatar.KnownRegionHandles;
@@ -3859,10 +3854,11 @@ namespace OpenSim.Region.Framework.Scenes
                         // Always clean these structures up so that any failure above doesn't cause them to remain in the
                         // scene with possibly bad effects (e.g. continually timing out on unacked packets and triggering
                         // the same cleanup exception continually.
-                        m_authenticateHandler.RemoveCircuit(agentID);
+                        m_authenticateHandler.RemoveCircuit(acd);
                         m_sceneGraph.RemoveScenePresence(agentID);
                         m_clientManager.Remove(agentID);
-
+                        if (m_capsModule != null)
+                            m_capsModule.RemoveCaps(agentID, acd.circuitcode);
                         avatar.Dispose();
                     }
                     catch (Exception e)
@@ -4245,10 +4241,10 @@ namespace OpenSim.Region.Framework.Scenes
                         Name, (acd.child ? "child" : "root"), acd.firstname, acd.lastname,
                         acd.AgentID, acd.circuitcode);
 
-                    if (CapsModule != null)
+                    if (m_capsModule != null)
                     {
-                        CapsModule.SetAgentCapsSeeds(acd);
-                        CapsModule.CreateCaps(acd.AgentID, acd.circuitcode);
+                        m_capsModule.SetAgentCapsSeeds(acd);
+                        m_capsModule.CreateCaps(acd.AgentID, acd.circuitcode);
                     }
                 }
                 else
@@ -4261,10 +4257,10 @@ namespace OpenSim.Region.Framework.Scenes
                             "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
                             acd.AgentID, RegionInfo.RegionName);
 
-                        if (CapsModule != null)
+                        if (m_capsModule != null)
                         {
-                            CapsModule.SetAgentCapsSeeds(acd);
-                            CapsModule.CreateCaps(acd.AgentID, acd.circuitcode);
+                            m_capsModule.SetAgentCapsSeeds(acd);
+                            m_capsModule.CreateCaps(acd.AgentID, acd.circuitcode);
                         }
 
                         sp.AdjustKnownSeeds();
@@ -4277,9 +4273,9 @@ namespace OpenSim.Region.Framework.Scenes
                 CacheUserName(null, acd);
             }
 
-            if (CapsModule != null)
+            if (m_capsModule != null)
             {
-                CapsModule.ActivateCaps(acd.circuitcode);
+                m_capsModule.ActivateCaps(acd.circuitcode);
             }
 
             return true;
@@ -4829,22 +4825,22 @@ Label_GroupsDone:
                     // and since they don't get cleaned up they will stick
                     // around until region restart. So, if there is no SP,
                     // remove the client as well.
-                    if (m_authenticateHandler != null)
-                        m_authenticateHandler.RemoveCircuit(agentID);
-
+                    bool ret = false;
                     if (m_clientManager.TryGetValue(agentID, out IClientAPI client))
                     {
-                        m_clientManager.Remove(agentID);
-                        if (CapsModule != null)
-                            CapsModule.RemoveCaps(agentID, 0);
+                        client.Close(force, force);
                         m_log.DebugFormat( "[SCENE]: Dead client for agent ID {0} was cleaned up in {1}", agentID, Name);
-                        return true;
+                        ret = true;
                     }
-                    m_log.DebugFormat(
-                        "[SCENE]: Called CloseClient() with agent ID {0} but no such presence is in {1}",
-                        agentID, Name);
 
-                    return false;
+                    // need to try this again, bc client close may had not done it
+                    if (m_authenticateHandler != null)
+                        m_authenticateHandler.RemoveCircuit(agentID);
+                    m_clientManager.Remove(agentID);
+                    if (m_capsModule != null)
+                        m_capsModule.RemoveCaps(agentID, 0);
+
+                    return ret;
                 }
 
                 if (sp.LifecycleState != ScenePresenceState.Running && sp.LifecycleState != ScenePresenceState.PreRemove)
