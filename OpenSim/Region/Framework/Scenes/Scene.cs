@@ -1765,7 +1765,7 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS = (float)(nowMS - lastMS);
                     lastMS = nowMS;
 
-                    CheckKFM(FrameTime);
+                    //CheckKFM(FrameTime);
                     // Check if any objects have reached their targets
                     CheckAtTargets();
 
@@ -4153,7 +4153,7 @@ namespace OpenSim.Region.Framework.Scenes
                     checkTeleHub = vialogin
                         || (TelehubAllowLandmarks == true ? false : ((teleportFlags & (uint)(TPFlags.ViaLandmark | TPFlags.ViaLocation)) != 0));
 
-                if (!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, acd.startpos, out reason))
+                if (!CheckLandPositionAccess(acd.AgentID, true, checkTeleHub, false, acd.startpos, out reason))
                 {
                     m_authenticateHandler.RemoveCircuit(acd);
                     return false;
