@@ -126,7 +126,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_physicsEnabled;
 
         /// <summary>
-        /// If false then scripts are not enabled on the smiulator
+        /// If false then scripts are not enabled on the simulator
         /// </summary>
         public bool ScriptsEnabled
         {
@@ -1067,9 +1067,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 string[] possibleAccessControlConfigSections = new string[] { "Startup", "AccessControl"};
 
-                string grant
-                    = Util.GetConfigVarFromSections<string>(
-                        config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
+                string grant = Util.GetConfigVarFromSections<string>(
+                    config, "AllowedClients", possibleAccessControlConfigSections, string.Empty);
 
                 if (grant.Length > 0)
                 {
@@ -1079,9 +1078,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                grant
-                    = Util.GetConfigVarFromSections<string>(
-                        config, "DeniedClients", possibleAccessControlConfigSections, String.Empty);
+                grant = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, String.Empty);
                 // Deal with the mess of someone having used a different word at some point
                 if (grant == String.Empty)
                     grant = Util.GetConfigVarFromSections<string>(
@@ -3165,9 +3162,7 @@ namespace OpenSim.Region.Framework.Scenes
             // In the future this can be relieved once locking per agent (not necessarily on AgentCircuitData) is improved.
             lock (aCircuit)
             {
-                vialogin
-                    = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0
-                        || (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
+                vialogin = (aCircuit.teleportFlags & (uint)(Constants.TeleportFlags.ViaHGLogin | Constants.TeleportFlags.ViaLogin)) != 0;
 
                 CheckHeartbeat();
 
@@ -4062,9 +4057,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to ensure that we are not already removing the scene presence before we ask it not to be
                 // closed.
-                if (sp != null && !sp.IsDeleted && sp.IsChildAgent
-                    && (sp.LifecycleState == ScenePresenceState.Running
-                        || sp.LifecycleState == ScenePresenceState.PreRemove))
+                if (sp != null && !sp.IsDeleted && sp.IsChildAgent &&
+                    (sp.LifecycleState == ScenePresenceState.Running || sp.LifecycleState == ScenePresenceState.PreRemove))
                 {
                     m_log.DebugFormat(
                         "[SCENE]: Reusing existing child scene presence for {0}, state {1} in {2}",
