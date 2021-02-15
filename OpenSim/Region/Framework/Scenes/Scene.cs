@@ -3174,6 +3174,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SubscribeToClientEvents(client);
 
                     sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
+                    aCircuit.Appearance = null;
 
                     sp.TeleportFlags = (TPFlags)aCircuit.teleportFlags;
 
@@ -3858,7 +3859,10 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.RemoveScenePresence(agentID);
                         m_clientManager.Remove(agentID);
                         if (m_capsModule != null)
-                            m_capsModule.RemoveCaps(agentID, acd.circuitcode);
+                        {
+                            if(avatar == null || !avatar.IsNPC)
+                                m_capsModule.RemoveCaps(agentID, acd.circuitcode);
+                        }
                         avatar.Dispose();
                     }
                     catch (Exception e)
@@ -4361,16 +4365,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public virtual bool VerifyUserPresence(AgentCircuitData agent, out string reason)
         {
-            reason = String.Empty;
-
-            IPresenceService presence = RequestModuleInterface<IPresenceService>();
-            if (presence == null)
+            IPresenceService presencesvc = RequestModuleInterface<IPresenceService>();
+            if (presencesvc == null)
             {
                 reason = String.Format("Failed to verify user presence in the grid for {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
-            OpenSim.Services.Interfaces.PresenceInfo pinfo = presence.GetAgent(agent.SessionID);
+            OpenSim.Services.Interfaces.PresenceInfo pinfo = presencesvc.GetAgent(agent.SessionID);
 
             if (pinfo == null)
             {
@@ -4378,6 +4380,13 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            if(pinfo.UserID != agent.AgentID.ToString())
+            {
+                reason = String.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                return false;
+            }
+
+            reason = string.Empty;
             return true;
         }
 
@@ -4388,9 +4397,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason">outputs the reason to this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will
         /// also return a reason.</returns>
+
         protected virtual bool AuthorizeUser(AgentCircuitData agent, bool bypassAccessControl, out string reason)
         {
-            reason = String.Empty;
+            reason = string.Empty;
 
             if (!m_strictAccessControl)
                 return true;
@@ -4428,7 +4438,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                             agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    reason = String.Format("Denied access to region {0}: You have been banned from that region.",
+                    reason = string.Format("Denied access to region {0}: You have been banned from that region.",
                             RegionInfo.RegionName);
                     return false;
                 }
@@ -6148,8 +6158,8 @@ Environment.Exit(1);
                 aCircuit = new AgentCircuitData()
                 {
                     AgentID = agentID,
-                    firstname = String.Empty,
-                    lastname = String.Empty
+                    firstname = string.Empty,
+                    lastname = string.Empty
                 };
             }
 
