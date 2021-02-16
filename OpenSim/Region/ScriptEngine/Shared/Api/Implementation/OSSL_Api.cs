@@ -6068,5 +6068,63 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Integer osNpcLookAt(LSL_Key npckey, LSL_Integer ltype, LSL_Key objkey, LSL_Vector offset)
+        {
+            if (World.GetNumberOfClients() == 0)
+                return 0;
+
+            if (ltype < 0 || ltype > 11)
+                return -1;
+
+            if (!UUID.TryParse(npckey, out UUID npc))
+                return -2;
+
+            ScenePresence npcSP = World.GetScenePresence(npc);
+            if(npc == null)
+                return -3;
+
+            if (!UUID.TryParse(objkey, out UUID obj))
+                return -4;
+
+            if(obj != UUID.Zero)
+            {
+                ScenePresence objSP = World.GetScenePresence(obj);
+                if(objSP == null)
+                {
+                    SceneObjectPart objSOP = World.GetSceneObjectPart(obj);
+                    if(objSOP == null)
+                        return -5;
+                }
+            }
+
+            byte[] data = new byte[57];
+            npc.ToBytes(data, 0);
+            obj.ToBytes(data, 16);
+            Vector3d vd = new Vector3d(offset.x, offset.y, offset.z);
+            vd.ToBytes(data, 32);
+            data[56] = (byte)(int)ltype;
+
+            OpenMetaverse.Packets.ViewerEffectPacket.EffectBlock effect = new OpenMetaverse.Packets.ViewerEffectPacket.EffectBlock();
+            effect.AgentID = npc;
+            effect.Color = new byte[4];
+            effect.Duration = 0;
+            effect.ID = UUID.Random();
+            effect.Type = 14;
+            effect.TypeData = data;
+
+            OpenMetaverse.Packets.ViewerEffectPacket.EffectBlock[] effectblock = new OpenMetaverse.Packets.ViewerEffectPacket.EffectBlock[1];
+            effectblock[0] = effect;
+
+            World.ForEachScenePresence(
+             sp =>
+             {
+                if(!sp.IsNPC && !sp.IsDeleted)
+                {
+                    sp.ControllingClient.SendViewerEffect(effectblock);
+                }
+             });
+
+            return 0;
+        }
     }
 }
