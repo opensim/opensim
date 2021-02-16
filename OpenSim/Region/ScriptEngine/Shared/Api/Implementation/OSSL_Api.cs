@@ -6073,7 +6073,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.GetNumberOfClients() == 0)
                 return 0;
 
-            if (ltype < 0 || ltype > 11)
+            if (ltype < 0 || ltype > ScriptBaseClass.NPCLOOKAT_CLEAR)
                 return -1;
 
             if (!UUID.TryParse(npckey, out UUID npc))
