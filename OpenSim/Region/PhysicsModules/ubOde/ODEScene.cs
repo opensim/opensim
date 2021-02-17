@@ -1118,11 +1118,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             get { return m_timeDilation; }
         }
 
-        public override bool SupportsNINJAJoints
-        {
-            get { return false; }
-        }
-
         #region Add/Remove Entities
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)

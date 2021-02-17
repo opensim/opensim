@@ -272,6 +272,7 @@ namespace OpenSim.Data.Tests
             Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Quaternion rotoff = new Quaternion(random.Next(1),random.Next(1),random.Next(1),random.Next(1));
+            rotoff.Normalize();
             Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
@@ -336,7 +337,7 @@ namespace OpenSim.Data.Tests
             Assert.That(localid,Is.EqualTo(sop.LocalId), "Assert.That(localid,Is.EqualTo(sop.LocalId))");
             Assert.That(groupos,Is.EqualTo(sop.GroupPosition), "Assert.That(groupos,Is.EqualTo(sop.GroupPosition))");
             Assert.That(name,Is.EqualTo(sop.Name), "Assert.That(name,Is.EqualTo(sop.Name))");
-            Assert.That(rotoff,Is.EqualTo(sop.RotationOffset), "Assert.That(rotoff,Is.EqualTo(sop.RotationOffset))");
+            Assert.That(rotoff, new QuaternionToleranceConstraint(sop.RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(sop.RotationOffset))");
             Assert.That(uuid,Is.EqualTo(sop.UUID), "Assert.That(uuid,Is.EqualTo(sop.UUID))");
             Assert.That(creator,Is.EqualTo(sop.CreatorID), "Assert.That(creator,Is.EqualTo(sop.CreatorID))");
             // Modified in-class
@@ -447,7 +448,8 @@ namespace OpenSim.Data.Tests
             DateTime rezzed = new DateTime(2005, 07, 15);
             Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
-            Quaternion rotoff = new Quaternion(random.Next(100000),random.Next(100000),random.Next(100000),random.Next(100000));
+            Quaternion rotoff = new Quaternion(random.Next(100),random.Next(100),random.Next(100),random.Next(100));
+            rotoff.Normalize();
             Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
             Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
@@ -501,7 +503,7 @@ namespace OpenSim.Data.Tests
             Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
             Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
-            Assert.That(rotoff,Is.EqualTo(p.RotationOffset), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
+            Assert.That(rotoff, new QuaternionToleranceConstraint(p.RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
             Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
             Assert.That(dic,Is.EqualTo(p.TaskInventory), "Assert.That(dic,Is.EqualTo(p.TaskInventory))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
@@ -540,7 +542,8 @@ namespace OpenSim.Data.Tests
                 SceneObjectPart sop = NewSOP(("Test SOP " + i.ToString()),tmp);
                 Vector3 groupos = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
                 Vector3 offset = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
-                Quaternion rotoff = new Quaternion(random.Next(100000),random.Next(100000),random.Next(100000),random.Next(100000));
+                Quaternion rotoff = new Quaternion(random.Next(1000),random.Next(1000),random.Next(1000),random.Next(1000));
+                rotoff.Normalize();
                 Vector3 velocity = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
                 Vector3 angvelo = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
                 Vector3 accel = new Vector3(random.Next(100000),random.Next(100000),random.Next(100000));
@@ -557,14 +560,13 @@ namespace OpenSim.Data.Tests
             }
 
             db.StoreObject(sog, region4);
-
             SceneObjectGroup retsog = FindSOG("Test SOG", region4);
             SceneObjectPart[] parts = retsog.Parts;
             for (int i = 0; i < 30; i++)
             {
                 SceneObjectPart cursop = mydic[parts[i].UUID];
                 Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition), "Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition))");
-                Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset), "Assert.That(cursop.RotationOffset,Is.EqualTo(parts[i].RotationOffset))");
+                Assert.That(cursop.RotationOffset, new QuaternionToleranceConstraint(parts[i].RotationOffset, 0.001), "Assert.That(rotoff,Is.EqualTo(p.RotationOffset))");
                 Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition), "Assert.That(cursop.OffsetPosition,Is.EqualTo(parts[i].OffsetPosition))");
                 Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity), "Assert.That(cursop.Velocity,Is.EqualTo(parts[i].Velocity))");
                 Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity), "Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity))");
