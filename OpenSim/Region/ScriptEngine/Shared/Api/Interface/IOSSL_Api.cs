@@ -589,5 +589,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osParticleSystem(LSL_List rules);
         void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules);
+
+        LSL_Integer osNpcLookAt(LSL_Key npckey, LSL_Integer type, LSL_Key objkey, vector offset);
     }
 }

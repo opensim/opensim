@@ -1060,7 +1060,7 @@ namespace OpenSim.Region.Framework.Scenes
             inTransit = true;
             
             PhysicsActor pa = RootPart.PhysActor;
-            if(pa == null  || RootPart.KeyframeMotion != null /*|| m_sittingAvatars.Count == 0*/)
+            if(/*pa == null  ||*/ RootPart.KeyframeMotion != null /*|| m_sittingAvatars.Count == 0*/)
             {
                 inTransit = false;
                 return -1;

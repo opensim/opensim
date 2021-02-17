@@ -782,9 +782,9 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
-                PhysicsActor actor = PhysActor;
                 if (_parentID == 0)
                 {
+                    PhysicsActor actor = PhysActor;
                     if (actor != null)
                         m_groupPosition = actor.Position;
                     return m_groupPosition;
@@ -924,6 +924,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
 //                StoreUndoState();
                 m_rotationOffset = value;
+                m_rotationOffset.Normalize();
 
                 PhysicsActor actor = PhysActor;
                 if (actor != null)
