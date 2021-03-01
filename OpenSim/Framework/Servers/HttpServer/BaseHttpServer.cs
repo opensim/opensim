@@ -744,6 +744,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 if (TryGetSimpleStreamHandler(path, out ISimpleStreamHandler hdr))
                 {
+                    if (DebugLevel >= 3)
+                        LogIncomingToStreamHandler(request, hdr);
+
                     hdr.Handle(request, response);
                     if (request.InputStream != null && request.InputStream.CanRead)
                         request.InputStream.Dispose();
@@ -964,6 +967,21 @@ namespace OpenSim.Framework.Servers.HttpServer
                 request.Url.PathAndQuery,
                 requestHandler.Name,
                 requestHandler.Description,
+                request.RemoteIPEndPoint);
+
+            if (DebugLevel >= 5)
+                LogIncomingInDetail(request);
+        }
+
+        private void LogIncomingToStreamHandler(OSHttpRequest request, ISimpleStreamHandler requestHandler)
+        {
+            m_log.DebugFormat(
+                "[LOGHTTP] HTTP IN {0} :{1} stream handler {2} {3} {4} from {5}",
+                RequestNumber,
+                Port,
+                request.HttpMethod,
+                request.Url.PathAndQuery,
+                requestHandler.Name,
                 request.RemoteIPEndPoint);
 
             if (DebugLevel >= 5)
