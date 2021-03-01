@@ -650,6 +650,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             IRequestHandler requestHandler = null;
 
+            byte[] responseData = null;
+
             try
             {
                 // OpenSim.Framework.WebUtil.OSHeaderRequestID
@@ -671,6 +673,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         request.InputStream.Dispose();
 
                     requestEndTick = Environment.TickCount;
+                    responseData = response.RawBuffer;
                     response.Send();
                     return;
                 }
@@ -692,6 +695,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             request.InputStream.Dispose();
 
                         requestEndTick = Environment.TickCount;
+                        responseData = response.RawBuffer;
                         response.Send();
                         return;
                     }
@@ -736,6 +740,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         request.InputStream.Dispose();
 
                     requestEndTick = Environment.TickCount;
+                    responseData = response.RawBuffer;
                     response.Send();
                     return;
                 }
@@ -752,6 +757,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         request.InputStream.Dispose();
 
                     requestEndTick = Environment.TickCount;
+                    responseData = response.RawBuffer;
                     response.Send();
                     return;
                 }
@@ -901,6 +907,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 requestEndTick = Environment.TickCount;
 
                 buffer = null;
+                responseData = response.RawBuffer;
                 response.Send();
             }
             catch (SocketException e)
@@ -924,6 +931,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.StatusCode =(int)HttpStatusCode.InternalServerError;
+                    responseData = response.RawBuffer;
                     response.Send();
                 }
                 catch {}
@@ -954,6 +962,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                         Port,
                         tickdiff);
                 }
+
+                if ((DebugLevel >= 5) && (responseData != null))
+                {
+                    string output = Encoding.UTF8.GetString(responseData);
+                    if (DebugLevel == 5)
+                    {
+                        if (output.Length > WebUtil.MaxRequestDiagLength)
+                            output = output.Substring(0, WebUtil.MaxRequestDiagLength) + "...";
+                    }
+                    m_log.DebugFormat("[LOGHTTP] RESPONSE {0}: {1}", RequestNumber, output);
+                }
+
+                responseData = null;
             }
         }
 
