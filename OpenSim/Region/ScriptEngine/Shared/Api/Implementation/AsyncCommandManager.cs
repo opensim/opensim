@@ -247,17 +247,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             lock (staticLock)
             {
-                // Check HttpRequests
-                try { m_HttpRequest[m_ScriptEngines[0]].CheckHttpRequests(); } catch {}
-
                 // Check XMLRPCRequests
                 try { m_XmlRequest[m_ScriptEngines[0]].CheckXMLRPCRequests(); } catch {}
 
                 foreach (IScriptEngine s in m_ScriptEngines)
                 {
+                    // Check HttpRequests
+                    try { m_HttpRequest[s].CheckHttpRequests(); } catch { }
+
                     // Check Listeners
                     try { m_Listener[s].CheckListeners(); } catch {}
-                    
 
                     // Check timers
                     try { m_Timer[s].CheckTimerEvents(); } catch {}
