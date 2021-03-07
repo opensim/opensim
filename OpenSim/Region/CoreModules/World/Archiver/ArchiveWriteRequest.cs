@@ -579,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             // Write out region settings
             string settingsPath = String.Format("{0}{1}{2}.xml",
                 regionDir, ArchiveConstants.SETTINGS_PATH, scene.RegionInfo.RegionName);
-            m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(scene.RegionInfo.RegionSettings, scene.RegionEnvironment));
+            m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(scene.RegionInfo.RegionSettings, scene.RegionEnvironment, scene.RegionInfo.EstateSettings));
 
             m_log.InfoFormat("[ARCHIVER]: Adding parcel settings to archive.");
 
