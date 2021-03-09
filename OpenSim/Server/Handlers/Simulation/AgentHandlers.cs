@@ -455,8 +455,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             resp["features"] = featuresWanted;
 
-            if(result)
-                httpResponse.KeepAlive = true;
+            httpResponse.KeepAlive = result;
 
             // We must preserve defaults here, otherwise a false "success" will not be put into the JSON map!
             httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true));
@@ -539,7 +538,7 @@ namespace OpenSim.Server.Handlers.Simulation
             OSDMap resp = new OSDMap(2);
             string reason = string.Empty;
 
-            bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, ctx, out reason);
+            bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, ctx, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
@@ -548,6 +547,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
+            httpResponse.KeepAlive = (data.flags & (uint)(TeleportFlags.ViaLogin | TeleportFlags.ViaHGLogin)) != (uint)TeleportFlags.ViaLogin;
         }
 
         protected virtual AgentDestinationData CreateAgentDestinationData()
@@ -586,7 +586,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         // subclasses can override this
         protected virtual bool CreateAgent(GridRegion source, GridRegion gatekeeper, GridRegion destination,
-            AgentCircuitData aCircuit, uint teleportFlags, bool fromLogin, EntityTransferContext ctx, out string reason)
+            AgentCircuitData aCircuit, uint teleportFlags, EntityTransferContext ctx, out string reason)
         {
             reason = string.Empty;
             bool ret = m_SimulationService.CreateAgent(source, destination, aCircuit, teleportFlags, ctx, out reason);

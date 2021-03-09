@@ -414,6 +414,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_FileCacheEnabled)
                     UpdateFileCache(asset.ID, asset, replace);
+
+                if (m_negativeCacheEnabled)
+                    m_negativeCache.Remove(asset.ID);
             }
         }
 
