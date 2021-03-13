@@ -1744,13 +1744,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 //}
 
                 if (requestData.Contains("home"))
-                {
                     options["home"] = (string)requestData["home"];
-                }
 
-                if ((string)requestData["noassets"] == "true")
+                if (requestData.Contains("noassets"))
                 {
-                    options["noassets"] = (string)requestData["noassets"] ;
+                    string tmp = (string)requestData["noassets"];
+                    if (!string.IsNullOrWhiteSpace(tmp) &&
+                        (tmp.Equals("true", StringComparison.InvariantCultureIgnoreCase) || tmp.Equals("1")))
+                        options["noassets"] = true;
                 }
 
                 if (requestData.Contains("perm"))
@@ -1758,9 +1759,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     options["checkPermissions"] = (string)requestData["perm"];
                 }
 
-                if ((string)requestData["all"] == "true")
+                if (requestData.Contains("all"))
                 {
-                    options["all"] = (string)requestData["all"];
+                    string tmp = (string)requestData["all"];
+                    if (!string.IsNullOrWhiteSpace(tmp) &&
+                        (tmp.Equals("true", StringComparison.InvariantCultureIgnoreCase) || tmp.Equals("1")))
+                        options["all"] = true;
                 }
 
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
