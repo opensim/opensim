@@ -14299,16 +14299,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (m_checkuri.Scheme != Uri.UriSchemeHttp && m_checkuri.Scheme != Uri.UriSchemeHttps)
                 {
                     Error("llHTTPRequest", "Invalid url schema");
-                    ScriptSleep(200);
                     return string.Empty;
                 }
             }
             catch
             {
                 Error("llHTTPRequest", "Invalid url");
-                ScriptSleep(200);
                 return string.Empty;
             }
+
             List<string> param = new List<string>();
             bool  ok;
             int nCustomHeaders = 0;
@@ -14320,6 +14319,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flag > (int)HttpRequestConstants.HTTP_PRAGMA_NO_CACHE)
                 {
                     Error("llHTTPRequest", "Parameter " + i.ToString() + " is an invalid flag");
+                    ScriptSleep(200);
+                    return string.Empty;
                 }
 
                 param.Add(parameters.Data[i].ToString());       //Add parameter flag
@@ -14354,7 +14355,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
 
                         if (HttpStandardHeaders.Contains(parameters.Data[i].ToString()))
+                        {
                             Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
+                            return string.Empty;
+                        }
 
                         param.Add(parameters.Data[i].ToString());
                         param.Add(parameters.Data[i+1].ToString());
