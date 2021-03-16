@@ -78,6 +78,17 @@
 	<Key Name="flags" Value="0" />
   </Section>
 
+  <Section Name="Default Water">
+    <Key Name="inventoryID" Value="87d94cf4-bfcd-46d5-bd50-17130a000001" />
+    <Key Name="assetID" Value="59d1a851-47e7-0e5f-1ed7-6b715154f41a" />
+    <Key Name="folderID" Value="25000112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Water" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="1" />
+  </Section>
+
   <Section Name="Default Clouds">
     <Key Name="inventoryID" Value="02385379-afb8-48b3-8848-47c8333fed2d" />
     <Key Name="assetID" Value="1dc1368f-e8fe-f02d-a08d-9d9f11c1af6b" />
