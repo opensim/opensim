@@ -23,4 +23,10 @@
     <Key Name="name" Value="Days"/>
     <Key Name="type" Value="-1"/>
   </Section>
+  <Section Name="Textures">
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba025"/>
+    <Key Name="name" Value="Textures"/>
+    <Key Name="type" Value="0"/>
+  </Section>
 </Nini>

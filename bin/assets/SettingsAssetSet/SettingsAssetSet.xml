@@ -55,5 +55,24 @@
     <Key Name="fileName" Value="Midnight.dat" />
   </Section>
 
+  <Section Name="Altocumulus Clouds">
+    <Key Name="assetID" Value="ffc4de4a-9845-41c1-9f9f-762a059d0bdc" />
+    <Key Name="name" Value="Altocumulus Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Textures/Altocumulus_Clouds.j2c" />
+  </Section>
+  <Section Name="Cumulonimbus Clouds">
+    <Key Name="assetID" Value="a3ee7f3c-dc2e-4526-9d7c-67824959c6f6" />
+    <Key Name="name" Value="Cumulonimbus Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Textures/Cumulonimbus_Clouds.j2c" />
+  </Section>
+  <Section Name="Layered Clouds">
+    <Key Name="assetID" Value="6e500a99-8831-47d2-b2a8-2e725396d449" />
+    <Key Name="name" Value="Layered Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="Textures/Layered_Clouds.j2c" />
+  </Section>
+
 </Nini>
 
