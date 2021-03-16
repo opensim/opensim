@@ -125,5 +125,23 @@
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
   </Section>
+  <Section Name="Default Water Normal">
+    <Key Name="inventoryID" Value="03816023-8ec9-4a87-9195-3640893c7ff7" />
+    <Key Name="assetID" Value="822ded49-9a6c-f61c-cb89-6df54f42cdf4" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Water Normal" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Default Moon">
+    <Key Name="inventoryID" Value="c2d885cd-d477-4afb-ba51-08c6a13df6f7" />
+    <Key Name="assetID" Value="d07f6eed-b96a-47cd-b51d-400ad4a1c428" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Moon" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
 
 </Nini>
