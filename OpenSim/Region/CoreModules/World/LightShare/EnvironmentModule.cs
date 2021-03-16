@@ -65,10 +65,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private ILandChannel m_landChannel;
 
         private static ViewerEnvironment m_DefaultEnv = null;
-        // 1/1 night day ratio
-        //private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";
-        // 3/1 night day ratio
-        private static string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a92";
+        // 1/1 day-to-night ratio
+        //private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";  // Default Daycycle
+        // 3/1 day-to-night ratio
+        private static string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a92";             // Default Daycycle (More Daylight)
         private static UUID m_defaultDayAssetUUID = new UUID("5646d39e-d3d7-6aff-ed71-30fc87d64a92");
         //private static string m_defaultSkyAssetID = "3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad";
         private static UUID m_defaultSkyAssetUUID = new UUID("3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad");

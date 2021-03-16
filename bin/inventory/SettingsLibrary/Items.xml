@@ -16,19 +16,19 @@
     <Key Name="inventoryID" Value="25210112-000f-0000-0000-000100bba025" />
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a91" />
     <Key Name="folderID" Value="25200112-000f-0000-0000-000100bba025"/>
-    <Key Name="description" Value="Default Daycycle with equal night and day durations" />
+    <Key Name="description" Value="Default Daycycle with equal day and night durations" />
     <Key Name="name" Value="Default Daycycle" />
     <Key Name="assetType" Value="56" />
     <Key Name="inventoryType" Value="25" />
 	<Key Name="flags" Value="2" />
   </Section>
   
-  <Section Name="Default Daycycle(3/1)">
+  <Section Name="Default Daycycle (More Daylight)">
     <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba125" />
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a92" />
     <Key Name="folderID" Value="25200112-000f-0000-0000-000100bba025"/>
-    <Key Name="description" Value="Default Daycycle 3 to 1 day/night duration ratio" />
-    <Key Name="name" Value="Default Daycycle(3/1)" />
+    <Key Name="description" Value="Default Daycycle with a 3 to 1 day/night ratio" />
+    <Key Name="name" Value="Default Daycycle (More Daylight)" />
     <Key Name="assetType" Value="56" />
     <Key Name="inventoryType" Value="25" />
 	<Key Name="flags" Value="2" />

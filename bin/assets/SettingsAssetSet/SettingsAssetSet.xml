@@ -1,7 +1,7 @@
 <Nini>
-  <Section Name="Default Daycycle(3/1)">
+  <Section Name="Default Daycycle (More Daylight)">
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a92" />
-    <Key Name="name" Value="Default Daycycle(3/1)" />
+    <Key Name="name" Value="Default Daycycle (More Daylight)" />
     <Key Name="assetType" Value="56" />
     <Key Name="fileName" Value="DefaultDaycycle31.dat" />
   </Section>
