@@ -1,4 +1,4 @@
-cd5e081a-b88a-07b6-21a5-612aab0b3398
+727420c2-45b3-4627-8c6e-5c478e6a736e
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -7195,6 +7195,16 @@ cd5e081a-b88a-07b6-21a5-612aab0b3398
    <map><key>npc</key><map><key>type</key><string>key</string></map></map>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
   </array>
+ </map>
+ <key>osNpcLookAt</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
+   <map><key>type</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>target</key><map><key>type</key><string>key</string></map></map>
+   <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+  <key>tooltip</key><string>Makes an NPC look at a target. Other effects besides looking are also supported.</string>
  </map>
  <key>osNpcMoveTo</key>
  <map>
