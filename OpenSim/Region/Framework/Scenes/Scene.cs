@@ -556,12 +556,28 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_EstateDataService == null)
                 {
-                    m_EstateDataService = RequestModuleInterface<IEstateDataService>();
+                    m_EstateDataService = EstateDataServiceSafe;
 
                     if (m_EstateDataService == null)
                     {
                         throw new Exception("No IEstateDataService available.");
                     }
+                }
+
+                return m_EstateDataService;
+            }
+        }
+
+        /// <summary>
+        /// Similar to 'EstateDataService', but if the service isn't found returns null instead of throwing an exception.
+        /// </summary>
+        public IEstateDataService EstateDataServiceSafe
+        {
+            get
+            {
+                if (m_EstateDataService == null)
+                {
+                    m_EstateDataService = RequestModuleInterface<IEstateDataService>();
                 }
 
                 return m_EstateDataService;
