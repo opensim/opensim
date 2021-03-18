@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.CacheID = UUID.Random();
             currentRegionSettings.Save();
 
-            scene.EstateDataService.StoreEstateSettings(scene.RegionInfo.EstateSettings);
+            scene.EstateDataServiceSafe?.StoreEstateSettings(scene.RegionInfo.EstateSettings);
 
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
             if (estateModule != null)
