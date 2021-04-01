@@ -783,24 +783,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// Process the next event queued for this script
         /// </summary>
         /// <returns></returns>
-        public object EventProcessor()
+        public void EventProcessor()
         {
             // We check here as the thread stopping this instance from running may itself hold the m_Script lock.
             if (!Running)
-                return 0;
+                return;
 
             lock (m_Script)
             {
 //                m_log.DebugFormat("[XEngine]: EventProcessor() invoked for {0}.{1}", PrimName, ScriptName);
 
                 if (Suspended)
-                    return 0;
+                    return;
 
                 ExecutionTimer.Restart();
 
                 try
                 {
-                    return EventProcessorInt();
+                    EventProcessorInt();
+                    return;
                 }
                 finally
                 {
@@ -811,7 +812,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
         }
 
-        private object EventProcessorInt()
+        private void EventProcessorInt()
         {
             EventParams data = null;
 
@@ -829,7 +830,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     {
                         m_CurrentWorkItem = null;
                     }
-                    return 0;
+                    return;
                 }
 
                 if (data.EventName == "timer")
@@ -1052,8 +1053,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 
             m_DetectParams = null;
-
-            return 0;
         }
 
         public int EventTime()

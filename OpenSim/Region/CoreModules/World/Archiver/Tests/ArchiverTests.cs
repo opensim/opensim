@@ -657,7 +657,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.TelehubObject = UUID.Parse("00000000-0000-0000-0000-111111111111");
             rs.AddSpawnPoint(SpawnPoint.Parse("1,-2,0.33"));
 
-            tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs, null));
+            tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs, null, new EstateSettings()));
 
             tar.Close();
 

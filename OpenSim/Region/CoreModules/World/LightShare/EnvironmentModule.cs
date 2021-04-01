@@ -65,10 +65,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         private ILandChannel m_landChannel;
 
         private static ViewerEnvironment m_DefaultEnv = null;
-        // 1/1 night day ratio
-        //private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";
-        // 3/1 night day ratio
-        private static string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a92";
+        // 1/1 day-to-night ratio
+        //private static readonly string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a91";  // Default Daycycle
+        // 3/1 day-to-night ratio
+        private static string m_defaultDayAssetID = "5646d39e-d3d7-6aff-ed71-30fc87d64a92";             // Default Daycycle (More Daylight)
         private static UUID m_defaultDayAssetUUID = new UUID("5646d39e-d3d7-6aff-ed71-30fc87d64a92");
         //private static string m_defaultSkyAssetID = "3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad";
         private static UUID m_defaultSkyAssetUUID = new UUID("3ae23978-ac82-bcf3-a9cb-ba6e52dcb9ad");
@@ -168,10 +168,10 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                         m_DefaultEnv = new ViewerEnvironment();
                         m_DefaultEnv.CycleFromOSD(oenv);
                     }
-                    catch ( Exception e)
+                    catch (Exception e)
                     {
                         m_DefaultEnv = null;
-                        m_log.WarnFormat("[Environment {0}]: failed to decode default environment asset: {1}", m_scene.Name, e.Message);
+                        m_log.Warn(string.Format("[Environment {0}] failed to decode default environment asset ", m_scene.Name), e);
                     }
                 }
             }
@@ -185,16 +185,22 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 {
                     OSD oenv = OSDParser.Deserialize(senv);
                     ViewerEnvironment VEnv = new ViewerEnvironment();
-                    if(oenv is OSDArray)
+                    if (oenv is OSDArray)
+                    {
                         VEnv.FromWLOSD(oenv);
+                        StoreOnRegion(VEnv);
+                        m_log.InfoFormat("[Environment {0}] migrated WindLight environment settings to EEP", m_scene.Name);
+                    }
                     else
+                    {
                         VEnv.FromOSD(oenv);
+                    }
                     scene.RegionEnvironment = VEnv;
                     m_regionEnvVersion = VEnv.version;
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[Environment {0}] failed to load initial Environment {1}", m_scene.Name, e.Message);
+                    m_log.Error(string.Format("[Environment {0}] failed to load initial Environment ", m_scene.Name), e);
                     scene.RegionEnvironment = null;
                     m_regionEnvVersion = -1;
                 }
@@ -246,7 +252,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[Environment {0}] failed to store Environment {1}", m_scene.Name, e.Message);
+                m_log.Error(string.Format("[Environment {0}] failed to store Environment ", m_scene.Name), e);
             }
         }
 

@@ -6080,7 +6080,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -2;
 
             ScenePresence npcSP = World.GetScenePresence(npc);
-            if(npc == null)
+            if((npcSP == null) || !npcSP.IsNPC)
                 return -3;
 
             if (!UUID.TryParse(objkey, out UUID obj))

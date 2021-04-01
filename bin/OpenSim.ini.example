@@ -943,6 +943,34 @@
 	;; ignore its extensions (subset of original XMRengine), those are still undefined.
     ; Enabled = false
 
+    ;; llSetTimerEvent minimum value. Default 0.5s, 0.05s whould be more resonable
+    ; MinTimerInterval = 0.5
+
+    ;# {ScriptDelayFactor} {} {Multiplier for scripting delays} {} 1.0
+    ;; Sets the multiplier for the scripting delays
+    ; ScriptDelayFactor = 1.0
+
+    ;# {ScriptDistanceLimitFactor} {} {Multiplier for 10.0m distance limits?} {}
+    ;; The factor the 10 m distances limits are multiplied by
+    ; ScriptDistanceLimitFactor = 1.0
+
+    ;# {NotecardLineReadCharsMax} {} {Maximum length of notecard line?} {} 255
+    ;; Maximum length of notecard line read
+    ;; Increasing this to large values potentially opens
+    ;; up the system to malicious scripters
+    ; NotecardLineReadCharsMax = 255
+
+    ;# {SensorMaxRange} {} {Sensor range} {} 96.0
+    ;; Sensor settings
+    ; SensorMaxRange = 96.0
+    ;# {SensorMaxResults} {} {Max sensor results returned?} {}
+    ; SensorMaxResults = 16
+
+    ;# {ScriptEnginesPath} {} {Path to script assemblies} {} ScriptEngines
+    ;; Path to script engine assemblies
+    ;; Default is ./bin/ScriptEngines
+    ; ScriptEnginesPath = "ScriptEngines"
+
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
