@@ -16,19 +16,19 @@
     <Key Name="inventoryID" Value="25210112-000f-0000-0000-000100bba025" />
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a91" />
     <Key Name="folderID" Value="25200112-000f-0000-0000-000100bba025"/>
-    <Key Name="description" Value="Default Daycycle with equal night and day durations" />
+    <Key Name="description" Value="Default Daycycle with equal day and night durations" />
     <Key Name="name" Value="Default Daycycle" />
     <Key Name="assetType" Value="56" />
     <Key Name="inventoryType" Value="25" />
 	<Key Name="flags" Value="2" />
   </Section>
   
-  <Section Name="Default Daycycle(3/1)">
+  <Section Name="Default Daycycle (More Daylight)">
     <Key Name="inventoryID" Value="25210112-000f-0001-0000-000100bba125" />
     <Key Name="assetID" Value="5646d39e-d3d7-6aff-ed71-30fc87d64a92" />
     <Key Name="folderID" Value="25200112-000f-0000-0000-000100bba025"/>
-    <Key Name="description" Value="Default Daycycle 3 to 1 day/night duration ratio" />
-    <Key Name="name" Value="Default Daycycle(3/1)" />
+    <Key Name="description" Value="Default Daycycle with a 3 to 1 day/night ratio" />
+    <Key Name="name" Value="Default Daycycle (More Daylight)" />
     <Key Name="assetType" Value="56" />
     <Key Name="inventoryType" Value="25" />
 	<Key Name="flags" Value="2" />
@@ -76,6 +76,72 @@
     <Key Name="assetType" Value="56" />
     <Key Name="inventoryType" Value="25" />
 	<Key Name="flags" Value="0" />
+  </Section>
+
+  <Section Name="Default Water">
+    <Key Name="inventoryID" Value="87d94cf4-bfcd-46d5-bd50-17130a000001" />
+    <Key Name="assetID" Value="59d1a851-47e7-0e5f-1ed7-6b715154f41a" />
+    <Key Name="folderID" Value="25000112-000f-0000-0000-000100bba025"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Water" />
+    <Key Name="assetType" Value="56" />
+    <Key Name="inventoryType" Value="25" />
+	<Key Name="flags" Value="1" />
+  </Section>
+
+  <Section Name="Default Clouds">
+    <Key Name="inventoryID" Value="02385379-afb8-48b3-8848-47c8333fed2d" />
+    <Key Name="assetID" Value="1dc1368f-e8fe-f02d-a08d-9d9f11c1af6b" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Altocumulus Clouds">
+    <Key Name="inventoryID" Value="a860475e-6234-40b8-b5b1-3df8fb1d3049" />
+    <Key Name="assetID" Value="ffc4de4a-9845-41c1-9f9f-762a059d0bdc" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Altocumulus Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Cumulonimbus Clouds">
+    <Key Name="inventoryID" Value="eccad7d7-45e0-408d-b50e-a932603d34f9" />
+    <Key Name="assetID" Value="a3ee7f3c-dc2e-4526-9d7c-67824959c6f6" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Cumulonimbus Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Layered Clouds">
+    <Key Name="inventoryID" Value="72b43d50-4c00-4344-adb3-b07934743320" />
+    <Key Name="assetID" Value="6e500a99-8831-47d2-b2a8-2e725396d449" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Layered Clouds" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Default Water Normal">
+    <Key Name="inventoryID" Value="03816023-8ec9-4a87-9195-3640893c7ff7" />
+    <Key Name="assetID" Value="822ded49-9a6c-f61c-cb89-6df54f42cdf4" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Water Normal" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
+  <Section Name="Default Moon">
+    <Key Name="inventoryID" Value="c2d885cd-d477-4afb-ba51-08c6a13df6f7" />
+    <Key Name="assetID" Value="d07f6eed-b96a-47cd-b51d-400ad4a1c428" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Moon" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
   </Section>
 
 </Nini>

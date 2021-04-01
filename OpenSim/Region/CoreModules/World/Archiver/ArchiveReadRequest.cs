@@ -1044,7 +1044,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ViewerEnvironment regionEnv = null;
             try
             {
-                loadedRegionSettings = RegionSettingsSerializer.Deserialize(data, out regionEnv);
+                loadedRegionSettings = RegionSettingsSerializer.Deserialize(data, out regionEnv, scene.RegionInfo.EstateSettings);
             }
             catch (Exception e)
             {
@@ -1103,6 +1103,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             currentRegionSettings.CacheID = UUID.Random();
             currentRegionSettings.Save();
+
+            scene.EstateDataServiceSafe?.StoreEstateSettings(scene.RegionInfo.EstateSettings);
 
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
             if (estateModule != null)
