@@ -226,8 +226,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_previusParcelUUID != UUID.Zero || checksame)
                         ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID, m_currentParcelHide, m_previusParcelHide, oldhide,checksame);
                 }
-                m_log.DebugFormat("[SOP {0}] set parcel from {1} to {2}", m_scene.Name, m_previusParcelUUID, m_currentParcelUUID);
-            }
+             }
         }
 
         public void sitSOGmoved()
@@ -2300,6 +2299,16 @@ namespace OpenSim.Region.Framework.Scenes
                 ParcelDwellTickMS = Util.GetTimeStampMS();
 
                 m_inTransit = false;
+                ILandChannel landch = m_scene.LandChannel;
+                if (landch != null)
+                {
+                    ILandObject landover = m_scene.LandChannel.GetLandObject(AbsolutePosition.X, AbsolutePosition.Y);
+                    if (landover != null)
+                    {
+                        m_currentParcelHide = !landover.LandData.SeeAVs;
+                        m_currentParcelUUID = landover.LandData.GlobalID;
+                    }
+                }
 
                 // Tell the client that we're ready to send rest
                 if (!m_gotCrossUpdate)
@@ -2342,7 +2351,6 @@ namespace OpenSim.Region.Framework.Scenes
                         Scene.SendLayerData(ControllingClient);
 
                     // send initial land overlay and parcel
-                    ILandChannel landch = m_scene.LandChannel;
                     if (landch != null)
                         landch.sendClientInitialLandInfo(client, !m_gotCrossUpdate);
                 }
