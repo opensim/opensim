@@ -4216,16 +4216,17 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", Scene.RegionInfo.RegionName, UUID);
+                m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData for {1}", m_scene.RegionInfo.RegionName, UUID);
                 if (m_teleportFlags <= 0)
                 {
-                    Scene.SendLayerData(ControllingClient);
+                    m_scene.SendLayerData(ControllingClient);
 
                     ILandChannel landch = m_scene.LandChannel;
                     if (landch != null)
                         landch.sendClientInitialLandInfo(ControllingClient, true);
                 }
 
+                m_log.DebugFormat("[SCENE PRESENCE({0})]: SendInitialData at parcel {1}", m_scene.RegionInfo.RegionName, currentParcelUUID);
                 SendOtherAgentsAvatarFullToMe();
 
                 if (m_scene.ObjectsCullingByDistance)
