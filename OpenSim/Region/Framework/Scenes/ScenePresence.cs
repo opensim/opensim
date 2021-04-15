@@ -226,6 +226,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_previusParcelUUID != UUID.Zero || checksame)
                         ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID, m_currentParcelHide, m_previusParcelHide, oldhide,checksame);
                 }
+                m_log.DebugFormat("[SOP {0}] set parcel from {1} to {2}", m_scene.Name, m_previusParcelUUID, m_currentParcelUUID);
             }
         }
 
