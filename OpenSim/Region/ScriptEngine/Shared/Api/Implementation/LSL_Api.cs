@@ -281,21 +281,90 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {"WALK", "Walking"}
                 };
 
-        //An array of HTTP/1.1 headers that are not allowed to be used
-        //as custom headers by llHTTPRequest.
-        private static readonly HashSet<string> HttpStandardHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        //llHTTPRequest custom headers use control
+        // true means fatal error,
+        // false means ignore,
+        // missing means allowed
+        private static readonly Dictionary<string,bool> HttpForbiddenHeaders = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase)
         {
-            "Accept", "Accept-Charset", "Accept-Encoding", "Accept-Language",
-            "Accept-Ranges", "Age", "Allow", "Authorization", "Cache-Control",
-            "Connection", "Content-Encoding", "Content-Language",
-            "Content-Length", "Content-Location", "Content-MD5",
-            "Content-Range", "Content-Type", "Date", "ETag", "Expect",
-            "Expires", "From", "Host", "If-Match", "If-Modified-Since",
-            "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified",
-            "Location", "Max-Forwards", "Pragma", "Proxy-Authenticate",
-            "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
-            "TE", "Trailer", "Transfer-Encoding", "Upgrade", "User-Agent",
-            "Vary", "Via", "Warning", "WWW-Authenticate"
+            {"Accept", true},
+            {"Accept-Charset", true},
+            {"Accept-CH", false},
+            {"Accept-CH-Lifetime", false},
+            {"Access-Control-Request-Headers", false},
+            {"Access-Control-Request-Method", false},
+            {"Accept-Encoding", false},
+            //{"Accept-Language", false},
+            {"Accept-Patch", false}, // it is server side
+            {"Accept-Post", false}, // it is server side
+            {"Accept-Ranges", false}, // it is server side
+            //{"Age", false},
+            //{"Allow", false},
+            //{"Authorization", false},
+            {"Cache-Control", false},
+            {"Connection", false},
+            {"Content-Length", false},
+            //{"Content-Encoding", false},
+            //{"Content-Location", false},
+            //{"Content-MD5", false},
+            //{"Content-Range", false},
+            {"Content-Type", true},
+            {"Cookie", false},
+            {"Cookie2", false},
+            {"Date", false},
+            {"Device-Memory", false},
+            {"DTN", false},
+            {"Early-Data", false},
+            //{"ETag", false},
+            {"Expect", false},
+            //{"Expires", false},
+            {"Feature-Policy", false},
+            {"From", true},
+            {"Host", true},
+            {"Keep-Alive", false},
+            {"If-Match", false},
+            {"If-Modified-Since", false},
+            {"If-None-Match", false},
+            //{"If-Range", false},
+            {"If-Unmodified-Since", false},
+            //{"Last-Modified", false},
+            //{"Location", false},
+            {"Max-Forwards", false},
+            {"Origin", false},
+            {"Pragma", false},
+            //{"Proxy-Authenticate", false},
+            //{"Proxy-Authorization", false},
+            //{"Range", false},
+            {"Referer", true},
+            //{"Retry-After", false},
+            {"Server", false},
+            {"Set-Cookie", false},
+            {"Set-Cookie2", false},
+            {"TE", true},
+            {"Trailer", true},
+            {"Transfer-Encoding", false},
+            {"Upgrade", true},
+            {"User-Agent", true},
+            {"Vary", false},
+            {"Via", true},
+            {"Viewport-Width", false},
+            {"Warning", false},
+            {"Width", false},
+            //{"WWW-Authenticate", false},
+
+            {"X-Forwarded-For", false},
+            {"X-Forwarded-Host", false},
+            {"X-Forwarded-Proto", false},
+
+            {"x-secondlife-shard", false},
+            {"x-secondlife-object-name", false},
+            {"x-secondlife-object-key", false},
+            {"x-secondlife-region", false},
+            {"x-secondlife-local-position", false},
+            {"x-secondlife-local-velocity", false},
+            {"x-secondlife-local-rotation", false},
+            {"x-secondlife-owner-name", false},
+            {"x-secondlife-owner-key", false},
         };
 
         private static readonly HashSet<string> HttpForbiddenInHeaders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
@@ -14351,18 +14420,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             //There must be at least one name/value pair for custom header
                             if (count == 1)
                                 Error("llHTTPRequest", "Missing name/value for custom header at parameter " + i.ToString());
-                            break;
+                            return string.Empty;
                         }
 
-                        if (HttpStandardHeaders.Contains(parameters.Data[i].ToString()))
+                        string paramName = parameters.Data[i].ToString();
+
+                        string paramNamelwr = paramName.ToLower();
+                        if (paramNamelwr.StartsWith("proxy-"))
+                        {
+                            Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
+                            return string.Empty;
+                        }
+                        if (paramNamelwr.StartsWith("sec-"))
                         {
                             Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
                             return string.Empty;
                         }
 
-                        param.Add(parameters.Data[i].ToString());
-                        param.Add(parameters.Data[i+1].ToString());
-                        nCustomHeaders++;
+                        bool noskip = true;
+                        if (HttpForbiddenHeaders.TryGetValue(paramName, out bool fatal))
+                        {
+                            if(fatal)
+                            {
+                                Error("llHTTPRequest", "Name is invalid as a custom header at parameter " + i.ToString());
+                                return string.Empty;
+                            }
+                            noskip = false;
+                        }
+
+                        string paramValue = parameters.Data[i + 1].ToString();
+                        if(paramName.Length + paramValue.Length > 253)
+                        {
+                            Error("llHTTPRequest", "name and value length exceds 253 characters for custom header at parameter " + i.ToString());
+                            return string.Empty;
+                        }
+
+                        if (noskip)
+                        {
+                            param.Add(paramName);
+                            param.Add(paramValue);
+                            nCustomHeaders++;
+                        }
 
                         //Have we reached the end of the list of headers?
                         //End is marked by a string with a single digit.
@@ -14371,6 +14469,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             break;
                         }
+
                         i += 2;
                     }
                 }
@@ -14442,11 +14541,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Match m = r.Match(url);
             if (m.Success)
             {
-                for (int i = 1; i < gnums.Length; i++)
-                {
+                //for (int i = 1; i < gnums.Length; i++)
+                //{
                     //System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
                     //CaptureCollection cc = g.Captures;
-                }
+                //}
                 if (m.Groups.Count == 5)
                 {
                     httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
