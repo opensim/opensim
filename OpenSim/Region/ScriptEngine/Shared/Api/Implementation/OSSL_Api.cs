@@ -6135,7 +6135,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -1;
 
             ScenePresence av = World.GetScenePresence(avId);
-            if(av == null || av.IsDeleted)
+            if (av == null || av.IsDeleted || av.IsChildAgent)
+                return 0;
+
+            return av.IsNPC ? 2 : 1;
+        }
+
+        public LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName)
+        {
+            ScenePresence av = World.GetScenePresence(sFirstName.m_string, sLastName.m_string);
+            if (av == null || av.IsDeleted || av.IsChildAgent)
                 return 0;
 
             return av.IsNPC ? 2 : 1;
