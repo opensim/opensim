@@ -185,7 +185,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
 //            cmdHandlerThreadCycleSleepms = m_ScriptEngine.Config.GetInt("AsyncLLCommandLoopms", 100);
             // TODO: Make this sane again
-            cmdHandlerThreadCycleSleepms = 100;
+            cmdHandlerThreadCycleSleepms = 50;
         }
 
 /*
