@@ -595,5 +595,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Integer osNpcLookAt(LSL_Key npckey, LSL_Integer type, LSL_Key objkey, vector offset);
 
         LSL_Integer osAvatarType(LSL_Key avkey);
+        LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName);
     }
 }

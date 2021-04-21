@@ -1555,5 +1555,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osAvatarType(avkey);
         }
+
+        public LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName)
+        {
+            return m_OSSL_Functions.osAvatarType(sFirstName, sLastName);
+        }
     }
 }
