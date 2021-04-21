@@ -59,6 +59,8 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using PermissionMask = OpenSim.Framework.PermissionMask;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
 
+#pragma warning disable IDE1006
+
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     //////////////////////////////////////////////////////////////
@@ -6125,6 +6127,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              });
 
             return 0;
+        }
+
+        public LSL_Integer osAvatarType(LSL_Key avkey)
+        {
+            if (!UUID.TryParse(avkey.m_string, out UUID avId))
+                return -1;
+
+            ScenePresence av = World.GetScenePresence(avId);
+            if(av == null || av.IsDeleted)
+                return 0;
+
+            return av.IsNPC ? 2 : 1;
         }
     }
 }

@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma warning disable IDE1006
+
 using System;
 using System.Collections;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -591,5 +593,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osLinkParticleSystem(LSL_Integer linknumber, LSL_List rules);
 
         LSL_Integer osNpcLookAt(LSL_Key npckey, LSL_Integer type, LSL_Key objkey, vector offset);
+
+        LSL_Integer osAvatarType(LSL_Key avkey);
     }
 }

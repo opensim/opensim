@@ -71,6 +71,8 @@ using PrimType = OpenSim.Region.Framework.Scenes.PrimType;
 using RegionFlags = OpenSim.Framework.RegionFlags;
 using RegionInfo = OpenSim.Framework.RegionInfo;
 
+#pragma warning disable IDE1006
+
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     /// <summary>
