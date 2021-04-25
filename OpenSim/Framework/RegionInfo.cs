@@ -25,22 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Xml;
-using System.IO;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-//using OpenSim.Framework.Console;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using System.Xml;
 
 namespace OpenSim.Framework
 {
-
     public class RegionInfo
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,12 +48,10 @@ namespace OpenSim.Framework
         public string DataStore = String.Empty;
 
         public string RegionFile = String.Empty;
-        public bool isSandbox = false;
         public bool Persistent = true;
 
         private EstateSettings m_estateSettings;
         private RegionSettings m_regionSettings;
-        // private IConfigSource m_configSource = null;
 
         public UUID originRegionID = UUID.Zero;
         public string proxyUrl = "";
@@ -67,6 +62,20 @@ namespace OpenSim.Framework
 
         public UUID lastMapUUID = UUID.Zero;
         public string lastMapRefresh = "0";
+        
+        public UUID RegionID = UUID.Zero;
+        public string RemotingAddress;
+        public UUID ScopeID = UUID.Zero;
+        public uint WorldLocX = 0;
+        public uint WorldLocY = 0;
+        public uint WorldLocZ = 0;
+        
+        protected uint m_httpPort;
+        protected string m_serverURI;
+        protected string m_regionName = String.Empty;
+        protected string m_externalHostName;
+        protected IPEndPoint m_internalEndPoint;
+        protected uint m_remotingPort;
 
         private float m_nonphysPrimMin = 0;
         private int m_nonphysPrimMax = 0;
@@ -77,21 +86,10 @@ namespace OpenSim.Framework
         private int m_maxPrimsPerUser = -1;
         private int m_linksetCapacity = 0;
         private string m_regionType = String.Empty;
-        protected uint m_httpPort;
-        protected string m_serverURI;
-        protected string m_regionName = String.Empty;
-        protected string m_externalHostName;
-        protected IPEndPoint m_internalEndPoint;
-        protected uint m_remotingPort;
-        public UUID RegionID = UUID.Zero;
-        public string RemotingAddress;
-        public UUID ScopeID = UUID.Zero;
         private UUID m_maptileStaticUUID = UUID.Zero;
         private bool m_resolveAddress = false;
-
-        public uint WorldLocX = 0;
-        public uint WorldLocY = 0;
-        public uint WorldLocZ = 0;
+        private bool m_disallowResidents = false;
+        private bool m_disallowForeigners = false;
 
         /// <summary>
         /// X dimension of the region.
@@ -131,11 +129,20 @@ namespace OpenSim.Framework
 
         // File based loading
         //
-        public RegionInfo(string description, string filename, bool skipConsoleConfig, IConfigSource configSource) : this(description, filename, skipConsoleConfig, configSource, String.Empty)
+        public RegionInfo(
+            string description,
+            string filename,
+            bool skipConsoleConfig,
+            IConfigSource configSource) : this(description, filename, skipConsoleConfig, configSource, String.Empty)
         {
         }
 
-        public RegionInfo(string description, string filename, bool skipConsoleConfig, IConfigSource configSource, string configName)
+        public RegionInfo(
+            string description,
+            string filename,
+            bool skipConsoleConfig,
+            IConfigSource configSource,
+            string configName)
         {
             // m_configSource = configSource;
             if (filename.ToLower().EndsWith(".ini"))
@@ -243,6 +250,16 @@ namespace OpenSim.Framework
             set { m_regionSettings = value; }
         }
 
+        public bool DisallowResidents
+        {
+            get { return m_disallowResidents; }
+        }
+
+        public bool DisallowForeigners
+        {
+            get { return m_disallowForeigners; }
+        }
+
         public float NonphysPrimMin
         {
             get { return m_nonphysPrimMin; }
@@ -317,17 +334,25 @@ namespace OpenSim.Framework
 
         public string ServerURI
         {
-            get {
-                if ( m_serverURI != string.Empty ) {
+            get
+            {
+                if (m_serverURI != string.Empty)
+                {
                     return m_serverURI;
-                } else {
+                }
+                else
+                {
                     return "http://" + m_externalHostName + ":" + m_httpPort + "/";
                 }
             }
-            set {
-                if ( value.EndsWith("/") ) {
+            set
+            {
+                if (value.EndsWith("/"))
+                {
                     m_serverURI = value;
-                } else {
+                }
+                else
+                {
                     m_serverURI = value + '/';
                 }
             }
@@ -345,7 +370,6 @@ namespace OpenSim.Framework
             set { m_remotingPort = value; }
         }
 
-        
         /// <value>
         /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
         ///
@@ -511,7 +535,7 @@ namespace OpenSim.Framework
                 config.Set("Location", location);
             }
 
-            string[] locationElements = location.Split(new char[] {','});
+            string[] locationElements = location.Split(new char[] { ',' });
 
             RegionLocX = Convert.ToUInt32(locationElements[0]);
             RegionLocY = Convert.ToUInt32(locationElements[1]);
@@ -626,6 +650,16 @@ namespace OpenSim.Framework
             allKeys.Remove("DefaultLanding");
 
             DoDefaultLandingSanityChecks();
+
+            #region Access Restrictions
+            
+            m_disallowResidents = config.GetBoolean("DisallowResidents", false);
+            allKeys.Remove("DisallowResidents");
+
+            m_disallowForeigners = config.GetBoolean("DisallowForeigners", false);
+            allKeys.Remove("DisallowForeigners");
+
+            #endregion
 
             #region Prim and map stuff
 
@@ -787,7 +821,12 @@ namespace OpenSim.Framework
             config.Set("Location", location);
 
             if (DataStore != String.Empty)
+            {
                 config.Set("Datastore", DataStore);
+            }
+
+            config.Set("DisallowResidents", m_disallowResidents.ToString());
+            config.Set("DisallowForeigners", m_disallowForeigners.ToString());
 
             if (RegionSizeX != Constants.RegionSize || RegionSizeY != Constants.RegionSize)
             {
@@ -864,220 +903,231 @@ namespace OpenSim.Framework
                 throw new Exception("Invalid file type for region persistence.");
         }
 
-        public void loadConfigurationOptionsFromMe()
-        {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE,
-                                                "UUID of Region (Default is recommended, random UUID)",
-                                                RegionID.ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Region Name", RegionName, true);
+        //public void loadConfigurationOptionsFromMe()
+        //{
+        //    configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID_NULL_FREE,
+        //                                        "UUID of Region (Default is recommended, random UUID)",
+        //                                        RegionID.ToString(), true);
+        //    configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "Region Name", RegionName, true);
 
-            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", RegionLocX.ToString(), true);
-            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", RegionLocY.ToString(), true);
-            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in X dimension", RegionSizeX.ToString(), true);
-            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Y dimension", RegionSizeY.ToString(), true);
-            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Z dimension", RegionSizeZ.ToString(), true);
+        //    configMember.addConfigurationOption("disallow_residents", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+        //                                        "Disallow residents (Managers and Admins only)", m_disallowResidents.ToString(), false);
+        //    configMember.addConfigurationOption("disallow_foreigners", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+        //                                        "Disallow foreigners (HyperGrid access allowed)", m_disallowForeigners.ToString(), false);
 
-            //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
-            configMember.addConfigurationOption("internal_ip_address",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
-                                                "Internal IP Address for incoming UDP client connections",
-                                                m_internalEndPoint.Address.ToString(),
-                                                true);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Internal IP Port for incoming UDP client connections",
-                                                m_internalEndPoint.Port.ToString(), true);
-            configMember.addConfigurationOption("external_host_name",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "External Host Name", m_externalHostName, true);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Last Map UUID", lastMapUUID.ToString(), true);
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
+        //    configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Grid Location (X Axis)", RegionLocX.ToString(), true);
+        //    configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Grid Location (Y Axis)", RegionLocY.ToString(), true);
+        //    configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in X dimension", RegionSizeX.ToString(), true);
+        //    configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in Y dimension", RegionSizeY.ToString(), true);
+        //    configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in Z dimension", RegionSizeZ.ToString(), true);
 
-            configMember.addConfigurationOption("nonphysical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "Minimum size for nonphysical prims", m_nonphysPrimMin.ToString(), true);
+        //    //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
+        //    configMember.addConfigurationOption("internal_ip_address",
+        //                                        ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
+        //                                        "Internal IP Address for incoming UDP client connections",
+        //                                        m_internalEndPoint.Address.ToString(),
+        //                                        true);
+        //    configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Internal IP Port for incoming UDP client connections",
+        //                                        m_internalEndPoint.Port.ToString(), true);
+        //    configMember.addConfigurationOption("external_host_name",
+        //                                        ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "External Host Name", m_externalHostName, true);
+        //    configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "Last Map UUID", lastMapUUID.ToString(), true);
+        //    configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
 
-            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for nonphysical prims", m_nonphysPrimMax.ToString(), true);
+        //    configMember.addConfigurationOption("nonphysical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
+        //                                        "Minimum size for nonphysical prims", m_nonphysPrimMin.ToString(), true);
 
-            configMember.addConfigurationOption("physical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                "Minimum size for nonphysical prims", m_physPrimMin.ToString(), true);
+        //    configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Maximum size for nonphysical prims", m_nonphysPrimMax.ToString(), true);
 
-            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for physical prims", m_physPrimMax.ToString(), true);
+        //    configMember.addConfigurationOption("physical_prim_min", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
+        //                                        "Minimum size for nonphysical prims", m_physPrimMin.ToString(), true);
 
-            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Clamp prims to max size", m_clampPrimSize.ToString(), true);
+        //    configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Maximum size for physical prims", m_physPrimMax.ToString(), true);
 
-            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+        //    configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+        //                                        "Clamp prims to max size", m_clampPrimSize.ToString(), true);
 
-            configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max prims an object will hold", m_linksetCapacity.ToString(), true);
+        //    configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Max objects this sim will hold", m_objectCapacity.ToString(), true);
 
-            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max avatars this sim will hold",AgentCapacity.ToString(), true);
+        //    configMember.addConfigurationOption("linkset_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Max prims an object will hold", m_linksetCapacity.ToString(), true);
 
-            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Scope ID for this region", ScopeID.ToString(), true);
+        //    configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Max avatars this sim will hold", AgentCapacity.ToString(), true);
 
-            configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Free form string describing the type of region", String.Empty, true);
+        //    configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "Scope ID for this region", ScopeID.ToString(), true);
 
-            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
-        }
+        //    configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+        //                                        "Free form string describing the type of region", String.Empty, true);
 
-        public void loadConfigurationOptions()
-        {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of Region (Default is recommended, random UUID)",
-                                                UUID.Random().ToString(), true);
-            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Region Name", "OpenSim Test", false);
+        //    configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "UUID of a texture to use as the map for this region", m_maptileStaticUUID.ToString(), true);
+        //}
 
-            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (X Axis)", "1000", false);
-            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Grid Location (Y Axis)", "1000", false);
-            configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in X dimension", Constants.RegionSize.ToString(), false);
-            configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Y dimension", Constants.RegionSize.ToString(), false);
-            configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
+        //public void loadConfigurationOptions()
+        //{
+        //    configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "UUID of Region (Default is recommended, random UUID)",
+        //                                        UUID.Random().ToString(), true);
+        //    configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "Region Name", "OpenSim Test", false);
 
-            //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
-            configMember.addConfigurationOption("internal_ip_address",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
-                                                "Internal IP Address for incoming UDP client connections", "0.0.0.0",
-                                                false);
-            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Internal IP Port for incoming UDP client connections",
-                                                ConfigSettings.DefaultRegionHttpPort.ToString(), false);
-            configMember.addConfigurationOption("external_host_name",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                    "Last Map UUID", lastMapUUID.ToString(), true);
+        //    configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Grid Location (X Axis)", "1000", false);
+        //    configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Grid Location (Y Axis)", "1000", false);
+        //    configMember.addConfigurationOption("sim_size_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in X dimension", Constants.RegionSize.ToString(), false);
+        //    configMember.addConfigurationOption("sim_size_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in Y dimension", Constants.RegionSize.ToString(), false);
+        //    configMember.addConfigurationOption("sim_size_z", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+        //                                        "Size of region in Z dimension", Constants.RegionHeight.ToString(), false);
 
-            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
+        //    //m_configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
+        //    configMember.addConfigurationOption("internal_ip_address",
+        //                                        ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
+        //                                        "Internal IP Address for incoming UDP client connections", "0.0.0.0",
+        //                                        false);
+        //    configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Internal IP Port for incoming UDP client connections",
+        //                                        ConfigSettings.DefaultRegionHttpPort.ToString(), false);
+        //    configMember.addConfigurationOption("external_host_name",
+        //                                        ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "External Host Name", "127.0.0.1", false);
+        //    configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                            "Last Map UUID", lastMapUUID.ToString(), true);
 
-            configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for nonphysical prims", "0", true);
+        //    configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+        //                                        "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
 
-            configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Maximum size for physical prims", "0", true);
+        //    configMember.addConfigurationOption("nonphysical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Maximum size for nonphysical prims", "0", true);
 
-            configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Clamp prims to max size", "false", true);
+        //    configMember.addConfigurationOption("physical_prim_max", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Maximum size for physical prims", "0", true);
 
-            configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects this sim will hold", "15000", true);
+        //    configMember.addConfigurationOption("clamp_prim_size", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+        //                                        "Clamp prims to max size", "false", true);
 
-            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max avatars this sim will hold", "100", true);
+        //    configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Max objects this sim will hold", "15000", true);
 
-            configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Scope ID for this region", UUID.Zero.ToString(), true);
+        //    configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+        //                                        "Max avatars this sim will hold", "100", true);
 
-            configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Region Type", String.Empty, true);
+        //    configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "Scope ID for this region", UUID.Zero.ToString(), true);
 
-            configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "UUID of a texture to use as the map for this region", String.Empty, true);
-        }
+        //    configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+        //                                        "Region Type", String.Empty, true);
 
-        public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
-        {
-            switch (configuration_key)
-            {
-                case "sim_UUID":
-                    RegionID = (UUID) configuration_result;
-                    originRegionID = (UUID) configuration_result;
-                    break;
-                case "sim_name":
-                    RegionName = (string) configuration_result;
-                    break;
-                case "sim_location_x":
-                    RegionLocX = (uint) configuration_result;
-                    break;
-                case "sim_location_y":
-                    RegionLocY = (uint) configuration_result;
-                    break;
-                case "sim_size_x":
-                    RegionSizeX = (uint) configuration_result;
-                    break;
-                case "sim_size_y":
-                    RegionSizeY = (uint) configuration_result;
-                    break;
-                case "sim_size_z":
-                    RegionSizeZ = (uint) configuration_result;
-                    break;
-                case "datastore":
-                    DataStore = (string) configuration_result;
-                    break;
-                case "internal_ip_address":
-                    IPAddress address = (IPAddress) configuration_result;
-                    m_internalEndPoint = new IPEndPoint(address, 0);
-                    break;
-                case "internal_ip_port":
-                    m_internalEndPoint.Port = (int) configuration_result;
-                    break;
-                case "external_host_name":
-                    if ((string) configuration_result != "SYSTEMIP")
-                    {
-                        m_externalHostName = (string) configuration_result;
-                    }
-                    else
-                    {
-                        m_externalHostName = Util.GetLocalHost().ToString();
-                    }
-                    break;
-                case "lastmap_uuid":
-                    lastMapUUID = (UUID)configuration_result;
-                    break;
-                case "lastmap_refresh":
-                    lastMapRefresh = (string)configuration_result;
-                    break;
-                case "nonphysical_prim_max":
-                    m_nonphysPrimMax = (int)configuration_result;
-                    break;
-                case "physical_prim_max":
-                    m_physPrimMax = (int)configuration_result;
-                    break;
-                case "clamp_prim_size":
-                    m_clampPrimSize = (bool)configuration_result;
-                    break;
-                case "object_capacity":
-                    m_objectCapacity = (int)configuration_result;
-                    break;
-                case "linkset_capacity":
-                    m_linksetCapacity = (int)configuration_result;
-                    break;
-                case "agent_capacity":
-                    AgentCapacity = (int)configuration_result;
-                    break;
-                case "scope_id":
-                    ScopeID = (UUID)configuration_result;
-                    break;
-                case "region_type":
-                    m_regionType = (string)configuration_result;
-                    break;
-                case "region_static_maptile":
-                    m_maptileStaticUUID = (UUID)configuration_result;
-                    break;
-            }
+        //    configMember.addConfigurationOption("region_static_maptile", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
+        //                                        "UUID of a texture to use as the map for this region", String.Empty, true);
+        //}
 
-            return true;
-        }
+        //public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
+        //{
+        //    switch (configuration_key)
+        //    {
+        //        case "sim_UUID":
+        //            RegionID = (UUID)configuration_result;
+        //            originRegionID = (UUID)configuration_result;
+        //            break;
+        //        case "sim_name":
+        //            RegionName = (string)configuration_result;
+        //            break;
+        //        case "disallow_residents":
+        //            m_disallowResidents = (bool)configuration_result;
+        //            break;
+        //        case "disallow_foreigners":
+        //            m_disallowForeigners = (bool)configuration_result;
+        //            break;
+        //        case "sim_location_x":
+        //            RegionLocX = (uint)configuration_result;
+        //            break;
+        //        case "sim_location_y":
+        //            RegionLocY = (uint)configuration_result;
+        //            break;
+        //        case "sim_size_x":
+        //            RegionSizeX = (uint)configuration_result;
+        //            break;
+        //        case "sim_size_y":
+        //            RegionSizeY = (uint)configuration_result;
+        //            break;
+        //        case "sim_size_z":
+        //            RegionSizeZ = (uint)configuration_result;
+        //            break;
+        //        case "datastore":
+        //            DataStore = (string)configuration_result;
+        //            break;
+        //        case "internal_ip_address":
+        //            IPAddress address = (IPAddress)configuration_result;
+        //            m_internalEndPoint = new IPEndPoint(address, 0);
+        //            break;
+        //        case "internal_ip_port":
+        //            m_internalEndPoint.Port = (int)configuration_result;
+        //            break;
+        //        case "external_host_name":
+        //            if ((string)configuration_result != "SYSTEMIP")
+        //            {
+        //                m_externalHostName = (string)configuration_result;
+        //            }
+        //            else
+        //            {
+        //                m_externalHostName = Util.GetLocalHost().ToString();
+        //            }
+        //            break;
+        //        case "lastmap_uuid":
+        //            lastMapUUID = (UUID)configuration_result;
+        //            break;
+        //        case "lastmap_refresh":
+        //            lastMapRefresh = (string)configuration_result;
+        //            break;
+        //        case "nonphysical_prim_max":
+        //            m_nonphysPrimMax = (int)configuration_result;
+        //            break;
+        //        case "physical_prim_max":
+        //            m_physPrimMax = (int)configuration_result;
+        //            break;
+        //        case "clamp_prim_size":
+        //            m_clampPrimSize = (bool)configuration_result;
+        //            break;
+        //        case "object_capacity":
+        //            m_objectCapacity = (int)configuration_result;
+        //            break;
+        //        case "linkset_capacity":
+        //            m_linksetCapacity = (int)configuration_result;
+        //            break;
+        //        case "agent_capacity":
+        //            AgentCapacity = (int)configuration_result;
+        //            break;
+        //        case "scope_id":
+        //            ScopeID = (UUID)configuration_result;
+        //            break;
+        //        case "region_type":
+        //            m_regionType = (string)configuration_result;
+        //            break;
+        //        case "region_static_maptile":
+        //            m_maptileStaticUUID = (UUID)configuration_result;
+        //            break;
+        //    }
+
+        //    return true;
+        //}
 
 
         public void SaveLastMapUUID(UUID mapUUID)
@@ -1167,7 +1217,16 @@ namespace OpenSim.Framework
                 m_regionType = args["region_type"].AsString();
         }
 
-        public static RegionInfo Create(UUID regionID, string regionName, uint regX, uint regY, string externalHostName, uint httpPort, uint simPort, uint remotingPort, string serverURI)
+        public static RegionInfo Create(
+            UUID regionID,
+            string regionName,
+            uint regX,
+            uint regY,
+            string externalHostName,
+            uint httpPort,
+            uint simPort,
+            uint remotingPort,
+            string serverURI)
         {
             RegionInfo regionInfo;
             IPEndPoint neighbourInternalEndPoint = new IPEndPoint(Util.GetHostFromDNS(externalHostName), (int)simPort);
