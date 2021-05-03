@@ -65,4 +65,7 @@
     <Compile Remove="GetTexture\GetTextureServerConnector.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
 </Project>

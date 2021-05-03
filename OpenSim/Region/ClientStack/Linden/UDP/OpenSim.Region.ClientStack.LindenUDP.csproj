@@ -69,4 +69,7 @@
     <Compile Remove="Tests\ThrottleTests.cs" />
     <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
 </Project>
