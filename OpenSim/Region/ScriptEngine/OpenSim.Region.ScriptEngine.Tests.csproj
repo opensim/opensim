@@ -1,0 +1,151 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\bin\nunit.framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Tools">
+      <HintPath>..\..\..\bin\Tools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\OptionalModules\OpenSim.Region.OptionalModules.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\OpenSim.Region.ScriptEngine.Shared.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\OpenSim.Region.ScriptEngine.Shared.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\Api\Implementation\OpenSim.Region.ScriptEngine.Shared.Api.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\Api\Runtime\OpenSim.Region.ScriptEngine.Shared.Api.Runtime.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\CodeTools\OpenSim.Region.ScriptEngine.Shared.CodeTools.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\Instance\OpenSim.Region.ScriptEngine.Shared.Instance.csproj" />
+    <ProjectReference Include="..\ScriptEngine\XEngine\OpenSim.Region.ScriptEngine.XEngine.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Interfaces\ICompiler.cs" />
+    <Compile Remove="Interfaces\IScript.cs" />
+    <Compile Remove="Interfaces\IScriptApi.cs" />
+    <Compile Remove="Interfaces\IScriptEngine.cs" />
+    <Compile Remove="Interfaces\IScriptInstance.cs" />
+    <Compile Remove="Shared\AssemblyResolver.cs" />
+    <Compile Remove="Shared\Helpers.cs" />
+    <Compile Remove="Shared\LSL_Types.cs" />
+    <Compile Remove="Shared\ScriptException.cs" />
+    <Compile Remove="XEngine\EventManager.cs" />
+    <Compile Remove="XEngine\ScriptEngineConsoleCommands.cs" />
+    <Compile Remove="XEngine\XEngine.cs" />
+    <Compile Remove="XEngine\XWorkItem.cs" />
+    <Compile Remove="YEngine\MMRDelegateCommon.cs" />
+    <Compile Remove="YEngine\MMRIEventHandlers.cs" />
+    <Compile Remove="YEngine\MMRInternalFuncDict.cs" />
+    <Compile Remove="YEngine\MMRScriptBinOpStr.cs" />
+    <Compile Remove="YEngine\MMRScriptCodeGen.cs" />
+    <Compile Remove="YEngine\MMRScriptCollector.cs" />
+    <Compile Remove="YEngine\MMRScriptCompile.cs" />
+    <Compile Remove="YEngine\MMRScriptCompValu.cs" />
+    <Compile Remove="YEngine\MMRScriptConsts.cs" />
+    <Compile Remove="YEngine\MMRScriptEventCode.cs" />
+    <Compile Remove="YEngine\MMRScriptInlines.cs" />
+    <Compile Remove="YEngine\MMRScriptMyILGen.cs" />
+    <Compile Remove="YEngine\MMRScriptObjCode.cs" />
+    <Compile Remove="YEngine\MMRScriptObjWriter.cs" />
+    <Compile Remove="YEngine\MMRScriptReduce.cs" />
+    <Compile Remove="YEngine\MMRScriptTokenize.cs" />
+    <Compile Remove="YEngine\MMRScriptTypeCast.cs" />
+    <Compile Remove="YEngine\MMRScriptVarDict.cs" />
+    <Compile Remove="YEngine\XMRArray.cs" />
+    <Compile Remove="YEngine\XMREngine.cs" />
+    <Compile Remove="YEngine\XMREngXmrTestLs.cs" />
+    <Compile Remove="YEngine\XMREvents.cs" />
+    <Compile Remove="YEngine\XMRHeapTracker.cs" />
+    <Compile Remove="YEngine\XMRInstAbstract.cs" />
+    <Compile Remove="YEngine\XMRInstBackend.cs" />
+    <Compile Remove="YEngine\XMRInstCapture.cs" />
+    <Compile Remove="YEngine\XMRInstCtor.cs" />
+    <Compile Remove="YEngine\XMRInstMain.cs" />
+    <Compile Remove="YEngine\XMRInstMisc.cs" />
+    <Compile Remove="YEngine\XMRInstQueue.cs" />
+    <Compile Remove="YEngine\XMRInstRun.cs" />
+    <Compile Remove="YEngine\XMRObjectTokens.cs" />
+    <Compile Remove="YEngine\XMRScriptThread.cs" />
+    <Compile Remove="YEngine\XMRScriptUThread.cs" />
+    <Compile Remove="YEngine\XMRSDTypeClObj.cs" />
+    <Compile Remove="Shared\CodeTools\Compiler.cs" />
+    <Compile Remove="Shared\CodeTools\CSCodeGenerator.cs" />
+    <Compile Remove="Shared\CodeTools\CSReservedWords.cs" />
+    <Compile Remove="Shared\CodeTools\ICodeConverter.cs" />
+    <Compile Remove="Shared\CodeTools\lsl.lexer.cs" />
+    <Compile Remove="Shared\CodeTools\lsl.parser.cs" />
+    <Compile Remove="Shared\CodeTools\LSL2CSCodeTransformer.cs" />
+    <Compile Remove="Shared\Instance\ScriptInstance.cs" />
+    <Compile Remove="Shared\Instance\ScriptSerializer.cs" />
+    <Compile Remove="Shared\Properties\AssemblyInfo.cs" />
+    <Compile Remove="XEngine\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\Api\Implementation\ApiManager.cs" />
+    <Compile Remove="Shared\Api\Implementation\AsyncCommandManager.cs" />
+    <Compile Remove="Shared\Api\Implementation\LSL_Api.cs" />
+    <Compile Remove="Shared\Api\Implementation\LS_Api.cs" />
+    <Compile Remove="Shared\Api\Implementation\MOD_Api.cs" />
+    <Compile Remove="Shared\Api\Implementation\OSSL_Api.cs" />
+    <Compile Remove="Shared\Api\Interface\ILSL_Api.cs" />
+    <Compile Remove="Shared\Api\Interface\ILS_Api.cs" />
+    <Compile Remove="Shared\Api\Interface\IMOD_Api.cs" />
+    <Compile Remove="Shared\Api\Interface\IOSSL_Api.cs" />
+    <Compile Remove="Shared\Api\Runtime\Executor.cs" />
+    <Compile Remove="Shared\Api\Runtime\LSL_Constants.cs" />
+    <Compile Remove="Shared\Api\Runtime\LSL_Stub.cs" />
+    <Compile Remove="Shared\Api\Runtime\LS_Stub.cs" />
+    <Compile Remove="Shared\Api\Runtime\MOD_Stub.cs" />
+    <Compile Remove="Shared\Api\Runtime\OSSL_Stub.cs" />
+    <Compile Remove="Shared\Api\Runtime\ScriptBase.cs" />
+    <Compile Remove="Shared\Api\Runtime\ScriptSponsor.cs" />
+    <Compile Remove="Shared\CodeTools\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\Instance\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="XEngine\Api\Runtime\XEngineScriptBase.cs" />
+    <Compile Remove="XEngine\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="YEngine\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\Dataserver.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\HttpRequest.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\Listener.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\ScriptTimer.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\SensorRepeat.cs" />
+    <Compile Remove="Shared\Api\Implementation\Plugins\XmlRequest.cs" />
+    <Compile Remove="Shared\Api\Implementation\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\Api\Runtime\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Shared\CodeTools\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Shared\Instance\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Shared\Api\Implementation\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Shared\Api\Runtime\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="XEngine\Api\Runtime\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>

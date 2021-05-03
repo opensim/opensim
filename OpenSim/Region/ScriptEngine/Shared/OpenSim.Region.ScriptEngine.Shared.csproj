@@ -1,0 +1,114 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\OpenSim.csproj" />
+    <ProjectReference Include="..\..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\..\ThirdParty\SmartThreadPool\SmartThreadPool.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Interfaces\ICompiler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="..\Interfaces\IScript.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="..\Interfaces\IScriptApi.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="..\Interfaces\IScriptEngine.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="..\Interfaces\IScriptInstance.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="CodeTools\Compiler.cs" />
+    <Compile Remove="CodeTools\CSCodeGenerator.cs" />
+    <Compile Remove="CodeTools\CSReservedWords.cs" />
+    <Compile Remove="CodeTools\ICodeConverter.cs" />
+    <Compile Remove="CodeTools\lsl.lexer.cs" />
+    <Compile Remove="CodeTools\lsl.parser.cs" />
+    <Compile Remove="CodeTools\LSL2CSCodeTransformer.cs" />
+    <Compile Remove="Instance\ScriptInstance.cs" />
+    <Compile Remove="Instance\ScriptSerializer.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Tests\LSL_ApiAvatarTests.cs" />
+    <Compile Remove="Tests\LSL_ApiHttpTests.cs" />
+    <Compile Remove="Tests\LSL_ApiInventoryTests.cs" />
+    <Compile Remove="Tests\LSL_ApiLinkingTests.cs" />
+    <Compile Remove="Tests\LSL_ApiListTests.cs" />
+    <Compile Remove="Tests\LSL_ApiNotecardTests.cs" />
+    <Compile Remove="Tests\LSL_ApiObjectTests.cs" />
+    <Compile Remove="Tests\LSL_ApiTest.cs" />
+    <Compile Remove="Tests\LSL_ApiUserTests.cs" />
+    <Compile Remove="Tests\LSL_TypesTestList.cs" />
+    <Compile Remove="Tests\LSL_TypesTestLSLFloat.cs" />
+    <Compile Remove="Tests\LSL_TypesTestLSLInteger.cs" />
+    <Compile Remove="Tests\LSL_TypesTestLSLString.cs" />
+    <Compile Remove="Tests\LSL_TypesTestVector3.cs" />
+    <Compile Remove="Tests\OSSL_ApiAppearanceTest.cs" />
+    <Compile Remove="Tests\OSSL_ApiAttachmentTests.cs" />
+    <Compile Remove="Tests\OSSL_ApiNpcTests.cs" />
+    <Compile Remove="Api\Implementation\ApiManager.cs" />
+    <Compile Remove="Api\Implementation\AsyncCommandManager.cs" />
+    <Compile Remove="Api\Implementation\LSL_Api.cs" />
+    <Compile Remove="Api\Implementation\LS_Api.cs" />
+    <Compile Remove="Api\Implementation\MOD_Api.cs" />
+    <Compile Remove="Api\Implementation\OSSL_Api.cs" />
+    <Compile Remove="Api\Runtime\Executor.cs" />
+    <Compile Remove="Api\Runtime\LSL_Constants.cs" />
+    <Compile Remove="Api\Runtime\LSL_Stub.cs" />
+    <Compile Remove="Api\Runtime\LS_Stub.cs" />
+    <Compile Remove="Api\Runtime\MOD_Stub.cs" />
+    <Compile Remove="Api\Runtime\OSSL_Stub.cs" />
+    <Compile Remove="Api\Runtime\ScriptBase.cs" />
+    <Compile Remove="Api\Runtime\ScriptSponsor.cs" />
+    <Compile Remove="CodeTools\Properties\AssemblyInfo.cs" />
+    <Compile Remove="CodeTools\Tests\CompilerTest.cs" />
+    <Compile Remove="CodeTools\Tests\CSCodeGeneratorTest.cs" />
+    <Compile Remove="CodeTools\Tests\LSL_EventTests.cs" />
+    <Compile Remove="Instance\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Instance\Tests\CoopTerminationTests.cs" />
+    <Compile Remove="Api\Implementation\Plugins\Dataserver.cs" />
+    <Compile Remove="Api\Implementation\Plugins\HttpRequest.cs" />
+    <Compile Remove="Api\Implementation\Plugins\Listener.cs" />
+    <Compile Remove="Api\Implementation\Plugins\ScriptTimer.cs" />
+    <Compile Remove="Api\Implementation\Plugins\SensorRepeat.cs" />
+    <Compile Remove="Api\Implementation\Plugins\XmlRequest.cs" />
+    <Compile Remove="Api\Implementation\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Api\Runtime\Properties\AssemblyInfo.cs" />
+    <Compile Remove="CodeTools\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Instance\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Api\Implementation\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Api\Runtime\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>
