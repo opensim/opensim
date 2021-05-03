@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Services.LLLoginService</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\..\Server\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\Base\OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="..\Connectors\OpenSim.Services.Connectors.csproj" />
+    <ProjectReference Include="..\Interfaces\OpenSim.Services.Interfaces.csproj" />
+  </ItemGroup>
+</Project>

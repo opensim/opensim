@@ -1,7 +1,6 @@
 .project
 .settings
 .gitignore
-*.csproj
 *.csproj.user
 *.build
 *.mdb
@@ -18,24 +17,15 @@ launchSettings.json
 
 packages/
 
+Prebuild/src/bin
+
 # Ignore .user and .suo files as these are user preference specific
 # http://stackoverflow.com/questions/72298/should-i-add-the-visual-studio-suo-and-user-files-to-source-control
 *.suo
 *.user
 
 *.VisualState.xml
-*/*/obj
-*/*/*/obj
-*/*/*/*/obj
-*/*/*/*/*/obj
-*/*/*/*/*/*/obj
-*/*/*/*/*/*/*/obj
-*/*/bin
-*/*/*/bin
-*/*/*/*/bin
-*/*/*/*/*/bin
-*/*/*/*/*/*/bin
-*/*/*/*/*/*/*/bin
+obj
 .vs/
 .vscode/
 bin/Debug/*.dll
@@ -86,7 +76,6 @@ bin/*.manifest
 bin/crashes/
 Examples/*.dll
 OpenSim.build
-OpenSim.sln
 OpenSim.userprefs
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln
