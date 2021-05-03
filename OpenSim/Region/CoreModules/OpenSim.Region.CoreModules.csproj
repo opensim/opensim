@@ -1,0 +1,120 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.CoreModules</AssemblyTitle>
+    <Product>OpenSim.Region.CoreModules.Properties</Product>
+    <Description>Core modules for OpenSim</Description>
+    <Copyright>Copyright ©  2012</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CSJ2K">
+      <HintPath>..\..\..\bin\CSJ2K.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DotNetOpenMail">
+      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Ionic.Zip">
+      <HintPath>..\..\..\bin\Ionic.Zip.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>..\..\..\bin\MySql.Data.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NDesk.Options">
+      <HintPath>..\..\..\bin\NDesk.Options.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Warp3D">
+      <HintPath>..\..\..\bin\Warp3D.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Capabilities\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Data\MySQL\OpenSim.Data.MySQL.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\Framework\Serialization\OpenSim.Framework.Serialization.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\ClientStack\Linden\UDP\OpenSim.Region.ClientStack.LindenUDP.csproj" />
+    <ProjectReference Include="..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\..\Server\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\..\Server\Handlers\OpenSim.Server.Handlers.csproj" />
+    <ProjectReference Include="..\..\Services\Base\OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="..\..\Services\Connectors\OpenSim.Services.Connectors.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\ThirdParty\SmartThreadPool\SmartThreadPool.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Asset\Tests\FlotsamAssetCacheTests.cs" />
+    <Compile Remove="Avatar\Attachments\Tests\AttachmentsModuleTests.cs" />
+    <Compile Remove="Avatar\AvatarFactory\Tests\AvatarFactoryModuleTests.cs" />
+    <Compile Remove="Avatar\Chat\Tests\ChatModuleTests.cs" />
+    <Compile Remove="Avatar\Friends\Tests\FriendModuleTests.cs" />
+    <Compile Remove="Framework\InventoryAccess\Tests\HGAssetMapperTests.cs" />
+    <Compile Remove="Framework\InventoryAccess\Tests\InventoryAccessModuleTests.cs" />
+    <Compile Remove="Framework\UserManagement\Tests\HGUserManagementModuleTests.cs" />
+    <Compile Remove="Scripting\HttpRequest\Tests\ScriptsHttpRequestsTests.cs" />
+    <Compile Remove="Scripting\VectorRender\Tests\VectorRenderModuleTests.cs" />
+    <Compile Remove="ServiceConnectorsOut\Asset\Tests\AssetConnectorTests.cs" />
+    <Compile Remove="ServiceConnectorsOut\Grid\Tests\GridConnectorsTests.cs" />
+    <Compile Remove="ServiceConnectorsOut\Presence\Tests\PresenceConnectorsTests.cs" />
+    <Compile Remove="World\Archiver\Tests\ArchiverTests.cs" />
+    <Compile Remove="World\Land\Tests\LandManagementModuleTests.cs" />
+    <Compile Remove="World\Land\Tests\PrimCountModuleTests.cs" />
+    <Compile Remove="World\Serialiser\Tests\SerialiserTests.cs" />
+    <Compile Remove="World\Terrain\Tests\TerrainModuleTests.cs" />
+    <Compile Remove="World\Terrain\Tests\TerrainTest.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\Tests\InventoryArchiveLoadPathTests.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\Tests\InventoryArchiveLoadTests.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\Tests\InventoryArchiveSaveTests.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\Tests\InventoryArchiveTestCase.cs" />
+    <Compile Remove="Avatar\Inventory\Transfer\Tests\InventoryTransferModuleTests.cs" />
+    <Compile Remove="World\Media\Moap\Tests\MoapTests.cs" />
+  </ItemGroup>
+</Project>
