@@ -86,4 +86,7 @@
     <Compile Remove="Scripting\JsonStore\Tests\JsonStoreScriptModuleTests.cs" />
     <Compile Remove="World\NPC\Tests\NPCModuleTests.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
 </Project>

@@ -4,25 +4,31 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="log4net">
+      <HintPath>..\..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\..\bin\Mono.Addins.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Nini">
+      <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\..\bin\OpenMetaverse.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenMetaverseTypes">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Drawing.Common">
+      <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

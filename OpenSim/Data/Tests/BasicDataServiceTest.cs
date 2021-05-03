@@ -76,7 +76,7 @@ namespace OpenSim.Data.Tests
             m_connStr = !String.IsNullOrEmpty(conn) ? conn : DefaultTestConns.Get(typeof(TConn));
 
             m_log = LogManager.GetLogger(this.GetType());
-            OpenSim.Tests.Common.TestLogging.LogToConsole();    // TODO: Is that right?
+            TestLogging.LogToConsole();    // TODO: Is that right?
         }
 
         /// <summary>

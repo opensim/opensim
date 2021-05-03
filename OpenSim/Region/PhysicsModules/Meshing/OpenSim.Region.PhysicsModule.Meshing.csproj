@@ -8,6 +8,9 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="CSJ2K">
       <HintPath>..\..\..\..\bin\CSJ2K.dll</HintPath>
       <Private>False</Private>
