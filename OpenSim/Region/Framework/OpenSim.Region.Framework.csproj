@@ -90,4 +90,7 @@
     <Compile Remove="Scenes\Tests\UserInventoryTests.cs" />
     <Compile Remove="Scenes\Tests\UuidGathererTests.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
 </Project>

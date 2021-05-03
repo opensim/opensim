@@ -8,6 +8,9 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>

@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.ClientStack.Linden;
+using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Interfaces;
@@ -229,7 +230,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 catch { }
                 try
                 {
-                    oscode = ((OpenSim.Region.Framework.Scenes.scriptEvents)(1ul << i)).ToString();
+                    oscode = ((Framework.Scenes.scriptEvents)(1ul << i)).ToString();
                     Convert.ToInt64(oscode);
                     oscode = "undefined";
                 }
