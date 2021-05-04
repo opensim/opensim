@@ -3702,7 +3702,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List ret = new LSL_List();
             float[] stats = World.StatsReporter.LastReportedSimStats;
 
-            for (int i = 0; i < 21; i++)
+            for (int i = 0; i < stats.Length; i++)
             {
                 ret.Add(new LSL_Float(stats[i]));
             }
