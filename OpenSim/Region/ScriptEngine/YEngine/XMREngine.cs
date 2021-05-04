@@ -1705,6 +1705,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         inst.m_IState = XMRInstState.IDLE;
                         Monitor.Exit(inst.m_QueueLock);
                     }
+                    m_Scene.AddScriptEvents(1);
                     break;
 
                 // Its m_SuspendCount > 0.

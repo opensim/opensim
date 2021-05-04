@@ -1971,6 +1971,11 @@ namespace OpenSim.Region.Framework.Scenes
             Interlocked.Add(ref m_scriptExecutionTime, ticks);
         }
 
+        public void AddScriptEvents(int cntr)
+        {
+            StatsReporter.addScriptEvents(cntr);
+        }
+
         /// <summary>
         /// Returns the total execution time of all the scripts in the region since the last call
         /// (in milliseconds), and clears the value in preparation for the next call.

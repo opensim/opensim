@@ -2259,7 +2259,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddScriptLPS(int count)
         {
-            m_scene.SceneGraph.AddToScriptLPS(count);
+            //legacy
+            //m_scene.SceneGraph.AddToScriptLPS(count);
         }
 
         public void AddActiveScriptCount(int count)
