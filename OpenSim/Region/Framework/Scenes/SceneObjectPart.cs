@@ -5441,7 +5441,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddScriptLPS(int count)
         {
-            ParentGroup.AddScriptLPS(count);
+            //legacy, do nothing
+            //ParentGroup.AddScriptLPS(count);
         }
 
         /// <summary>

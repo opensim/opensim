@@ -128,8 +128,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List();
             }
 
-            m_host.AddScriptLPS(1);
-
             RegionLightShareData wl = m_environment.ToLightShare();
 
             LSL_List values = new LSL_List();
@@ -725,8 +723,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
             }
 
-            m_host.AddScriptLPS(1);
-
             if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID))
             {
                 ScenePresence sp = World.GetScenePresence(m_host.OwnerID);
@@ -759,8 +755,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSShoutError("LightShare functions are not enabled.");
                 return;
             }
-
-            m_host.AddScriptLPS(1);
 
             if (!World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(m_host.OwnerID))
             {
@@ -805,8 +799,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             int success = 0;
-            m_host.AddScriptLPS(1);
-
             if (m_environment != null)
             {
                 RegionLightShareData wl;

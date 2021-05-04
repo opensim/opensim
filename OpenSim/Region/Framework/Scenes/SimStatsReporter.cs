@@ -783,7 +783,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void addScriptEvents(int count)
         {
-            m_scriptEventsPerSecond += count;
+            Interlocked.Add(ref m_scriptEventsPerSecond, count);
         }
 
         public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)

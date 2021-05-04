@@ -341,14 +341,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void CopyAttachments(AgentData ad, IScenePresence sp)
+        public void CopyAttachments(AgentData ad, IScenePresence isp)
         {
-//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Copying attachment data into {0} in {1}", sp.Name, m_scene.Name);
+            ScenePresence sp = isp as ScenePresence;
 
             if (ad.AttachmentObjects != null && ad.AttachmentObjects.Count > 0)
             {
-                lock (sp.AttachmentsSyncLock)
-                    DeleteAttachmentsFromScene(sp, true); // delete
+                lock (isp.AttachmentsSyncLock)
+                {
+                    if(sp.IsDeleted)
+                        return;
+                    DeleteAttachmentsFromScene(isp, true); // delete
+                }
 
                 int i = 0;
                 for (int indx = 0; indx < ad.AttachmentObjects.Count; ++indx)
