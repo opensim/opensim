@@ -252,9 +252,9 @@
     ; this is the entry point for all user-related HG services
     ; uas = ${Const|BaseURL}:${Const|PublicPort}/
 
-    // a http page for grid status
+    ;; a http page for grid status
     ;GridStatus = ${Const|BaseURL}:${Const|PublicPort}/GridStatus
-    // a RSS page for grid status
+    ;; a RSS page for grid status
     ;GridStatusRSS = ${Const|BaseURL}:${Const|PublicPort}/GridStatusRSS
 
 [MapImageService]
