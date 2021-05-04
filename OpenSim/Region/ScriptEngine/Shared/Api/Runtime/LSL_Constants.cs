@@ -830,6 +830,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public const int STATS_SIM_SLEEP = 20;
         public const int STATS_SCRIPT_EPS = 28;
+        public const int STATS_SCRIPT_TIME = 37;
         public const int STATS_SCRIPT_LPS = 38;
 
         // Constants for osNpc* functions
