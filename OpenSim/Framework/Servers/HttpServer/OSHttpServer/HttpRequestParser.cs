@@ -239,7 +239,7 @@ namespace OSHttpServer.Parser
                             int size = GetLineBreakSize(buffer, currentPos);
                             OnFirstLine(Encoding.UTF8.GetString(buffer, startPos, currentPos - startPos));
                             currentPos += size - 1;
-                            handledBytes = currentPos;
+                            handledBytes = currentPos + 1;
                             startPos = -1;
                             CurrentState = RequestParserState.HeaderName;
                         }
@@ -366,7 +366,7 @@ namespace OSHttpServer.Parser
                                 CurrentState = RequestParserState.Between;
                                 currentPos += newLineSize - 1;
                                 startPos = currentPos;
-                                handledBytes = currentPos;
+                                handledBytes = currentPos + 1;
                             }
                             else
                             {
@@ -379,7 +379,7 @@ namespace OSHttpServer.Parser
                                 m_curHeaderValue = string.Empty;
                                 m_curHeaderName = string.Empty;
                                 currentPos += newLineSize - 1;
-                                handledBytes = currentPos;
+                                handledBytes = currentPos + 1;
 
                                 // Check if we got a colon so we can cut header name, or crlf for end of header.
                                 bool canContinue = false;
