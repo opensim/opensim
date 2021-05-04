@@ -16,10 +16,6 @@
       <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\..\..\bin\MySql.Data.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="OpenMetaverse">
       <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
       <Private>False</Private>
@@ -65,6 +61,7 @@
     <EmbeddedResource Include="Resources\XAssetStore.migrations" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.24" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 </Project>

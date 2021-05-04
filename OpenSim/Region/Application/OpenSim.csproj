@@ -58,4 +58,9 @@
     <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
     <ProjectReference Include="..\..\Services\UserAccountService\OpenSim.Services.UserAccountService.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(SolutionDir)\bin\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

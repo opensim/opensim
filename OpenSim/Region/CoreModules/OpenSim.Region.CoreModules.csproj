@@ -31,10 +31,6 @@
       <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\..\..\bin\MySql.Data.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="NDesk.Options">
       <HintPath>..\..\..\bin\NDesk.Options.dll</HintPath>
       <Private>False</Private>
@@ -118,6 +114,7 @@
     <Compile Remove="World\Media\Moap\Tests\MoapTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.24" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 </Project>
