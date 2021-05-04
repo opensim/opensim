@@ -150,25 +150,31 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void touches(uint localID, uint originalID, Vector3 offsetPos,
                 IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs, string eventname)
         {
-            SceneObjectPart part;
-            if(originalID == 0)
+            if (m_Exiting)
+                return;
+
+            SceneObjectPart part = World.GetSceneObjectPart(localID);
+            if(part == null || part.IsDeleted)
+                return;
+
+            int linknum;
+            if(originalID != 0 && originalID != localID)
             {
-                part = this.World.GetSceneObjectPart(localID);
-                if(part == null)
+                SceneObjectPart srcpart = World.GetSceneObjectPart(originalID);
+                if(srcpart == null || part.IsDeleted)
                     return;
+                linknum = srcpart.LinkNum;
             }
             else
-            {
-                part = this.World.GetSceneObjectPart(originalID);
-            }
+                linknum = part.LinkNum;
 
             DetectParams det = new DetectParams();
             det.Key = remoteClient.AgentId;
-            det.Populate(this.World);
+            det.Populate(World);
             det.OffsetPos = new LSL_Vector(offsetPos.X,
                                            offsetPos.Y,
                                            offsetPos.Z);
-            det.LinkNum = part.LinkNum;
+            det.LinkNum = linknum;
 
             if(surfaceArgs != null)
             {
@@ -176,7 +182,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             // Add to queue for all scripts in ObjectID object
-            this.PostObjectEvent(localID, new EventParams(
+            PostPrimEvent(part, new EventParams(
                     eventname, oneObjectArrayOne,
                     new DetectParams[] { det }));
         }

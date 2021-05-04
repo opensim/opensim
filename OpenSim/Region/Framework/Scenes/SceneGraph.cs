@@ -86,7 +86,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_physicalPrim = 0;
 
         private int m_activeScripts = 0;
-        private int m_scriptLPS = 0;
+        //private int m_scriptLPS = 0;
 
         /// <summary>
         /// Lock to prevent object group update, linking, delinking and duplication operations from running concurrently.
@@ -667,7 +667,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void AddToScriptLPS(int number)
         {
-            m_scriptLPS += number;
+            //m_scriptLPS += number;
         }
 
         protected internal void AddActiveScripts(int number)
@@ -857,9 +857,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetScriptLPS()
         {
-            int returnval = m_scriptLPS;
-            m_scriptLPS = 0;
-            return returnval;
+            //int returnval = m_scriptLPS;
+            //m_scriptLPS = 0;
+            //return returnval;
+            return 0;
         }
 
         #endregion
