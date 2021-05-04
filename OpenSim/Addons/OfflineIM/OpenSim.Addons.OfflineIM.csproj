@@ -8,6 +8,9 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.24" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
@@ -18,10 +21,6 @@
     </Reference>
     <Reference Include="Mono.Addins">
       <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>..\..\..\bin\MySql.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Nini">
