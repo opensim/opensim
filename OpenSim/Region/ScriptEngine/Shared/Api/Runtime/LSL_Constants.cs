@@ -827,7 +827,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATS_PENDING_DOWNLOADS = 17;
         public const int STATS_PENDING_UPLOADS = 18;
         public const int STATS_ACTIVE_SCRIPTS = 19;
-        public const int STATS_SCRIPT_LPS = 20;
+
+        public const int STATS_SIM_SLEEP = 20;
+        public const int STATS_SCRIPT_EPS = 28;
+        public const int STATS_SCRIPT_LPS = 38;
 
         // Constants for osNpc* functions
         public const int OS_NPC_FLY = 0;
