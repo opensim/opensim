@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>BasicPhysicsModule</AssemblyTitle>
+    <AssemblyTitle>OpenSim.Region.PhysicsModule.BasicPhysics</AssemblyTitle>
     <Company>http://opensimulator.org</Company>
-    <Product>BasicPhysicsModule</Product>
+    <Product>OpenSim</Product>
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>

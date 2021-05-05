@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>ServerConsole</AssemblyTitle>
+    <AssemblyTitle>OpenSim.Framework.Console</AssemblyTitle>
     <Company>http://opensimulator.org</Company>
     <Product>ServerConsole</Product>
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
