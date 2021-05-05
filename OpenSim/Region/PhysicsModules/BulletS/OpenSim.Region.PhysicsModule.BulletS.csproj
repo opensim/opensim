@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>OpenSim.Region.Physics.BulletSPlugin</AssemblyTitle>
+    <AssemblyTitle>OpenSim.Region.PhysicsModule.BulletS</AssemblyTitle>
     <Company>http://opensimulator.org</Company>
     <Product>OpenSim</Product>
     <Copyright>OpenSimulator developers</Copyright>
