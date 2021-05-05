@@ -1,6 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSimSearch.Modules</AssemblyTitle>
+    <Product>OpenSim</Product>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>

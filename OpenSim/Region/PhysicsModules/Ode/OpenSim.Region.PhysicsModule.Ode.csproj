@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>OdePlugin</AssemblyTitle>
+    <AssemblyTitle>OpenSim.Region.PhysicsModule.Ode</AssemblyTitle>
     <Company>http://opensimulator.org</Company>
-    <Product>OdePlugin</Product>
+    <Product>OpenSim</Product>
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
