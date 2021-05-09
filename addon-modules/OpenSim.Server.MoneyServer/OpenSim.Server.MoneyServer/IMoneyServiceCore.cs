@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Contributors, http://opensimulator.org/, http://www.nsl.tuis.ac.jp/
+ * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -18,58 +18,34 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#pragma warning disable S1128 // Unused "using" should be removed
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenMetaverse;
-using OpenSim.Data.MySQL.MySQLMoneyDataWrapper;
-#pragma warning restore S1128 // Unused "using" should be removed
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
+
+using Nini.Config;
 
 
-namespace OpenSim.Grid.MoneyServer
+namespace OpenSim.Server.MoneyServer
 {
-    /// <summary>
-    /// IMoney DB Service
-    /// </summary>
-    public interface IMoneyDBService
+    public interface IMoneyServiceCore
     {
-        int getBalance(string userID);
+        BaseHttpServer GetHttpServer();
+        Dictionary<string, string> GetSessionDic();
+        Dictionary<string, string> GetSecureSessionDic();
+        Dictionary<string, string> GetWebSessionDic();
 
-        bool withdrawMoney(UUID transactionID, string senderID, int amount);
-
-        bool giveMoney(UUID transactionID, string receiverID, int amount);
-
-        bool addTransaction(TransactionData transaction);
-
-        bool addUser(string userID, int balance, int status, int type);
-
-        bool updateTransactionStatus(UUID transactionID, int status, string description);
-
-        bool SetTransExpired(int deadTime);
-
-        bool ValidateTransfer(string secureCode, UUID transactionID);
-
-        TransactionData FetchTransaction(UUID transactionID);
-
-        TransactionData FetchTransaction(string userID, int startTime, int endTime, int lastIndex);
-
-        int getTransactionNum(string userID, int startTime, int endTime);
-
-        bool DoTransfer(UUID transactionUUID);
-
-        bool DoAddMoney(UUID transactionUUID);		// Added by Fumi.Iseki
-
-        bool TryAddUserInfo(UserInfo user);
-
-        UserInfo FetchUserInfo(string userID);
-
+		//
+		IConfig  GetServerConfig();
+		IConfig  GetCertConfig();
+		bool     IsCheckClientCert();
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <Project frameworkVersion="v4_8" name="OpenSim.Grid.MoneyServer" path="addon-modules/OpenSim.Grid.MoneyServer/OpenSim.Grid.MoneyServer" type="Exe">
+    <Project frameworkVersion="v4_8" name="OpenSim.Server.MoneyServer" path="addon-modules/OpenSim.Server.MoneyServer/OpenSim.Server.MoneyServer" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>

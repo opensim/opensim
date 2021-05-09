@@ -55,9 +55,9 @@ using Timer = System.Timers.Timer;
 
 
 /// <summary>
-/// OpenSim Grid MoneyServer
+/// OpenSim Server MoneyServer
 /// </summary>
-namespace OpenSim.Grid.MoneyServer
+namespace OpenSim.Server.MoneyServer
 {
 	/// <summary>
 	/// class MoneyServerBase : BaseOpenSimServer, IMoneyServiceCore
