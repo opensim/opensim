@@ -31,7 +31,7 @@ using System.Text;
 using OpenMetaverse;
 
 
-namespace OpenSim.Data.MySQL.MySQLMoneyDataWrapper
+namespace OpenSim.Data.MySQL.MoneyData
 {
     public class TransactionData
     {

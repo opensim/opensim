@@ -27,7 +27,7 @@
 
 using log4net.Config;
 
-namespace OpenSim.Grid.MoneyServer
+namespace OpenSim.Server.MoneyServer
 {
     class Program
     {

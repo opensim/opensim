@@ -37,7 +37,7 @@ using MySql.Data.MySqlClient;
 using OpenMetaverse;
 
 
-namespace OpenSim.Data.MySQL.MySQLMoneyDataWrapper
+namespace OpenSim.Data.MySQL.MoneyData
 {
 	public class MySQLMoneyManager:IMoneyManager
 	{
@@ -61,12 +61,10 @@ namespace OpenSim.Data.MySQL.MySQLMoneyDataWrapper
 			Initialise(s);
 		}
 
-
 		public MySQLMoneyManager(string connect)
 		{
 			Initialise(connect);
 		}
-
 
 		private void Initialise(string connect)
 		{

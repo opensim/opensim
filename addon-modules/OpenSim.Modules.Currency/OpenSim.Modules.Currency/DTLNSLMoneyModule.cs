@@ -51,16 +51,12 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-using OpenSim.Data.MySQL.MySQLMoneyDataWrapper;
+using OpenSim.Data.MySQL.MoneyData;
 using NSL.Certificate.Tools;
 using NSL.Network.XmlRpc;
 
-
-
 [assembly: Addin("DTLNSLMoneyModule", "1.0")]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
-
-
 
 namespace OpenSim.Modules.Currency
 {
@@ -115,7 +111,6 @@ namespace OpenSim.Modules.Currency
 		// Stipend Credits
 		StipendBasic     	= 10000
 	}
-
 
 /*
 	// Refer to OpenMetaverse
@@ -174,8 +169,6 @@ namespace OpenSim.Modules.Currency
 	}
 */
 
-
-	 
 	[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DTLNSLMoneyModule")]
 	public class DTLNSLMoneyModule : IMoneyModule, ISharedRegionModule
 	{

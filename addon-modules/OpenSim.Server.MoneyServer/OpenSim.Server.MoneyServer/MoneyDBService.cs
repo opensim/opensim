@@ -28,14 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenSim.Data.MySQL.MySQLMoneyDataWrapper;
+using OpenSim.Data.MySQL.MoneyData;
 using OpenSim.Modules.Currency;
 using log4net;
 using System.Reflection;
 using OpenMetaverse;
 
 
-namespace OpenSim.Grid.MoneyServer
+namespace OpenSim.Server.MoneyServer
 {
     class MoneyDBService: IMoneyDBService
     {
