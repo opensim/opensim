@@ -58,7 +58,7 @@ using NSL.Network.XmlRpc;
 [assembly: Addin("DTLNSLMoneyModule", "1.0.3")]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 
-namespace OpenSim.Modules.Currency
+namespace OpenSim.Region.OptionalModules.Currency
 {
     /// <summary>
     /// Transaction Type
