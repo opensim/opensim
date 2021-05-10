@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-    <Project frameworkVersion="v4_8" name="OpenSim.Modules.Currency" path="addon-modules/OpenSim.Modules.Currency/OpenSim.Modules.Currency" type="Library">
+    <Project frameworkVersion="v4_8" name="OpenSim.Region.OptionalModules.Currency" path="addon-modules/OpenSim.Region.OptionalModules.Currency/OpenSim.Region.OptionalModules.Currency" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>

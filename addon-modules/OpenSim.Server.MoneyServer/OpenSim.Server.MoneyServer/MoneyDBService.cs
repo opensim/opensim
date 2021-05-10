@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Data.MySQL.MoneyData;
-using OpenSim.Modules.Currency;
+using OpenSim.Region.OptionalModules.Currency;
 using log4net;
 using System.Reflection;
 using OpenMetaverse;
