@@ -43,9 +43,9 @@ namespace OpenSim.Server.MoneyServer
         Dictionary<string, string> GetSecureSessionDic();
         Dictionary<string, string> GetWebSessionDic();
 
-		//
-		IConfig  GetServerConfig();
-		IConfig  GetCertConfig();
-		bool     IsCheckClientCert();
+        //
+        IConfig GetServerConfig();
+        IConfig GetCertConfig();
+        bool IsCheckClientCert();
     }
 }
