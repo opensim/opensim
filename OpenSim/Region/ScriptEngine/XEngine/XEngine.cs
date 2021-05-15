@@ -55,7 +55,7 @@ using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.XEngine.ScriptBase;
-using ScritTimer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.ScriptTimer;
+using ScriptTimer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.ScriptTimer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
 
@@ -599,7 +599,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Dataserver ds = AsyncCommandManager.GetDataserverPlugin(this);
             sb.AppendFormat("Dataserver requests        : {0}\n", ds != null ? ds.DataserverRequestsCount : 0);
 
-            ScritTimer t = AsyncCommandManager.GetTimerPlugin(this);
+            ScriptTimer t = AsyncCommandManager.GetTimerPlugin(this);
             sb.AppendFormat("Timers                     : {0}\n", t != null ? t.TimersCount : 0);
 
             Listener l = AsyncCommandManager.GetListenerPlugin(this);
