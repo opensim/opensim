@@ -2438,12 +2438,12 @@
       </Configuration>
 
       <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="log4net"/>
-      <Reference name="Mono.Addins"/>
-      <Reference name="Nini"/>
-      <Reference name="OpenMetaverse"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="OpenMetaverseTypes"/>
+      <Reference name="log4net" path="../../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../../bin/"/>
+      <Reference name="Nini" path="../../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Monitoring"/>
