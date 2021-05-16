@@ -23,4 +23,7 @@
     <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
     <ProjectReference Include="..\..\Region\Framework\OpenSim.Region.Framework.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

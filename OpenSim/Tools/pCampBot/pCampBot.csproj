@@ -31,4 +31,7 @@
     <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
     <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

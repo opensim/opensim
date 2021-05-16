@@ -48,4 +48,7 @@
     <ProjectReference Include="..\..\..\OpenSim\Server\Base\OpenSim.Server.Base.csproj" />
     <ProjectReference Include="..\..\..\OpenSim\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

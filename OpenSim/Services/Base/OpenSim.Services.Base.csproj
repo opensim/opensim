@@ -30,4 +30,7 @@
     <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
     <ProjectReference Include="..\Interfaces\OpenSim.Services.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

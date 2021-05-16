@@ -7,7 +7,4 @@
     <OutputPath>$(SolutionDir)\build\$(Configuration)\$(AssemblyName)\</OutputPath>
     <OutDir>$(OutputPath)</OutDir>
   </PropertyGroup>
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
 </Project>
