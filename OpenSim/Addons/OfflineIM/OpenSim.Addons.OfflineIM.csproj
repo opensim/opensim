@@ -8,7 +8,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.24" />
+    <PackageReference Include="MySql.Data" Version="8.0.25" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="log4net">

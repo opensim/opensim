@@ -71,6 +71,6 @@
     <EmbeddedResource Include="Resources\GloebitUsersSQLite.migrations" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.24" />
+    <PackageReference Include="MySql.Data" Version="8.0.25" />
   </ItemGroup>
 </Project>
