@@ -132,4 +132,7 @@
     <Compile Remove="SQLite\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
     <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

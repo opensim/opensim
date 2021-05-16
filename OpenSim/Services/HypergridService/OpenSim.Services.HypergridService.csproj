@@ -40,4 +40,7 @@
     <ProjectReference Include="..\Interfaces\OpenSim.Services.Interfaces.csproj" />
     <ProjectReference Include="..\InventoryService\OpenSim.Services.InventoryService.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

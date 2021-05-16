@@ -63,4 +63,7 @@
     <ProjectReference Include="..\..\..\OpenSim\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
     <ProjectReference Include="..\..\OpenSim.Region.OptionalModules.Currency\OpenSim.Region.OptionalModules.Currency\OpenSim.Region.OptionalModules.Currency.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

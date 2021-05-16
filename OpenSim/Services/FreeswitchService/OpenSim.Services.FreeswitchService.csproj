@@ -38,4 +38,7 @@
     <ProjectReference Include="..\Connectors\OpenSim.Services.Connectors.csproj" />
     <ProjectReference Include="..\Interfaces\OpenSim.Services.Interfaces.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>

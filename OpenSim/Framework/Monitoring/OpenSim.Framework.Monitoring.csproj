@@ -32,4 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenSim.Framework.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 </Project>
