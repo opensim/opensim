@@ -26,6 +26,11 @@
 // * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // */
 
+//	2018-03-03	Change to not run when not selected. Permits other money modules (like Gloebit) to have control when they are selected.
+//	2019-07-26	Use the extras interface to set the currency to the local symbol (WIP).
+//	2020/12/13	Integrate previous changes with 0.9.2
+//	2021/05/04	Permit HG visitors to transact. Ensure The money symbol is sent to the viewer.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -43,20 +48,25 @@ using Mono.Addins;
 
 using OpenMetaverse;
 
+using OpenSim.Data.MySQL.MoneyData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Services.Interfaces;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
-using OpenSim.Data.MySQL.MoneyData;
+using OpenMetaverse.StructuredData;
+
 using NSL.Certificate.Tools;
 using NSL.Network.XmlRpc;
 
+
 [assembly: Addin("DTLNSLMoneyModule", "1.0.3")]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
+// [assembly: AddinDependency("OpenSim.Region.OptionalModules", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDescription("OpenSim Addin for DTL Money Module")]
+
 
 namespace OpenSim.Region.OptionalModules.Currency
 {
@@ -112,62 +122,64 @@ namespace OpenSim.Region.OptionalModules.Currency
         StipendBasic = 10000
     }
 
+
     /*
-        // Refer to OpenMetaverse
-        public enum OpenMetaverse.MoneyTransactionType : int
-        {
-            None = 0,
-            FailSimulatorTimeout = 1,
-            FailDataserverTimeout = 2,
-            ObjectClaim = 1000,
-            LandClaim = 1001,
-            GroupCreate = 1002,
-            ObjectPublicClaim = 1003,
-            GroupJoin = 1004,
-            TeleportCharge = 1100,
-            UploadCharge = 1101,
-            LandAuction = 1102,
-            ClassifiedCharge = 1103,
-            ObjectTax = 2000,
-            LandTax = 2001,
-            LightTax = 2002,
-            ParcelDirFee = 2003,
-            GroupTax = 2004,
-            ClassifiedRenew = 2005,
-            GiveInventory = 3000,
-            ObjectSale = 5000,
-            Gift = 5001,
-            LandSale = 5002,
-            ReferBonus = 5003,
-            InventorySale = 5004,
-            RefundPurchase = 5005,
-            LandPassSale = 5006,
-            DwellBonus = 5007,
-            PayObject = 5008,
-            ObjectPays = 5009,
-            GroupLandDeed = 6001,
-            GroupObjectDeed = 6002,
-            GroupLiability = 6003,
-            GroupDividend = 6004,
-            GroupMembershipDues = 6005,
-            ObjectRelease = 8000,
-            LandRelease = 8001,
-            ObjectDelete = 8002,
-            ObjectPublicDecay = 8003,
-            ObjectPublicDelete = 8004,
-            LindenAdjustment = 9000,
-            LindenGrant = 9001,
-            LindenPenalty = 9002,
-            EventFee = 9003,
-            EventPrize = 9004,
-            StipendBasic = 10000,
-            StipendDeveloper = 10001,
-            StipendAlways = 10002,
-            StipendDaily = 10003,
-            StipendRating = 10004,
-            StipendDelta = 10005
-        }
-    */
+		// Refer to OpenMetaverse
+		public enum OpenMetaverse.MoneyTransactionType : int
+		{
+			None = 0,
+			FailSimulatorTimeout = 1,
+			FailDataserverTimeout = 2,
+			ObjectClaim = 1000,
+			LandClaim = 1001,
+			GroupCreate = 1002,
+			ObjectPublicClaim = 1003,
+			GroupJoin = 1004,
+			TeleportCharge = 1100,
+			UploadCharge = 1101,
+			LandAuction = 1102,
+			ClassifiedCharge = 1103,
+			ObjectTax = 2000,
+			LandTax = 2001,
+			LightTax = 2002,
+			ParcelDirFee = 2003,
+			GroupTax = 2004,
+			ClassifiedRenew = 2005,
+			GiveInventory = 3000,
+			ObjectSale = 5000,
+			Gift = 5001,
+			LandSale = 5002,
+			ReferBonus = 5003,
+			InventorySale = 5004,
+			RefundPurchase = 5005,
+			LandPassSale = 5006,
+			DwellBonus = 5007,
+			PayObject = 5008,
+			ObjectPays = 5009,
+			GroupLandDeed = 6001,
+			GroupObjectDeed = 6002,
+			GroupLiability = 6003,
+			GroupDividend = 6004,
+			GroupMembershipDues = 6005,
+			ObjectRelease = 8000,
+			LandRelease = 8001,
+			ObjectDelete = 8002,
+			ObjectPublicDecay = 8003,
+			ObjectPublicDelete = 8004,
+			LindenAdjustment = 9000,
+			LindenGrant = 9001,
+			LindenPenalty = 9002,
+			EventFee = 9003,
+			EventPrize = 9004,
+			StipendBasic = 10000,
+			StipendDeveloper = 10001,
+			StipendAlways = 10002,
+			StipendDaily = 10003,
+			StipendRating = 10004,
+			StipendDelta = 10005
+		}
+	*/
+
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "DTLNSLMoneyModule")]
     public class DTLNSLMoneyModule : IMoneyModule, ISharedRegionModule
@@ -191,7 +203,8 @@ namespace OpenSim.Region.OptionalModules.Currency
         private IConfigSource m_config;
 
         private string m_moneyServURL = string.Empty;
-        private string m_moneySymbol = "$";
+        private string m_moneySymbol = string.Empty;
+        private bool m_entryalert = true;
         public BaseHttpServer HttpServer;
 
         private string m_certFilename = "";
@@ -260,21 +273,16 @@ namespace OpenSim.Region.OptionalModules.Currency
                 AddRegion(scene);
             }
         }
-
-
         #region ISharedRegionModule interface
 
         public void Initialise(IConfigSource source)
         {
-            if (m_debug)
-                m_log.InfoFormat("[MONEY]: Initialise:");
+            if (m_debug) m_log.InfoFormat("[MONEY]: Initialise:");
 
             m_enable_server = false;
             m_sellEnabled = false;
-
             // Handle the parameters errors.
-            if (source == null)
-                return;
+            if (source == null) return;
 
             try
             {
@@ -307,12 +315,20 @@ namespace OpenSim.Region.OptionalModules.Currency
                 }
 
                 // Get the money symbol
-                m_moneySymbol = economyConfig.GetString("Currency");
+                m_moneySymbol = economyConfig.GetString("CurrencySymbol");
                 if (string.IsNullOrEmpty(m_moneySymbol))
                 {
                     m_moneySymbol = "$";
-                    m_log.InfoFormat("[MONEY]: The currency symbol is missing, defaulting to '$' ");
+                    m_log.WarnFormat("[MONEY]: The currency symbol is missing, defaulting to '{0}' ", m_moneySymbol);
                 }
+                else
+                {
+                    m_log.InfoFormat("[MONEY]: The currency symbol is set to '{0}' ", m_moneySymbol);
+                }
+
+                // Check for send alert on region arrival
+                m_entryalert = economyConfig.GetBoolean("SendAlert", m_entryalert);
+
                 // Client Certification
                 m_certFilename = economyConfig.GetString("ClientCertFilename", m_certFilename);
                 m_certPassword = economyConfig.GetString("ClientCertPassword", m_certPassword);
@@ -336,8 +352,8 @@ namespace OpenSim.Region.OptionalModules.Currency
                     m_checkServerCert = false;
                     m_log.Info("[MONEY]: Initialise: CACertFilename is empty. Therefor, CheckServerCert is forced to false");
                 }
-
                 ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(m_certVerify.ValidateServerCertificate);
+
 
                 // Settlement
                 m_use_web_settle = economyConfig.GetBoolean("SettlementByWeb", m_use_web_settle);
@@ -435,6 +451,7 @@ namespace OpenSim.Region.OptionalModules.Currency
                         // * --- Patch Info: https://medium.com/@colosi/multi-currency-support-coming-to-opensim-viewers-cd20e75f7990
                         // * --- Patch Download: http://dev.gloebit.com/opensim/downloads/ColosiOpenSimMultiCurrencySupport.patch
                         // * --- Firestorm Jira: https://jira.phoenixviewer.com/browse/FIRE-21587
+
 
                         // These functions can handle the calls to the economy helper-uri if it is configured to point at the sim.  
                         // They will enable land purchasing, buy-currency, and insufficient-funds flows.
@@ -639,34 +656,33 @@ namespace OpenSim.Region.OptionalModules.Currency
             }
 
             // Add the currency symbol to the simulator extras.
-            /*
-			ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
+            ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if (featuresModule != null)
-			{
+            {
                 featuresModule.OnSimulatorFeaturesRequest += (UUID x, ref OSDMap y) => OnSimulatorFeaturesRequest(x, ref y, scene);
             }
-			*/
         }
 
-        /*
-		private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features, Scene scene)
+        private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features, Scene scene)
         {
             UUID regionID = scene.RegionInfo.RegionID;
 
-			// Get or create the extras section of the features map
-			OSDMap extrasMap;
-			if (features.ContainsKey("OpenSimExtras")) {
-				extrasMap = (OSDMap)features["OpenSimExtras"];
-			} else {
-				extrasMap = new OSDMap();
-				features["OpenSimExtras"] = extrasMap;
-			}
-			
-			// Add our values to the extras map
-			extrasMap["currency"] = m_moneySymbol;
-			extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
+            // Get or create the extras section of the features map
+            OSDMap extrasMap;
+            if (features.ContainsKey("OpenSimExtras"))
+            {
+                extrasMap = (OSDMap)features["OpenSimExtras"];
+            }
+            else
+            {
+                extrasMap = new OSDMap();
+                features["OpenSimExtras"] = extrasMap;
+            }
+
+            // Add our values to the extras map
+            extrasMap["currency"] = m_moneySymbol;
+            extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
         }
-		*/
 
         private string GetCurrencyBaseURI(Scene scene)
         {
@@ -1051,12 +1067,19 @@ namespace OpenSim.Region.OptionalModules.Currency
             int balance = 0;
             IClientAPI client = agent.ControllingClient;
 
+            if (m_entryalert)
+            {
+                // check for hg visitor here...
+                string hgmsg = "Hypergrid visitors, you are able to transact in this currency.";
+                client.SendAgentAlertMessage("This region transacts " + m_moneySymbol + " currency. " + hgmsg, false);
+            }
+
             m_enable_server = LoginMoneyServer(agent, out balance);
             client.SendMoneyBalance(UUID.Zero, true, new byte[0], balance, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
 
-            //client.OnMoneyBalanceRequest += OnMoneyBalanceRequest;
-            //client.OnRequestPayPrice 	 += OnRequestPayPrice;
-            //client.OnObjectBuy			 += OnObjectBuy;
+            client.OnMoneyBalanceRequest += OnMoneyBalanceRequest;
+            client.OnRequestPayPrice += OnRequestPayPrice;
+            client.OnObjectBuy += OnObjectBuy;
         }
 
 
@@ -2439,6 +2462,8 @@ namespace OpenSim.Region.OptionalModules.Currency
         private Scene GetLocateScene(UUID AgentId)
         {
             Scene scene = null;
+            ScenePresence tPresence = null;
+            string pname;
 
             lock (m_sceneList)
             {
@@ -2446,7 +2471,12 @@ namespace OpenSim.Region.OptionalModules.Currency
                 {
                     foreach (Scene _scene in m_sceneList.Values)
                     {
-                        ScenePresence tPresence = (ScenePresence)_scene.GetScenePresence(AgentId);
+                        tPresence = (ScenePresence)_scene.GetScenePresence(AgentId);
+                        if (m_debug && tPresence != null)
+                        {
+                            pname = tPresence.Firstname + ' ' + tPresence.Lastname;
+                            m_log.InfoFormat("[MONEY]: GetLocateScene (iterating), agentID={0} child={2} name={1}", AgentId.ToString(), pname, tPresence.IsChildAgent);
+                        }
                         if (tPresence != null && !tPresence.IsChildAgent)
                         {
                             scene = _scene;
@@ -2455,6 +2485,10 @@ namespace OpenSim.Region.OptionalModules.Currency
                     }
                 }
             }
+
+            pname = "not found";
+            if (scene != null) pname = tPresence.Firstname + ' ' + tPresence.Lastname;
+            if (m_debug) m_log.InfoFormat("[MONEY]: GetLocateScene, agentID={0} name={1}", AgentId.ToString(), pname);
 
             return scene;
         }
