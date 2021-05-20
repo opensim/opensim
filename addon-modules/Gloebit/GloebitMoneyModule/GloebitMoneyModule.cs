@@ -131,7 +131,7 @@ namespace Gloebit.GloebitMoneyModule
         private string m_economyEconomyModule;
 
         // m_enabled = true signifies that GMM is enabled across entire sim process
-        // Combination of [Economy]/[Startup] economymodule set to "Gloebit" and [Gloebit] Enabled set to true
+        // Combination of [Economy]/[Startup] EconomyModule set to "Gloebit" and [Gloebit] Enabled set to true
         // If false, may still be enabled on individual regions.  see m_enabledRegions below.
         private bool m_enabled = true;
         // Set to false if anything is misconfigured
@@ -327,14 +327,14 @@ namespace Gloebit.GloebitMoneyModule
         {
             /********** [Startup] ************/
             if (section == "Startup") {
-                m_startupEconomyModule = config.GetString("economymodule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Startup economymodule = {0}.", m_startupEconomyModule);
+                m_startupEconomyModule = config.GetString("EconomyModule", String.Empty);
+                m_log.InfoFormat("[GLOEBITMONEYMODULE] Startup EconomyModule = {0}.", m_startupEconomyModule);
             }
 
             /********** [Economy] ************/
             if (section == "Economy") {
-                m_economyEconomyModule = config.GetString("economymodule", String.Empty);
-                m_log.InfoFormat("[GLOEBITMONEYMODULE] Economy economymodule = {0}.", m_economyEconomyModule);
+                m_economyEconomyModule = config.GetString("EconomyModule", String.Empty);
+                m_log.InfoFormat("[GLOEBITMONEYMODULE] Economy EconomyModule = {0}.", m_economyEconomyModule);
 
                 /*** Get OpenSim built in pricing configuration info ***/
                 PriceEnergyUnit = config.GetInt("PriceEnergyUnit", 100);
@@ -357,7 +357,7 @@ namespace Gloebit.GloebitMoneyModule
             
             /********** [Gloebit] ************/
             if (section == "Gloebit") {
-                /*** Determine what the sim economymodule setting is ***/
+                /*** Determine what the sim EconomyModule setting is ***/
                 // Original standard is to be in the Startup section.  New standard is to be in Economy section.  Need to check both.
                 // Two money modules should never be enabled on the same region as they'll conflict.
                 // If all respect this param then this can't happen across the entire sim process.
@@ -366,30 +366,30 @@ namespace Gloebit.GloebitMoneyModule
                 // but many other money modules can not be enabled/disabled by region.
                 string economyModule; 
                 if (String.IsNullOrEmpty(m_startupEconomyModule) && String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] no sim-wide economymodule is set.  Defaulting to Gloebit since dll is present.");
+                    m_log.Warn("[GLOEBITMONEYMODULE] no sim-wide EconomyModule is set.  Defaulting to Gloebit since dll is present.");
                     economyModule = "Gloebit";
                 } else if (!String.IsNullOrEmpty(m_startupEconomyModule) && !String.IsNullOrEmpty(m_economyEconomyModule)) {
-                    m_log.Warn("[GLOEBITMONEYMODULE] economymodule is set in 2 places.  Should only be defined once.");
+                    m_log.Warn("[GLOEBITMONEYMODULE] EconomyModule is set in 2 places.  Should only be defined once.");
                     if (m_startupEconomyModule != m_economyEconomyModule) {
-                        m_log.Error("[GLOEBITMONEYMODULE] economymodule in [Startup] does not match setting in [Economy].  Sim-wide setting is undefined.");
+                        m_log.Error("[GLOEBITMONEYMODULE] EconomyModule in [Startup] does not match setting in [Economy].  Sim-wide setting is undefined.");
                         economyModule = String.Empty;
                     } else {
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] economymodule settings match as {0}", m_startupEconomyModule);
+                        m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule settings match as {0}", m_startupEconomyModule);
                         economyModule = m_startupEconomyModule;
                     }
                 } else if (!String.IsNullOrEmpty(m_startupEconomyModule)) {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] economymodule is {0}.", m_startupEconomyModule);
+                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_startupEconomyModule);
                     economyModule = m_startupEconomyModule;
                 } else {
-                    m_log.InfoFormat("[GLOEBITMONEYMODULE] economymodule is {0}.", m_economyEconomyModule);
+                    m_log.InfoFormat("[GLOEBITMONEYMODULE] EconomyModule is {0}.", m_economyEconomyModule);
                     economyModule = m_economyEconomyModule;
                 }
                         
                 if (economyModule == "Gloebit") {
-                    m_log.Info("[GLOEBITMONEYMODULE] selected as global sim economymodule.");
+                    m_log.Info("[GLOEBITMONEYMODULE] selected as global sim EconomyModule.");
                     m_enabled = true;
                 } else {
-                    m_log.Info("[GLOEBITMONEYMODULE] not selected as global sim economymodule.");
+                    m_log.Info("[GLOEBITMONEYMODULE] not selected as global sim EconomyModule.");
                     m_enabled = false;
                 }
 
@@ -399,7 +399,7 @@ namespace Gloebit.GloebitMoneyModule
                 m_log.InfoFormat("[GLOEBITMONEYMODULE] [Gloebit] Enabled flag set to {0}.", enabled);
                 m_enabled = m_enabled && enabled;
                 if (!m_enabled) {
-                    m_log.Info("[GLOEBITMONEYMODULE] Not enabled globally for sim. (to enable set \"Enabled = true\" in [Gloebit] and \"economymodule = Gloebit\" in [Economy])");
+                    m_log.Info("[GLOEBITMONEYMODULE] Not enabled globally for sim. (to enable set \"Enabled = true\" in [Gloebit] and \"EconomyModule = Gloebit\" in [Economy])");
                 }
                 string enabledRegionIdsStr = config.GetString("GLBEnabledOnlyInRegions");
                 if(!String.IsNullOrEmpty(enabledRegionIdsStr)) {
@@ -410,10 +410,10 @@ namespace Gloebit.GloebitMoneyModule
                     m_enabledRegions = new UUID[numRegions];
                     for(int i = 0; i < numRegions; i++) {
                         m_enabledRegions[i] = UUID.Parse(enabledRegionIds[i]);
-                        m_log.InfoFormat("[GLOEBITMONEYMODULE] selected as local economymodule for region {0}", enabledRegionIds[i]);
+                        m_log.InfoFormat("[GLOEBITMONEYMODULE] selected as local EconomyModule for region {0}", enabledRegionIds[i]);
                     }
                     if ((numRegions > 0) && (economyModule != "Gloebit")) {
-                        m_log.WarnFormat("[GLOEBITMONEYMODULE] Gloebit enabled by region on sim with global economymodule set to {0}.  Ensure that sim-wide economymodule is disabled in Gloebit enabled regions.", economyModule);
+                        m_log.WarnFormat("[GLOEBITMONEYMODULE] Gloebit enabled by region on sim with global EconomyModule set to {0}.  Ensure that sim-wide EconomyModule is disabled in Gloebit enabled regions.", economyModule);
                     }
                 }
                 // Get region/grid owner contact details for transaction failure contact instructions.
