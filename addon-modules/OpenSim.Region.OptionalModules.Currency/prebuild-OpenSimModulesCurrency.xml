@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+    <Project frameworkVersion="v4_8" name="OpenSim.Region.OptionalModules.Currency" path="addon-modules/OpenSim.Region.OptionalModules.Currency/OpenSim.Region.OptionalModules.Currency" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+	  
+      <ReferencePath>../../../bin/</ReferencePath>
+	  
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Runtime.Remoting"/>
+      <Reference name="Mono.Security.dll" path="../../../bin/lib/NET"/> 
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="XMLRPC" path="../../../bin/"/>	  
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.MySQL.MoneyData"/>
+	  
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>

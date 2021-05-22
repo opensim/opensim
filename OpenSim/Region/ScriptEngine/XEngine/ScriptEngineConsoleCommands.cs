@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!IsSceneSelected())
                 return;
 
-            Timer timerPlugin = AsyncCommandManager.GetTimerPlugin(m_engine);
+            ScriptTimer timerPlugin = AsyncCommandManager.GetTimerPlugin(m_engine);
 
             if (timerPlugin == null)
             {
@@ -105,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
             }
 
-            List<Timer.TimerInfo> timersInfo = timerPlugin.GetTimersInfo();
+            List<ScriptTimer.TimerInfo> timersInfo = timerPlugin.GetTimersInfo();
 
             ConsoleDisplayTable cdt = new ConsoleDisplayTable();
             cdt.AddColumn("Part local ID", 13);
@@ -113,7 +113,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             cdt.AddColumn("Interval", 10);
             cdt.AddColumn("Next", 8);
 
-            foreach (Timer.TimerInfo t in timersInfo)
+            foreach (ScriptTimer.TimerInfo t in timersInfo)
             {
                 // Convert from 100 ns ticks back to seconds
                 cdt.AddRow(t.localID, t.itemID, (double)t.interval / 10000000, t.next);

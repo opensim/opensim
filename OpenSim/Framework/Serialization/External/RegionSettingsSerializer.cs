@@ -44,21 +44,25 @@ namespace OpenSim.Framework.Serialization.External
         /// Deserialize settings
         /// </summary>
         /// <param name="serializedSettings"></param>
+        /// <param name="regionEnv"></param>
+        /// <param name="estateSettings">The Estate Settings stored in the archive will be merged into this object</param>
         /// <returns></returns>
         /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(byte[] serializedSettings, out ViewerEnvironment regionEnv)
+        public static RegionSettings Deserialize(byte[] serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
         {
             // encoding is wrong. old oars seem to be on utf-16
-            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length), out regionEnv);
+            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length), out regionEnv, estateSettings);
         }
 
         /// <summary>
         /// Deserialize settings
         /// </summary>
         /// <param name="serializedSettings"></param>
+        /// <param name="regionEnv"></param>
+        /// <param name="estateSettings">The Estate Settings stored in the archive will be merged into this object</param>
         /// <returns></returns>
         /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv)
+        public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
         {
             RegionSettings settings = new RegionSettings();
             regionEnv = null;
@@ -237,13 +241,36 @@ namespace OpenSim.Framework.Serialization.External
                 }
             }
 
+            if (xtr.IsStartElement("Estate"))
+            {
+                if (xtr.IsEmptyElement)
+                    xtr.Read();
+                else
+                {
+                    xtr.ReadStartElement("Estate");
+                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                    {
+                        switch (xtr.Name)
+                        {
+                            case "AllowDirectTeleport":
+                                estateSettings.AllowDirectTeleport = bool.Parse(xtr.ReadElementContentAsString());
+                                break;
+                            case "AllowEnvironmentOverride":
+                                estateSettings.AllowEnvironmentOverride = bool.Parse(xtr.ReadElementContentAsString());
+                                break;
+                        }
+                    }
+                    xtr.ReadEndElement();
+                }
+            }
+
             xtr.Close();
             sr.Close();
 
             return settings;
         }
 
-        public static string Serialize(RegionSettings settings, ViewerEnvironment RegionEnv)
+        public static string Serialize(RegionSettings settings, ViewerEnvironment RegionEnv, EstateSettings estateSettings)
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
@@ -307,6 +334,11 @@ namespace OpenSim.Framework.Serialization.External
                 xtw.WriteElementString("data", ViewerEnvironment.ToOSDString(RegionEnv));
                 xtw.WriteEndElement();
             }
+
+            xtw.WriteStartElement("Estate");
+            xtw.WriteElementString("AllowDirectTeleport", estateSettings.AllowDirectTeleport.ToString());
+            xtw.WriteElementString("AllowEnvironmentOverride", estateSettings.AllowEnvironmentOverride.ToString());
+            xtw.WriteEndElement();
 
             xtw.WriteEndElement();
 

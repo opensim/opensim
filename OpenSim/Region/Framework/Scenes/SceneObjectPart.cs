@@ -305,7 +305,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_scriptAccessPin;
 
-        private readonly Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
+        private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition;
         private string m_sitAnimation = "SIT";
@@ -2175,6 +2175,8 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.m_regionHandle = m_regionHandle;
             if (userExposed)
                 dupe.UUID = UUID.Random();
+
+            dupe.m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
             dupe.PhysActor = null;
 
@@ -5441,7 +5443,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddScriptLPS(int count)
         {
-            ParentGroup.AddScriptLPS(count);
+            //legacy, do nothing
+            //ParentGroup.AddScriptLPS(count);
         }
 
         /// <summary>

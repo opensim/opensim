@@ -1,28 +1,32 @@
 <Nini>
-
-  
   <Section Name="Settings Library">
     <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba025"/>
     <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
     <Key Name="name" Value="Settings Library"/>
-    <Key Name="type" Value="25"/>
+    <Key Name="type" Value="56"/>
   </Section>
   <Section Name="Water">
     <Key Name="folderID" Value="25000112-000f-0000-0000-000100bba025"/>
     <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba025"/>
     <Key Name="name" Value="Water"/>
-    <Key Name="type" Value="25"/>
+    <Key Name="type" Value="-1"/>
   </Section>
-  <Section Name="Sky">
+  <Section Name="Skies">
     <Key Name="folderID" Value="25100112-000f-0000-0000-000100bba025"/>
     <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba025"/>
-    <Key Name="name" Value="Sky"/>
-    <Key Name="type" Value="25"/>
+    <Key Name="name" Value="Skies"/>
+    <Key Name="type" Value="-1"/>
   </Section>
-  <Section Name="Daycycle">
+  <Section Name="Days">
     <Key Name="folderID" Value="25200112-000f-0000-0000-000100bba025"/>
     <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba025"/>
-    <Key Name="name" Value="Daycycle"/>
-    <Key Name="type" Value="25"/>
+    <Key Name="name" Value="Days"/>
+    <Key Name="type" Value="-1"/>
+  </Section>
+  <Section Name="Textures">
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba025"/>
+    <Key Name="name" Value="Textures"/>
+    <Key Name="type" Value="0"/>
   </Section>
 </Nini>

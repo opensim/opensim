@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<Project frameworkVersion="v4_8" name="OpenSim.Data.MySQL.MoneyData" path="addon-modules/OpenSim.Data.MySQL.MoneyData/OpenSim.Data.MySQL.MoneyData" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+          <AllowUnsafe>true</AllowUnsafe>
+        </Options>
+      </Configuration>
+	  
+      <ReferencePath>../../../bin/</ReferencePath>
+	  
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Drawing"/>
+      <Reference name="System.Runtime.Remoting"/>	  
+      <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
+      <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
+      <Reference name="XMLRPC" path="../../../bin/"/>
+      <Reference name="MySql.Data" path="../../../bin/"/>	    
+      <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenSim.Data"/>
+	  
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
