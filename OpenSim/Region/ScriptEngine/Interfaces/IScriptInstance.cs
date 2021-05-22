@@ -201,7 +201,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         /// Process the next event queued for this script instance.
         /// </summary>
         /// <returns></returns>
-        object EventProcessor();
+        void EventProcessor();
 
         int EventTime();
 

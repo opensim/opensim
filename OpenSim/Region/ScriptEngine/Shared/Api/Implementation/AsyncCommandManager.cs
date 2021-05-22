@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
-using Timer=OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
+using ScriptTimer=OpenSim.Region.ScriptEngine.Shared.Api.Plugins.ScriptTimer;
 using System.Reflection;
 using log4net;
 
@@ -68,8 +68,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private static Dictionary<IScriptEngine, Dataserver> m_Dataserver =
                 new Dictionary<IScriptEngine, Dataserver>();
-        private static Dictionary<IScriptEngine, Timer> m_Timer =
-                new Dictionary<IScriptEngine, Timer>();
+        private static Dictionary<IScriptEngine, ScriptTimer> m_ScriptTimer =
+                new Dictionary<IScriptEngine, ScriptTimer>();
         private static Dictionary<IScriptEngine, Listener> m_Listener =
                 new Dictionary<IScriptEngine, Listener>();
         private static Dictionary<IScriptEngine, HttpRequest> m_HttpRequest =
@@ -88,12 +88,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public Timer TimerPlugin
+        public ScriptTimer TimerPlugin
         {
             get
             {
                 lock (staticLock)
-                    return m_Timer[m_ScriptEngine];
+                    return m_ScriptTimer[m_ScriptEngine];
             }
         }
 
@@ -161,8 +161,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Create instances of all plugins
                 if (!m_Dataserver.ContainsKey(m_ScriptEngine))
                     m_Dataserver[m_ScriptEngine] = new Dataserver(this);
-                if (!m_Timer.ContainsKey(m_ScriptEngine))
-                    m_Timer[m_ScriptEngine] = new Timer(this);
+                if (!m_ScriptTimer.ContainsKey(m_ScriptEngine))
+                    m_ScriptTimer[m_ScriptEngine] = new ScriptTimer(this);
                 if (!m_HttpRequest.ContainsKey(m_ScriptEngine))
                     m_HttpRequest[m_ScriptEngine] = new HttpRequest(this);
                 if (!m_Listener.ContainsKey(m_ScriptEngine))
@@ -183,9 +183,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         private void ReadConfig()
         {
-//            cmdHandlerThreadCycleSleepms = m_ScriptEngine.Config.GetInt("AsyncLLCommandLoopms", 100);
-            // TODO: Make this sane again
-            cmdHandlerThreadCycleSleepms = 100;
+            cmdHandlerThreadCycleSleepms = m_ScriptEngine.Config.GetInt("AsyncLLCommandLoopms", 100);
+            cmdHandlerThreadCycleSleepms = Utils.Clamp(cmdHandlerThreadCycleSleepms, 25, 250);
         }
 
 /*
@@ -258,8 +257,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Check Listeners
                     try { m_Listener[s].CheckListeners(); } catch {}
 
-                    // Check timers
-                    try { m_Timer[s].CheckTimerEvents(); } catch {}
+                    // Check ScriptTimers
+                    try { m_ScriptTimer[s].CheckTimerEvents(); } catch {}
 
                     // Check Sensors
                     try { m_SensorRepeat[s].CheckSenseRepeaterEvents(); } catch {}
@@ -285,8 +284,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Remove dataserver events
                 m_Dataserver[engine].RemoveEvents(localID, itemID);
 
-                // Remove from: Timers
-                m_Timer[engine].UnSetTimerEvents(localID, itemID);
+                // Remove from: ScriptTimers
+                m_ScriptTimer[engine].UnSetTimerEvents(localID, itemID);
 
                 if(engine.World != null)
                 {
@@ -366,16 +365,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Get the timer plugin for this script engine.
+        /// Get the ScriptTimer plugin for this script engine.
         /// </summary>
         /// <param name="engine"></param>
         /// <returns></returns>
-        public static Timer GetTimerPlugin(IScriptEngine engine)
+        public static ScriptTimer GetTimerPlugin(IScriptEngine engine)
         {
             lock (staticLock)
             {
-                if (m_Timer.ContainsKey(engine))
-                    return m_Timer[engine];
+                if (m_ScriptTimer.ContainsKey(engine))
+                    return m_ScriptTimer[engine];
                 else
                     return null;
             }
@@ -411,12 +410,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     data.AddRange(listeners);
                 }
 
-                Object[] timers=m_Timer[engine].GetSerializationData(itemID);
-                if (timers.Length > 0)
+                Object[] ScriptTimers=m_ScriptTimer[engine].GetSerializationData(itemID);
+                if (ScriptTimers.Length > 0)
                 {
                     data.Add("timer");
-                    data.Add(timers.Length);
-                    data.AddRange(timers);
+                    data.Add(ScriptTimers.Length);
+                    data.AddRange(ScriptTimers);
                 }
 
                 Object[] sensors = m_SensorRepeat[engine].GetSerializationData(itemID);
@@ -459,7 +458,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                         hostID, item);
                             break;
                         case "timer":
-                            m_Timer[engine].CreateFromData(localID, itemID,
+                            m_ScriptTimer[engine].CreateFromData(localID, itemID,
                                                         hostID, item);
                             break;
                         case "sensor":

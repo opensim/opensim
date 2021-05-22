@@ -25,19 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Nini.Config;
 using log4net;
-using OpenSim.Framework;
-using OpenSim.Services.Interfaces;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+using Nini.Config;
 using OpenMetaverse;
-
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
+using System;
+using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 {
@@ -55,17 +50,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserManagement m_UserManagement;
-//        private IGridService m_GridService;
-
         private Scene m_Scene;
-        AccessFlags m_accessValue = AccessFlags.None;
 
+        AccessFlags m_accessValue = AccessFlags.None;
 
         public AuthorizationService(IConfig config, Scene scene)
         {
             m_Scene = scene;
             m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
-//            m_GridService = scene.GridService;
 
             if (config != null)
             {
@@ -98,28 +90,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 return false;
             }
 
-            if (m_accessValue == AccessFlags.None)
-            {
-                message = "Authorized";
-                return true;
-            }
+            bool disallowResidents = m_Scene.RegionInfo.DisallowResidents;
+            bool disallowForeigners = m_Scene.RegionInfo.DisallowForeigners;
 
+            if (m_accessValue == AccessFlags.DisallowResidents)
+                disallowResidents = true;
+            else if (m_accessValue == AccessFlags.DisallowForeigners)
+                disallowForeigners = true;
+            
             UUID userID = new UUID(user);
 
-            if ((m_accessValue & AccessFlags.DisallowForeigners) != 0)
+            if (disallowResidents == true)
             {
-                if (!m_UserManagement.IsLocalGridUser(userID))
+                if (!(m_Scene.Permissions.IsGod(userID) == true || m_Scene.Permissions.IsAdministrator(userID) == true))
                 {
-                    message = "No foreign users allowed in this region";
+                    message = "Only Admins and Managers allowed in this region";
                     return false;
                 }
             }
-
-            if ((m_accessValue & AccessFlags.DisallowResidents) != 0)
+            else if (disallowForeigners == true)
             {
-                if (!(m_Scene.Permissions.IsGod(userID) || m_Scene.Permissions.IsAdministrator(userID)))
+                if (m_UserManagement.IsLocalGridUser(userID) == false)
                 {
-                    message = "Only Admins and Managers allowed in this region";
+                    message = "Only Local grid users allowed in this region";
                     return false;
                 }
             }

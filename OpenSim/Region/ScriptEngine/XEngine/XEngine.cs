@@ -55,7 +55,7 @@ using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.XEngine.ScriptBase;
-using Timer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.Timer;
+using ScriptTimer = OpenSim.Region.ScriptEngine.Shared.Api.Plugins.ScriptTimer;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
 
@@ -599,7 +599,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Dataserver ds = AsyncCommandManager.GetDataserverPlugin(this);
             sb.AppendFormat("Dataserver requests        : {0}\n", ds != null ? ds.DataserverRequestsCount : 0);
 
-            Timer t = AsyncCommandManager.GetTimerPlugin(this);
+            ScriptTimer t = AsyncCommandManager.GetTimerPlugin(this);
             sb.AppendFormat("Timers                     : {0}\n", t != null ? t.TimersCount : 0);
 
             Listener l = AsyncCommandManager.GetListenerPlugin(this);
@@ -801,14 +801,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (m_SleepTime > 0)
             {
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
-                                           new Object[]{ m_SleepTime });
+                m_ThreadPool.QueueWorkItem(DoMaintenance, new object[]{ m_SleepTime });
             }
 
             if (m_SaveTime > 0)
             {
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
-                                           new Object[] { m_SaveTime });
+                m_ThreadPool.QueueWorkItem(DoBackup, new object[] { m_SaveTime });
             }
         }
 
@@ -876,8 +874,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             if (saveTime > 0)
-                m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoBackup),
-                                           new Object[] { saveTime });
+                m_ThreadPool.QueueWorkItem(DoBackup, new object[] { saveTime });
 
             return 0;
         }
@@ -904,8 +901,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             System.Threading.Thread.Sleep(sleepTime);
 
-            m_ThreadPool.QueueWorkItem(new WorkItemCallback(this.DoMaintenance),
-                                       new Object[]{ sleepTime });
+            m_ThreadPool.QueueWorkItem(DoMaintenance, new object[]{ sleepTime });
 
             return 0;
         }
@@ -1690,15 +1686,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_MaxScriptQueue = maxScriptQueue;
 
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.ThreadPoolName = "XEngine";
-            startInfo.IdleTimeout = idleTimeout * 1000; // convert to seconds as stated in .ini
-            startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = minThreads;
-            startInfo.ThreadPriority = threadPriority;;
-            startInfo.MaxStackSize = stackSize;
-            startInfo.StartSuspended = true;
-
+            STPStartInfo startInfo = new STPStartInfo()
+            {
+                ThreadPoolName = "XEngine",
+                IdleTimeout = idleTimeout * 1000, // convert to seconds as stated in .ini
+                MaxWorkerThreads = maxThreads,
+                MinWorkerThreads = minThreads,
+                ThreadPriority = threadPriority,
+                MaxStackSize = stackSize,
+                SuppressFlow = true,
+                StartSuspended = true
+            };
             m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
@@ -1707,9 +1705,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         public IScriptWorkItem QueueEventHandler(object parms)
         {
-            return new XWorkItem(m_ThreadPool.QueueWorkItem(
-                                     new WorkItemCallback(this.ProcessEventHandler),
-                                     parms));
+            return new XWorkItem(m_ThreadPool.QueueWorkItem((WaitCallback)ProcessEventHandler,parms));
         }
 
         /// <summary>
@@ -1717,7 +1713,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         /// </summary>
         /// <param name="parms"></param>
         /// <returns></returns>
-        private object ProcessEventHandler(object parms)
+        private void ProcessEventHandler(object parms)
         {
             Culture.SetCurrentCulture();
 
@@ -1725,7 +1721,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
 //            m_log.DebugFormat("[XEngine]: Processing event for {0}", instance);
 
-            return instance.EventProcessor();
+            instance.EventProcessor();
         }
 
         /// <summary>
