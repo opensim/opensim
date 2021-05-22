@@ -39,7 +39,7 @@
       <Reference name="OpenSim.Server.Handlers"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Data.MySQL.MoneyData"/>
-      <Reference name="OpenSim.Modules.Currency"/>
+      <Reference name="OpenSim.Region.OptionalModules.Currency"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="Mono.Addins.Setup" path="../../../bin/"/>
 	  
