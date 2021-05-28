@@ -1029,20 +1029,32 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     end=Data.Length-1;
 
                 // now, this makes the math easier
-                int remove=end+1-start;
+                int remove=end + 1- start;
 
-                ret=new Object[Data.Length-remove];
+                ret = new Object[Data.Length-remove];
                 if (ret.Length == 0)
                     return new list(ret);
 
+                /*
                 int src;
-                int dest=0;
+                int dest =0;
 
                 for (src = 0; src < Data.Length; src++)
                 {
                     if (src < start || src > end)
                         ret[dest++]=Data[src];
                 }
+                */
+
+                if (start > 0)
+                    Array.Copy(Data, 0, ret, 0, start);
+
+                end++;
+
+                if(end < start || end > Data.Length - 1)
+                    return new list(ret);
+
+                Array.Copy(Data, end, ret, start, Data.Length - end);
 
                 return new list(ret);
             }
