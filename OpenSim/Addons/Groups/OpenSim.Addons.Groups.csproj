@@ -8,6 +8,9 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="OpenSim.Addons.Groups.addin.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
