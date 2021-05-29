@@ -990,68 +990,65 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // Not an easy one
                 // If start <= end, remove that part
                 // if either is negative, count from the end of the array
-                // if the resulting start > end, remove all BUT that part
+                // if the resulting start > end, keep [end + 1, start - 1]
 
-                Object[] ret;
+                object[] ret;
 
                 if (start < 0)
-                    start=Data.Length+start;
+                    start=Data.Length + start;
 
                 if (start < 0)
                     start=0;
 
                 if (end < 0)
-                    end=Data.Length+end;
+                    end=Data.Length + end;
                 if (end < 0)
                     end=0;
 
                 if (start > end)
                 {
+                    end++;
                     if (end >= Data.Length)
-                        return new list(new Object[0]);
+                        return new list(new object[0]);
 
+                    start--;
                     if (start >= Data.Length)
-                        start=Data.Length-1;
+                        start = Data.Length - 1;
 
-                    return GetSublist(end, start);
+                    int num = start - end + 1;
+                    if(num <= 0)
+                        return new list(new object[0]);
+
+                    ret = new object[num];
+                    Array.Copy(Data, end, ret, 0, num);
+                    return new list(ret);
                 }
 
                 // start >= 0 && end >= 0 here
                 if (start >= Data.Length)
                 {
-                    ret=new Object[Data.Length];
+                    ret = new object[Data.Length];
                     Array.Copy(Data, 0, ret, 0, Data.Length);
-
                     return new list(ret);
                 }
 
                 if (end >= Data.Length)
-                    end=Data.Length-1;
+                    end = Data.Length-1;
+
+                end++;
 
                 // now, this makes the math easier
-                int remove=end + 1- start;
+                int remove = end - start;
 
-                ret = new Object[Data.Length-remove];
-                if (ret.Length == 0)
-                    return new list(ret);
+                if(Data.Length <= remove)
+                    return new list(new object[0]);
 
-                /*
-                int src;
-                int dest =0;
-
-                for (src = 0; src < Data.Length; src++)
-                {
-                    if (src < start || src > end)
-                        ret[dest++]=Data[src];
-                }
-                */
+                ret = new object[Data.Length - remove];
 
                 if (start > 0)
                     Array.Copy(Data, 0, ret, 0, start);
 
-                end++;
-
-                if(end < start || end > Data.Length - 1)
+                if(end > Data.Length - 1)
                     return new list(ret);
 
                 Array.Copy(Data, end, ret, start, Data.Length - end);
