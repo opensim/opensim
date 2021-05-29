@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // now, this makes the math easier
                 int remove = end - start;
 
-                if(Data.Length <= remove)
+                if(remove >= Data.Length)
                     return new list(new object[0]);
 
                 ret = new object[Data.Length - remove];
@@ -1048,7 +1048,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (start > 0)
                     Array.Copy(Data, 0, ret, 0, start);
 
-                if(end > Data.Length - 1)
+                if(end >= Data.Length)
                     return new list(ret);
 
                 Array.Copy(Data, end, ret, start, Data.Length - end);
