@@ -1368,10 +1368,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                     if (tmp.GetType() == pivotType && needSwapAscending(pivot, tmp))
                                     {
                                         ret[j] = pivot;
-                                        ret[i] = tmp;
                                         pivot = tmp;
                                     }
                                 }
+                                ret[i] = pivot;
                             }
                         }
                         else
@@ -1386,16 +1386,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                                     if (tmp.GetType() == pivotType && needSwapDescending(pivot, tmp))
                                     {
                                         ret[j] = pivot;
-                                        ret[i] = tmp;
                                         pivot = tmp;
-                                        for (int k = 1; k < stride; k++)
-                                        {
-                                            tmp = ret[i + k];
-                                            ret[i + k] = ret[j + k];
-                                            ret[j + k] = tmp;
-                                        }
                                     }
                                 }
+                                ret[i] = pivot;
                             }
                         }
                     }
@@ -1415,16 +1409,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             if (tmp.GetType() == pivotType && needSwapAscending(pivot, tmp))
                             {
                                 ret[j] = pivot;
-                                ret[i] = tmp;
                                 pivot = tmp;
-                                for (int k = 1; k < stride; k++)
+
+                                int ik = i;
+                                int end = ik + stride - 1;
+                                int jk = j;
+                                while (ik < end)
                                 {
-                                    tmp = ret[i + k];
-                                    ret[i + k] = ret[j + k];
-                                    ret[j + k] = tmp;
+                                    ++ik;
+                                    ++jk;
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
                                 }
                             }
                         }
+                        ret[i] = pivot;
                     }
                 }
                 else
@@ -1439,16 +1439,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             if (tmp.GetType() == pivotType && needSwapDescending(pivot, tmp))
                             {
                                 ret[j] = pivot;
-                                ret[i] = tmp;
                                 pivot = tmp;
-                                for (int k = 1; k < stride; k++)
+
+                                int ik = i;
+                                int end = ik + stride - 1;
+                                int jk = j;
+                                while (ik < end)
                                 {
-                                    tmp = ret[i + k];
-                                    ret[i + k] = ret[j + k];
-                                    ret[j + k] = tmp;
+                                    ++ik;
+                                    ++jk;
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
                                 }
                             }
                         }
+                        ret[i] = pivot;
                     }
                 }
 
