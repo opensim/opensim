@@ -764,15 +764,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetRot");
 
-            if (World.Entities.ContainsKey(target))
+            if (World.Entities.TryGetValue(target, out EntityBase entity))
             {
-                if (World.Entities.TryGetValue(target, out EntityBase entity))
-                {
-                    if (entity is SceneObjectGroup)
-                        ((SceneObjectGroup)entity).UpdateGroupRotationR(rotation);
-                    else if (entity is ScenePresence)
-                        ((ScenePresence)entity).Rotation = rotation;
-                }
+                if (entity is SceneObjectGroup)
+                    ((SceneObjectGroup)entity).UpdateGroupRotationR(rotation);
+                else if (entity is ScenePresence)
+                    ((ScenePresence)entity).Rotation = rotation;
             }
             else
             {
@@ -6095,6 +6092,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             return av.IsNPC ? 2 : 1;
+        }
+
+        public void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending)
+        {
+            src.SortInPlace(stride, ascending == 1);
         }
     }
 }

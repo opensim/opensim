@@ -1320,18 +1320,43 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public list Sort(int stride, bool ascending)
             {
-                if (m_data == null || m_data.Length == 0)
+                if (m_data == null)
                     return new list(); // Don't even bother
 
-                object[] ret = new object[m_data.Length];
-                Array.Copy(m_data, 0, ret, 0, m_data.Length);
+                int len = m_data.Length;
+                if(len == 0)
+                    return new list(); // Don't even bother
 
-                if (stride <= 0)
+                object[] ret = new object[len];
+                Array.Copy(m_data, 0, ret, 0, len);
+
+                if (stride < 1)
                     stride = 1;
 
-                if ((ret.Length <= stride) || (ret.Length % stride) != 0)
+                if ((len <= stride) || (len % stride) != 0)
                     return new list(ret);
 
+                Sort(ret, stride, ascending);
+                return new list(ret);
+            }
+
+            public void SortInPlace(int stride, bool ascending)
+            {
+                if (m_data == null)
+                    return; // Don't even bother
+
+                if (stride < 1)
+                    stride = 1;
+
+                int len = m_data.Length;
+                if ((len <= stride) || (len % stride) != 0)
+                    return;
+
+                Sort(m_data, stride, ascending);
+            }
+
+            public void Sort(object[] ret, int stride, bool ascending)
+            {
                 // if list does not consists of homogeneous types
                 // and because of the desired type specific feathered sorting behavior
                 // requeried by the spec, we MUST use a non-optimized bubble sort
@@ -1393,9 +1418,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             }
                         }
                     }
-                    return new list(ret);
+                    return;
                 }
-
 
                 if (ascending)
                 {
@@ -1457,8 +1481,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         ret[i] = pivot;
                     }
                 }
-
-                return new list(ret);
             }
 
             #region CSV Methods
