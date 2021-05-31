@@ -1151,7 +1151,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            private static int compare(object left, object right, int ascending)
+            private static int compare(object left, object right, bool ascending)
             {
                 if (!left.GetType().Equals(right.GetType()))
                 {
@@ -1163,23 +1163,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 int ret = 0;
 
-                if (left is key)
+                if (left is LSLInteger)
                 {
-                    key l = (key)left;
-                    key r = (key)right;
-                    ret = String.CompareOrdinal(l.value, r.value);
+                    LSLInteger l = (LSLInteger)left;
+                    LSLInteger r = (LSLInteger)right;
+                    ret = Math.Sign(l.value - r.value);
                 }
                 else if (left is LSLString)
                 {
                     LSLString l = (LSLString)left;
                     LSLString r = (LSLString)right;
-                    ret = String.CompareOrdinal(l.m_string, r.m_string);
-                }
-                else if (left is LSLInteger)
-                {
-                    LSLInteger l = (LSLInteger)left;
-                    LSLInteger r = (LSLInteger)right;
-                    ret = Math.Sign(l.value - r.value);
+                    ret = string.CompareOrdinal(l.m_string, r.m_string);
                 }
                 else if (left is LSLFloat)
                 {
@@ -1193,34 +1187,38 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     Vector3 r = (Vector3)right;
                     ret = Math.Sign(Vector3.Mag(l) - Vector3.Mag(r));
                 }
-                else if (left is Quaternion)
+                else if (left is key)
                 {
-                    Quaternion l = (Quaternion)left;
-                    Quaternion r = (Quaternion)right;
-                    ret = Math.Sign(Quaternion.Mag(l) - Quaternion.Mag(r));
+                    key l = (key)left;
+                    key r = (key)right;
+                    ret = string.CompareOrdinal(l.value, r.value);
+                }
+                else //if (left is Quaternion) and unknown types
+                {
+                    return 0;
                 }
 
-                if (ascending == 0)
-                {
-                    ret = 0 - ret;
-                }
+                if (ascending)
+                    return ret;
 
-                return ret;
+                return -ret;
             }
 
             class HomogeneousComparer : IComparer
             {
-                public HomogeneousComparer()
+                private readonly bool ascending;
+                public HomogeneousComparer(bool ascend)
                 {
+                    ascending = ascend;
                 }
 
                 public int Compare(object lhs, object rhs)
                 {
-                    return compare(lhs, rhs, 1);
+                    return compare(lhs, rhs, ascending);
                 }
             }
 
-            public list Sort(int stride, int ascending)
+            public list Sort(int stride, bool ascending)
             {
                 if (Data.Length == 0)
                     return new list(); // Don't even bother
@@ -1229,11 +1227,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 Array.Copy(Data, 0, ret, 0, Data.Length);
 
                 if (stride <= 0)
-                {
                     stride = 1;
-                }
 
-                if ((Data.Length % stride) != 0)
+                if ((ret.Length % stride) != 0)
                     return new list(ret);
 
                 // we can optimize here in the case where stride == 1 and the list
@@ -1242,10 +1238,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 if (stride == 1)
                 {
                     bool homogeneous = true;
-                    int index;
-                    for (index = 1; index < Data.Length; index++)
+                    Type firstType = ret[0].GetType();
+                    for (int index = 1; index < ret.Length; index++)
                     {
-                        if (!Data[0].GetType().Equals(Data[index].GetType()))
+                        if (!firstType.Equals(ret[index].GetType()))
                         {
                             homogeneous = false;
                             break;
@@ -1254,11 +1250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                     if (homogeneous)
                     {
-                        Array.Sort(ret, new HomogeneousComparer());
-                        if (ascending == 0)
-                        {
-                            Array.Reverse(ret);
-                        }
+                        Array.Sort(ret, new HomogeneousComparer(ascending));
                         return new list(ret);
                     }
                 }
@@ -1267,19 +1259,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // requried by the spec, we MUST use a non-optimized bubble sort here.
                 // Anything else will give you the incorrect behavior.
 
-                // begin bubble sort...
-                int i;
-                int j;
-                int k;
-                int n = Data.Length;
-
-                for (i = 0; i < (n-stride); i += stride)
+                for (int i = 0; i < ret.Length - stride; i += stride)
                 {
-                    for (j = i + stride; j < n; j += stride)
+                    object o = ret[i];
+                    for (int j = i + stride; j < ret.Length; j += stride)
                     {
-                        if (compare(ret[i], ret[j], ascending) > 0)
+                        if (compare(o, ret[j], ascending) > 0)
                         {
-                            for (k = 0; k < stride; k++)
+                            ret[i] = ret[j];
+                            ret[j] = o;
+                            o = ret[i];
+                            for (int k = 1; k < stride; k++)
                             {
                                 object tmp = ret[i + k];
                                 ret[i + k] = ret[j + k];
@@ -1288,7 +1278,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         }
                     }
                 }
-
                 // end bubble sort
 
                 return new list(ret);
