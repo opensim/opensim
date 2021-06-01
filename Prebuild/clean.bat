@@ -1,1 +1,0 @@
-NAnt.exe clean

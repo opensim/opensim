@@ -1,0 +1,115 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Framework.Servers</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="HttpServer\BaseHTTPHandler.cs" />
+    <Compile Remove="HttpServer\BaseHttpServer.cs" />
+    <Compile Remove="HttpServer\BaseOutputStreamHandler.cs" />
+    <Compile Remove="HttpServer\BaseRequestHandler.cs" />
+    <Compile Remove="HttpServer\BaseStreamHandler.cs" />
+    <Compile Remove="HttpServer\BaseStreamHandlerBasicDOSProtector.cs" />
+    <Compile Remove="HttpServer\BinaryStreamHandler.cs" />
+    <Compile Remove="HttpServer\GenericHTTPBasicDOSProtector.cs" />
+    <Compile Remove="HttpServer\GenericHTTPMethod.cs" />
+    <Compile Remove="HttpServer\JsonRPCMethod.cs" />
+    <Compile Remove="HttpServer\JsonRpcRequestManager.cs" />
+    <Compile Remove="HttpServer\JsonRpcResponse.cs" />
+    <Compile Remove="HttpServer\LLSDMethod.cs" />
+    <Compile Remove="HttpServer\LLSDMethodString.cs" />
+    <Compile Remove="HttpServer\OSHttpRequest.cs" />
+    <Compile Remove="HttpServer\OSHttpResponse.cs" />
+    <Compile Remove="HttpServer\PollServiceEventArgs.cs" />
+    <Compile Remove="HttpServer\PollServiceHttpRequest.cs" />
+    <Compile Remove="HttpServer\PollServiceRequestManager.cs" />
+    <Compile Remove="HttpServer\RestDeserialiseHandler.cs" />
+    <Compile Remove="HttpServer\RestHTTPHandler.cs" />
+    <Compile Remove="HttpServer\RestMethod.cs" />
+    <Compile Remove="HttpServer\RestObjectPoster.cs" />
+    <Compile Remove="HttpServer\RestObjectPosterResponse.cs" />
+    <Compile Remove="HttpServer\RestSessionService.cs" />
+    <Compile Remove="HttpServer\RestStreamHandler.cs" />
+    <Compile Remove="HttpServer\SimpleBaseRequestHandler.cs" />
+    <Compile Remove="HttpServer\SimpleBinaryHandler.cs" />
+    <Compile Remove="HttpServer\SimpleOSDMapHandler.cs" />
+    <Compile Remove="HttpServer\SimpleStreamHandler.cs" />
+    <Compile Remove="HttpServer\WebsocketServerHandler.cs" />
+    <Compile Remove="HttpServer\XmlRpcBasicDOSProtector.cs" />
+    <Compile Remove="HttpServer\XmlRpcMethod.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Tests\VersionInfoTests.cs" />
+    <Compile Remove="HttpServer\Interfaces\IHttpAgentHandler.cs" />
+    <Compile Remove="HttpServer\Interfaces\IHttpServer.cs" />
+    <Compile Remove="HttpServer\Interfaces\IOSHttpRequest.cs" />
+    <Compile Remove="HttpServer\Interfaces\IOSHttpResponse.cs" />
+    <Compile Remove="HttpServer\Interfaces\IStreamHandler.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\BadRequestException.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\BodyEventArgs.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ClientAcceptedEventArgs.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ContextTimeoutManager.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ExceptionEventArgs.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ExceptionHandler.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ForbiddenException.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HeaderEventArgs.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpClientContext.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpContextFactory.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpException.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpInput.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpInputItem.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpListener.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpParam.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpRequest.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpRequestParser.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\HttpResponse.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\IHttpClientContext.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\IHttpRequest.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\IHttpRequestParser.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\IHttpResponse.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ILogWriter.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\InternalServerException.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\NotFoundException.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\RequestCookie.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\RequestCookies.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\RequestLineEventArgs.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ResponseCookie.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\ResponseCookies.cs" />
+    <Compile Remove="HttpServer\OSHttpServer\UnauthorizedException.cs" />
+    <Compile Remove="HttpServer\Properties\AssemblyInfo.cs" />
+    <Compile Remove="HttpServer\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>

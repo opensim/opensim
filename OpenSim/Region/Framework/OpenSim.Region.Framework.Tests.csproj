@@ -1,0 +1,205 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetOpenMail">
+      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\bin\nunit.framework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Remoting">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\OpenSim.csproj" />
+    <ProjectReference Include="..\..\ApplicationPlugins\RegionModulesController\OpenSim.ApplicationPlugins.RegionModulesController.csproj" />
+    <ProjectReference Include="..\..\Capabilities\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\Framework\Serialization\OpenSim.Framework.Serialization.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\ClientStack\Linden\Caps\OpenSim.Region.ClientStack.LindenCaps.csproj" />
+    <ProjectReference Include="..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\OptionalModules\OpenSim.Region.OptionalModules.csproj" />
+    <ProjectReference Include="..\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Interfaces\IAgentAssetTransactions.cs" />
+    <Compile Remove="Interfaces\IAgentStatefulModule.cs" />
+    <Compile Remove="Interfaces\IAttachmentsModule.cs" />
+    <Compile Remove="Interfaces\IAvatarFactoryModule.cs" />
+    <Compile Remove="Interfaces\IBakedTextureModule.cs" />
+    <Compile Remove="Interfaces\IBuySellModule.cs" />
+    <Compile Remove="Interfaces\ICallingCardModule.cs" />
+    <Compile Remove="Interfaces\ICapabilitiesModule.cs" />
+    <Compile Remove="Interfaces\ICloudModule.cs" />
+    <Compile Remove="Interfaces\ICommand.cs" />
+    <Compile Remove="Interfaces\ICommandableModule.cs" />
+    <Compile Remove="Interfaces\ICommander.cs" />
+    <Compile Remove="Interfaces\IDialogModule.cs" />
+    <Compile Remove="Interfaces\IDwellModule.cs" />
+    <Compile Remove="Interfaces\IDynamicFloaterModule.cs" />
+    <Compile Remove="Interfaces\IDynamicMenuModule.cs" />
+    <Compile Remove="Interfaces\IDynamicTextureManager.cs" />
+    <Compile Remove="Interfaces\IEmailModule.cs" />
+    <Compile Remove="Interfaces\IEntityCreator.cs" />
+    <Compile Remove="Interfaces\IEntityInventory.cs" />
+    <Compile Remove="Interfaces\IEntityTransferModule.cs" />
+    <Compile Remove="Interfaces\IEnvironmentModule.cs" />
+    <Compile Remove="Interfaces\IEstateModule.cs" />
+    <Compile Remove="Interfaces\IEtcdModule.cs" />
+    <Compile Remove="Interfaces\IEventQueue.cs" />
+    <Compile Remove="Interfaces\IExternalCapsModule.cs" />
+    <Compile Remove="Interfaces\IFriendsModule.cs" />
+    <Compile Remove="Interfaces\IGodsModule.cs" />
+    <Compile Remove="Interfaces\IGroupsMessagingModule.cs" />
+    <Compile Remove="Interfaces\IGroupsModule.cs" />
+    <Compile Remove="Interfaces\IHttpRequests.cs" />
+    <Compile Remove="Interfaces\IInventoryAccessModule.cs" />
+    <Compile Remove="Interfaces\IInventoryArchiverModule.cs" />
+    <Compile Remove="Interfaces\IInventoryTransferModule.cs" />
+    <Compile Remove="Interfaces\IJ2KDecoder.cs" />
+    <Compile Remove="Interfaces\IJsonStoreModule.cs" />
+    <Compile Remove="Interfaces\ILightShareModule.cs" />
+    <Compile Remove="Interfaces\IMapImageUploadModule.cs" />
+    <Compile Remove="Interfaces\IMaterialsModule.cs" />
+    <Compile Remove="Interfaces\IMessageTransferModule.cs" />
+    <Compile Remove="Interfaces\IMoapModule.cs" />
+    <Compile Remove="Interfaces\INonSharedRegionModule.cs" />
+    <Compile Remove="Interfaces\INPCModule.cs" />
+    <Compile Remove="Interfaces\IPermissionsModule.cs" />
+    <Compile Remove="Interfaces\IPresenceModule.cs" />
+    <Compile Remove="Interfaces\IPrimCountModule.cs" />
+    <Compile Remove="Interfaces\IProfileModule.cs" />
+    <Compile Remove="Interfaces\IRegionArchiverModule.cs" />
+    <Compile Remove="Interfaces\IRegionConsole.cs" />
+    <Compile Remove="Interfaces\IRegionModuleBase.cs" />
+    <Compile Remove="Interfaces\IRegionModulesController.cs" />
+    <Compile Remove="Interfaces\IRegionReadyModule.cs" />
+    <Compile Remove="Interfaces\IRegionSerialiserModule.cs" />
+    <Compile Remove="Interfaces\IRestartModule.cs" />
+    <Compile Remove="Interfaces\ISceneCommandsModule.cs" />
+    <Compile Remove="Interfaces\IScenePresence.cs" />
+    <Compile Remove="Interfaces\IScriptModule.cs" />
+    <Compile Remove="Interfaces\IScriptModuleComms.cs" />
+    <Compile Remove="Interfaces\ISearchModule.cs" />
+    <Compile Remove="Interfaces\IServiceRequest.cs" />
+    <Compile Remove="Interfaces\IServiceThrottleModule.cs" />
+    <Compile Remove="Interfaces\ISharedRegionModule.cs" />
+    <Compile Remove="Interfaces\ISimulationDataService.cs" />
+    <Compile Remove="Interfaces\ISimulationDataStore.cs" />
+    <Compile Remove="Interfaces\ISimulatorFeaturesModule.cs" />
+    <Compile Remove="Interfaces\ISnmpModule.cs" />
+    <Compile Remove="Interfaces\ISoundModule.cs" />
+    <Compile Remove="Interfaces\ISunModule.cs" />
+    <Compile Remove="Interfaces\ITerrain.cs" />
+    <Compile Remove="Interfaces\ITerrainChannel.cs" />
+    <Compile Remove="Interfaces\ITerrainEffect.cs" />
+    <Compile Remove="Interfaces\ITerrainModule.cs" />
+    <Compile Remove="Interfaces\IUrlModule.cs" />
+    <Compile Remove="Interfaces\IUserAccountCacheModule.cs" />
+    <Compile Remove="Interfaces\IVegetationModule.cs" />
+    <Compile Remove="Interfaces\IVoiceModule.cs" />
+    <Compile Remove="Interfaces\IWindModelPlugin.cs" />
+    <Compile Remove="Interfaces\IWindModule.cs" />
+    <Compile Remove="Interfaces\IWorldComm.cs" />
+    <Compile Remove="Interfaces\IWorldMapModule.cs" />
+    <Compile Remove="Interfaces\IXfer.cs" />
+    <Compile Remove="Interfaces\IXMLRPC.cs" />
+    <Compile Remove="Interfaces\IXmlRpcRouter.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Scenes\AsyncInventorySender.cs" />
+    <Compile Remove="Scenes\AsyncSceneObjectGroupDeleter.cs" />
+    <Compile Remove="Scenes\Cardinals.cs" />
+    <Compile Remove="Scenes\CoalescedSceneObjects.cs" />
+    <Compile Remove="Scenes\CollisionSounds.cs" />
+    <Compile Remove="Scenes\EntityBase.cs" />
+    <Compile Remove="Scenes\EntityManager.cs" />
+    <Compile Remove="Scenes\EntityUpdates.cs" />
+    <Compile Remove="Scenes\EventManager.cs" />
+    <Compile Remove="Scenes\GodController.cs" />
+    <Compile Remove="Scenes\KeyframeMotion.cs" />
+    <Compile Remove="Scenes\Prioritizer.cs" />
+    <Compile Remove="Scenes\PriorityQueue.cs" />
+    <Compile Remove="Scenes\RegionStatsHandler.cs" />
+    <Compile Remove="Scenes\ReturnInfo.cs" />
+    <Compile Remove="Scenes\Scene.cs" />
+    <Compile Remove="Scenes\Scene.Inventory.cs" />
+    <Compile Remove="Scenes\Scene.PacketHandlers.cs" />
+    <Compile Remove="Scenes\Scene.Permissions.cs" />
+    <Compile Remove="Scenes\SceneBase.cs" />
+    <Compile Remove="Scenes\SceneCommunicationService.cs" />
+    <Compile Remove="Scenes\SceneGraph.cs" />
+    <Compile Remove="Scenes\SceneManager.cs" />
+    <Compile Remove="Scenes\SceneObjectGroup.cs" />
+    <Compile Remove="Scenes\SceneObjectGroup.Inventory.cs" />
+    <Compile Remove="Scenes\SceneObjectPart.cs" />
+    <Compile Remove="Scenes\SceneObjectPartInventory.cs" />
+    <Compile Remove="Scenes\ScenePresence.cs" />
+    <Compile Remove="Scenes\ScenePresenceStateMachine.cs" />
+    <Compile Remove="Scenes\SimStatsReporter.cs" />
+    <Compile Remove="Scenes\SOPMaterial.cs" />
+    <Compile Remove="Scenes\SOPVehicle.cs" />
+    <Compile Remove="Scenes\TerrainChannel.cs" />
+    <Compile Remove="Scenes\TerrainCompressor.cs" />
+    <Compile Remove="Scenes\TerrainUtil.cs" />
+    <Compile Remove="Scenes\UndoState.cs" />
+    <Compile Remove="Scenes\UuidGatherer.cs" />
+    <Compile Remove="Scenes\Animation\AnimationSet.cs" />
+    <Compile Remove="Scenes\Animation\BinBVHAnimation.cs" />
+    <Compile Remove="Scenes\Animation\DefaultAvatarAnimations.cs" />
+    <Compile Remove="Scenes\Animation\MovementAnimationOverrides.cs" />
+    <Compile Remove="Scenes\Animation\ScenePresenceAnimator.cs" />
+    <Compile Remove="Scenes\Scripting\ScriptUtils.cs" />
+    <Compile Remove="Scenes\Serialization\CoalescedSceneObjectsSerializer.cs" />
+    <Compile Remove="Scenes\Serialization\SceneObjectSerializer.cs" />
+    <Compile Remove="Scenes\Serialization\SceneXmlLoader.cs" />
+    <Compile Remove="Scenes\Types\UpdateQueue.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>
