@@ -1,0 +1,138 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Data</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim.Data</Product>
+    <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Framework\OpenSim.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\OpenSim.Data.addin.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="MySQL\MySQLAgentPreferencesData.cs" />
+    <Compile Remove="MySQL\MySQLAssetData.cs" />
+    <Compile Remove="MySQL\MySQLAuthenticationData.cs" />
+    <Compile Remove="MySQL\MySQLAvatarData.cs" />
+    <Compile Remove="MySQL\MySQLEstateData.cs" />
+    <Compile Remove="MySQL\MySQLFramework.cs" />
+    <Compile Remove="MySQL\MySQLFriendsData.cs" />
+    <Compile Remove="MySQL\MySQLFSAssetData.cs" />
+    <Compile Remove="MySQL\MySQLGenericTableHandler.cs" />
+    <Compile Remove="MySQL\MySQLGridUserData.cs" />
+    <Compile Remove="MySQL\MySQLGroupsData.cs" />
+    <Compile Remove="MySQL\MySQLHGTravelData.cs" />
+    <Compile Remove="MySQL\MySQLInventoryData.cs" />
+    <Compile Remove="MySQL\MySQLMigrations.cs" />
+    <Compile Remove="MySQL\MySQLMuteListData.cs" />
+    <Compile Remove="MySQL\MySQLOfflineIMData.cs" />
+    <Compile Remove="MySQL\MySQLPresenceData.cs" />
+    <Compile Remove="MySQL\MySQLRegionData.cs" />
+    <Compile Remove="MySQL\MySQLSimulationData.cs" />
+    <Compile Remove="MySQL\MySQLUserAccountData.cs" />
+    <Compile Remove="MySQL\MySQLUserProfilesData.cs" />
+    <Compile Remove="MySQL\MySQLXAssetData.cs" />
+    <Compile Remove="MySQL\MySQLXInventoryData.cs" />
+    <Compile Remove="Null\NullAuthenticationData.cs" />
+    <Compile Remove="Null\NullAvatarData.cs" />
+    <Compile Remove="Null\NullEstateData.cs" />
+    <Compile Remove="Null\NullFriendsData.cs" />
+    <Compile Remove="Null\NullGenericDataHandler.cs" />
+    <Compile Remove="Null\NullInventoryData.cs" />
+    <Compile Remove="Null\NullPresenceData.cs" />
+    <Compile Remove="Null\NullRegionData.cs" />
+    <Compile Remove="Null\NullSimulationData.cs" />
+    <Compile Remove="Null\NullUserAccountData.cs" />
+    <Compile Remove="Null\NullXGroupData.cs" />
+    <Compile Remove="PGSQL\PGSQLAgentPreferencesData.cs" />
+    <Compile Remove="PGSQL\PGSQLAssetData.cs" />
+    <Compile Remove="PGSQL\PGSQLAuthenticationData.cs" />
+    <Compile Remove="PGSQL\PGSQLAvatarData.cs" />
+    <Compile Remove="PGSQL\PGSQLEstateData.cs" />
+    <Compile Remove="PGSQL\PGSQLFramework.cs" />
+    <Compile Remove="PGSQL\PGSQLFriendsData.cs" />
+    <Compile Remove="PGSQL\PGSQLFSAssetData.cs" />
+    <Compile Remove="PGSQL\PGSQLGenericTableHandler.cs" />
+    <Compile Remove="PGSQL\PGSQLGridUserData.cs" />
+    <Compile Remove="PGSQL\PGSQLGroupsData.cs" />
+    <Compile Remove="PGSQL\PGSQLHGTravelData.cs" />
+    <Compile Remove="PGSQL\PGSQLInventoryData.cs" />
+    <Compile Remove="PGSQL\PGSQLManager.cs" />
+    <Compile Remove="PGSQL\PGSQLMigration.cs" />
+    <Compile Remove="PGSQL\PGSQLOfflineIMData.cs" />
+    <Compile Remove="PGSQL\PGSQLPresenceData.cs" />
+    <Compile Remove="PGSQL\PGSQLRegionData.cs" />
+    <Compile Remove="PGSQL\PGSQLSimulationData.cs" />
+    <Compile Remove="PGSQL\PGSQLUserAccountData.cs" />
+    <Compile Remove="PGSQL\PGSQLUserProfilesData.cs" />
+    <Compile Remove="PGSQL\PGSQLXAssetData.cs" />
+    <Compile Remove="PGSQL\PGSQLXInventoryData.cs" />
+    <Compile Remove="SQLite\SQLiteAgentPreferencesData.cs" />
+    <Compile Remove="SQLite\SQLiteAssetData.cs" />
+    <Compile Remove="SQLite\SQLiteAuthenticationData.cs" />
+    <Compile Remove="SQLite\SQLiteAvatarData.cs" />
+    <Compile Remove="SQLite\SQLiteEstateData.cs" />
+    <Compile Remove="SQLite\SQLiteFramework.cs" />
+    <Compile Remove="SQLite\SQLiteFriendsData.cs" />
+    <Compile Remove="SQLite\SQLiteGenericTableHandler.cs" />
+    <Compile Remove="SQLite\SQLiteGridUserData.cs" />
+    <Compile Remove="SQLite\SQLiteHGTravelData.cs" />
+    <Compile Remove="SQLite\SQLiteMuteListData.cs" />
+    <Compile Remove="SQLite\SQLiteSimulationData.cs" />
+    <Compile Remove="SQLite\SQLiteUserAccountData.cs" />
+    <Compile Remove="SQLite\SQLiteUserProfilesData.cs" />
+    <Compile Remove="SQLite\SQLiteUtils.cs" />
+    <Compile Remove="SQLite\SQLiteXInventoryData.cs" />
+    <Compile Remove="Tests\AssetTests.cs" />
+    <Compile Remove="Tests\BasicDataServiceTest.cs" />
+    <Compile Remove="Tests\DataTestUtil.cs" />
+    <Compile Remove="Tests\DefaultTestConns.cs" />
+    <Compile Remove="Tests\EstateTests.cs" />
+    <Compile Remove="Tests\InventoryTests.cs" />
+    <Compile Remove="Tests\PropertyCompareConstraint.cs" />
+    <Compile Remove="Tests\PropertyScrambler.cs" />
+    <Compile Remove="Tests\RegionTests.cs" />
+    <Compile Remove="MySQL\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Null\Properties\AssemblyInfo.cs" />
+    <Compile Remove="PGSQL\Properties\AssemblyInfo.cs" />
+    <Compile Remove="SQLite\Properties\AssemblyInfo.cs" />
+    <Compile Remove="MySQL\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Null\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="PGSQL\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="SQLite\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+</Project>

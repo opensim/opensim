@@ -1,0 +1,92 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.OptionalModules</AssemblyTitle>
+    <Product>OpenSim.Region.OptionalModules.Properties</Product>
+    <Description>Optional modules for OpenSim</Description>
+    <Copyright>Copyright ©  2012</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetOpenMail">
+      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Ionic.Zip">
+      <HintPath>..\..\..\bin\Ionic.Zip.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Data.SqliteClient">
+      <HintPath>..\..\..\bin\Mono.Data.SqliteClient.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NDesk.Options">
+      <HintPath>..\..\..\bin\NDesk.Options.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="netcd">
+      <HintPath>..\..\..\bin\netcd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Capabilities\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\ClientStack\Linden\UDP\OpenSim.Region.ClientStack.LindenUDP.csproj" />
+    <ProjectReference Include="..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\..\Server\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\..\Server\Handlers\OpenSim.Server.Handlers.csproj" />
+    <ProjectReference Include="..\..\Services\Base\OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="..\..\Services\Connectors\OpenSim.Services.Connectors.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Avatar\XmlRpcGroups\Tests\GroupsModuleTests.cs" />
+    <Compile Remove="Scripting\JsonStore\Tests\JsonStoreScriptModuleTests.cs" />
+    <Compile Remove="World\NPC\Tests\NPCModuleTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>
