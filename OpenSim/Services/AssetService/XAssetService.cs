@@ -167,9 +167,7 @@ namespace OpenSim.Services.AssetService
         {
             //m_log.DebugFormat("[XASSET SERVICE]: Get asset async {0}", id);
 
-            UUID assetID;
-
-            if (!UUID.TryParse(id, out assetID))
+            if (!UUID.TryParse(id, out UUID assetID) || assetID == UUID.Zero)
                 return false;
 
             AssetBase asset = Get(id);
