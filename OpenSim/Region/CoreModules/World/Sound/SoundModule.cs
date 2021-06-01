@@ -201,7 +201,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                     radius = MaxDistance;
                     part.SoundRadius = MaxDistance;
                 }
-                part.SoundFlags = 0;
             }
 
             radius *= radius;
