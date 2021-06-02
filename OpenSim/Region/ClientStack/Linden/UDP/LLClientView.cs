@@ -11471,9 +11471,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(fovPacket.AgentData.AgentID != AgentId || fovPacket.AgentData.SessionID != SessionId)
                 return;
 
-            if (fovPacket.FOVBlock.GenCounter > m_agentFOVCounter)
+            uint genCounter = fovPacket.FOVBlock.GenCounter;
+            if (genCounter == 0 || genCounter > m_agentFOVCounter)
             {
-                m_agentFOVCounter = fovPacket.FOVBlock.GenCounter;
+                m_agentFOVCounter = genCounter;
                 OnAgentFOV?.Invoke(this, fovPacket.FOVBlock.VerticalAngle);
             }
         }
