@@ -8345,19 +8345,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void HandleAgentUpdate(Packet packet)
         {
             if(OnAgentUpdate == null)
-            {
-                //PacketPool.Instance.ReturnPacket(packet);
                 return;
-            }
 
             AgentUpdatePacket agentUpdate = (AgentUpdatePacket)packet;
             AgentUpdatePacket.AgentDataBlock x = agentUpdate.AgentData;
 
             if (x.AgentID != AgentId || x.SessionID != SessionId)
-            {
-                //PacketPool.Instance.ReturnPacket(packet);
                 return;
-            }
 
             uint seq = packet.Header.Sequence;
 
@@ -8421,8 +8415,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if(movement && camera)
                 m_thisAgentUpdateArgs.lastUpdateTS = now;
-
-            //PacketPool.Instance.ReturnPacket(packet);
         }
 
         private void HandleMoneyTransferRequest(Packet Pack)
