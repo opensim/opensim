@@ -403,7 +403,6 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public void Cache(AssetBase asset, bool replace = false)
         {
-            // TODO: Spawn this off to some seperate thread to do the actual writing
             if (asset != null)
             {
                 //m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Caching asset with id {0}", asset.ID);
@@ -423,9 +422,7 @@ namespace OpenSim.Region.CoreModules.Asset
         public void CacheNegative(string id)
         {
             if (m_negativeCacheEnabled)
-            {
                 m_negativeCache.Add(id, m_negativeExpiration);
-            }
         }
 
         /// <summary>
@@ -578,6 +575,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
             m_Requests++;
 
+            if (id.Equals(Util.UUIDZeroString))
+                return false;
+
             if (m_negativeCache.ContainsKey(id))
                 return false;
 
@@ -695,6 +695,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (m_MemoryCacheEnabled)
                     m_MemoryCache.Remove(id);
+
+                if (m_negativeCacheEnabled)
+                    m_negativeCache.Remove(id);
 
                 if (m_FileCacheEnabled)
                 {

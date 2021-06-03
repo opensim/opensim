@@ -128,6 +128,9 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
+            if (id.Equals(Util.UUIDZeroString))
+                return false;
+
             if (Util.ParseForeignAssetID(id, out url, out assetID) > 0)
             {
                 IAssetService connector = GetConnector(url);
