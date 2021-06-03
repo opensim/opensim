@@ -2617,14 +2617,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
         /// </summary>
         /// <remarks>
-        /// Threat level is Moderate because intentional abuse, for instance
-        /// scripts that are written to be malicious only on one grid,
-        /// for instance in a HG scenario, are a distinct possibility.
         /// </remarks>
         /// <returns></returns>
         public string osGetGridNick()
         {
-            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridName;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridNick;
         }
 
         public string osGetGridName()
