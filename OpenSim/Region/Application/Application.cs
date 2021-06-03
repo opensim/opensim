@@ -80,7 +80,7 @@ namespace OpenSim
             ServicePointManager.MaxServicePointIdleTime = 30000;
 
             try { ServicePointManager.DnsRefreshTimeout = 5000; } catch { }
-            ServicePointManager.Expect100Continue = true; // needed now to suport auto redir without writecache
+            ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
 
             // Add the arguments supplied when running the application to the configuration
