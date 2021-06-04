@@ -1077,9 +1077,9 @@ namespace OpenSim.Region.OptionalModules.Currency
             m_enable_server = LoginMoneyServer(agent, out balance);
             client.SendMoneyBalance(UUID.Zero, true, new byte[0], balance, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
 
-            client.OnMoneyBalanceRequest += OnMoneyBalanceRequest;
-            client.OnRequestPayPrice += OnRequestPayPrice;
-            client.OnObjectBuy += OnObjectBuy;
+            // client.OnMoneyBalanceRequest += OnMoneyBalanceRequest;
+            // client.OnRequestPayPrice += OnRequestPayPrice;
+            // client.OnObjectBuy += OnObjectBuy;
         }
 
 
