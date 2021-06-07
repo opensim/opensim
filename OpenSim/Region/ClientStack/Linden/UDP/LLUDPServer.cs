@@ -326,7 +326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         protected bool m_sendPing;
 
-        protected readonly ExpiringKey<IPEndPoint> m_pendingEndpointHandleCircuit = new ExpiringKey<IPEndPoint>(10000);
+        protected readonly ExpiringCacheOS<IPEndPoint, Queue<UDPPacketBuffer>> m_pendingCache = new ExpiringCacheOS<IPEndPoint, Queue<UDPPacketBuffer>>(10000);
 
         protected int m_defaultRTO = 0;
         protected int m_maxRTO = 0;
@@ -1226,17 +1226,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //                "[LLUDPSERVER]: Packet received from {0} in {1}", buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
 
             Packet packet = null;
-            int packetEnd = buffer.DataLength - 1;
+            int bufferLen = buffer.DataLength;
             IPEndPoint endPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
             #region Decoding
 
-            if (buffer.DataLength < 7)
+            if (bufferLen < 7)
             {
 //                m_log.WarnFormat(
 //                    "[LLUDPSERVER]: Dropping undersized packet with {0} bytes received from {1} in {2}",
 //                    buffer.DataLength, buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
-
                 RecordMalformedInboundPacket(endPoint);
                 FreeUDPBuffer(buffer);
                 return; // Drop undersized packet
@@ -1251,12 +1250,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     headerLen = 8;
             }
 
-            if (buffer.DataLength < headerLen)
+            if (bufferLen < headerLen)
             {
 //                m_log.WarnFormat(
 //                    "[LLUDPSERVER]: Dropping packet with malformed header received from {0} in {1}",
 //                    buffer.RemoteEndPoint, m_scene.RegionInfo.RegionName);
-
                 RecordMalformedInboundPacket(endPoint);
                 FreeUDPBuffer(buffer);
                 return; // Malformed header
@@ -1274,6 +1272,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zerodecodebuffer = zerodecodebufferholder.Data;
                 }
 
+                int packetEnd = bufferLen - 1;
                 packet = Packet.BuildPacket(buffer.Data, ref packetEnd, zerodecodebuffer);
                 if(zerodecodebufferholder != null)
                     FreeUDPBuffer(zerodecodebufferholder);
@@ -1300,9 +1299,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Decoding
 
-            FreeUDPBuffer(buffer);
 
             #region Packet to Client Mapping
+
+            // If still creating a new client just enqueue until it is done
+            lock (m_pendingCache)
+            {
+                if (m_pendingCache.TryGetValue(endPoint, out Queue<UDPPacketBuffer> queue))
+                {
+                    if (packet.Type == PacketType.UseCircuitCode) // ignore viewer resends
+                    {
+                        FreeUDPBuffer(buffer);
+                        SendAckImmediate(endPoint, packet.Header.Sequence); // i hear you shutup
+                        return;
+                    }
+
+                    //m_log.DebugFormat("[LLUDPSERVER]: Enqueued a {0} packet into the pending queue", packet.Type);
+                    queue.Enqueue(buffer);
+                    return;
+                }
+            }
 
             // usecircuitcode handling
             if (!Scene.TryGetClient(endPoint, out IClientAPI client))
@@ -1310,17 +1326,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // UseCircuitCode handling
                 if (packet.Type == PacketType.UseCircuitCode)
                 {
-                    //flood control
-                    if (m_pendingEndpointHandleCircuit.ContainsKey(endPoint))
+                    lock (m_pendingCache)
                     {
-                        SendAckImmediate(endPoint, packet.Header.Sequence); // i hear you shutup
-                        return;
+                        if (m_pendingCache.Contains(endPoint))
+                        {
+                            // this should not happen
+                            FreeUDPBuffer(buffer);
+                            SendAckImmediate(endPoint, packet.Header.Sequence); // i hear you shutup
+                            return;
+                        }
+                        m_pendingCache.AddOrUpdate(endPoint, new Queue<UDPPacketBuffer>(), 60);
                     }
-                    m_pendingEndpointHandleCircuit.Add(endPoint, 120);
+
                     Util.FireAndForget(HandleUseCircuitCode, new object[] { endPoint, packet });
+                    FreeUDPBuffer(buffer);
+                    SendAckImmediate(endPoint, packet.Header.Sequence);
                     return;
                 }
             }
+
+            FreeUDPBuffer(buffer);
 
             // Determine which agent this packet came from
             if (client == null || !(client is LLClientView))
@@ -1617,20 +1642,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             endPoint,
                             sessionInfo);
 
-                    SendAckImmediate(endPoint, uccp.Header.Sequence);
-                    // This will be true if the client is new, e.g. not
-                    // an existing child agent, and there is no circuit data
-                    if (client != null && aCircuit == null)
+                    if (client == null)
                     {
-                        Scene.CloseAgent(client.AgentId, true);
+                        lock (m_pendingCache)
+                            m_pendingCache.Remove(endPoint);
                         return;
                     }
 
-                    if (client != null)
+                    // This will be true if the client is new, e.g. not
+                    // an existing child agent, and there is no circuit data
+                    if (aCircuit == null)
                     {
-                        if(aCircuit.teleportFlags <= 0)
-                            client.SendRegionHandshake();
+                        Scene.CloseAgent(client.AgentId, true);
+                        lock (m_pendingCache)
+                            m_pendingCache.Remove(endPoint);
+                        return;
                     }
+
+                    m_log.Debug("[LLUDPSERVER]: Client created");
+
+                    Queue<UDPPacketBuffer> queue = null;
+                    lock (m_pendingCache)
+                    {
+                        if (m_pendingCache.TryGetValue(endPoint, out queue))
+                            m_pendingCache.Remove(endPoint);
+                        else
+                            m_log.DebugFormat("[LLUDPSERVER]: HandleUseCircuitCode with no pending queue present");
+                    }
+
+                    // Reinject queued packets
+                    if(queue != null)
+                    {
+                        m_log.DebugFormat("[LLUDPSERVER]: processing UseCircuitCode pending queue, {0} entries", queue.Count);
+                        while (queue.Count > 0)
+                        {
+                            UDPPacketBuffer buf = queue.Dequeue();
+                            PacketReceived(buf);
+                        }
+                        queue = null;
+                    }
+
+                    if(aCircuit.teleportFlags <= 0)
+                        client.SendRegionHandshake();
                 }
                 else
                 {
@@ -1639,7 +1692,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         "[LLUDPSERVER]: Ignoring connection request for {0} to {1} with unknown circuit code {2} from IP {3}",
                         uccp.CircuitCode.ID, Scene.RegionInfo.RegionName, uccp.CircuitCode.Code, endPoint);
 
-                    SendAckImmediate(endPoint, uccp.Header.Sequence);
+                    lock (m_pendingCache)
+                        m_pendingCache.Remove(endPoint);
                 }
 
                 //m_log.DebugFormat(
@@ -1656,10 +1710,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     client != null ? client.AgentId.ToString() : "unknown",
                     e.Message,
                     e.StackTrace);
-            }
-            finally
-            {
-                m_pendingEndpointHandleCircuit?.Remove(endPoint);
             }
         }
 
