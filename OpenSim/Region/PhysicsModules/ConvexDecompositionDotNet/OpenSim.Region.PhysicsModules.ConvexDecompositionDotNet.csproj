@@ -5,7 +5,6 @@
     <Company>Intel Corporation</Company>
     <Product>OpenSim</Product>
     <Copyright>Copyright © Intel Corporation 2010</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Addins">
