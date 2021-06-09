@@ -5,7 +5,6 @@
     <Company>http://opensimulator.org</Company>
     <Product>OpenSim</Product>
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">

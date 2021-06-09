@@ -5,7 +5,6 @@
     <Company>http://opensimulator.org</Company>
     <Product>OpenSim.Addons.Groups</Product>
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="OpenSim.Addons.Groups.addin.xml" />
