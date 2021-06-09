@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <Target Name="CopyFiles">
     <Copy SourceFiles="@(FilesToCopy_0000)" DestinationFolder="../../../bin/" />

@@ -5,7 +5,6 @@
     <Product>OpenSim.Region.OptionalModules.Properties</Product>
     <Description>Optional modules for OpenSim</Description>
     <Copyright>Copyright ©  2012</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotNetOpenMail">

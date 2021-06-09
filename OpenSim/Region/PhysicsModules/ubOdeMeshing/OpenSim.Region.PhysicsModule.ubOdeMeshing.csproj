@@ -6,7 +6,6 @@
     <Product>OpenSim</Product>
     <Description>Mesher for ubODE</Description>
     <Copyright>OpenSimulator developers</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />

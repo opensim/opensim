@@ -7,7 +7,6 @@
     <Product>OpenSim</Product>
     <Description>The executable for regions simulator</Description>
     <Copyright>OpenSimulator developers</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="log4net">
