@@ -11,10 +11,6 @@
       <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\..\..\..\bin\nunit.framework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="OpenMetaverse">
       <HintPath>..\..\..\..\..\bin\OpenMetaverse.dll</HintPath>
       <Private>False</Private>
@@ -64,6 +60,9 @@
     <Compile Remove="EventQueue\EventQueueHelper.cs" />
     <Compile Remove="ObjectCaps\ObjectAdd.cs" />
     <Compile Remove="ObjectCaps\UploadObjectAssetModule.cs" />
-    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
   </ItemGroup>
 </Project>
