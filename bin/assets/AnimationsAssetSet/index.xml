@@ -984,4 +984,11 @@
     <Key Name = "assetType" Value = "20" />
     <Key Name = "fileName" Value = "1ab1b236-cd08-21e6-0cbc-0d923fc6eca2.dat" />
   </Section>
+  <Section Name = "bento_idle">
+    <Key Name = "assetID" Value = "0e720142-0d4b-cf1d-cae5-277f58299604" />
+    <Key Name = "name" Value = "bento_idle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0e720142-0d4b-cf1d-cae5-277f58299604.dat" />
+  </Section>
 </Nini>
