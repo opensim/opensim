@@ -40,11 +40,7 @@ namespace OpenSim.Framework
     /// </summary>
     public class AgentCircuitData
     {
-// DEBUG ON
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-// DEBUG OFF
+        private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Avatar Unique Agent Identifier
@@ -275,7 +271,7 @@ namespace OpenSim.Framework
             if (args.TryGetValue("caps_path", out tmpOSD))
                 CapsPath = tmpOSD.AsString();
 
-            if ((args.TryGetValue("children_seeds", out tmpOSD) && tmpOSD is OSDArray))
+            if (args.TryGetValue("children_seeds", out tmpOSD) && tmpOSD is OSDArray)
             {
                 OSDArray childrenSeeds = (OSDArray)tmpOSD;
                 ChildrenCapSeeds = new Dictionary<ulong, string>();
