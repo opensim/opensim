@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// <summary>
         /// Sets up dictionaries and arrays used in the tests.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void SetUpDataSets()
         {
             m_intDoubleSet = new Dictionary<int, double>();

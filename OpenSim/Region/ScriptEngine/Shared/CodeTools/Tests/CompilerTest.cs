@@ -55,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         /// <summary>
         /// Creates a temporary directory where build artifacts are stored.
         /// </summary>
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             m_testDir = Path.Combine(Path.GetTempPath(), "opensim_compilerTest_" + Path.GetRandomFileName());

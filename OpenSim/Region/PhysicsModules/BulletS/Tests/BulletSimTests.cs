@@ -43,12 +43,12 @@ public class BulletSimTests : OpenSimTestCase
     // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
     // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
 
-    [TestFixtureSetUp]
+    [OneTimeSetUp]
     public void Init()
     {
     }
 
-    [TestFixtureTearDown]
+    [OneTimeTearDown]
     public void TearDown()
     {
     }

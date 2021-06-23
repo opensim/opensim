@@ -50,7 +50,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         private LLImageManager llim;
         private TestClient tc;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void FixtureInit()
         {
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
@@ -75,7 +75,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             }
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple

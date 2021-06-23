@@ -89,7 +89,7 @@ namespace OpenSim.Data.Tests
         {
         }
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             // Sorry, some SQLite-specific stuff goes here (not a big deal, as its just some file ops)
@@ -150,7 +150,7 @@ namespace OpenSim.Data.Tests
             }
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             if (m_service != null)
