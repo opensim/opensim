@@ -61,14 +61,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         private TaskInventoryItem m_scriptItem;
         private LSL_Api m_lslApi;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
             Util.FireAndForgetMethod = FireAndForgetMethod.RegressionTest;
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TestFixureTearDown()
         {
             // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
