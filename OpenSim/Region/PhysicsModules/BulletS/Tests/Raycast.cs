@@ -55,7 +55,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 
         uint _targetLocalID = 123;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             Dictionary<string, string> engineParams = new Dictionary<string, string>();
@@ -77,7 +77,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 
         }
 
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void TearDown()
         {
             if (_physicsScene != null)
