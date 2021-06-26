@@ -991,4 +991,11 @@
     <Key Name = "assetType" Value = "20" />
     <Key Name = "fileName" Value = "0e720142-0d4b-cf1d-cae5-277f58299604.dat" />
   </Section>
+  <Section Name = "away">
+    <Key Name = "assetID" Value = "fd037134-85d4-f241-72c6-4f42164fedee" />
+    <Key Name = "name" Value = "away" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "fd037134-85d4-f241-72c6-4f42164fedee.dat" />
+  </Section>
 </Nini>
