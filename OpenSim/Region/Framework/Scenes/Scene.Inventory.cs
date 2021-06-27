@@ -2816,11 +2816,12 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewSceneObject(group, true, curpos, crot, vel);
                 }
 
-
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
                 group.InvalidateEffectivePerms();
                 group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+                if(humanRez)
+                    group.ResumeScripts();
 
                 group.ScheduleGroupForFullUpdate();
             }
