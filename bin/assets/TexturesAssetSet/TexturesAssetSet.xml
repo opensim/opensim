@@ -403,7 +403,7 @@
     <Key Name="assetID" Value="5748decc-f629-461c-9a36-a35a221fe21f"/>
     <Key Name="name" Value="Blank Texture"/>
     <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="blank.jpc" />
+    <Key Name="fileName" Value="blank.j2c" />
   </Section>
 
   <Section Name="Default Media Texture">
