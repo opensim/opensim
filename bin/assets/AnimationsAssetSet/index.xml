@@ -163,6 +163,85 @@
     <Key Name="fileName" Value="PS_Arms_upward_Legs_together_bento.anim"/>
   </Section>
 
+  <!-- firestorm posestand updated animations. Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks -->
+  <Section Name="PS_T_Pose2">
+    <Key Name="assetID" Value="3481ccd5-cc6c-65ca-c466-dc9df1bf3944"/>
+    <Key Name="name" Value="PS_T_Pose"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_T_Pose_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_Down_Legs_together2">
+    <Key Name="assetID" Value="0b4ee516-5dfd-ef4b-4ab6-300bb44cb045"/>
+    <Key Name="name" Value="PS_Arms_Down_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_Down_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_down_sitting2">
+    <Key Name="assetID" Value="b23c52ef-0b15-11f2-852d-8fbd33417847"/>
+    <Key Name="name" Value="PS_Arms_down_sitting"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_down_sitting_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_downward_Legs_apart2">
+    <Key Name="assetID" Value="e14fee5f-3735-a236-2e26-94f92f366d81"/>
+    <Key Name="name" Value="PS_Arms_downward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_downward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_downward_Legs_together2">
+    <Key Name="assetID" Value="2029d88f-4efc-d72d-18d1-274caf9e9bc0"/>
+    <Key Name="name" Value="PS_Arms_downward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_downward_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_forward_Legs_apart2">
+    <Key Name="assetID" Value="cff5559e-c915-0b5e-d587-f789b5cc299a"/>
+    <Key Name="name" Value="PS_Arms_forward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_forward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_forward_Legs_together2">
+    <Key Name="assetID" Value="23f3163c-183b-dac0-0cdd-7811bcc3b5f1"/>
+    <Key Name="name" Value="PS_Arms_forward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_forward_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_straight_Legs_apart2">
+    <Key Name="assetID" Value="b2f312aa-2c1e-27b8-50fe-a0fa4ff3df4e"/>
+    <Key Name="name" Value="PS_Arms_straight_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_straight_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_straight_sitting2">
+    <Key Name="assetID" Value="c17677b8-9fb2-8d6e-bbbe-219edce64ef4"/>
+    <Key Name="name" Value="PS_Arms_straight_sitting"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_straight_sitting_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_upward_Legs_apart2">
+    <Key Name="assetID" Value="2cfeed25-04f9-caff-f3d2-776cddea5771"/>
+    <Key Name="name" Value="PS_Arms_upward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_upward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_upward_Legs_together2">
+    <Key Name="assetID" Value="6e83f685-2f53-278f-6758-b529327cce09"/>
+    <Key Name="name" Value="PS_Arms_upward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_upward_Legs_together_bento2.anim"/>
+  </Section>
+
   <!-- default internal animations. -->
   <Section Name = "express_afraid">
     <Key Name = "assetID" Value = "6b61c8e8-4747-0d75-12d7-e49ff207a4ca" />
@@ -990,5 +1069,12 @@
     <Key Name = "description" Value = "animation" />
     <Key Name = "assetType" Value = "20" />
     <Key Name = "fileName" Value = "0e720142-0d4b-cf1d-cae5-277f58299604.dat" />
+  </Section>
+  <Section Name = "away">
+    <Key Name = "assetID" Value = "fd037134-85d4-f241-72c6-4f42164fedee" />
+    <Key Name = "name" Value = "away" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "fd037134-85d4-f241-72c6-4f42164fedee.dat" />
   </Section>
 </Nini>
