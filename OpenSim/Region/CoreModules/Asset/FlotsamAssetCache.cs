@@ -115,6 +115,8 @@ namespace OpenSim.Region.CoreModules.Asset
         private readonly object weakAssetReferencesLock = new object();
         private bool m_updateFileTimeOnCacheHit = false;
 
+        private static ExpiringKey<string> m_lastFileAccessTimeChange = null;
+
         public FlotsamAssetCache()
         {
             List<char> invalidChars = new List<char>();
@@ -182,6 +184,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", m_CacheWarnAt);
                     }
+
+                    if(m_updateFileTimeOnCacheHit)
+                        m_lastFileAccessTimeChange = new ExpiringKey<string>(300000);
 
                     if(m_MemoryCacheEnabled)
                         m_MemoryCache = new ExpiringCacheOS<string, AssetBase>((int)m_MemoryExpiration * 500);
@@ -430,11 +435,12 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         /// <param name="filename">Filename.</param>
         /// <returns><c>true</c>, if the update was successful, false otherwise.</returns>
-        private static bool UpdateFileLastAccessTime(string filename)
+        private static bool CheckUpdateFileLastAccessTime(string filename)
         {
             try
             {
                 File.SetLastAccessTime(filename, DateTime.Now);
+                m_lastFileAccessTimeChange.Add(filename, 900000);
                 return true;
             }
             catch (FileNotFoundException)
@@ -444,6 +450,21 @@ namespace OpenSim.Region.CoreModules.Asset
             catch
             {
                 return true; // ignore other errors
+            }
+        }
+
+        private static void UpdateFileLastAccessTime(string filename)
+        {
+            try
+            {
+                if(!m_lastFileAccessTimeChange.ContainsKey(filename))
+                {
+                    File.SetLastAccessTime(filename, DateTime.Now);
+                    m_lastFileAccessTimeChange.Add(filename, 900000);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -974,6 +995,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         bformatter.Serialize(stream, asset);
                         stream.Flush();
                     }
+                    m_lastFileAccessTimeChange.Add(filename, 900000);
                 }
                 catch (IOException e)
                 {
@@ -1096,7 +1118,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     break;
 
                 string idstr = id.ToString();
-                if (!UpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
+                if (tryGetUncached && !CheckUpdateFileLastAccessTime(GetFileName(idstr)))
                 {
                     cooldown += 5;
                     m_AssetService.Get(idstr);
