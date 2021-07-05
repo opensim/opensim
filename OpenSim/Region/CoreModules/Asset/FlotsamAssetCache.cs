@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private Dictionary<string,WeakReference> weakAssetReferences = new Dictionary<string, WeakReference>();
         private readonly object weakAssetReferencesLock = new object();
-        private bool m_updateFileTimeOnCacheHit = false;
+        private static bool m_updateFileTimeOnCacheHit = false;
 
         private static ExpiringKey<string> m_lastFileAccessTimeChange = null;
 
@@ -976,7 +976,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (!replace && File.Exists(filename))
                 {
-                    UpdateFileLastAccessTime(filename);
+                    if (m_updateFileTimeOnCacheHit)
+                        UpdateFileLastAccessTime(filename);
                     return;
                 }
 
@@ -995,7 +996,8 @@ namespace OpenSim.Region.CoreModules.Asset
                         bformatter.Serialize(stream, asset);
                         stream.Flush();
                     }
-                    m_lastFileAccessTimeChange.Add(filename, 900000);
+                    if(m_lastFileAccessTimeChange != null)
+                        m_lastFileAccessTimeChange.Add(filename, 900000);
                 }
                 catch (IOException e)
                 {
