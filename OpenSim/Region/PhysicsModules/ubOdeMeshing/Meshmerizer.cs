@@ -67,7 +67,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
         public string cachePath = "MeshCache";
         public TimeSpan CacheExpire;
 
-//        const string baseDir = "rawFiles";
+        //private const string baseDir = "rawFiles";
         private const string baseDir = null; //"rawFiles";
 
         private bool useMeshiesPhysicsMesh = true;

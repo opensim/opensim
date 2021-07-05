@@ -2617,35 +2617,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
         /// </summary>
         /// <remarks>
-        /// Threat level is Moderate because intentional abuse, for instance
-        /// scripts that are written to be malicious only on one grid,
-        /// for instance in a HG scenario, are a distinct possibility.
         /// </remarks>
         /// <returns></returns>
         public string osGetGridNick()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
-
-            string nick = String.Empty;
-            IConfigSource config = m_ScriptEngine.ConfigSource;
-
-            if (config.Configs[GridInfoServiceConfigSectionName] != null)
-                nick = config.Configs[GridInfoServiceConfigSectionName].GetString("gridnick", nick);
-
-            if (String.IsNullOrEmpty(nick))
-                nick = GridUserInfo(InfoType.Nick);
-
-            return nick;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridNick;
         }
 
         public string osGetGridName()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
-
-            if(World.SceneGridInfo == null)
-                return string.Empty;
-
-            return World.SceneGridInfo.GridName;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridName;
         }
 
         public string osGetGridLoginURI()
@@ -2668,14 +2649,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
 
-            return World.SceneGridInfo.HomeURLNoEndSlash;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.HomeURLNoEndSlash;
         }
 
         public string osGetGridGatekeeperURI()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
 
-            return World.SceneGridInfo.GateKeeperURLNoEndSlash;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GateKeeperURLNoEndSlash;
         }
 
         public string osGetGridCustom(string key)
