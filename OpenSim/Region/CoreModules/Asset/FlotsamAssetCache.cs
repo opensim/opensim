@@ -440,7 +440,8 @@ namespace OpenSim.Region.CoreModules.Asset
             try
             {
                 File.SetLastAccessTime(filename, DateTime.Now);
-                m_lastFileAccessTimeChange.Add(filename, 900000);
+                if(m_lastFileAccessTimeChange != null)
+                    m_lastFileAccessTimeChange.Add(filename, 900000);
                 return true;
             }
             catch (FileNotFoundException)
@@ -1120,7 +1121,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     break;
 
                 string idstr = id.ToString();
-                if (tryGetUncached && !CheckUpdateFileLastAccessTime(GetFileName(idstr)))
+                if (!CheckUpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
                 {
                     cooldown += 5;
                     m_AssetService.Get(idstr);
