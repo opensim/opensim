@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Monitoring
         private volatile float spareTime;
         private volatile float sleepTime;
         private volatile float physicsStep;
+        private volatile float scriptEPS;
 
 
         private volatile float scriptLinesPerSecond;
@@ -127,26 +128,27 @@ namespace OpenSim.Framework.Monitoring
         public float PendingUploads { get { return pendingUploads; } }
         public float ActiveScripts { get { return activeScripts; } }
         public float ScriptLinesPerSecond { get { return scriptLinesPerSecond; } }
+        public float ScriptEPS { get { return scriptEPS; } }
 
-//        /// <summary>
-//        /// This is the time it took for the last asset request made in response to a cache miss.
-//        /// </summary>
-//        public TimeSpan AssetRequestTimeAfterCacheMiss { get { return assetRequestTimeAfterCacheMiss; } }
-//
-//        /// <summary>
-//        /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
-//        /// this is just a temporary statistic to keep this problem in view - the root cause of this lies either
-//        /// in a mishandling of the reply protocol, related to avatar appearance or may even originate in graphics
-//        /// driver bugs on clients (though this seems less likely).
-//        /// </summary>
-//        public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
-//
-//        /// <summary>
-//        /// Record the number of times that an asset request has failed.  Failures are effectively exceptions, such as
-//        /// request timeouts.  If an asset service replies that a particular asset cannot be found, this is not counted
-//        /// as a failure
-//        /// </summary>
-//        public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
+        //        /// <summary>
+        //        /// This is the time it took for the last asset request made in response to a cache miss.
+        //        /// </summary>
+        //        public TimeSpan AssetRequestTimeAfterCacheMiss { get { return assetRequestTimeAfterCacheMiss; } }
+        //
+        //        /// <summary>
+        //        /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
+        //        /// this is just a temporary statistic to keep this problem in view - the root cause of this lies either
+        //        /// in a mishandling of the reply protocol, related to avatar appearance or may even originate in graphics
+        //        /// driver bugs on clients (though this seems less likely).
+        //        /// </summary>
+        //        public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
+        //
+        //        /// <summary>
+        //        /// Record the number of times that an asset request has failed.  Failures are effectively exceptions, such as
+        //        /// request timeouts.  If an asset service replies that a particular asset cannot be found, this is not counted
+        //        /// as a failure
+        //        /// </summary>
+        //        public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
 
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
@@ -154,7 +156,7 @@ namespace OpenSim.Framework.Monitoring
         /// we do not yet timeout this situation.
         /// </summary>
         /// <remarks>Commented out because we do not cache inventory at this point</remarks>
-//        public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
+        //        public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
 
         /// <summary>
         /// Retrieve the total frame time (in ms) of the last frame
@@ -288,6 +290,7 @@ namespace OpenSim.Framework.Monitoring
             sleepTime               = stats.StatsBlock[20].StatValue;
             spareTime               = stats.StatsBlock[21].StatValue;
             physicsStep             = stats.StatsBlock[22].StatValue;
+            scriptEPS               = stats.StatsBlock[28].StatValue;
 
             scriptLinesPerSecond    = stats.ExtraStatsBlock[0].StatValue;
             m_frameDilation         = stats.ExtraStatsBlock[1].StatValue;
@@ -356,13 +359,13 @@ Asset service request failures: {3}" + Environment.NewLine,
             sb.Append(Environment.NewLine);
             sb.Append("SAMPLE FRAME STATISTICS");
             sb.Append(Environment.NewLine);
-            sb.Append("Dilatn  SimFPS  PhyFPS  AgntUp  RootAg  ChldAg  Prims   AtvPrm  AtvScr  ScrLPS");
+            sb.Append("Dilatn  SimFPS  PhyFPS  AgntUp  RootAg  ChldAg  Prims   AtvPrm  AtvScr  ScrEPS");
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
                     "{0,6:0.00}  {1,6:0}  {2,6:0.0}  {3,6:0.0}  {4,6:0}  {5,6:0}  {6,6:0}  {7,6:0}  {8,6:0}  {9,6:0}",
                     timeDilation, simFps, physicsFps, agentUpdates, rootAgents,
-                    childAgents, totalPrims, activePrims, activeScripts, scriptLinesPerSecond));
+                    childAgents, totalPrims, activePrims, activeScripts, scriptEPS));
 
             sb.Append(Environment.NewLine);
             sb.Append(Environment.NewLine);
@@ -472,7 +475,8 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Prims"] = OSD.FromString (String.Format ("{0:0.##}", totalPrims));
             args["AtvPrm"] = OSD.FromString (String.Format ("{0:0.##}", activePrims));
             args["AtvScr"] = OSD.FromString (String.Format ("{0:0.##}", activeScripts));
-            args["ScrLPS"] = OSD.FromString (String.Format ("{0:0.##}", scriptLinesPerSecond));
+            args["ScrLPS"] = OSD.FromString(String.Format("{0:0.##}", scriptLinesPerSecond));
+            args["ScrEPS"] = OSD.FromString(String.Format("{0:0.##}", scriptEPS));
             args["PktsIn"] = OSD.FromString (String.Format ("{0:0.##}", inPacketsPerSecond));
             args["PktOut"] = OSD.FromString (String.Format ("{0:0.##}", outPacketsPerSecond));
             args["PendDl"] = OSD.FromString (String.Format ("{0:0.##}", pendingDownloads));
