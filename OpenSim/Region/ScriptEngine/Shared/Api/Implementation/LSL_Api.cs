@@ -914,7 +914,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (i == Int32.MinValue)
                 return i;
             else
-                return (int)Math.Abs(i);
+                return Math.Abs(i);
         }
 
         public LSL_Float llFabs(double f)
@@ -2119,14 +2119,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              }
              else if (face == ScriptBaseClass.ALL_SIDES)
              {
-                 for (uint i = 0; i < nsides; i++)
+                tex.DefaultTexture.Fullbright = bright;
+                for (uint i = 0; i < nsides; i++)
                  {
-                     if (tex.FaceTextures[i] != null)
-                     {
-                         tex.FaceTextures[i].Fullbright = bright;
-                     }
+                    if(tex.FaceTextures[i] != null)
+                        tex.FaceTextures[i].Fullbright = bright;
                  }
-                 tex.DefaultTexture.Fullbright = bright;
                  part.UpdateTextureEntry(tex);
                  return;
              }
@@ -5719,23 +5717,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Vector llGetCenterOfMass()
         {
-
             return new LSL_Vector(m_host.GetCenterOfMass());
         }
 
         public LSL_List llListSort(LSL_List src, int stride, int ascending)
         {
-
-            if (stride <= 0)
-            {
-                stride = 1;
-            }
-            return src.Sort(stride, ascending);
+            return src.Sort(stride, ascending == 1);
         }
 
         public LSL_Integer llGetListLength(LSL_List src)
         {
-
             return src.Length;
         }
 
@@ -5925,21 +5916,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetListEntryType(LSL_List src, int index)
         {
             if (index < 0)
-            {
                 index = src.Length + index;
-            }
-            if (index >= src.Length)
-            {
+            if (index >= src.Length || index < 0)
                 return 0;
-            }
 
-            if (src.Data[index] is LSL_Integer || src.Data[index] is Int32)
+            object o = src.Data[index];
+            if (o is LSL_Integer || o is Int32)
                 return 1;
-            if (src.Data[index] is LSL_Float || src.Data[index] is Single || src.Data[index] is Double)
+            if (o is LSL_Float || o is Single || o is Double)
                 return 2;
-            if (src.Data[index] is LSL_String || src.Data[index] is String)
+            if (o is LSL_String || o is String)
             {
-                if (UUID.TryParse(src.Data[index].ToString(), out UUID tuuid))
+                if (UUID.TryParse(o.ToString(), out UUID tuuid))
                 {
                     return 4;
                 }
@@ -5948,11 +5936,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return 3;
                 }
             }
-            if (src.Data[index] is LSL_Vector)
+            if (o is LSL_Key)
+                return 4;
+            if (o is LSL_Vector)
                 return 5;
-            if (src.Data[index] is LSL_Rotation)
+            if (o is LSL_Rotation)
                 return 6;
-            if (src.Data[index] is LSL_List)
+            if (o is LSL_List)
                 return 7;
             return 0;
 
@@ -5966,7 +5956,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public LSL_String llList2CSV(LSL_List src)
         {
-
             return string.Join(", ",
                     (new List<object>(src.Data)).ConvertAll<string>(o =>
                     {
@@ -5984,12 +5973,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llCSV2List(string src)
         {
-
             LSL_List result = new LSL_List();
             int parens = 0;
             int start  = 0;
             int length = 0;
-
 
             for (int i = 0; i < src.Length; i++)
             {
@@ -7737,15 +7724,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llGiveInventoryList(LSL_Key destination, LSL_String category, LSL_List inventory)
         {
-
+            if (inventory.Length == 0)
+                return;
             if (!UUID.TryParse(destination, out UUID destID))
                 return;
 
-            ScenePresence sp = null;
             bool isNotOwner = true;
             if (!World.TryGetSceneObjectPart(destID, out SceneObjectPart destSop))
             {
-                if (!World.TryGetScenePresence(destID, out sp))
+                if (!World.TryGetScenePresence(destID, out ScenePresence sp))
                 {
                     // we could check if it is a grid user and allow the transfer as in older code
                     // but that increases security risk
@@ -7756,9 +7743,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 isNotOwner = sp.UUID != m_host.OwnerID;
             }
 
-            List<UUID> itemList = new List<UUID>();
-
-            foreach (Object item in inventory.Data)
+            List<UUID> itemList = new List<UUID>(inventory.Length);
+            foreach (object item in inventory.Data)
             {
                 string rawItemString = item.ToString();
                 TaskInventoryItem taskItem = null;
@@ -7808,7 +7794,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             if (destSop != null)
+            {
+                ScriptSleep(100);
                 return;
+            }
 
             if (m_TransferModule != null)
             {
@@ -7828,7 +7817,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
 
-            ScriptSleep(destSop == null ?  3000 : 100);
+            ScriptSleep(3000);
         }
 
         public void llSetVehicleType(int type)
@@ -12743,30 +12732,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (World.RegionInfo.RegionName == simulator)
                 {
                     string lreply = String.Empty;
-                    GridRegion linfo = new GridRegion(World.RegionInfo);
+                    RegionInfo rinfo = World.RegionInfo;
                     switch (data)
                     {
                         case ScriptBaseClass.DATA_SIM_POS:
-                            {
-                                lreply = new LSL_Vector(
-                                    linfo.RegionLocX,
-                                    linfo.RegionLocY,
+                            lreply = new LSL_Vector(
+                                    rinfo.RegionLocX,
+                                    rinfo.RegionLocY,
                                     0).ToString();
-                            }
                             break;
                         case ScriptBaseClass.DATA_SIM_STATUS:
-                                lreply = "up"; // Duh!
+                            lreply = "up"; // Duh!
                             break;
                         case ScriptBaseClass.DATA_SIM_RATING:
-                            int access = linfo.Maturity;
-                            if (access == 0)
-                                lreply = "PG";
-                            else if (access == 1)
-                                lreply = "MATURE";
-                            else if (access == 2)
-                                lreply = "ADULT";
-                            else
-                                lreply = "UNKNOWN";
+                            switch (rinfo.RegionSettings.Maturity)
+                            {
+                                case 0:
+                                    lreply = "PG";
+                                    break;
+                                case 1:
+                                    lreply = "MATURE";
+                                    break;
+                                case 2:
+                                    lreply = "ADULT";
+                                    break;
+                                default:
+                                    lreply = "UNKNOWN";
+                                    break;
+                            }
                             break;
                         case ScriptBaseClass.DATA_SIM_RELEASE:
                             lreply = "OpenSim";
@@ -12813,15 +12806,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 reply = "up"; // Duh!
                                 break;
                             case ScriptBaseClass.DATA_SIM_RATING:
-                                int access = info.Maturity;
-                                if (access == 0)
-                                    reply = "PG";
-                                else if (access == 1)
-                                    reply = "MATURE";
-                                else if (access == 2)
-                                    reply = "ADULT";
-                                else
-                                    reply = "UNKNOWN";
+                                switch (info.Maturity)
+                                {
+                                    case 0:
+                                        reply = "PG";
+                                        break;
+                                    case 1:
+                                        reply = "MATURE";
+                                        break;
+                                    case 2:
+                                        reply = "ADULT";
+                                        break;
+                                    default:
+                                        reply = "UNKNOWN";
+                                        break;
+                                }
                                 break;
                             case ScriptBaseClass.DATA_SIM_RELEASE:
                                 reply = "OpenSim";
@@ -15570,12 +15569,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             LSL_List list = new LSL_List();
 
-
             Vector3 rayStart = start;
             Vector3 rayEnd = end;
             Vector3 dir = rayEnd - rayStart;
 
-            float dist = dir.Length();
+            float dist = dir.LengthSquared();
+            if (dist < 1e-6)
+            {
+                list.Add(new LSL_Integer(0));
+                return list;
+            }
 
             int count = 1;
             bool detectPhantom = false;
@@ -15608,9 +15611,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (World.SupportsRayCastFiltered())
             {
-                if (dist == 0)
-                    return list;
-
                 RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
                 if (checkTerrain)
                     rayfilter |= RayFilterFlags.land;
@@ -15623,8 +15623,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (detectPhantom)
                     rayfilter |= RayFilterFlags.LSLPhantom;
 
-                Vector3 direction = dir * ( 1/dist);
-
                 if(rayfilter == 0)
                 {
                     list.Add(new LSL_Integer(0));
@@ -15635,6 +15633,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int physcount = 4 * count;
                 if (physcount > 20)
                     physcount = 20;
+
+                Vector3 direction = dir * (1 / dist);
 
                 object physresults;
                 physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);

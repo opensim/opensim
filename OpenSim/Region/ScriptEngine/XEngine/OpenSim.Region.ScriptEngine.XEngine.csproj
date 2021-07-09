@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.ScriptEngine.XEngine</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\OpenSim.csproj" />
+    <ProjectReference Include="..\..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\Shared\OpenSim.Region.ScriptEngine.Shared.csproj" />
+    <ProjectReference Include="..\Shared\Api\Implementation\OpenSim.Region.ScriptEngine.Shared.Api.csproj" />
+    <ProjectReference Include="..\Shared\Api\Runtime\OpenSim.Region.ScriptEngine.Shared.Api.Runtime.csproj" />
+    <ProjectReference Include="..\Shared\CodeTools\OpenSim.Region.ScriptEngine.Shared.CodeTools.csproj" />
+    <ProjectReference Include="..\Shared\Instance\OpenSim.Region.ScriptEngine.Shared.Instance.csproj" />
+    <ProjectReference Include="..\XEngine\Api\Runtime\OpenSim.Region.ScriptEngine.XEngine.Api.Runtime.csproj" />
+    <ProjectReference Include="..\..\..\..\ThirdParty\SmartThreadPool\SmartThreadPool.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Tests\XEngineBasicTests.cs" />
+    <Compile Remove="Tests\XEngineCrossingTests.cs" />
+    <Compile Remove="Tests\XEnginePersistenceTests.cs" />
+    <Compile Remove="Api\Runtime\XEngineScriptBase.cs" />
+    <Compile Remove="Api\Runtime\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>

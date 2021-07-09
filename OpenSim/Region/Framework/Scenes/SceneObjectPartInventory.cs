@@ -1116,6 +1116,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool GetRezReadySceneObjects(TaskInventoryItem item, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight)
         {
+            return GetRezReadySceneObjects(item, item.OwnerID, m_part.GroupID, out objlist, out veclist, out bbox, out offsetHeight);
+        }
+
+        public bool GetRezReadySceneObjects(TaskInventoryItem item, UUID NewOwner, UUID NewGroup, out List<SceneObjectGroup> objlist, out List<Vector3> veclist, out Vector3 bbox, out float offsetHeight)
+        {
             AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
 
             if (null == rezAsset)
@@ -1130,7 +1135,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            bool single = m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
+            m_part.ParentGroup.Scene.GetObjectsToRez(rezAsset.Data, false, out objlist, out veclist, out bbox, out offsetHeight);
 
             for (int i = 0; i < objlist.Count; i++)
             {
@@ -1155,29 +1160,12 @@ namespace OpenSim.Region.Framework.Scenes
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
                 }
-/* reverted to old code till part.ApplyPermissionsOnRez is better reviewed/fixed
-                group.SetGroup(m_part.GroupID, null);
 
-                foreach (SceneObjectPart part in group.Parts)
-                {
-                    // Convert between InventoryItem classes. You can never have too many similar but slightly different classes :)
-                    InventoryItemBase dest = new InventoryItemBase(item.ItemID, item.OwnerID);
-                    dest.BasePermissions = item.BasePermissions;
-                    dest.CurrentPermissions = item.CurrentPermissions;
-                    dest.EveryOnePermissions = item.EveryonePermissions;
-                    dest.GroupPermissions = item.GroupPermissions;
-                    dest.NextPermissions = item.NextPermissions;
-                    dest.Flags = item.Flags;
-
-                    part.ApplyPermissionsOnRez(dest, false, m_part.ParentGroup.Scene);
-                }
-*/
-// old code start
+                group.SetGroup(NewGroup, null);
                 SceneObjectPart[] partList = group.Parts;
 
-                group.SetGroup(m_part.GroupID, null);
-
-                if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
+                bool slamThings = (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0;
+                if ((rootPart.OwnerID != NewOwner) || slamThings)
                 {
                     if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
                     {
@@ -1197,12 +1185,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectPart part in partList)
                 {
-                    if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & (uint)PermissionMask.Slam) != 0 || (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
+                    if ((part.OwnerID != NewOwner))
                     {
                         if(part.GroupID != part.OwnerID)
                             part.LastOwnerID = part.OwnerID;
-                        part.OwnerID = item.OwnerID;
-                        part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                        part.OwnerID = NewOwner;
+                        part.Inventory.ChangeInventoryOwner(NewOwner);
                     }
 
                     if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
@@ -1212,7 +1200,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
                         part.GroupMask = item.GroupPermissions;
                 }
-// old code end
+
                 rootPart.TrimPermissions();
                 group.InvalidateDeepEffectivePerms();
             }

@@ -32,6 +32,7 @@ using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region;
 using OpenSim.Region.CoreModules.Scripting.WorldComm;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
@@ -47,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
     public class CoopTerminationTests : OpenSimTestCase
     {
         private TestScene m_scene;
-        private OpenSim.Region.ScriptEngine.XEngine.XEngine m_xEngine;
+        private ScriptEngine.XEngine.XEngine m_xEngine;
 
         private AutoResetEvent m_chatEvent;
         private AutoResetEvent m_stoppedEvent;
@@ -75,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance.Tests
 
             //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");
 //            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
-            m_xEngine = new OpenSim.Region.ScriptEngine.XEngine.XEngine();
+            m_xEngine = new ScriptEngine.XEngine.XEngine();
             m_xEngine.DebugLevel = 1;
 
             IniConfigSource configSource = new IniConfigSource();

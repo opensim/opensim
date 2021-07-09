@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Capabilities</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Handlers\FetchInventory\FetchInvDescHandler.cs" />
+    <Compile Remove="Handlers\FetchInventory\FetchInvDescServerConnector.cs" />
+    <Compile Remove="Handlers\FetchInventory\FetchInventory2Handler.cs" />
+    <Compile Remove="Handlers\FetchInventory\FetchInventory2ServerConnector.cs" />
+    <Compile Remove="Handlers\GetAssets\GetAssetsHandler.cs" />
+    <Compile Remove="Handlers\GetMesh\GetMeshHandler.cs" />
+    <Compile Remove="Handlers\GetMesh\GetMeshServerConnector.cs" />
+    <Compile Remove="Handlers\GetTexture\GetTextureHandler.cs" />
+    <Compile Remove="Handlers\GetTexture\GetTextureRobustHandler.cs" />
+    <Compile Remove="Handlers\GetTexture\GetTextureServerConnector.cs" />
+    <Compile Remove="Handlers\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Handlers\FetchInventory\Tests\FetchInventory2HandlerTests.cs" />
+    <Compile Remove="Handlers\FetchInventory\Tests\FetchInventoryDescendents2HandlerTests.cs" />
+    <Compile Remove="Handlers\GetTexture\Tests\GetTextureHandlerTests.cs" />
+    <Compile Remove="Handlers\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>

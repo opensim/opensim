@@ -1,0 +1,204 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Framework</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim.Framework</Product>
+    <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="LukeSkywalker.IPNetwork">
+      <HintPath>..\..\bin\LukeSkywalker.IPNetwork.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins.Setup">
+      <HintPath>..\..\bin\Mono.Addins.Setup.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Security">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ThirdParty\SmartThreadPool\SmartThreadPool.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Console\AssemblyInfo.cs" />
+    <Compile Remove="Console\CommandConsole.cs" />
+    <Compile Remove="Console\ConsoleBase.cs" />
+    <Compile Remove="Console\ConsoleDisplayList.cs" />
+    <Compile Remove="Console\ConsoleDisplayTable.cs" />
+    <Compile Remove="Console\ConsoleDisplayUtil.cs" />
+    <Compile Remove="Console\ConsolePluginCommand.cs" />
+    <Compile Remove="Console\ConsoleUtil.cs" />
+    <Compile Remove="Console\LocalConsole.cs" />
+    <Compile Remove="Console\MockConsole.cs" />
+    <Compile Remove="Console\OpenSimAppender.cs" />
+    <Compile Remove="Console\RemoteConsole.cs" />
+    <Compile Remove="Monitoring\AssetStatsCollector.cs" />
+    <Compile Remove="Monitoring\BaseStatsCollector.cs" />
+    <Compile Remove="Monitoring\ChecksManager.cs" />
+    <Compile Remove="Monitoring\JobEngine.cs" />
+    <Compile Remove="Monitoring\MemoryWatchdog.cs" />
+    <Compile Remove="Monitoring\ServerStatsCollector.cs" />
+    <Compile Remove="Monitoring\SimExtraStatsCollector.cs" />
+    <Compile Remove="Monitoring\StatsLogger.cs" />
+    <Compile Remove="Monitoring\StatsManager.cs" />
+    <Compile Remove="Monitoring\UserStatsCollector.cs" />
+    <Compile Remove="Monitoring\Watchdog.cs" />
+    <Compile Remove="Monitoring\WorkManager.cs" />
+    <Compile Remove="Serialization\ArchiveConstants.cs" />
+    <Compile Remove="Serialization\TarArchiveReader.cs" />
+    <Compile Remove="Serialization\TarArchiveWriter.cs" />
+    <Compile Remove="Servers\BaseOpenSimServer.cs" />
+    <Compile Remove="Servers\MainServer.cs" />
+    <Compile Remove="Servers\ServerBase.cs" />
+    <Compile Remove="Tests\AgentCircuitDataTest.cs" />
+    <Compile Remove="Tests\AgentCircuitManagerTests.cs" />
+    <Compile Remove="Tests\AnimationTests.cs" />
+    <Compile Remove="Tests\AssetBaseTest.cs" />
+    <Compile Remove="Tests\CacheTests.cs" />
+    <Compile Remove="Tests\LocationTest.cs" />
+    <Compile Remove="Tests\MundaneFrameworkTests.cs" />
+    <Compile Remove="Tests\PrimeNumberHelperTests.cs" />
+    <Compile Remove="Tests\UtilTest.cs" />
+    <Compile Remove="AssetLoader\Filesystem\AssetLoaderFileSystem.cs" />
+    <Compile Remove="Monitoring\Checks\Check.cs" />
+    <Compile Remove="Monitoring\Interfaces\IPullStatsProvider.cs" />
+    <Compile Remove="Monitoring\Interfaces\IStatsCollector.cs" />
+    <Compile Remove="Monitoring\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Monitoring\Stats\CounterStat.cs" />
+    <Compile Remove="Monitoring\Stats\EventHistogram.cs" />
+    <Compile Remove="Monitoring\Stats\PercentageStat.cs" />
+    <Compile Remove="Monitoring\Stats\Stat.cs" />
+    <Compile Remove="Serialization\External\ExternalRepresentationUtils.cs" />
+    <Compile Remove="Serialization\External\LandDataSerializer.cs" />
+    <Compile Remove="Serialization\External\OspResolver.cs" />
+    <Compile Remove="Serialization\External\RegionSettingsSerializer.cs" />
+    <Compile Remove="Serialization\External\UserInventoryItemSerializer.cs" />
+    <Compile Remove="Serialization\External\UserProfileSerializer.cs" />
+    <Compile Remove="Serialization\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Serialization\Tests\LandDataSerializerTests.cs" />
+    <Compile Remove="Serialization\Tests\RegionSettingsSerializerTests.cs" />
+    <Compile Remove="Servers\HttpServer\BaseHTTPHandler.cs" />
+    <Compile Remove="Servers\HttpServer\BaseHttpServer.cs" />
+    <Compile Remove="Servers\HttpServer\BaseOutputStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\BaseRequestHandler.cs" />
+    <Compile Remove="Servers\HttpServer\BaseStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\BaseStreamHandlerBasicDOSProtector.cs" />
+    <Compile Remove="Servers\HttpServer\BinaryStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\GenericHTTPBasicDOSProtector.cs" />
+    <Compile Remove="Servers\HttpServer\GenericHTTPMethod.cs" />
+    <Compile Remove="Servers\HttpServer\JsonRPCMethod.cs" />
+    <Compile Remove="Servers\HttpServer\JsonRpcRequestManager.cs" />
+    <Compile Remove="Servers\HttpServer\JsonRpcResponse.cs" />
+    <Compile Remove="Servers\HttpServer\LLSDMethod.cs" />
+    <Compile Remove="Servers\HttpServer\LLSDMethodString.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpRequest.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpResponse.cs" />
+    <Compile Remove="Servers\HttpServer\PollServiceEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\PollServiceHttpRequest.cs" />
+    <Compile Remove="Servers\HttpServer\PollServiceRequestManager.cs" />
+    <Compile Remove="Servers\HttpServer\RestDeserialiseHandler.cs" />
+    <Compile Remove="Servers\HttpServer\RestHTTPHandler.cs" />
+    <Compile Remove="Servers\HttpServer\RestMethod.cs" />
+    <Compile Remove="Servers\HttpServer\RestObjectPoster.cs" />
+    <Compile Remove="Servers\HttpServer\RestObjectPosterResponse.cs" />
+    <Compile Remove="Servers\HttpServer\RestSessionService.cs" />
+    <Compile Remove="Servers\HttpServer\RestStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\SimpleBaseRequestHandler.cs" />
+    <Compile Remove="Servers\HttpServer\SimpleBinaryHandler.cs" />
+    <Compile Remove="Servers\HttpServer\SimpleOSDMapHandler.cs" />
+    <Compile Remove="Servers\HttpServer\SimpleStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\WebsocketServerHandler.cs" />
+    <Compile Remove="Servers\HttpServer\XmlRpcBasicDOSProtector.cs" />
+    <Compile Remove="Servers\HttpServer\XmlRpcMethod.cs" />
+    <Compile Remove="Servers\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Servers\Tests\VersionInfoTests.cs" />
+    <Compile Remove="AssetLoader\Filesystem\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Console\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Monitoring\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Serialization\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Servers\HttpServer\Interfaces\IHttpAgentHandler.cs" />
+    <Compile Remove="Servers\HttpServer\Interfaces\IHttpServer.cs" />
+    <Compile Remove="Servers\HttpServer\Interfaces\IOSHttpRequest.cs" />
+    <Compile Remove="Servers\HttpServer\Interfaces\IOSHttpResponse.cs" />
+    <Compile Remove="Servers\HttpServer\Interfaces\IStreamHandler.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\BadRequestException.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\BodyEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ClientAcceptedEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ContextTimeoutManager.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ExceptionEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ExceptionHandler.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ForbiddenException.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HeaderEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpClientContext.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpContextFactory.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpException.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpInput.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpInputItem.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpListener.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpParam.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpRequest.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpRequestParser.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\HttpResponse.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\IHttpClientContext.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\IHttpRequest.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\IHttpRequestParser.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\IHttpResponse.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ILogWriter.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\InternalServerException.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\NotFoundException.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\RequestCookie.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\RequestCookies.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\RequestLineEventArgs.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ResponseCookie.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\ResponseCookies.cs" />
+    <Compile Remove="Servers\HttpServer\OSHttpServer\UnauthorizedException.cs" />
+    <Compile Remove="Servers\HttpServer\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Servers\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="AssetLoader\Filesystem\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Serialization\Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Servers\HttpServer\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Servers\Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>

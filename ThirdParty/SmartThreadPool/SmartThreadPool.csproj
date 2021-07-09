@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>Amib.Threading</AssemblyTitle>
+    <Product>Amib.Threading</Product>
+    <Description>Smart Thread Pool</Description>
+    <AssemblyVersion>2.2.3.0</AssemblyVersion>
+    <FileVersion>2.2.3.0</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

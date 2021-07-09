@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Addin id="OpenSim.Groups">
+  <Dependencies>
+    <Addin id="OpenSim.Region.Framework" />
+  </Dependencies>
+
+  <!--<Extension path = "/Commands">
+    <Command class="HelloWorldAddin.HelloCommand" />
+  </Extension>-->
+</Addin>

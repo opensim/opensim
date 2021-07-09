@@ -1,0 +1,96 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.Framework</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetOpenMail">
+      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Capabilities\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\Framework\Serialization\OpenSim.Framework.Serialization.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Scenes\Tests\EntityManagerTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneGraphTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneManagerTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectBasicTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectCopyTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectCrossingTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectDeRezTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectLinkingTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectResizeTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectScriptTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectSerializationTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectSpatialTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectStatusTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectUndoRedoTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneObjectUserGroupTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceAgentTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceAnimationTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceAutopilotTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceCapabilityTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceCrossingTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceSitTests.cs" />
+    <Compile Remove="Scenes\Tests\ScenePresenceTeleportTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneStatisticsTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneTelehubTests.cs" />
+    <Compile Remove="Scenes\Tests\SceneTests.cs" />
+    <Compile Remove="Scenes\Tests\SharedRegionModuleTests.cs" />
+    <Compile Remove="Scenes\Tests\TaskInventoryTests.cs" />
+    <Compile Remove="Scenes\Tests\UserInventoryTests.cs" />
+    <Compile Remove="Scenes\Tests\UuidGathererTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>

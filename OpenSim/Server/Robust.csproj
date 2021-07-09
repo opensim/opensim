@@ -1,0 +1,119 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Mono.Addins.Setup">
+      <HintPath>..\..\bin\Mono.Addins.Setup.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\Server\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\Server\Handlers\OpenSim.Server.Handlers.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Base\CommandManager.cs" />
+    <Compile Remove="Base\HttpServerBase.cs" />
+    <Compile Remove="Base\ProtocolVersions.cs" />
+    <Compile Remove="Base\ServerUtils.cs" />
+    <Compile Remove="Base\ServicesServerBase.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Base\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Handlers\AgentPreferences\AgentPreferencesServerPostHandler.cs" />
+    <Compile Remove="Handlers\AgentPreferences\AgentPreferencesServiceConnector.cs" />
+    <Compile Remove="Handlers\Asset\AssetServerConnector.cs" />
+    <Compile Remove="Handlers\Asset\AssetServerDeleteHandler.cs" />
+    <Compile Remove="Handlers\Asset\AssetServerGetHandler.cs" />
+    <Compile Remove="Handlers\Asset\AssetServerPostHandler.cs" />
+    <Compile Remove="Handlers\Asset\AssetsExistHandler.cs" />
+    <Compile Remove="Handlers\Authentication\AuthenticationServerConnector.cs" />
+    <Compile Remove="Handlers\Authentication\AuthenticationServerPostHandler.cs" />
+    <Compile Remove="Handlers\Authentication\OpenIdServerConnector.cs" />
+    <Compile Remove="Handlers\Authentication\OpenIdServerHandler.cs" />
+    <Compile Remove="Handlers\Authorization\AuthorizationServerConnector.cs" />
+    <Compile Remove="Handlers\Authorization\AuthorizationServerPostHandler.cs" />
+    <Compile Remove="Handlers\Avatar\AvatarServerConnector.cs" />
+    <Compile Remove="Handlers\Avatar\AvatarServerPostHandler.cs" />
+    <Compile Remove="Handlers\BakedTextures\XBakes.cs" />
+    <Compile Remove="Handlers\BakedTextures\XBakesHandler.cs" />
+    <Compile Remove="Handlers\Base\ServerConnector.cs" />
+    <Compile Remove="Handlers\Base\Utils.cs" />
+    <Compile Remove="Handlers\Estate\EstateDataRobustConnector.cs" />
+    <Compile Remove="Handlers\Freeswitch\FreeswitchServerConnector.cs" />
+    <Compile Remove="Handlers\Friends\FriendServerConnector.cs" />
+    <Compile Remove="Handlers\Friends\FriendsServerPostHandler.cs" />
+    <Compile Remove="Handlers\Grid\GridInfoHandlers.cs" />
+    <Compile Remove="Handlers\Grid\GridInfoServerInConnector.cs" />
+    <Compile Remove="Handlers\Grid\GridServerConnector.cs" />
+    <Compile Remove="Handlers\Grid\GridServerPostHandler.cs" />
+    <Compile Remove="Handlers\GridUser\GridUserServerConnector.cs" />
+    <Compile Remove="Handlers\GridUser\GridUserServerPostHandler.cs" />
+    <Compile Remove="Handlers\Hypergrid\AgentHandlers.cs" />
+    <Compile Remove="Handlers\Hypergrid\GatekeeperServerConnector.cs" />
+    <Compile Remove="Handlers\Hypergrid\HeloServerConnector.cs" />
+    <Compile Remove="Handlers\Hypergrid\HGFriendServerConnector.cs" />
+    <Compile Remove="Handlers\Hypergrid\HGFriendsServerPostHandler.cs" />
+    <Compile Remove="Handlers\Hypergrid\HomeAgentHandlers.cs" />
+    <Compile Remove="Handlers\Hypergrid\HypergridHandlers.cs" />
+    <Compile Remove="Handlers\Hypergrid\InstantMessageServerConnector.cs" />
+    <Compile Remove="Handlers\Hypergrid\UserAgentServerConnector.cs" />
+    <Compile Remove="Handlers\Inventory\InventoryServerInConnector.cs" />
+    <Compile Remove="Handlers\Inventory\InventoryServerMoveItemsHandler.cs" />
+    <Compile Remove="Handlers\Inventory\XInventoryInConnector.cs" />
+    <Compile Remove="Handlers\Land\LandHandlers.cs" />
+    <Compile Remove="Handlers\Land\LandServiceInConnector.cs" />
+    <Compile Remove="Handlers\Login\LLLoginHandlers.cs" />
+    <Compile Remove="Handlers\Login\LLLoginServiceInConnector.cs" />
+    <Compile Remove="Handlers\Map\MapAddServerConnector.cs" />
+    <Compile Remove="Handlers\Map\MapGetServerConnector.cs" />
+    <Compile Remove="Handlers\Map\MapRemoveServerConnector.cs" />
+    <Compile Remove="Handlers\MuteList\MuteListServerConnector.cs" />
+    <Compile Remove="Handlers\MuteList\MuteListServerPostHandler.cs" />
+    <Compile Remove="Handlers\Neighbour\NeighbourHandlers.cs" />
+    <Compile Remove="Handlers\Neighbour\NeighbourServiceInConnector.cs" />
+    <Compile Remove="Handlers\Presence\PresenceServerConnector.cs" />
+    <Compile Remove="Handlers\Presence\PresenceServerPostHandler.cs" />
+    <Compile Remove="Handlers\Profiles\UserProfilesConnector.cs" />
+    <Compile Remove="Handlers\Profiles\UserProfilesHandlers.cs" />
+    <Compile Remove="Handlers\Properties\AssemblyInfo.cs" />
+    <Compile Remove="Handlers\Simulation\AgentHandlers.cs" />
+    <Compile Remove="Handlers\Simulation\ObjectHandlers.cs" />
+    <Compile Remove="Handlers\Simulation\SimulationServiceInConnector.cs" />
+    <Compile Remove="Handlers\Simulation\Utils.cs" />
+    <Compile Remove="Handlers\UserAccounts\UserAccountServerConnector.cs" />
+    <Compile Remove="Handlers\UserAccounts\UserAccountServerPostHandler.cs" />
+    <Compile Remove="Base\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    <Compile Remove="Handlers\Asset\Tests\AssetServerPostHandlerTests.cs" />
+    <Compile Remove="Handlers\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+  </ItemGroup>
+</Project>

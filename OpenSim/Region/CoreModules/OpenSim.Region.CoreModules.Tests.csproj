@@ -1,0 +1,285 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetOpenMail">
+      <HintPath>..\..\..\bin\DotNetOpenMail.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Data\OpenSim.Data.csproj" />
+    <ProjectReference Include="..\..\Data\Null\OpenSim.Data.Null.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\Framework\Serialization\OpenSim.Framework.Serialization.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\OptionalModules\OpenSim.Region.OptionalModules.csproj" />
+    <ProjectReference Include="..\PhysicsModules\SharedBase\OpenSim.Region.PhysicsModules.SharedBase.csproj" />
+    <ProjectReference Include="..\ScriptEngine\Shared\OpenSim.Region.ScriptEngine.Shared.csproj" />
+    <ProjectReference Include="..\ScriptEngine\XEngine\OpenSim.Region.ScriptEngine.XEngine.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="World\Archiver\Tests\Resources\test-sound.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Asset\FlotsamAssetCache.cs" />
+    <Compile Remove="Properties\AddinInfo.cs" />
+    <Compile Remove="Agent\AssetTransaction\AgentAssetsTransactions.cs" />
+    <Compile Remove="Agent\AssetTransaction\AssetTransactionModule.cs" />
+    <Compile Remove="Agent\AssetTransaction\AssetXferUploader.cs" />
+    <Compile Remove="Agent\IPBan\IPBanModule.cs" />
+    <Compile Remove="Agent\IPBan\SceneBanner.cs" />
+    <Compile Remove="Agent\TextureSender\J2KDecoderModule.cs" />
+    <Compile Remove="Agent\Xfer\XferModule.cs" />
+    <Compile Remove="Avatar\Attachments\AttachmentsModule.cs" />
+    <Compile Remove="Avatar\AvatarFactory\AvatarFactoryModule.cs" />
+    <Compile Remove="Avatar\BakedTextures\XBakesModule.cs" />
+    <Compile Remove="Avatar\Chat\ChatModule.cs" />
+    <Compile Remove="Avatar\Combat\CombatModule.cs" />
+    <Compile Remove="Avatar\Commands\UserCommandsModule.cs" />
+    <Compile Remove="Avatar\Dialog\DialogModule.cs" />
+    <Compile Remove="Avatar\Friends\CallingCardModule.cs" />
+    <Compile Remove="Avatar\Friends\FriendsModule.cs" />
+    <Compile Remove="Avatar\Friends\FriendsRequestHandler.cs" />
+    <Compile Remove="Avatar\Friends\HGFriendsModule.cs" />
+    <Compile Remove="Avatar\Friends\HGStatusNotifier.cs" />
+    <Compile Remove="Avatar\Gestures\GesturesModule.cs" />
+    <Compile Remove="Avatar\Gods\GodsModule.cs" />
+    <Compile Remove="Avatar\Groups\GroupsModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\HGMessageTransferModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\InstantMessageModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\MessageTransferModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\MuteListModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\OfflineMessageModule.cs" />
+    <Compile Remove="Avatar\InstantMessage\PresenceModule.cs" />
+    <Compile Remove="Avatar\Lure\HGLureModule.cs" />
+    <Compile Remove="Avatar\Lure\LureModule.cs" />
+    <Compile Remove="Avatar\Profile\BasicProfileModule.cs" />
+    <Compile Remove="Avatar\UserProfiles\UserProfileModule.cs" />
+    <Compile Remove="Framework\Caps\CapabilitiesModule.cs" />
+    <Compile Remove="Framework\DynamicAttributes\DAExampleModule.cs" />
+    <Compile Remove="Framework\DynamicAttributes\DOExampleModule.cs" />
+    <Compile Remove="Framework\EntityTransfer\EntityTransferModule.cs" />
+    <Compile Remove="Framework\EntityTransfer\EntityTransferStateMachine.cs" />
+    <Compile Remove="Framework\EntityTransfer\HGEntityTransferModule.cs" />
+    <Compile Remove="Framework\InterfaceCommander\Command.cs" />
+    <Compile Remove="Framework\InterfaceCommander\Commander.cs" />
+    <Compile Remove="Framework\InventoryAccess\HGAssetMapper.cs" />
+    <Compile Remove="Framework\InventoryAccess\HGInventoryAccessModule.cs" />
+    <Compile Remove="Framework\InventoryAccess\InventoryAccessModule.cs" />
+    <Compile Remove="Framework\Library\LibraryModule.cs" />
+    <Compile Remove="Framework\Library\LocalInventoryService.cs" />
+    <Compile Remove="Framework\Monitoring\IAlert.cs" />
+    <Compile Remove="Framework\Monitoring\IMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\MonitorModule.cs" />
+    <Compile Remove="Framework\Search\BasicSearchModule.cs" />
+    <Compile Remove="Framework\ServiceThrottle\ServiceThrottleModule.cs" />
+    <Compile Remove="Framework\UserManagement\HGUserManagementModule.cs" />
+    <Compile Remove="Framework\UserManagement\UserManagementModule.cs" />
+    <Compile Remove="Scripting\DynamicTexture\DynamicTexture.cs" />
+    <Compile Remove="Scripting\DynamicTexture\DynamicTextureModule.cs" />
+    <Compile Remove="Scripting\EMailModules\EmailModule.cs" />
+    <Compile Remove="Scripting\HttpRequest\ScriptsHttpRequests.cs" />
+    <Compile Remove="Scripting\LoadImageURL\LoadImageURLModule.cs" />
+    <Compile Remove="Scripting\LSLHttp\UrlModule.cs" />
+    <Compile Remove="Scripting\ScriptModuleComms\ScriptModuleCommsModule.cs" />
+    <Compile Remove="Scripting\VectorRender\VectorRenderModule.cs" />
+    <Compile Remove="Scripting\WorldComm\WorldCommModule.cs" />
+    <Compile Remove="Scripting\XMLRPC\XMLRPCModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Asset\AssetServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Authentication\AuthenticationServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Grid\GridInfoServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Hypergrid\HypergridServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Inventory\InventoryServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Land\LandServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Login\LLLoginServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\MapImage\MapImageServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Neighbour\NeighbourServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\Simulation\SimulationServiceInConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsIn\UserProfiles\LocalUserProfilesServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\AgentPreferences\LocalAgentPreferencesServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\AgentPreferences\RemoteAgentPreferencesServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Asset\LocalAssetServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Asset\RegionAssetConnectorModule.cs" />
+    <Compile Remove="ServiceConnectorsOut\Authentication\LocalAuthenticationServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Authentication\RemoteAuthenticationServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Authorization\AuthorizationService.cs" />
+    <Compile Remove="ServiceConnectorsOut\Authorization\LocalAuthorizationServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Authorization\RemoteAuthorizationServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Avatar\LocalAvatarServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Avatar\RemoteAvatarServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Grid\RegionGridServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Grid\RegionInfoCache.cs" />
+    <Compile Remove="ServiceConnectorsOut\GridUser\ActivityDetector.cs" />
+    <Compile Remove="ServiceConnectorsOut\GridUser\LocalGridUserServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\GridUser\RemoteGridUserServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Inventory\HGInventoryBroker.cs" />
+    <Compile Remove="ServiceConnectorsOut\Inventory\InventoryCache.cs" />
+    <Compile Remove="ServiceConnectorsOut\Inventory\LocalInventoryServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Inventory\RemoteXInventoryServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Land\LocalLandServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Land\RemoteLandServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\MapImage\MapImageServiceModule.cs" />
+    <Compile Remove="ServiceConnectorsOut\MuteList\LocalMuteListServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\MuteList\RemoteMuteListServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Neighbour\NeighbourServiceOutConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Presence\BasePresenceServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Presence\LocalPresenceServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Presence\PresenceDetector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Presence\RemotePresenceServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Simulation\LocalSimulationConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\Simulation\RemoteSimulationConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\UserAccounts\LocalUserAccountServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\UserAccounts\RemoteUserAccountServiceConnector.cs" />
+    <Compile Remove="ServiceConnectorsOut\UserAccounts\UserAccountCache.cs" />
+    <Compile Remove="World\Access\AccessModule.cs" />
+    <Compile Remove="World\Archiver\ArchiveHelpers.cs" />
+    <Compile Remove="World\Archiver\ArchiveReadRequest.cs" />
+    <Compile Remove="World\Archiver\ArchiverModule.cs" />
+    <Compile Remove="World\Archiver\ArchiveScenesGroup.cs" />
+    <Compile Remove="World\Archiver\ArchiveWriteRequest.cs" />
+    <Compile Remove="World\Archiver\AssetsArchiver.cs" />
+    <Compile Remove="World\Archiver\AssetsDearchiver.cs" />
+    <Compile Remove="World\Archiver\AssetsRequest.cs" />
+    <Compile Remove="World\Archiver\DearchiveScenesGroup.cs" />
+    <Compile Remove="World\Cloud\CloudModule.cs" />
+    <Compile Remove="World\Estate\EstateConnector.cs" />
+    <Compile Remove="World\Estate\EstateManagementCommands.cs" />
+    <Compile Remove="World\Estate\EstateManagementModule.cs" />
+    <Compile Remove="World\Estate\EstateModule.cs" />
+    <Compile Remove="World\Estate\EstateRequestHandler.cs" />
+    <Compile Remove="World\Estate\EstateTerrainXferHandler.cs" />
+    <Compile Remove="World\Estate\TelehubManager.cs" />
+    <Compile Remove="World\Land\DwellModule.cs" />
+    <Compile Remove="World\Land\LandChannel.cs" />
+    <Compile Remove="World\Land\LandManagementModule.cs" />
+    <Compile Remove="World\Land\LandObject.cs" />
+    <Compile Remove="World\Land\PrimCountModule.cs" />
+    <Compile Remove="World\LegacyMap\IMapTileTerrainRenderer.cs" />
+    <Compile Remove="World\LegacyMap\MapImageModule.cs" />
+    <Compile Remove="World\LegacyMap\ShadedMapTileRenderer.cs" />
+    <Compile Remove="World\LegacyMap\TexturedMapTileRenderer.cs" />
+    <Compile Remove="World\LightShare\EnvironmentModule.cs" />
+    <Compile Remove="World\Permissions\PermissionsModule.cs" />
+    <Compile Remove="World\Region\RegionCommandsModule.cs" />
+    <Compile Remove="World\Region\RestartModule.cs" />
+    <Compile Remove="World\Serialiser\IFileSerialiser.cs" />
+    <Compile Remove="World\Serialiser\SerialiseObjects.cs" />
+    <Compile Remove="World\Serialiser\SerialiserModule.cs" />
+    <Compile Remove="World\Serialiser\SerialiseTerrain.cs" />
+    <Compile Remove="World\Sound\SoundModule.cs" />
+    <Compile Remove="World\Terrain\ITerrainFloodEffect.cs" />
+    <Compile Remove="World\Terrain\ITerrainLoader.cs" />
+    <Compile Remove="World\Terrain\ITerrainModifier.cs" />
+    <Compile Remove="World\Terrain\ITerrainPaintableEffect.cs" />
+    <Compile Remove="World\Terrain\TerrainException.cs" />
+    <Compile Remove="World\Terrain\TerrainModifier.cs" />
+    <Compile Remove="World\Terrain\TerrainModifierData.cs" />
+    <Compile Remove="World\Terrain\TerrainModule.cs" />
+    <Compile Remove="World\Vegetation\VegetationModule.cs" />
+    <Compile Remove="World\Warp3DMap\Perlin.cs" />
+    <Compile Remove="World\Warp3DMap\TerrainSplat.cs" />
+    <Compile Remove="World\Warp3DMap\Warp3DImageModule.cs" />
+    <Compile Remove="World\Wind\WindModule.cs" />
+    <Compile Remove="World\WorldMap\HGWorldMapModule.cs" />
+    <Compile Remove="World\WorldMap\MapSearchModule.cs" />
+    <Compile Remove="World\WorldMap\WorldMapModule.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\InventoryArchiveReadRequest.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\InventoryArchiverException.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\InventoryArchiverModule.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\InventoryArchiveUtils.cs" />
+    <Compile Remove="Avatar\Inventory\Archiver\InventoryArchiveWriteRequest.cs" />
+    <Compile Remove="Avatar\Inventory\Transfer\InventoryTransferModule.cs" />
+    <Compile Remove="Framework\Monitoring\Alerts\DeadlockAlert.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\AgentCountMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\ChildAgentCountMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\EventFrameMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\GCMemoryMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\GenericMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\LandFrameMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\LastFrameTimeMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\ObjectCountMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\PhysicsFrameMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\PhysicsUpdateFrameMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\PWSMemoryMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\ThreadCountMonitor.cs" />
+    <Compile Remove="Framework\Monitoring\Monitors\TotalFrameMonitor.cs" />
+    <Compile Remove="Framework\Statistics\Logging\BinaryLoggingModule.cs" />
+    <Compile Remove="World\Media\Moap\MoapModule.cs" />
+    <Compile Remove="World\Objects\BuySell\BuySellModule.cs" />
+    <Compile Remove="World\Objects\Commands\ObjectCommandsModule.cs" />
+    <Compile Remove="World\Terrain\Effects\ChannelDigger.cs" />
+    <Compile Remove="World\Terrain\Effects\DefaultTerrainGenerator.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\BMP.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\GenericSystemDrawing.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\GIF.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\JPEG.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\LLRAW.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\PNG.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\RAW32.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\Terragen.cs" />
+    <Compile Remove="World\Terrain\FileLoaders\TIFF.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\FlattenArea.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\LowerArea.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\NoiseArea.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\RaiseArea.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\RevertArea.cs" />
+    <Compile Remove="World\Terrain\FloodBrushes\SmoothArea.cs" />
+    <Compile Remove="World\Terrain\Modifiers\FillModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\LowerModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\MaxModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\MinModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\NoiseModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\RaiseModifier.cs" />
+    <Compile Remove="World\Terrain\Modifiers\SmoothModifier.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\FlattenSphere.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\LowerSphere.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\NoiseSphere.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\RaiseSphere.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\RevertSphere.cs" />
+    <Compile Remove="World\Terrain\PaintBrushes\SmoothSphere.cs" />
+    <Compile Remove="World\Wind\Plugins\ConfigurableWind.cs" />
+    <Compile Remove="World\Wind\Plugins\SimpleRandomWind.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="2.7.1" />
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>

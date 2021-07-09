@@ -163,5 +163,918 @@
     <Key Name="fileName" Value="PS_Arms_upward_Legs_together_bento.anim"/>
   </Section>
 
-  
+  <!-- firestorm posestand updated animations. Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks -->
+  <Section Name="PS_T_Pose2">
+    <Key Name="assetID" Value="3481ccd5-cc6c-65ca-c466-dc9df1bf3944"/>
+    <Key Name="name" Value="PS_T_Pose"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_T_Pose_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_Down_Legs_together2">
+    <Key Name="assetID" Value="0b4ee516-5dfd-ef4b-4ab6-300bb44cb045"/>
+    <Key Name="name" Value="PS_Arms_Down_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_Down_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_down_sitting2">
+    <Key Name="assetID" Value="b23c52ef-0b15-11f2-852d-8fbd33417847"/>
+    <Key Name="name" Value="PS_Arms_down_sitting"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_down_sitting_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_downward_Legs_apart2">
+    <Key Name="assetID" Value="e14fee5f-3735-a236-2e26-94f92f366d81"/>
+    <Key Name="name" Value="PS_Arms_downward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_downward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_downward_Legs_together2">
+    <Key Name="assetID" Value="2029d88f-4efc-d72d-18d1-274caf9e9bc0"/>
+    <Key Name="name" Value="PS_Arms_downward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_downward_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_forward_Legs_apart2">
+    <Key Name="assetID" Value="cff5559e-c915-0b5e-d587-f789b5cc299a"/>
+    <Key Name="name" Value="PS_Arms_forward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_forward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_forward_Legs_together2">
+    <Key Name="assetID" Value="23f3163c-183b-dac0-0cdd-7811bcc3b5f1"/>
+    <Key Name="name" Value="PS_Arms_forward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_forward_Legs_together_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_straight_Legs_apart2">
+    <Key Name="assetID" Value="b2f312aa-2c1e-27b8-50fe-a0fa4ff3df4e"/>
+    <Key Name="name" Value="PS_Arms_straight_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_straight_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_straight_sitting2">
+    <Key Name="assetID" Value="c17677b8-9fb2-8d6e-bbbe-219edce64ef4"/>
+    <Key Name="name" Value="PS_Arms_straight_sitting"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_straight_sitting_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_upward_Legs_apart2">
+    <Key Name="assetID" Value="2cfeed25-04f9-caff-f3d2-776cddea5771"/>
+    <Key Name="name" Value="PS_Arms_upward_Legs_apart"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_upward_Legs_apart_bento2.anim"/>
+  </Section>
+  <Section Name="PS_Arms_upward_Legs_together2">
+    <Key Name="assetID" Value="6e83f685-2f53-278f-6758-b529327cce09"/>
+    <Key Name="name" Value="PS_Arms_upward_Legs_together"/>
+    <Key Name="description" Value="Courtesy of Beq Janus and authors Miro Collas and Chaser Zaks"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="fileName" Value="PS_Arms_upward_Legs_together_bento2.anim"/>
+  </Section>
+
+  <!-- default internal animations. -->
+  <Section Name = "express_afraid">
+    <Key Name = "assetID" Value = "6b61c8e8-4747-0d75-12d7-e49ff207a4ca" />
+    <Key Name = "name" Value = "express_afraid" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "6b61c8e8-4747-0d75-12d7-e49ff207a4ca.dat" />
+  </Section>
+  <Section Name = "aim_r_bazooka">
+    <Key Name = "assetID" Value = "b5b4a67d-0aee-30d2-72cd-77b333e932ef" />
+    <Key Name = "name" Value = "aim_r_bazooka" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b5b4a67d-0aee-30d2-72cd-77b333e932ef.dat" />
+  </Section>
+  <Section Name = "aim_l_bow">
+    <Key Name = "assetID" Value = "46bb4359-de38-4ed8-6a22-f1f52fe8f506" />
+    <Key Name = "name" Value = "aim_l_bow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "46bb4359-de38-4ed8-6a22-f1f52fe8f506.dat" />
+  </Section>
+  <Section Name = "aim_r_handgun">
+    <Key Name = "assetID" Value = "3147d815-6338-b932-f011-16b56d9ac18b" />
+    <Key Name = "name" Value = "aim_r_handgun" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "3147d815-6338-b932-f011-16b56d9ac18b.dat" />
+  </Section>
+  <Section Name = "aim_r_rifle">
+    <Key Name = "assetID" Value = "ea633413-8006-180a-c3ba-96dd1d756720" />
+    <Key Name = "name" Value = "aim_r_rifle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "ea633413-8006-180a-c3ba-96dd1d756720.dat" />
+  </Section>
+  <Section Name = "express_anger">
+    <Key Name = "assetID" Value = "5747a48e-073e-c331-f6f3-7c2149613d3e" />
+    <Key Name = "name" Value = "express_anger" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "5747a48e-073e-c331-f6f3-7c2149613d3e.dat" />
+  </Section>
+  <Section Name = "backflip">
+    <Key Name = "assetID" Value = "c4ca6188-9127-4f31-0158-23c4e2f93304" />
+    <Key Name = "name" Value = "backflip" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "c4ca6188-9127-4f31-0158-23c4e2f93304.dat" />
+  </Section>
+  <Section Name = "express_laugh">
+    <Key Name = "assetID" Value = "18b3a4b5-b463-bd48-e4b6-71eaac76c515" />
+    <Key Name = "name" Value = "express_laugh" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "18b3a4b5-b463-bd48-e4b6-71eaac76c515.dat" />
+  </Section>
+  <Section Name = "blowkiss">
+    <Key Name = "assetID" Value = "db84829b-462c-ee83-1e27-9bbee66bd624" />
+    <Key Name = "name" Value = "blowkiss" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "db84829b-462c-ee83-1e27-9bbee66bd624.dat" />
+  </Section>
+  <Section Name = "express_bored">
+    <Key Name = "assetID" Value = "b906c4ba-703b-1940-32a3-0c7f7d791510" />
+    <Key Name = "name" Value = "express_bored" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b906c4ba-703b-1940-32a3-0c7f7d791510.dat" />
+  </Section>
+  <Section Name = "bow">
+    <Key Name = "assetID" Value = "82e99230-c906-1403-4d9c-3889dd98daba" />
+    <Key Name = "name" Value = "bow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "82e99230-c906-1403-4d9c-3889dd98daba.dat" />
+  </Section>
+  <Section Name = "brush">
+    <Key Name = "assetID" Value = "349a3801-54f9-bf2c-3bd0-1ac89772af01" />
+    <Key Name = "name" Value = "brush" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "349a3801-54f9-bf2c-3bd0-1ac89772af01.dat" />
+  </Section>
+  <Section Name = "clap">
+    <Key Name = "assetID" Value = "9b0c1c4e-8ac7-7969-1494-28c874c4f668" />
+    <Key Name = "name" Value = "clap" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "9b0c1c4e-8ac7-7969-1494-28c874c4f668.dat" />
+  </Section>
+  <Section Name = "courtbow">
+    <Key Name = "assetID" Value = "9ba1c942-08be-e43a-fb29-16ad440efc50" />
+    <Key Name = "name" Value = "courtbow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "9ba1c942-08be-e43a-fb29-16ad440efc50.dat" />
+  </Section>
+  <Section Name = "crouch">
+    <Key Name = "assetID" Value = "201f3fdf-cb1f-dbec-201f-7333e328ae7c" />
+    <Key Name = "name" Value = "crouch" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "201f3fdf-cb1f-dbec-201f-7333e328ae7c.dat" />
+  </Section>
+  <Section Name = "crouchwalk">
+    <Key Name = "assetID" Value = "47f5f6fb-22e5-ae44-f871-73aaaf4a6022" />
+    <Key Name = "name" Value = "crouchwalk" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "47f5f6fb-22e5-ae44-f871-73aaaf4a6022.dat" />
+  </Section>
+  <Section Name = "express_cry">
+    <Key Name = "assetID" Value = "92624d3e-1068-f1aa-a5ec-8244585193ed" />
+    <Key Name = "name" Value = "express_cry" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "92624d3e-1068-f1aa-a5ec-8244585193ed.dat" />
+  </Section>
+  <Section Name = "turn_180">
+    <Key Name = "assetID" Value = "038fcec9-5ebd-8a8e-0e2e-6e71a0a1ac53" />
+    <Key Name = "name" Value = "turn_180" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "038fcec9-5ebd-8a8e-0e2e-6e71a0a1ac53.dat" />
+  </Section>
+  <Section Name = "turnback_180">
+    <Key Name = "assetID" Value = "6883a61a-b27b-5914-a61e-dda118a9ee2c" />
+    <Key Name = "name" Value = "turnback_180" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "6883a61a-b27b-5914-a61e-dda118a9ee2c.dat" />
+  </Section>
+  <Section Name = "dance1">
+    <Key Name = "assetID" Value = "b68a3d7c-de9e-fc87-eec8-543d787e5b0d" />
+    <Key Name = "name" Value = "dance1" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b68a3d7c-de9e-fc87-eec8-543d787e5b0d.dat" />
+  </Section>
+  <Section Name = "dance2">
+    <Key Name = "assetID" Value = "928cae18-e31d-76fd-9cc9-2f55160ff818" />
+    <Key Name = "name" Value = "dance2" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "928cae18-e31d-76fd-9cc9-2f55160ff818.dat" />
+  </Section>
+  <Section Name = "dance3">
+    <Key Name = "assetID" Value = "30047778-10ea-1af7-6881-4db7a3a5a114" />
+    <Key Name = "name" Value = "dance3" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "30047778-10ea-1af7-6881-4db7a3a5a114.dat" />
+  </Section>
+  <Section Name = "dance4">
+    <Key Name = "assetID" Value = "951469f4-c7b2-c818-9dee-ad7eea8c30b7" />
+    <Key Name = "name" Value = "dance4" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "951469f4-c7b2-c818-9dee-ad7eea8c30b7.dat" />
+  </Section>
+  <Section Name = "dance5">
+    <Key Name = "assetID" Value = "4bd69a1d-1114-a0b4-625f-84e0a5237155" />
+    <Key Name = "name" Value = "dance5" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "4bd69a1d-1114-a0b4-625f-84e0a5237155.dat" />
+  </Section>
+  <Section Name = "dance6">
+    <Key Name = "assetID" Value = "cd28b69b-9c95-bb78-3f94-8d605ff1bb12" />
+    <Key Name = "name" Value = "dance6" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "cd28b69b-9c95-bb78-3f94-8d605ff1bb12.dat" />
+  </Section>
+  <Section Name = "dance7">
+    <Key Name = "assetID" Value = "a54d8ee2-28bb-80a9-7f0c-7afbbe24a5d6" />
+    <Key Name = "name" Value = "dance7" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "a54d8ee2-28bb-80a9-7f0c-7afbbe24a5d6.dat" />
+  </Section>
+  <Section Name = "dance8">
+    <Key Name = "assetID" Value = "b0dc417c-1f11-af36-2e80-7e7489fa7cdc" />
+    <Key Name = "name" Value = "dance8" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b0dc417c-1f11-af36-2e80-7e7489fa7cdc.dat" />
+  </Section>
+  <Section Name = "dead">
+    <Key Name = "assetID" Value = "57abaae6-1d17-7b1b-5f98-6d11a6411276" />
+    <Key Name = "name" Value = "dead" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "57abaae6-1d17-7b1b-5f98-6d11a6411276.dat" />
+  </Section>
+  <Section Name = "drink">
+    <Key Name = "assetID" Value = "0f86e355-dd31-a61c-fdb0-3a96b9aad05f" />
+    <Key Name = "name" Value = "drink" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0f86e355-dd31-a61c-fdb0-3a96b9aad05f.dat" />
+  </Section>
+  <Section Name = "express_embarrased">
+    <Key Name = "assetID" Value = "514af488-9051-044a-b3fc-d4dbf76377c6" />
+    <Key Name = "name" Value = "express_embarrased" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "514af488-9051-044a-b3fc-d4dbf76377c6.dat" />
+  </Section>
+  <Section Name = "falldown">
+    <Key Name = "assetID" Value = "666307d9-a860-572d-6fd4-c3ab8865c094" />
+    <Key Name = "name" Value = "falldown" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "666307d9-a860-572d-6fd4-c3ab8865c094.dat" />
+  </Section>
+  <Section Name = "female_walk">
+    <Key Name = "assetID" Value = "f5fc7433-043d-e819-8298-f519a119b688" />
+    <Key Name = "name" Value = "female_walk" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f5fc7433-043d-e819-8298-f519a119b688.dat" />
+  </Section>
+  <Section Name = "angry_fingerwag">
+    <Key Name = "assetID" Value = "c1bc7f36-3ba0-d844-f93c-93be945d644f" />
+    <Key Name = "name" Value = "angry_fingerwag" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "c1bc7f36-3ba0-d844-f93c-93be945d644f.dat" />
+  </Section>
+  <Section Name = "fist_pump">
+    <Key Name = "assetID" Value = "7db00ccd-f380-f3ee-439d-61968ec69c8a" />
+    <Key Name = "name" Value = "fist_pump" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "7db00ccd-f380-f3ee-439d-61968ec69c8a.dat" />
+  </Section>
+  <Section Name = "fly">
+    <Key Name = "assetID" Value = "aec4610c-757f-bc4e-c092-c6e9caf18daf" />
+    <Key Name = "name" Value = "fly" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "aec4610c-757f-bc4e-c092-c6e9caf18daf.dat" />
+  </Section>
+  <Section Name = "flyslow">
+    <Key Name = "assetID" Value = "2b5a38b2-5e00-3a97-a495-4c826bc443e6" />
+    <Key Name = "name" Value = "flyslow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "2b5a38b2-5e00-3a97-a495-4c826bc443e6.dat" />
+  </Section>
+  <Section Name = "hello">
+    <Key Name = "assetID" Value = "9b29cd61-c45b-5689-ded2-91756b8d76a9" />
+    <Key Name = "name" Value = "hello" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "9b29cd61-c45b-5689-ded2-91756b8d76a9.dat" />
+  </Section>
+  <Section Name = "hold_r_bazooka">
+    <Key Name = "assetID" Value = "ef62d355-c815-4816-2474-b1acc21094a6" />
+    <Key Name = "name" Value = "hold_r_bazooka" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "ef62d355-c815-4816-2474-b1acc21094a6.dat" />
+  </Section>
+  <Section Name = "hold_l_bow">
+    <Key Name = "assetID" Value = "8b102617-bcba-037b-86c1-b76219f90c88" />
+    <Key Name = "name" Value = "hold_l_bow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "8b102617-bcba-037b-86c1-b76219f90c88.dat" />
+  </Section>
+  <Section Name = "hold_r_handgun">
+    <Key Name = "assetID" Value = "efdc1727-8b8a-c800-4077-975fc27ee2f2" />
+    <Key Name = "name" Value = "hold_r_handgun" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "efdc1727-8b8a-c800-4077-975fc27ee2f2.dat" />
+  </Section>
+  <Section Name = "hold_r_rifle">
+    <Key Name = "assetID" Value = "3d94bad0-c55b-7dcc-8763-033c59405d33" />
+    <Key Name = "name" Value = "hold_r_rifle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "3d94bad0-c55b-7dcc-8763-033c59405d33.dat" />
+  </Section>
+  <Section Name = "hover">
+    <Key Name = "assetID" Value = "4ae8016b-31b9-03bb-c401-b1ea941db41d" />
+    <Key Name = "name" Value = "hover" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "4ae8016b-31b9-03bb-c401-b1ea941db41d.dat" />
+  </Section>
+  <Section Name = "hover_down">
+    <Key Name = "assetID" Value = "20f063ea-8306-2562-0b07-5c853b37b31e" />
+    <Key Name = "name" Value = "hover_down" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "20f063ea-8306-2562-0b07-5c853b37b31e.dat" />
+  </Section>
+  <Section Name = "hover_up">
+    <Key Name = "assetID" Value = "62c5de58-cb33-5743-3d07-9e4cd4352864" />
+    <Key Name = "name" Value = "hover_up" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "62c5de58-cb33-5743-3d07-9e4cd4352864.dat" />
+  </Section>
+  <Section Name = "impatient">
+    <Key Name = "assetID" Value = "5ea3991f-c293-392e-6860-91dfa01278a3" />
+    <Key Name = "name" Value = "impatient" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "5ea3991f-c293-392e-6860-91dfa01278a3.dat" />
+  </Section>
+  <Section Name = "jump">
+    <Key Name = "assetID" Value = "2305bd75-1ca9-b03b-1faa-b176b8a8c49e" />
+    <Key Name = "name" Value = "jump" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "2305bd75-1ca9-b03b-1faa-b176b8a8c49e.dat" />
+  </Section>
+  <Section Name = "jumpforjoy">
+    <Key Name = "assetID" Value = "709ea28e-1573-c023-8bf8-520c8bc637fa" />
+    <Key Name = "name" Value = "jumpforjoy" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "709ea28e-1573-c023-8bf8-520c8bc637fa.dat" />
+  </Section>
+  <Section Name = "kissmybutt">
+    <Key Name = "assetID" Value = "19999406-3a3a-d58c-a2ac-d72e555dcf51" />
+    <Key Name = "name" Value = "kissmybutt" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "19999406-3a3a-d58c-a2ac-d72e555dcf51.dat" />
+  </Section>
+  <Section Name = "land">
+    <Key Name = "assetID" Value = "7a17b059-12b2-41b1-570a-186368b6aa6f" />
+    <Key Name = "name" Value = "land" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "7a17b059-12b2-41b1-570a-186368b6aa6f.dat" />
+  </Section>
+  <Section Name = "laugh_short">
+    <Key Name = "assetID" Value = "ca5b3f14-3194-7a2b-c894-aa699b718d1f" />
+    <Key Name = "name" Value = "laugh_short" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "ca5b3f14-3194-7a2b-c894-aa699b718d1f.dat" />
+  </Section>
+  <Section Name = "soft_land">
+    <Key Name = "assetID" Value = "f4f00d6e-b9fe-9292-f4cb-0ae06ea58d57" />
+    <Key Name = "name" Value = "soft_land" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f4f00d6e-b9fe-9292-f4cb-0ae06ea58d57.dat" />
+  </Section>
+  <Section Name = "motorcycle_sit">
+    <Key Name = "assetID" Value = "08464f78-3a8e-2944-cba5-0c94aff3af29" />
+    <Key Name = "name" Value = "motorcycle_sit" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "08464f78-3a8e-2944-cba5-0c94aff3af29.dat" />
+  </Section>
+  <Section Name = "musclebeach">
+    <Key Name = "assetID" Value = "315c3a41-a5f3-0ba4-27da-f893f769e69b" />
+    <Key Name = "name" Value = "musclebeach" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "315c3a41-a5f3-0ba4-27da-f893f769e69b.dat" />
+  </Section>
+  <Section Name = "no_head">
+    <Key Name = "assetID" Value = "5a977ed9-7f72-44e9-4c4c-6e913df8ae74" />
+    <Key Name = "name" Value = "no_head" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "5a977ed9-7f72-44e9-4c4c-6e913df8ae74.dat" />
+  </Section>
+  <Section Name = "no_unhappy">
+    <Key Name = "assetID" Value = "d83fa0e5-97ed-7eb2-e798-7bd006215cb4" />
+    <Key Name = "name" Value = "no_unhappy" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "d83fa0e5-97ed-7eb2-e798-7bd006215cb4.dat" />
+  </Section>
+  <Section Name = "nyanya">
+    <Key Name = "assetID" Value = "f061723d-0a18-754f-66ee-29a44795a32f" />
+    <Key Name = "name" Value = "nyanya" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f061723d-0a18-754f-66ee-29a44795a32f.dat" />
+  </Section>
+  <Section Name = "punch_onetwo">
+    <Key Name = "assetID" Value = "eefc79be-daae-a239-8c04-890f5d23654a" />
+    <Key Name = "name" Value = "punch_onetwo" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "eefc79be-daae-a239-8c04-890f5d23654a.dat" />
+  </Section>
+  <Section Name = "peace">
+    <Key Name = "assetID" Value = "b312b10e-65ab-a0a4-8b3c-1326ea8e3ed9" />
+    <Key Name = "name" Value = "peace" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b312b10e-65ab-a0a4-8b3c-1326ea8e3ed9.dat" />
+  </Section>
+  <Section Name = "point_me">
+    <Key Name = "assetID" Value = "17c024cc-eef2-f6a0-3527-9869876d7752" />
+    <Key Name = "name" Value = "point_me" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "17c024cc-eef2-f6a0-3527-9869876d7752.dat" />
+  </Section>
+  <Section Name = "point_you">
+    <Key Name = "assetID" Value = "ec952cca-61ef-aa3b-2789-4d1344f016de" />
+    <Key Name = "name" Value = "point_you" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "ec952cca-61ef-aa3b-2789-4d1344f016de.dat" />
+  </Section>
+  <Section Name = "prejump">
+    <Key Name = "assetID" Value = "7a4e87fe-de39-6fcb-6223-024b00893244" />
+    <Key Name = "name" Value = "prejump" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "7a4e87fe-de39-6fcb-6223-024b00893244.dat" />
+  </Section>
+  <Section Name = "punch_l">
+    <Key Name = "assetID" Value = "f3300ad9-3462-1d07-2044-0fef80062da0" />
+    <Key Name = "name" Value = "punch_l" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f3300ad9-3462-1d07-2044-0fef80062da0.dat" />
+  </Section>
+  <Section Name = "punch_r">
+    <Key Name = "assetID" Value = "c8e42d32-7310-6906-c903-cab5d4a34656" />
+    <Key Name = "name" Value = "punch_r" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "c8e42d32-7310-6906-c903-cab5d4a34656.dat" />
+  </Section>
+  <Section Name = "express_repulsed">
+    <Key Name = "assetID" Value = "36f81a92-f076-5893-dc4b-7c3795e487cf" />
+    <Key Name = "name" Value = "express_repulsed" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "36f81a92-f076-5893-dc4b-7c3795e487cf.dat" />
+  </Section>
+  <Section Name = "kick_roundhouse_r">
+    <Key Name = "assetID" Value = "49aea43b-5ac3-8a44-b595-96100af0beda" />
+    <Key Name = "name" Value = "kick_roundhouse_r" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "49aea43b-5ac3-8a44-b595-96100af0beda.dat" />
+  </Section>
+  <Section Name = "rps_countdown">
+    <Key Name = "assetID" Value = "35db4f7e-28c2-6679-cea9-3ee108f7fc7f" />
+    <Key Name = "name" Value = "rps_countdown" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "35db4f7e-28c2-6679-cea9-3ee108f7fc7f.dat" />
+  </Section>
+  <Section Name = "rps_paper">
+    <Key Name = "assetID" Value = "0836b67f-7f7b-f37b-c00a-460dc1521f5a" />
+    <Key Name = "name" Value = "rps_paper" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0836b67f-7f7b-f37b-c00a-460dc1521f5a.dat" />
+  </Section>
+  <Section Name = "rps_rock">
+    <Key Name = "assetID" Value = "42dd95d5-0bc6-6392-f650-777304946c0f" />
+    <Key Name = "name" Value = "rps_rock" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "42dd95d5-0bc6-6392-f650-777304946c0f.dat" />
+  </Section>
+  <Section Name = "rps_scissors">
+    <Key Name = "assetID" Value = "16803a9f-5140-e042-4d7b-d28ba247c325" />
+    <Key Name = "name" Value = "rps_scissors" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "16803a9f-5140-e042-4d7b-d28ba247c325.dat" />
+  </Section>
+  <Section Name = "run">
+    <Key Name = "assetID" Value = "05ddbff8-aaa9-92a1-2b74-8fe77a29b445" />
+    <Key Name = "name" Value = "run" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "05ddbff8-aaa9-92a1-2b74-8fe77a29b445.dat" />
+  </Section>
+  <Section Name = "express_sad">
+    <Key Name = "assetID" Value = "0eb702e2-cc5a-9a88-56a5-661a55c0676a" />
+    <Key Name = "name" Value = "express_sad" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0eb702e2-cc5a-9a88-56a5-661a55c0676a.dat" />
+  </Section>
+  <Section Name = "salute">
+    <Key Name = "assetID" Value = "cd7668a6-7011-d7e2-ead8-fc69eff1a104" />
+    <Key Name = "name" Value = "salute" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "cd7668a6-7011-d7e2-ead8-fc69eff1a104.dat" />
+  </Section>
+  <Section Name = "shoot_l_bow">
+    <Key Name = "assetID" Value = "e04d450d-fdb5-0432-fd68-818aaf5935f8" />
+    <Key Name = "name" Value = "shoot_l_bow" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "e04d450d-fdb5-0432-fd68-818aaf5935f8.dat" />
+  </Section>
+  <Section Name = "shout">
+    <Key Name = "assetID" Value = "6bd01860-4ebd-127a-bb3d-d1427e8e0c42" />
+    <Key Name = "name" Value = "shout" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "6bd01860-4ebd-127a-bb3d-d1427e8e0c42.dat" />
+  </Section>
+  <Section Name = "express_shrug">
+    <Key Name = "assetID" Value = "70ea714f-3a97-d742-1b01-590a8fcd1db5" />
+    <Key Name = "name" Value = "express_shrug" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "70ea714f-3a97-d742-1b01-590a8fcd1db5.dat" />
+  </Section>
+  <Section Name = "sit">
+    <Key Name = "assetID" Value = "1a5fe8ac-a804-8a5d-7cbd-56bd83184568" />
+    <Key Name = "name" Value = "sit" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "1a5fe8ac-a804-8a5d-7cbd-56bd83184568.dat" />
+  </Section>
+  <Section Name = "sit_female">
+    <Key Name = "assetID" Value = "b1709c8d-ecd3-54a1-4f28-d55ac0840782" />
+    <Key Name = "name" Value = "sit_female" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b1709c8d-ecd3-54a1-4f28-d55ac0840782.dat" />
+  </Section>
+  <Section Name = "sit_ground">
+    <Key Name = "assetID" Value = "1c7600d6-661f-b87b-efe2-d7421eb93c86" />
+    <Key Name = "name" Value = "sit_ground" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "1c7600d6-661f-b87b-efe2-d7421eb93c86.dat" />
+  </Section>
+  <Section Name = "sit_ground_constrained">
+    <Key Name = "assetID" Value = "1a2bd58e-87ff-0df8-0b4c-53e047b0bb6e" />
+    <Key Name = "name" Value = "sit_ground_constrained" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "1a2bd58e-87ff-0df8-0b4c-53e047b0bb6e.dat" />
+  </Section>
+  <Section Name = "sit_generic">
+    <Key Name = "assetID" Value = "245f3c54-f1c0-bf2e-811f-46d8eeb386e7" />
+    <Key Name = "name" Value = "sit_generic" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "245f3c54-f1c0-bf2e-811f-46d8eeb386e7.dat" />
+  </Section>
+  <Section Name = "sit_to_stand">
+    <Key Name = "assetID" Value = "a8dee56f-2eae-9e7a-05a2-6fb92b97e21e" />
+    <Key Name = "name" Value = "sit_to_stand" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "a8dee56f-2eae-9e7a-05a2-6fb92b97e21e.dat" />
+  </Section>
+  <Section Name = "sleep">
+    <Key Name = "assetID" Value = "f2bed5f9-9d44-39af-b0cd-257b2a17fe40" />
+    <Key Name = "name" Value = "sleep" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f2bed5f9-9d44-39af-b0cd-257b2a17fe40.dat" />
+  </Section>
+  <Section Name = "smoke_idle">
+    <Key Name = "assetID" Value = "d2f2ee58-8ad1-06c9-d8d3-3827ba31567a" />
+    <Key Name = "name" Value = "smoke_idle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "d2f2ee58-8ad1-06c9-d8d3-3827ba31567a.dat" />
+  </Section>
+  <Section Name = "smoke_inhale">
+    <Key Name = "assetID" Value = "6802d553-49da-0778-9f85-1599a2266526" />
+    <Key Name = "name" Value = "smoke_inhale" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "6802d553-49da-0778-9f85-1599a2266526.dat" />
+  </Section>
+  <Section Name = "smoke_throw_down">
+    <Key Name = "assetID" Value = "0a9fb970-8b44-9114-d3a9-bf69cfe804d6" />
+    <Key Name = "name" Value = "smoke_throw_down" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0a9fb970-8b44-9114-d3a9-bf69cfe804d6.dat" />
+  </Section>
+  <Section Name = "snapshot">
+    <Key Name = "assetID" Value = "eae8905b-271a-99e2-4c0e-31106afd100c" />
+    <Key Name = "name" Value = "snapshot" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "eae8905b-271a-99e2-4c0e-31106afd100c.dat" />
+  </Section>
+  <Section Name = "stand">
+    <Key Name = "assetID" Value = "2408fe9e-df1d-1d7d-f4ff-1384fa7b350f" />
+    <Key Name = "name" Value = "stand" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "2408fe9e-df1d-1d7d-f4ff-1384fa7b350f.dat" />
+  </Section>
+  <Section Name = "standup">
+    <Key Name = "assetID" Value = "3da1d753-028a-5446-24f3-9c9b856d9422" />
+    <Key Name = "name" Value = "standup" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "3da1d753-028a-5446-24f3-9c9b856d9422.dat" />
+  </Section>
+  <Section Name = "stand_1">
+    <Key Name = "assetID" Value = "15468e00-3400-bb66-cecc-646d7c14458e" />
+    <Key Name = "name" Value = "stand_1" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "15468e00-3400-bb66-cecc-646d7c14458e.dat" />
+  </Section>
+  <Section Name = "stand_2">
+    <Key Name = "assetID" Value = "370f3a20-6ca6-9971-848c-9a01bc42ae3c" />
+    <Key Name = "name" Value = "stand_2" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "370f3a20-6ca6-9971-848c-9a01bc42ae3c.dat" />
+  </Section>
+  <Section Name = "stand_3">
+    <Key Name = "assetID" Value = "42b46214-4b44-79ae-deb8-0df61424ff4b" />
+    <Key Name = "name" Value = "stand_3" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "42b46214-4b44-79ae-deb8-0df61424ff4b.dat" />
+  </Section>
+  <Section Name = "stand_4">
+    <Key Name = "assetID" Value = "f22fed8b-a5ed-2c93-64d5-bdd8b93c889f" />
+    <Key Name = "name" Value = "stand_4" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "f22fed8b-a5ed-2c93-64d5-bdd8b93c889f.dat" />
+  </Section>
+
+  <Section Name = "stretch">
+    <Key Name = "assetID" Value = "80700431-74ec-a008-14f8-77575e73693f" />
+    <Key Name = "name" Value = "stretch" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "80700431-74ec-a008-14f8-77575e73693f.dat" />
+  </Section>
+  <Section Name = "stride">
+    <Key Name = "assetID" Value = "1cb562b0-ba21-2202-efb3-30f82cdf9595" />
+    <Key Name = "name" Value = "stride" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "1cb562b0-ba21-2202-efb3-30f82cdf9595.dat" />
+  </Section>
+  <Section Name = "surf">
+    <Key Name = "assetID" Value = "41426836-7437-7e89-025d-0aa4d10f1d69" />
+    <Key Name = "name" Value = "surf" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "41426836-7437-7e89-025d-0aa4d10f1d69.dat" />
+  </Section>
+  <Section Name = "express_surprise">
+    <Key Name = "assetID" Value = "313b9881-4302-73c0-c7d0-0e7a36b6c224" />
+    <Key Name = "name" Value = "express_surprise" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "313b9881-4302-73c0-c7d0-0e7a36b6c224.dat" />
+  </Section>
+  <Section Name = "sword_strike_r">
+    <Key Name = "assetID" Value = "85428680-6bf9-3e64-b489-6f81087c24bd" />
+    <Key Name = "name" Value = "sword_strike_r" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "85428680-6bf9-3e64-b489-6f81087c24bd.dat" />
+  </Section>
+  <Section Name = "talk">
+    <Key Name = "assetID" Value = "5c682a95-6da4-a463-0bf6-0f5b7be129d1" />
+    <Key Name = "name" Value = "talk" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "5c682a95-6da4-a463-0bf6-0f5b7be129d1.dat" />
+  </Section>
+  <Section Name = "angry_tantrum">
+    <Key Name = "assetID" Value = "11000694-3f41-adc2-606b-eee1d66f3724" />
+    <Key Name = "name" Value = "angry_tantrum" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "11000694-3f41-adc2-606b-eee1d66f3724.dat" />
+  </Section>
+  <Section Name = "throw_r">
+    <Key Name = "assetID" Value = "aa134404-7dac-7aca-2cba-435f9db875ca" />
+    <Key Name = "name" Value = "throw_r" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "aa134404-7dac-7aca-2cba-435f9db875ca.dat" />
+  </Section>
+  <Section Name = "tryon_shirt">
+    <Key Name = "assetID" Value = "83ff59fe-2346-f236-9009-4e3608af64c1" />
+    <Key Name = "name" Value = "tryon_shirt" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "83ff59fe-2346-f236-9009-4e3608af64c1.dat" />
+  </Section>
+  <Section Name = "turnleft">
+    <Key Name = "assetID" Value = "56e0ba0d-4a9f-7f27-6117-32f2ebbf6135" />
+    <Key Name = "name" Value = "turnleft" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "56e0ba0d-4a9f-7f27-6117-32f2ebbf6135.dat" />
+  </Section>
+  <Section Name = "turnright">
+    <Key Name = "assetID" Value = "2d6daa51-3192-6794-8e2e-a15f8338ec30" />
+    <Key Name = "name" Value = "turnright" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "2d6daa51-3192-6794-8e2e-a15f8338ec30.dat" />
+  </Section>
+  <Section Name = "type">
+    <Key Name = "assetID" Value = "c541c47f-e0c0-058b-ad1a-d6ae3a4584d9" />
+    <Key Name = "name" Value = "type" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "c541c47f-e0c0-058b-ad1a-d6ae3a4584d9.dat" />
+  </Section>
+  <Section Name = "walk">
+    <Key Name = "assetID" Value = "6ed24bd8-91aa-4b12-ccc7-c97c857ab4e0" />
+    <Key Name = "name" Value = "walk" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "6ed24bd8-91aa-4b12-ccc7-c97c857ab4e0.dat" />
+  </Section>
+  <Section Name = "whisper">
+    <Key Name = "assetID" Value = "7693f268-06c7-ea71-fa21-2b30d6533f8f" />
+    <Key Name = "name" Value = "whisper" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "7693f268-06c7-ea71-fa21-2b30d6533f8f.dat" />
+  </Section>
+  <Section Name = "whistle">
+    <Key Name = "assetID" Value = "b1ed7982-c68e-a982-7561-52a88a5298c0" />
+    <Key Name = "name" Value = "whistle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b1ed7982-c68e-a982-7561-52a88a5298c0.dat" />
+  </Section>
+  <Section Name = "express_wink">
+    <Key Name = "assetID" Value = "869ecdad-a44b-671e-3266-56aef2e3ac2e" />
+    <Key Name = "name" Value = "express_wink" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "869ecdad-a44b-671e-3266-56aef2e3ac2e.dat" />
+  </Section>
+  <Section Name = "wink_hollywood">
+    <Key Name = "assetID" Value = "c0c4030f-c02b-49de-24ba-2331f43fe41c" />
+    <Key Name = "name" Value = "wink_hollywood" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "c0c4030f-c02b-49de-24ba-2331f43fe41c.dat" />
+  </Section>
+  <Section Name = "express_worry">
+    <Key Name = "assetID" Value = "9f496bd2-589a-709f-16cc-69bf7df1d36c" />
+    <Key Name = "name" Value = "express_worry" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "9f496bd2-589a-709f-16cc-69bf7df1d36c.dat" />
+  </Section>
+  <Section Name = "yes_head">
+    <Key Name = "assetID" Value = "15dd911d-be82-2856-26db-27659b142875" />
+    <Key Name = "name" Value = "yes_head" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "15dd911d-be82-2856-26db-27659b142875.dat" />
+  </Section>
+  <Section Name = "yes_happy">
+    <Key Name = "assetID" Value = "b8c8b2a3-9008-1771-3bfc-90924955ab2d" />
+    <Key Name = "name" Value = "yes_happy" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "b8c8b2a3-9008-1771-3bfc-90924955ab2d.dat" />
+  </Section>
+  <Section Name = "yoga_float">
+    <Key Name = "assetID" Value = "42ecd00b-9947-a97c-400a-bbc9174c7aeb" />
+    <Key Name = "name" Value = "yoga_float" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "42ecd00b-9947-a97c-400a-bbc9174c7aeb.dat" />
+  </Section>
+  <Section Name = "walk_new">
+    <Key Name = "assetID" Value = "33339176-7ddc-9397-94a4-bf3403cbc8f5" />
+    <Key Name = "name" Value = "walk_new" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "33339176-7ddc-9397-94a4-bf3403cbc8f5.dat" />
+  </Section>
+  <Section Name = "female_run_new">
+    <Key Name = "assetID" Value = "85995026-eade-5d78-d364-94a64512cb66" />
+    <Key Name = "name" Value = "female_run_new" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "85995026-eade-5d78-d364-94a64512cb66.dat" />
+  </Section>
+  <Section Name = "female_walk_new">
+    <Key Name = "assetID" Value = "d60c41d2-7c24-7074-d3fa-6101cea22a51" />
+    <Key Name = "name" Value = "female_walk_new" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "d60c41d2-7c24-7074-d3fa-6101cea22a51.dat" />
+  </Section>
+  <Section Name = "run_new">
+    <Key Name = "assetID" Value = "1ab1b236-cd08-21e6-0cbc-0d923fc6eca2" />
+    <Key Name = "name" Value = "run_new" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "1ab1b236-cd08-21e6-0cbc-0d923fc6eca2.dat" />
+  </Section>
+  <Section Name = "bento_idle">
+    <Key Name = "assetID" Value = "0e720142-0d4b-cf1d-cae5-277f58299604" />
+    <Key Name = "name" Value = "bento_idle" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "0e720142-0d4b-cf1d-cae5-277f58299604.dat" />
+  </Section>
+  <Section Name = "away">
+    <Key Name = "assetID" Value = "fd037134-85d4-f241-72c6-4f42164fedee" />
+    <Key Name = "name" Value = "away" />
+    <Key Name = "description" Value = "animation" />
+    <Key Name = "assetType" Value = "20" />
+    <Key Name = "fileName" Value = "fd037134-85d4-f241-72c6-4f42164fedee.dat" />
+  </Section>
 </Nini>
