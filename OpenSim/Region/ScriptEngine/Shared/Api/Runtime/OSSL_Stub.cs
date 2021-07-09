@@ -1560,5 +1560,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osAvatarType(sFirstName, sLastName);
         }
+
+        public void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending)
+        {
+            m_OSSL_Functions.osListSortInPlace(src, stride, ascending);
+        }
     }
 }

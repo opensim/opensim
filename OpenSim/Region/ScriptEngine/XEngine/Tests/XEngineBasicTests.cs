@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
         private AutoResetEvent m_chatEvent = new AutoResetEvent(false);
         private OSChatMessage m_osChatMessageReceived;
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             //AppDomain.CurrentDomain.SetData("APPBASE", Environment.CurrentDirectory + "/bin");

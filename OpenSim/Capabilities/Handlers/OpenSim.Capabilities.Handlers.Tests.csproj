@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DotNetOpenId">
+      <HintPath>..\..\..\bin\DotNetOpenId.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing.Common">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\Handlers\OpenSim.Capabilities.Handlers.csproj" />
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\..\Region\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\..\Server\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\..\Server\Handlers\OpenSim.Server.Handlers.csproj" />
+    <ProjectReference Include="..\..\Services\Base\OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="FetchInventory\FetchInvDescHandler.cs" />
+    <Compile Remove="FetchInventory\FetchInvDescServerConnector.cs" />
+    <Compile Remove="FetchInventory\FetchInventory2Handler.cs" />
+    <Compile Remove="FetchInventory\FetchInventory2ServerConnector.cs" />
+    <Compile Remove="GetAssets\GetAssetsHandler.cs" />
+    <Compile Remove="GetMesh\GetMeshHandler.cs" />
+    <Compile Remove="GetMesh\GetMeshServerConnector.cs" />
+    <Compile Remove="GetTexture\GetTextureHandler.cs" />
+    <Compile Remove="GetTexture\GetTextureRobustHandler.cs" />
+    <Compile Remove="GetTexture\GetTextureServerConnector.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="2.7.1" />
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+</Project>

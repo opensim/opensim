@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.ScriptEngine.Shared.CodeTools</AssemblyTitle>
+    <Company>http://opensimulator.org</Company>
+    <Product>OpenSim</Product>
+    <Copyright>OpenSimulator developers</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Tools">
+      <HintPath>..\..\..\..\..\bin\Tools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\OpenSim.Region.ScriptEngine.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Tests\CompilerTest.cs" />
+    <Compile Remove="Tests\CSCodeGeneratorTest.cs" />
+    <Compile Remove="Tests\LSL_EventTests.cs" />
+  </ItemGroup>
+</Project>

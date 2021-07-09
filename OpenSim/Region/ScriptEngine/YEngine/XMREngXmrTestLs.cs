@@ -253,8 +253,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return;
                 i++;
             }
-            OpenSim.Region.ScriptEngine.Shared.EventParams eps =
-                    new OpenSim.Region.ScriptEngine.Shared.EventParams(eventname, paramvalues, zeroDetectParams);
+            ScriptEngine.Shared.EventParams eps =
+                    new ScriptEngine.Shared.EventParams(eventname, paramvalues, zeroDetectParams);
 
              // Scan instance list to find those that match selection criteria.
             if(!Monitor.TryEnter(m_InstancesDict, 100))
@@ -367,7 +367,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(token is TokenName)
             {
-                FieldInfo field = typeof(OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass).GetField(((TokenName)token).val);
+                FieldInfo field = typeof(ScriptEngine.Shared.ScriptBase.ScriptBaseClass).GetField(((TokenName)token).val);
                 if((field != null) && field.IsPublic && (field.IsLiteral || (field.IsStatic && field.IsInitOnly)))
                 {
                     return field.GetValue(null);

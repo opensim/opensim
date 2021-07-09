@@ -2283,7 +2283,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return; // only Return can be called without a client
 
             // this is not as 0.8x code
-            // 0.8x did refuse all operation is not allowed on all objects
+            // 0.8x did refuse all operation if not allowed on all objects
             // this will do it on allowed objects
             // current viewers only ask if all allowed
 
@@ -2626,42 +2626,50 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (fromTaskID == UUID.Zero)
             {
+                // rez from user inventory
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
                     invAccess.RezObject(
                         remoteClient, itemID, rezGroupID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                         RezSelected, RemoveItem, fromTaskID, false);
+                return;
             }
-            else
+
+            // rez from a prim inventory 
+            SceneObjectPart part = GetSceneObjectPart(fromTaskID);
+            if (part == null)
             {
-                SceneObjectPart part = GetSceneObjectPart(fromTaskID);
-                if (part == null)
-                {
-                    m_log.ErrorFormat(
-                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such scene object",
-                        remoteClient.Name, itemID, fromTaskID);
+                m_log.ErrorFormat(
+                    "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such scene object",
+                    remoteClient.Name, itemID, fromTaskID);
 
-                    return;
-                }
-
-                TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
-                if (item == null)
-                {
-                    m_log.ErrorFormat(
-                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such item",
-                        remoteClient.Name, itemID, fromTaskID);
-
-                    return;
-                }
-
-                byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
-                Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
-                Vector3 pos = GetNewRezLocation(
-                        RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                        BypassRayCast, bRayEndIsIntersection, true, scale, false);
-
-                RezObject(part, item, pos, null, Vector3.Zero, 0, false);
+                return;
             }
+
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
+            if (item == null)
+            {
+                m_log.ErrorFormat(
+                    "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such item",
+                    remoteClient.Name, itemID, fromTaskID);
+                return;
+            }
+
+            if(item.InvType != (int)InventoryType.Object)
+            {
+                m_log.ErrorFormat(
+                    "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but item is not a object",
+                    remoteClient.Name, itemID, fromTaskID);
+                return;
+            }
+
+            byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
+            Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
+            Vector3 pos = GetNewRezLocation(
+                    RayStart, RayEnd, RayTargetID, Quaternion.Identity,
+                    BypassRayCast, bRayEndIsIntersection, true, scale, false);
+
+            RezObject(part, item, remoteClient.AgentId, rezGroupID, pos, null, Vector3.Zero, 0, false, true, true);
         }
 
         /// <summary>
@@ -2678,6 +2686,14 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual List<SceneObjectGroup> RezObject(SceneObjectPart sourcePart, TaskInventoryItem item,
                 Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot, bool rezSelected = false)
         {
+            return RezObject(sourcePart, item, item.OwnerID, sourcePart.GroupID,
+                  pos, rot, vel, param, atRoot, rezSelected, false);
+        }
+
+        public virtual List<SceneObjectGroup> RezObject(SceneObjectPart sourcePart, TaskInventoryItem item,
+                UUID newowner, UUID newgroup,
+                Vector3 pos, Quaternion? rot, Vector3 vel, int param, bool atRoot, bool rezSelected, bool humanRez)
+        {
             if (null == item)
                 return null;
 
@@ -2686,7 +2702,7 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 bbox;
             float offsetHeight;
 
-            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist,out bbox, out offsetHeight);
+            bool success = sourcePart.Inventory.GetRezReadySceneObjects(item, newowner, newgroup, out objlist, out veclist,out bbox, out offsetHeight);
 
             if (!success)
                 return null;
@@ -2695,7 +2711,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectGroup group in objlist)
                 totalPrims += group.PrimCount;
 
-            if (!Permissions.CanRezObject(totalPrims, item.OwnerID, pos))
+            if (!Permissions.CanRezObject(totalPrims, newowner, pos))
                 return null;
 
             if (!Permissions.BypassPermissions())
@@ -2759,6 +2775,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            UUID rezzerID;
+            if(humanRez)
+                rezzerID = newowner;
+            else
+                rezzerID = sourcePart.UUID;
+
             for (int i = 0; i < objlist.Count; i++)
             {
                 SceneObjectGroup group = objlist[i];
@@ -2774,7 +2796,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group.RootPart.Shape.LastAttachPoint = (byte)group.AttachmentPoint;
                 }
 
-                group.RezzerID = sourcePart.UUID;
+                group.RezzerID = rezzerID;
 
                 if (rezSelected)
                 {
@@ -2794,11 +2816,12 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewSceneObject(group, true, curpos, crot, vel);
                 }
 
-
                 // We can only call this after adding the scene object, since the scene object references the scene
                 // to find out if scripts should be activated at all.
                 group.InvalidateEffectivePerms();
                 group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
+                if(humanRez)
+                    group.ResumeScripts();
 
                 group.ScheduleGroupForFullUpdate();
             }

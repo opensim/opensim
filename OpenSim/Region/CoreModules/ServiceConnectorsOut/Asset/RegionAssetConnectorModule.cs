@@ -305,8 +305,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return null;
                     }
                     if(StoreOnLocalGrid)
-                        Store(asset);
-                    else if (m_Cache != null)
+                        StoreLocal(asset);
+                    if (m_Cache != null)
                         m_Cache.Cache(asset);
                 }
                 else if (m_Cache != null)
@@ -345,6 +345,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (asset == null)
             {
+                if (id.Equals(Util.UUIDZeroString))
+                    return false;
+
                 lock (m_AssetHandlers)
                 {
                     AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate (AssetBase _asset) { callBack(id, sender, _asset); });

@@ -1,0 +1,116 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="XMLRPC">
+      <HintPath>..\..\..\bin\XMLRPC.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\Framework\Console\OpenSim.Framework.Console.csproj" />
+    <ProjectReference Include="..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\Base\OpenSim.Server.Base.csproj" />
+    <ProjectReference Include="..\Handlers\OpenSim.Server.Handlers.csproj" />
+    <ProjectReference Include="..\..\Services\AssetService\OpenSim.Services.AssetService.csproj" />
+    <ProjectReference Include="..\..\Services\Base\OpenSim.Services.Base.csproj" />
+    <ProjectReference Include="..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Services\UserAccountService\OpenSim.Services.UserAccountService.csproj" />
+    <ProjectReference Include="..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="AgentPreferences\AgentPreferencesServerPostHandler.cs" />
+    <Compile Remove="AgentPreferences\AgentPreferencesServiceConnector.cs" />
+    <Compile Remove="Asset\AssetServerConnector.cs" />
+    <Compile Remove="Asset\AssetServerDeleteHandler.cs" />
+    <Compile Remove="Asset\AssetServerGetHandler.cs" />
+    <Compile Remove="Asset\AssetServerPostHandler.cs" />
+    <Compile Remove="Asset\AssetsExistHandler.cs" />
+    <Compile Remove="Authentication\AuthenticationServerConnector.cs" />
+    <Compile Remove="Authentication\AuthenticationServerPostHandler.cs" />
+    <Compile Remove="Authentication\OpenIdServerConnector.cs" />
+    <Compile Remove="Authentication\OpenIdServerHandler.cs" />
+    <Compile Remove="Authorization\AuthorizationServerConnector.cs" />
+    <Compile Remove="Authorization\AuthorizationServerPostHandler.cs" />
+    <Compile Remove="Avatar\AvatarServerConnector.cs" />
+    <Compile Remove="Avatar\AvatarServerPostHandler.cs" />
+    <Compile Remove="BakedTextures\XBakes.cs" />
+    <Compile Remove="BakedTextures\XBakesHandler.cs" />
+    <Compile Remove="Base\ServerConnector.cs" />
+    <Compile Remove="Base\Utils.cs" />
+    <Compile Remove="Estate\EstateDataRobustConnector.cs" />
+    <Compile Remove="Freeswitch\FreeswitchServerConnector.cs" />
+    <Compile Remove="Friends\FriendServerConnector.cs" />
+    <Compile Remove="Friends\FriendsServerPostHandler.cs" />
+    <Compile Remove="Grid\GridInfoHandlers.cs" />
+    <Compile Remove="Grid\GridInfoServerInConnector.cs" />
+    <Compile Remove="Grid\GridServerConnector.cs" />
+    <Compile Remove="Grid\GridServerPostHandler.cs" />
+    <Compile Remove="GridUser\GridUserServerConnector.cs" />
+    <Compile Remove="GridUser\GridUserServerPostHandler.cs" />
+    <Compile Remove="Hypergrid\AgentHandlers.cs" />
+    <Compile Remove="Hypergrid\GatekeeperServerConnector.cs" />
+    <Compile Remove="Hypergrid\HeloServerConnector.cs" />
+    <Compile Remove="Hypergrid\HGFriendServerConnector.cs" />
+    <Compile Remove="Hypergrid\HGFriendsServerPostHandler.cs" />
+    <Compile Remove="Hypergrid\HomeAgentHandlers.cs" />
+    <Compile Remove="Hypergrid\HypergridHandlers.cs" />
+    <Compile Remove="Hypergrid\InstantMessageServerConnector.cs" />
+    <Compile Remove="Hypergrid\UserAgentServerConnector.cs" />
+    <Compile Remove="Inventory\InventoryServerInConnector.cs" />
+    <Compile Remove="Inventory\InventoryServerMoveItemsHandler.cs" />
+    <Compile Remove="Inventory\XInventoryInConnector.cs" />
+    <Compile Remove="Land\LandHandlers.cs" />
+    <Compile Remove="Land\LandServiceInConnector.cs" />
+    <Compile Remove="Login\LLLoginHandlers.cs" />
+    <Compile Remove="Login\LLLoginServiceInConnector.cs" />
+    <Compile Remove="Map\MapAddServerConnector.cs" />
+    <Compile Remove="Map\MapGetServerConnector.cs" />
+    <Compile Remove="Map\MapRemoveServerConnector.cs" />
+    <Compile Remove="MuteList\MuteListServerConnector.cs" />
+    <Compile Remove="MuteList\MuteListServerPostHandler.cs" />
+    <Compile Remove="Neighbour\NeighbourHandlers.cs" />
+    <Compile Remove="Neighbour\NeighbourServiceInConnector.cs" />
+    <Compile Remove="Presence\PresenceServerConnector.cs" />
+    <Compile Remove="Presence\PresenceServerPostHandler.cs" />
+    <Compile Remove="Profiles\UserProfilesConnector.cs" />
+    <Compile Remove="Profiles\UserProfilesHandlers.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Simulation\AgentHandlers.cs" />
+    <Compile Remove="Simulation\ObjectHandlers.cs" />
+    <Compile Remove="Simulation\SimulationServiceInConnector.cs" />
+    <Compile Remove="Simulation\Utils.cs" />
+    <Compile Remove="UserAccounts\UserAccountServerConnector.cs" />
+    <Compile Remove="UserAccounts\UserAccountServerPostHandler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="2.7.1" />
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+  </ItemGroup>
+</Project>

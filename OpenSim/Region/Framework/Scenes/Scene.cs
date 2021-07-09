@@ -1068,9 +1068,9 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     string tile = Util.GetConfigVarFromSections<string>(
-                            config, "MaptileStaticUUID", possibleMapConfigSections, UUID.Zero.ToString());
+                            config, "MaptileStaticUUID", possibleMapConfigSections, Util.UUIDZeroString);
 
-                    if (tile != UUID.Zero.ToString() && UUID.TryParse(tile, out UUID tileID))
+                    if (tile != Util.UUIDZeroString && UUID.TryParse(tile, out UUID tileID))
                     {
                         RegionInfo.RegionSettings.TerrainImageID = tileID;
                     }
@@ -1094,11 +1094,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                grant = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, String.Empty);
+                grant = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
                 // Deal with the mess of someone having used a different word at some point
-                if (grant == String.Empty)
-                    grant = Util.GetConfigVarFromSections<string>(
-                            config, "BannedClients", possibleAccessControlConfigSections, String.Empty);
+                if (string.IsNullOrWhiteSpace(grant))
+                    grant = Util.GetConfigVarFromSections<string>(config, "BannedClients", possibleAccessControlConfigSections, string.Empty);
 
                 if (grant.Length > 0)
                 {

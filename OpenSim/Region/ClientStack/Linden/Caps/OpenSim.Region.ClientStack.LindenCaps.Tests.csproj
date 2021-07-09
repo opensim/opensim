@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\..\..\..\bin\log4net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Nini">
+      <HintPath>..\..\..\..\..\bin\Nini.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse">
+      <HintPath>..\..\..\..\..\bin\OpenMetaverse.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData">
+      <HintPath>..\..\..\..\..\bin\OpenMetaverse.StructuredData.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes">
+      <HintPath>..\..\..\..\..\bin\OpenMetaverseTypes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Capabilities\OpenSim.Capabilities.csproj" />
+    <ProjectReference Include="..\..\..\..\Framework\OpenSim.Framework.csproj" />
+    <ProjectReference Include="..\..\..\..\Framework\Monitoring\OpenSim.Framework.Monitoring.csproj" />
+    <ProjectReference Include="..\..\..\..\Framework\Servers\OpenSim.Framework.Servers.csproj" />
+    <ProjectReference Include="..\..\..\..\Framework\Servers\HttpServer\OpenSim.Framework.Servers.HttpServer.csproj" />
+    <ProjectReference Include="..\Caps\OpenSim.Region.ClientStack.LindenCaps.csproj" />
+    <ProjectReference Include="..\UDP\OpenSim.Region.ClientStack.LindenUDP.csproj" />
+    <ProjectReference Include="..\..\..\CoreModules\OpenSim.Region.CoreModules.csproj" />
+    <ProjectReference Include="..\..\..\Framework\OpenSim.Region.Framework.csproj" />
+    <ProjectReference Include="..\..\..\OptionalModules\OpenSim.Region.OptionalModules.csproj" />
+    <ProjectReference Include="..\..\..\..\Services\Interfaces\OpenSim.Services.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\..\Tests\Common\OpenSim.Tests.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="AgentPreferencesModule.cs" />
+    <Compile Remove="AvatarPickerSearchModule.cs" />
+    <Compile Remove="EstateAccess.cs" />
+    <Compile Remove="EstateChangeInfo.cs" />
+    <Compile Remove="FetchInventory2Module.cs" />
+    <Compile Remove="GetAssetsModule.cs" />
+    <Compile Remove="MeshUploadFlagModule.cs" />
+    <Compile Remove="RegionConsoleModule.cs" />
+    <Compile Remove="ServerReleaseNotesModule.cs" />
+    <Compile Remove="SimulatorFeaturesModule.cs" />
+    <Compile Remove="UploadBakedTextureModule.cs" />
+    <Compile Remove="WebFetchInvDescModule.cs" />
+    <Compile Remove="BunchOfCaps\BunchOfCaps.cs" />
+    <Compile Remove="BunchOfCaps\BunchOfCapsModule.cs" />
+    <Compile Remove="BunchOfCaps\MeshCost.cs" />
+    <Compile Remove="BunchOfCaps\UpdateItemAsset.cs" />
+    <Compile Remove="EventQueue\EventQueueGetHandlers.cs" />
+    <Compile Remove="EventQueue\EventQueueGetModule.cs" />
+    <Compile Remove="EventQueue\EventQueueHelper.cs" />
+    <Compile Remove="ObjectCaps\ObjectAdd.cs" />
+    <Compile Remove="ObjectCaps\UploadObjectAssetModule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NUnitTestAdapter" Version="2.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+  </ItemGroup>
+</Project>

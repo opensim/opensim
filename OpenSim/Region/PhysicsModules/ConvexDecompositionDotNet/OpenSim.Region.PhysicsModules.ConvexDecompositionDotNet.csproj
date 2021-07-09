@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyTitle>OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet</AssemblyTitle>
+    <Company>Intel Corporation</Company>
+    <Product>OpenSim</Product>
+    <Copyright>Copyright © Intel Corporation 2010</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Addins">
+      <HintPath>..\..\..\..\bin\Mono.Addins.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Framework\OpenSim.Framework.csproj" />
+  </ItemGroup>
+</Project>

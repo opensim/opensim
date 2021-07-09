@@ -197,6 +197,8 @@ namespace OpenSim.Framework
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
 
+        public static readonly string UUIDZeroString = UUID.Zero.ToString();
+
         public static bool IsPlatformMono
         {
             get { return Type.GetType("Mono.Runtime") != null; }
