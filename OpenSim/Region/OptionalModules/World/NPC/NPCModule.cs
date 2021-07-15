@@ -46,15 +46,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "NPCModule")]
     public class NPCModule : INPCModule, ISharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, NPCAvatar> m_avatars =
-                new Dictionary<UUID, NPCAvatar>();
-
-
-
+        private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
         private NPCOptionsFlags m_NPCOptionFlags;
+
         public NPCOptionsFlags NPCOptionFlags {get {return m_NPCOptionFlags;}}
 
         public bool Enabled { get; private set; }
@@ -124,8 +120,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 return m_avatars.ContainsKey(agentId);
         }
 
-        public bool SetNPCAppearance(UUID agentId,
-                AvatarAppearance appearance, Scene scene)
+        public bool SetNPCAppearance(UUID agentId, AvatarAppearance appearance, Scene scene)
         {
             ScenePresence npc = scene.GetScenePresence(agentId);
             if (npc == null || npc.IsChildAgent)
@@ -149,8 +144,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (scene.AttachmentsModule != null)
                 scene.AttachmentsModule.RezAttachments(npc);
 
-            IAvatarFactoryModule module =
-                    scene.RequestModuleInterface<IAvatarFactoryModule>();
+            IAvatarFactoryModule module = scene.RequestModuleInterface<IAvatarFactoryModule>();
             module.SendAppearance(npc.UUID);
 
             return true;
