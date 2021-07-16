@@ -313,10 +313,10 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     if (m_FileCacheEnabled && m_assetFileWriteWorker == null)
                     {
-                        m_assetFileWriteWorker = new ObjectJobEngine(ProcessWrites, "FloatsamCacheWriter", 1000 , 1);
+                        m_assetFileWriteWorker = new ObjectJobEngine(ProcessWrites, "FloatsamCacheWriter", 1000, 1);
                     }
 
-                    if(!string.IsNullOrWhiteSpace(m_assetLoader) && scene.RegionInfo.RegionID == m_Scenes[0].RegionInfo.RegionID)
+                    if (!string.IsNullOrWhiteSpace(m_assetLoader) && scene.RegionInfo.RegionID == m_Scenes[0].RegionInfo.RegionID)
                     {
                         IAssetLoader assetLoader = ServerUtils.LoadPlugin<IAssetLoader>(m_assetLoader, new object[] { });
                         if (assetLoader != null)
@@ -341,11 +341,11 @@ namespace OpenSim.Region.CoreModules.Asset
             try
             {
                 WriteAssetInfo wai = (WriteAssetInfo)o;
-                WriteFileCache(wai.filename,wai.asset,wai.replace);
+                WriteFileCache(wai.filename, wai.asset, wai.replace);
                 wai.asset = null;
                 Thread.Yield();
             }
-            catch{ }
+            catch { }
         }
 
         ////////////////////////////////////////////////////////////
@@ -639,6 +639,48 @@ namespace OpenSim.Region.CoreModules.Asset
                     UpdateWeakReference(id,asset);
                     if (m_MemoryCacheEnabled)
                         UpdateMemoryCache(id, asset);
+                }
+            }
+            return true;
+        }
+
+        public bool GetFromMemory(string id, out AssetBase asset)
+        {
+            asset = null;
+
+            m_Requests++;
+
+            if (id.Equals(Util.UUIDZeroString))
+                return false;
+
+            if (m_negativeCache.ContainsKey(id))
+                return false;
+
+            asset = GetFromWeakReference(id);
+            if (asset != null)
+            {
+                if (m_updateFileTimeOnCacheHit)
+                {
+                    string filename = GetFileName(id);
+                    UpdateFileLastAccessTime(filename);
+                }
+                if (m_MemoryCacheEnabled)
+                    UpdateMemoryCache(id, asset);
+                return true;
+            }
+
+            if (m_MemoryCacheEnabled)
+            {
+                asset = GetFromMemoryCache(id);
+                if (asset != null)
+                {
+                    UpdateWeakReference(id, asset);
+                    if (m_updateFileTimeOnCacheHit)
+                    {
+                        string filename = GetFileName(id);
+                        UpdateFileLastAccessTime(filename);
+                    }
+                    return true;
                 }
             }
             return true;
@@ -1576,6 +1618,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 return false;
             handler(id, sender, asset);
             return true;
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
         }
 
         public bool[] AssetsExist(string[] ids)

@@ -267,6 +267,46 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             });
         }
 
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            if (m_Cache != null)
+            {
+                AssetBase asset;
+                if (!m_Cache.GetFromMemory(id, out asset))
+                {
+                    callBack(null);
+                    return;
+                }
+
+                if (asset != null)
+                {
+                    callBack(asset);
+                    return;
+                }
+            }
+
+            if (id.Equals(Util.UUIDZeroString))
+            {
+                callBack(null);
+                return;
+            }
+
+            m_AssetService.Get(id, null, delegate (string assetID, object s, AssetBase a)
+            {
+                if (m_Cache != null)
+                {
+                    if (a == null)
+                        m_Cache.CacheNegative(assetID);
+                    else
+                        m_Cache.Cache(a);
+                }
+                //if (null == a)
+                //.   m_log.WarnFormat("[LOCAL ASSET SERVICES CONNECTOR]: Could not asynchronously find asset with id {0}", id);
+
+                Util.FireAndForget(o => callBack(a), null, "LocalAssetServiceConnector.GotFromServiceCallback");
+            });
+        }
+
         public bool[] AssetsExist(string[] ids)
         {
             return m_AssetService.AssetsExist(ids);
