@@ -51,6 +51,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private readonly Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
         private NPCOptionsFlags m_NPCOptionFlags;
 
+        private int m_MaxNumberNPCperScene = 40;
+
         public NPCOptionsFlags NPCOptionFlags {get {return m_NPCOptionFlags;}}
 
         public bool Enabled { get; private set; }
@@ -74,6 +76,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
                 if(config.GetBoolean("NoNPCGroup", true))
                     m_NPCOptionFlags |= NPCOptionsFlags.NoNPCGroup;
+
+                m_MaxNumberNPCperScene = config.GetInt("MaxNumberNPCsPerScene", m_MaxNumberNPCperScene);
             }
         }
 
@@ -161,6 +165,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 Vector3 position, UUID agentID, UUID owner, string groupTitle, UUID groupID, bool senseAsAgent, Scene scene,
                 AvatarAppearance appearance)
         {
+            if(m_MaxNumberNPCperScene > 0)
+            {
+                if(scene.GetRootNPCCount() >= m_MaxNumberNPCperScene)
+                    return UUID.Zero;
+            }
+
             NPCAvatar npcAvatar = null;
             string born = DateTime.UtcNow.ToString();
 
