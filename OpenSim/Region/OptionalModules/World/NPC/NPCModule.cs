@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
+        private readonly Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
         private NPCOptionsFlags m_NPCOptionFlags;
 
         public NPCOptionsFlags NPCOptionFlags {get {return m_NPCOptionFlags;}}

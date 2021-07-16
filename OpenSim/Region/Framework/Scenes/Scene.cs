@@ -5202,9 +5202,9 @@ Label_GroupsDone:
 
         #region SceneGraph wrapper methods
 
-        public void SwapRootAgentCount(bool rootChildChildRootTF)
+        public void SwapRootAgentCount(bool rootChildChildRootTF, bool isnpc)
         {
-            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF);
+            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF, isnpc);
         }
 
         public void AddPhysicalPrim(int num)
@@ -6167,9 +6167,7 @@ Environment.Exit(1);
                 return false;
             }
 
-            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
-            // However, the long term fix is to make sure root agent count is always accurate.
-            m_sceneGraph.RecalculateStats();
+
 
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
@@ -6222,7 +6220,12 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
+            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
+            // However, the long term fix is to make sure root agent count is always accurate.
+            m_sceneGraph.RecalculateStats();
             int num = m_sceneGraph.GetRootAgentCount();
+            num -= m_sceneGraph.GetRootNPCCount();
+
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 reason = "The region is full";
