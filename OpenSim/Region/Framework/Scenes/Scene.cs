@@ -5202,9 +5202,9 @@ Label_GroupsDone:
 
         #region SceneGraph wrapper methods
 
-        public void SwapRootAgentCount(bool rootChildChildRootTF, bool isnpc)
+        public void SwapRootAgentCount(bool direction_ChildToRoot, bool isnpc)
         {
-            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF, isnpc);
+            m_sceneGraph.SwapRootChildAgent(direction_ChildToRoot, isnpc);
         }
 
         public void AddPhysicalPrim(int num)
