@@ -5222,6 +5222,11 @@ Label_GroupsDone:
             return m_sceneGraph.GetRootAgentCount();
         }
 
+        public int GetRootNPCCount()
+        {
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
         public int GetChildAgentCount()
         {
             return m_sceneGraph.GetChildAgentCount();
