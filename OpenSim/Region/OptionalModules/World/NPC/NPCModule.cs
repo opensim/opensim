@@ -61,7 +61,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
             IConfig config = source.Configs["NPC"];
 
-            Enabled = (config != null && config.GetBoolean("Enabled", false));
+            Enabled = (config != null && config.GetBoolean("Enabled", true));
             m_NPCOptionFlags = NPCOptionsFlags.None;
             if(Enabled)
             {
