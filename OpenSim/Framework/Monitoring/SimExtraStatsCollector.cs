@@ -493,20 +493,13 @@ Asset service request failures: {3}" + Environment.NewLine,
             args["Version"] = OSD.FromString (version);
 
             args["FrameDilatn"] = OSD.FromString(String.Format("{0:0.##}", m_frameDilation));
-            args["Logging in Users"] = OSD.FromString(String.Format("{0:0.##}",
-                m_usersLoggingIn));
-            args["GeoPrims"] = OSD.FromString(String.Format("{0:0.##}",
-                m_totalGeoPrims));
-            args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}",
-                m_totalMeshes));
-            args["XEngine Thread Count"] = OSD.FromString(String.Format("{0:0.##}",
-                m_inUseThreads));
-            args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}",
-                Util.GetSmartThreadPoolInfo().InUseThreads));
-            args["System Thread Count"] = OSD.FromString(String.Format(
-                "{0:0.##}", numberThreadsRunning));
-            args["ProcMem"] = OSD.FromString(String.Format("{0:#,###,###.##}",
-                memUsage));
+            args["Logging in Users"] = OSD.FromString(String.Format("{0:0.##}", m_usersLoggingIn));
+            args["GeoPrims"] = OSD.FromString(String.Format("{0:0.##}", m_totalGeoPrims));
+            args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}", m_totalMeshes));
+            args["XEngine Thread Count"] = OSD.FromString(String.Format("{0:0.##}", m_inUseThreads));
+            args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}", Util.GetSmartThreadPoolInfo().InUseThreads));
+            args["System Thread Count"] = OSD.FromString(String.Format("{0:0.##}", numberThreadsRunning));
+            args["ProcMem"] = OSD.FromString(String.Format("{0:0.##}", memUsage));
 
             return args;
         }
