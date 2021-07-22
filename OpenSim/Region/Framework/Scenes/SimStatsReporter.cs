@@ -44,23 +44,14 @@ namespace OpenSim.Region.Framework.Scenes
     /// </remarks>
     public class SimStatsReporter
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        public const string LastReportedObjectUpdateStatName = "LastReportedObjectUpdates";
-        public const string SlowFramesStatName = "SlowFrames";
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate void SendStatResult(SimStats stats);
-
-        public delegate void YourStatsAreWrong();
-
         public event SendStatResult OnSendStatsResult;
 
-        public event YourStatsAreWrong OnStatsIncorrect;
-
-        private SendStatResult handlerSendStatResult;
-
+        public delegate void YourStatsAreWrong();
         private YourStatsAreWrong handlerStatsIncorrect;
+        public event YourStatsAreWrong OnStatsIncorrect;
 
         // size of LastReportedSimFPS with extra stats.
         private const int m_statisticExtraArraySize = (int)(StatsIndex.ArraySize - StatsIndex.ViewerArraySize);
@@ -441,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     lock (m_lastReportedExtraSimStats)
                     {
-                        m_lastReportedExtraSimStats[LastReportedObjectUpdateStatName] = m_objectUpdates * updateTimeFactor;
+                        m_lastReportedExtraSimStats["LastReportedObjectUpdates"] = m_objectUpdates * updateTimeFactor;
                         m_lastReportedExtraSimStats[SlowFramesStat.ShortName] = (float)SlowFramesStat.Value;
 
                         Dictionary<string, float> physicsStats = m_scene.PhysicsScene.GetStats();
