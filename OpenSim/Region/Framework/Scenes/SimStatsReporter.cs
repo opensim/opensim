@@ -407,6 +407,7 @@ namespace OpenSim.Region.Framework.Scenes
                 newvalues[(int)StatsIndex.SimSpareMs] = (float)Math.Round(sparetime, 3);
                 newvalues[(int)StatsIndex.SimPhysicsStepMs] = 20; // this should came from phys engine
                 newvalues[(int)StatsIndex.ScriptMS] = scriptTimeMS;
+                newvalues[(int)StatsIndex.ScriptEps] = (float)Math.Round(m_scriptEventsPerSecond * updateTimeFactor);
 
                 // add extra stats for internal use
                 newvalues[(int)StatsIndex.LSLScriptLinesPerSecond] = (float)Math.Round(m_scriptLinesPerSecond * updateTimeFactor, 3);
