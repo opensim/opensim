@@ -170,15 +170,16 @@ namespace OpenSim.Framework.Monitoring
             // Get the amount of physical memory, allocated with the instance of this program, in kilobytes;
             // the working set is the set of memory pages currently visible to this program in physical RAM
             // memory and includes both shared (e.g. system libraries) and private data
+            int numberThreads = 0;
             int numberThreadsRunning = 0;
             double memUsage = 0;
             using(Process p = Process.GetCurrentProcess())
             {
                 memUsage = p.WorkingSet64 / 1024.0;
+                numberThreads = p.Threads.Count;
 
                 // Get the number of threads from the system that are currently
                 // running
-                
                 foreach (ProcessThread currentThread in p.Threads)
                 {
                     if (currentThread != null && currentThread.ThreadState == ThreadState.Running)
@@ -232,17 +233,19 @@ namespace OpenSim.Framework.Monitoring
                 args["GeoPrims"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.TotalGeoPrim]));
                 args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.TotalMesh]));
                 args["Script Engine Thread Count"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.ScriptEngineThreadCount]));
-                args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}", Util.GetSmartThreadPoolInfo().InUseThreads));
-                args["System Thread Count"] = OSD.FromString(String.Format("{0:0.##}", numberThreadsRunning));
-                args["ProcMem"] = OSD.FromString(String.Format("{0:0.##}", memUsage));
-
-                args["Memory"] = OSD.FromString(base.XReport(uptime, version));
-                args["Uptime"] = OSD.FromString(uptime);
-                args["Version"] = OSD.FromString(version);
-                args["RegionName"] = sdata.RegionName;
             }
             else
-                args["Error"] = "No data";
+                args["Error"] = "No Region data";
+
+            args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}", Util.GetSmartThreadPoolInfo().InUseThreads));
+            args["System Thread Count"] = OSD.FromString(String.Format("{0:0.##}", numberThreads));
+            args["System Thread Active"] = OSD.FromString(String.Format("{0:0.##}", numberThreadsRunning));
+            args["ProcMem"] = OSD.FromString(String.Format("{0:0.##}", memUsage));
+
+            args["Memory"] = OSD.FromString(base.XReport(uptime, version));
+            args["Uptime"] = OSD.FromString(uptime);
+            args["Version"] = OSD.FromString(version);
+            args["RegionName"] = sdata.RegionName;
 
             return args;
         }

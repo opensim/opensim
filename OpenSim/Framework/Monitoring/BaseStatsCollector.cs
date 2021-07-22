@@ -71,6 +71,7 @@ namespace OpenSim.Framework.Monitoring
                             Math.Round(myprocess.PeakWorkingSet64 / 1024.0 / 1024.0),
                             Math.Round(myprocess.PeakPagedMemorySize64 / 1024.0 / 1024.0),
                             Math.Round(myprocess.PeakVirtualMemorySize64 / 1024.0 / 1024.0));
+                    sb.AppendFormat("\nTotal process Threads {0}\n", myprocess.Threads.Count);
                 }
             }
             catch
