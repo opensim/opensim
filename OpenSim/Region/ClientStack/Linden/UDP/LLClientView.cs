@@ -5989,14 +5989,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UIntToBytesSafepos(stats.ObjectCapacity, data, 22); // 26
 
             // stats
-            data[26] = (byte)stats.StatsBlock.Length;
+            data[26] = (byte)StatsIndex.ViewerArraySize;
             int pos = 27;
 
-            stats.StatsBlock[15].StatValue /= 1024; // unack is in KB
-            for (int i = 0; i< stats.StatsBlock.Length; ++i)
+            int i = 0;
+            for (; i < (int)StatsIndex.UnAckedBytes; ++i)
             {
-                Utils.UIntToBytesSafepos(stats.StatsBlock[i].StatID, data, pos); pos += 4;
-                Utils.FloatToBytesSafepos(stats.StatsBlock[i].StatValue, data, pos); pos += 4;
+                Utils.UIntToBytesSafepos(SimStats.StatsIndexID[i], data, pos); pos += 4;
+                Utils.FloatToBytesSafepos(stats.StatsValues[i], data, pos); pos += 4;
+            }
+
+            // unack Bytes is in KB
+            Utils.UIntToBytesSafepos(SimStats.StatsIndexID[i], data, pos); pos += 4;
+            Utils.FloatToBytesSafepos(stats.StatsValues[i] / 1024, data, pos); pos += 4;
+
+            ++i;
+            for (; i < (int)StatsIndex.ViewerArraySize; ++i)
+            {
+                Utils.UIntToBytesSafepos(SimStats.StatsIndexID[i], data, pos); pos += 4;
+                Utils.FloatToBytesSafepos(stats.StatsValues[i], data, pos); pos += 4;
             }
 
             //no PID
