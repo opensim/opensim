@@ -1174,7 +1174,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 BinaryReader br = new BinaryReader(stream);
                 this.MigrateIn(br);
 
-                m_RunOnePhase = "MigrateInEventHandler finished";
+                //m_RunOnePhase = "MigrateInEventHandler finished";
                 CheckRunLockInvariants(true);
             }
         }
