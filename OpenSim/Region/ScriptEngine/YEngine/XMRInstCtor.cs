@@ -661,6 +661,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
             }
 
+            if(ints == null)
+                ints = new int[0];
+            if(doubles == null)
+                doubles = new double[0];
+            if(strings == null)
+                strings = new string[0];
+            if(vectors == null)
+                vectors = new LSL_Vector[0];
+            if(rotations == null)
+                rotations = new LSL_Rotation[0];
+            if(lists == null)
+                lists = new LSL_List[0];
+
             int heapsz = 0;
 
             try
