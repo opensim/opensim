@@ -91,8 +91,9 @@ namespace OpenSim.Framework
         TotalGeoPrim = 1003,
         TotalMesh = 1004,
         ScriptEngineThreadCount = 1005,
+        NPCs = 1006,
 
-        SimExtraCountEnd = 1006
+        SimExtraCountEnd = 1007
     }
 
     // stats values are stored on a float[]
@@ -155,23 +156,9 @@ namespace OpenSim.Framework
         TotalGeoPrim = 44,
         TotalMesh = 45,
         ScriptEngineThreadCount = 46,
+        NPCs = 47,
 
-        ArraySize = 47 // last is marker for array size
-    }
-
-    public enum ExtraStatsIndex : int
-    {
-        // extra stats IDs irrelevant, just far from viewer defined ones
-        SimExtraCountStart = 1000,
-
-        internalLSLScriptLinesPerSecond = 1000,
-        FrameDilation2 = 1001,
-        UsersLoggingIn = 1002,
-        TotalGeoPrim = 1003,
-        TotalMesh = 1004,
-        ThreadCount = 1005,
-
-        SimExtraCountEnd = 1006
+        ArraySize = 48 // last is marker for array size
     }
 
     /// <summary>
@@ -250,7 +237,8 @@ namespace OpenSim.Framework
             (uint)StatsID.UsersLoggingIn,
             (uint)StatsID.TotalGeoPrim,
             (uint)StatsID.TotalMesh,
-            (uint)StatsID.ScriptEngineThreadCount
+            (uint)StatsID.ScriptEngineThreadCount,
+            (uint)StatsID.NPCs
         };
 
         public SimStats(

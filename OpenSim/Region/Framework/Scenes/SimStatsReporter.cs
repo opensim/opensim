@@ -147,14 +147,8 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_sleeptimeMS;
         private float m_scriptTimeMS;
 
-        private int m_rootAgents;
-        private int m_childAgents;
-        private int m_numPrim;
-        private int m_numGeoPrim;
-        private int m_numMesh;
         private int m_inPacketsPerSecond;
         private int m_outPacketsPerSecond;
-        private int m_activePrim;
         private int m_unAckedBytes;
         private int m_pendingDownloads;
         private int m_pendingUploads = 0;  // FIXME: Not currently filled in
@@ -369,28 +363,19 @@ namespace OpenSim.Region.Framework.Scenes
                         sparetime = totalFrameTime;
 
 #endregion
-
-                m_rootAgents = m_scene.SceneGraph.GetRootAgentCount();
-                m_childAgents = m_scene.SceneGraph.GetChildAgentCount();
-                m_numPrim = m_scene.SceneGraph.GetTotalObjectsCount();
-                m_numGeoPrim = m_scene.SceneGraph.GetTotalPrimObjectsCount();
-                m_numMesh = m_scene.SceneGraph.GetTotalMeshObjectsCount();
-                m_activePrim = m_scene.SceneGraph.GetActiveObjectsCount();
-                m_activeScripts = m_scene.SceneGraph.GetActiveScriptsCount();
-                m_scriptLinesPerSecond = m_scene.SceneGraph.GetScriptLPS();
-
-                 // FIXME: Checking for stat sanity is a complex approach.  What we really need to do is fix the code
-                // so that stat numbers are always consistent.
-                CheckStatSanity();
+                SceneGraph SG = m_scene.SceneGraph;
+                m_activeScripts = SG.GetActiveScriptsCount();
+                m_scriptLinesPerSecond = SG.GetScriptLPS();
+                float scriptTimeMS = m_scene.GetAndResetScriptExecutionTime() * perframefactor;
 
                 newvalues[(int)StatsIndex.TimeDilation] = (Single.IsNaN(timeDilation)) ? 0.0f : (float)Math.Round(timeDilation, 3);
                 newvalues[(int)StatsIndex.SimFPS] = (float)Math.Round(reportedFPS, 1);
                 newvalues[(int)StatsIndex.PhysicsFPS] = (float)Math.Round(physfps, 1);
                 newvalues[(int)StatsIndex.AgentUpdates] = m_agentUpdates * updateTimeFactor;
-                newvalues[(int)StatsIndex.Agents] = m_rootAgents;
-                newvalues[(int)StatsIndex.ChildAgents] = m_childAgents;
-                newvalues[(int)StatsIndex.TotalPrim] = m_numPrim;
-                newvalues[(int)StatsIndex.ActivePrim] = m_activePrim;
+                newvalues[(int)StatsIndex.Agents] = SG.GetRootAgentCount();
+                newvalues[(int)StatsIndex.ChildAgents] = SG.GetChildAgentCount();
+                newvalues[(int)StatsIndex.TotalPrim] = SG.GetTotalPrimObjectsCount();
+                newvalues[(int)StatsIndex.ActivePrim] = SG.GetActiveObjectsCount();
                 newvalues[(int)StatsIndex.FrameMS] = totalFrameTime;
                 newvalues[(int)StatsIndex.NetMS] = (float)Math.Round(m_netMS * perframefactor, 3);
                 newvalues[(int)StatsIndex.PhysicsMS] = (float)Math.Round(physicsMS, 3);
@@ -413,9 +398,10 @@ namespace OpenSim.Region.Framework.Scenes
                 newvalues[(int)StatsIndex.LSLScriptLinesPerSecond] = (float)Math.Round(m_scriptLinesPerSecond * updateTimeFactor, 3);
                 newvalues[(int)StatsIndex.FrameDilation2] = (Single.IsNaN(timeDilation)) ? 0.1f : (float)Math.Round(timeDilation, 1);
                 newvalues[(int)StatsIndex.UsersLoggingIn] = m_usersLoggingIn;
-                newvalues[(int)StatsIndex.TotalGeoPrim] = m_numGeoPrim;
-                newvalues[(int)StatsIndex.TotalMesh] = m_numMesh;
+                newvalues[(int)StatsIndex.TotalGeoPrim] = SG.GetTotalPrimObjectsCount();
+                newvalues[(int)StatsIndex.TotalMesh] = SG.GetTotalMeshObjectsCount();
                 newvalues[(int)StatsIndex.ScriptEngineThreadCount] = m_inUseThreads;
+                newvalues[(int)StatsIndex.NPCs] = SG.GetRootNPCCount();
 
                 lastReportedSimStats = newvalues;
 
@@ -469,23 +455,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_netMS = 0;
             m_imageMS = 0;
-        }
-
-
-        internal void CheckStatSanity()
-        {
-            if (m_rootAgents < 0 || m_childAgents < 0)
-            {
-                handlerStatsIncorrect = OnStatsIncorrect;
-                if (handlerStatsIncorrect != null)
-                {
-                    handlerStatsIncorrect();
-                }
-            }
-            if (m_rootAgents == 0 && m_childAgents == 0)
-            {
-                m_unAckedBytes = 0;
-            }
         }
 
         # region methods called from Scene
