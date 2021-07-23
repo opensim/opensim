@@ -209,11 +209,12 @@ namespace OpenSim.Framework.Monitoring
                 args["SimFPS"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.SimFPS]));
                 args["PhyFPS"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.PhysicsFPS]));
                 args["AgntUp"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.AgentUpdates]));
-                args["RootAg"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.Agents]));
-                args["ChldAg"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.ChildAgents]));
-                args["Prims"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.TotalPrim]));
-                args["AtvPrm"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.ActivePrim]));
-                args["AtvScr"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.ActiveScripts]));
+                args["RootAg"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.Agents]));
+                args["ChldAg"] = OSD.FromString(String.Format("{0}", (int)data[(int)StatsIndex.ChildAgents]));
+                args["NPCAg"] = OSD.FromString(String.Format("{0}", (int)data[(int)StatsIndex.NPCs]));
+                args["Prims"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.TotalPrim]));
+                args["AtvPrm"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.ActivePrim]));
+                args["AtvScr"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.ActiveScripts]));
                 args["ScrLPS"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.LSLScriptLinesPerSecond]));
                 args["ScrEPS"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.ScriptEps]));
                 args["PktsIn"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.InPacketsPerSecond]));
