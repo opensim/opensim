@@ -215,22 +215,54 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             int newheapuse = arraysHeapUse;
 
             // value types simply are the size of the value * number of values
-            newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
-            newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
-            newheapuse += ints.Length * HeapTrackerObject.HT_INT;
-            newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
-            newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
-            newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
+            if(chrs!=null)
+                newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
+            else
+                chrs = noChars;
+            if(flts != null)
+                newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
+            else
+                flts = noFloats;
+            if(ints != null)
+                newheapuse += ints.Length * HeapTrackerObject.HT_INT;
+            else
+                ints = noIntegers;
+            if(rots!=null)
+                newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
+            else
+                rots = noRotations;
+            if(vecs != null)
+                newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
+            else
+                vecs = noVectors;
+            if(dels != null)
+                newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
+            else
+               dels = noSDTIntfObjs;
 
             // lists, objects, strings are the sum of the size of each element
-            foreach(LSL_List lis in liss)
-                newheapuse += HeapTrackerList.Size(lis);
+            if(liss != null)
+            {
+                foreach(LSL_List lis in liss)
+                    newheapuse += HeapTrackerList.Size(lis);
+            }
+            else
+                liss = noLists;
 
-            foreach(object obj in objs)
-                newheapuse += HeapTrackerObject.Size(obj);
-
-            foreach(string str in strs)
-                newheapuse += HeapTrackerString.Size(str);
+            if(objs != null)
+            {
+                foreach(object obj in objs)
+                    newheapuse += HeapTrackerObject.Size(obj);
+            }
+            else
+                objs = noObjects;
+            if(strs != null)
+            {
+                foreach(string str in strs)
+                    newheapuse += HeapTrackerString.Size(str);
+            }
+            else
+                strs = noStrings;
 
             // others (XMR_Array, XMRSDTypeClObj) keep track of their own heap usage
 
