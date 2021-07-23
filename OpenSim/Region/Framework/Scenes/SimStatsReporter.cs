@@ -50,7 +50,6 @@ namespace OpenSim.Region.Framework.Scenes
         public event SendStatResult OnSendStatsResult;
 
         public delegate void YourStatsAreWrong();
-        private YourStatsAreWrong handlerStatsIncorrect;
         public event YourStatsAreWrong OnStatsIncorrect;
 
         // size of LastReportedSimFPS with extra stats.
@@ -364,6 +363,8 @@ namespace OpenSim.Region.Framework.Scenes
 
 #endregion
                 SceneGraph SG = m_scene.SceneGraph;
+                OnStatsIncorrect?.Invoke(); // number of agents may still drift so fix
+
                 m_activeScripts = SG.GetActiveScriptsCount();
                 m_scriptLinesPerSecond = SG.GetScriptLPS();
 
