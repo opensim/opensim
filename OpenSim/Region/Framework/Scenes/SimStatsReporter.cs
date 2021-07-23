@@ -366,7 +366,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneGraph SG = m_scene.SceneGraph;
                 m_activeScripts = SG.GetActiveScriptsCount();
                 m_scriptLinesPerSecond = SG.GetScriptLPS();
-                float scriptTimeMS = m_scene.GetAndResetScriptExecutionTime() * perframefactor;
 
                 newvalues[(int)StatsIndex.TimeDilation] = (Single.IsNaN(timeDilation)) ? 0.0f : (float)Math.Round(timeDilation, 3);
                 newvalues[(int)StatsIndex.SimFPS] = (float)Math.Round(reportedFPS, 1);
