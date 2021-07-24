@@ -63,8 +63,8 @@ namespace OpenSim.Services.Connectors
         private int m_requestTimeoutSecs = -1;
         private string m_configName = "InventoryService";
 
-        private const double CACHE_EXPIRATION_SECONDS = 20.0;
-        private static ExpiringCache<UUID, InventoryItemBase> m_ItemCache = new ExpiringCache<UUID,InventoryItemBase>();
+        private const double CACHE_EXPIRATION_SECONDS = 60.0;
+        private static ExpiringCacheOS<UUID, InventoryItemBase> m_ItemCache = new ExpiringCacheOS<UUID,InventoryItemBase>(30000);
 
         public XInventoryServicesConnector()
         {
