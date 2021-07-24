@@ -465,7 +465,7 @@ namespace OpenSim.Region.Framework.Scenes
 /*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, string name, string description,
                                              uint nextOwnerMask)*/
-        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
+        public void UpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
 //            m_log.DebugFormat(

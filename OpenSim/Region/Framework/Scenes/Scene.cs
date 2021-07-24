@@ -3436,7 +3436,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem += UpdateInventoryItem;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
@@ -3561,7 +3561,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory -= m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem -= UpdateInventoryItem;
             client.OnCopyInventoryItem -= CopyInventoryItem;
             client.OnMoveInventoryItem -= MoveInventoryItem;
             client.OnRemoveInventoryItem -= RemoveInventoryItem;
