@@ -483,7 +483,27 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.Owner != remoteClient.AgentId)
                     return;
 
+                bool sendUpdate = false;
+
                 item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
+                if(item.AssetType == (int)AssetType.Landmark)
+                {
+                    if(item.Name.StartsWith("HG ") && !itemUpd.Name.StartsWith("HG "))
+                    {
+                        itemUpd.Name = "HG " + itemUpd.Name;
+                        sendUpdate = true;
+                    }
+
+                    int origIndx = item.Description.LastIndexOf("@ htt");
+                    if(origIndx >= 0)
+                    {
+                        if(itemUpd.Description.LastIndexOf('@') < 0)
+                        {
+                            itemUpd.Description += " " + item.Description.Substring(origIndx);
+                            sendUpdate = true;
+                        }
+                    }
+                }
                 item.Name = itemUpd.Name;
                 item.Description = itemUpd.Description;
 
@@ -491,8 +511,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
 //                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
 //                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
-
-                bool sendUpdate = false;
 
                 if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
                 {
