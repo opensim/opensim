@@ -516,6 +516,7 @@ namespace OpenSim.Services.Connectors
             foreach (InventoryItemBase item in items)
             {
                 idlist.Add(item.ID.ToString());
+                m_ItemCache.Remove(item.ID);
                 destlist.Add(item.Folder.ToString());
             }
 
@@ -535,14 +536,17 @@ namespace OpenSim.Services.Connectors
             List<string> slist = new List<string>();
 
             foreach (UUID f in itemIDs)
+            {
                 slist.Add(f.ToString());
+                m_ItemCache.Remove(f);
+            }
 
             Dictionary<string,object> ret = MakeRequest(
-                    new Dictionary<string,object> {
-                        { "METHOD", "DELETEITEMS"},
-                        { "PRINCIPAL", principalID.ToString() },
-                        { "ITEMS", slist }
-                    });
+                new Dictionary<string,object> {
+                    { "METHOD", "DELETEITEMS"},
+                    { "PRINCIPAL", principalID.ToString() },
+                    { "ITEMS", slist }
+                });
 
             return CheckReturn(ret);
         }
