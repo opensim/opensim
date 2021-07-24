@@ -1167,11 +1167,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="newName"></param>
         public void MoveInventoryItem(IClientAPI remoteClient, List<InventoryItemBase> items)
         {
+            UUID agentId = remoteClient.AgentId;
             m_log.DebugFormat(
-                "[AGENT INVENTORY]: Moving {0} items for user {1}", items.Count, remoteClient.AgentId);
+                "[AGENT INVENTORY]: Moving {0} items for user {1}", items.Count, agentId);
 
-            if (!InventoryService.MoveItems(remoteClient.AgentId, items))
-                m_log.Warn("[AGENT INVENTORY]: Failed to move items for user " + remoteClient.AgentId);
+            if (!InventoryService.MoveItems(agentId, items))
+                m_log.Warn("[AGENT INVENTORY]: Failed to move items for user " + agentId);
+
+            foreach (InventoryItemBase it in items)
+            {
+                InventoryItemBase n = InventoryService.GetItem(agentId, it.ID);
+                if(n != null)
+                    remoteClient.SendBulkUpdateInventory(n);
+            }
         }
 
         /// <summary>
