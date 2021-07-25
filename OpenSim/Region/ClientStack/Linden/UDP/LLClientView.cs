@@ -2711,6 +2711,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID? transationID = null)
         {
+            IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
+            if (eq == null)
+                return;
+
+            eq.SendBulkUpdateInventoryItem(item, AgentId, transationID);
+
+            /*
             const uint FULL_MASK_PERMISSIONS = (uint)0x7ffffff;
 
             BulkUpdateInventoryPacket bulkUpdate
@@ -2760,6 +2767,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                      FULL_MASK_PERMISSIONS);
             bulkUpdate.Header.Zerocoded = true;
             OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
+            */
+
         }
 
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item, uint callbackId)

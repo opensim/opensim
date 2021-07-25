@@ -425,6 +425,59 @@ namespace OpenSim.Region.ClientStack.Linden
             Enqueue(EndEventToBytes(sb), avatarID);
         }
 
+        public void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID avatarID, UUID? transationID = null)
+        {
+            const uint FULL_MASK_PERMISSIONS = (uint)0x7ffffff;
+
+            osUTF8 sb = StartEvent("BulkUpdateInventory");
+            LLSDxmlEncode2.AddArray("AgentData", sb);
+                LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("AgentID", avatarID, sb);
+                    LLSDxmlEncode2.AddElem("TransactionID", transationID ?? UUID.Random(), sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+
+            LLSDxmlEncode2.AddRawElem("<key>FolderData</key><array><map><key>FolderID</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>Name</key><string></string><key>ParentID</key><uuid>00000000-0000-0000-0000-000000000000</uuid ><key>Type</key ><integer>-1</integer></map ></array>",sb);
+
+            osUTF8 osName = new osUTF8(Util.StringToBytesNoTerm(item.Name, 255));
+            osUTF8 osDesc = new osUTF8(Util.StringToBytesNoTerm(item.Description,255));
+
+            LLSDxmlEncode2.AddArray("ItemData", sb);
+                LLSDxmlEncode2.AddMap(sb);
+                    LLSDxmlEncode2.AddElem("ItemID", item.ID, sb);
+                    LLSDxmlEncode2.AddElem("AssetID", item.AssetID, sb);
+                    LLSDxmlEncode2.AddElem("CreatorID", item.CreatorIdAsUuid, sb);
+                    LLSDxmlEncode2.AddElem("BaseMask", item.BasePermissions, sb);
+                    LLSDxmlEncode2.AddElem("CreationDate", item.CreationDate, sb);
+                    LLSDxmlEncode2.AddElem("Description", osDesc, sb);
+                    LLSDxmlEncode2.AddElem("EveryoneMask", item.EveryOnePermissions, sb);
+                    LLSDxmlEncode2.AddElem("FolderID", item.Folder, sb);
+                    LLSDxmlEncode2.AddElem("InvType", (sbyte)item.InvType, sb);
+                    LLSDxmlEncode2.AddElem("Name", osName, sb);
+                    LLSDxmlEncode2.AddElem("NextOwnerMask", item.NextPermissions, sb);
+                    LLSDxmlEncode2.AddElem("GroupID", item.GroupID, sb);
+                    LLSDxmlEncode2.AddElem("GroupMask", item.GroupPermissions, sb);
+                    LLSDxmlEncode2.AddElem("GroupOwned", item.GroupOwned , sb);
+                    LLSDxmlEncode2.AddElem("OwnerID", item.Owner, sb);
+                    LLSDxmlEncode2.AddElem("OwnerMask", item.CurrentPermissions, sb);
+                    LLSDxmlEncode2.AddElem("SalePrice", item.SalePrice, sb);
+                    LLSDxmlEncode2.AddElem("SaleType", item.SaleType, sb);
+                    LLSDxmlEncode2.AddElem("Type", (sbyte)item.AssetType, sb);
+                    LLSDxmlEncode2.AddElem("CallbackID", (uint)0, sb);
+                    LLSDxmlEncode2.AddElem("Flags", item.Flags & 0x2000ff, sb);
+
+                    uint iCRC =
+                        Helpers.InventoryCRC(1000, 0, (sbyte)item.InvType,
+                                     (sbyte)item.AssetType, item.AssetID,
+                                     item.GroupID, 100,
+                                     item.Owner, item.CreatorIdAsUuid,
+                                     item.ID, item.Folder,
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
+                    LLSDxmlEncode2.AddElem("CRC", iCRC, sb);
+            LLSDxmlEncode2.AddEndMapAndArray(sb);
+            Enqueue(EndEventToBytes(sb), avatarID);
+        }
+
         public static string KeepAliveEvent()
         {
             osUTF8 sb = new osUTF8(256);
