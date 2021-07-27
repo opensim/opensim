@@ -197,8 +197,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public bool DeregisterRegion(UUID regionID)
         {
-            if (m_LocalGridService.DeregisterRegion(regionID) && m_RemoteGridService != null)
-                return m_RemoteGridService.DeregisterRegion(regionID);
+            if (m_LocalGridService.DeregisterRegion(regionID))
+            {
+                if (m_RemoteGridService != null)
+                    return m_RemoteGridService.DeregisterRegion(regionID);
+                return true;
+            }
 
             return false;
         }

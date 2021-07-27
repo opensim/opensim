@@ -205,6 +205,10 @@ namespace OpenSim.Tests.Common
         {
         }
 
+        public void SendBulkUpdateInventoryItem(InventoryItemBase item, UUID avatarID, UUID? transationID = null)
+        {
+        }
+
         public osUTF8 StartEvent(string eventName)
         {
             return null;

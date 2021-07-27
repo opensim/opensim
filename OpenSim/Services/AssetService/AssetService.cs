@@ -206,5 +206,9 @@ namespace OpenSim.Services.AssetService
 
             return m_Database.Delete(id);
         }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+        }
     }
 }

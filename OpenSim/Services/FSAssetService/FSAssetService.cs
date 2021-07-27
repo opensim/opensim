@@ -834,5 +834,10 @@ namespace OpenSim.Services.FSAssetService
         {
             return Get(id);
         }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
+        }
     }
 }

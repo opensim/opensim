@@ -113,6 +113,12 @@ namespace OpenSim.Tests.Common
             return true;
         }
 
+        public bool GetFromMemory(string id, out AssetBase asset)
+        {
+            asset = (AssetBase)m_Cache.Get(id);
+            return true;
+        }
+
         public AssetBase GetCached(string id)
         {
             return (AssetBase)m_Cache.Get(id);

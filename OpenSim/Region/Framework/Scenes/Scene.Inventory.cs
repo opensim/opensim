@@ -465,7 +465,7 @@ namespace OpenSim.Region.Framework.Scenes
 /*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, string name, string description,
                                              uint nextOwnerMask)*/
-        public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
+        public void UpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
 //            m_log.DebugFormat(
@@ -483,7 +483,27 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.Owner != remoteClient.AgentId)
                     return;
 
+                bool sendUpdate = false;
+
                 item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
+                if(item.AssetType == (int)AssetType.Landmark)
+                {
+                    if(item.Name.StartsWith("HG ") && !itemUpd.Name.StartsWith("HG "))
+                    {
+                        itemUpd.Name = "HG " + itemUpd.Name;
+                        sendUpdate = true;
+                    }
+
+                    int origIndx = item.Description.LastIndexOf("@ htt");
+                    if(origIndx >= 0)
+                    {
+                        if(itemUpd.Description.LastIndexOf('@') < 0)
+                        {
+                            itemUpd.Description += " " + item.Description.Substring(origIndx);
+                            sendUpdate = true;
+                        }
+                    }
+                }
                 item.Name = itemUpd.Name;
                 item.Description = itemUpd.Description;
 
@@ -491,8 +511,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[USER INVENTORY]: itemUpd {0} {1} {2} {3}, item {4} {5} {6} {7}",
 //                        itemUpd.NextPermissions, itemUpd.GroupPermissions, itemUpd.EveryOnePermissions, item.Flags,
 //                        item.NextPermissions, item.GroupPermissions, item.EveryOnePermissions, item.CurrentPermissions);
-
-                bool sendUpdate = false;
 
                 if (itemUpd.NextPermissions != 0) // Use this to determine validity. Can never be 0 if valid
                 {
@@ -1149,11 +1167,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="newName"></param>
         public void MoveInventoryItem(IClientAPI remoteClient, List<InventoryItemBase> items)
         {
+            UUID agentId = remoteClient.AgentId;
             m_log.DebugFormat(
-                "[AGENT INVENTORY]: Moving {0} items for user {1}", items.Count, remoteClient.AgentId);
+                "[AGENT INVENTORY]: Moving {0} items for user {1}", items.Count, agentId);
 
-            if (!InventoryService.MoveItems(remoteClient.AgentId, items))
-                m_log.Warn("[AGENT INVENTORY]: Failed to move items for user " + remoteClient.AgentId);
+            if (!InventoryService.MoveItems(agentId, items))
+                m_log.Warn("[AGENT INVENTORY]: Failed to move items for user " + agentId);
+
+            foreach (InventoryItemBase it in items)
+            {
+                InventoryItemBase n = InventoryService.GetItem(agentId, it.ID);
+                if(n != null)
+                    remoteClient.SendBulkUpdateInventory(n);
+            }
         }
 
         /// <summary>

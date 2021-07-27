@@ -62,17 +62,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private XMRInstAbstract instance;
         public int arraysHeapUse;
 
-        private static readonly XMR_Array[] noArrays = new XMR_Array[0];
-        private static readonly char[] noChars = new char[0];
-        private static readonly double[] noFloats = new double[0];
-        private static readonly int[] noIntegers = new int[0];
-        private static readonly LSL_List[] noLists = new LSL_List[0];
-        private static readonly object[] noObjects = new object[0];
-        private static readonly LSL_Rotation[] noRotations = new LSL_Rotation[0];
-        private static readonly string[] noStrings = new string[0];
-        private static readonly LSL_Vector[] noVectors = new LSL_Vector[0];
-        private static readonly XMRSDTypeClObj[] noSDTClObjs = new XMRSDTypeClObj[0];
-        private static readonly Delegate[][] noSDTIntfObjs = new Delegate[0][];
+        public static readonly XMR_Array[] noArrays = new XMR_Array[0];
+        public static readonly char[] noChars = new char[0];
+        public static readonly double[] noFloats = new double[0];
+        public static readonly int[] noIntegers = new int[0];
+        public static readonly LSL_List[] noLists = new LSL_List[0];
+        public static readonly object[] noObjects = new object[0];
+        public static readonly LSL_Rotation[] noRotations = new LSL_Rotation[0];
+        public static readonly string[] noStrings = new string[0];
+        public static readonly LSL_Vector[] noVectors = new LSL_Vector[0];
+        public static readonly XMRSDTypeClObj[] noSDTClObjs = new XMRSDTypeClObj[0];
+        public static readonly Delegate[][] noSDTIntfObjs = new Delegate[0][];
 
         public XMRInstArrays(XMRInstAbstract inst)
         {
@@ -201,51 +201,102 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ClearOldArrays();
 
             iarArrays = (XMR_Array[])recver();
-            char[] chrs = (char[])recver();
-            double[] flts = (double[])recver();
-            int[] ints = (int[])recver();
-            LSL_List[] liss = (LSL_List[])recver();
-            object[] objs = (object[])recver();
-            LSL_Rotation[] rots = (LSL_Rotation[])recver();
-            string[] strs = (string[])recver();
-            LSL_Vector[] vecs = (LSL_Vector[])recver();
-            iarSDTClObjs = (XMRSDTypeClObj[])recver();
-            Delegate[][] dels = (Delegate[][])recver();
+            if(iarArrays == null)
+                iarArrays = noArrays;
 
             int newheapuse = arraysHeapUse;
 
-            // value types simply are the size of the value * number of values
-            newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
-            newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
-            newheapuse += ints.Length * HeapTrackerObject.HT_INT;
-            newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
-            newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
-            newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
+            char[] chrs = (char[])recver();
+            if (chrs != null)
+            {
+                newheapuse += chrs.Length * HeapTrackerObject.HT_CHAR;
+                iarChars = chrs;
+            }
+            else
+                iarChars = noChars;
 
-            // lists, objects, strings are the sum of the size of each element
-            foreach(LSL_List lis in liss)
-                newheapuse += HeapTrackerList.Size(lis);
+            double[] flts = (double[])recver();
+            if (flts != null)
+            {
+                newheapuse += flts.Length * HeapTrackerObject.HT_DOUB;
+                iarFloats = flts;
+            }
+            else
+                iarFloats = noFloats;
 
-            foreach(object obj in objs)
-                newheapuse += HeapTrackerObject.Size(obj);
+            int[] ints = (int[])recver();
+            if (ints != null)
+            {
+                newheapuse += ints.Length * HeapTrackerObject.HT_INT;
+                iarIntegers = ints;
+            }
+            else
+                iarIntegers = noIntegers;
 
-            foreach(string str in strs)
-                newheapuse += HeapTrackerString.Size(str);
+            LSL_List[] liss = (LSL_List[])recver();
+            if (liss != null)
+            {
+                foreach (LSL_List lis in liss)
+                    newheapuse += HeapTrackerList.Size(lis);
+                iarLists = liss;
+            }
+            else
+                iarLists = noLists;
 
-            // others (XMR_Array, XMRSDTypeClObj) keep track of their own heap usage
+            object[] objs = (object[])recver();
+            if (objs != null)
+            {
+                foreach (object obj in objs)
+                    newheapuse += HeapTrackerObject.Size(obj);
+                iarObjects = objs;
+            }
+            else
+                iarObjects = noObjects;
+
+            LSL_Rotation[] rots = (LSL_Rotation[])recver();
+            if (rots != null)
+            {
+                newheapuse += rots.Length * HeapTrackerObject.HT_ROT;
+                iarRotations = rots;
+            }
+            else
+                iarRotations = noRotations;
+
+            string[] strs = (string[])recver();
+            if (strs != null)
+            {
+                foreach (string str in strs)
+                    newheapuse += HeapTrackerString.Size(str);
+                iarStrings = strs;
+            }
+            else
+                iarStrings = noStrings;
+
+            LSL_Vector[] vecs = (LSL_Vector[])recver();
+            if (vecs != null)
+            {
+                newheapuse += vecs.Length * HeapTrackerObject.HT_VEC;
+                iarVectors = vecs;
+            }
+            else
+                iarVectors = noVectors;
+
+            iarSDTClObjs = (XMRSDTypeClObj[])recver();
+            if(iarSDTClObjs == null)
+                iarSDTClObjs = noSDTClObjs;
+
+            Delegate[][] dels = (Delegate[][])recver();
+            if(dels != null)
+            {
+                newheapuse += dels.Length * HeapTrackerObject.HT_DELE;
+                iarSDTIntfObjs = dels;
+            }
+            else
+                iarSDTIntfObjs = noSDTIntfObjs;
 
             // update script heap usage, throwing an exception before finalizing changes
             arraysHeapUse = instance.UpdateArraysHeapUse(arraysHeapUse, newheapuse);
 
-            iarChars = chrs;
-            iarFloats = flts;
-            iarIntegers = ints;
-            iarLists = liss;
-            iarObjects = objs;
-            iarRotations = rots;
-            iarStrings = strs;
-            iarVectors = vecs;
-            iarSDTIntfObjs = dels;
         }
 
         private void ClearOldArrays()
