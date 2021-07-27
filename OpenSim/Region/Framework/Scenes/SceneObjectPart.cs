@@ -5770,6 +5770,43 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public bool RemoveAnimation(string anim)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit || string.IsNullOrWhiteSpace(anim))
+                return false;
+
+            lock (animsLock)
+            {
+                if (Animations == null || Animations.Count == 0)
+                    return false;
+
+                if (!UUID.TryParse(anim, out UUID animId))
+                {
+                    if (AnimationsNames == null || AnimationsNames.Count == 0)
+                        return false;
+
+                    foreach (KeyValuePair<UUID, string> kvp in AnimationsNames)
+                    {
+                        if (anim.Equals(kvp.Value, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            animId = kvp.Key;
+                            break;
+                        }
+                    }
+                }
+
+                if (Animations.ContainsKey(animId))
+                {
+                    Animations.Remove(animId);
+                    if (AnimationsNames != null)
+                        AnimationsNames.Remove(animId);
+                    ScheduleUpdate(PrimUpdateFlags.Animations);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public int ClearObjectAnimations()
         {
             int ret = 0;

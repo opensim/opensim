@@ -619,7 +619,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             Dictionary<string, int> rotationNames = new Dictionary<string, int>();
             Dictionary<string, int> listNames = new Dictionary<string, int>();
 
-            int nn = m_ObjCode.globalVarNames.Count;
             int[] ints = null;
             double[] doubles = null;
             string[] strings = null;
@@ -627,37 +626,39 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             LSL_Rotation[] rotations = null;
             LSL_List[] lists = null;
 
+            int nn = m_ObjCode.globalVarNames.Count;
             if (nn > 0)
             {
-                if (m_ObjCode.globalVarNames.ContainsKey("iarIntegers"))
+                Dictionary<int, string> tmpVars;
+                if (m_ObjCode.globalVarNames.TryGetValue("iarIntegers", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarIntegers"], intNames);
-                    ints = new int[m_ObjCode.globalVarNames["iarIntegers"].Count];
+                    getvarNames(tmpVars, intNames);
+                    ints = new int[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarFloats"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarFloats", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarFloats"], doubleNames);
-                    doubles = new double[m_ObjCode.globalVarNames["iarFloats"].Count];
+                    getvarNames(tmpVars, doubleNames);
+                    doubles = new double[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarVectors"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarVectors", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarVectors"], vectorNames);
-                    vectors = new LSL_Vector[m_ObjCode.globalVarNames["iarVectors"].Count];
+                    getvarNames(tmpVars, vectorNames);
+                    vectors = new LSL_Vector[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarRotations"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarRotations", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarRotations"], rotationNames);
-                    rotations = new LSL_Rotation[m_ObjCode.globalVarNames["iarRotations"].Count];
+                    getvarNames(tmpVars, rotationNames);
+                    rotations = new LSL_Rotation[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarStrings"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarStrings", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarStrings"], stringNames);
-                    strings = new string[m_ObjCode.globalVarNames["iarStrings"].Count];
+                    getvarNames(tmpVars, stringNames);
+                    strings = new string[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarLists"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarLists", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarLists"], listNames);
-                    lists = new LSL_List[m_ObjCode.globalVarNames["iarLists"].Count];
+                    getvarNames(tmpVars, listNames);
+                    lists = new LSL_List[tmpVars.Count];
                 }
             }
 
@@ -902,12 +903,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             lock (m_RunLock)
             {
-                glblVars.iarIntegers = ints;
-                glblVars.iarFloats = doubles;
-                glblVars.iarVectors = vectors;
-                glblVars.iarRotations = rotations;
-                glblVars.iarStrings = strings;
-                glblVars.iarLists = lists;
+                glblVars.iarIntegers = (ints != null) ? ints : XMRInstArrays.noIntegers;
+                glblVars.iarFloats = (doubles != null) ? doubles : XMRInstArrays.noFloats;
+                glblVars.iarStrings = (strings != null) ? strings : XMRInstArrays.noStrings;
+                glblVars.iarVectors = (vectors != null) ? vectors : XMRInstArrays.noVectors;
+                glblVars.iarRotations = (rotations != null) ? rotations : XMRInstArrays.noRotations;
+                glblVars.iarLists = (lists != null) ? lists : XMRInstArrays.noLists;
+                glblVars.iarChars = XMRInstArrays.noChars;
+                glblVars.iarArrays = XMRInstArrays.noArrays;
+                glblVars.iarObjects = XMRInstArrays.noObjects;
+                glblVars.iarSDTClObjs = XMRInstArrays.noSDTClObjs;
+                glblVars.iarSDTIntfObjs = XMRInstArrays.noSDTIntfObjs;
 
                 AddArraysHeapUse(heapsz);
                 CheckRunLockInvariants(true);
@@ -1161,7 +1167,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 BinaryReader br = new BinaryReader(stream);
                 this.MigrateIn(br);
 
-                m_RunOnePhase = "MigrateInEventHandler finished";
+                //m_RunOnePhase = "MigrateInEventHandler finished";
                 CheckRunLockInvariants(true);
             }
         }

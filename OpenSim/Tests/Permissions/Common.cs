@@ -191,7 +191,7 @@ namespace OpenSim.Tests.Permissions
             Assert.That(clone.ID == item.ID);
 
             // Update properties of the item in inventory. This should affect the original item above.
-            Common.TheScene.UpdateInventoryItemAsset(m_Avatars[ownerIndex].ControllingClient, UUID.Zero, clone.ID, clone);
+            Common.TheScene.UpdateInventoryItem(m_Avatars[ownerIndex].ControllingClient, UUID.Zero, clone.ID, clone);
 
             item = Common.TheInstance.GetItemFromInventory(m_Avatars[ownerIndex].UUID, "Objects", name);
             Assert.That(item, Is.Not.Null);
