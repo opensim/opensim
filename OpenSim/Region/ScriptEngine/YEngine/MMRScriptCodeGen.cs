@@ -5616,6 +5616,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     outRVal.Pop(this, opcode);           // pop into result
                     return outRVal;                       // tell caller where we put it
                 }
+                if(inRVal.type is TokenTypeBool)
+                {
+                    CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
+                    inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
+                    ilGen.Emit(opcode, OpCodes.Neg);     // compute the negative
+                    outRVal.Pop(this, opcode);           // pop into result
+                    return outRVal;                       // tell caller where we put it
+                }
                 ErrorMsg(opcode, "can't negate a " + inRVal.type.ToString());
                 return inRVal;
             }
