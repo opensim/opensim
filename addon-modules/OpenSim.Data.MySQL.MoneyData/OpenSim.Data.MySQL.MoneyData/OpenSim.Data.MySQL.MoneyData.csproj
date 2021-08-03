@@ -7,7 +7,7 @@
     <Product>OpenSim.Data.MySQL.MoneyData</Product>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.25" />
+    <PackageReference Include="MySql.Data" Version="8.0.26" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="log4net">
