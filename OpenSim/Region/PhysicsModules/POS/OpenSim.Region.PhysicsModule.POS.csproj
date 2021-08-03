@@ -7,10 +7,6 @@
     <Copyright>Copyright (c) OpenSimulator.org Developers</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>

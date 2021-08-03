@@ -11,10 +11,6 @@
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Npgsql">
       <HintPath>..\..\..\bin\Npgsql.dll</HintPath>
       <Private>False</Private>

@@ -11,18 +11,6 @@
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Addins.Setup">
-      <HintPath>..\..\..\bin\Mono.Addins.Setup.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Security.dll">
-      <HintPath>..\..\..\bin\lib\NET\Mono.Security.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
