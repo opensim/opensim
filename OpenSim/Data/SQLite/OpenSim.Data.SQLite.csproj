@@ -11,10 +11,6 @@
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>..\..\..\bin\Mono.Data.Sqlite.dll</HintPath>
       <Private>False</Private>
