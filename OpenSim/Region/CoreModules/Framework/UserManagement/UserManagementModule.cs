@@ -1107,12 +1107,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
-                oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
-                oldUser.LastName = "UMMM1Unknown";
-                oldUser.IsLocal = true;
-                oldUser.HomeURL = string.Empty;
-                oldUser.HasGridUserTried = true;
-                oldUser.IsUnknownUser = true;
+                if (string.IsNullOrEmpty(homeuri.Host)) // take this as local
+                {
+                    oldUser.FirstName = firstname;
+                    oldUser.LastName = lastname;
+                    oldUser.IsLocal = true;
+                    oldUser.HomeURL = string.Empty;
+                    oldUser.HasGridUserTried = true;
+                }
+                else
+                {
+                    oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
+                    oldUser.LastName = "UMMM1Unknown";
+                    oldUser.IsLocal = true;
+                    oldUser.HomeURL = string.Empty;
+                    oldUser.HasGridUserTried = true;
+                    oldUser.IsUnknownUser = true;
+                }
             }
             m_userCacheByID.Add(id, oldUser, NOEXPIRE);
         }
