@@ -155,7 +155,7 @@ namespace OpenSim.Region.Framework.Tests
             InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "SomeObject", user1.PrincipalID, InventoryType.Object);
             // Set All perms in inventory
             item1.NextPermissions = (uint)OpenMetaverse.PermissionMask.All;
-            scene.UpdateInventoryItemAsset(sp1.ControllingClient, UUID.Zero, item1.ID, item1);
+            scene.UpdateInventoryItem(sp1.ControllingClient, UUID.Zero, item1.ID, item1);
             //Assert.That((item1.NextPermissions & (uint)OpenMetaverse.PermissionMask.All) == (uint)OpenMetaverse.PermissionMask.All);
 
             string message;

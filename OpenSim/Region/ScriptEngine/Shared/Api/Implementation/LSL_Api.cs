@@ -4192,11 +4192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llStopObjectAnimation(string anim)
         {
-            UUID animID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, anim, AssetType.Animation);
-            if (animID == UUID.Zero)
-                animID = DefaultAvatarAnimations.GetDefaultAnimation(anim);
-            if (animID != UUID.Zero)
-                m_host.RemoveAnimation(animID);
+            m_host.RemoveAnimation(anim);
         }
 
         public LSL_List llGetObjectAnimationNames()

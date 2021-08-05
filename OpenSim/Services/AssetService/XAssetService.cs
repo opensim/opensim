@@ -227,5 +227,10 @@ namespace OpenSim.Services.AssetService
             Store(asset);
             m_ChainedAssetService.Delete(asset.ID);
         }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+        }
+
     }
 }
