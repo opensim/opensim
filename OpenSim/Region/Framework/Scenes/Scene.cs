@@ -3436,7 +3436,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem += UpdateInventoryItem;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
@@ -3561,7 +3561,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory -= m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem -= UpdateInventoryItem;
             client.OnCopyInventoryItem -= CopyInventoryItem;
             client.OnMoveInventoryItem -= MoveInventoryItem;
             client.OnRemoveInventoryItem -= RemoveInventoryItem;
@@ -5202,9 +5202,9 @@ Label_GroupsDone:
 
         #region SceneGraph wrapper methods
 
-        public void SwapRootAgentCount(bool rootChildChildRootTF)
+        public void SwapRootAgentCount(bool direction_ChildToRoot, bool isnpc)
         {
-            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF);
+            m_sceneGraph.SwapRootChildAgent(direction_ChildToRoot, isnpc);
         }
 
         public void AddPhysicalPrim(int num)
@@ -5218,6 +5218,11 @@ Label_GroupsDone:
         }
 
         public int GetRootAgentCount()
+        {
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        public int GetRootNPCCount()
         {
             return m_sceneGraph.GetRootAgentCount();
         }
@@ -5272,7 +5277,8 @@ Label_GroupsDone:
         /// </returns>
         public List<ScenePresence> GetScenePresences()
         {
-            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            //return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            return m_sceneGraph.GetScenePresences();
         }
 
         /// <summary>
@@ -6167,9 +6173,7 @@ Environment.Exit(1);
                 return false;
             }
 
-            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
-            // However, the long term fix is to make sure root agent count is always accurate.
-            m_sceneGraph.RecalculateStats();
+
 
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
@@ -6222,7 +6226,12 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
+            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
+            // However, the long term fix is to make sure root agent count is always accurate.
+            m_sceneGraph.RecalculateStats();
             int num = m_sceneGraph.GetRootAgentCount();
+            num -= m_sceneGraph.GetRootNPCCount();
+
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 reason = "The region is full";

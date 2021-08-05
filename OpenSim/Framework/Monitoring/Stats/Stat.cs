@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Monitoring
     /// <summary>
     /// Holds individual statistic details
     /// </summary>
-    public class Stat : IDisposable
+    public class Stat: IDisposable
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -196,9 +196,20 @@ namespace OpenSim.Framework.Monitoring
             Verbosity = verbosity;
         }
 
-        // IDisposable.Dispose()
-        public virtual void Dispose()
+        ~Stat()
         {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            PullAction = null;
             return;
         }
 
@@ -226,13 +237,26 @@ namespace OpenSim.Framework.Monitoring
         public virtual string ToConsoleString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat(
-                "{0}.{1}.{2} : {3}{4}",
-                Category,
-                Container,
-                ShortName,
-                Value,
-                string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
+
+            if(string.IsNullOrEmpty(UnitName))
+            {
+                sb.AppendFormat(
+                    "{0}.{1}.{2} : {3:0.###}",
+                    Category,
+                    Container,
+                    ShortName,
+                    Value);
+            }
+            else
+            {
+                sb.AppendFormat(
+                    "{0}.{1}.{2} : {3:0.###} {4}",
+                    Category,
+                    Container,
+                    ShortName,
+                    Value,
+                    UnitName);
+            }
 
             AppendMeasuresOfInterest(sb);
 
@@ -321,12 +345,20 @@ namespace OpenSim.Framework.Monitoring
 
             if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))
             {
-                sb.AppendFormat(
-                    ", {0:0.##}{1}/s, {2:0.##}{3}/s",
-                    lastChangeOverTime,
-                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName),
-                    averageChangeOverTime,
-                    string.IsNullOrEmpty(UnitName) ? "" : string.Format(" {0}", UnitName));
+                if(string.IsNullOrEmpty(UnitName))
+                {
+                    sb.AppendFormat(
+                        ", {0:0.###}/s, {1:0.###}/s",
+                        lastChangeOverTime,
+                        averageChangeOverTime);
+                }
+                else
+                {
+                    sb.AppendFormat(
+                        ", {0:0.###} {1}/s, {2:0.###} {3}/s",
+                        lastChangeOverTime, UnitName,
+                        averageChangeOverTime, UnitName);
+                }
             }
         }
     }

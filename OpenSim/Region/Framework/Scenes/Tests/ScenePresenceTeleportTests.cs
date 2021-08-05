@@ -496,6 +496,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(sceneASp.AbsolutePosition.X, Is.EqualTo(preTeleportPosition.X));
             Assert.That(sceneASp.AbsolutePosition.Y, Is.EqualTo(preTeleportPosition.Y));
 
+            sceneA.SceneGraph.RecalculateStats();
+            sceneB.SceneGraph.RecalculateStats();
             Assert.That(sceneA.GetRootAgentCount(), Is.EqualTo(1));
             Assert.That(sceneA.GetChildAgentCount(), Is.EqualTo(0));
             Assert.That(sceneB.GetRootAgentCount(), Is.EqualTo(0));

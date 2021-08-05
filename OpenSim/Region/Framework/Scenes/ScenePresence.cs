@@ -1574,7 +1574,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             //m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-            m_scene.SwapRootAgentCount(false);
+            m_scene.SwapRootAgentCount(false, IsNPC);
 
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
@@ -1711,7 +1711,7 @@ namespace OpenSim.Region.Framework.Scenes
             //Velocity = new Vector3(0, 0, 0);
 
             IsChildAgent = true;
-            m_scene.SwapRootAgentCount(true);
+            m_scene.SwapRootAgentCount(true, IsNPC);
             RemoveFromPhysicalScene();
             ParentID = 0; // Child agents can't be sitting
 

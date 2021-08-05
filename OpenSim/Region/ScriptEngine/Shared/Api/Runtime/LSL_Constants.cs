@@ -806,7 +806,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string TEXTURE_TRANSPARENT = "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903";
         public const string TEXTURE_MEDIA = "8b5fec65-8d8d-9dc5-cda8-8fdf2716e361";
 
-        // Constants for osGetRegionStats
+        // Constants for osGetRegionStats this must match StatsIndex in SimStats.cs
         public const int STATS_TIME_DILATION = 0;
         public const int STATS_SIM_FPS = 1;
         public const int STATS_PHYSICS_FPS = 2;
@@ -832,6 +832,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATS_SCRIPT_EPS = 28;
         public const int STATS_SCRIPT_TIME = 37;
         public const int STATS_SCRIPT_LPS = 38;
+        public const int STATS_SCRIPT_NPCS = 47;
 
         // Constants for osNpc* functions
         public const int OS_NPC_FLY = 0;

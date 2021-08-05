@@ -30,7 +30,8 @@ using OpenSim.Framework;
 
 namespace OpenSim.Services.Interfaces
 {
-    public delegate void AssetRetrieved(string id, Object sender, AssetBase asset);
+    public delegate void AssetRetrieved(string id, object sender, AssetBase asset);
+    public delegate void SimpleAssetRetrieved(AssetBase asset);
 
     public interface IAssetService
     {
@@ -76,6 +77,7 @@ namespace OpenSim.Services.Interfaces
         /// </param>
         /// <returns>True if the id was parseable, false otherwise</returns>
         bool Get(string id, Object sender, AssetRetrieved handler);
+        void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack);
 
         /// <summary>
         /// Check if assets exist in the database.
