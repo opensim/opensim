@@ -113,7 +113,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private Dictionary<string,WeakReference> weakAssetReferences = new Dictionary<string, WeakReference>();
         private readonly object weakAssetReferencesLock = new object();
-        private bool m_updateFileTimeOnCacheHit = false;
+        private static bool m_updateFileTimeOnCacheHit = false;
+
+        private static ExpiringKey<string> m_lastFileAccessTimeChange = null;
 
         public FlotsamAssetCache()
         {
@@ -182,6 +184,9 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", m_CacheWarnAt);
                     }
+
+                    if(m_updateFileTimeOnCacheHit)
+                        m_lastFileAccessTimeChange = new ExpiringKey<string>(300000);
 
                     if(m_MemoryCacheEnabled)
                         m_MemoryCache = new ExpiringCacheOS<string, AssetBase>((int)m_MemoryExpiration * 500);
@@ -308,10 +313,10 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     if (m_FileCacheEnabled && m_assetFileWriteWorker == null)
                     {
-                        m_assetFileWriteWorker = new ObjectJobEngine(ProcessWrites, "FloatsamCacheWriter", 1000 , 1);
+                        m_assetFileWriteWorker = new ObjectJobEngine(ProcessWrites, "FloatsamCacheWriter", 1000, 1);
                     }
 
-                    if(!string.IsNullOrWhiteSpace(m_assetLoader) && scene.RegionInfo.RegionID == m_Scenes[0].RegionInfo.RegionID)
+                    if (!string.IsNullOrWhiteSpace(m_assetLoader) && scene.RegionInfo.RegionID == m_Scenes[0].RegionInfo.RegionID)
                     {
                         IAssetLoader assetLoader = ServerUtils.LoadPlugin<IAssetLoader>(m_assetLoader, new object[] { });
                         if (assetLoader != null)
@@ -336,11 +341,11 @@ namespace OpenSim.Region.CoreModules.Asset
             try
             {
                 WriteAssetInfo wai = (WriteAssetInfo)o;
-                WriteFileCache(wai.filename,wai.asset,wai.replace);
+                WriteFileCache(wai.filename, wai.asset, wai.replace);
                 wai.asset = null;
                 Thread.Yield();
             }
-            catch{ }
+            catch { }
         }
 
         ////////////////////////////////////////////////////////////
@@ -430,11 +435,13 @@ namespace OpenSim.Region.CoreModules.Asset
         /// </summary>
         /// <param name="filename">Filename.</param>
         /// <returns><c>true</c>, if the update was successful, false otherwise.</returns>
-        private static bool UpdateFileLastAccessTime(string filename)
+        private static bool CheckUpdateFileLastAccessTime(string filename)
         {
             try
             {
                 File.SetLastAccessTime(filename, DateTime.Now);
+                if(m_lastFileAccessTimeChange != null)
+                    m_lastFileAccessTimeChange.Add(filename, 900000);
                 return true;
             }
             catch (FileNotFoundException)
@@ -444,6 +451,21 @@ namespace OpenSim.Region.CoreModules.Asset
             catch
             {
                 return true; // ignore other errors
+            }
+        }
+
+        private static void UpdateFileLastAccessTime(string filename)
+        {
+            try
+            {
+                if(!m_lastFileAccessTimeChange.ContainsKey(filename))
+                {
+                    File.SetLastAccessTime(filename, DateTime.Now);
+                    m_lastFileAccessTimeChange.Add(filename, 900000);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -617,6 +639,48 @@ namespace OpenSim.Region.CoreModules.Asset
                     UpdateWeakReference(id,asset);
                     if (m_MemoryCacheEnabled)
                         UpdateMemoryCache(id, asset);
+                }
+            }
+            return true;
+        }
+
+        public bool GetFromMemory(string id, out AssetBase asset)
+        {
+            asset = null;
+
+            m_Requests++;
+
+            if (id.Equals(Util.UUIDZeroString))
+                return false;
+
+            if (m_negativeCache.ContainsKey(id))
+                return false;
+
+            asset = GetFromWeakReference(id);
+            if (asset != null)
+            {
+                if (m_updateFileTimeOnCacheHit)
+                {
+                    string filename = GetFileName(id);
+                    UpdateFileLastAccessTime(filename);
+                }
+                if (m_MemoryCacheEnabled)
+                    UpdateMemoryCache(id, asset);
+                return true;
+            }
+
+            if (m_MemoryCacheEnabled)
+            {
+                asset = GetFromMemoryCache(id);
+                if (asset != null)
+                {
+                    UpdateWeakReference(id, asset);
+                    if (m_updateFileTimeOnCacheHit)
+                    {
+                        string filename = GetFileName(id);
+                        UpdateFileLastAccessTime(filename);
+                    }
+                    return true;
                 }
             }
             return true;
@@ -955,7 +1019,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 // If the file is already cached, don't cache it, just touch it so access time is updated
                 if (!replace && File.Exists(filename))
                 {
-                    UpdateFileLastAccessTime(filename);
+                    if (m_updateFileTimeOnCacheHit)
+                        UpdateFileLastAccessTime(filename);
                     return;
                 }
 
@@ -974,6 +1039,8 @@ namespace OpenSim.Region.CoreModules.Asset
                         bformatter.Serialize(stream, asset);
                         stream.Flush();
                     }
+                    if(m_lastFileAccessTimeChange != null)
+                        m_lastFileAccessTimeChange.Add(filename, 900000);
                 }
                 catch (IOException e)
                 {
@@ -1096,7 +1163,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     break;
 
                 string idstr = id.ToString();
-                if (!UpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
+                if (!CheckUpdateFileLastAccessTime(GetFileName(idstr)) && tryGetUncached)
                 {
                     cooldown += 5;
                     m_AssetService.Get(idstr);
@@ -1551,6 +1618,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 return false;
             handler(id, sender, asset);
             return true;
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
         }
 
         public bool[] AssetsExist(string[] ids)

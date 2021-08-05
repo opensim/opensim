@@ -427,5 +427,10 @@ namespace OpenSim.Services.Connectors
             string uri = m_ServerURI + "/assets/" + id;
             return SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0, m_Auth);
         }
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
+        }
+
     }
 }
