@@ -130,6 +130,11 @@ namespace OpenSim.Services.HypergridService
             return null;
         }
 
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             AssetMetadata meta = m_assetService.GetMetadata(id);

@@ -53,6 +53,8 @@ namespace OpenSim.Framework
         // as get without negative cache check
         AssetBase GetCached(string id);
 
+        bool GetFromMemory(string id, out AssetBase asset);
+
         /// <summary>
         /// Check whether an asset with the specified id exists in the cache.
         /// </summary>
