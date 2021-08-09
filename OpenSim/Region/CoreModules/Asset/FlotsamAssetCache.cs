@@ -1233,6 +1233,34 @@ namespace OpenSim.Region.CoreModules.Asset
                             cooldown = 0;
                         }
                     }
+                    else if( entity is ScenePresence)
+                    {
+                        ScenePresence sp = entity as ScenePresence;
+                        if (sp == null || sp.IsChildAgent || sp.IsDeleted || sp.Appearance == null)
+                            continue;
+
+                        Primitive.TextureEntry Texture = sp.Appearance.Texture;
+                        if (Texture == null)
+                            continue;
+
+                        Primitive.TextureEntryFace[] FaceTextures = Texture.FaceTextures;
+                        if (FaceTextures == null)
+                            continue;
+
+                        for (int it = 0; it < AvatarAppearance.BAKE_INDICES.Length; it++)
+                        {
+                            int idx = AvatarAppearance.BAKE_INDICES[it];
+                            if(idx < FaceTextures.Length)
+                            {
+                                Primitive.TextureEntryFace face = FaceTextures[idx];
+                                if (face == null)
+                                    continue;
+                                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                                    continue;
+                                gatherer.AddGathered(face.TextureID, (sbyte)AssetType.Texture);
+                            }
+                        }
+                    }
                 }
                 entities = null;
                 if (!m_cleanupRunning)
