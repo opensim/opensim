@@ -876,7 +876,7 @@
      <Key Name="assetID" Value="11b4c57c-56b3-04ed-1f82-2004363882e4"/>
      <Key Name="name" Value="DefaultRainbow"/>
      <Key Name="assetType" Value="0" />
-     <Key Name="fileName" Value="rainbow.j2c"/>
+     <Key Name="fileName" Value="rainbow2.j2c"/>
   </Section>
   <Section Name="DefaultHalo">
      <Key Name="assetID" Value="12149143-f599-91a7-77ac-b52a3c0f59cd"/>
