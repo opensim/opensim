@@ -1552,16 +1552,22 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             s_expirationDate = cmdparams[2];
                         }
-
-                        if (!DateTime.TryParse(s_expirationDate, out expirationDate))
+                        if(s_expirationDate.Equals("now", StringComparison.InvariantCultureIgnoreCase))
+                            expirationDate = DateTime.Now;
+                        else
                         {
-                            con.Output("{0} is not a valid date & time", cmd);
-                            break;
-                        }
-                        if (expirationDate >= DateTime.Now)
-                        {
-                            con.Output("{0} date & time must be in past", cmd);
-                            break;
+                            if (!DateTime.TryParse(s_expirationDate, out expirationDate))
+                            {
+                                con.Output("{0} is not a valid date & time", cmd);
+                                m_cleanupRunning = false;
+                                break;
+                            }
+                            if (expirationDate >= DateTime.Now)
+                            {
+                                con.Output("{0} date & time must be in past", cmd);
+                                m_cleanupRunning = false;
+                                break;
+                            }
                         }
                         if (m_FileCacheEnabled)
                         {
