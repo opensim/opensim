@@ -2,4 +2,4 @@
 using Mono.Addins;
 using Mono.Addins.Description;
 
-[assembly: AddinRoot("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinRoot("OpenSim.Region.Framework", OpenSim.VersionInfo.AssemblyVersionNumber)]
