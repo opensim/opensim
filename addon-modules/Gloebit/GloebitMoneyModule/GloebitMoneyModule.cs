@@ -90,7 +90,7 @@ using OpenMetaverse.StructuredData;     // TODO: turn transactionData into a dic
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;    // For ScriptBaseClass permissions constants
 
 [assembly: Addin("Gloebit", "0.1")]
-[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
+[assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.AssemblyVersionNumber)]
 [assembly: AddinDescription("OpenSim Addin for Gloebit Money Module")]
 [assembly: AddinAuthor("Gloebit LLC gloebit@gloebit.com")]
 //[assembly: ImportAddinFile("Gloebit.ini")]
@@ -706,7 +706,7 @@ namespace Gloebit.GloebitMoneyModule
             int vn4 = -9999;
             string detectedOSVersion = "unknown";
             m_opensimVersion = OpenSim.VersionInfo.Version;
-            m_opensimVersionNumber = OpenSim.VersionInfo.VersionNumber;
+            m_opensimVersionNumber = OpenSim.VersionInfo.AssemblyVersionNumber;
             char[] delimiterChars = { '.' };
             string[] numbers = m_opensimVersionNumber.Split(delimiterChars, System.StringSplitOptions.RemoveEmptyEntries);
 

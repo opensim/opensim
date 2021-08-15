@@ -29,8 +29,8 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.2.2021.06";
-        public const string AssemblyVersionNumber = "0.9.2.*";
+        public const string PackageVersionNumber = "0.9.2-202108";
+        public const string AssemblyVersionNumber = "0.9.2.0";
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
@@ -48,7 +48,7 @@ namespace OpenSim
 
         public static string Version
         {
-            get { return GetVersionString(VersionNumber, VERSION_FLAVOUR); }
+            get { return GetVersionString(PackageVersionNumber, VERSION_FLAVOUR); }
         }
 
         public static string GetVersionString(string versionNumber, Flavour flavour)
