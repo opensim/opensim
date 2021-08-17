@@ -786,9 +786,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal void SwapRootChildAgent(bool direction_ChildToRoot, bool isnpc = false)
+        protected internal void SwapRootChildAgent(bool direction_RootToChild, bool isnpc = false)
         {
-            if (direction_ChildToRoot)
+            if (direction_RootToChild)
             {
                 --m_numRootAgents;
                 if(isnpc)
