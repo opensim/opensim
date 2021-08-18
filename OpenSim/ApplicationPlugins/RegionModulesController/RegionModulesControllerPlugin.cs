@@ -64,21 +64,55 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         // List of shared module instances, for adding to Scenes
         private List<ISharedRegionModule> m_sharedInstances = new List<ISharedRegionModule>();
 
+#region Debug Support
+
         public RegionModulesControllerPlugin()
         {
             LoadModulesFromAddins = true;
         }
 
+        private void on_addinloaded_(object sender, AddinEventArgs args)
+        {
+            m_log.Info ("[PLUGINS]: Plugin Loaded: " + args.AddinId);
+        }
+
+        private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
+        {
+            if (args.Exception == null)
+                m_log.Error ("[REGIONMODULES]: Plugin Error: "
+                        + args.Message);
+            else
+                m_log.Error ("[REGIONMODULES]: Plugin Error: "
+                        + args.Exception.Message + "\n"
+                        + args.Exception.StackTrace);
+        }
+
+#endregion
+
 #region IApplicationPlugin implementation
 
         public void Initialise (OpenSimBase openSim)
         {
+            if (!LoadModulesFromAddins)
+                return;
+
+            AddinManager.AddinLoadError -= on_addinloaderror_;
+            AddinManager.AddinLoaded -= on_addinloaded_;
+            
             m_openSim = openSim;
             m_openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
             m_log.DebugFormat("[REGIONMODULES]: Initializing...");
 
-            if (!LoadModulesFromAddins)
-                return;
+            // The [Modules] section in the ini file
+            IConfig modulesConfig = m_openSim.ConfigSource.Source.Configs["Modules"];
+            if (modulesConfig == null)
+                modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
+
+            if (AddinManager.IsInitialized == false)
+            {
+                AddinManager.Initialize();
+                AddinManager.Registry.Update(null);
+            }
 
             // Who we are
             string id = AddinManager.CurrentAddin.Id;
@@ -89,11 +123,6 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 m_name = id;
             else
                 m_name = id.Substring(pos + 1);
-
-            // The [Modules] section in the ini file
-            IConfig modulesConfig = m_openSim.ConfigSource.Source.Configs["Modules"];
-            if (modulesConfig == null)
-                modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
 
             Dictionary<RuntimeAddin, IList<int>> loadedModules = new Dictionary<RuntimeAddin, IList<int>>();
 
@@ -229,6 +258,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             m_sharedModules.Clear();
             m_nonSharedModules.Clear();
+
+            AddinManager.AddinLoadError -= on_addinloaderror_;
+            AddinManager.AddinLoaded -= on_addinloaded_;
         }
 
 #endregion
