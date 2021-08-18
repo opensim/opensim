@@ -144,7 +144,7 @@ namespace OpenSim.Server.Handlers.MapImage
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
                             httpResponse.RawBuffer = Util.ResultFailureMessage("IP address of caller does not match IP address of registered region");
-                            return;
+                            //return;
                         }
                     }
                     else
@@ -152,7 +152,7 @@ namespace OpenSim.Server.Handlers.MapImage
                         m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}",
                             ipAddr, x, y);
                         httpResponse.RawBuffer = Util.ResultFailureMessage("Region not found at given coordinates");
-                        return;
+                        //return;
                     }
                 }
 
