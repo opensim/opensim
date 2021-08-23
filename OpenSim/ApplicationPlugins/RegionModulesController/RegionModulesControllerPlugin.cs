@@ -96,8 +96,8 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             if (!LoadModulesFromAddins)
                 return;
 
-            AddinManager.AddinLoadError -= on_addinloaderror_;
-            AddinManager.AddinLoaded -= on_addinloaded_;
+            AddinManager.AddinLoadError += on_addinloaderror_;
+            AddinManager.AddinLoaded += on_addinloaded_;
             
             m_openSim = openSim;
             m_openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
@@ -107,12 +107,6 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             IConfig modulesConfig = m_openSim.ConfigSource.Source.Configs["Modules"];
             if (modulesConfig == null)
                 modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
-
-            if (AddinManager.IsInitialized == false)
-            {
-                AddinManager.Initialize();
-                AddinManager.Registry.Update(null);
-            }
 
             // Who we are
             string id = AddinManager.CurrentAddin.Id;
@@ -126,9 +120,14 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             Dictionary<RuntimeAddin, IList<int>> loadedModules = new Dictionary<RuntimeAddin, IList<int>>();
 
-            // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
-                AddNode(node, modulesConfig, loadedModules);
+            {
+                AddNode(node, modulesConfig, loadedModules);                
+            }
+
+            // // Scan modules and load all that aren't disabled
+            // foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
+            //     AddNode(node, modulesConfig, loadedModules);
 
             foreach (KeyValuePair<RuntimeAddin, IList<int>> loadedModuleData in loadedModules)
             {
