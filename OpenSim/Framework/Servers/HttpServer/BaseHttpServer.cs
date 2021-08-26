@@ -1593,6 +1593,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (!TryGetLLSDHandler(request.RawUrl, out LLSDMethod llsdhandler))
             {
                 response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.KeepAlive = false;
                 return null;
             }
 

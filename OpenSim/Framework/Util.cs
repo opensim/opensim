@@ -3933,8 +3933,8 @@ namespace OpenSim.Framework
         public static void LogFailedXML(string message, string xml)
         {
             int length = xml.Length;
-            if (length > 2000)
-                xml = xml.Substring(0, 2000) + "...";
+            if (length > 250)
+                xml = xml.Substring(0, 250) + "...";
 
             for (int i = 0 ; i < xml.Length ; i++)
             {
