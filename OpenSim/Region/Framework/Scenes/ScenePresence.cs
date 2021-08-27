@@ -2213,7 +2213,7 @@ namespace OpenSim.Region.Framework.Scenes
             int ts = Util.EnvironmentTickCount();
 
             m_log.InfoFormat(
-                "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
+                "[SCENE PRESENCE]: Complete movement of {0} into {1} {2}",
                 client.Name, Scene.Name, AbsolutePosition);
 
             m_inTransit = true;

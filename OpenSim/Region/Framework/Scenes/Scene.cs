@@ -4261,9 +4261,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_log.InfoFormat(
-                        "[SCENE]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                        "[SCENE {0}]: authorized {1} agent {2} {3} {4} (circuit code {5})",
                         Name, (acd.child ? "child" : "root"), acd.firstname, acd.lastname,
                         acd.AgentID, acd.circuitcode);
+
 
                     if (m_capsModule != null)
                     {
