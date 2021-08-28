@@ -69,7 +69,7 @@ namespace OpenSim.Framework.Monitoring
                     "jobengine",
                     StatType.Pull,
                     MeasuresOfInterest.None,
-                    stat => stat.Value = JobEngine.JobsWaiting,
+                    stat => stat.Value = JobEngine == null ? 0 : JobEngine.JobsWaiting,
                     StatVerbosity.Debug));
 
             MainConsole.Instance.Commands.AddCommand(

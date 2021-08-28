@@ -137,13 +137,14 @@ namespace OpenSim.Server.Handlers.MapImage
                 if (m_GridService != null)
                 {
                     IPAddress ipAddr = httpRequest.RemoteIPEndPoint.Address;
-                    GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
+                    GridRegion r = m_GridService.GetRegionByPosition(scopeID, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
                     if (r != null)
                     {
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
                             httpResponse.RawBuffer = Util.ResultFailureMessage("IP address of caller does not match IP address of registered region");
+                            //return;
                         }
                     }
                     else
@@ -151,6 +152,7 @@ namespace OpenSim.Server.Handlers.MapImage
                         m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}",
                             ipAddr, x, y);
                         httpResponse.RawBuffer = Util.ResultFailureMessage("Region not found at given coordinates");
+                        //return;
                     }
                 }
 

@@ -81,12 +81,18 @@ namespace OpenSim.Framework.Monitoring
                 // Asking for an update here means that the updater cannot access this value without infinite recursion.
                 // XXX: A slightly messy but simple solution may be to flick a flag so we can tell if this is being
                 // called by the pull action and just return the value.
-                if (StatType == StatType.Pull)
-                    PullAction(this);
+                try
+                {
+                    if (StatType == StatType.Pull)
+                        PullAction(this);
 
-                return m_value;
+                    return m_value;
+                }
+                catch
+                {
+                    return 0;
+                }
             }
-
             set
             {
                 m_value = value;

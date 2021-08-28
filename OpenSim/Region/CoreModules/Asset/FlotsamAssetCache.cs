@@ -33,7 +33,6 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
 using log4net;
 using Nini.Config;
@@ -809,7 +808,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 weakAssetReferences = new Dictionary<string, WeakReference>();
         }
 
-        private async void CleanupExpiredFiles(object source, ElapsedEventArgs e)
+        private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
         {
             lock (timerLock)
             {
@@ -819,10 +818,10 @@ namespace OpenSim.Region.CoreModules.Asset
             }
 
             // Purge all files last accessed prior to this point
-            await DoCleanExpiredFiles(DateTime.Now - m_FileExpiration).ConfigureAwait(false);
+            DoCleanExpiredFiles(DateTime.Now - m_FileExpiration);
         }
 
-        private async Task DoCleanExpiredFiles(DateTime purgeLine)
+        private void DoCleanExpiredFiles(DateTime purgeLine)
         {
             long heap = 0;
             //if (m_LogLevel >= 2)
@@ -834,7 +833,7 @@ namespace OpenSim.Region.CoreModules.Asset
             // An asset cache may contain local non-temporary assets that are not in the asset service.  Therefore,
             // before cleaning up expired files we must scan the objects in the scene to make sure that we retain
             // such local assets if they have not been recently accessed.
-            Dictionary<UUID,sbyte> gids = await gatherSceneAssets().ConfigureAwait(false);
+            Dictionary<UUID,sbyte> gids = gatherSceneAssets();
 
             int cooldown = 0;
             m_log.Info("[FLOTSAM ASSET CACHE] start asset files expire");
@@ -842,10 +841,10 @@ namespace OpenSim.Region.CoreModules.Asset
             {
                 if(!m_cleanupRunning)
                     break;
-                cooldown = await CleanExpiredFiles(subdir, gids, purgeLine, cooldown);
+                cooldown = CleanExpiredFiles(subdir, gids, purgeLine, cooldown);
                 if (++cooldown >= 10)
                 {
-                    await Task.Delay(100).ConfigureAwait(false);
+                    Thread.Sleep(120);
                     cooldown = 0;
                 }
             }
@@ -872,8 +871,8 @@ namespace OpenSim.Region.CoreModules.Asset
         /// removes empty tier directories.
         /// </summary>
         /// <param name="dir"></param>
-        /// <param name="purgeLine"></param>
-        private async Task<int> CleanExpiredFiles(string dir, Dictionary<UUID, sbyte> gids, DateTime purgeLine, int cooldown)
+        /// <param name="purgeTimeline"></param>
+        private int CleanExpiredFiles(string dir, Dictionary<UUID, sbyte> gids, DateTime purgeTimeline, int cooldown)
         {
             try
             {
@@ -889,10 +888,10 @@ namespace OpenSim.Region.CoreModules.Asset
                         return cooldown;
 
                     ++dirSize;
-                    cooldown = await CleanExpiredFiles(subdir, gids, purgeLine, cooldown);
+                    cooldown = CleanExpiredFiles(subdir, gids, purgeTimeline, cooldown);
                     if (++cooldown > 10)
                     {
-                        await Task.Delay(100).ConfigureAwait(false);
+                        Thread.Sleep(60);
                         cooldown = 0;
                     }
                 }
@@ -904,7 +903,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     ++dirSize;
                     string id = Path.GetFileName(file);
-                    if (String.IsNullOrEmpty(id))
+                    if (string.IsNullOrEmpty(id))
                         continue; //??
 
                     if (m_defaultAssets.Contains(id) ||(UUID.TryParse(id, out UUID uid) && gids.ContainsKey(uid)))
@@ -913,7 +912,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         continue;
                     }
 
-                    if (File.GetLastAccessTime(file) < purgeLine)
+                    if (File.GetLastAccessTime(file) < purgeTimeline)
                     {
                         try
                         {
@@ -928,7 +927,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                     if (++cooldown >= 20)
                     {
-                        await Task.Delay(100).ConfigureAwait(false);
+                        Thread.Sleep(60);
                         cooldown = 0;
                     }
                 }
@@ -945,7 +944,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     cooldown += 5;
                     if (cooldown >= 20)
                     {
-                        await Task.Delay(100).ConfigureAwait(false);
+                        Thread.Sleep(60);
                         cooldown = 0;
                     }
                 }
@@ -1150,11 +1149,11 @@ namespace OpenSim.Region.CoreModules.Asset
         /// If true, then assets scanned which are not found in cache are added to the cache.
         /// </param>
         /// <returns>Number of distinct asset references found in the scene.</returns>
-        private async Task<int> TouchAllSceneAssets(bool tryGetUncached)
+        private int TouchAllSceneAssets(bool tryGetUncached)
         {
             m_log.Info("[FLOTSAM ASSET CACHE] start touch files of assets in use");
 
-            Dictionary<UUID,sbyte> gatheredids = await gatherSceneAssets();
+            Dictionary<UUID,sbyte> gatheredids = gatherSceneAssets();
 
             int cooldown = 0;
             foreach(UUID id in gatheredids.Keys)
@@ -1177,7 +1176,7 @@ namespace OpenSim.Region.CoreModules.Asset
             return gatheredids.Count;
         }
 
-        private async Task<Dictionary<UUID, sbyte>> gatherSceneAssets()
+        private Dictionary<UUID, sbyte> gatherSceneAssets()
         {
             m_log.Info("[FLOTSAM ASSET CACHE] gather assets in use");
 
@@ -1216,7 +1215,7 @@ namespace OpenSim.Region.CoreModules.Asset
                     if (entity is SceneObjectGroup)
                     {
                         SceneObjectGroup e = entity as SceneObjectGroup;
-                        if (e.IsDeleted)
+                        if (e == null || e.IsDeleted)
                             continue;
 
                         gatherer.AddForInspection(e);
@@ -1224,14 +1223,42 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             if (++cooldown > 50)
                             {
-                                await Task.Delay(60).ConfigureAwait(false);
+                                Thread.Sleep(60);
                                 cooldown = 0;
                             }
                         }
                         if (++cooldown > 25)
                         {
-                            await Task.Delay(60).ConfigureAwait(false);
+                            Thread.Sleep(60);
                             cooldown = 0;
+                        }
+                    }
+                    else if( entity is ScenePresence)
+                    {
+                        ScenePresence sp = entity as ScenePresence;
+                        if (sp == null || sp.IsChildAgent || sp.IsDeleted || sp.Appearance == null)
+                            continue;
+
+                        Primitive.TextureEntry Texture = sp.Appearance.Texture;
+                        if (Texture == null)
+                            continue;
+
+                        Primitive.TextureEntryFace[] FaceTextures = Texture.FaceTextures;
+                        if (FaceTextures == null)
+                            continue;
+
+                        for (int it = 0; it < AvatarAppearance.BAKE_INDICES.Length; it++)
+                        {
+                            int idx = AvatarAppearance.BAKE_INDICES[it];
+                            if(idx < FaceTextures.Length)
+                            {
+                                Primitive.TextureEntryFace face = FaceTextures[idx];
+                                if (face == null)
+                                    continue;
+                                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                                    continue;
+                                gatherer.AddGathered(face.TextureID, (sbyte)AssetType.Texture);
+                            }
                         }
                     }
                 }
@@ -1464,7 +1491,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                         con.Output("Flotsam Ensuring assets are cached for all scenes.");
 
-                        WorkManager.RunInThreadPool(async delegate
+                        WorkManager.RunInThreadPool(delegate
                         {
                             bool wasRunning= false;
                             lock(timerLock)
@@ -1478,9 +1505,9 @@ namespace OpenSim.Region.CoreModules.Asset
                             }
 
                             if (wasRunning)
-                                await Task.Delay(100).ConfigureAwait(false);
+                                Thread.Sleep(120);
 
-                            int assetReferenceTotal = await TouchAllSceneAssets(true).ConfigureAwait(false);
+                            int assetReferenceTotal = TouchAllSceneAssets(true);
 
                             lock(timerLock)
                             {
@@ -1510,6 +1537,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         if (cmdparams.Length < 3)
                         {
                             con.Output("Invalid parameters for Expire, please specify a valid date & time");
+                            m_cleanupRunning = false;
                             break;
                         }
 
@@ -1524,20 +1552,26 @@ namespace OpenSim.Region.CoreModules.Asset
                         {
                             s_expirationDate = cmdparams[2];
                         }
-
-                        if (!DateTime.TryParse(s_expirationDate, out expirationDate))
+                        if(s_expirationDate.Equals("now", StringComparison.InvariantCultureIgnoreCase))
+                            expirationDate = DateTime.Now;
+                        else
                         {
-                            con.Output("{0} is not a valid date & time", cmd);
-                            break;
-                        }
-                        if (expirationDate >= DateTime.Now)
-                        {
-                            con.Output("{0} date & time must be in past", cmd);
-                            break;
+                            if (!DateTime.TryParse(s_expirationDate, out expirationDate))
+                            {
+                                con.Output("{0} is not a valid date & time", cmd);
+                                m_cleanupRunning = false;
+                                break;
+                            }
+                            if (expirationDate >= DateTime.Now)
+                            {
+                                con.Output("{0} date & time must be in past", cmd);
+                                m_cleanupRunning = false;
+                                break;
+                            }
                         }
                         if (m_FileCacheEnabled)
                         {
-                            WorkManager.RunInThreadPool(async delegate
+                            WorkManager.RunInThreadPool(delegate
                             {
                                 bool wasRunning = false;
                                 lock (timerLock)
@@ -1551,9 +1585,9 @@ namespace OpenSim.Region.CoreModules.Asset
                                 }
 
                                 if(wasRunning)
-                                    await Task.Delay(100).ConfigureAwait(false);
+                                    Thread.Sleep(120);
 
-                                await DoCleanExpiredFiles(expirationDate).ConfigureAwait(false);
+                                DoCleanExpiredFiles(expirationDate);
 
                                 lock (timerLock)
                                 {
@@ -1564,7 +1598,7 @@ namespace OpenSim.Region.CoreModules.Asset
                                     }
                                     m_cleanupRunning = false;
                                 }
-                            }, null, "TouchAllSceneAssets", false);
+                            }, null, "ExpireSceneAssets", false);
                         }
                         else
                             con.Output("File cache not active, not clearing.");
