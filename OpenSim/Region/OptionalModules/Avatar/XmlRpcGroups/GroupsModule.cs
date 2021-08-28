@@ -1195,8 +1195,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 if (info.BinaryBucket[0] > 0)
                 {
-                    //32 is due to not needing space for two of the UUIDs.
-                    //(Don't need UUID of attachment or its owner in IM)
                     //50 offset gets us to start of attachment name.
                     bucket = new byte[info.BinaryBucket.Length - 32];
                     Array.Copy(info.BinaryBucket, 0,
@@ -1209,6 +1207,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     bucket = new byte[19];
                     bucket[0] = 0;      //No attachment
                     bucket[1] = 0;      //Attachment type
+                    info.GroupID.ToBytes(bucket, 2);
                     bucket[18] = 0;     //NUL terminate name
                 }
 
