@@ -1212,9 +1212,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetInertiaAsSphere(mass, radius, centerOfMass);
         }
 
-        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot)
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, vector centerOfMass,rotation lslrot)
         {
-            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, lenght, centerOfMass, lslrot);
+            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, length, centerOfMass, lslrot);
         }
 
         public void osClearInertia()

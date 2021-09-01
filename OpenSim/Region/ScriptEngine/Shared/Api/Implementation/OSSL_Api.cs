@@ -4847,13 +4847,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="radius">radius of the cylinder</param>
-        /// <param name="lenght">lenght of the cylinder</param>
+        /// <param name="length">length of the cylinder</param>
         /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
         /// <param name="lslrot">rotation of the cylinder, and so inertia, relative to local axis</param>
         /// <remarks>
         /// cylinder axis aligned with Z axis. For other orientations provide the rotation.
         /// </remarks>
-        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, LSL_Vector centerOfMass, LSL_Rotation lslrot)
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
             CheckThreatLevel();
 
@@ -4872,7 +4872,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float r = (float)radius;
             r *= r;
             Inertia.Z = 0.5f * m * r;
-            float t = (float)lenght;
+            float t = (float)length;
             t *= t;
             t += 3.0f * r;
             t *= 8.333333e-2f * m;

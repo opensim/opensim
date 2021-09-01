@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //finish this packet
                         bitpack.PackBitsFromByte(END_OF_PATCHES);
 
-                        // fix the datablock lenght
+                        // fix the datablock length
                         datasize = bitpack.BytePos - 9;
                         data[8] = (byte)datasize;
                         data[9] = (byte)(datasize >> 8);

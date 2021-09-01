@@ -2723,10 +2723,10 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe int osUTF8Getbytes(char* srcarray, int srclenght, byte* dstarray, int maxdstlen, bool NullTerm = true)
+        public static unsafe int osUTF8Getbytes(char* srcarray, int srclength, byte* dstarray, int maxdstlen, bool NullTerm = true)
         {
             int dstlen = NullTerm ? maxdstlen - 1 : maxdstlen;
-            int srclen = srclenght >= dstlen ? dstlen : srclenght;
+            int srclen = srclength >= dstlen ? dstlen : srclength;
 
             char c;
             char* src = srcarray;
