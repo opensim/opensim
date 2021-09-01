@@ -14,6 +14,7 @@ namespace OSHttpServer
     /// </summary>
     public class HttpRequest : IHttpRequest
     {
+        private const int MAXCONTENTLENGHT = 250 * 1024 * 1024;
         /// <summary>
         /// Chars used to split an URL path into multiple parts.
         /// </summary>
@@ -340,10 +341,10 @@ namespace OSHttpServer
                 case "content-length":
                     if (!int.TryParse(value, out int t))
                         throw new BadRequestException("Invalid content length.");
-                    if (t > 250 * 1024 * 1024)
+                    if (t > MAXCONTENTLENGHT)
                         throw new OSHttpServer.Exceptions.HttpException(HttpStatusCode.RequestEntityTooLarge,"Request Entity Too Large");
                     ContentLength = t;
-                    break; //todo: maybe throw an exception
+                    break;
                 case "host":
                     try
                     {
