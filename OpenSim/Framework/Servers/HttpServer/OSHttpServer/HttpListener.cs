@@ -146,6 +146,8 @@ namespace OSHttpServer
                     return;
                 }
 
+                socket.NoDelay = true;
+
                 if (!OnAcceptingSocket(socket))
                 {
                     socket.Disconnect(true);
@@ -154,9 +156,7 @@ namespace OSHttpServer
 
                 if(socket.Connected)
                 {
-                    socket.NoDelay = true;
-
-                    m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
+                     m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
 
                     if (m_certificate != null)
                         m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocol, m_clientCertValCallback);
@@ -201,9 +201,13 @@ namespace OSHttpServer
         /// <returns>true if connection can be accepted; otherwise false.</returns>
         protected bool OnAcceptingSocket(Socket socket)
         {
-            ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(socket);
-            Accepted?.Invoke(this, args);
-            return !args.Revoked;
+            if(Accepted!=null)
+            {
+                ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(socket);
+                Accepted?.Invoke(this, args);
+                return !args.Revoked;
+            }
+            return true;
         }
 
         /// <summary>
