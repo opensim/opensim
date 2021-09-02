@@ -107,7 +107,7 @@ namespace OpenSim.Data
             float dy = regionA.posY - m_originY;
             if (dy < 0)
                 dy += regionA.sizeY - 1;
-            float da = dx * dx - dy * dy;
+            float da = dx * dx + dy * dy;
 
             dx = regionB.posX - m_originX;
             if (dx < 0)
@@ -115,7 +115,7 @@ namespace OpenSim.Data
             dy = regionB.posY - m_originY;
             if (dy < 0)
                 dy += regionB.sizeY - 1;
-            float db = dx * dx - dy * dy;
+            float db = dx * dx + dy * dy;
             return da.CompareTo(db);
         }
     }
