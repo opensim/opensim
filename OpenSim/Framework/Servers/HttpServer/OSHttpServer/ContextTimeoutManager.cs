@@ -55,7 +55,7 @@ namespace OSHttpServer
         private static int m_ActiveSendingCount;
         private static double m_lastTimeOutCheckTime = 0;
 
-        const int m_maxConcurrenSend = 32;
+        const int m_maxConcurrentSend = 32;
 
         static ContextTimeoutManager()
         {
@@ -156,7 +156,7 @@ namespace OSHttpServer
 
             const int curbytesLimit = 128 * 1024;
 
-            int curConcurrentLimit = m_maxConcurrenSend - m_ActiveSendingCount;
+            int curConcurrentLimit = m_maxConcurrentSend - m_ActiveSendingCount;
             if(curConcurrentLimit <= 0)
                 return;
 

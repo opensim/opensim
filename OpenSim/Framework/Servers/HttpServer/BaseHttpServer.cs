@@ -427,14 +427,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (m_rpcHandlers)
             {
-                if (m_rpcHandlers.ContainsKey(method))
-                {
-                    return m_rpcHandlers[method];
-                }
-                else
-                {
-                    return null;
-                }
+                return (m_rpcHandlers.TryGetValue(method, out XmlRpcMethod xm)) ? xm : null;
             }
         }
 
@@ -442,10 +435,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (m_rpcHandlers)
             {
-                if(m_rpcHandlers.TryGetValue(method, out handler))
-                    return true;
+                return (m_rpcHandlers.TryGetValue(method, out handler));
             }
-            return false;
         }
 
         public List<string> GetXmlRpcHandlerKeys()
@@ -468,14 +459,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             lock (jsonRpcHandlers)
             {
-                if (jsonRpcHandlers.ContainsKey(method))
-                {
-                    return jsonRpcHandlers[method];
-                }
-                else
-                {
-                    return null;
-                }
+                return jsonRpcHandlers.TryGetValue(method, out JsonRPCMethod jm) ? jm : null;
             }
         }
 

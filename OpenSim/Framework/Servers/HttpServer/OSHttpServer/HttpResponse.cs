@@ -327,11 +327,11 @@ namespace OSHttpServer
             }
 
             m_headerBytes = GetHeaders();
-            /*
-            if (RawBuffer != null)
+
+            if (RawBuffer != null && RawBufferLen > 0)
             {
                 int tlen = m_headerBytes.Length + RawBufferLen;
-                if(RawBufferLen > 0 && tlen < 16384)
+                if(tlen < 8 * 1024)
                 {
                     byte[] tmp = new byte[tlen];
                     Buffer.BlockCopy(m_headerBytes, 0, tmp, 0, m_headerBytes.Length);
@@ -342,7 +342,7 @@ namespace OSHttpServer
                     RawBufferLen = tlen;
                 }
             }
-            */
+
             m_context.StartSendResponse(this);
         }
 

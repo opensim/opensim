@@ -100,9 +100,8 @@ namespace OpenSim.Capabilities.Handlers
             string assetStr = string.Empty;
             foreach (KeyValuePair<string,string> kvp in queries)
             {
-                if (queryTypes.ContainsKey(kvp.Key))
+                if (queryTypes.TryGetValue(kvp.Key, out type))
                 {
-                    type = queryTypes[kvp.Key];
                     assetStr = kvp.Value;
                     break;
                 }
