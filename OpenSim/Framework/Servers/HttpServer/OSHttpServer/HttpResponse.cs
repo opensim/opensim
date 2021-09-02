@@ -352,11 +352,6 @@ namespace OSHttpServer
             {
                 if(!await m_context.SendAsync(m_headerBytes, 0, m_headerBytes.Length).ConfigureAwait(false))
                 {
-                    if (m_context.CanSend())
-                    {
-                        m_context.ContinueSendResponse(true);
-                        return;
-                    }
                     if (m_body != null)
                         m_body.Dispose();
                     RawBuffer = null;
@@ -367,50 +362,49 @@ namespace OSHttpServer
                 m_headerBytes = null;
                 if(bytesLimit <= 0)
                 {
-                    m_context.ContinueSendResponse(true);
+                    m_context.ContinueSendResponse(false);
                     return;
                 }
             }
 
-            if (RawBuffer != null)
+            bool sendRes;
+            if (RawBuffer != null && RawBufferLen > 0)
             {
-                if (RawBufferLen > 0)
+                if (BandWitdhEvent != null)
                 {
-                    if(BandWitdhEvent!=null)
-                        bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
-
-                    bool sendRes;
-                    if(RawBufferLen > bytesLimit)
+                    bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
+                    if (bytesLimit <= 0)
                     {
-                        sendRes = (await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false));
-                        if (sendRes)
-                        {
-                            RawBufferLen -= bytesLimit;
-                            RawBufferStart += bytesLimit;
-                        }
-                    }
-                    else
-                    {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        if(sendRes)
-                            RawBufferLen = 0;
-                    }
-
-                    if (!sendRes)
-                    {
-                        if (m_context.CanSend())
-                        {
-                            m_context.ContinueSendResponse(true);
-                            return;
-                        }
-
-                        RawBuffer = null;
-                        if(m_body != null)
-                            Body.Dispose();
-                        Sent = true;
+                        m_context.ContinueSendResponse(false);
                         return;
                     }
                 }
+
+                if(RawBufferLen > bytesLimit)
+                {
+                    sendRes = (await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false));
+                    if (sendRes)
+                    {
+                        RawBufferLen -= bytesLimit;
+                        RawBufferStart += bytesLimit;
+                    }
+                }
+                else
+                {
+                    sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
+                    if(sendRes)
+                        RawBufferLen = 0;
+                }
+
+                if (!sendRes)
+                {
+                    RawBuffer = null;
+                    if(m_body != null)
+                        Body.Dispose();
+                    Sent = true;
+                    return;
+                }
+
                 if (RawBufferLen <= 0)
                     RawBuffer = null;
                 else
@@ -431,7 +425,16 @@ namespace OSHttpServer
 
                 if(RawBufferLen > 0)
                 {
-                    bool sendRes;
+                    if (BandWitdhEvent != null)
+                    {
+                        bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
+                        if (bytesLimit <= 0)
+                        {
+                            m_context.ContinueSendResponse(false);
+                            return;
+                        }
+                    }
+
                     if (RawBufferLen > bytesLimit)
                     {
                         sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false);
@@ -450,11 +453,6 @@ namespace OSHttpServer
 
                     if (!sendRes)
                     {
-                        if (m_context.CanSend())
-                        {
-                            m_context.ContinueSendResponse(true);
-                            return;
-                        }
                         RawBuffer = null;
                         Sent = true;
                         return;
@@ -475,14 +473,17 @@ namespace OSHttpServer
 
         private int CheckBandwidth(int request, int bytesLimit)
         {
-            if(request > bytesLimit)
+            if (request > bytesLimit)
                 request = bytesLimit;
             var args = new BandWitdhEventArgs(request);
-            BandWitdhEvent?.Invoke(this, args);
-            if(args.Result > 8196)
+            try
+            {
+                BandWitdhEvent?.Invoke(this, args);
                 return args.Result;
+            }
+            catch { }
 
-            return 8196;
+            return request;
         }
 
         public void Clear()

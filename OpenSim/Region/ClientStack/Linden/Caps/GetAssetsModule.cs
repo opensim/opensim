@@ -203,24 +203,32 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     lock (responses)
                     {
+                        return responses.ContainsKey(requestID);
+                        /*
                         APollResponse response;
                         if (responses.TryGetValue(requestID, out response))
                         {
                             ScenePresence sp = m_scene.GetScenePresence(pId);
 
-                            if (sp == null || sp.IsDeleted)
-                                return true;
-
                             OSHttpResponse resp = response.osresponse;
+                            if (sp == null || sp.IsDeleted)
+                            {
+                                resp.SetBandWitdh((source, value) =>
+                                {
+                                    value.Result = 8196;
+                                });
+                                return true;
+                            }
+                            int prio = resp.Priority;
 
-                            if(Util.GetTimeStamp() - resp.RequestTS > (resp.RawBufferLen > 2000000 ? 10 : 5))
-                                return sp.CapCanSendAsset(2, resp.RawBufferLen);
-
-                            if (resp.Priority > 0)
-                                return sp.CapCanSendAsset(resp.Priority, resp.RawBufferLen);
-                            return sp.CapCanSendAsset(2, resp.RawBufferLen);
+                            resp.SetBandWitdh((source, value) =>
+                            {
+                                value.Result = sp.BandLimit(prio, resp.RequestTS, value.Request);
+                            });
+                            return true;
                         }
                         return false;
+                        */
                     }
                 };
 

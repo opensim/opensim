@@ -528,7 +528,7 @@ namespace OSHttpServer
 
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
             m_currentResponse?.SendNextAsync(bytesLimit);
-            return false;
+            return true;
         }
 
         public void ContinueSendResponse(bool notThrottled)

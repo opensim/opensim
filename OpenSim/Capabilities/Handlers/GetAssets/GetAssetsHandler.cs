@@ -197,19 +197,9 @@ namespace OpenSim.Capabilities.Handlers
             response.RawBuffer = asset.Data;
             response.RawBufferLen = len;
             if (type == AssetType.Mesh || type == AssetType.Texture)
-            {
-                if(len > 8196)
-                {
-                    //if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
-                    //    responsedata["prio"] = 1;
-                    //else
-                    response.Priority = 2;
-                }
-                else
-                    response.Priority = 1;
-            }
+                response.Priority = 2;
             else
-                response.Priority = -1;
+                response.Priority = 1;
         }
     }
 }
