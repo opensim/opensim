@@ -646,7 +646,6 @@ namespace Amib.Threading
                     workerThread.Priority = _stpStartInfo.ThreadPriority;
 
                     workerThread.Name = string.Format("STP:{0}:{1}", Name, _threadCounter);
-                    workerThread.Start();
 
                     Interlocked.Exchange(ref _lastThreadCreateTS, DateTime.UtcNow.Ticks);
                     ++_threadCounter;
@@ -654,6 +653,8 @@ namespace Amib.Threading
 
                     // Add it to the dictionary and update its creation time.
                     _workerThreads[workerThread.ManagedThreadId] = new ThreadEntry(this, workerThread);
+
+                    workerThread.Start();
 
                     _windowsPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
                     _localPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
