@@ -10,8 +10,6 @@ namespace OSHttpServer
 {
     public class HttpResponse : IHttpResponse
     {
-        public event EventHandler<BandWitdhEventArgs> BandWitdhEvent;
-
         private const string DefaultContentType = "text/html;charset=UTF-8";
         private readonly IHttpClientContext m_context;
         private readonly ResponseCookies m_cookies = new ResponseCookies();
@@ -237,7 +235,8 @@ namespace OSHttpServer
                 long len = m_contentLength;
                 if (len == 0)
                 {
-                    len = Body.Length;
+                    if(m_body!= null)
+                        len = m_body.Length;
                     if (RawBuffer != null && RawBufferLen > 0)
                         len += RawBufferLen;
                 }
@@ -341,155 +340,155 @@ namespace OSHttpServer
                     RawBufferStart = 0;
                     RawBufferLen = tlen;
                 }
+
+                if (RawBufferLen == 0)
+                    RawBuffer = null;
+            }
+
+            if (m_body != null && m_body.Length == 0)
+            {
+                m_body.Dispose();
+                m_body = null;
+            }
+
+            if (m_headerBytes == null && RawBuffer == null && m_body == null)
+            {
+
             }
 
             m_context.StartSendResponse(this);
         }
 
-        public async Task SendNextAsync(int bytesLimit)
+        public void SendNextAsync(int bytesLimit)
         {
             if (m_headerBytes != null)
             {
-                if(!await m_context.SendAsync(m_headerBytes, 0, m_headerBytes.Length).ConfigureAwait(false))
+                byte[] b = m_headerBytes;
+                m_headerBytes = null;
+
+                if (!m_context.SendAsyncStart(b, 0, b.Length))
                 {
                     if (m_body != null)
+                    {
                         m_body.Dispose();
+                        m_body = null;
+                    }
                     RawBuffer = null;
                     Sent = true;
-                    return;
                 }
-                bytesLimit -= m_headerBytes.Length;
-                m_headerBytes = null;
-                if(bytesLimit <= 0)
-                {
-                    m_context.ContinueSendResponse(false);
-                    return;
-                }
+                return;
             }
 
             bool sendRes;
-            if (RawBuffer != null && RawBufferLen > 0)
+            if (RawBuffer != null)
             {
-                if (BandWitdhEvent != null)
-                {
-                    bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
-                    if (bytesLimit <= 0)
-                    {
-                        m_context.ContinueSendResponse(false);
-                        return;
-                    }
-                }
-
-                if(RawBufferLen > bytesLimit)
-                {
-                    sendRes = (await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false));
-                    if (sendRes)
-                    {
-                        RawBufferLen -= bytesLimit;
-                        RawBufferStart += bytesLimit;
-                    }
-                }
-                else
-                {
-                    sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                    if(sendRes)
-                        RawBufferLen = 0;
-                }
-
-                if (!sendRes)
-                {
-                    RawBuffer = null;
-                    if(m_body != null)
-                        Body.Dispose();
-                    Sent = true;
-                    return;
-                }
-
-                if (RawBufferLen <= 0)
-                    RawBuffer = null;
-                else
-                {
-                    m_context.ContinueSendResponse(true);
-                    return;
-                }
-            }
-
-            if (m_body != null && m_body.Length != 0)
-            {
-                MemoryStream mb = m_body as MemoryStream;
-                RawBuffer = mb.GetBuffer();
-                RawBufferStart = 0; // must be a internal buffer, or starting at 0
-                RawBufferLen = (int)mb.Length;
-                mb.Dispose();
-                m_body = null;
-
                 if(RawBufferLen > 0)
                 {
-                    if (BandWitdhEvent != null)
-                    {
-                        bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
-                        if (bytesLimit <= 0)
-                        {
-                            m_context.ContinueSendResponse(false);
-                            return;
-                        }
-                    }
+                    byte[] b = RawBuffer;
+                    int s = RawBufferStart;
 
                     if (RawBufferLen > bytesLimit)
                     {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false);
-                        if (sendRes)
-                        {
-                            RawBufferLen -= bytesLimit;
-                            RawBufferStart += bytesLimit;
-                        }
+                        RawBufferLen -= bytesLimit;
+                        RawBufferStart += bytesLimit;
+                        if (RawBufferLen <= 0)
+                            RawBuffer = null;
+                        sendRes = m_context.SendAsyncStart(b, s, bytesLimit);
                     }
                     else
                     {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        if (sendRes)
-                            RawBufferLen = 0;
+                        int l = RawBufferLen;
+                        RawBufferLen = 0;
+                        RawBuffer = null;
+                        sendRes = m_context.SendAsyncStart(b, s, l);
                     }
 
                     if (!sendRes)
                     {
                         RawBuffer = null;
+                        if(m_body != null)
+                        {
+                            m_body.Dispose();
+                            m_body = null;
+                        }
                         Sent = true;
-                        return;
                     }
-                }
-                if (RawBufferLen > 0)
-                {
-                    m_context.ContinueSendResponse(false);
                     return;
                 }
+                else
+                    RawBuffer = null;
             }
 
             if (m_body != null)
-                m_body.Dispose();
+            {
+                if(m_body.Length != 0)
+                {
+                    MemoryStream mb = m_body as MemoryStream;
+                    RawBuffer = mb.GetBuffer();
+                    RawBufferStart = 0; // must be a internal buffer, or starting at 0
+                    RawBufferLen = (int)mb.Length;
+                    m_body.Dispose();
+                    m_body = null;
+
+                    if (RawBufferLen > 0)
+                    {
+                        byte[] b = RawBuffer;
+                        int s = RawBufferStart;
+
+                        if (RawBufferLen > bytesLimit)
+                        {
+                            RawBufferLen -= bytesLimit;
+                            RawBufferStart += bytesLimit;
+                            if (RawBufferLen <= 0)
+                                RawBuffer = null;
+                            sendRes = m_context.SendAsyncStart(b, s, bytesLimit);
+                        }
+                        else
+                        {
+                            int l = RawBufferLen;
+                            sendRes = m_context.SendAsyncStart(b, s, l);
+                            RawBufferLen = 0;
+                            RawBuffer = null;
+                        }
+
+                        if (!sendRes)
+                        {
+                            RawBuffer = null;
+                            Sent = true;
+                        }
+                        return;
+                    }
+                    else
+                        RawBuffer = null;
+                }
+                else
+                {
+                    m_body.Dispose();
+                    m_body = null;
+                }
+            }
+
             Sent = true;
             m_context.EndSendResponse(requestID, Connection);
         }
 
-        private int CheckBandwidth(int request, int bytesLimit)
+        public void CheckSendNextAsyncContinue()
         {
-            if (request > bytesLimit)
-                request = bytesLimit;
-            var args = new BandWitdhEventArgs(request);
-            try
+            if(m_headerBytes == null && RawBuffer == null && m_body == null)
             {
-                BandWitdhEvent?.Invoke(this, args);
-                return args.Result;
+                Sent = true;
+                m_context.EndSendResponse(requestID, Connection);
             }
-            catch { }
-
-            return request;
+            else
+            {
+                m_context.ContinueSendResponse();
+            }
         }
 
         public void Clear()
         {
-            if(Body != null && Body.CanRead)
-                Body.Dispose();
+            if(m_body != null && m_body.CanRead)
+                m_body.Dispose();
         }
         #endregion
     }

@@ -4,7 +4,6 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using OSHttpServer.Exceptions;
 using OSHttpServer.Parser;
 using System.Net.Security;
@@ -531,11 +530,11 @@ namespace OSHttpServer
             return true;
         }
 
-        public void ContinueSendResponse(bool notThrottled)
+        public void ContinueSendResponse()
         {
             if(m_currentResponse == null)
                 return;
-            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, notThrottled);
+            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, true);
         }
 
         public void EndSendResponse(uint requestID, ConnectionType ctype)
@@ -678,7 +677,23 @@ namespace OSHttpServer
             return ok;
         }
 
-        public async Task<bool> SendAsync(byte[] buffer, int offset, int size)
+        private void SendAsyncEnd(IAsyncResult res)
+        {
+            try
+            {
+                m_stream.EndWrite(res);
+                m_currentResponse.CheckSendNextAsyncContinue();
+            }
+            catch (Exception e)
+            {
+                e.GetHashCode();
+                if(m_stream != null)
+                    Disconnect(SocketError.NoRecovery);
+            }
+            ContextTimeoutManager.ContextLeaveActiveSend();
+        }
+
+        public bool SendAsyncStart(byte[] buffer, int offset, int size)
         {
             if (m_stream == null || m_sock == null || !m_sock.Connected)
                 return false;
@@ -690,14 +705,14 @@ namespace OSHttpServer
             ContextTimeoutManager.ContextEnterActiveSend();
             try
             {
-                await m_stream.WriteAsync(buffer, offset, size).ConfigureAwait(false);
+                m_stream.BeginWrite(buffer, offset, size, SendAsyncEnd, null);
             }
-            catch
+            catch (Exception e)
             {
+                e.GetHashCode();
+                ContextTimeoutManager.ContextLeaveActiveSend();
                 ok = false;
             }
-
-            ContextTimeoutManager.ContextLeaveActiveSend();
 
             if (!ok && m_stream != null)
                 Disconnect(SocketError.NoRecovery);
