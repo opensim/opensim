@@ -526,15 +526,14 @@ namespace OSHttpServer
                 return false;
 
             LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
-            m_currentResponse?.SendNextAsync(bytesLimit);
-            return true;
+            return m_currentResponse.SendNextAsync(bytesLimit);
         }
 
         public void ContinueSendResponse()
         {
             if(m_currentResponse == null)
                 return;
-            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority, true);
+            ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority);
         }
 
         public void EndSendResponse(uint requestID, ConnectionType ctype)
@@ -577,6 +576,7 @@ namespace OSHttpServer
                 if (nextRequest != null)
                     RequestReceived?.Invoke(this, new RequestEventArgs(nextRequest));
             }
+            ContextTimeoutManager.PulseWaitSend();
         }
 
         /// <summary>
@@ -679,18 +679,22 @@ namespace OSHttpServer
 
         private void SendAsyncEnd(IAsyncResult res)
         {
+            bool didleave = false;
             try
             {
                 m_stream.EndWrite(res);
+                ContextTimeoutManager.ContextLeaveActiveSend();
+                didleave = true;
                 m_currentResponse.CheckSendNextAsyncContinue();
             }
             catch (Exception e)
             {
                 e.GetHashCode();
-                if(m_stream != null)
+                if (m_stream != null)
                     Disconnect(SocketError.NoRecovery);
             }
-            ContextTimeoutManager.ContextLeaveActiveSend();
+            if(!didleave)
+                ContextTimeoutManager.ContextLeaveActiveSend();
         }
 
         public bool SendAsyncStart(byte[] buffer, int offset, int size)

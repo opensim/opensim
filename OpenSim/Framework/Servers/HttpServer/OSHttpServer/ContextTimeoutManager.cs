@@ -299,7 +299,7 @@ namespace OSHttpServer
             m_contexts.Enqueue(context);
         }
 
-        public static void EnqueueSend(HttpClientContext context, int priority, bool notThrottled = true)
+        public static void EnqueueSend(HttpClientContext context, int priority)
         {
             switch(priority)
             {
@@ -315,8 +315,12 @@ namespace OSHttpServer
                 default:
                     return;
             }
-            if(notThrottled)
-                m_processWaitEven.Set();
+            m_processWaitEven.Set();
+        }
+
+        public static void PulseWaitSend()
+        {
+             m_processWaitEven?.Set();
         }
 
         public static void ContextEnterActiveSend()

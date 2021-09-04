@@ -359,7 +359,7 @@ namespace OSHttpServer
             m_context.StartSendResponse(this);
         }
 
-        public void SendNextAsync(int bytesLimit)
+        public bool SendNextAsync(int bytesLimit)
         {
             if (m_headerBytes != null)
             {
@@ -375,8 +375,9 @@ namespace OSHttpServer
                     }
                     RawBuffer = null;
                     Sent = true;
+                    return false;
                 }
-                return;
+                return true;
             }
 
             bool sendRes;
@@ -412,8 +413,9 @@ namespace OSHttpServer
                             m_body = null;
                         }
                         Sent = true;
+                        return false;
                     }
-                    return;
+                    return true;
                 }
                 else
                     RawBuffer = null;
@@ -455,8 +457,9 @@ namespace OSHttpServer
                         {
                             RawBuffer = null;
                             Sent = true;
+                            return false;
                         }
-                        return;
+                        return true; 
                     }
                     else
                         RawBuffer = null;
@@ -470,6 +473,7 @@ namespace OSHttpServer
 
             Sent = true;
             m_context.EndSendResponse(requestID, Connection);
+            return false;
         }
 
         public void CheckSendNextAsyncContinue()
