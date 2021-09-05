@@ -125,17 +125,15 @@ namespace OpenSim.Framework
     /// </remarks>
     public class STPInfo
     {
-        public string Name { get; set; }
-        public STPStartInfo STPStartInfo { get; set; }
-        public WIGStartInfo WIGStartInfo { get; set; }
-        public bool IsIdle { get; set; }
-        public bool IsShuttingDown { get; set; }
-        public int MaxThreads { get; set; }
-        public int MinThreads { get; set; }
-        public int InUseThreads { get; set; }
-        public int ActiveThreads { get; set; }
-        public int WaitingCallbacks { get; set; }
-        public int MaxConcurrentWorkItems { get; set; }
+        public string Name;
+        public bool IsIdle;
+        public bool IsShuttingDown;
+        public int MaxThreads;
+        public int MinThreads;
+        public int InUseThreads;
+        public int ActiveThreads;
+        public int WaitingCallbacks;
+        public int MaxConcurrentWorkItems;
     }
 
     /// <summary>
@@ -3324,10 +3322,9 @@ namespace OpenSim.Framework
             if (m_ThreadPool == null)
                 return null;
 
-            STPInfo stpi = new STPInfo()
+            return new STPInfo()
             {
                 Name = m_ThreadPool.Name,
-                STPStartInfo = m_ThreadPool.STPStartInfo,
                 IsIdle = m_ThreadPool.IsIdle,
                 IsShuttingDown = m_ThreadPool.IsShuttingdown,
                 MaxThreads = m_ThreadPool.MaxThreads,
@@ -3337,7 +3334,6 @@ namespace OpenSim.Framework
                 WaitingCallbacks = m_ThreadPool.WaitingCallbacks,
                 MaxConcurrentWorkItems = m_ThreadPool.Concurrency
             };
-            return stpi;
         }
 
         public static void StopThreadPool()
