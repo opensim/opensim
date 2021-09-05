@@ -25,9 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Threading.Tasks;
-using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
 

@@ -31,7 +31,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace OSHttpServer
 {
