@@ -533,6 +533,7 @@ namespace OSHttpServer
         {
             if(m_currentResponse == null)
                 return;
+            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
             ContextTimeoutManager.EnqueueSend(this, m_currentResponse.Priority);
         }
 
@@ -556,10 +557,10 @@ namespace OSHttpServer
             }
             else
             {
-                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 if (Stream == null || !Stream.CanWrite)
                     return;
 
+                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
                 HttpRequest nextRequest = null;
                 lock (m_requestsLock)
                 {

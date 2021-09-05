@@ -2,9 +2,8 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using OpenMetaverse;
 
 namespace OSHttpServer
 {
@@ -220,7 +219,8 @@ namespace OSHttpServer
         {
             HeadersSent = true;
 
-            var sb = new StringBuilder();
+            var sb = osStringBuilderCache.Acquire();
+
             if(string.IsNullOrWhiteSpace(m_httpVersion))
                 sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (int)Status,
                                 string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
@@ -228,58 +228,65 @@ namespace OSHttpServer
                 sb.AppendFormat("{0} {1} {2}\r\n", m_httpVersion, (int)Status,
                                 string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
 
-            if (m_headers["Date"] == null)
-                sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
-            if (m_headers["Content-Length"] == null)
-            {
-                long len = m_contentLength;
-                if (len == 0)
-                {
-                    if(m_body!= null)
-                        len = m_body.Length;
-                    if (RawBuffer != null && RawBufferLen > 0)
-                        len += RawBufferLen;
-                }
-                sb.AppendFormat("Content-Length: {0}\r\n", len);
-            }
+            sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
+
+            long len = 0;
+            if(m_body!= null)
+                len = m_body.Length;
+            if (RawBuffer != null && RawBufferLen > 0)
+                len += RawBufferLen;
+            sb.AppendFormat("Content-Length: {0}\r\n", len);
+
             if (m_headers["Content-Type"] == null)
                 sb.AppendFormat("Content-Type: {0}\r\n", m_contentType ?? DefaultContentType);
-            if (m_headers["Server"] == null)
-                sb.Append("Server: OSWebServer\r\n");
 
-            if(Status != HttpStatusCode.OK)
+            switch(Status)
             {
-                sb.Append("Connection: close\r\n");
-                Connection = ConnectionType.Close;
-            }
-            else
-            {
-                int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-                if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                case HttpStatusCode.OK:
+                case HttpStatusCode.PartialContent:
+                case HttpStatusCode.Accepted:
+                case HttpStatusCode.Continue:
+                case HttpStatusCode.Found:
                 {
-                    sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
-                    sb.Append("Connection: Keep-Alive\r\n");
+                    int keepaliveS = m_context.TimeoutKeepAlive / 1000;
+                    if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                    {
+                        sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
+                        sb.Append("Connection: Keep-Alive\r\n");
+                    }
+                    else
+                    {
+                        sb.Append("Connection: close\r\n");
+                        Connection = ConnectionType.Close;
+                    }
+                    break;
                 }
-                else
-                {
+
+                default:
                     sb.Append("Connection: close\r\n");
                     Connection = ConnectionType.Close;
-                }
+                    break;
             }
-
-            if (m_headers["Connection"] != null)
-                m_headers["Connection"] = null;
-            if (m_headers["Keep-Alive"] != null)
-                m_headers["Keep-Alive"] = null;
 
             for (int i = 0; i < m_headers.Count; ++i)
             {
                 string headerName = m_headers.AllKeys[i];
+                switch(headerName)
+                {
+                    case "Connection":
+                    case "Content-Length":
+                    case "Date":
+                    case "Keep-Alive":
+                    case "Server":
+                        continue;
+                }
                 string[] values = m_headers.GetValues(i);
                 if (values == null) continue;
                 foreach (string value in values)
                     sb.AppendFormat("{0}: {1}\r\n", headerName, value);
             }
+
+            sb.Append("Server: OSWebServer\r\n");
 
             foreach (ResponseCookie cookie in Cookies)
                 sb.AppendFormat("Set-Cookie: {0}\r\n", cookie);
@@ -288,7 +295,7 @@ namespace OSHttpServer
 
             m_headers.Clear();
 
-            return Encoding.GetBytes(sb.ToString());
+            return Encoding.GetBytes(osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         public void Send()
@@ -353,10 +360,11 @@ namespace OSHttpServer
 
             if (m_headerBytes == null && RawBuffer == null && m_body == null)
             {
-
+                Sent = true;
+                m_context.EndSendResponse(requestID, Connection);
             }
-
-            m_context.StartSendResponse(this);
+            else
+                m_context.StartSendResponse(this);
         }
 
         public bool SendNextAsync(int bytesLimit)
