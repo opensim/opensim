@@ -110,6 +110,9 @@
     <Compile Remove="World\Media\Moap\Tests\MoapTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\OpenSim.Region.CoreModules.addin.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="MySql.Data" Version="8.0.26" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
