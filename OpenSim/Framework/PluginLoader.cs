@@ -201,8 +201,10 @@ namespace OpenSim.Framework
         /// </summary>
         public void Dispose()
         {
-            AddinManager.AddinLoadError -= on_addinloaderror_;
-            AddinManager.AddinLoaded -= on_addinloaded_;
+            AddinManager.ExtensionChanged -= OnExtensionChanged;
+            AddinManager.AddinUnloaded -= OnUnload;
+            AddinManager.AddinLoadError -= OnLoaderError;
+            AddinManager.AddinLoaded -= OnLoad;
         }
 
         private void initialise_plugin_dir_(string dir)
@@ -212,23 +214,27 @@ namespace OpenSim.Framework
 
             log.Info("[PLUGINS]: Initializing addin manager");
 
-            AddinManager.AddinLoadError += on_addinloaderror_;
-            AddinManager.AddinLoaded += on_addinloaded_;
+            AddinManager.AddinLoadError += OnLoaderError;
+            AddinManager.AddinLoaded += OnLoad;
+            AddinManager.AddinUnloaded += OnUnload;
 
-            //clear_registry_(dir);
-
-            //suppress_console_output_(true);
             AddinManager.Initialize(dir);
             AddinManager.Registry.Update(null);
-            //suppress_console_output_(false);
+
+            AddinManager.ExtensionChanged += OnExtensionChanged;
         }
 
-        private void on_addinloaded_(object sender, AddinEventArgs args)
+        private void OnLoad(object sender, AddinEventArgs args)
         {
             log.Info ("[PLUGINS]: Plugin Loaded: " + args.AddinId);
         }
 
-        private void on_addinloaderror_(object sender, AddinErrorEventArgs args)
+        private void OnUnload(object sender, AddinEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Plugin Unloaded: " + args.AddinId);
+        }
+
+        private void OnLoaderError(object sender, AddinErrorEventArgs args)
         {
             if (args.Exception == null)
                 log.Error ("[PLUGINS]: Plugin Error: "
@@ -237,6 +243,11 @@ namespace OpenSim.Framework
                 log.Error ("[PLUGINS]: Plugin Error: "
                         + args.Exception.Message + "\n"
                         + args.Exception.StackTrace);
+        }
+
+        private void OnExtensionChanged(object sender, ExtensionEventArgs args)
+        {
+            log.Info ("[PLUGINS]: Extension Changed: " + args.Path);
         }
 
         private void clear_registry_(string dir)

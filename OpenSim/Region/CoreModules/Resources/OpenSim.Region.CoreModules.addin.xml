@@ -1,0 +1,18 @@
+<Addin id="OpenSim.Region.CoreModules" isroot="true" version="0.9.2.0">
+    
+    <Runtime>
+        <Import assembly="OpenSim.Region.Framework.dll" />
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim.Region.CoreModules" version="0.9.2.0" />
+    </Dependencies>
+
+    <ExtensionPoint path = "/OpenSim/RegionModules">
+        <ExtensionNode objectType="OpenSim.Region.Framework.Interfaces.IRegionModuleBase" />
+    </ExtensionPoint>
+
+	<Extension path = "/OpenSim/RegionModules">
+		<Command class="OpenSim.Region.CoreModules.World.Permissions.DefaultPermissionsModule" />
+	</Extension>
+</Addin>
