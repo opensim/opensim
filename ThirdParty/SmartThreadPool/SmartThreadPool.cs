@@ -510,8 +510,8 @@ namespace Amib.Threading
             IncrementWorkItemsCount();
 
             workItem.CanceledSmartThreadPool = _canceledSmartThreadPool;
-            _workItemsQueue.EnqueueWorkItem(workItem);
             workItem.WorkItemIsQueued();
+            _workItemsQueue.EnqueueWorkItem(workItem);
 
             // If all the threads are busy then try to create a new one
             if (_currentWorkItemsCount > _workerThreads.Count)

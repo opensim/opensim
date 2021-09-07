@@ -46,8 +46,6 @@ namespace OpenSim.Framework.Monitoring
     /// This is an evolving approach to better manage the work that OpenSimulator is asked to do from a very diverse
     /// range of sources (client actions, incoming network, outgoing network calls, etc.).
     ///
-    /// Util.FireAndForget is still available to insert jobs in the threadpool, though this is equivalent to
-    /// WorkManager.RunInThreadPool().
     /// </remarks>
     public static class WorkManager
     {
@@ -127,18 +125,71 @@ namespace OpenSim.Framework.Monitoring
         /// <returns>The newly created Thread object</returns>
         public static Thread StartThread(
             ThreadStart start, string name, ThreadPriority priority, bool isBackground,
-            bool alarmIfTimeout, Func<string> alarmMethod, int timeout, bool log = true)
+            bool alarmIfTimeout, Func<string> alarmMethod, int timeout, bool log = true, bool SuspendFlow = true)
         {
-            Thread thread = new Thread(start);
+            Thread thread;
+            if(SuspendFlow)
+            {
+                using (ExecutionContext.SuppressFlow())
+                {
+                    thread = new Thread(start);
+                }
+            }
+            else
+            {
+                thread = new Thread(start);
+            }
+
             thread.Priority = priority;
             thread.IsBackground = isBackground;
             thread.Name = name;
 
-            Watchdog.ThreadWatchdogInfo twi
-                = new Watchdog.ThreadWatchdogInfo(thread, timeout, name)
-            { AlarmIfTimeout = alarmIfTimeout, AlarmMethod = alarmMethod };
+            Watchdog.ThreadWatchdogInfo twi = new Watchdog.ThreadWatchdogInfo(thread, timeout, name)
+            {
+                AlarmIfTimeout = alarmIfTimeout,
+                AlarmMethod = alarmMethod
+            };
 
-            Watchdog.AddThread(twi, name, log:log);
+            Watchdog.AddThread(twi, name, log);
+
+            thread.Start();
+
+            return thread;
+        }
+
+        public static Thread StartThread(
+            ThreadStart start, string name, ThreadPriority priority, int stackSize = -1, bool suspendflow = true)
+        {
+            Thread thread;
+            if (suspendflow)
+            {
+                using (ExecutionContext.SuppressFlow())
+                {
+                    if (stackSize > 0)
+                        thread = new Thread(start, stackSize);
+                    else
+                        thread = new Thread(start);
+                }
+            }
+            else
+            {
+                if (stackSize > 0)
+                    thread = new Thread(start, stackSize);
+                else
+                    thread = new Thread(start);
+            }
+
+            thread.Priority = priority;
+            thread.IsBackground = true;
+            thread.Name = name;
+
+            Watchdog.ThreadWatchdogInfo twi = new Watchdog.ThreadWatchdogInfo(thread, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS, name)
+            {
+                AlarmIfTimeout = false,
+                AlarmMethod = null
+            };
+
+            Watchdog.AddThread(twi, name, false);
 
             thread.Start();
 
@@ -182,7 +233,7 @@ namespace OpenSim.Framework.Monitoring
                 }
             });
 
-            StartThread(ts, name, false, log:log);
+            StartThread(ts, name, false, log);
         }
 
         /// <summary>
