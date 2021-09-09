@@ -266,7 +266,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // this user is going to another grid
                 // for local users, check if HyperGrid teleport is allowed, based on user level
-                if (Scene.UserManagementModule.IsLocalGridUser(sp.UUID) && sp.GodController.UserLevel < m_levelHGTeleport)
+                bool isLocal = Scene.UserManagementModule.IsLocalGridUser(sp.UUID);
+                if (isLocal && sp.GodController.UserLevel < m_levelHGTeleport)
                 {
                     m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: Unable to HG teleport agent due to insufficient UserLevel.");
                     reason = "Hypergrid teleport not allowed";

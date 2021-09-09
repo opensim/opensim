@@ -1599,11 +1599,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public bool Cross(ScenePresence agent, bool isFlying)
         {
-            agent.IsInLocalTransit = true;
-            agent.IsInTransit = true;
+            ScenePresence ag = agent;
+            ag.IsInLocalTransit = true;
+            ag.IsInTransit = true;
             WorkManager.RunInThreadPool(delegate
             {
-                ScenePresence ag = agent;
                 CrossAsync(ag, isFlying);
                 if (ag.IsDeleted)
                     return;
@@ -1616,7 +1616,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", ag.Firstname, ag.Lastname);
 
                 ag.IsInTransit = false;
-            }, null,"AgentRegionCross-"+agent.UUID.ToString());
+            }, null,"AgentRegionCross-"+ag.UUID.ToString());
             return true;
         }
 
@@ -1972,19 +1972,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IPEndPoint external = region.ExternalEndPoint;
             if (external != null)
             {
-                InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-                d.BeginInvoke(sp, agent, region, external, true,
-                          InformClientOfNeighbourCompleted,
-                          d);
+                ScenePresence avatar = sp;
+                GridRegion reg = region;
+                WorkManager.RunInThreadPool(delegate
+                {
+                    InformClientOfNeighbourAsync(avatar, agent, reg, external, true);
+                },"InformClientOfNeighbourAsync" + avatar.UUID.ToString());
             }
         }
 
         #endregion
 
         #region Enable Child Agents
-
-        private delegate void InformClientOfNeighbourDelegate(
-            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent);
 
         List<GridRegion> RegionsInView(Vector3 pos, RegionInfo curregion, List<GridRegion> fullneighbours, float viewrange)
         {
@@ -2540,13 +2539,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // remember this location was not found so we can quickly not find it next time
             m_notFoundLocationCache.Add(px, py);
             return null;
-        }
-
-        private void InformClientOfNeighbourCompleted(IAsyncResult iar)
-        {
-            InformClientOfNeighbourDelegate icon = (InformClientOfNeighbourDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
-            //m_log.WarnFormat(" --> InformClientOfNeighbourCompleted");
         }
 
         /// <summary>
