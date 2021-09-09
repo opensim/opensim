@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             m_log.Debug("[MESSAGE TRANSFER]: Module enabled");
             m_Enabled = true;
 
-            IMXMLRPCSendWorkers = new ObjectJobEngine(DoSendIMviaXMLRPC, "IMXMLRPCSendWorkers", 3);
+            IMXMLRPCSendWorkers = new ObjectJobEngine(DoSendIMviaXMLRPC, "IMXMLRPCSendWorkers", 1000, 3);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -438,9 +438,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             public GridInstantMessage im;
             public MessageResultNotification result;
         };
-
-        //private Queue<GIMData> pendingInstantMessages = new Queue<GIMData>();
-        //private int numInstantMessageThreads = 0;
 
         private void SendGridInstantMessageViaXMLRPC(GridInstantMessage im, MessageResultNotification result)
         {
