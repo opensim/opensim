@@ -1601,28 +1601,23 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             agent.IsInLocalTransit = true;
             agent.IsInTransit = true;
-            CrossAsyncDelegate d = CrossAsync;
-            d.BeginInvoke(agent, isFlying, CrossCompleted, d);
-            return true;
-        }
-
-        private void CrossCompleted(IAsyncResult iar)
-        {
-            CrossAsyncDelegate icon = (CrossAsyncDelegate)iar.AsyncState;
-            ScenePresence agent = icon.EndInvoke(iar);
-
-            if(agent == null || agent.IsDeleted)
-                return;
-
-            if(!agent.IsChildAgent)
+            WorkManager.RunInThreadPool(delegate
             {
-                // crossing failed
-                agent.CrossToNewRegionFail();
-            }
-            else
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+                ScenePresence ag = agent;
+                CrossAsync(ag, isFlying);
+                if (ag.IsDeleted)
+                    return;
+                if (!ag.IsChildAgent)
+                {
+                    // crossing failed
+                    ag.CrossToNewRegionFail();
+                }
+                else
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", ag.Firstname, ag.Lastname);
 
-            agent.IsInTransit = false;
+                ag.IsInTransit = false;
+            }, null,"AgentRegionCross-"+agent.UUID.ToString());
+            return true;
         }
 
         public ScenePresence CrossAsync(ScenePresence agent, bool isFlying)
@@ -1654,7 +1649,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return agent;
             }
 
-            //            agent.IsInTransit = true;
+            //agent.IsInTransit = true;
             CrossAgentToNewRegionAsync(agent, newpos, neighbourRegion, isFlying, ctx);
             agent.IsInTransit = false;
             return agent;
