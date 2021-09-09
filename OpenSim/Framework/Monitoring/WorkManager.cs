@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using log4net;
 
@@ -86,6 +86,7 @@ namespace OpenSim.Framework.Monitoring
             Watchdog.Stop();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Thread StartThread(ThreadStart start, string name, bool alarmIfTimeout = false, bool log = true)
         {
             return StartThread(start, name, ThreadPriority.Normal, true, alarmIfTimeout, null, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS, log);
@@ -101,6 +102,7 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="alarmIfTimeout">Trigger an alarm function is we have timed out</param>
         /// <param name="log">If true then creation of thread is logged.</param>
         /// <returns>The newly created Thread object</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Thread StartThread(
             ThreadStart start, string name, ThreadPriority priority, bool alarmIfTimeout, bool log = true)
         {
@@ -245,9 +247,16 @@ namespace OpenSim.Framework.Monitoring
         /// <param name="callback"></param>
         /// <param name="obj"></param>
         /// <param name="name">The name of the job.  This is used in monitoring and debugging.</param>
-        public static void RunInThreadPool(System.Threading.WaitCallback callback, object obj, string name, bool timeout = true)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RunInThreadPool(WaitCallback callback, object obj, string name, bool timeout = true)
         {
             Util.FireAndForget(callback, obj, name, timeout);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RunInThreadPool(WaitCallback callback, string name, bool timeout = true)
+        {
+            Util.FireAndForget(callback, null, name, timeout);
         }
 
         private static void HandleControlCommand(string module, string[] args)
