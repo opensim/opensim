@@ -1660,76 +1660,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return agent;
         }
 
-        public delegate void InformClientToInitiateTeleportToLocationDelegate(ScenePresence agent, uint regionX,            uint regionY, Vector3 position, Scene initiatingScene);
-
-        private void InformClientToInitiateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
-        {
-
-            // This assumes that we know what our neighbours are.
-
-            InformClientToInitiateTeleportToLocationDelegate d = InformClientToInitiateTeleportToLocationAsync;
-            d.BeginInvoke(agent, regionX, regionY, position, initiatingScene,
-                          InformClientToInitiateTeleportToLocationCompleted,
-                          d);
-        }
-
-        public void InformClientToInitiateTeleportToLocationAsync(ScenePresence agent, uint regionX, uint regionY, Vector3 position,
-            Scene initiatingScene)
-        {
-            Thread.Sleep(10000);
-
-            m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Auto-reteleporting {0} to correct megaregion location {1},{2},{3} from {4}",
-                agent.Name, regionX, regionY, position, initiatingScene.Name);
-
-            agent.Scene.RequestTeleportLocation(
-                agent.ControllingClient,
-                Util.RegionGridLocToHandle(regionX, regionY),
-                position,
-                agent.Lookat,
-                (uint)Constants.TeleportFlags.ViaLocation);
-
-            /*
-            IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
-            if (im != null)
-            {
-                UUID gotoLocation = Util.BuildFakeParcelID(
-                    Util.RegionLocToHandle(regionX, regionY),
-                    (uint)(int)position.X,
-                    (uint)(int)position.Y,
-                    (uint)(int)position.Z);
-
-                GridInstantMessage m
-                    = new GridInstantMessage(
-                        initiatingScene,
-                        UUID.Zero,
-                        "Region",
-                        agent.UUID,
-                        (byte)InstantMessageDialog.GodLikeRequestTeleport,
-                        false,
-                        "",
-                        gotoLocation,
-                        false,
-                        new Vector3(127, 0, 0),
-                        new Byte[0],
-                        false);
-
-                im.SendInstantMessage(m, delegate(bool success)
-                {
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);
-                });
-
-            }
-            */
-        }
-
-        private void InformClientToInitiateTeleportToLocationCompleted(IAsyncResult iar)
-        {
-            InformClientToInitiateTeleportToLocationDelegate icon =
-                (InformClientToInitiateTeleportToLocationDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
-        }
-
         public bool CrossAgentCreateFarChild(ScenePresence agent, GridRegion neighbourRegion, Vector3 pos, EntityTransferContext ctx)
         {
             ulong regionhandler = neighbourRegion.RegionHandle;
@@ -2799,8 +2729,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             newpos.Y = targetPosition.Y - (neighbourRegion.RegionLocY - (int)scene.RegionInfo.WorldLocY);
 
             const float enterDistance = 0.2f;
-            newpos.X = Util.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
-            newpos.Y = Util.Clamp(newpos.Y, enterDistance, newRegionSizeY - enterDistance);
+            newpos.X = Utils.Clamp(newpos.X, enterDistance, newRegionSizeX - enterDistance);
+            newpos.Y = Utils.Clamp(newpos.Y, enterDistance, newRegionSizeY - enterDistance);
 
             return neighbourRegion;
         }
