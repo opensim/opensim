@@ -516,7 +516,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 avatar.currentParcelUUID = over.LandData.GlobalID;
                 over.SendLandUpdateToClient(avatar.ControllingClient);
             }
-            if(overlay)
+            if (overlay)
                 SendParcelOverlay(remoteClient);
         }
 
@@ -1252,16 +1252,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
              //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
+            LandData newLandData = newLand.LandData;
 
-            newLand.LandData.Name = newLand.LandData.Name;
-            newLand.LandData.GlobalID = UUID.Random();
-            newLand.LandData.Dwell = 0;
+            newLandData.GlobalID = UUID.Random();
+            newLandData.Dwell = 0;
             // Clear "Show in search" on the cut out parcel to prevent double-charging
-            newLand.LandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
+            newLandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
             // invalidate landing point
-            newLand.LandData.LandingType = (byte)LandingType.Direct;
-            newLand.LandData.UserLocation = Vector3.Zero;
-            newLand.LandData.UserLookAt = Vector3.Zero;
+            newLandData.LandingType = (byte)LandingType.Direct;
+            newLandData.UserLocation = Vector3.Zero;
+            newLandData.UserLookAt = Vector3.Zero;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -1269,17 +1269,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             int startLandObjectIndex = startLandObject.LandData.LocalID;
             lock (m_landList)
             {
-                m_landList[startLandObjectIndex].SetLandBitmap(
-                    newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
+                m_landList[startLandObjectIndex].SetLandBitmap(newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
                 m_landList[startLandObjectIndex].ForceUpdateLandInfo();
             }
+
+            UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
 
             //add the new land object
             ILandObject result = AddLandObject(newLand);
 
-            UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
-
-            if(startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
+            if (startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
             {
                 int x = (int)startLandObject.LandData.UserLocation.X;
                 int y = (int)startLandObject.LandData.UserLocation.Y;
