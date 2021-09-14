@@ -6883,8 +6883,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 } // where public end
-
-                allpresences.Clear();
             }
             else
             {
@@ -6937,7 +6935,6 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
-                    allpresences.Clear();
                 } // now on a private parcel end
 
                 else

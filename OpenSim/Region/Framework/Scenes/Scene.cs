@@ -5270,12 +5270,13 @@ Label_GroupsDone:
         /// <remarks>
         /// This method will return both root and child scene presences.
         ///
-        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// Consider using only on ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
         /// involving creating a new List object.
         /// </remarks>
         /// <returns>
-        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// The shared list of the scene presences.
         /// </returns>
+        /// WARNING DO NOT MODIFY RETURNED VALUE
         public List<ScenePresence> GetScenePresences()
         {
             //return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
