@@ -652,7 +652,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                m_drawDistance = Util.Clamp(value, 32f, m_scene.MaxDrawDistance);
+                m_drawDistance = Utils.Clamp(value, 32f, m_scene.MaxDrawDistance);
             }
         }
 
@@ -660,7 +660,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return Util.Clamp(m_drawDistance + 64f, m_scene.MinRegionViewDistance, m_scene.MaxRegionViewDistance);
+                return Utils.Clamp(m_drawDistance + 64f, m_scene.MinRegionViewDistance, m_scene.MaxRegionViewDistance);
             }
          }
 
@@ -1175,20 +1175,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_LandingPointBehavior = LandingPointBehavior.SL;
             }
 
-            m_bandwidth = 100000;
-            m_lastBandwithTime = Util.GetTimeStamp() + 0.1;
-            IConfig cconfig = m_scene.Config.Configs["ClientStack.LindenCaps"];
-            if (cconfig != null)
-            {
-                m_capbandwidth = cconfig.GetInt("Cap_AssetThrottle", m_capbandwidth);
-                if(m_capbandwidth > 0)
-                {
-                    m_bandwidth = m_capbandwidth;
-                    if(m_bandwidth < 50000)
-                        m_bandwidth = 50000;
-                }
-            }
-            m_bandwidthBurst = m_bandwidth / 5;
             ControllingClient.RefreshGroupMembership();
         }
 
@@ -1299,7 +1285,6 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnChangeAnim += avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTargetHandle;
-            ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
             ControllingClient.OnRegionHandShakeReply += RegionHandShakeReply;
 
             // ControllingClient.OnAgentFOV += HandleAgentFOV;
@@ -1321,7 +1306,6 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnChangeAnim -= avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo -= MoveToTargetHandle;
-            ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
             ControllingClient.OnRegionHandShakeReply -= RegionHandShakeReply;
 
             // ControllingClient.OnAgentFOV += HandleAgentFOV;
@@ -1932,7 +1916,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void ApplyFlyingRoll(float amount, bool PressingUp, bool PressingDown)
         {
 
-            float rollAmount = Util.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS);
+            float rollAmount = Utils.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS);
             m_AngularVelocity.Z = rollAmount;
 
             // APPLY EXTRA consideration for flying up and flying down during this time.
@@ -4931,16 +4915,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
 
-        private void RaiseUpdateThrottles()
-        {
-            if(m_capbandwidth > 0)
-                return;
-            m_bandwidth = 4 * ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Texture);
-            if(m_bandwidth < 50000)
-                m_bandwidth = 50000;
-            m_bandwidthBurst = m_bandwidth / 5;
-        }
-
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
@@ -7124,45 +7098,5 @@ namespace OpenSim.Region.Framework.Scenes
             return Overrides.GetOverriddenAnimation(animState);
         }
 
-        // http caps assets bandwidth control
-        private int m_capbandwidth = -1;
-        private int m_bandwidth = 100000;
-        private int m_bandwidthBurst = 20000;
-        private int m_bytesControl;
-        private double m_lastBandwithTime;
-        private readonly object m_throttleLock = new object();
-
-        public bool CapCanSendAsset(int type, int size)
-        {
-            if(size == 0)
-                return true;
-
-            lock (m_throttleLock)
-            {
-                if (type > 1)
-                {
-                    // not texture or mesh
-                    m_bytesControl -= size;
-                    return true;
-                }
-
-                double currenttime = Util.GetTimeStamp();
-                double timeElapsed = currenttime - m_lastBandwithTime;
-                if (timeElapsed > .02)
-                {
-                    m_lastBandwithTime = currenttime;
-                    int add = (int)(m_bandwidth * timeElapsed);
-                    m_bytesControl += add;
-                    if (m_bytesControl > m_bandwidthBurst)
-                        m_bytesControl = m_bandwidthBurst;
-                }
-                if (m_bytesControl > 0 )
-                {
-                    m_bytesControl -= size;
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

@@ -204,31 +204,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     lock (responses)
                     {
                         return responses.ContainsKey(requestID);
-                        /*
-                        APollResponse response;
-                        if (responses.TryGetValue(requestID, out response))
-                        {
-                            ScenePresence sp = m_scene.GetScenePresence(pId);
-
-                            OSHttpResponse resp = response.osresponse;
-                            if (sp == null || sp.IsDeleted)
-                            {
-                                resp.SetBandWitdh((source, value) =>
-                                {
-                                    value.Result = 8196;
-                                });
-                                return true;
-                            }
-                            int prio = resp.Priority;
-
-                            resp.SetBandWitdh((source, value) =>
-                            {
-                                value.Result = sp.BandLimit(prio, resp.RequestTS, value.Request);
-                            });
-                            return true;
-                        }
-                        return false;
-                        */
                     }
                 };
 
