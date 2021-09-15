@@ -2505,10 +2505,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osKey2Name");
 
-            UUID key = new UUID();
-
-            if (UUID.TryParse(id, out key))
+            if (UUID.TryParse(id, out UUID key))
             {
+                ScenePresence sp = World.GetScenePresence(key);
+                if(sp != null)
+                    return sp.Name;
+
                 UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
                 if (account != null)
                     return account.Name;
