@@ -541,14 +541,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="remoteClient"></param>
         /// <param name="regionHandle"></param>
         /// <param name="position"></param>
-        public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
+        public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}",
                 (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
 
             if (lm.Gatekeeper == string.Empty)
             {
-                base.RequestTeleportLandmark(remoteClient, lm);
+                base.RequestTeleportLandmark(remoteClient, lm, lookAt);
                 return;
             }
 
@@ -594,7 +594,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         }
 
                         DoTeleport(
-                            sp, gatekeeper, finalDestination, lm.Position, Vector3.UnitX,
+                            sp, gatekeeper, finalDestination, lm.Position, lookAt,
                             (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
                     }
                 }

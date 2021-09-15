@@ -4996,6 +4996,20 @@ Label_GroupsDone:
             EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
         }
 
+        public void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
+        {
+            if (EntityTransferModule == null)
+            {
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
+            }
+
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+            EntityTransferModule.RequestTeleportLandmark(remoteClient, lm, lookAt);
+        }
+
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
             if (EntityTransferModule != null)

@@ -5063,14 +5063,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null && presence.PresenceType != PresenceType.Npc)
                 {
-                    if (destination == String.Empty)
-                        destination = World.RegionInfo.RegionName;
+                    if (presence.ParentID != 0) // Sitting
+                        return;
 
                     if (m_item.PermsGranter == agentId)
                     {
                         if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                         {
                             DoLLTeleport(presence, destination, targetPos, targetLookAt);
+                            return;
                         }
                     }
 
@@ -5078,19 +5079,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
+                        return;
                     }
-                    else
-                    {
-                        // agent must not be a god
-                        if (presence.IsViewerUIGod) return;
 
-                        // agent must be over the owners land
-                        ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
-                        ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-                        if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
-                        {
-                            DoLLTeleport(presence, destination, targetPos, targetLookAt);
-                        }
+                    // agent must not be a god
+                    if (presence.IsViewerUIGod)
+                        return;
+
+                    // agent must be over the owners land
+                    ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
+                    ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+                    if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
+                    {
+                        DoLLTeleport(presence, destination, targetPos, targetLookAt);
                     }
                 }
             }
@@ -5135,11 +5136,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID assetID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, destination);
 
-            // The destinaion is not an asset ID and also doesn't name a landmark.
+            // The destination is not an asset ID and also doesn't name a landmark.
             // Use it as a sim name
             if (assetID == UUID.Zero)
             {
-                World.RequestTeleportLocation(sp.ControllingClient, destination, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                if(string.IsNullOrEmpty(destination))
+                    World.RequestTeleportLocation(sp.ControllingClient, World.RegionInfo.RegionName, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                else
+                    World.RequestTeleportLocation(sp.ControllingClient, destination, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                 return;
             }
 
@@ -5152,7 +5156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             AssetLandmark lm = new AssetLandmark(lma);
 
-            World.RequestTeleportLocation(sp.ControllingClient, lm.RegionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+            World.RequestTeleportLandmark(sp.ControllingClient, lm, targetLookAt);
         }
 
         public void llTextBox(string agent, string message, int chatChannel)

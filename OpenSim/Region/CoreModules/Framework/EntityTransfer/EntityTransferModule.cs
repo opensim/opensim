@@ -1402,7 +1402,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="remoteClient"></param>
         /// <param name="regionHandle"></param>
         /// <param name="position"></param>
-        public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
+
+        public void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
+        {
+            RequestTeleportLandmark(remoteClient, lm, Vector3.Zero);
+        }
+
+        public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
             GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
 
@@ -1413,7 +1419,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
             ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
-                Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
         }
 
         #endregion
@@ -2568,7 +2574,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 string capsPath = reg.ServerURI + CapsUtil.GetCapsSeedPath(agentCircData.CapsPath);
 
-                string reason = String.Empty;
+                string reason = string.Empty;
 
                 EntityTransferContext ctx = new EntityTransferContext();
                 bool regionAccepted = scene.SimulationService.CreateAgent(reg, reg, agentCircData, (uint)TeleportFlags.Default, null, out reason);
