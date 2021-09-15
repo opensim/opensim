@@ -407,6 +407,21 @@ namespace OpenSim.Framework
 
         public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
 
+        public void SetLookAt(Vector3 value)
+        {
+            if (value == Vector3.Zero)
+            {
+                AtAxis = Vector3.UnitX;
+                LeftAxis = Vector3.UnitY;
+                AtAxis = Vector3.UnitZ;
+                return;
+            }
+            AtAxis = new Vector3(value.X, value.Y, 0);
+            AtAxis.Normalize();
+            LeftAxis = new Vector3(-AtAxis.Y, AtAxis.X, 0);
+            UpAxis = Vector3.UnitZ;
+        }
+
         public virtual OSDMap Pack(EntityTransferContext ctx)
         {
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");

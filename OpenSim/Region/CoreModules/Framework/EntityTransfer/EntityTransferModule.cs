@@ -845,13 +845,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // We're going to fallback to V1 if the destination gives us anything smaller than 0.2
             if (ctx.OutboundVersion >= 0.2f)
-                TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange , ctx, out reason);
+                TransferAgent_V2(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange, lookAt, ctx, out reason);
             else
-                TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange, ctx, out reason);
+                TransferAgent_V1(sp, agentCircuit, reg, finalDestination, endPoint, teleportFlags, OutSideViewRange, lookAt, ctx, out reason);
         }
 
         private void TransferAgent_V1(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
-            IPEndPoint endPoint, uint teleportFlags, bool OutSideViewRange, EntityTransferContext ctx, out string reason)
+            IPEndPoint endPoint, uint teleportFlags, bool OutSideViewRange, Vector3 lookAt, EntityTransferContext ctx, out string reason)
         {
             ulong destinationHandle = finalDestination.RegionHandle;
             AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
@@ -947,6 +947,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's send a full update of the agent. This is a synchronous call.
             AgentData agent = new AgentData();
             sp.CopyTo(agent,false);
+            agent.SetLookAt(lookAt);
 
             if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
                 agent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
@@ -1089,7 +1090,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
         private void TransferAgent_V2(ScenePresence sp, AgentCircuitData agentCircuit, GridRegion reg, GridRegion finalDestination,
-            IPEndPoint endPoint, uint teleportFlags, bool OutSideViewRange, EntityTransferContext ctx, out string reason)
+            IPEndPoint endPoint, uint teleportFlags, bool OutSideViewRange, Vector3 lookAt, EntityTransferContext ctx, out string reason)
         {
             ulong destinationHandle = finalDestination.RegionHandle;
 
@@ -1176,6 +1177,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Let's send a full update of the agent.
             AgentData agent = new AgentData();
             sp.CopyTo(agent,false);
+            agent.SetLookAt(lookAt);
             agent.Position = agentCircuit.startpos;
 
             if ((teleportFlags & (uint)TeleportFlags.IsFlying) != 0)
