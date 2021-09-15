@@ -2463,6 +2463,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
 
+            ScenePresence sp = World.GetScenePresence(firstname, lastname);
+            if(sp != null)
+                return sp.UUID.ToString();
+
             IUserManagement userManager = World.RequestModuleInterface<IUserManagement>();
             if (userManager == null)
             {
@@ -2521,7 +2525,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (uInfo != null)
                     {
-
                         if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out UUID userUUID, 
                                 out string gridURL, out string firstName,
                                 out string lastName, out string tmp))
