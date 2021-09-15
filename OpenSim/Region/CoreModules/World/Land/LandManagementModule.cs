@@ -1375,7 +1375,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         //legacy name
         public void SendParcelsOverlay(IClientAPI client)
         {
-            SendParcelsOverlay(client);
+            SendParcelOverlay(client);
         }
 
         /// <summary>
