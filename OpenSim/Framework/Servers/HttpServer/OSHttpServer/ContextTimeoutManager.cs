@@ -163,31 +163,35 @@ namespace OSHttpServer
                 curConcurrentLimit = inqueues;
 
             HttpClientContext ctx;
-            int sent;
+            int sentFromQueue;
+            bool done;
             while (curConcurrentLimit > 0)
             {
-                sent = 0;
+                sentFromQueue = 0;
+                done = true;
                 while (m_highPrio.TryDequeue(out ctx))
                 {
                     if (m_shuttingDown)
                         return;
+                    done = false;
                     if (ctx.TrySendResponse(curbytesLimit))
                     {
                         --curConcurrentLimit;
-                        if (++sent == 3)
+                        if (++sentFromQueue == 3)
                             break;
                     }
                 }
 
-                sent = 0;
+                sentFromQueue = 0;
                 while(m_midPrio.TryDequeue(out ctx))
                 {
                     if (m_shuttingDown)
                         return;
+                    done = false;
                     if (ctx.TrySendResponse(curbytesLimit))
                     {
                         --curConcurrentLimit;
-                        if (++sent >= 2)
+                        if (++sentFromQueue >= 2)
                             break;
                     }
                 }
@@ -196,9 +200,13 @@ namespace OSHttpServer
                 {
                     if (m_shuttingDown)
                         return;
+                    done = false;
                     if (ctx.TrySendResponse(curbytesLimit))
                         --curConcurrentLimit;
                 }
+
+                if (done)
+                    break;
             }
         }
 
