@@ -409,7 +409,7 @@ namespace OpenSim.Framework
 
         public void SetLookAt(Vector3 value)
         {
-            if (value == Vector3.Zero)
+            if (value.X == 0 && value.Y == 0)
             {
                 AtAxis = Vector3.UnitX;
                 LeftAxis = Vector3.UnitY;
@@ -615,10 +615,10 @@ namespace OpenSim.Framework
                 Vector3.TryParse(tmp.AsString(), out AtAxis);
 
             if (args.TryGetValue("left_axis", out tmp) && tmp != null)
-                Vector3.TryParse(tmp.AsString(), out AtAxis);
+                Vector3.TryParse(tmp.AsString(), out LeftAxis);
 
             if (args.TryGetValue("up_axis", out tmp) && tmp != null)
-                Vector3.TryParse(tmp.AsString(), out AtAxis);
+                Vector3.TryParse(tmp.AsString(), out UpAxis);
 
             if (args.TryGetValue("wait_for_root", out tmp) && tmp != null)
                 SenderWantsToWaitForRoot = tmp.AsBoolean();
