@@ -4997,10 +4997,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             AssetLandmark lm = new AssetLandmark(a);
                             if(lm != null)
                             {
-                                float rx = (uint)(lm.RegionHandle >> 32);
-                                float ry = (uint)lm.RegionHandle;
-                                Vector3 region = new Vector3(World.RegionInfo.WorldLocX, World.RegionInfo.WorldLocY, 0);
-                                region = lm.Position + new Vector3(rx, ry, 0) - region;
+                                double rx = (lm.RegionHandle >> 32) - World.RegionInfo.WorldLocX + (double)lm.Position.X;
+                                double ry = lm.RegionHandle - World.RegionInfo.WorldLocY + (double)lm.Position.Y;
+                                LSL_Vector region = new LSL_Vector(rx, ry, lm.Position.Z);
                                 reply = region.ToString();
                             }
                         }
