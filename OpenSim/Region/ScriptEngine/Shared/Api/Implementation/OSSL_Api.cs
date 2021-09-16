@@ -1111,9 +1111,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                World.RequestTeleportLocation(presence.ControllingClient, World.RegionInfo.RegionName, position,
-                    lookat, (uint)TPFlags.ViaLocation);
-                ScriptSleep(500);
+                RegionInfo ri = World.RegionInfo;
+                double px = position.x;
+                double py = position.y;
+
+                if (px >= 0 && px < ri.RegionSizeX && py >= 0 && py < ri.RegionSizeY)
+                {
+                    World.RequestTeleportLocation(presence.ControllingClient, ri.RegionName, position,
+                        lookat, (uint)TPFlags.ViaLocation);
+                    ScriptSleep(500);
+                    return;
+                }
+
+                // not in region. lets use global position then.
+                px += ri.WorldLocX;
+                py += ri.WorldLocY;
+
+                int gx = (int)px / 256;
+                int gy = (int)py / 256;
+                px -= 256 * gx;
+                py -= 256 * gy;
+                ulong regionHandle = Util.RegionGridLocToHandle((uint)gx, (uint)gy);
+                Util.FireAndForget(
+                    o => World.RequestTeleportLocation(
+                        presence.ControllingClient, regionHandle,
+                        new Vector3((float)px, (float)py, (float)position.z), lookat, (uint)TPFlags.ViaLocation),
+                    null, "OSSL_Api.TeleportAgentByFarPos");
+                ScriptSleep(5000);
             }
         }
 
