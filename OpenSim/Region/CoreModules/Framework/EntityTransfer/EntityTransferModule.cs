@@ -425,9 +425,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
+            RegionInfo spRi = sp.Scene.RegionInfo;
             try
             {
-                if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
+                if (Util.CompareRegionHandles(regionHandle, position, spRi, out Vector3 roffset))
                 {
                     if(!sp.AllowMovement)
                     {
@@ -436,9 +437,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         return;
                     }
 
-                    destinationRegionName = sp.Scene.RegionInfo.RegionName;
-
-                    TeleportAgentWithinRegion(sp, position, lookAt, teleportFlags);
+                    destinationRegionName = spRi.RegionName;
+                    TeleportAgentWithinRegion(sp, roffset, lookAt, teleportFlags);
                 }
                 else // Another region possibly in another simulator
                 {
@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             float posZLimit = 22;
 
             // TODO: Check other Scene HeightField
-            posZLimit = (float)sp.Scene.Heightmap[(int)position.X, (int)position.Y];
+            posZLimit = sp.Scene.Heightmap[(int)position.X, (int)position.Y];
 
             posZLimit += localHalfAVHeight + 0.1f;
 
