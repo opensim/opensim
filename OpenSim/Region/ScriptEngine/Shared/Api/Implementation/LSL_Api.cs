@@ -5027,24 +5027,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null && presence.PresenceType != PresenceType.Npc)
-                {
-                    // agent must not be a god
-                    if (presence.GodController.UserLevel >= 200) return;
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsInTransit)
+                    return;
 
-                    // agent must be over the owners land
-                    if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
+                // agent must not be a god
+                if (presence.GodController.UserLevel >= 200) return;
+
+                // agent must be over the owners land
+                if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
+                {
+                    if (!World.TeleportClientHome(agentId, presence.ControllingClient))
                     {
-                        if (!World.TeleportClientHome(agentId, presence.ControllingClient))
+                        // They can't be teleported home for some reason
+                        GridRegion regionInfo = World.GridService.GetRegionByUUID(UUID.Zero, new UUID("2b02daac-e298-42fa-9a75-f488d37896e6"));
+                        if (regionInfo != null)
                         {
-                            // They can't be teleported home for some reason
-                            GridRegion regionInfo = World.GridService.GetRegionByUUID(UUID.Zero, new UUID("2b02daac-e298-42fa-9a75-f488d37896e6"));
-                            if (regionInfo != null)
-                            {
-                                World.RequestTeleportLocation(
-                                    presence.ControllingClient, regionInfo.RegionHandle, new Vector3(128, 128, 23), Vector3.Zero,
-                                    (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
-                            }
+                            World.RequestTeleportLocation(
+                                presence.ControllingClient, regionInfo.RegionHandle, new Vector3(128, 128, 23), Vector3.Zero,
+                                (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
                         }
                     }
                 }
@@ -5060,38 +5060,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence != null && presence.PresenceType != PresenceType.Npc)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsSatOnObject || presence.IsInTransit)
+                    return;
+
+                if (m_item.PermsGranter == agentId)
                 {
-                    if (presence.ParentID != 0) // Sitting
-                        return;
-
-                    if (m_item.PermsGranter == agentId)
-                    {
-                        if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
-                        {
-                            DoLLTeleport(presence, destination, targetPos, targetLookAt);
-                            return;
-                        }
-                    }
-
-                    // agent must be wearing the object
-                    if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                    if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                     {
                         DoLLTeleport(presence, destination, targetPos, targetLookAt);
                         return;
                     }
+                }
 
-                    // agent must not be a god
-                    if (presence.IsViewerUIGod)
-                        return;
+                // agent must be wearing the object
+                if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
+                {
+                    DoLLTeleport(presence, destination, targetPos, targetLookAt);
+                    return;
+                }
 
-                    // agent must be over the owners land
-                    ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
-                    ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-                    if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
-                    {
-                        DoLLTeleport(presence, destination, targetPos, targetLookAt);
-                    }
+                // agent must not be a god
+                if (presence.IsViewerUIGod)
+                    return;
+
+                // agent must be over the owners land
+                ILandObject agentLand = World.LandChannel.GetLandObject(presence.AbsolutePosition);
+                ILandObject objectLand = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
+                if (m_host.OwnerID == objectLand.LandData.OwnerID && m_host.OwnerID == agentLand.LandData.OwnerID)
+                {
+                    DoLLTeleport(presence, destination, targetPos, targetLookAt);
                 }
             }
         }
@@ -5109,12 +5106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 ScenePresence presence = World.GetScenePresence(agentId);
-
-                if (presence == null || presence.PresenceType == PresenceType.Npc)
-                    return;
-
-                // Can't TP sitting avatars
-                if (presence.ParentID != 0) // Sitting
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsSatOnObject || presence.IsInTransit)
                     return;
 
                 if (m_item.PermsGranter == agentId)
