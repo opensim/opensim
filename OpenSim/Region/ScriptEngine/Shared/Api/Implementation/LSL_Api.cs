@@ -5055,9 +5055,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTeleportAgent(string agent, string destination, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
-            UUID agentId = new UUID();
+            // If attached using llAttachToAvatarTemp, cowardly refuse
+            if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID == UUID.Zero)
+                return;
 
-            if (UUID.TryParse(agent, out agentId))
+            if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsSatOnObject || presence.IsInTransit)
@@ -5072,6 +5074,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
 
+                // special opensim legacy extra permissions, possible to remove
                 // agent must be wearing the object
                 if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.OwnerID == presence.UUID)
                 {
@@ -5095,11 +5098,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTeleportAgentGlobalCoords(string agent, LSL_Vector global_coords, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
-            UUID agentId = new UUID();
+            // If attached using llAttachToAvatarTemp, cowardly refuse
+            if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID == UUID.Zero)
+                return;
 
-            ulong regionHandle = Util.RegionWorldLocToHandle((uint)global_coords.x, (uint)global_coords.y);
-
-            if (UUID.TryParse(agent, out agentId))
+            if (UUID.TryParse(agent, out UUID agentId))
             {
                 // This function is owner only!
                 if (m_host.OwnerID != agentId)
@@ -5111,13 +5114,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (m_item.PermsGranter == agentId)
                 {
-                    // If attached using llAttachToAvatarTemp, cowardly refuse
-                    if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID == UUID.Zero)
-                        return;
-
                     if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                     {
-                       World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
+                        ulong regionHandle = Util.RegionWorldLocToHandle((uint)global_coords.x, (uint)global_coords.y);
+                        World.RequestTeleportLocation(presence.ControllingClient, regionHandle, targetPos, targetLookAt, (uint)TeleportFlags.ViaLocation);
                     }
                 }
             }
