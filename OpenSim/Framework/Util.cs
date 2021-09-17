@@ -451,7 +451,7 @@ namespace OpenSim.Framework
             RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
             double px = uhX - region.WorldLocX + (double)handleOffset.X;
             double py = uhY - region.WorldLocY + (double)handleOffset.Y;
-            if (px >= 0 && px < region.RegionSizeX && py >= 0 && py <  region.RegionSizeY)
+            if (px >= 0 && px < region.RegionSizeX && py >= 0 && py < region.RegionSizeY)
             {
                 regionOffset = new Vector3((float)px, (float)py, handleOffset.Z);
                 return true;
@@ -460,7 +460,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public static bool CompareRegionHandler(ulong handle, Vector3 handleOffset, ulong regionhandle, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
+        public static bool CompareRegionHandles(ulong handle, Vector3 handleOffset, ulong regionhandle, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
         {
             RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
             RegionHandleToWorldLoc(regionhandle, out uint urX, out uint urY);
@@ -475,7 +475,7 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public static bool CompareRegionHandlers(ulong handle, Vector3 handleOffset, int regionX, int regionY, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
+        public static bool CompareRegionHandles(ulong handle, Vector3 handleOffset, int regionX, int regionY, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
         {
             RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
             double px = uhX - regionX + (double)handleOffset.X;

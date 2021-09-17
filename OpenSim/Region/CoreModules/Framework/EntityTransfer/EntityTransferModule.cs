@@ -658,7 +658,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         // Nothing to validate here
         protected virtual bool ValidateGenericConditions(ScenePresence sp, GridRegion reg, GridRegion finalDestination, uint teleportFlags, out string reason)
         {
-            reason = String.Empty;
+            reason = string.Empty;
             return true;
         }
 
@@ -1412,16 +1412,26 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
-            GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+            ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+                return;
 
+            GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
             if (info == null)
             {
                 // can't find the region: Tell viewer and abort
-                remoteClient.SendTeleportFailed("The teleport destination could not be found.");
+                remoteClient.SendTeleportFailed("Landmark region not found");
                 return;
             }
-            ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
-                lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+            //check if region on same position and fix local offset
+            if (Util.CompareRegionHandles(lm.RegionHandle, lm.Position, info.RegionLocX, info.RegionLocY, info.RegionSizeX, info.RegionSizeY, out Vector3 offset))
+            {
+                Scene.RequestTeleportLocation(remoteClient, info.RegionHandle, offset,
+                    lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+            }
+            else //region may had move to other grid slot. assume the lm position is good
+                Scene.RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
+                    lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
         }
 
         #endregion

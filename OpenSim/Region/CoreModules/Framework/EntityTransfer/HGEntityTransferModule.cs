@@ -546,64 +546,63 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}",
                 (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
 
-            if (lm.Gatekeeper == string.Empty)
-            {
-                base.RequestTeleportLandmark(remoteClient, lm, lookAt);
+            ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
                 return;
-            }
 
             GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
-
             // Local region?
             if (info != null)
             {
-                Scene.RequestTeleportLocation(
-                    remoteClient, info.RegionHandle, lm.Position,
-                    Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                //check if region on same position and fix local offset
+                if (Util.CompareRegionHandles(lm.RegionHandle, lm.Position, info.RegionLocX, info.RegionLocY, info.RegionSizeX, info.RegionSizeY, out Vector3 offset))
+                {
+                    Scene.RequestTeleportLocation(remoteClient, info.RegionHandle, offset,
+                        lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                }
+                else //region may had move to other grid slot. assume the lm position is good
+                    Scene.RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
+                        lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                return;
             }
-            else
+
+            if (lm.Gatekeeper == string.Empty)
             {
-                // Foreign region
-                GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
-                GridRegion gatekeeper = MakeGateKeeperRegion(lm.Gatekeeper);
-                if (gatekeeper == null)
-                {
-                    remoteClient.SendTeleportFailed("Could not parse landmark destiny URI");
-                    return;
-                }
-
-                string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
-
-                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID), remoteClient.AgentId, homeURI, out string message);
-
-                if (finalDestination != null)
-                {
-                    ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
-
-                    if (sp != null)
-                    {
-                        if (message != null)
-                            sp.ControllingClient.SendAgentAlertMessage(message, true);
-
-                        // Validate assorted conditions
-                        string reason = string.Empty;
-                        if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out reason))
-                        {
-                            sp.ControllingClient.SendTeleportFailed(reason);
-                            return;
-                        }
-
-                        DoTeleport(
-                            sp, gatekeeper, finalDestination, lm.Position, lookAt,
-                            (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
-                    }
-                }
-                else
-                {
-                    remoteClient.SendTeleportFailed(message);
-                }
-
+                remoteClient.SendTeleportFailed("Landmark region not found");
+                return;
             }
+
+            // Foreign region
+            GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
+            GridRegion gatekeeper = MakeGateKeeperRegion(lm.Gatekeeper);
+            if (gatekeeper == null)
+            {
+                remoteClient.SendTeleportFailed("Could not parse landmark destiny URI");
+                return;
+            }
+
+            string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
+
+            GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, lm.RegionID, remoteClient.AgentId, homeURI, out string message);
+            if(finalDestination == null)
+                remoteClient.SendTeleportFailed(message);
+
+            // Validate assorted conditions
+            string reason = string.Empty;
+            if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out reason))
+            {
+                remoteClient.SendTeleportFailed(reason);
+                return;
+            }
+
+            if (Util.CompareRegionHandles(lm.RegionHandle, lm.Position, finalDestination.RegionLocX, finalDestination.RegionLocY,
+                    finalDestination.RegionSizeX, finalDestination.RegionSizeY, out Vector3 roffset))
+            {
+                DoTeleport(sp, gatekeeper, finalDestination, roffset, lookAt,
+                    (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                return;
+            }
+            remoteClient.SendTeleportFailed("landmark region not found");
         }
 
         private void RemoveIncomingSceneObjectJobs(string commonIdToRemove)
