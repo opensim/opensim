@@ -1413,7 +1413,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
             ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
-            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
                 return;
 
             GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);

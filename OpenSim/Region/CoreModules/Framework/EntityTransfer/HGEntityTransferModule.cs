@@ -547,7 +547,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
 
             ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
-            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsNPC)
+            if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
                 return;
 
             GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);

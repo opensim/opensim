@@ -1028,7 +1028,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
@@ -1071,12 +1071,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void TeleportAgent(string agent, int regionGridX, int regionGridY,
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
-
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
@@ -1086,6 +1084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
+                ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
                 Util.FireAndForget(
                     o => World.RequestTeleportLocation(
                         presence.ControllingClient, regionHandle,
@@ -1101,7 +1100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
