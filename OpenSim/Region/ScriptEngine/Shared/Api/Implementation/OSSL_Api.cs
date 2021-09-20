@@ -3981,8 +3981,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public void osSetProjectionParams(LSL_Key prim, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
-
             SceneObjectPart obj = null;
             if (prim == ScriptBaseClass.NULL_KEY)
             {
