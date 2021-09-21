@@ -4911,7 +4911,7 @@ Label_GroupsDone:
                 return true;
             }
 
-            return true;
+            return false;
         }
 
 

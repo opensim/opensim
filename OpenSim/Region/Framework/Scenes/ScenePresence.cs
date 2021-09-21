@@ -5689,10 +5689,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentScheduleUpdate(SceneObjectGroup sog)
         {
-            if (IsChildAgent || IsInTransit)
+            if (IsChildAgent || IsInTransit || IsDeleted)
                 return;
 
-            
             SceneObjectPart[] origparts = sog.Parts;
             SceneObjectPart[] parts = new SceneObjectPart[origparts.Length];
             PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
@@ -5726,7 +5725,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ++nparts;
             }
 
-            if (nparts == 0)
+            if (nparts == 0 || IsChildAgent || IsInTransit || IsDeleted)
                 return;
 
             for (int i = 0; i < nparts; i++)
@@ -5738,7 +5737,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p == this)
+                if (p == this || p.IsDeleted)
                     continue;
 
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
