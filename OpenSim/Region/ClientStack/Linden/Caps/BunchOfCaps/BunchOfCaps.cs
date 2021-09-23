@@ -114,7 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_enableFreeTestUpload = false; // allows "TEST-" prefix hack
         private bool m_ForceFreeTestUpload = false; // forces all uploads to be test
 
-        private bool m_enableModelUploadTextureToInventory = false; // place uploaded textures also in inventory
+        private bool m_enableModelUploadTextureToInventory = true; // place uploaded textures also in inventory
                                                                     // may not be visible till relog
 
         private bool m_RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!

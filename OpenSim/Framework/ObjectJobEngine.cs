@@ -178,8 +178,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
-                        "[ObjectJob {0}]: Job failed, continuing.  Exception {1}",m_name, e);
+                    m_log.ErrorFormat("[ObjectJob {0}]: Job failed, continuing.  Exception {1}", m_name, e);
                 }
             }
             lock (m_mainLock)

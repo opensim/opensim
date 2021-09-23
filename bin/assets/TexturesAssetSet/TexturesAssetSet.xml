@@ -403,7 +403,7 @@
     <Key Name="assetID" Value="5748decc-f629-461c-9a36-a35a221fe21f"/>
     <Key Name="name" Value="Blank Texture"/>
     <Key Name="assetType" Value="0" />
-    <Key Name="fileName" Value="blank.jpc" />
+    <Key Name="fileName" Value="blank.j2c" />
   </Section>
 
   <Section Name="Default Media Texture">
@@ -875,6 +875,12 @@
   <Section Name="DefaultRainbow">
      <Key Name="assetID" Value="11b4c57c-56b3-04ed-1f82-2004363882e4"/>
      <Key Name="name" Value="DefaultRainbow"/>
+     <Key Name="assetType" Value="0" />
+     <Key Name="fileName" Value="rainbow2.j2c"/>
+  </Section>
+  <Section Name="ReverseRainbow">
+     <Key Name="assetID" Value="11b4c57c-56b3-04ed-1f82-2004363883f4"/>
+     <Key Name="name" Value="Rainbow with reverse colors order"/>
      <Key Name="assetType" Value="0" />
      <Key Name="fileName" Value="rainbow.j2c"/>
   </Section>

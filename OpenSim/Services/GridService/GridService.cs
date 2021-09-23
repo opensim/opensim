@@ -789,7 +789,13 @@ namespace OpenSim.Services.GridService
         {
             List<GridRegion> ret = new List<GridRegion>();
 
-            List<RegionData> regions = m_Database.GetFallbackRegions(scopeID, x, y);
+            List<RegionData> regions = m_Database.GetFallbackRegions(scopeID);
+
+            if(regions.Count > 1)
+            {
+                RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
+                regions.Sort(distanceComparer);
+            }
 
             foreach (RegionData r in regions)
             {

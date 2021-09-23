@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -99,9 +100,8 @@ namespace OpenSim.Capabilities.Handlers
             string assetStr = string.Empty;
             foreach (KeyValuePair<string,string> kvp in queries)
             {
-                if (queryTypes.ContainsKey(kvp.Key))
+                if (queryTypes.TryGetValue(kvp.Key, out type))
                 {
-                    type = queryTypes[kvp.Key];
                     assetStr = kvp.Value;
                     break;
                 }
@@ -122,7 +122,18 @@ namespace OpenSim.Capabilities.Handlers
             if(!UUID.TryParse(assetStr, out assetID))
                 return;
 
-            AssetBase asset = m_assetService.Get(assetID.ToString(), serviceURL, false);
+            ManualResetEventSlim done = new ManualResetEventSlim(false);
+            AssetBase asset = null;
+            m_assetService.Get(assetID.ToString(), serviceURL, false, (AssetBase a) =>
+                {
+                    asset = a;
+                    done.Set();
+                });
+
+            done.Wait();
+            done.Dispose();
+            done = null;
+
             if (asset == null)
             {
                 // m_log.Warn("[GETASSET]: not found: " + query + " " + assetStr);
@@ -185,19 +196,9 @@ namespace OpenSim.Capabilities.Handlers
             response.RawBuffer = asset.Data;
             response.RawBufferLen = len;
             if (type == AssetType.Mesh || type == AssetType.Texture)
-            {
-                if(len > 8196)
-                {
-                    //if(type == AssetType.Texture && ((asset.Flags & AssetFlags.AvatarBake)!= 0))
-                    //    responsedata["prio"] = 1;
-                    //else
-                    response.Priority = 2;
-                }
-                else
-                    response.Priority = 1;
-            }
+                response.Priority = 2;
             else
-                response.Priority = -1;
+                response.Priority = 1;
         }
     }
 }

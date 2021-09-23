@@ -35,7 +35,6 @@ using System.Xml.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.ServiceAuth;
@@ -186,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
         {
         }
 
-        public async Task Store(UUID agentId, WearableCacheItem[] data)
+        public void Store(UUID agentId, WearableCacheItem[] data)
         {
             if (m_URL == String.Empty)
                 return;
@@ -237,18 +236,18 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
                 uploadData = bakeStream.ToArray();
             }
-            //Util.FireAndForget(
-            //  delegate
-            //  {
+            Util.FireAndForget(
+              delegate
+              {
                     using(RestClient rc = new RestClient(m_URL))
                     {
                         rc.AddResourcePath("bakes/" + agentId.ToString());
-                        await rc.AsyncPOSTRequest(uploadData, m_Auth).ConfigureAwait(false);
+                        rc.POSTRequest(uploadData, m_Auth);
                         m_log.DebugFormat("[XBakes]: stored {0} textures for user {1}", numberWears, agentId);
                     }
                     uploadData = null;
-            //    }, null, "XBakesModule.Store"
-            //);
+                }, null, "XBakesModule.Store"
+            );
         }
     }
 }

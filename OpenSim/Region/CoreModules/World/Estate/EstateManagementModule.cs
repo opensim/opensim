@@ -409,9 +409,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
             UUID estateOwner;
             estateOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
 
-            if (Scene.Permissions.IsGod(remote_client.AgentId))
-                estateOwner = remote_client.AgentId;
-
             remote_client.SendDetailedEstateData(invoice,
                     Scene.RegionInfo.EstateSettings.EstateName,
                     Scene.RegionInfo.EstateSettings.EstateID,

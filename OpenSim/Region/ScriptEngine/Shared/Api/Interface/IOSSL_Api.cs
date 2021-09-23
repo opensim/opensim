@@ -512,7 +512,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetInertia(LSL_Float mass, vector centerOfMass, vector principalInertiaScaled,  rotation rot);
         void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot);
         void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass);
-        void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot);
+        void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, vector centerOfMass,rotation lslrot);
 
         LSL_Integer osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
         LSL_Integer osGetLinkNumber(LSL_String name);
@@ -596,5 +596,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_Integer osAvatarType(LSL_Key avkey);
         LSL_Integer osAvatarType(LSL_String sFirstName, LSL_String sLastName);
+        void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending);
     }
 }

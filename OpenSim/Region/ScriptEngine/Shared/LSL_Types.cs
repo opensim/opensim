@@ -679,7 +679,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 get
                 {
                     if (m_data == null)
-                        m_data=new Object[0];
+                        m_data=new object[0];
                     return m_data.Length;
                 }
             }
@@ -689,11 +689,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 get
                 {
                     if (m_data == null)
-                        m_data=new Object[0];
+                        return 0;
 
                     int size = 0;
 
-                    foreach (Object o in m_data)
+                    foreach (object o in m_data)
                     {
                         if (o is LSL_Types.LSLInteger)
                             size += 4;
@@ -730,7 +730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 get {
                     if (m_data == null)
-                        m_data=new Object[0];
+                        m_data=new object[0];
                     return m_data;
                 }
 
@@ -765,131 +765,106 @@ namespace OpenSim.Region.ScriptEngine.Shared
             /// <param name='itemIndex'></param>
             public LSL_Types.LSLFloat GetLSLFloatItem(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.LSLInteger)
-                {
-                    return (LSL_Types.LSLInteger)Data[itemIndex];
-                }
-                else if (Data[itemIndex] is Int32)
-                {
-                    return new LSL_Types.LSLFloat((int)Data[itemIndex]);
-                }
-                else if (Data[itemIndex] is float)
-                {
-                    return new LSL_Types.LSLFloat((float)Data[itemIndex]);
-                }
-                else if (Data[itemIndex] is Double)
-                {
-                    return new LSL_Types.LSLFloat((Double)Data[itemIndex]);
-                }
-                else if (Data[itemIndex] is LSL_Types.LSLString)
-                {
-                    return new LSL_Types.LSLFloat(Data[itemIndex].ToString());
-                }
-                else
-                {
-                    return (LSL_Types.LSLFloat)Data[itemIndex];
-                }
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLInteger)
+                    return (LSL_Types.LSLInteger)o;
+                if (o is Int32)
+                    return new LSL_Types.LSLFloat((int)o);
+                if (o is float)
+                    return new LSL_Types.LSLFloat((float)o);
+                if (o is Double)
+                    return new LSL_Types.LSLFloat((Double)o);
+                if (o is LSL_Types.LSLString)
+                    return new LSL_Types.LSLFloat(o.ToString());
+                return (LSL_Types.LSLFloat)o;
             }
 
             public LSL_Types.LSLString GetLSLStringItem(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.key)
-                {
-                    return (LSL_Types.key)Data[itemIndex];
-                }
-                else
-                {
-                    return new LSL_Types.LSLString(Data[itemIndex].ToString());
-                }
+                object o = Data[itemIndex];
+                if (o is LSL_Types.key)
+                    return (LSL_Types.key)o;
+                return new LSL_Types.LSLString(o.ToString());
             }
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.LSLInteger)
-                    return (LSL_Types.LSLInteger)Data[itemIndex];
-                if (Data[itemIndex] is LSL_Types.LSLFloat)
-                    return new LSLInteger((int)Data[itemIndex]);
-                else if (Data[itemIndex] is Int32)
-                    return new LSLInteger((int)Data[itemIndex]);
-                else if (Data[itemIndex] is LSL_Types.LSLString)
-                    return new LSLInteger(Data[itemIndex].ToString());
-                else
-                    throw new InvalidCastException(string.Format(
-                        "{0} expected but {1} given",
-                        typeof(LSL_Types.LSLInteger).Name,
-                        Data[itemIndex] != null ?
-                        Data[itemIndex].GetType().Name : "null"));
+                object o = Data[itemIndex];
+                if (o is LSL_Types.LSLInteger)
+                    return (LSL_Types.LSLInteger)o;
+                if (o is LSL_Types.LSLFloat)
+                    return new LSLInteger((int)o);
+                if (o is Int32)
+                    return new LSLInteger((int)o);
+                if (o is LSL_Types.LSLString)
+                    return new LSLInteger(o.ToString());
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.LSLInteger).Name,
+                    o != null ?
+                    o.GetType().Name : "null"));
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.Vector3)
-                {
-                    return (LSL_Types.Vector3)Data[itemIndex];
-                }
-                else if(Data[itemIndex] is OpenMetaverse.Vector3)
-                {
-                    return new LSL_Types.Vector3(
-                            (OpenMetaverse.Vector3)Data[itemIndex]);
-                }
-                else
-                {
-                    throw new InvalidCastException(string.Format(
-                        "{0} expected but {1} given",
-                        typeof(LSL_Types.Vector3).Name,
-                        Data[itemIndex] != null ?
-                        Data[itemIndex].GetType().Name : "null"));
-                }
+                object o = Data[itemIndex];
+                if (o is LSL_Types.Vector3)
+                    return (LSL_Types.Vector3)o;
+                if(o is OpenMetaverse.Vector3)
+                    return new LSL_Types.Vector3((OpenMetaverse.Vector3)o);
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.Vector3).Name,
+                    o != null ?
+                    o.GetType().Name : "null"));
             }
 
             // use LSL_Types.Quaternion to parse and store a vector4 for lightShare
             public LSL_Types.Quaternion GetVector4Item(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.Quaternion)
+                object o = Data[itemIndex];
+                if (o is LSL_Types.Quaternion)
                 {
-                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)Data[itemIndex];
+                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)o;
                     return q;
                 }
-                else if(Data[itemIndex] is OpenMetaverse.Quaternion)
+                if(o is OpenMetaverse.Quaternion)
                 {
-                    LSL_Types.Quaternion q = new LSL_Types.Quaternion(
-                            (OpenMetaverse.Quaternion)Data[itemIndex]);
+                    LSL_Types.Quaternion q = new LSL_Types.Quaternion((OpenMetaverse.Quaternion)o);
                     q.Normalize();
                     return q;
                 }
-                else
-                {
-                    throw new InvalidCastException(string.Format(
-                        "{0} expected but {1} given",
-                        typeof(LSL_Types.Quaternion).Name,
-                        Data[itemIndex] != null ?
-                        Data[itemIndex].GetType().Name : "null"));
-                }
+
+                throw new InvalidCastException(string.Format(
+                    "{0} expected but {1} given",
+                    typeof(LSL_Types.Quaternion).Name,
+                    o != null ?
+                    o.GetType().Name : "null"));
             }
 
             public LSL_Types.Quaternion GetQuaternionItem(int itemIndex)
             {
-                if (Data[itemIndex] is LSL_Types.Quaternion)
+                object o = Data[itemIndex];
+                if (o is LSL_Types.Quaternion)
                 {
-                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)Data[itemIndex];
+                    LSL_Types.Quaternion q = (LSL_Types.Quaternion)o;
                     q.Normalize();
                     return q;
                 }
-                else if(Data[itemIndex] is OpenMetaverse.Quaternion)
+                if(o is OpenMetaverse.Quaternion)
                 {
-                    LSL_Types.Quaternion q = new LSL_Types.Quaternion(
-                            (OpenMetaverse.Quaternion)Data[itemIndex]);
+                    LSL_Types.Quaternion q = new LSL_Types.Quaternion((OpenMetaverse.Quaternion)o);
                     q.Normalize();
                     return q;
                 }
-                else
-                {
-                    throw new InvalidCastException(string.Format(
+
+                throw new InvalidCastException(string.Format(
                         "{0} expected but {1} given",
                         typeof(LSL_Types.Quaternion).Name,
                         Data[itemIndex] != null ?
                         Data[itemIndex].GetType().Name : "null"));
-                }
             }
 
             public LSL_Types.key GetKeyItem(int itemIndex)
@@ -909,10 +884,18 @@ namespace OpenSim.Region.ScriptEngine.Shared
             private void ExtendAndAdd(object o)
             {
                 object[] tmp;
-                tmp = new object[Data.Length + 1];
-                Data.CopyTo(tmp, 0);
-                tmp.SetValue(o, tmp.Length - 1);
-                Data = tmp;
+                if(m_data == null || m_data.Length == 0)
+                {
+                    tmp = new object[1];
+                    tmp.SetValue(o, 0);
+                }
+                else
+                {
+                    tmp = new object[m_data.Length + 1];
+                    m_data.CopyTo(tmp, 0);
+                    tmp.SetValue(o, tmp.Length - 1);
+                }
+                m_data = tmp;
             }
 
             public static implicit operator Boolean(list l)
@@ -965,24 +948,30 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public void Add(object o)
             {
                 object[] tmp;
-                tmp = new object[Data.Length + 1];
-                Data.CopyTo(tmp, 0);
-                tmp[Data.Length] = o; // Since this is tmp.Length - 1
-                Data = tmp;
+                if(m_data == null || m_data.Length == 0)
+                {
+                    tmp = new object[1];
+                    tmp[0] = o;
+                }
+                else
+                {
+                    tmp = new object[m_data.Length + 1];
+                    m_data.CopyTo(tmp, 0);
+                    tmp[m_data.Length] = o; // Since this is tmp.Length - 1
+                }
+                m_data = tmp;
             }
 
             public bool Contains(object o)
             {
-                bool ret = false;
-                foreach (object i in Data)
+                if (m_data == null)
+                    return false;
+                foreach (object i in m_data)
                 {
                     if (i == o)
-                    {
-                        ret = true;
-                        break;
-                    }
+                        return true;
                 }
-                return ret;
+                return false;
             }
 
             public list DeleteSublist(int start, int end)
@@ -990,59 +979,70 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // Not an easy one
                 // If start <= end, remove that part
                 // if either is negative, count from the end of the array
-                // if the resulting start > end, remove all BUT that part
+                // if the resulting start > end, keep [end + 1, start - 1]
+                if(m_data == null || m_data.Length == 0)
+                    return new list(new object[0]);
 
-                Object[] ret;
+                int len = m_data.Length;
+                object[] ret;
 
                 if (start < 0)
-                    start=Data.Length+start;
-
+                    start= len + start;
                 if (start < 0)
                     start=0;
 
                 if (end < 0)
-                    end=Data.Length+end;
+                    end= len + end;
                 if (end < 0)
                     end=0;
 
                 if (start > end)
                 {
-                    if (end >= Data.Length)
-                        return new list(new Object[0]);
+                    end++;
+                    if (end >= len)
+                        return new list(new object[0]);
 
-                    if (start >= Data.Length)
-                        start=Data.Length-1;
+                    start--;
+                    if (start >= len)
+                        start = len - 1;
 
-                    return GetSublist(end, start);
+                    int num = start - end + 1;
+                    if(num <= 0)
+                        return new list(new object[0]);
+
+                    ret = new object[num];
+                    Array.Copy(m_data, end, ret, 0, num);
+                    return new list(ret);
                 }
 
                 // start >= 0 && end >= 0 here
-                if (start >= Data.Length)
+                if (start >= len)
                 {
-                    ret=new Object[Data.Length];
-                    Array.Copy(Data, 0, ret, 0, Data.Length);
-
+                    ret = new object[len];
+                    Array.Copy(m_data, 0, ret, 0, len);
                     return new list(ret);
                 }
 
-                if (end >= Data.Length)
-                    end=Data.Length-1;
+                if (end >= len)
+                    end = len - 1;
+
+                end++;
 
                 // now, this makes the math easier
-                int remove=end+1-start;
+                int remove = end - start;
 
-                ret=new Object[Data.Length-remove];
-                if (ret.Length == 0)
+                if(remove >= len)
+                    return new list(new object[0]);
+
+                ret = new object[len - remove];
+
+                if (start > 0)
+                    Array.Copy(m_data, 0, ret, 0, start);
+
+                if(end >= len)
                     return new list(ret);
 
-                int src;
-                int dest=0;
-
-                for (src = 0; src < Data.Length; src++)
-                {
-                    if (src < start || src > end)
-                        ret[dest++]=Data[src];
-                }
+                Array.Copy(m_data, end, ret, start, len - end);
 
                 return new list(ret);
             }
@@ -1123,7 +1123,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         {
                             return this;
                         }
-
                     }
                     else
                     {
@@ -1142,7 +1141,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            private static int compare(object left, object right, int ascending)
+            private static int compare(object left, object right, bool ascending)
             {
                 if (!left.GetType().Equals(right.GetType()))
                 {
@@ -1154,23 +1153,17 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 int ret = 0;
 
-                if (left is key)
+                if (left is LSLInteger)
                 {
-                    key l = (key)left;
-                    key r = (key)right;
-                    ret = String.CompareOrdinal(l.value, r.value);
+                    LSLInteger l = (LSLInteger)left;
+                    LSLInteger r = (LSLInteger)right;
+                    ret = Math.Sign(l.value - r.value);
                 }
                 else if (left is LSLString)
                 {
                     LSLString l = (LSLString)left;
                     LSLString r = (LSLString)right;
-                    ret = String.CompareOrdinal(l.m_string, r.m_string);
-                }
-                else if (left is LSLInteger)
-                {
-                    LSLInteger l = (LSLInteger)left;
-                    LSLInteger r = (LSLInteger)right;
-                    ret = Math.Sign(l.value - r.value);
+                    ret = string.CompareOrdinal(l.m_string, r.m_string);
                 }
                 else if (left is LSLFloat)
                 {
@@ -1184,59 +1177,199 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     Vector3 r = (Vector3)right;
                     ret = Math.Sign(Vector3.Mag(l) - Vector3.Mag(r));
                 }
-                else if (left is Quaternion)
+                else if (left is key)
                 {
-                    Quaternion l = (Quaternion)left;
-                    Quaternion r = (Quaternion)right;
-                    ret = Math.Sign(Quaternion.Mag(l) - Quaternion.Mag(r));
+                    key l = (key)left;
+                    key r = (key)right;
+                    ret = string.CompareOrdinal(l.value, r.value);
+                }
+                else //if (left is Quaternion) and unknown types
+                {
+                    return 0;
                 }
 
-                if (ascending == 0)
-                {
-                    ret = 0 - ret;
-                }
+                if (ascending)
+                    return ret;
 
-                return ret;
+                return -ret;
             }
 
             class HomogeneousComparer : IComparer
             {
-                public HomogeneousComparer()
+                //both sides known to be of same type
+                private readonly bool ascending;
+                public HomogeneousComparer(bool ascend)
                 {
+                    ascending = ascend;
                 }
 
-                public int Compare(object lhs, object rhs)
+                public int Compare(object left, object right)
                 {
-                    return compare(lhs, rhs, 1);
+                    int ret = 0;
+                    if (left is LSLInteger)
+                    {
+                        LSLInteger l = (LSLInteger)left;
+                        LSLInteger r = (LSLInteger)right;
+                        ret = Math.Sign(l.value - r.value);
+                    }
+                    else if (left is LSLString)
+                    {
+                        LSLString l = (LSLString)left;
+                        LSLString r = (LSLString)right;
+                        ret = string.CompareOrdinal(l.m_string, r.m_string);
+                    }
+                    else if (left is LSLFloat)
+                    {
+                        LSLFloat l = (LSLFloat)left;
+                        LSLFloat r = (LSLFloat)right;
+                        ret = Math.Sign(l.value - r.value);
+                    }
+                    else if (left is Vector3)
+                    {
+                        Vector3 l = (Vector3)left;
+                        Vector3 r = (Vector3)right;
+                        ret = Math.Sign(Vector3.MagSquare(l) - Vector3.MagSquare(r));
+                    }
+                    else if (left is key)
+                    {
+                        key l = (key)left;
+                        key r = (key)right;
+                        ret = string.CompareOrdinal(l.value, r.value);
+                    }
+                    else //if (left is Quaternion) and unknown types
+                    {
+                        return 0;
+                    }
+
+                    if (ascending)
+                        return ret;
+
+                    return -ret;
                 }
             }
 
-            public list Sort(int stride, int ascending)
+            private static bool needSwapAscending(object left, object right)
             {
-                if (Data.Length == 0)
+                if (left is LSLInteger)
+                {
+                    LSLInteger l = (LSLInteger)left;
+                    LSLInteger r = (LSLInteger)right;
+                    return l.value > r.value;
+                }
+                else if (left is LSLString)
+                {
+                    LSLString l = (LSLString)left;
+                    LSLString r = (LSLString)right;
+                    return string.CompareOrdinal(l.m_string, r.m_string) > 0;
+                }
+                else if (left is LSLFloat)
+                {
+                    LSLFloat l = (LSLFloat)left;
+                    LSLFloat r = (LSLFloat)right;
+                    return l.value > r.value;
+                }
+                else if (left is Vector3)
+                {
+                    Vector3 l = (Vector3)left;
+                    Vector3 r = (Vector3)right;
+                    return Vector3.MagSquare(l) > Vector3.Mag(r);
+                }
+                else if (left is key)
+                {
+                    key l = (key)left;
+                    key r = (key)right;
+                    return string.CompareOrdinal(l.value, r.value) > 0;
+                }
+                return false;
+            }
+
+            private static bool needSwapDescending(object left, object right)
+            {
+                if (left is LSLInteger)
+                {
+                    LSLInteger l = (LSLInteger)left;
+                    LSLInteger r = (LSLInteger)right;
+                    return l.value < r.value;
+                }
+                else if (left is LSLString)
+                {
+                    LSLString l = (LSLString)left;
+                    LSLString r = (LSLString)right;
+                    return string.CompareOrdinal(l.m_string, r.m_string) < 0;
+                }
+                else if (left is LSLFloat)
+                {
+                    LSLFloat l = (LSLFloat)left;
+                    LSLFloat r = (LSLFloat)right;
+                    return l.value < r.value;
+                }
+                else if (left is Vector3)
+                {
+                    Vector3 l = (Vector3)left;
+                    Vector3 r = (Vector3)right;
+                    return Vector3.MagSquare(l) < Vector3.MagSquare(r);
+                }
+                else if (left is key)
+                {
+                    key l = (key)left;
+                    key r = (key)right;
+                    return string.CompareOrdinal(l.value, r.value) < 0;
+                }
+                return false;
+            }
+
+            public list Sort(int stride, bool ascending)
+            {
+                if (m_data == null)
                     return new list(); // Don't even bother
 
-                object[] ret = new object[Data.Length];
-                Array.Copy(Data, 0, ret, 0, Data.Length);
+                int len = m_data.Length;
+                if(len == 0)
+                    return new list(); // Don't even bother
 
-                if (stride <= 0)
-                {
+                object[] ret = new object[len];
+                Array.Copy(m_data, 0, ret, 0, len);
+
+                if (stride < 1)
                     stride = 1;
-                }
 
-                if ((Data.Length % stride) != 0)
+                if ((len <= stride) || (len % stride) != 0)
                     return new list(ret);
 
-                // we can optimize here in the case where stride == 1 and the list
-                // consists of homogeneous types
+                Sort(ret, stride, ascending);
+                return new list(ret);
+            }
 
+            public void SortInPlace(int stride, bool ascending)
+            {
+                if (m_data == null)
+                    return; // Don't even bother
+
+                if (stride < 1)
+                    stride = 1;
+
+                int len = m_data.Length;
+                if ((len <= stride) || (len % stride) != 0)
+                    return;
+
+                Sort(m_data, stride, ascending);
+            }
+
+            public void Sort(object[] ret, int stride, bool ascending)
+            {
+                // if list does not consists of homogeneous types
+                // and because of the desired type specific feathered sorting behavior
+                // requeried by the spec, we MUST use a non-optimized bubble sort
+                // Anything else will give you the incorrect behavior.
+
+                // we can optimize the case where stride == 1
                 if (stride == 1)
                 {
                     bool homogeneous = true;
-                    int index;
-                    for (index = 1; index < Data.Length; index++)
+                    Type firstType = ret[0].GetType();
+                    for (int i = 1; i < ret.Length; ++i)
                     {
-                        if (!Data[0].GetType().Equals(Data[index].GetType()))
+                        if (!firstType.Equals(ret[i].GetType()))
                         {
                             homogeneous = false;
                             break;
@@ -1244,45 +1377,110 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     }
 
                     if (homogeneous)
+                        // big boost using native Sort with its faster sorting methods.
+                        Array.Sort(ret, new HomogeneousComparer(ascending));
+                    else
                     {
-                        Array.Sort(ret, new HomogeneousComparer());
-                        if (ascending == 0)
+                        if (ascending)
                         {
-                            Array.Reverse(ret);
-                        }
-                        return new list(ret);
-                    }
-                }
-
-                // Because of the desired type specific feathered sorting behavior
-                // requried by the spec, we MUST use a non-optimized bubble sort here.
-                // Anything else will give you the incorrect behavior.
-
-                // begin bubble sort...
-                int i;
-                int j;
-                int k;
-                int n = Data.Length;
-
-                for (i = 0; i < (n-stride); i += stride)
-                {
-                    for (j = i + stride; j < n; j += stride)
-                    {
-                        if (compare(ret[i], ret[j], ascending) > 0)
-                        {
-                            for (k = 0; k < stride; k++)
+                            for (int i = 0; i < ret.Length - 1; ++i)
                             {
-                                object tmp = ret[i + k];
-                                ret[i + k] = ret[j + k];
-                                ret[j + k] = tmp;
+                                object pivot = ret[i];
+                                Type pivotType = pivot.GetType();
+                                for (int j = i + 1; j < ret.Length; ++j)
+                                {
+                                    object tmp = ret[j];
+                                    if (tmp.GetType() == pivotType && needSwapAscending(pivot, tmp))
+                                    {
+                                        ret[j] = pivot;
+                                        pivot = tmp;
+                                    }
+                                }
+                                ret[i] = pivot;
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < ret.Length - 1; ++i)
+                            {
+                                object pivot = ret[i];
+                                Type pivotType = pivot.GetType();
+                                for (int j = i + 1; j < ret.Length; ++j)
+                                {
+                                    object tmp = ret[j];
+                                    if (tmp.GetType() == pivotType && needSwapDescending(pivot, tmp))
+                                    {
+                                        ret[j] = pivot;
+                                        pivot = tmp;
+                                    }
+                                }
+                                ret[i] = pivot;
                             }
                         }
                     }
+                    return;
                 }
 
-                // end bubble sort
+                if (ascending)
+                {
+                    for (int i = 0; i < ret.Length - stride; i += stride)
+                    {
+                        object pivot = ret[i];
+                        Type pivotType = pivot.GetType();
+                        for (int j = i + stride; j < ret.Length; j += stride)
+                        {
+                            object tmp = ret[j];
+                            if (tmp.GetType() == pivotType && needSwapAscending(pivot, tmp))
+                            {
+                                ret[j] = pivot;
+                                pivot = tmp;
 
-                return new list(ret);
+                                int ik = i;
+                                int end = ik + stride - 1;
+                                int jk = j;
+                                while (ik < end)
+                                {
+                                    ++ik;
+                                    ++jk;
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
+                                }
+                            }
+                        }
+                        ret[i] = pivot;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < ret.Length - stride; i += stride)
+                    {
+                        object pivot = ret[i];
+                        Type pivotType = pivot.GetType();
+                        for (int j = i + stride; j < ret.Length; j += stride)
+                        {
+                            object tmp = ret[j];
+                            if (tmp.GetType() == pivotType && needSwapDescending(pivot, tmp))
+                            {
+                                ret[j] = pivot;
+                                pivot = tmp;
+
+                                int ik = i;
+                                int end = ik + stride - 1;
+                                int jk = j;
+                                while (ik < end)
+                                {
+                                    ++ik;
+                                    ++jk;
+                                    tmp = ret[ik];
+                                    ret[ik] = ret[jk];
+                                    ret[jk] = tmp;
+                                }
+                            }
+                        }
+                        ret[i] = pivot;
+                    }
+                }
             }
 
             #region CSV Methods
@@ -1350,7 +1548,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         if (entry < minimum) minimum = entry;
                     }
@@ -1364,7 +1562,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         if (entry > maximum) maximum = entry;
                     }
@@ -1383,7 +1581,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         count++;
                     }
@@ -1397,7 +1595,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < src.Data.Length; i++)
                 {
-                    if (double.TryParse(src.Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(src.m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         ret.Add(entry);
                     }
@@ -1411,7 +1609,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         sum = sum + entry;
                     }
@@ -1425,7 +1623,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
+                    if (double.TryParse(m_data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         sum = sum + Math.Pow(entry, 2);
                     }

@@ -426,10 +426,10 @@ namespace Amib.Threading.Internal
             // We must treat the ThreadAbortException or else it will be stored in the exception variable
             catch (ThreadAbortException tae)
             {
-                tae.GetHashCode();
                 // Check if the work item was cancelled
                 // If we got a ThreadAbortException and the STP is not shutting down, it means the 
                 // work items was cancelled.
+                tae.GetHashCode();
                 if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
                 {
                     Thread.ResetAbort();

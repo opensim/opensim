@@ -3450,9 +3450,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private const float ROTATION_TOLERANCE = 0.01f;
+        private const float ROTATION_TOLERANCE = 0.002f;
         private const float VELOCITY_TOLERANCE = 0.1f;
-        private const float ANGVELOCITY_TOLERANCE = 0.005f;
+        private const float ANGVELOCITY_TOLERANCE = 0.002f;
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
         private const double TIME_MS_TOLERANCE = 250.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
 
@@ -5762,6 +5762,43 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     Animations.Remove(animId);
                     if(AnimationsNames!=null)
+                        AnimationsNames.Remove(animId);
+                    ScheduleUpdate(PrimUpdateFlags.Animations);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool RemoveAnimation(string anim)
+        {
+            if (ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit || string.IsNullOrWhiteSpace(anim))
+                return false;
+
+            lock (animsLock)
+            {
+                if (Animations == null || Animations.Count == 0)
+                    return false;
+
+                if (!UUID.TryParse(anim, out UUID animId))
+                {
+                    if (AnimationsNames == null || AnimationsNames.Count == 0)
+                        return false;
+
+                    foreach (KeyValuePair<UUID, string> kvp in AnimationsNames)
+                    {
+                        if (anim.Equals(kvp.Value, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            animId = kvp.Key;
+                            break;
+                        }
+                    }
+                }
+
+                if (Animations.ContainsKey(animId))
+                {
+                    Animations.Remove(animId);
+                    if (AnimationsNames != null)
                         AnimationsNames.Remove(animId);
                     ScheduleUpdate(PrimUpdateFlags.Animations);
                     return true;

@@ -684,8 +684,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
-
         /// <summary>
         /// This should delete all the items and folders in the given directory.
         /// </summary>
@@ -693,10 +691,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="folderID"></param>
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
-            PurgeFolderDelegate d = PurgeFolderAsync;
             try
             {
-                d.BeginInvoke(remoteClient.AgentId, folderID, PurgeFolderCompleted, d);
+                UUID agent = remoteClient.AgentId;
+                UUID folder = folderID;
+                Util.FireAndForget(delegate
+                {
+                    PurgeFolderAsync(agent, folder);
+                });
             }
             catch (Exception e)
             {
@@ -719,12 +721,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[AGENT INVENTORY]: Exception on async purge folder for user {0}: {1}", userID, e.Message);
             }
-        }
-
-        private void PurgeFolderCompleted(IAsyncResult iar)
-        {
-            PurgeFolderDelegate d = (PurgeFolderDelegate)iar.AsyncState;
-            d.EndInvoke(iar);
         }
     }
 }

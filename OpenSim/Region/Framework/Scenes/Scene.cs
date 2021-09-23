@@ -1068,9 +1068,9 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     string tile = Util.GetConfigVarFromSections<string>(
-                            config, "MaptileStaticUUID", possibleMapConfigSections, UUID.Zero.ToString());
+                            config, "MaptileStaticUUID", possibleMapConfigSections, Util.UUIDZeroString);
 
-                    if (tile != UUID.Zero.ToString() && UUID.TryParse(tile, out UUID tileID))
+                    if (tile != Util.UUIDZeroString && UUID.TryParse(tile, out UUID tileID))
                     {
                         RegionInfo.RegionSettings.TerrainImageID = tileID;
                     }
@@ -1094,11 +1094,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                grant = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, String.Empty);
+                grant = Util.GetConfigVarFromSections<string>(config, "DeniedClients", possibleAccessControlConfigSections, string.Empty);
                 // Deal with the mess of someone having used a different word at some point
-                if (grant == String.Empty)
-                    grant = Util.GetConfigVarFromSections<string>(
-                            config, "BannedClients", possibleAccessControlConfigSections, String.Empty);
+                if (string.IsNullOrWhiteSpace(grant))
+                    grant = Util.GetConfigVarFromSections<string>(config, "BannedClients", possibleAccessControlConfigSections, string.Empty);
 
                 if (grant.Length > 0)
                 {
@@ -3437,7 +3436,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem += UpdateInventoryItem;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
@@ -3562,7 +3561,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory -= m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem -= UpdateInventoryItem;
             client.OnCopyInventoryItem -= CopyInventoryItem;
             client.OnMoveInventoryItem -= MoveInventoryItem;
             client.OnRemoveInventoryItem -= RemoveInventoryItem;
@@ -4262,9 +4261,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_log.InfoFormat(
-                        "[SCENE]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                        "[SCENE {0}]: authorized {1} agent {2} {3} {4} (circuit code {5})",
                         Name, (acd.child ? "child" : "root"), acd.firstname, acd.lastname,
                         acd.AgentID, acd.circuitcode);
+
 
                     if (m_capsModule != null)
                     {
@@ -4911,7 +4911,7 @@ Label_GroupsDone:
                 return true;
             }
 
-            return true;
+            return false;
         }
 
 
@@ -4994,6 +4994,20 @@ Label_GroupsDone:
                 return;
 
             EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
+        }
+
+        public void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
+        {
+            if (EntityTransferModule == null)
+            {
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
+            }
+
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+            EntityTransferModule.RequestTeleportLandmark(remoteClient, lm, lookAt);
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
@@ -5203,9 +5217,9 @@ Label_GroupsDone:
 
         #region SceneGraph wrapper methods
 
-        public void SwapRootAgentCount(bool rootChildChildRootTF)
+        public void SwapRootAgentCount(bool direction_RoottoChild, bool isnpc)
         {
-            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF);
+            m_sceneGraph.SwapRootChildAgent(direction_RoottoChild, isnpc);
         }
 
         public void AddPhysicalPrim(int num)
@@ -5219,6 +5233,11 @@ Label_GroupsDone:
         }
 
         public int GetRootAgentCount()
+        {
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        public int GetRootNPCCount()
         {
             return m_sceneGraph.GetRootAgentCount();
         }
@@ -5265,15 +5284,17 @@ Label_GroupsDone:
         /// <remarks>
         /// This method will return both root and child scene presences.
         ///
-        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// Consider using only on ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
         /// involving creating a new List object.
         /// </remarks>
         /// <returns>
-        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// The shared list of the scene presences.
         /// </returns>
+        /// WARNING DO NOT MODIFY RETURNED VALUE
         public List<ScenePresence> GetScenePresences()
         {
-            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            //return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            return m_sceneGraph.GetScenePresences();
         }
 
         /// <summary>
@@ -6168,9 +6189,7 @@ Environment.Exit(1);
                 return false;
             }
 
-            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
-            // However, the long term fix is to make sure root agent count is always accurate.
-            m_sceneGraph.RecalculateStats();
+
 
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
@@ -6223,7 +6242,12 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
+            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
+            // However, the long term fix is to make sure root agent count is always accurate.
+            m_sceneGraph.RecalculateStats();
             int num = m_sceneGraph.GetRootAgentCount();
+            num -= m_sceneGraph.GetRootNPCCount();
+
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 reason = "The region is full";

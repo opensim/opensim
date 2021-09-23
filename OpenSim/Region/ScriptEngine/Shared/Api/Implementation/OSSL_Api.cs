@@ -764,15 +764,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetRot");
 
-            if (World.Entities.ContainsKey(target))
+            if (World.Entities.TryGetValue(target, out EntityBase entity))
             {
-                if (World.Entities.TryGetValue(target, out EntityBase entity))
-                {
-                    if (entity is SceneObjectGroup)
-                        ((SceneObjectGroup)entity).UpdateGroupRotationR(rotation);
-                    else if (entity is ScenePresence)
-                        ((ScenePresence)entity).Rotation = rotation;
-                }
+                if (entity is SceneObjectGroup)
+                    ((SceneObjectGroup)entity).UpdateGroupRotationR(rotation);
+                else if (entity is ScenePresence)
+                    ((ScenePresence)entity).Rotation = rotation;
             }
             else
             {
@@ -1031,7 +1028,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
@@ -1074,12 +1071,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void TeleportAgent(string agent, int regionGridX, int regionGridY,
             LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
-
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
@@ -1089,6 +1084,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
+                ulong regionHandle = Util.RegionGridLocToHandle((uint)regionGridX, (uint)regionGridY);
                 Util.FireAndForget(
                     o => World.RequestTeleportLocation(
                         presence.ControllingClient, regionHandle,
@@ -1104,7 +1100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
-                if (presence == null || presence.IsDeleted || presence.IsInTransit)
+                if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsInTransit)
                     return;
 
                 Vector3 pos = presence.AbsolutePosition;
@@ -1114,9 +1110,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                World.RequestTeleportLocation(presence.ControllingClient, World.RegionInfo.RegionName, position,
-                    lookat, (uint)TPFlags.ViaLocation);
-                ScriptSleep(500);
+                RegionInfo ri = World.RegionInfo;
+                double px = position.x;
+                double py = position.y;
+
+                if (px >= 0 && px < ri.RegionSizeX && py >= 0 && py < ri.RegionSizeY)
+                {
+                    World.RequestTeleportLocation(presence.ControllingClient, ri.RegionName, position,
+                        lookat, (uint)TPFlags.ViaLocation);
+                    ScriptSleep(500);
+                    return;
+                }
+
+                // not in region. lets use global position then.
+                px += ri.WorldLocX;
+                py += ri.WorldLocY;
+
+                int gx = (int)px / 256;
+                int gy = (int)py / 256;
+                px -= 256 * gx;
+                py -= 256 * gy;
+                ulong regionHandle = Util.RegionGridLocToHandle((uint)gx, (uint)gy);
+                Util.FireAndForget(
+                    o => World.RequestTeleportLocation(
+                        presence.ControllingClient, regionHandle,
+                        new Vector3((float)px, (float)py, (float)position.z), lookat, (uint)TPFlags.ViaLocation),
+                    null, "OSSL_Api.TeleportAgentByFarPos");
+                ScriptSleep(5000);
             }
         }
 
@@ -2466,6 +2486,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
 
+            ScenePresence sp = World.GetScenePresence(firstname, lastname);
+            if(sp != null)
+                return sp.UUID.ToString();
+
             IUserManagement userManager = World.RequestModuleInterface<IUserManagement>();
             if (userManager == null)
             {
@@ -2508,10 +2532,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osKey2Name");
 
-            UUID key = new UUID();
-
-            if (UUID.TryParse(id, out key))
+            if (UUID.TryParse(id, out UUID key))
             {
+                ScenePresence sp = World.GetScenePresence(key);
+                if(sp != null)
+                    return sp.Name;
+
                 UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
                 if (account != null)
                     return account.Name;
@@ -2522,7 +2548,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (uInfo != null)
                     {
-
                         if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out UUID userUUID, 
                                 out string gridURL, out string firstName,
                                 out string lastName, out string tmp))
@@ -2620,35 +2645,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get the nickname of this grid, as set in the [GridInfo] config section.
         /// </summary>
         /// <remarks>
-        /// Threat level is Moderate because intentional abuse, for instance
-        /// scripts that are written to be malicious only on one grid,
-        /// for instance in a HG scenario, are a distinct possibility.
         /// </remarks>
         /// <returns></returns>
         public string osGetGridNick()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
-
-            string nick = String.Empty;
-            IConfigSource config = m_ScriptEngine.ConfigSource;
-
-            if (config.Configs[GridInfoServiceConfigSectionName] != null)
-                nick = config.Configs[GridInfoServiceConfigSectionName].GetString("gridnick", nick);
-
-            if (String.IsNullOrEmpty(nick))
-                nick = GridUserInfo(InfoType.Nick);
-
-            return nick;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridNick;
         }
 
         public string osGetGridName()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
-
-            if(World.SceneGridInfo == null)
-                return string.Empty;
-
-            return World.SceneGridInfo.GridName;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GridName;
         }
 
         public string osGetGridLoginURI()
@@ -2671,14 +2677,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridHomeURI");
 
-            return World.SceneGridInfo.HomeURLNoEndSlash;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.HomeURLNoEndSlash;
         }
 
         public string osGetGridGatekeeperURI()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridGatekeeperURI");
 
-            return World.SceneGridInfo.GateKeeperURLNoEndSlash;
+            return World.SceneGridInfo == null ? string.Empty : World.SceneGridInfo.GateKeeperURLNoEndSlash;
         }
 
         public string osGetGridCustom(string key)
@@ -3975,8 +3981,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public void osSetProjectionParams(LSL_Key prim, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
-
             SceneObjectPart obj = null;
             if (prim == ScriptBaseClass.NULL_KEY)
             {
@@ -4869,13 +4873,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="Mass">total mass of linkset</param>
         /// <param name="radius">radius of the cylinder</param>
-        /// <param name="lenght">lenght of the cylinder</param>
+        /// <param name="length">length of the cylinder</param>
         /// <param name="centerOfMass">location of center of mass relative to root prim in local coords</param>
         /// <param name="lslrot">rotation of the cylinder, and so inertia, relative to local axis</param>
         /// <remarks>
         /// cylinder axis aligned with Z axis. For other orientations provide the rotation.
         /// </remarks>
-        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, LSL_Vector centerOfMass, LSL_Rotation lslrot)
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, LSL_Vector centerOfMass, LSL_Rotation lslrot)
         {
             CheckThreatLevel();
 
@@ -4894,7 +4898,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float r = (float)radius;
             r *= r;
             Inertia.Z = 0.5f * m * r;
-            float t = (float)lenght;
+            float t = (float)length;
             t *= t;
             t += 3.0f * r;
             t *= 8.333333e-2f * m;
@@ -6095,6 +6099,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             return av.IsNPC ? 2 : 1;
+        }
+
+        public void osListSortInPlace(LSL_List src, LSL_Integer stride, LSL_Integer ascending)
+        {
+            src.SortInPlace(stride, ascending == 1);
         }
     }
 }

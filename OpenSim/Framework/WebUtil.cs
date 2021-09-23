@@ -835,7 +835,7 @@ namespace OpenSim.Framework
                                 {
                                     using (Stream respStream = response.GetResponseStream())
                                     {
-                                        deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(
+                                        deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
                                             reqnum, respStream, response.ContentLength);
                                     }
                                 }
@@ -863,7 +863,7 @@ namespace OpenSim.Framework
                                 {
                                     using (Stream respStream = response.GetResponseStream())
                                     {
-                                        deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(
+                                        deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
                                             reqnum, respStream, response.ContentLength);
                                     }
                                 }
@@ -1165,7 +1165,7 @@ namespace OpenSim.Framework
         /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
-            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0);
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 0, null);
         }
 
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, IServiceAuth auth)
@@ -1187,34 +1187,11 @@ namespace OpenSim.Framework
         /// </returns>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
         {
-            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, 0);
-        }
-
-        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, IServiceAuth auth)
-        {
-            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, 0, auth);
-        }
-
-        /// Perform a synchronous REST request.
-        /// </summary>
-        /// <param name="verb"></param>
-        /// <param name="requestUrl"></param>
-        /// <param name="obj"></param>
-        /// <param name="pTimeout">
-        /// Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.  If 0 is passed then the default HttpWebRequest timeout is used (100 seconds)
-        /// </param>
-        /// <param name="maxConnections"></param>
-        /// <returns>
-        /// The response.  If there was an internal exception or the request timed out,
-        /// then the default(TResponse) is returned.
-        /// </returns>
-        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections)
-        {
-            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, maxConnections, null);
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, pTimeout, null);
         }
 
         /// <summary>
-        /// Perform a synchronous REST request.
+        /// Perform a synchronous something request.
         /// </summary>
         /// <param name="verb"></param>
         /// <param name="requestUrl"></param>
@@ -1222,17 +1199,16 @@ namespace OpenSim.Framework
         /// <param name="pTimeout">
         /// Request timeout in milliseconds.  Timeout.Infinite indicates no timeout.  If 0 is passed then the default HttpWebRequest timeout is used (100 seconds)
         /// </param>
-        /// <param name="maxConnections"></param>
         /// <returns>
         /// The response.  If there was an internal exception or the request timed out,
         /// then the default(TResponse) is returned.
         /// </returns>
-        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, int maxConnections, IServiceAuth auth)
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout, IServiceAuth auth)
         {
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjectRequest {1} {2}",
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq {1} {2}",
                     reqnum, verb, requestUrl);
 
             int tickstart = Util.EnvironmentTickCount();
@@ -1247,17 +1223,14 @@ namespace OpenSim.Framework
                 if (auth != null)
                     auth.AddAuthorization(request.Headers);
 
-                request.AllowWriteStreamBuffering = false;
-
                 if (pTimeout != 0)
                     request.Timeout = pTimeout;
-
 
                 request.Method = verb;
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[SRestObjectRequest]: Exception in creating request {0} {1}: {2}{3}",
+                m_log.DebugFormat("[SRestObjReq]: Exception in creating request {0} {1}: {2}{3}",
                     verb, requestUrl, e.Message, e.StackTrace);
                 return deserial;
             }
@@ -1269,7 +1242,7 @@ namespace OpenSim.Framework
                     request.ContentType = "text/xml";
 
                     byte[] data;
-                    XmlWriterSettings settings = new XmlWriterSettings(){Encoding = Util.UTF8};
+                    XmlWriterSettings settings = new XmlWriterSettings() { Encoding = Util.UTF8 };
                     using (MemoryStream ms = new MemoryStream())
                     using (XmlWriter writer = XmlWriter.Create(ms, settings))
                     {
@@ -1293,12 +1266,11 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.DebugFormat(
-                    "[SRestObjectRequest]: Exception in making request {0} {1}: {2}{3}",
+                    "[SRestObjReq]: Exception in making request {0} {1}: {2}{3}",
                     verb, requestUrl, e.Message, e.StackTrace);
 
                 return deserial;
             }
-
 
             int rcvlen = 0;
             try
@@ -1310,13 +1282,13 @@ namespace OpenSim.Framework
                         rcvlen = (int)resp.ContentLength;
                         using (Stream respStream = resp.GetResponseStream())
                         {
-                            deserial = XMLResponseHelper.LogAndDeserialize<TRequest, TResponse>(
+                            deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
                                 reqnum, respStream, resp.ContentLength);
                         }
                     }
                     else
                     {
-                        m_log.DebugFormat("[SRestObjectRequest]: Oops! no content found in response stream from {0} {1}",
+                        m_log.DebugFormat("[SRestObjReq]: Oops! no content found in response stream from {0} {1}",
                             verb, requestUrl);
                     }
                 }
@@ -1329,38 +1301,139 @@ namespace OpenSim.Framework
                     {
                         if (hwr.StatusCode == HttpStatusCode.Unauthorized)
                         {
-                            m_log.ErrorFormat("[SRestObjectRequest]: {0} requires authentication",
+                            m_log.ErrorFormat("[SRestObjReq]: {0} requires authentication",
                                 requestUrl);
                         }
-                        else if(hwr.StatusCode != HttpStatusCode.NotFound)
+                        else if (hwr.StatusCode != HttpStatusCode.NotFound)
                         {
-                            m_log.WarnFormat("[SRestObjectRequest]: {0} returned error: {1}",
+                            m_log.WarnFormat("[SRestObjReq]: {0} returned error: {1}",
                                 requestUrl, hwr.StatusCode);
                         }
                     }
                     else
                         m_log.ErrorFormat(
-                            "[SRestObjectRequest]: WebException for {0} {1} {2} {3}",
+                            "[SRestObjReq]: WebException for {0} {1} {2} {3}",
                             verb, requestUrl, typeof(TResponse).ToString(), e.Message);
                 }
             }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
-                m_log.DebugFormat("[SRestObjectRequest]: Invalid XML from {0} {1} {2}",
+                m_log.DebugFormat("[SRestObjReq]: Invalid XML from {0} {1} {2}",
                     verb, requestUrl, typeof(TResponse).ToString());
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[SRestObjectRequest]: Exception on response from {0} {1}: {2}",
+                m_log.DebugFormat("[SRestObjReq]: Exception on response from {0} {1}: {2}",
                     verb, requestUrl, e.Message);
             }
 
             int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
             if (tickdiff > WebUtil.LongCallTime)
             {
-                m_log.InfoFormat("[LOGHTTP]: Slow SRestObjectRequest {0} {1} {2} took {3}ms, {4}bytes",
+                m_log.InfoFormat("[LOGHTTP]: Slow SRestObjReq {0} {1} {2} took {3}ms, {4}bytes",
                     reqnum, verb, requestUrl, tickdiff, rcvlen);
+            }
+            else if (WebUtil.DebugLevel >= 4)
+            {
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms",
+                    reqnum, tickdiff);
+            }
+            return deserial;
+        }
+
+        public static TResponse MakeGetRequest<TResponse>(string requestUrl, int pTimeout, IServiceAuth auth)
+        {
+            int reqnum = WebUtil.RequestNumber++;
+
+            if (WebUtil.DebugLevel >= 3)
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq GET {2}", reqnum, requestUrl);
+            int tickstart = Util.EnvironmentTickCount();
+
+            TResponse deserial = default(TResponse);
+            HttpWebRequest request = null;
+            try
+            {
+                request = (HttpWebRequest)WebRequest.Create(requestUrl);
+
+                if (auth != null)
+                    auth.AddAuthorization(request.Headers);
+
+                request.AllowWriteStreamBuffering = false;
+
+                if (pTimeout != 0)
+                    request.Timeout = pTimeout;
+
+                request.Method = "GET";
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[SRestObjReq]: Exception in creating GET request  {0}: {1}{2}",
+                    requestUrl, e.Message, e.StackTrace);
+                return deserial;
+            }
+
+            int rcvlen = 0;
+            try
+            {
+                using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
+                {
+                    if (resp.ContentLength != 0)
+                    {
+                        rcvlen = (int)resp.ContentLength;
+                        using (Stream respStream = resp.GetResponseStream())
+                        {
+                            deserial = XMLResponseHelper.LogAndDeserialize<TResponse>(
+                                reqnum, respStream, resp.ContentLength);
+                        }
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[SRestObjReq]: Oops! no content found in response stream from GET {0}",
+                            requestUrl);
+                    }
+                }
+            }
+            catch (WebException e)
+            {
+                using (HttpWebResponse hwr = (HttpWebResponse)e.Response)
+                {
+                    if (hwr != null)
+                    {
+                        if (hwr.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            m_log.ErrorFormat("[SRestObjReq]:  GET {0} requires authentication",
+                                requestUrl);
+                        }
+                        else if (hwr.StatusCode != HttpStatusCode.NotFound)
+                        {
+                            m_log.WarnFormat("[SRestObjReq]: GET {0} returned error: {1}",
+                                requestUrl, hwr.StatusCode);
+                        }
+                    }
+                    else
+                        m_log.ErrorFormat(
+                            "[SRestObjReq]: WebException for GET {0} {1} {2}",
+                            requestUrl, typeof(TResponse).ToString(), e.Message);
+                }
+            }
+            catch (System.InvalidOperationException)
+            {
+                // This is what happens when there is invalid XML
+                m_log.DebugFormat("[SRestObjReq]: Invalid XML from GET {0} {1}",
+                    requestUrl, typeof(TResponse).ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[SRestObjReq]: Exception on response from GET {0}: {1}",
+                    requestUrl, e.Message);
+            }
+
+            int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+            if (tickdiff > WebUtil.LongCallTime)
+            {
+                m_log.InfoFormat("[LOGHTTP]: Slow SRestObjReq  GET {0} {1} took {2}ms, {3}bytes",
+                    reqnum, requestUrl, tickdiff, rcvlen);
             }
             else if (WebUtil.DebugLevel >= 4)
             {
@@ -1373,7 +1446,7 @@ namespace OpenSim.Framework
 
     public static class XMLResponseHelper
     {
-        public static TResponse LogAndDeserialize<TRequest, TResponse>(int reqnum, Stream respStream, long contentLength)
+        public static TResponse LogAndDeserialize<TResponse>(int reqnum, Stream respStream, long contentLength)
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
             if (WebUtil.DebugLevel >= 5)

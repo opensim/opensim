@@ -125,17 +125,15 @@ namespace OpenSim.Framework
     /// </remarks>
     public class STPInfo
     {
-        public string Name { get; set; }
-        public STPStartInfo STPStartInfo { get; set; }
-        public WIGStartInfo WIGStartInfo { get; set; }
-        public bool IsIdle { get; set; }
-        public bool IsShuttingDown { get; set; }
-        public int MaxThreads { get; set; }
-        public int MinThreads { get; set; }
-        public int InUseThreads { get; set; }
-        public int ActiveThreads { get; set; }
-        public int WaitingCallbacks { get; set; }
-        public int MaxConcurrentWorkItems { get; set; }
+        public string Name;
+        public bool IsIdle;
+        public bool IsShuttingDown;
+        public int MaxThreads;
+        public int MinThreads;
+        public int InUseThreads;
+        public int ActiveThreads;
+        public int WaitingCallbacks;
+        public int MaxConcurrentWorkItems;
     }
 
     /// <summary>
@@ -197,6 +195,8 @@ namespace OpenSim.Framework
         public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
         public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
 
+        public static readonly string UUIDZeroString = UUID.Zero.ToString();
+
         public static bool IsPlatformMono
         {
             get { return Type.GetType("Mono.Runtime") != null; }
@@ -248,13 +248,13 @@ namespace OpenSim.Framework
         public static Encoding UTF8 = Encoding.UTF8;
         public static Encoding UTF8NoBomEncoding = new UTF8Encoding(false);
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] UTF8Getbytes(string s)
         {
             return UTF8.GetBytes(s);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] UTF8NBGetbytes(string s)
         {
             return UTF8NoBomEncoding.GetBytes(s);
@@ -388,7 +388,7 @@ namespace OpenSim.Framework
             get { return randomClass; }
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong UIntsToLong(uint X, uint Y)
         {
             return ((ulong)X << 32) | (ulong)Y;
@@ -398,7 +398,7 @@ namespace OpenSim.Framework
         // Region handles are based on the coordinate of the region corner with lower X and Y
         // var regions need more work than this to get that right corner from a generic world position
         // this corner must be on a grid point
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong RegionWorldLocToHandle(uint X, uint Y)
         {
            ulong handle = X & 0xffffff00; // make sure it matchs grid coord points.
@@ -407,7 +407,7 @@ namespace OpenSim.Framework
            return handle;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong RegionGridLocToHandle(uint X, uint Y)
         {
             ulong handle = X;
@@ -416,14 +416,14 @@ namespace OpenSim.Framework
             return handle;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RegionHandleToWorldLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 32);
             Y = (uint)(handle & 0xfffffffful);
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RegionHandleToRegionLoc(ulong handle, out uint X, out uint Y)
         {
             X = (uint)(handle >> 40) & 0x00ffffffu; //  bring from higher half, divide by 256 and clean
@@ -433,19 +433,61 @@ namespace OpenSim.Framework
 
         // A region location can be 'world coordinates' (meters) or 'region grid coordinates'
         // grid coordinates have a fixed step of 256m as defined by viewers
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint WorldToRegionLoc(uint worldCoord)
         {
             return worldCoord >> 8;
         }
 
         // Convert a region's 'region grid coordinate' to its 'world coordinate'.
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint RegionToWorldLoc(uint regionCoord)
         {
             return regionCoord << 8;
         }
 
+        public static bool CompareRegionHandles(ulong handle, Vector3 handleOffset, RegionInfo region, out Vector3 regionOffset)
+        {
+            RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
+            double px = uhX - region.WorldLocX + (double)handleOffset.X;
+            double py = uhY - region.WorldLocY + (double)handleOffset.Y;
+            if (px >= 0 && px < region.RegionSizeX && py >= 0 && py < region.RegionSizeY)
+            {
+                regionOffset = new Vector3((float)px, (float)py, handleOffset.Z);
+                return true;
+            }
+            regionOffset = Vector3.Zero;
+            return false;
+        }
+
+        public static bool CompareRegionHandles(ulong handle, Vector3 handleOffset, ulong regionhandle, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
+        {
+            RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
+            RegionHandleToWorldLoc(regionhandle, out uint urX, out uint urY);
+            double px = uhX - urX + (double)handleOffset.X;
+            double py = uhY - urY + (double)handleOffset.Y;
+            if (px >= 0 && px < regionSizeX && py >= 0 && py < regionSizeY)
+            {
+                regionOffset = new Vector3((float)px, (float)py, handleOffset.Z);
+                return true;
+            }
+            regionOffset = Vector3.Zero;
+            return false;
+        }
+
+        public static bool CompareRegionHandles(ulong handle, Vector3 handleOffset, int regionX, int regionY, int regionSizeX, int regionSizeY, out Vector3 regionOffset)
+        {
+            RegionHandleToWorldLoc(handle, out uint uhX, out uint uhY);
+            double px = uhX - regionX + (double)handleOffset.X;
+            double py = uhY - regionY + (double)handleOffset.Y;
+            if (px >= 0 && px < regionSizeX && py >= 0 && py < regionSizeY)
+            {
+                regionOffset = new Vector3((float)px, (float)py, handleOffset.Z);
+                return true;
+            }
+            regionOffset = Vector3.Zero;
+            return false;
+        }
 
         public static bool checkServiceURI(string uristr, out string serviceURI, out string serviceHost, out string serviceIPstr)
         {
@@ -592,17 +634,20 @@ namespace OpenSim.Framework
             return true;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clamp<T>(T x, T min, T max)
             where T : IComparable<T>
         {
-            return x.CompareTo(max) > 0 ? max :
-                x.CompareTo(min) < 0 ? min :
-                x;
+            if(x.CompareTo(max) > 0)
+                return max;
+
+             if(x.CompareTo(min) < 0)
+                return min;
+             return x;
         }
 
         // Clamp the maximum magnitude of a vector
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ClampV(Vector3 x, float max)
         {
             float lenSq = x.LengthSquared();
@@ -750,7 +795,7 @@ namespace OpenSim.Framework
             }
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool IsHexa(char c)
         {
             if (c >= '0' && c <= '9')
@@ -874,7 +919,7 @@ namespace OpenSim.Framework
             return ids;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static bool IsHexa(byte c)
         {
             if (c >= '0' && c <= '9')
@@ -2520,7 +2565,7 @@ namespace OpenSim.Framework
             return found.ToArray();
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string AppendEndSlash(string path)
         {
             int len = path.Length;
@@ -2530,7 +2575,7 @@ namespace OpenSim.Framework
             return path;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string TrimEndSlash(string path)
         {
             int len = path.Length;
@@ -2687,7 +2732,7 @@ namespace OpenSim.Framework
             return data;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int osUTF8Getbytes(string srcstr, byte[] dstarray, int maxdstlen, bool NullTerm = true)
         {
             return osUTF8Getbytes(srcstr, dstarray, 0, maxdstlen, NullTerm);
@@ -2721,10 +2766,10 @@ namespace OpenSim.Framework
             }
         }
 
-        public static unsafe int osUTF8Getbytes(char* srcarray, int srclenght, byte* dstarray, int maxdstlen, bool NullTerm = true)
+        public static unsafe int osUTF8Getbytes(char* srcarray, int srclength, byte* dstarray, int maxdstlen, bool NullTerm = true)
         {
             int dstlen = NullTerm ? maxdstlen - 1 : maxdstlen;
-            int srclen = srclenght >= dstlen ? dstlen : srclenght;
+            int srclen = srclength >= dstlen ? dstlen : srclength;
 
             char c;
             char* src = srcarray;
@@ -3054,11 +3099,13 @@ namespace OpenSim.Framework
 
         private static readonly Dictionary<string, int> m_fireAndForgetCallsInProgress = new Dictionary<string, int>();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
             FireAndForget(callback, null, null);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             FireAndForget(callback, obj, null);
@@ -3322,10 +3369,9 @@ namespace OpenSim.Framework
             if (m_ThreadPool == null)
                 return null;
 
-            STPInfo stpi = new STPInfo()
+            return new STPInfo()
             {
                 Name = m_ThreadPool.Name,
-                STPStartInfo = m_ThreadPool.STPStartInfo,
                 IsIdle = m_ThreadPool.IsIdle,
                 IsShuttingDown = m_ThreadPool.IsShuttingdown,
                 MaxThreads = m_ThreadPool.MaxThreads,
@@ -3335,7 +3381,6 @@ namespace OpenSim.Framework
                 WaitingCallbacks = m_ThreadPool.WaitingCallbacks,
                 MaxConcurrentWorkItems = m_ThreadPool.Concurrency
             };
-            return stpi;
         }
 
         public static void StopThreadPool()
@@ -3414,33 +3459,33 @@ namespace OpenSim.Framework
 
         // returns a timestamp in seconds as double
         // using the time resolution avaiable to StopWatch
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStamp()
         {
             return Stopwatch.GetTimestamp() * TimeStampClockPeriod;
         }
 
         // returns a timestamp in ms as double
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double GetTimeStampMS()
         {
             return Stopwatch.GetTimestamp() * TimeStampClockPeriodMS;
         }
 
         // doing math in ticks is usefull to avoid loss of resolution
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetTimeStampTicks()
         {
             return Stopwatch.GetTimestamp();
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double TimeStampTicksToMS(long ticks)
         {
             return ticks * TimeStampClockPeriodMS;
         }
 
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddToGatheredIds(Dictionary<UUID, sbyte> uuids, UUID id, sbyte type)
         {
             if (id == UUID.Zero)
@@ -3931,8 +3976,8 @@ namespace OpenSim.Framework
         public static void LogFailedXML(string message, string xml)
         {
             int length = xml.Length;
-            if (length > 2000)
-                xml = xml.Substring(0, 2000) + "...";
+            if (length > 250)
+                xml = xml.Substring(0, 250) + "...";
 
             for (int i = 0 ; i < xml.Length ; i++)
             {

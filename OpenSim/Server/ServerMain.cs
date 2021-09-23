@@ -81,7 +81,7 @@ namespace OpenSim.Server
             ServicePointManager.DefaultConnectionLimit = 64;
             ServicePointManager.MaxServicePointIdleTime = 30000;
 
-            ServicePointManager.Expect100Continue = true; // needed now to suport auto redir without writecache
+            ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.ServerCertificateValidationCallback = ValidateServerCertificate;
 

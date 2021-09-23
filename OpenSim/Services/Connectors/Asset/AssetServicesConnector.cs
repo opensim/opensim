@@ -144,7 +144,7 @@ namespace OpenSim.Services.Connectors
             {
                 string uri = m_ServerURI + "/assets/" + id;
 
-                asset = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", uri, 0, m_Auth);
+                asset = SynchronousRestObjectRequester.MakeGetRequest<AssetBase>(uri, 0, m_Auth);
                 if (m_Cache != null)
                 {
                     if (asset != null)
@@ -177,7 +177,7 @@ namespace OpenSim.Services.Connectors
                 return null;
 
             string uri = m_ServerURI + "/assets/" + id + "/metadata";
-            return SynchronousRestObjectRequester.MakeRequest<int, AssetMetadata>("GET", uri, 0, m_Auth);
+            return SynchronousRestObjectRequester.MakeGetRequest<AssetMetadata>(uri, 0, m_Auth);
         }
 
 
@@ -269,7 +269,7 @@ namespace OpenSim.Services.Connectors
             string id = r.id;
             try
             {
-                AssetBase a = SynchronousRestObjectRequester.MakeRequest<int, AssetBase>("GET", r.uri, 0, 30000, m_Auth);
+                AssetBase a = SynchronousRestObjectRequester.MakeGetRequest<AssetBase>(r.uri, 30000, m_Auth);
 
                 if (a != null && m_Cache != null)
                     m_Cache.Cache(a);
@@ -338,12 +338,9 @@ namespace OpenSim.Services.Connectors
 
             if (asset.FullID == UUID.Zero)
             {
-                UUID uuid = UUID.Zero;
-                if (UUID.TryParse(asset.ID, out uuid))
-                {
+                if (UUID.TryParse(asset.ID, out UUID uuid))
                     asset.FullID = uuid;
-                }
-                if(asset.FullID == UUID.Zero)
+                else
                 {
                     m_log.WarnFormat("[Assets] Zero IDs: {0}",asset.Name);
                     asset.FullID = UUID.Random();
@@ -351,11 +348,9 @@ namespace OpenSim.Services.Connectors
                 }
             }
 
-            if (m_Cache != null)
-                m_Cache.Cache(asset);
-
             if (asset.Temporary || asset.Local)
             {
+                m_Cache?.Cache(asset);
                 return asset.ID;
             }
 
@@ -385,8 +380,7 @@ namespace OpenSim.Services.Connectors
                     // Placing this here, so that this work with old asset servers that don't send any reply back
                     // SynchronousRestObjectRequester returns somethins that is not an empty string
                     asset.ID = newID;
-                    if (m_Cache != null)
-                        m_Cache.Cache(asset);
+                    m_Cache?.Cache(asset);
                 }
             }
 
@@ -401,7 +395,6 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
 
             m_Cache?.Get(id, out asset);
-
 
             if (asset == null)
             {
@@ -426,19 +419,18 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool Delete(string id)
         {
+            m_Cache?.Expire(id);
+
             if (m_ServerURI == null)
                 return false;
 
             string uri = m_ServerURI + "/assets/" + id;
-
-            if (SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0, m_Auth))
-            {
-                if (m_Cache != null)
-                    m_Cache.Expire(id);
-
-                return true;
-            }
-            return false;
+            return SynchronousRestObjectRequester.MakeRequest<int, bool>("DELETE", uri, 0, m_Auth);
         }
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
+        }
+
     }
 }

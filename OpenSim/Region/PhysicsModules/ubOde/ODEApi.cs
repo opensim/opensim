@@ -294,16 +294,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             internal Matrix3(dReal m00, dReal m10, dReal m20, dReal m01, dReal m11, dReal m21, dReal m02, dReal m12, dReal m22)
             {
-                M00 = m00;  M10 = m10;  M20 = m20;  _m30 = 0.0f;
-                M01 = m01;  M11 = m11;  M21 = m21;  _m31 = 0.0f;
-                M02 = m02;  M12 = m12;  M22 = m22;  _m32 = 0.0f;
+                M00 = m00; M10 = m10; M20 = m20; M30 = 0.0f;
+                M01 = m01; M11 = m11; M21 = m21; M31 = 0.0f;
+                M02 = m02; M12 = m12; M22 = m22; M32 = 0.0f;
             }
-            internal dReal M00, M10, M20;
-            private dReal _m30;
-            internal dReal M01, M11, M21;
-            private dReal _m31;
-            internal dReal M02, M12, M22;
-            private dReal _m32;
+            internal dReal M00, M10, M20, M30;
+            internal dReal M01, M11, M21, M31;
+            internal dReal M02, M12, M22, M32;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -373,6 +370,67 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         #endregion
+        public static void RfromQ(ref Matrix3 matrix, ref OMV.Quaternion rot)
+        {
+            float x2 = rot.X + rot.X;
+            float y2 = rot.Y + rot.Y;
+            float z2 = rot.Z + rot.Z;
+
+            float yy2 = rot.Y * y2;
+            float zz2 = rot.Z * z2;
+            matrix.M00 = 1.0f - yy2 - zz2;
+            float xy2 = rot.X * y2;
+            float wz2 = rot.W * z2;
+            matrix.M10 = xy2 - wz2;
+            float xz2 = rot.X * z2;
+            float wy2 = rot.W * y2;
+            matrix.M20 = xz2 + wy2;
+            matrix.M30 = 0f;
+
+            matrix.M01 = xy2 + wz2;
+            float xx2 = rot.X * x2;
+            matrix.M11 = 1.0f - xx2 - zz2;
+            float yz2 = rot.Y * z2;
+            float wx2 = rot.W * x2;
+            matrix.M21 = yz2 - wx2;
+            matrix.M31 = 0f;
+
+            matrix.M02 = xz2 - wy2;
+            matrix.M12 = yz2 + wx2;
+            matrix.M22 = 1.0f - xx2 - yy2;
+            matrix.M32 = 0f;
+        }
+
+        public static void RfromQ(ref Matrix3 matrix, ref OMV.Vector4 rot)
+        {
+            float x2 = rot.X + rot.X;
+            float y2 = rot.Y + rot.Y;
+            float z2 = rot.Z + rot.Z;
+
+            float yy2 = rot.Y * y2;
+            float zz2 = rot.Z * z2;
+            matrix.M00 = 1.0f - yy2 - zz2;
+            float xy2 = rot.X * y2;
+            float wz2 = rot.W * z2;
+            matrix.M10 = xy2 - wz2;
+            float xz2 = rot.X * z2;
+            float wy2 = rot.W * y2;
+            matrix.M20 = xz2 + wy2;
+            matrix.M30 = 0f;
+
+            matrix.M01 = xy2 + wz2;
+            float xx2 = rot.X * x2;
+            matrix.M11 = 1.0f - xx2 - zz2;
+            float yz2 = rot.Y * z2;
+            float wx2 = rot.W * x2;
+            matrix.M21 = yz2 - wx2;
+            matrix.M31 = 0f;
+
+            matrix.M02 = xz2 - wy2;
+            matrix.M12 = yz2 + wx2;
+            matrix.M22 = 1.0f - xx2 - yy2;
+            matrix.M32 = 0f;
+        }
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dAllocateODEDataForThread"), SuppressUnmanagedCodeSecurity]
         internal static extern int AllocateODEDataForThread(uint ODEInitFlags);
@@ -558,7 +616,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetNextGeom"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr dBodyGetNextGeom(IntPtr Geom);
-
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyIsEnabled"), SuppressUnmanagedCodeSecurity]
         internal static extern bool BodyIsEnabled(IntPtr body);
@@ -1791,8 +1848,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dRFromEulerAngles"), SuppressUnmanagedCodeSecurity]
         internal static extern void RFromEulerAngles(out Matrix3 R, dReal phi, dReal theta, dReal psi);
 
-        [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dRfromQ"), SuppressUnmanagedCodeSecurity]
-        internal static extern void RfromQ(out Matrix3 R, ref Quaternion q);
+        //[DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dRfromQ"), SuppressUnmanagedCodeSecurity]
+        //internal static extern void RfromQ(out Matrix3 R, ref Quaternion q);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dRFromZAxis"), SuppressUnmanagedCodeSecurity]
         internal static extern void RFromZAxis(out Matrix3 R, dReal ax, dReal ay, dReal az);
