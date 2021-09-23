@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             LandData land = parcel.LandData;
             if(land!= null)
-                client.SendParcelDwellReply(localID, land.GlobalID, land.Dwell);
+                client.SendParcelDwellReply(localID, land.FakeID, land.Dwell);
         }
 
 

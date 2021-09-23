@@ -91,6 +91,7 @@ namespace OpenSim.Services.Connectors
             return connector.Get(id);
         }
 
+
         public AssetBase GetCached(string id)
         {
             string url = string.Empty;
@@ -128,6 +129,9 @@ namespace OpenSim.Services.Connectors
             string url = string.Empty;
             string assetID = string.Empty;
 
+            if (id.Equals(Util.UUIDZeroString))
+                return false;
+
             if (Util.ParseForeignAssetID(id, out url, out assetID) > 0)
             {
                 IAssetService connector = GetConnector(url);
@@ -135,6 +139,11 @@ namespace OpenSim.Services.Connectors
             }
 
             return false;
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
         }
 
         private struct AssetAndIndex

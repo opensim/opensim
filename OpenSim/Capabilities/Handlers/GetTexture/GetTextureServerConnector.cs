@@ -64,7 +64,7 @@ namespace OpenSim.Capabilities.Handlers
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
             string rurl = serverConfig.GetString("GetTextureRedirectURL");
-            ;
+
             server.AddStreamHandler(
                 new GetTextureRobustHandler("/CAPS/GetTexture", m_AssetService, "GetTexture", null, rurl));
         }

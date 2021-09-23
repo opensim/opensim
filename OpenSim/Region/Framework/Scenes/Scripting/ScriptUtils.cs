@@ -64,6 +64,9 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         /// <returns></returns>
         public static UUID GetAssetIdFromKeyOrItemName(SceneObjectPart part, string identifier)
         {
+            if(string.IsNullOrEmpty(identifier))
+                return UUID.Zero;
+
             // if we can parse the string as a key, use it.
             // else try to locate the name in inventory of object. found returns key,
             // not found returns UUID.Zero

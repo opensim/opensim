@@ -137,8 +137,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public int m_HeapSize;
         private ArrayList m_CompilerErrors;
         private DateTime m_LastRanAt = DateTime.MinValue;
-        private string m_RunOnePhase = "hasn't run";
-        private string m_CheckRunPhase = "hasn't checked";
+        //private string m_RunOnePhase = "hasn't run";
+        //private string m_CheckRunPhase = "hasn't checked";
         public int m_InstEHEvent = 0;  // number of events dequeued (StartEventHandler called)
         public int m_InstEHSlice = 0;  // number of times handler timesliced (ResumeEx called)
         public double m_CPUTime = 0;  // accumulated CPU time (milliseconds)

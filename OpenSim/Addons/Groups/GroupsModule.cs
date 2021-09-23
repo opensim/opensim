@@ -1147,8 +1147,9 @@ namespace OpenSim.Groups
             }
 
             string reason = string.Empty;
+            string requestingAgentIDStr = GetRequestingAgentIDStr(remoteClient);
 
-            if (m_groupData.AddAgentToGroup(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID, UUID.Zero, string.Empty, out reason))
+            if (m_groupData.AddAgentToGroup(requestingAgentIDStr, requestingAgentIDStr, groupID, UUID.Zero, string.Empty, out reason))
             {
                 if (money != null && groupRecord.MembershipFee > 0)
                     money.ApplyCharge(remoteClient.AgentId, groupRecord.MembershipFee, MoneyTransactionType.GroupJoin, groupRecord.GroupName);
@@ -1230,15 +1231,13 @@ namespace OpenSim.Groups
             }
 
             GroupRecord groupInfo = m_groupData.GetGroupRecord(agentID.ToString(), groupID, null);
-
-            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(regionInfo.ScopeID, ejecteeID);
-            if ((groupInfo == null) || (account == null))
-            {
+            if ((groupInfo == null))
                 return;
-            }
 
+            UserData udata = m_sceneList[0].UserManagementModule.GetUserData(ejecteeID);
             IClientAPI ejecteeClient = GetActiveRootClient(ejecteeID);
 
+            string ejecteeName;
             // Send Message to Ejectee
             GridInstantMessage msg = new GridInstantMessage();
 
@@ -1250,6 +1249,7 @@ namespace OpenSim.Groups
                 // also execute and send update
                 ejecteeClient.SendAgentDropGroup(groupID);
                 SendAgentGroupDataUpdate(ejecteeClient,true);
+                ejecteeName = ejecteeClient.Name;
             }
             else // send
             {
@@ -1260,41 +1260,37 @@ namespace OpenSim.Groups
                 // or provide the notification via xmlrpc update queue
 
                 msg.imSessionID = groupInfo.GroupID.Guid;
-                msg.dialog = (byte)210; //interop
+                msg.dialog = 210; //interop
+                ejecteeName = udata != null ? (udata.FirstName + " " + udata.LastName) : "user name currently unknown";
             }
-            msg.fromAgentID = agentID.Guid;
-            // msg.fromAgentID = info.GroupID;
-            msg.toAgentID = ejecteeID.Guid;
-            //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-            msg.timestamp = 0;
-            msg.fromAgentName = agentName;
-            msg.message = string.Format("You have been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName);
 
-            msg.fromGroup = false;
-            msg.offline = (byte)0;
-            msg.ParentEstateID = 0;
-            msg.Position = Vector3.Zero;
-            msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
-            OutgoingInstantMessage(msg, ejecteeID);
+            //if(ejecteeClient != null || (udata != null && udata.IsLocal))
+            {
+                msg.fromAgentID = agentID.Guid;
+                // msg.fromAgentID = info.GroupID;
+                msg.toAgentID = ejecteeID.Guid;
+                //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+                msg.timestamp = 0;
+                msg.fromAgentName = agentName;
+                msg.message = string.Format("You have been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName);
+
+                msg.fromGroup = false;
+                msg.offline = (byte)0;
+                msg.ParentEstateID = 0;
+                msg.Position = Vector3.Zero;
+                msg.RegionID = regionInfo.RegionID.Guid;
+                msg.binaryBucket = new byte[0];
+                OutgoingInstantMessage(msg, ejecteeID);
+            }
 
             // Message to ejector
-
-
             msg = new GridInstantMessage();
             msg.imSessionID = UUID.Zero.Guid;
             msg.fromAgentID = agentID.Guid;
             msg.toAgentID = agentID.Guid;
             msg.timestamp = 0;
             msg.fromAgentName = agentName;
-            if (account != null)
-            {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, account.FirstName + " " + account.LastName);
-            }
-            else
-            {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, "Unknown member");
-            }
+            msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, ejecteeName);
             msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
             msg.fromGroup = false;
             msg.offline = (byte)0;

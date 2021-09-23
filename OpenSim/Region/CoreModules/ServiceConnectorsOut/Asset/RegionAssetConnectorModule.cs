@@ -51,7 +51,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
     {
         private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
-        private delegate void AssetRetrievedEx(AssetBase asset);
         private bool m_Enabled = false;
 
         private Scene m_aScene;
@@ -69,9 +68,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         //private int m_retryCounter;
         //private bool m_inRetries;
 
-        private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = new Dictionary<string, List<AssetRetrievedEx>>();
+        private Dictionary<string, List<SimpleAssetRetrieved>> m_AssetHandlers = new Dictionary<string, List<SimpleAssetRetrieved>>();
 
-        private ObjectJobEngine m_requestQueue;
+        private ObjectJobEngine m_localRequestsQueue;
+        private ObjectJobEngine m_remoteRequestsQueue;
 
         public Type ReplaceableInterface
         {
@@ -135,7 +135,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                             m_AssetPerms = new AssetPermissions(hgConfig);
                     }
 
-                    m_requestQueue = new ObjectJobEngine(AssetRequestProcessor, "GetAssetsWorkers", 2000, 2);
+                    m_localRequestsQueue = new ObjectJobEngine(AssetRequestProcessor, "GetAssetsWorkers", 2000, 2);
+                    m_remoteRequestsQueue = new ObjectJobEngine(AssetRequestProcessor, "GetRemoteAssetsWorkers", 2000, 2);
                     m_Enabled = true;
                     m_log.Info("[REGIONASSETCONNECTOR]: enabled");
                 }
@@ -151,8 +152,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             if (!m_Enabled)
                 return;
 
-            m_requestQueue.Dispose();
-            m_requestQueue = null;
+            m_localRequestsQueue.Dispose();
+            m_localRequestsQueue = null;
+            m_remoteRequestsQueue.Dispose();
+            m_remoteRequestsQueue = null;
+
+
         }
 
         public void AddRegion(Scene scene)
@@ -305,8 +310,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return null;
                     }
                     if(StoreOnLocalGrid)
-                        Store(asset);
-                    else if (m_Cache != null)
+                        StoreLocal(asset);
+                    if (m_Cache != null)
                         m_Cache.Cache(asset);
                 }
                 else if (m_Cache != null)
@@ -339,17 +344,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             AssetBase asset = null;
             if (m_Cache != null)
             {
-                if (!m_Cache.Get(id, out asset))
+                if (!m_Cache.GetFromMemory(id, out asset))
+                {
+                    callBack(id, sender, null);
                     return false;
+                }
             }
 
             if (asset == null)
             {
+                if (id.Equals(Util.UUIDZeroString))
+                {
+                    callBack(id, sender, null);
+                    return false;
+                }
+
                 lock (m_AssetHandlers)
                 {
-                    AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate (AssetBase _asset) { callBack(id, sender, _asset); });
+                    SimpleAssetRetrieved handlerEx = new SimpleAssetRetrieved(delegate (AssetBase _asset) { callBack(id, sender, _asset); _asset = null;});
 
-                    List<AssetRetrievedEx> handlers;
+                    List<SimpleAssetRetrieved> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
                     {
                         // Someone else is already loading this asset. It will notify our handler when done.
@@ -357,11 +371,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return true;
                     }
 
-                    handlers = new List<AssetRetrievedEx>();
+                    handlers = new List<SimpleAssetRetrieved>();
                     handlers.Add(handlerEx);
 
                     m_AssetHandlers.Add(id, handlers);
-                    m_requestQueue.Enqueue(id);
+                    m_localRequestsQueue.Enqueue(id);
                 }
             }
             else
@@ -373,16 +387,93 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             return true;
         }
 
+        public struct ForeignAssetServiceGetData
+        {
+            public string id;
+            public string ForeignAssetService;
+            public bool StoreOnLocalGrid;
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            AssetBase asset = null;
+            if (m_Cache != null)
+            {
+                if (!m_Cache.GetFromMemory(id, out asset))
+                {
+                    callBack(null);
+                    return;
+                }
+            }
+
+            if (asset == null)
+            {
+                if (id.Equals(Util.UUIDZeroString))
+                {
+                    callBack(null);
+                    return;
+                }
+
+                lock (m_AssetHandlers)
+                {
+                    SimpleAssetRetrieved handlerEx = new SimpleAssetRetrieved(delegate (AssetBase _asset) { callBack(_asset); _asset = null;});
+
+                    List<SimpleAssetRetrieved> handlers;
+                    if (m_AssetHandlers.TryGetValue(id, out handlers))
+                    {
+                        // Someone else is already loading this asset. It will notify our handler when done.
+                        handlers.Add(handlerEx);
+                        return;
+                    }
+
+                    handlers = new List<SimpleAssetRetrieved>();
+                    handlers.Add(handlerEx);
+
+                    m_AssetHandlers.Add(id, handlers);
+                    if(string.IsNullOrEmpty(ForeignAssetService))
+                        m_localRequestsQueue.Enqueue(id);
+                    else
+                    {
+                        ForeignAssetServiceGetData fasgd = new ForeignAssetServiceGetData
+                        {
+                            id = id,
+                            ForeignAssetService = ForeignAssetService,
+                            StoreOnLocalGrid = StoreOnLocalGrid
+                        };
+                        m_remoteRequestsQueue.Enqueue(fasgd);
+                    }
+                }
+            }
+            else
+            {
+                if (asset != null && (asset.Data == null || asset.Data.Length == 0))
+                    asset = null;
+                callBack(asset);
+            }
+        }
+
         private void AssetRequestProcessor(object o)
         {
-            string id = o as string;
-            if(id == null)
+            if( o == null)
                 return;
 
             try
             {
-                AssetBase a = Get(id);
-                List<AssetRetrievedEx> handlers;
+                AssetBase a;
+                string id;
+                if (o is ForeignAssetServiceGetData)
+                {
+                    var fasgd = (ForeignAssetServiceGetData)o;
+                    id = fasgd.id;
+                    a = Get(id, fasgd.ForeignAssetService, fasgd.StoreOnLocalGrid);
+                }
+                else
+                {
+                    id = (string)o;
+                    a = Get(id);
+                }
+
+                List<SimpleAssetRetrieved> handlers;
                 lock (m_AssetHandlers)
                 {
                     handlers = m_AssetHandlers[id];
@@ -393,7 +484,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                 {
                     Util.FireAndForget(x =>
                     {
-                        foreach (AssetRetrievedEx h in handlers)
+                        foreach (SimpleAssetRetrieved h in handlers)
                         {
                             try
                             {
@@ -402,6 +493,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                             catch { }
                         }
                         handlers.Clear();
+                        a = null;
                     });
                 }
             }

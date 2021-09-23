@@ -178,10 +178,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 sb.AppendLine("    m_StateCode          = " + GetStateName(stateCode));
                 sb.AppendLine("    eventCode            = " + eventCode.ToString());
                 sb.AppendLine("    m_LastRanAt          = " + m_LastRanAt.ToString());
-                sb.AppendLine("    m_RunOnePhase        = " + m_RunOnePhase);
+                //sb.AppendLine("    m_RunOnePhase        = " + m_RunOnePhase);
                 sb.AppendLine("    suspOnCkRunHold      = " + suspendOnCheckRunHold);
                 sb.AppendLine("    suspOnCkRunTemp      = " + suspendOnCheckRunTemp);
-                sb.AppendLine("    m_CheckRunPhase      = " + m_CheckRunPhase);
+                //sb.AppendLine("    m_CheckRunPhase      = " + m_CheckRunPhase);
                 sb.AppendLine("    heapUsed/Limit       = " + xmrHeapUsed() + "/" + heapLimit);
                 sb.AppendLine("    m_InstEHEvent        = " + m_InstEHEvent.ToString());
                 sb.AppendLine("    m_InstEHSlice        = " + m_InstEHSlice.ToString());

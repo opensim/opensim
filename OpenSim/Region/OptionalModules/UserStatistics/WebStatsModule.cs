@@ -1177,27 +1177,27 @@ VALUES
         public void ConsumeSimStats(SimStats stats)
         {
             m_regionID = stats.RegionUUID;
-            m_timeDilation = stats.StatsBlock[0].StatValue;
-            m_simFps = stats.StatsBlock[1].StatValue;
-            m_physicsFps = stats.StatsBlock[2].StatValue;
-            m_agentUpdates = stats.StatsBlock[3].StatValue;
-            m_rootAgents = stats.StatsBlock[4].StatValue;
-            m_childAgents = stats.StatsBlock[5].StatValue;
-            m_totalPrims = stats.StatsBlock[6].StatValue;
-            m_activePrims = stats.StatsBlock[7].StatValue;
-            m_totalFrameTime = stats.StatsBlock[8].StatValue;
-            m_netFrameTime = stats.StatsBlock[9].StatValue;
-            m_physicsFrameTime = stats.StatsBlock[10].StatValue;
-            m_otherFrameTime = stats.StatsBlock[11].StatValue;
-            m_imageFrameTime = stats.StatsBlock[12].StatValue;
-            m_inPacketsPerSecond = stats.StatsBlock[13].StatValue;
-            m_outPacketsPerSecond = stats.StatsBlock[14].StatValue;
-            m_unackedBytes = stats.StatsBlock[15].StatValue;
-            m_agentFrameTime = stats.StatsBlock[16].StatValue;
-            m_pendingDownloads = stats.StatsBlock[17].StatValue;
-            m_pendingUploads = stats.StatsBlock[18].StatValue;
-            m_activeScripts = stats.StatsBlock[19].StatValue;
-            m_scriptLinesPerSecond = stats.ExtraStatsBlock[0].StatValue;
+            m_timeDilation = stats.StatsValues[(int)StatsIndex.TimeDilation];
+            m_simFps = stats.StatsValues[(int)StatsIndex.SimFPS];
+            m_physicsFps = stats.StatsValues[(int)StatsIndex.PhysicsFPS];
+            m_agentUpdates = stats.StatsValues[(int)StatsIndex.AgentUpdates];
+            m_rootAgents = stats.StatsValues[(int)StatsIndex.Agents];
+            m_childAgents = stats.StatsValues[(int)StatsIndex.ChildAgents];
+            m_totalPrims = stats.StatsValues[(int)StatsIndex.TotalPrim];
+            m_activePrims = stats.StatsValues[(int)StatsIndex.ActivePrim];
+            m_totalFrameTime = stats.StatsValues[(int)StatsIndex.FrameMS];
+            m_netFrameTime = stats.StatsValues[(int)StatsIndex.NetMS];
+            m_physicsFrameTime = stats.StatsValues[(int)StatsIndex.PhysicsMS];
+            m_otherFrameTime = stats.StatsValues[(int)StatsIndex.OtherMS];
+            m_imageFrameTime = stats.StatsValues[(int)StatsIndex.ImageMS];
+            m_inPacketsPerSecond = stats.StatsValues[(int)StatsIndex.InPacketsPerSecond];
+            m_outPacketsPerSecond = stats.StatsValues[(int)StatsIndex.OutPacketsPerSecond];
+            m_unackedBytes = stats.StatsValues[(int)StatsIndex.UnAckedBytes];
+            m_agentFrameTime = stats.StatsValues[(int)StatsIndex.AgentMS];
+            m_pendingDownloads = stats.StatsValues[(int)StatsIndex.PendingDownloads];
+            m_pendingUploads = stats.StatsValues[(int)StatsIndex.PendingUploads];
+            m_activeScripts = stats.StatsValues[(int)StatsIndex.ActiveScripts];
+            m_scriptLinesPerSecond = stats.StatsValues[(int)StatsIndex.LSLScriptLinesPerSecond];
         }
     }
 }

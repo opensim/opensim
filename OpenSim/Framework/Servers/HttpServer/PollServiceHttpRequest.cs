@@ -135,10 +135,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (responsedata.ContainsKey("keepaliveTimeout"))
                 response.KeepAliveTimeout = (int)responsedata["keepaliveTimeout"];
 
-
-            if (responsedata.ContainsKey("prio"))
-                response.Priority = (int)responsedata["prio"];
-
             if (responsedata.ContainsKey("error_status_text"))
                 response.StatusDescription = (string)responsedata["error_status_text"];
 

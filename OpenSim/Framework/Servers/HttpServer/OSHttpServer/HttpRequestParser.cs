@@ -10,8 +10,8 @@ namespace OSHttpServer.Parser
     public class HttpRequestParser : IHttpRequestParser
     {
         private ILogWriter m_log;
-        private readonly BodyEventArgs m_bodyArgs = new BodyEventArgs();
         private readonly HeaderEventArgs m_headerArgs = new HeaderEventArgs();
+        private readonly BodyEventArgs m_bodyEventArgs = new BodyEventArgs();
         private readonly RequestLineEventArgs m_requestLineArgs = new RequestLineEventArgs();
         private string m_curHeaderName = string.Empty;
         private string m_curHeaderValue = string.Empty;
@@ -52,13 +52,18 @@ namespace OSHttpServer.Parser
         private int AddToBody(byte[] buffer, int offset, int count)
         {
             // got all bytes we need, or just a few of them?
-            int bytesUsed = count > m_bodyBytesLeft ? m_bodyBytesLeft : count;
-            m_bodyArgs.Buffer = buffer;
-            m_bodyArgs.Offset = offset;
-            m_bodyArgs.Count = bytesUsed;
-            BodyBytesReceived?.Invoke(this, m_bodyArgs);
+            int bytesCount = count > m_bodyBytesLeft ? m_bodyBytesLeft : count;
 
-            m_bodyBytesLeft -= bytesUsed;
+            if(BodyBytesReceived != null)
+            {
+                m_bodyEventArgs.Buffer = buffer;
+                m_bodyEventArgs.Offset = offset;
+                m_bodyEventArgs.Count = bytesCount;
+                BodyBytesReceived?.Invoke(this, m_bodyEventArgs);
+                m_bodyEventArgs.Buffer = null;
+            }
+
+            m_bodyBytesLeft -= bytesCount;
             if (m_bodyBytesLeft == 0)
             {
                 // got a complete request.
@@ -67,7 +72,7 @@ namespace OSHttpServer.Parser
                 Clear();
             }
 
-            return offset + bytesUsed;
+            return offset + bytesCount;
         }
 
         /// <summary>
@@ -139,10 +144,13 @@ namespace OSHttpServer.Parser
                 throw new BadRequestException("Invalid HTTP version in Request line. Line: " + value);
             }
 
-            m_requestLineArgs.HttpMethod = method;
-            m_requestLineArgs.HttpVersion = version;
-            m_requestLineArgs.UriPath = path;
-            RequestLineReceived(this, m_requestLineArgs);
+            if(RequestLineReceived != null)
+            {
+                m_requestLineArgs.HttpMethod = method;
+                m_requestLineArgs.HttpVersion = version;
+                m_requestLineArgs.UriPath = path;
+                RequestLineReceived?.Invoke(this, m_requestLineArgs);
+            }
         }
 
         /// <summary>
@@ -151,17 +159,23 @@ namespace OSHttpServer.Parser
         /// <param name="name">Name in lower case</param>
         /// <param name="value">Value, unmodified.</param>
         /// <exception cref="BadRequestException">If content length cannot be parsed.</exception>
-        protected void OnHeader(string name, string value)
+        protected void OnHeader()
         {
-            m_headerArgs.Name = name;
-            m_headerArgs.Value = value;
-            if (string.Compare(name, "content-length", true) == 0)
+            if (string.Compare(m_curHeaderName, "content-length", true) == 0)
             {
-                if (!int.TryParse(value, out m_bodyBytesLeft))
+                if (!int.TryParse(m_curHeaderValue, out m_bodyBytesLeft))
                     throw new BadRequestException("Content length is not a number.");
             }
 
-            HeaderReceived?.Invoke(this, m_headerArgs);
+            if (HeaderReceived != null)
+            {
+                m_headerArgs.Name = m_curHeaderName;
+                m_headerArgs.Value = m_curHeaderValue;
+                HeaderReceived?.Invoke(this, m_headerArgs);
+            }
+
+            m_curHeaderName = string.Empty;
+            m_curHeaderValue = string.Empty;
         }
 
         private void OnRequestCompleted()
@@ -372,12 +386,10 @@ namespace OSHttpServer.Parser
                             {
                                 m_curHeaderValue += Encoding.UTF8.GetString(buffer, startPos, currentPos - startPos);
                                 m_log.Write(this, LogPrio.Trace, "Header [" + m_curHeaderName + ": " + m_curHeaderValue + "]");
-                                OnHeader(m_curHeaderName, m_curHeaderValue);
+                                OnHeader();
 
                                 startPos = -1;
                                 CurrentState = RequestParserState.HeaderName;
-                                m_curHeaderValue = string.Empty;
-                                m_curHeaderName = string.Empty;
                                 currentPos += newLineSize - 1;
                                 handledBytes = currentPos + 1;
 

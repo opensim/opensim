@@ -496,13 +496,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if(Math.Abs(m_fakeInertiaOverride.InertiaRotation.W) < 0.999)
                 {
                     SafeNativeMethods.Matrix3 inertiarotmat = new SafeNativeMethods.Matrix3();
-                    SafeNativeMethods.Quaternion inertiarot = new SafeNativeMethods.Quaternion();
-
-                    inertiarot.X = m_fakeInertiaOverride.InertiaRotation.X;
-                    inertiarot.Y = m_fakeInertiaOverride.InertiaRotation.Y;
-                    inertiarot.Z = m_fakeInertiaOverride.InertiaRotation.Z;
-                    inertiarot.W = m_fakeInertiaOverride.InertiaRotation.W;
-                    SafeNativeMethods.RfromQ(out inertiarotmat, ref inertiarot);
+                    SafeNativeMethods.RfromQ(ref inertiarotmat, ref m_fakeInertiaOverride.InertiaRotation);
                     SafeNativeMethods.MassRotate(ref objdmass, ref inertiarotmat);
                 }
 
@@ -579,14 +573,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else if (prim_geom != IntPtr.Zero)
                     {
-                        SafeNativeMethods.Quaternion dq;
-                        SafeNativeMethods.GeomCopyQuaternion(prim_geom, out dq);
-                        Quaternion q;
-                        q.X = dq.X;
-                        q.Y = dq.Y;
-                        q.Z = dq.Z;
-                        q.W = dq.W;
-
+                        Quaternion q = SafeNativeMethods.GeomGetQuaternionOMV(prim_geom);
                         Vector3 Ptot = m_OBBOffset * q;
                         dtmp = SafeNativeMethods.GeomGetPosition(prim_geom);
                         Ptot.X += dtmp.X;
@@ -1903,20 +1890,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             Body = SafeNativeMethods.BodyCreate(_parent_scene.world);
 
-            SafeNativeMethods.Matrix3 mymat = new SafeNativeMethods.Matrix3();
-            SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion();
-            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
-
-            myrot.X = _orientation.X;
-            myrot.Y = _orientation.Y;
-            myrot.Z = _orientation.Z;
-            myrot.W = _orientation.W;
-            SafeNativeMethods.RfromQ(out mymat, ref myrot);
-
             // set the body rotation
+            SafeNativeMethods.Matrix3 mymat = new SafeNativeMethods.Matrix3();
+            SafeNativeMethods.RfromQ(ref mymat, ref _orientation);
             SafeNativeMethods.BodySetRotation(Body, ref mymat);
 
-            if(noInertiaOverride)
+            SafeNativeMethods.Mass objdmass = new SafeNativeMethods.Mass { };
+
+
+            if (noInertiaOverride)
             {
                 objdmass = primdMass;
                 SafeNativeMethods.MassRotate(ref objdmass, ref mymat);
@@ -1926,7 +1908,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (childrenPrim.Count > 0)
             {
                 SafeNativeMethods.Matrix3 mat = new SafeNativeMethods.Matrix3();
-                SafeNativeMethods.Quaternion quat = new SafeNativeMethods.Quaternion();
                 SafeNativeMethods.Mass tmpdmass = new SafeNativeMethods.Mass { };
                 Vector3 rcm;
 
@@ -1944,11 +1925,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             continue;
                         }
 
-                        quat.X = prm._orientation.X;
-                        quat.Y = prm._orientation.Y;
-                        quat.Z = prm._orientation.Z;
-                        quat.W = prm._orientation.W;
-                        SafeNativeMethods.RfromQ(out mat, ref quat);
+                        SafeNativeMethods.RfromQ(ref mat, ref prm._orientation);
 
                         // fix prim colision cats
 
@@ -2004,11 +1981,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(noInertiaOverride)
             {
                 SafeNativeMethods.MassTranslate(ref objdmass, -objdmass.c.X, -objdmass.c.Y, -objdmass.c.Z); // ode wants inertia at center of body
-                myrot.X = -myrot.X;
-                myrot.Y = -myrot.Y;
-                myrot.Z = -myrot.Z;
+                Quaternion mr = Quaternion.Conjugate(_orientation);
 
-                SafeNativeMethods.RfromQ(out mymat, ref myrot);
+                SafeNativeMethods.RfromQ(ref mymat, ref mr);
                 SafeNativeMethods.MassRotate(ref objdmass, ref mymat);
 
                 SafeNativeMethods.BodySetMass(Body, ref objdmass);
@@ -2029,13 +2004,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if(Math.Abs(m_InertiaOverride.InertiaRotation.W) < 0.999)
                 {
                     SafeNativeMethods.Matrix3 inertiarotmat = new SafeNativeMethods.Matrix3();
-                    SafeNativeMethods.Quaternion inertiarot = new SafeNativeMethods.Quaternion();
-
-                    inertiarot.X = m_InertiaOverride.InertiaRotation.X;
-                    inertiarot.Y = m_InertiaOverride.InertiaRotation.Y;
-                    inertiarot.Z = m_InertiaOverride.InertiaRotation.Z;
-                    inertiarot.W = m_InertiaOverride.InertiaRotation.W;
-                    SafeNativeMethods.RfromQ(out inertiarotmat, ref inertiarot);
+                    SafeNativeMethods.RfromQ(ref inertiarotmat, ref m_InertiaOverride.InertiaRotation);
                     SafeNativeMethods.MassRotate(ref objdmass, ref inertiarotmat);
                 }
                 SafeNativeMethods.BodySetMass(Body, ref objdmass);
@@ -2048,9 +2017,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             SafeNativeMethods.BodySetAutoDisableFlag(Body, true);
             SafeNativeMethods.BodySetAutoDisableSteps(Body, m_body_autodisable_frames);
-            SafeNativeMethods.BodySetAutoDisableAngularThreshold(Body, 0.05f);
-            SafeNativeMethods.BodySetAutoDisableLinearThreshold(Body, 0.05f);
-            SafeNativeMethods.BodySetDamping(Body, .004f, .001f);
+            SafeNativeMethods.BodySetAutoDisableAngularThreshold(Body, 0.001f);
+            SafeNativeMethods.BodySetAutoDisableLinearThreshold(Body, 0.01f);
+            SafeNativeMethods.BodySetDamping(Body, .002f, .0005f);
 
             if (m_targetSpace != IntPtr.Zero)
             {

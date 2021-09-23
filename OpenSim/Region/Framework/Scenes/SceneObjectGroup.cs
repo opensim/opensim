@@ -644,8 +644,13 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!inTransit)
                     {
                         inTransit = true;
-                        SOGCrossDelegate d = CrossAsync;
-                        d.BeginInvoke(this, val, null, CrossAsyncCompleted, d);
+                        SceneObjectGroup sog = this;
+
+                        Util.FireAndForget(delegate
+                        {
+                            sog = CrossAsync(sog, val, null);
+                            CrossAsyncCompleted(sog);
+                        }, null, "ObjCross-"+sog.UUID.ToString(), false);
                     }
                     return;
                 }
@@ -763,7 +768,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sog.m_sittingAvatars.Count == 0)
             {
-                entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, !isTeleport, true);
+                if(entityTransfer.CrossPrimGroupIntoNewRegion(destination, newpos, sog, !isTeleport, true))
+                    return null;
                 return sog;
             }
 
@@ -925,8 +931,8 @@ namespace OpenSim.Region.Framework.Scenes
                         av.ParentUUID = UUID.Zero;
                         av.ParentPart = null;
                         Vector3 oldp = curPos;
-                        oldp.X = Util.Clamp<float>(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
-                        oldp.Y = Util.Clamp<float>(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
+                        oldp.X = Utils.Clamp(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
+                        oldp.Y = Utils.Clamp(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
                         av.AbsolutePosition = oldp;
                         av.m_crossingFlags = 0;
                         av.sitAnimation = "SIT";
@@ -970,7 +976,7 @@ namespace OpenSim.Region.Framework.Scenes
                 avsToCross.Clear();
                 sog.RemoveScriptInstances(true);
                 sog.Dispose();
-                return sog;
+                return null;
             }
             else
             {
@@ -996,45 +1002,42 @@ namespace OpenSim.Region.Framework.Scenes
             return sog;
         }
 
-        public void CrossAsyncCompleted(IAsyncResult iar)
+        public void CrossAsyncCompleted(SceneObjectGroup sog)
         {
-            SOGCrossDelegate icon = (SOGCrossDelegate)iar.AsyncState;
-            SceneObjectGroup sog = icon.EndInvoke(iar);
+            if (sog == null || sog.IsDeleted)
+                return;
 
-            if (!sog.IsDeleted)
+            SceneObjectPart rootp = sog.m_rootPart;
+
+            Vector3 oldp = rootp.GroupPosition;
+            oldp.X = Utils.Clamp(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
+            oldp.Y = Utils.Clamp(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
+            rootp.GroupPosition = oldp;
+
+            rootp.Stop();
+
+            SceneObjectPart[] parts = sog.m_parts.GetArray();
+
+            foreach (SceneObjectPart part in parts)
             {
-                SceneObjectPart rootp = sog.m_rootPart;
-
-                Vector3 oldp = rootp.GroupPosition;
-                oldp.X = Util.Clamp<float>(oldp.X, 0.5f, sog.m_scene.RegionInfo.RegionSizeX - 0.5f);
-                oldp.Y = Util.Clamp<float>(oldp.Y, 0.5f, sog.m_scene.RegionInfo.RegionSizeY - 0.5f);
-                rootp.GroupPosition = oldp;
-
-                rootp.Stop();
-
-                SceneObjectPart[] parts = sog.m_parts.GetArray();
-
-                foreach (SceneObjectPart part in parts)
-                {
-                    if (part != rootp)
-                        part.GroupPosition = oldp;
-                }
-
-                foreach (ScenePresence av in sog.m_sittingAvatars)
-                {
-                    av.sitSOGmoved();
-                }
-
-                if (sog.m_rootPart.KeyframeMotion != null)
-                    sog.m_rootPart.KeyframeMotion.CrossingFailure();
-
-                if (sog.RootPart.PhysActor != null)
-                    sog.RootPart.PhysActor.CrossingFailure();
-
-                sog.inTransit = false;
-                AttachToBackup();
-                sog.ScheduleGroupForFullAnimUpdate();
+                if (part != rootp)
+                    part.GroupPosition = oldp;
             }
+
+            foreach (ScenePresence av in sog.m_sittingAvatars)
+            {
+                av.sitSOGmoved();
+            }
+
+            if (sog.m_rootPart.KeyframeMotion != null)
+                sog.m_rootPart.KeyframeMotion.CrossingFailure();
+
+            if (sog.RootPart.PhysActor != null)
+                sog.RootPart.PhysActor.CrossingFailure();
+
+            sog.inTransit = false;
+            AttachToBackup();
+            sog.ScheduleGroupForFullAnimUpdate();
         }
 
         private class TeleportObjectData
@@ -1070,7 +1073,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool setrot = (flags & OSTPOBJ_SETROT) != 0;
 
             rotation.Normalize();
-                
+
             Quaternion currentRot = RootPart.RotationOffset;
             if(setrot)
                 rotation = Quaternion.Conjugate(currentRot) * rotation;
@@ -1165,8 +1168,12 @@ namespace OpenSim.Region.Framework.Scenes
                 sourceID = sourceID
             };
 
-            SOGCrossDelegate d = CrossAsync;
-            d.BeginInvoke(this, targetPosition, tdata, CrossAsyncCompleted, d);
+            SceneObjectGroup sog = this;
+            Util.FireAndForget(delegate
+            {
+                sog = CrossAsync(sog, targetPosition, tdata);
+                CrossAsyncCompleted(sog);
+            }, null, "ObjTeleport-" + sog.UUID.ToString(), false);
             return 0;
         }
 
@@ -1856,7 +1863,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 areaF = 0.5f / areaF;  // scale it
-                areaF = Util.Clamp(areaF, 0.05f, 100f); // clamp it
+                areaF = Utils.Clamp(areaF, 0.05f, 100f); // clamp it
 
                 m_areaFactor = (float)Math.Sqrt(areaF);
                 m_boundsCenter = offset;
@@ -2740,7 +2747,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
 
                     if (avatar != null && !avatar.IsSatOnObject)
-                        avatar.MoveToTarget(target, false, false, false, tau);
+                        avatar.MoveToTarget(target, false, true, false, tau);
                 }
                 else
                 {
@@ -4153,9 +4160,9 @@ namespace OpenSim.Region.Framework.Scenes
                 maxsize = Scene.m_maxPhys;
             }
 
-            scale.X = Util.Clamp(scale.X, minsize, maxsize);
-            scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
-            scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
+            scale.X = Utils.Clamp(scale.X, minsize, maxsize);
+            scale.Y = Utils.Clamp(scale.Y, minsize, maxsize);
+            scale.Z = Utils.Clamp(scale.Z, minsize, maxsize);
 
             // requested scaling factors
             float x = (scale.X / RootPart.Scale.X);

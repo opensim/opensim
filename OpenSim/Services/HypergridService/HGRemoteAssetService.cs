@@ -179,6 +179,34 @@ namespace OpenSim.Services.HypergridService
             });
         }
 
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            m_assetConnector.Get(id, null, (i, s, asset) =>
+            {
+                if (asset != null)
+                {
+                    if (!m_AssetPerms.AllowedExport(asset.Type))
+                    {
+                        asset = null;
+                    }
+                    else
+                    {
+                        if (asset.Metadata.Type == (sbyte)AssetType.Object)
+                            asset.Data = AdjustIdentifiers(asset.Data);
+
+                        AdjustIdentifiers(asset.Metadata);
+                    }
+                }
+
+                callBack(asset);
+            });
+        }
+
+        public string Store(AssetBase asset, bool AllowRetry)
+        {
+            return Store(asset);
+        }
+
         public string Store(AssetBase asset)
         {
             if (!m_AssetPerms.AllowedImport(asset.Type))

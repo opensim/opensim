@@ -652,7 +652,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                m_drawDistance = Util.Clamp(value, 32f, m_scene.MaxDrawDistance);
+                m_drawDistance = Utils.Clamp(value, 32f, m_scene.MaxDrawDistance);
             }
         }
 
@@ -660,7 +660,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                return Util.Clamp(m_drawDistance + 64f, m_scene.MinRegionViewDistance, m_scene.MaxRegionViewDistance);
+                return Utils.Clamp(m_drawDistance + 64f, m_scene.MinRegionViewDistance, m_scene.MaxRegionViewDistance);
             }
          }
 
@@ -1175,20 +1175,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_LandingPointBehavior = LandingPointBehavior.SL;
             }
 
-            m_bandwidth = 100000;
-            m_lastBandwithTime = Util.GetTimeStamp() + 0.1;
-            IConfig cconfig = m_scene.Config.Configs["ClientStack.LindenCaps"];
-            if (cconfig != null)
-            {
-                m_capbandwidth = cconfig.GetInt("Cap_AssetThrottle", m_capbandwidth);
-                if(m_capbandwidth > 0)
-                {
-                    m_bandwidth = m_capbandwidth;
-                    if(m_bandwidth < 50000)
-                        m_bandwidth = 50000;
-                }
-            }
-            m_bandwidthBurst = m_bandwidth / 5;
             ControllingClient.RefreshGroupMembership();
         }
 
@@ -1299,7 +1285,6 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnChangeAnim += avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls += HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo += MoveToTargetHandle;
-            ControllingClient.OnUpdateThrottles += RaiseUpdateThrottles;
             ControllingClient.OnRegionHandShakeReply += RegionHandShakeReply;
 
             // ControllingClient.OnAgentFOV += HandleAgentFOV;
@@ -1321,7 +1306,6 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient.OnChangeAnim -= avnHandleChangeAnim;
             ControllingClient.OnForceReleaseControls -= HandleForceReleaseControls;
             ControllingClient.OnAutoPilotGo -= MoveToTargetHandle;
-            ControllingClient.OnUpdateThrottles -= RaiseUpdateThrottles;
             ControllingClient.OnRegionHandShakeReply -= RegionHandShakeReply;
 
             // ControllingClient.OnAgentFOV += HandleAgentFOV;
@@ -1574,7 +1558,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             //m_log.DebugFormat("[MakeRootAgent] position and physical: {0}ms", Util.EnvironmentTickCountSubtract(ts));
-            m_scene.SwapRootAgentCount(false);
+            m_scene.SwapRootAgentCount(false, IsNPC);
 
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
@@ -1711,7 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
             //Velocity = new Vector3(0, 0, 0);
 
             IsChildAgent = true;
-            m_scene.SwapRootAgentCount(true);
+            m_scene.SwapRootAgentCount(true, IsNPC);
             RemoveFromPhysicalScene();
             ParentID = 0; // Child agents can't be sitting
 
@@ -1932,7 +1916,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void ApplyFlyingRoll(float amount, bool PressingUp, bool PressingDown)
         {
 
-            float rollAmount = Util.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS);
+            float rollAmount = Utils.Clamp(m_AngularVelocity.Z + amount, -FLY_ROLL_MAX_RADIANS, FLY_ROLL_MAX_RADIANS);
             m_AngularVelocity.Z = rollAmount;
 
             // APPLY EXTRA consideration for flying up and flying down during this time.
@@ -2213,7 +2197,7 @@ namespace OpenSim.Region.Framework.Scenes
             int ts = Util.EnvironmentTickCount();
 
             m_log.InfoFormat(
-                "[SCENE PRESENCE]: Completing movement of {0} into region {1} in position {2}",
+                "[SCENE PRESENCE]: Complete movement of {0} into {1} {2}",
                 client.Name, Scene.Name, AbsolutePosition);
 
             m_inTransit = true;
@@ -4931,16 +4915,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static Vector3 marker = new Vector3(-1f, -1f, -1f);
 
-        private void RaiseUpdateThrottles()
-        {
-            if(m_capbandwidth > 0)
-                return;
-            m_bandwidth = 4 * ControllingClient.GetAgentThrottleSilent((int)ThrottleOutPacketType.Texture);
-            if(m_bandwidth < 50000)
-                m_bandwidth = 50000;
-            m_bandwidthBurst = m_bandwidth / 5;
-        }
-
         /// <summary>
         /// This updates important decision making data about a child agent
         /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
@@ -5715,10 +5689,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendAttachmentScheduleUpdate(SceneObjectGroup sog)
         {
-            if (IsChildAgent || IsInTransit)
+            if (IsChildAgent || IsInTransit || IsDeleted)
                 return;
 
-            
             SceneObjectPart[] origparts = sog.Parts;
             SceneObjectPart[] parts = new SceneObjectPart[origparts.Length];
             PrimUpdateFlags[] flags = new PrimUpdateFlags[origparts.Length];
@@ -5752,7 +5725,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ++nparts;
             }
 
-            if (nparts == 0)
+            if (nparts == 0 || IsChildAgent || IsInTransit || IsDeleted)
                 return;
 
             for (int i = 0; i < nparts; i++)
@@ -5764,7 +5737,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> allPresences = m_scene.GetScenePresences();
             foreach (ScenePresence p in allPresences)
             {
-                if (p == this)
+                if (p == this || p.IsDeleted)
                     continue;
 
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
@@ -6909,8 +6882,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 } // where public end
-
-                allpresences.Clear();
             }
             else
             {
@@ -6963,7 +6934,6 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
-                    allpresences.Clear();
                 } // now on a private parcel end
 
                 else
@@ -7124,45 +7094,5 @@ namespace OpenSim.Region.Framework.Scenes
             return Overrides.GetOverriddenAnimation(animState);
         }
 
-        // http caps assets bandwidth control
-        private int m_capbandwidth = -1;
-        private int m_bandwidth = 100000;
-        private int m_bandwidthBurst = 20000;
-        private int m_bytesControl;
-        private double m_lastBandwithTime;
-        private readonly object m_throttleLock = new object();
-
-        public bool CapCanSendAsset(int type, int size)
-        {
-            if(size == 0)
-                return true;
-
-            lock (m_throttleLock)
-            {
-                if (type > 1)
-                {
-                    // not texture or mesh
-                    m_bytesControl -= size;
-                    return true;
-                }
-
-                double currenttime = Util.GetTimeStamp();
-                double timeElapsed = currenttime - m_lastBandwithTime;
-                if (timeElapsed > .02)
-                {
-                    m_lastBandwithTime = currenttime;
-                    int add = (int)(m_bandwidth * timeElapsed);
-                    m_bytesControl += add;
-                    if (m_bytesControl > m_bandwidthBurst)
-                        m_bytesControl = m_bandwidthBurst;
-                }
-                if (m_bytesControl > 0 )
-                {
-                    m_bytesControl -= size;
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }

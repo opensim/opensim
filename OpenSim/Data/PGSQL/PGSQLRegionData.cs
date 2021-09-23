@@ -421,13 +421,9 @@ namespace OpenSim.Data.PGSQL
             return Get((int)RegionFlags.DefaultHGRegion, scopeID);
         }
 
-        public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
+        public List<RegionData> GetFallbackRegions(UUID scopeID)
         {
-            List<RegionData> regions = Get((int)RegionFlags.FallbackRegion, scopeID);
-            RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
-            regions.Sort(distanceComparer);
-
-            return regions;
+            return Get((int)RegionFlags.FallbackRegion, scopeID);
         }
 
         public List<RegionData> GetHyperlinks(UUID scopeID)

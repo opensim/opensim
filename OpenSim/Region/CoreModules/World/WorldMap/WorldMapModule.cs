@@ -915,7 +915,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         }
 
 
-        private const double SPAMBLOCKTIMEms = 300000; // 5 minutes
+        private const double SPAMBLOCKTIMEms = 30000;
         private Dictionary<UUID,double> spamBlocked = new Dictionary<UUID,double>();
 
         /// <summary>
