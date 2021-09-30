@@ -544,7 +544,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}",
-                (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
+                (string.IsNullOrEmpty(lm.Gatekeeper)) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
 
             ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
             if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
@@ -566,30 +566,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            if (lm.Gatekeeper == string.Empty)
+            if (string.IsNullOrEmpty(lm.Gatekeeper))
             {
                 remoteClient.SendTeleportFailed("Landmark region not found");
                 return;
             }
 
             // Foreign region
-            GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
             GridRegion gatekeeper = MakeGateKeeperRegion(lm.Gatekeeper);
             if (gatekeeper == null)
             {
-                remoteClient.SendTeleportFailed("Could not parse landmark destiny URI");
+                remoteClient.SendTeleportFailed("Could not parse landmark destiny gatekeeper");
                 return;
             }
 
             string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
 
+            GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
             GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, lm.RegionID, remoteClient.AgentId, homeURI, out string message);
             if(finalDestination == null)
                 remoteClient.SendTeleportFailed(message);
 
             // Validate assorted conditions
-            string reason = string.Empty;
-            if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out reason))
+            if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out string reason))
             {
                 remoteClient.SendTeleportFailed(reason);
                 return;
