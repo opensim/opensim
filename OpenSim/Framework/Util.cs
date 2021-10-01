@@ -2622,9 +2622,10 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes256(string str, params object[] args)
         {
-            return StringToBytes256(string.Format(str, args));
+            return Utils.StringToBytes(string.Format(str, args), 255);
         }
 
         /// <summary>
@@ -2635,16 +2636,10 @@ namespace OpenSim.Framework
         /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes256(string str)
         {
-            if (String.IsNullOrEmpty(str))
-                return Utils.EmptyBytes;
-
-            byte[] data = new byte[255];
-            int r = osUTF8Getbytes(str, data, 255, true); // real use limit is 255 not 256
-            if (r != 255)
-                Array.Resize<byte>(ref data, r);
-            return data;
+            return Utils.StringToBytes(str, 255);
         }
 
         /// <summary>
@@ -2658,9 +2653,10 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes1024(string str, params object[] args)
         {
-            return StringToBytes1024(string.Format(str, args));
+            return Utils.StringToBytes(string.Format(str, args), 1024);
         }
 
         /// <summary>
@@ -2671,16 +2667,10 @@ namespace OpenSim.Framework
         /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes1024(string str)
         {
-            if (String.IsNullOrEmpty(str))
-                return Utils.EmptyBytes;
-
-            byte[] data = new byte[1024];
-            int r = osUTF8Getbytes(str, data, 1024, true);
-            if (r != 1024)
-                Array.Resize<byte>(ref data, r);
-            return data;
+            return Utils.StringToBytes(str, 1024);
         }
 
         /// <summary>
@@ -2694,6 +2684,7 @@ namespace OpenSim.Framework
         /// Arguments to substitute into the string via the {} mechanism.
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes(string str, int MaxLength, params object[] args)
         {
             return StringToBytes1024(string.Format(str, args), MaxLength);
@@ -2707,29 +2698,16 @@ namespace OpenSim.Framework
         /// Using "\0" will return a conversion of the null character to a byte.  This is not the same as bytes[0]
         /// </param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytes(string str, int MaxLength)
         {
-            if (String.IsNullOrEmpty(str))
-                return Utils.EmptyBytes;
-
-            byte[] data = new byte[MaxLength];
-            int r = osUTF8Getbytes(str, data, MaxLength, true);
-            if (r != MaxLength)
-                Array.Resize<byte>(ref data, r);
-            return data;
+            return Utils.StringToBytes(str, MaxLength);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] StringToBytesNoTerm(string str, int MaxLength)
         {
-            if (String.IsNullOrEmpty(str))
-                return Utils.EmptyBytes;
-
-            byte[] data = new byte[MaxLength];
-            int r = osUTF8Getbytes(str, data, MaxLength, false);
-            if (r != MaxLength)
-                Array.Resize<byte>(ref data, r);
-
-            return data;
+            return Utils.StringToBytesNoTerm(str, MaxLength);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2804,7 +2782,7 @@ namespace OpenSim.Framework
                 {
                     if (c >= 0xDC00)
                         continue; // ignore invalid
-                    if (src + 1 >= srcend || dst + 3 >= dstend)
+                    if (src >= srcend || dst + 3 >= dstend)
                         break;
 
                     int a = c;
