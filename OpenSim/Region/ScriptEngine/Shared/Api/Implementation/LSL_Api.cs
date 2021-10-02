@@ -1211,7 +1211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
             World.SimChat(binText,
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+                byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
                 World.SimChat(binText,
                               ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1268,7 +1268,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
 
             World.SimChat(binText,
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
@@ -1286,8 +1286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
-
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
 
             // debug channel is also sent to avatars
             if (channelID == ScriptBaseClass.DEBUG_CHANNEL)
@@ -3392,6 +3391,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// which case it is end-relative. The index may exceed either
         /// string bound, with the result being a concatenation.
         /// </summary>
+        // this is actually wrong. acording to SL wiki, this function should not support negative indexes.
         public LSL_String llInsertString(string dest, int index, string src)
         {
 
@@ -3400,18 +3400,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // negative, but that is now relative to
             // the start, rather than the end, of the
             // sequence.
+            char c;
             if (index < 0)
             {
                 index = dest.Length+index;
 
                 // Negative now means it is less than the lower
                 // bound of the string.
+                if(index > 0)
+                {
+                    c = dest[index];
+                    if (c >= 0xDC00 && c <= 0xDFFF)
+                        --index;
+                }
 
                 if (index < 0)
                 {
                     return src+dest;
                 }
 
+            }
+            else
+            {
+                c = dest[index];
+                if (c >= 0xDC00 && c <= 0xDFFF)
+                    ++index;
             }
 
             if (index >= dest.Length)
@@ -4181,7 +4194,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llStartObjectAnimation(string anim)
         {
-
             // Do NOT try to parse UUID, animations cannot be triggered by ID
             UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
             if (animID == UUID.Zero)
@@ -12701,7 +12713,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llOwnerSay(string msg)
         {
-
             World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0,
                                    m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 //            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
