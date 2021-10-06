@@ -1020,35 +1020,36 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 TokenType stkTokType = tokenTypeObj;                     // stack has a type 'object' on it now
                 Type argSysType = argTokType.ToSysType();               // this is the type the script expects
                 if(argSysType == typeof(double))
-                {                // LSL_Float/double -> double
+                {   // LSL_Float/double -> double
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapFloat);
                     stkTokType = tokenTypeFlt;                       // stack has a type 'double' on it now
                 }
-                if(argSysType == typeof(int))
-                {                        // LSL_Integer/int -> int
+                else if (argSysType == typeof(int))
+                {   // LSL_Integer/int -> int
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapInteger);
                     stkTokType = tokenTypeInt;                       // stack has a type 'int' on it now
                 }
-                if(argSysType == typeof(LSL_List))
-                {                   // LSL_List -> LSL_List
+                else if (argSysType == typeof(LSL_List))
+                {   // LSL_List -> LSL_List
                     TypeCast.CastTopOfStack(this, argVar.name, stkTokType, argTokType, true);
                     stkTokType = argTokType;                         // stack has a type 'LSL_List' on it now
                 }
-                if(argSysType == typeof(LSL_Rotation))
-                {               // OpenMetaverse.Quaternion/LSL_Rotation -> LSL_Rotation
+                else if (argSysType == typeof(LSL_Rotation))
+                {   // OpenMetaverse.Quaternion/LSL_Rotation -> LSL_Rotation
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapRotation);
                     stkTokType = tokenTypeRot;                       // stack has a type 'LSL_Rotation' on it now
                 }
-                if(argSysType == typeof(string))
-                {                     // LSL_Key/LSL_String/string -> string
+                else if (argSysType == typeof(string))
+                {   // LSL_Key/LSL_String/string -> string
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapString);
                     stkTokType = tokenTypeStr;                       // stack has a type 'string' on it now
                 }
-                if(argSysType == typeof(LSL_Vector))
-                {                 // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
+                else if (argSysType == typeof(LSL_Vector))
+                {    // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapVector);
                     stkTokType = tokenTypeVec;                       // stack has a type 'LSL_Vector' on it now
                 }
+
                 local.PopPost(this, argVar.name, stkTokType);           // pop stack type into argtype
             }
 
@@ -4001,39 +4002,39 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             CompValu cVal = null;
             if(rVal is TokenRValAsnPost)
                 cVal = GenerateFromRValAsnPost((TokenRValAsnPost)rVal);
-            if(rVal is TokenRValAsnPre)
+            else if (rVal is TokenRValAsnPre)
                 cVal = GenerateFromRValAsnPre((TokenRValAsnPre)rVal);
-            if(rVal is TokenRValCall)
+            else if (rVal is TokenRValCall)
                 cVal = GenerateFromRValCall((TokenRValCall)rVal);
-            if(rVal is TokenRValCast)
+            else if (rVal is TokenRValCast)
                 cVal = GenerateFromRValCast((TokenRValCast)rVal);
-            if(rVal is TokenRValCondExpr)
+            else if (rVal is TokenRValCondExpr)
                 cVal = GenerateFromRValCondExpr((TokenRValCondExpr)rVal);
-            if(rVal is TokenRValConst)
+            else if (rVal is TokenRValConst)
                 cVal = GenerateFromRValConst((TokenRValConst)rVal);
-            if(rVal is TokenRValInitDef)
+            else if (rVal is TokenRValInitDef)
                 cVal = GenerateFromRValInitDef((TokenRValInitDef)rVal);
-            if(rVal is TokenRValIsType)
+            else if (rVal is TokenRValIsType)
                 cVal = GenerateFromRValIsType((TokenRValIsType)rVal);
-            if(rVal is TokenRValList)
+            else if (rVal is TokenRValList)
                 cVal = GenerateFromRValList((TokenRValList)rVal);
-            if(rVal is TokenRValNewArIni)
+            else if (rVal is TokenRValNewArIni)
                 cVal = GenerateFromRValNewArIni((TokenRValNewArIni)rVal);
-            if(rVal is TokenRValOpBin)
+            else if (rVal is TokenRValOpBin)
                 cVal = GenerateFromRValOpBin((TokenRValOpBin)rVal);
-            if(rVal is TokenRValOpUn)
+            else if (rVal is TokenRValOpUn)
                 cVal = GenerateFromRValOpUn((TokenRValOpUn)rVal);
-            if(rVal is TokenRValParen)
+            else if (rVal is TokenRValParen)
                 cVal = GenerateFromRValParen((TokenRValParen)rVal);
-            if(rVal is TokenRValRot)
+            else if (rVal is TokenRValRot)
                 cVal = GenerateFromRValRot((TokenRValRot)rVal);
-            if(rVal is TokenRValThis)
+            else if (rVal is TokenRValThis)
                 cVal = GenerateFromRValThis((TokenRValThis)rVal);
-            if(rVal is TokenRValUndef)
+            else if (rVal is TokenRValUndef)
                 cVal = GenerateFromRValUndef((TokenRValUndef)rVal);
-            if(rVal is TokenRValVec)
+            else if (rVal is TokenRValVec)
                 cVal = GenerateFromRValVec((TokenRValVec)rVal);
-            if(rVal is TokenLVal)
+            else if (rVal is TokenLVal)
                 cVal = GenerateFromLVal((TokenLVal)rVal, argsig);
 
             if(cVal == null)
@@ -5616,7 +5617,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     outRVal.Pop(this, opcode);           // pop into result
                     return outRVal;                       // tell caller where we put it
                 }
-                if(inRVal.type is TokenTypeBool)
+                if (inRVal.type is TokenTypeBool)
                 {
                     CompValuTemp outRVal = new CompValuTemp(new TokenTypeInt(opcode), this);
                     inRVal.PushVal(this, opcode, outRVal.type);  // push value to negate, make sure not LSL-boxed
