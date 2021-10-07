@@ -3698,15 +3698,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCollisionFilter(LSL_String name, LSL_Key id, LSL_Integer accept)
         {
-            m_host.CollisionFilter.Clear();
-
-            if (!UUID.TryParse(id, out UUID objectID))
-                return;
-
-            if (objectID == UUID.Zero && name == "")
-                return;
-
-            m_host.CollisionFilter.Add(accept, objectID.ToString() + name);
+            UUID.TryParse(id, out UUID objectID);
+            if(objectID == UUID.Zero)
+                m_host.SetCollisionFilter(accept != 0, name.m_string.ToLower(System.Globalization.CultureInfo.InvariantCulture), string.Empty);
+            else
+                m_host.SetCollisionFilter(accept != 0, name.m_string.ToLower(System.Globalization.CultureInfo.InvariantCulture), objectID.ToString());
         }
 
         public void llTakeControls(int controls, int accept, int pass_on)
