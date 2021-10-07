@@ -479,5 +479,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Rotation llGetRegionSunRotation();
         LSL_Rotation llGetMoonRotation();
         LSL_Rotation llGetRegionMoonRotation();
+
+         LSL_String llChar(LSL_Integer unicode);
+        LSL_Integer llOrd(LSL_String s, LSL_Integer index);
+        LSL_Integer llHash(LSL_String s);
     }
 }

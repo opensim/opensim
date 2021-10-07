@@ -4776,7 +4776,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SceneObjectGroup g = p.ParentGroup;
                 if (g.HasPrivateAttachmentPoint && g.OwnerID != AgentId)
                     return; // Don't send updates for other people's HUDs
-                
+
                 if((updateFlags ^ PrimUpdateFlags.SendInTransit) == 0)
                 {
                     List<uint> partIDs = (new List<uint> {p.LocalId});
@@ -7245,7 +7245,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (part.ParentGroup.IsAttachment)
             {
                 if (part.IsRoot)
-                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
+                {
+                    UUID fromID = part.ParentGroup.FromItemID;
+                    if(fromID == UUID.Zero)
+                        fromID = part.UUID;
+                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
+                }
 
                 int st = (int)part.ParentGroup.AttachmentPoint;
                 state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
@@ -7486,7 +7491,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (part.ParentGroup.IsAttachment)
             {
                 if (part.IsRoot)
-                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
+                {
+                    UUID fromID = part.ParentGroup.FromItemID;
+                    if (fromID == UUID.Zero)
+                        fromID = part.UUID;
+                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
+                }
 
                 int st = (int)part.ParentGroup.AttachmentPoint;
                 state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
@@ -7758,8 +7768,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (part.ParentGroup.IsAttachment)
             {
                 if (part.IsRoot)
-                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID);
-
+                {
+                    UUID fromID = part.ParentGroup.FromItemID;
+                    if (fromID == UUID.Zero)
+                        fromID = part.UUID;
+                nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
+                }
                 int st = (int)part.ParentGroup.AttachmentPoint;
                 state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
             }

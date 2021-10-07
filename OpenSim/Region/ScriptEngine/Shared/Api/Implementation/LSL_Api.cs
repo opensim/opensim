@@ -1211,7 +1211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
             World.SimChat(binText,
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+                byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
                 World.SimChat(binText,
                               ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
@@ -1268,7 +1268,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_SayShoutCount >= 11)
                 ScriptSleep(2000);
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
 
             World.SimChat(binText,
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
@@ -1286,8 +1286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            byte[] binText = Util.StringToBytesNoTerm(text, 1023);
-
+            byte[] binText = Utils.StringToBytesNoTerm(text, 1023);
 
             // debug channel is also sent to avatars
             if (channelID == ScriptBaseClass.DEBUG_CHANNEL)
@@ -3259,7 +3258,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return src.Substring(0,end+1);
                 }
                 // Both indices are positive
-                return src.Substring(start, (end+1) - start);
+                return src.Substring(start, (end + 1) - start);
             }
 
             // Inverted substring (end < start)
@@ -3296,11 +3295,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (start < src.Length)
                     {
-                        return src.Substring(0,end+1) + src.Substring(start);
+                        return src.Substring(0, end + 1) + src.Substring(start);
                     }
                     else
                     {
-                        return src.Substring(0,end+1);
+                        return src.Substring(0, end + 1);
                     }
                 }
             }
@@ -3332,7 +3331,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (start <= end)
             {
                 // If both bounds are outside of the existing
-                // string, then return unchanges.
+                // string, then return unchanged.
                 if (end < 0 || start >= src.Length)
                 {
                     return src;
@@ -3365,11 +3364,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (start < src.Length)
                     {
-                        return src.Remove(start).Remove(0,end+1);
+                        return src.Remove(start).Remove(0, end + 1);
                     }
                     else
                     {
-                        return src.Remove(0,end+1);
+                        return src.Remove(0, end + 1);
                     }
                 }
                 else
@@ -3392,20 +3391,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// which case it is end-relative. The index may exceed either
         /// string bound, with the result being a concatenation.
         /// </summary>
+        // this is actually wrong. according to SL wiki, this function should not support negative indexes.
         public LSL_String llInsertString(string dest, int index, string src)
         {
-
             // Normalize indices (if negative).
             // After normalization they may still be
             // negative, but that is now relative to
             // the start, rather than the end, of the
             // sequence.
+            char c;
             if (index < 0)
             {
                 index = dest.Length+index;
 
                 // Negative now means it is less than the lower
                 // bound of the string.
+                if(index > 0)
+                {
+                    c = dest[index];
+                    if (c >= 0xDC00 && c <= 0xDFFF)
+                        --index;
+                }
 
                 if (index < 0)
                 {
@@ -3413,10 +3419,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
             }
+            else
+            {
+                c = dest[index];
+                if (c >= 0xDC00 && c <= 0xDFFF)
+                    ++index;
+            }
 
             if (index >= dest.Length)
             {
-                return dest+src;
+                return dest + src;
             }
 
             // The index is in bounds.
@@ -3424,7 +3436,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // be assigned to the first character of the inserted string.
             // So unlike the other string operations, we do not add one
             // to get the correct string length.
-            return dest.Substring(0,index)+src+dest.Substring(index);
+            return dest.Substring(0, index) + src + dest.Substring(index);
 
         }
 
@@ -4181,7 +4193,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llStartObjectAnimation(string anim)
         {
-
             // Do NOT try to parse UUID, animations cannot be triggered by ID
             UUID animID = ScriptUtils.GetAssetIdFromItemName(m_host, anim, (int)AssetType.Animation);
             if (animID == UUID.Zero)
@@ -11141,7 +11152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
 
-            // acording to SL wiki this must indicate a single link number or link_root or link_this.
+            // according to SL wiki this must indicate a single link number or link_root or link_this.
             // keep other options as before
 
             List<SceneObjectPart> parts;
@@ -12701,7 +12712,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llOwnerSay(string msg)
         {
-
             World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0,
                                    m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 //            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
@@ -18390,6 +18400,104 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 default:
                     return ScriptBaseClass.JSON_INVALID;
             }
+        }
+
+        public LSL_String llChar(LSL_Integer unicode)
+        {
+            if(unicode == 0)
+                return string.Empty;
+            try
+            {
+                return Char.ConvertFromUtf32(unicode);
+            }
+            catch { }
+
+            return "\ufffd";
+        }
+
+        public LSL_Integer llOrd(LSL_String s, LSL_Integer index)
+        {
+            if (string.IsNullOrEmpty(s))
+                return 0;
+
+            if(index < 0)
+                index += s.Length;
+
+            if (index < 0 || index >= s.Length)
+                return 0;
+
+            char c = s.m_string[index];
+            if(c >= 0xdc00 && c <= 0xdfff)
+            {
+                --index;
+                if (index < 0)
+                    return 0;
+
+                int a = c - 0xdc00;
+                c = s.m_string[index];
+                if (c < 0xd800 || c > 0xdbff)
+                    return 0;
+                c -= (char)(0xd800 - 0x40);
+                return a + (c << 10);
+            }
+
+            if (c >= 0xd800)
+            {
+                if(c < 0xdc00)
+                {
+                    ++index;
+                    if (index >= s.Length)
+                        return 0;
+
+                    c -= (char)(0xd800 - 0x40);
+                    int a = (c << 10);
+
+                    c = s.m_string[index];
+                    if (c < 0xdc00 || c > 0xdfff)
+                        return 0;
+                    c -= (char)0xdc00;
+                    return a + c;
+                }
+                else if(c < 0xe000)
+                    return 0;
+            }
+            return (int)c;
+        }
+
+        public LSL_Integer llHash(LSL_String s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return 0;
+            int hash = 0;
+            char c;
+            for(int i = 0; i < s.Length; ++i)
+            {
+                hash *= 65599;
+                // on modern intel/amd this is faster than the tradicional optimization:
+                // hash = (hash << 6) + (hash << 16) - hash;
+                c = s.m_string[i];
+                if (c >= 0xd800)
+                {
+                    if(c < 0xdc00)
+                    {
+                        ++i;
+                        if(i >= s.Length)
+                            return 0;
+
+                        c -= (char)(0xd800 - 0x40);
+                        hash += (c << 10);
+
+                        c = s.m_string[i];
+                        if(c < 0xdc00 || c > 0xdfff)
+                            return 0;
+                        c -= (char)(0xdc00);
+                    }
+                    else if(c < 0xe000)
+                        return 0;
+                }
+                hash += c;
+            }
+            return hash;
         }
     }
 
