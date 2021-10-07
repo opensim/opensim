@@ -1019,15 +1019,26 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 ilGen.Emit(declFunc, OpCodes.Ldelem, typeof(object));  // select the argument we want
                 TokenType stkTokType = tokenTypeObj;                     // stack has a type 'object' on it now
                 Type argSysType = argTokType.ToSysType();               // this is the type the script expects
-                if(argSysType == typeof(double))
+
+                if (argSysType == typeof(int))
+                {   // LSL_Integer/int -> int
+                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapInteger);
+                    stkTokType = tokenTypeInt;                       // stack has a type 'int' on it now
+                }
+                else if (argSysType == typeof(string))
+                {   // LSL_Key/LSL_String/string -> string
+                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapString);
+                    stkTokType = tokenTypeStr;                       // stack has a type 'string' on it now
+                }
+                else if (argSysType == typeof(double))
                 {   // LSL_Float/double -> double
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapFloat);
                     stkTokType = tokenTypeFlt;                       // stack has a type 'double' on it now
                 }
-                else if (argSysType == typeof(int))
-                {   // LSL_Integer/int -> int
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapInteger);
-                    stkTokType = tokenTypeInt;                       // stack has a type 'int' on it now
+                else if (argSysType == typeof(LSL_Vector))
+                {    // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
+                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapVector);
+                    stkTokType = tokenTypeVec;                       // stack has a type 'LSL_Vector' on it now
                 }
                 else if (argSysType == typeof(LSL_List))
                 {   // LSL_List -> LSL_List
@@ -1038,16 +1049,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {   // OpenMetaverse.Quaternion/LSL_Rotation -> LSL_Rotation
                     ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapRotation);
                     stkTokType = tokenTypeRot;                       // stack has a type 'LSL_Rotation' on it now
-                }
-                else if (argSysType == typeof(string))
-                {   // LSL_Key/LSL_String/string -> string
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapString);
-                    stkTokType = tokenTypeStr;                       // stack has a type 'string' on it now
-                }
-                else if (argSysType == typeof(LSL_Vector))
-                {    // OpenMetaverse.Vector3/LSL_Vector -> LSL_Vector
-                    ilGen.Emit(declFunc, OpCodes.Call, ehArgUnwrapVector);
-                    stkTokType = tokenTypeVec;                       // stack has a type 'LSL_Vector' on it now
                 }
 
                 local.PopPost(this, argVar.name, stkTokType);           // pop stack type into argtype
@@ -4359,7 +4360,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Likewise, integer += float not allowed because result is float, but float += integer is ok.
             if(opcodeIndex.EndsWith("="))
             {
-                key = leftIndex + opcodeIndex.Substring(0, opcodeIndex.Length - 1) + rightIndex;
+                string op = opcodeIndex.Substring(0, opcodeIndex.Length - 1);
+                key = leftIndex + op + rightIndex;
                 if(BinOpStr.defined.TryGetValue(key, out binOpStr))
                 {
                     if(!(token.rValLeft is TokenLVal))
@@ -4384,7 +4386,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         CompValu temp = new CompValuTemp(TokenType.FromSysType(token, binOpStr.outtype), this);
                         binOpStr.emitBO(this, token, left, right, temp);
                         left.PopPre(this, token);
-                        temp.PushVal(this, token, leftType);
+                        if(op == "*")
+                            temp.PushVal(this, token, leftType, true);
+                        else
+                            temp.PushVal(this, token, leftType);
                         left.PopPost(this, token);
                     }
                     return left;
