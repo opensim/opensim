@@ -114,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // EXPLICIT type casts (an * is in middle of the key)
             // In general, only mark explicit if it might throw an exception
             ltc.Add("array object", TypeCastArray2Object);
-            ltc.Add("bool*float", TypeCastBool2Float);
+            ltc.Add("bool float", TypeCastBool2Float);
             ltc.Add("bool integer", TypeCastBool2Integer);
             ltc.Add("bool list", TypeCastBool2List);
             ltc.Add("bool object", TypeCastBool2Object);
