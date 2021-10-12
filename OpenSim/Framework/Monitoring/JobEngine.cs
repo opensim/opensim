@@ -188,10 +188,10 @@ namespace OpenSim.Framework.Monitoring
 
             if (m_jobQueue.Count < m_jobQueue.BoundedCapacity)
             {
-                m_jobQueue.Add(job);
-
                 lock (JobLock)
                 {
+                    m_jobQueue.Add(job);
+
                     if (m_numberThreads < m_concurrency && m_numberThreads < m_jobQueue.Count)
                     {
                         Util.FireAndForget(ProcessRequests, null, Name, false);
@@ -225,7 +225,15 @@ namespace OpenSim.Framework.Monitoring
                 try
                 {
                     if(!m_jobQueue.TryTake(out currentJob, m_timeout, m_cancelSource.Token))
-                        break;
+                    {
+                        lock (JobLock)
+                        {
+                            if (m_jobQueue.Count > 0)
+                                continue;
+                            --m_numberThreads;
+                            return;
+                        }
+                    }
                 }
                 catch
                 {
