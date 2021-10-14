@@ -433,10 +433,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 case StateSource.Teleporting:
                     PostEvent(new EventParams("changed",
-                              sbcCR,
-                              zeroDetectParams));
-                    PostEvent(new EventParams("changed",
-                              sbcCT,
+                              sbcCRT,
                               zeroDetectParams));
                     break;
 
@@ -451,6 +448,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static Object[] sbcCRS = new Object[] { ScriptBaseClass.CHANGED_REGION_START };
         private static Object[] sbcCR = new Object[] { ScriptBaseClass.CHANGED_REGION };
         private static Object[] sbcCT = new Object[] { ScriptBaseClass.CHANGED_TELEPORT };
+        private static Object[] sbcCRT = new Object[] { ScriptBaseClass.CHANGED_REGION | ScriptBaseClass.CHANGED_TELEPORT };
 
         /**
          * @brief Save compilation error messages for later retrieval
