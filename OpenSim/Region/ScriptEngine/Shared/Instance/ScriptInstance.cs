@@ -418,27 +418,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     PostEvent(new EventParams("on_rez",
                         new Object[] {new LSL_Types.LSLInteger(StartParam)}, new DetectParams[0]));
                 }
-                if (m_stateSource == StateSource.AttachedRez)
+                switch(m_stateSource)
                 {
-                    PostEvent(new EventParams("attach",
-                        new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
-                }
-                else if (m_stateSource == StateSource.RegionStart)
-                {
+                    case StateSource.AttachedRez:
+                        PostEvent(new EventParams("attach",
+                            new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
+                        break;
+                    case StateSource.RegionStart:
                     //m_log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
-                    PostEvent(new EventParams("changed",
-                        new Object[] { new LSL_Types.LSLInteger((int)Changed.REGION_RESTART) }, new DetectParams[0]));
-                }
-                else if (m_stateSource == StateSource.PrimCrossing || m_stateSource == StateSource.Teleporting)
-                {
-                    // CHANGED_REGION
-                    PostEvent(new EventParams("changed",
-                        new Object[] { new LSL_Types.LSLInteger((int)Changed.REGION) }, new DetectParams[0]));
-
-                    // CHANGED_TELEPORT
-                    if (m_stateSource == StateSource.Teleporting)
                         PostEvent(new EventParams("changed",
-                            new Object[] { new LSL_Types.LSLInteger((int)Changed.TELEPORT) }, new DetectParams[0]));
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION_RESTART)}, new DetectParams[0]));
+                        break;
+                    case StateSource.PrimCrossing:
+                        PostEvent(new EventParams("changed",
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION)}, new DetectParams[0]));
+                        break;
+                    case StateSource.Teleporting:
+                        PostEvent(new EventParams("changed",
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION | (int)Changed.TELEPORT) }, new DetectParams[0]));
+                        break;
                 }
             }
             else
