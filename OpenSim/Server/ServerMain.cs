@@ -29,8 +29,10 @@ using Nini.Config;
 using log4net;
 using System.Reflection;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Security;
+using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 using OpenSim.Framework;
@@ -71,6 +73,25 @@ namespace OpenSim.Server
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Opens a file and uses it as input to the console command parser.
+        /// </summary>
+        /// <param name="fileName">name of file to use as input to the console</param>
+        private static void PrintFileToConsole(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                using(StreamReader readFile = File.OpenText(fileName))
+                {
+                    string currentLine;
+                    while ((currentLine = readFile.ReadLine()) != null)
+                    {
+                        m_log.InfoFormat("[!]" + currentLine);
+                    }
+                }
+            }
         }
 
         public static int Main(string[] args)
@@ -189,6 +210,8 @@ namespace OpenSim.Server
                     m_log.ErrorFormat("[SERVER]: Failed to load {0}", conn);
                 }
             }
+
+            PrintFileToConsole("startuplogo_server.txt");
 
             loader = new PluginLoader(m_Server.Config, registryLocation);
 
