@@ -32,7 +32,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Security;
-using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 using OpenSim.Framework;
@@ -40,15 +39,12 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using Mono.Addins;
 
 namespace OpenSim.Server
 {
     public class OpenSimServer
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static HttpServerBase m_Server = null;
         protected static List<IServiceConnector> m_ServiceConnectors = new List<IServiceConnector>();
@@ -211,7 +207,7 @@ namespace OpenSim.Server
                 }
             }
 
-            PrintFileToConsole("startuplogo_server.txt");
+            PrintFileToConsole("robuststartuplogo.txt");
 
             loader = new PluginLoader(m_Server.Config, registryLocation);
 
