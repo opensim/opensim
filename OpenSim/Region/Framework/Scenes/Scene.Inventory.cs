@@ -2849,7 +2849,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(humanRez)
                     group.ResumeScripts();
 
-                group.ScheduleGroupForFullUpdate();
+                group.ScheduleGroupForFullAnimUpdate();
             }
 
             return objlist;
