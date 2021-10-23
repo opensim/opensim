@@ -2485,17 +2485,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             int index = 0;  // 'default' state
 
-             // Set new state value by throwing an exception.
-             // These exceptions aren't catchable by script-level try { } catch { }.
-            if((stateStmt.state != null) && !stateIndices.TryGetValue(stateStmt.state.val, out index))
+            // Set new state value by throwing an exception.
+            // These exceptions aren't catchable by script-level try { } catch { }.
+            if ((stateStmt.state != null) && !stateIndices.TryGetValue(stateStmt.state.val, out index))
             {
-                // The moron XEngine compiles scripts that reference undefined states.
-                // So rather than produce a compile-time error, we'll throw an exception at runtime.
-                // ErrorMsg (stateStmt, "undefined state " + stateStmt.state.val);
+                mightGetHere = false;
+                // do compile time error
+                ErrorMsg (stateStmt, "undefined state " + stateStmt.state.val);
+                throw new Exception("undefined state " + stateStmt.state.val);
 
-                // throw new UndefinedStateException (stateStmt.state.val);
-                ilGen.Emit(stateStmt, OpCodes.Ldstr, stateStmt.state.val);
-                ilGen.Emit(stateStmt, OpCodes.Newobj, scriptUndefinedStateExceptionConstructorInfo);
+                // before we did throw an exception only at runtime.
+                //ilGen.Emit(stateStmt, OpCodes.Ldstr, stateStmt.state.val);
+                //ilGen.Emit(stateStmt, OpCodes.Newobj, scriptUndefinedStateExceptionConstructorInfo);
             }
             else
             {
