@@ -1149,9 +1149,8 @@
     ; GroupsServerURI = ""
 
     ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {}
-    ;; Used for V2 in HG only. For example
     ;; http://mygridserver.com:9000 or http://mygridserver.com:8002
-    ;; If you have this set under [Startup], no need to set it here, leave it commented
+    ;; If you have this set in [Hypergrid] section of GridCommon.ini or StandaloneCommon.ini files in config-include folder, leave it commented
     ; HomeURI = ""
 
     ;# {MessagingEnabled} {Module:GroupsModule Module:Groups Module V2} {Is groups messaging enabled?} {true false} true
