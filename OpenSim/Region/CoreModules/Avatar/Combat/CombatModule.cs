@@ -117,9 +117,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 //            string killingAvatarMessage;
 
             // check to see if it is an NPC and just remove it
-            INPCModule NPCmodule = deadAvatar.Scene.RequestModuleInterface<INPCModule>();
-            if (NPCmodule != null && NPCmodule.DeleteNPC(deadAvatar.UUID, deadAvatar.Scene))
+            if(deadAvatar.IsNPC)
             {
+                INPCModule NPCmodule = deadAvatar.Scene.RequestModuleInterface<INPCModule>();
+                if (NPCmodule != null)
+                    NPCmodule.DeleteNPC(deadAvatar.UUID, deadAvatar.Scene);
                 return;
             }
 
