@@ -3852,6 +3852,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 presence.setHealthWithUpdate(health);
                 if (health <= 0)
                 {
+                    // check to see if it is an NPC and just remove it
+                    if (presence.IsNPC)
+                    {
+                        INPCModule NPCmodule = World.RequestModuleInterface<INPCModule>();
+                        if (NPCmodule != null)
+                            NPCmodule.DeleteNPC(presence.UUID, World);
+                    return;
+                    }
+
                     float healthliveagain = 100;
                     presence.ControllingClient.SendAgentAlertMessage("You died!", true);
                     presence.setHealthWithUpdate(healthliveagain);
