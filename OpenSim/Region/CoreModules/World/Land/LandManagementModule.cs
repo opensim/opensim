@@ -67,7 +67,6 @@ namespace OpenSim.Region.CoreModules.World.Land
     public class LandManagementModule : INonSharedRegionModule , ILandChannel
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly string LogHeader = "[LAND MANAGEMENT MODULE]";
 
         /// <summary>
         /// Minimum land unit size in region co-ordinates.
@@ -320,7 +319,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>The parcel created.</returns>
         protected ILandObject CreateDefaultParcel()
         {
-            m_log.DebugFormat("{0} Creating default parcel for region {1}", LogHeader, m_scene.RegionInfo.RegionName);
+            m_log.Debug("[LAND MANAGEMENT MODULE]: Creating default parcel for region " + m_scene.RegionInfo.RegionName);
 
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
 
@@ -731,7 +730,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             else
             {
-                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Invalid local land ID {0}", landLocalID);
+                m_log.Warn("[LAND MANAGEMENT MODULE]: Invalid local land ID " + landLocalID.ToString());
             }
         }
 
@@ -758,8 +757,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (landBitmap.GetLength(0) != m_landIDList.GetLength(0) || landBitmap.GetLength(1) != m_landIDList.GetLength(1))
                 {
                     // Going to variable sized regions can cause mismatches
-                    m_log.ErrorFormat("{0} AddLandObject. Added land bitmap different size than region ID map. bitmapSize=({1},{2}), landIDSize=({3},{4})",
-                        LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1));
+                    m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Added land bitmap has different size than region ID map. bitmapSize=({0},{1}), landIDSize=({2},{3})",
+                        landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1));
                 }
                 else
                 {
@@ -780,8 +779,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     if (lastRecordedLo.LandBitmap[x, y])
                                     {
                                         m_log.ErrorFormat(
-                                            "{0}: Cannot add parcel \"{1}\", local ID {2} at tile {3},{4} because this is still occupied by parcel \"{5}\", local ID {6} in {7}",
-                                            LogHeader, new_land.LandData.Name, new_land.LandData.LocalID, x, y,
+                                            "[LAND MANAGEMENT MODULE]: Cannot add parcel \"{0}\", local ID {1} at tile {2},{3} because this is still occupied by parcel \"{4}\", local ID {5} in {6}",
+                                            new_land.LandData.Name, new_land.LandData.LocalID, x, y,
                                             lastRecordedLo.LandData.Name, lastRecordedLo.LandData.LocalID, m_scene.Name);
 
                                         return null;
@@ -797,9 +796,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             if (landBitmap[x, y])
                             {
-                                //                            m_log.DebugFormat(
-                                //                                "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}",
-                                //                                new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
+                                //m_log.DebugFormat(
+                                //    "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}",
+                                //    new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
 
                                 m_landIDList[x, y] = newLandLocalID;
                             }
@@ -1841,8 +1840,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             if (m_landList.Count == 1)
                             {
                                 m_log.DebugFormat(
-                                    "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}",
-                                    LogHeader, x, y, m_scene.Name);
+                                    "[LAND MANAGEMENT MODULE]: Auto-extending land parcel as landID at {0},{1} is 0 and only one land parcel is present in {2}",
+                                    x, y, m_scene.Name);
 
                                 int onlyParcelID = 0;
                                 ILandObject onlyLandObject = null;
@@ -1864,8 +1863,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             else if (m_landList.Count > 1)
                             {
                                 m_log.DebugFormat(
-                                    "{0}: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}",
-                                    LogHeader, x, y, m_scene.Name);
+                                    "[LAND MANAGEMENT MODULE]: Auto-creating land parcel as landID at {0},{1} is 0 and more than one land parcel is present in {2}",
+                                    x, y, m_scene.Name);
 
                                 // There are several other parcels so we must create a new one for the unassigned space
                                 ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);
@@ -1878,9 +1877,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             else
                             {
                                 // We should never reach this point as the separate code path when no land data exists should have fired instead.
-                                m_log.WarnFormat(
-                                    "{0}: Ignoring request to auto-create parcel in {1} as there are no other parcels present",
-                                    LogHeader, m_scene.Name);
+                                m_log.Warn(
+                                    "[LAND MANAGEMENT MODULE]: Ignoring request to auto-create parcel in {1} as there are no other parcels present" + m_scene.Name);
                             }
                         }
                     }
