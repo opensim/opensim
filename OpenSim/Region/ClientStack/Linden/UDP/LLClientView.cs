@@ -3588,8 +3588,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (req.AssetInf == null)
             {
-                m_log.ErrorFormat("{0} Cannot send asset {1} ({2}), asset is null",
-                                LogHeader);
+                m_log.ErrorFormat("{0} Cannot send asset, because it is null", LogHeader);
                 return;
             }
 
