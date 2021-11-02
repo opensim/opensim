@@ -76,27 +76,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private List<TimerInfo> TimersCache = null;
         private object TimerListLock = new object();
 
-        public void SetTimerEvent(uint m_localID, UUID m_itemID, double sec)
+        public void SetTimerEvent(uint _localID, UUID _itemID, double sec)
         {
             if (sec == 0) // Disabling timer
             {
-                UnSetTimerEvents(m_localID, m_itemID);
+                UnSetTimerEvents(_localID, _itemID);
                 return;
             }
 
-            string key = MakeTimerKey(m_localID, m_itemID);
+            string key = MakeTimerKey(_localID, _itemID);
             lock (TimerListLock)
             {
                 Timers.TryGetValue(key, out TimerInfo ts);
                 if(ts == null)
                 {
-                    ts = new TimerInfo()
-                    {
-                        localID = m_localID,
-                        itemID = m_itemID,
-                        interval = (long)(sec * 10000000),
-                        next = DateTime.Now.Ticks + ts.interval
-                    };
+                    ts = new TimerInfo();
+                    ts.localID = _localID;
+                    ts.itemID = _itemID;
+                    ts.interval = (long)(sec * 10000000);
+                    ts.next = DateTime.Now.Ticks + ts.interval;
                     Timers[key] = ts;
                     TimersCache = null;
                 }
