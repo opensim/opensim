@@ -843,7 +843,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         while(true)
                         {
                             parent = m_Scene.InventoryService.GetFolder(userID, parent.ParentID);
-                            if (parent != null && parent.ParentID == UUID.Zero)
+                            if (parent != null && (parent.ParentID == UUID.Zero || parent.ID == parent.ParentID))
                                 break;
                             if (parent == null || parent.Type == (int)FolderType.Trash || parent.Type == (int)FolderType.LostAndFound)
                             {
