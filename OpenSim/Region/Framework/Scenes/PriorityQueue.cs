@@ -73,9 +73,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Lock for enqueue and dequeue operations on the priority queue
         /// </summary>
-        private object m_syncRoot = new object();
-        public object SyncRoot {
-            get { return m_syncRoot; }
+        private object m_mainLock = new object();
+        public object syncRoot
+        {
+            get { return m_mainLock; }
         }
 
 #region constructor
@@ -94,15 +95,20 @@ namespace OpenSim.Region.Framework.Scenes
 #region PublicMethods
         public void Close()
         {
-            for (int i = 0; i < m_heaps.Length; ++i)
+            PriorityMinHeap[] tmpheaps;
+            lock (m_mainLock)
             {
-                m_heaps[i].Clear();
-                m_heaps[i] = null;
+                tmpheaps = m_heaps;
+                m_heaps = null;
+                m_lookupTable.Clear();
+                m_lookupTable = null;
             }
 
-            m_heaps = null;
-            m_lookupTable.Clear();
-            m_lookupTable = null;
+            for (int i = 0; i < tmpheaps.Length; ++i)
+            {
+                tmpheaps[i].Clear();
+                tmpheaps[i] = null;
+            }
         }
 
         /// <summary>
@@ -125,39 +131,59 @@ namespace OpenSim.Region.Framework.Scenes
             EntityUpdate existentup;
 
             uint localid = value.Entity.LocalId;
-            if (m_lookupTable.TryGetValue(localid, out existentup))
+            try
             {
-                int eqqueue = existentup.PriorityQueue;
-
-                existentup.UpdateFromNew(value, pqueue);
-                value.Free();
-
-                if (pqueue != eqqueue)
+                if (m_lookupTable.TryGetValue(localid, out existentup))
                 {
-                    m_heaps[eqqueue].RemoveAt(existentup.PriorityQueueIndex);
-                    m_heaps[pqueue].Add(existentup);
+                    int eqqueue = existentup.PriorityQueue;
+
+                    existentup.UpdateFromNew(value, pqueue);
+                    value.Free();
+
+                    if (pqueue != eqqueue)
+                    {
+                        lock (m_mainLock)
+                        {
+                            m_heaps[eqqueue].RemoveAt(existentup.PriorityQueueIndex);
+                            m_heaps[pqueue].Add(existentup);
+                        }
+                    }
+                    return true;
                 }
+
+                lock (m_mainLock)
+                {
+                    entry = m_nextRequest++;
+                    value.Update(pqueue, entry);
+
+                    m_heaps[pqueue].Add(value);
+                }
+                m_lookupTable[localid] = value;
                 return true;
             }
-
-            entry = m_nextRequest++;
-            value.Update(pqueue, entry);
-
-            m_heaps[pqueue].Add(value);
-            m_lookupTable[localid] = value;
-            return true;
+            catch
+            {
+                return true;
+            }
         }
 
         public void Remove(List<uint> ids)
         {
-            EntityUpdate lookup;
-            foreach (uint localid in ids)
+            try
             {
-                if (m_lookupTable.TryRemove(localid, out lookup))
+                EntityUpdate lookup;
+                foreach (uint localid in ids)
                 {
-                    m_heaps[lookup.PriorityQueue].RemoveAt(lookup.PriorityQueueIndex);
-                    lookup.Free();
+                    if (m_lookupTable.TryRemove(localid, out lookup))
+                    {
+                        lock(m_mainLock)
+                            m_heaps[lookup.PriorityQueue].RemoveAt(lookup.PriorityQueueIndex);
+                        lookup.Free();
+                    }
                 }
+            }
+            catch
+            {
             }
         }
 
@@ -170,66 +196,81 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // If there is anything in immediate queues, return it first no
             // matter what else. Breaks fairness. But very useful.
-
-            for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
+            try
             {
-                if (m_heaps[iq].Count > 0)
+                lock(m_mainLock)
                 {
-                    value = m_heaps[iq].RemoveNext();
-                    return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                    for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
+                    {
+                        if (m_heaps[iq].Count > 0)
+                        {
+                            value = m_heaps[iq].RemoveNext();
+                            return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                        }
+                    }
+
+                    // To get the fair queing, we cycle through each of the
+                    // queues when finding an element to dequeue.
+                    // We pull (NumberOfQueues - QueueIndex) items from each queue in order
+                    // to give lower numbered queues a higher priority and higher percentage
+                    // of the bandwidth.
+
+                    PriorityMinHeap curheap = m_heaps[m_nextQueue];
+                    // Check for more items to be pulled from the current queue
+                    if (m_countFromQueue > 0 && curheap.Count > 0)
+                    {
+                        --m_countFromQueue;
+
+                        value = curheap.RemoveNext();
+                        return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                    }
+
+                    // Find the next non-immediate queue with updates in it
+                    for (int i = NumberOfImmediateQueues; i < NumberOfQueues; ++i)
+                    {
+                        m_nextQueue++;
+                        if(m_nextQueue >= NumberOfQueues)
+                            m_nextQueue = NumberOfImmediateQueues;
+ 
+                        curheap = m_heaps[m_nextQueue];
+                        if (curheap.Count == 0)
+                            continue;
+
+                        m_countFromQueue = m_queueCounts[m_nextQueue];
+                        --m_countFromQueue;
+
+                        value = curheap.RemoveNext();
+                        return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                    }
                 }
             }
-
-            // To get the fair queing, we cycle through each of the
-            // queues when finding an element to dequeue.
-            // We pull (NumberOfQueues - QueueIndex) items from each queue in order
-            // to give lower numbered queues a higher priority and higher percentage
-            // of the bandwidth.
-
-            PriorityMinHeap curheap = m_heaps[m_nextQueue];
-            // Check for more items to be pulled from the current queue
-            if (m_countFromQueue > 0 && curheap.Count > 0)
+            catch
             {
-                --m_countFromQueue;
-
-                value = curheap.RemoveNext();
-                return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
             }
-
-            // Find the next non-immediate queue with updates in it
-            for (int i = NumberOfImmediateQueues; i < NumberOfQueues; ++i)
-            {
-                m_nextQueue++;
-                if(m_nextQueue >= NumberOfQueues)
-                    m_nextQueue = NumberOfImmediateQueues;
- 
-                curheap = m_heaps[m_nextQueue];
-                if (curheap.Count == 0)
-                    continue;
-
-                m_countFromQueue = m_queueCounts[m_nextQueue];
-                --m_countFromQueue;
-
-                value = curheap.RemoveNext();
-                return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
-            }
-
             value = null;
             return false;
         }
 
         public bool TryOrderedDequeue(out EntityUpdate value)
         {
-            for (int iq = 0; iq < NumberOfQueues; ++iq)
+            try
             {
-                PriorityMinHeap curheap = m_heaps[iq];
-                if (curheap.Count > 0)
+                lock(m_mainLock)
                 {
-                    value = curheap.RemoveNext();
-                    return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                    for (int iq = 0; iq < NumberOfQueues; ++iq)
+                    {
+                        PriorityMinHeap curheap = m_heaps[iq];
+                        if (curheap.Count > 0)
+                        {
+                            value = curheap.RemoveNext();
+                            return m_lookupTable.TryRemove(value.Entity.LocalId, out value);
+                        }
+                    }
                 }
             }
-
+            catch
+            {
+            }
             value = null;
             return false;
         }
@@ -241,23 +282,32 @@ namespace OpenSim.Region.Framework.Scenes
         public void Reprioritize(UpdatePriorityHandler handler)
         {
             int pqueue = 0;
-            foreach (EntityUpdate currentEU in m_lookupTable.Values)
+            try
             {
-                if (handler(ref pqueue, currentEU.Entity))
+                foreach (EntityUpdate currentEU in m_lookupTable.Values)
                 {
-                    // unless the priority queue has changed, there is no need to modify
-                    // the entry
-                    if (pqueue != currentEU.PriorityQueue)
+                    if (handler(ref pqueue, currentEU.Entity))
                     {
-                        m_heaps[currentEU.PriorityQueue].RemoveAt(currentEU.PriorityQueueIndex);
-                        currentEU.PriorityQueue = pqueue;
-                        m_heaps[pqueue].Add(currentEU);
+                        // unless the priority queue has changed, there is no need to modify
+                        // the entry
+                        if (pqueue != currentEU.PriorityQueue)
+                        {
+                            lock(m_mainLock)
+                            {
+                                m_heaps[currentEU.PriorityQueue].RemoveAt(currentEU.PriorityQueueIndex);
+                                currentEU.PriorityQueue = pqueue;
+                                m_heaps[pqueue].Add(currentEU);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
-                else
-                {
-                    break;
-                }
+            }
+            catch
+            {
             }
         }
 
