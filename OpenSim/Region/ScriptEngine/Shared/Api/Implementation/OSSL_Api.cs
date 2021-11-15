@@ -1019,12 +1019,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             TeleportAgent(agent, regionName, position, lookat);
         }
 
-        private void TeleportAgent(string agent, string regionName,
-            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        private void TeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            if(String.IsNullOrEmpty(regionName))
-                regionName = World.RegionInfo.RegionName;
-
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
@@ -1038,10 +1034,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                if (regionName == World.RegionInfo.RegionName)
+                if (string.IsNullOrEmpty(regionName) || regionName.Equals(World.RegionInfo.RegionName, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // should be faster than going to threadpool
-                    World.RequestTeleportLocation(presence.ControllingClient, regionName, position,
+                    World.RequestTeleportLocation(presence.ControllingClient, World.RegionInfo.RegionName, position,
                         lookat, (uint)TPFlags.ViaLocation);
                     ScriptSleep(500);
                 }
