@@ -261,6 +261,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          // ONSLEEPQ, ONYIELDQ, SUSPENDED or FINISHED.
         public XMRInstState RunOne()
         {
+            // someone may have called Suspend().
+            //m_RunOnePhase = "check m_SuspendCount";
+            if (m_SuspendCount > 0)
+            {
+                //m_RunOnePhase = "return is suspended";
+                return XMRInstState.SUSPENDED;
+            }
+
             DateTime now = DateTime.UtcNow;
             m_SliceStart = Util.GetTimeStampMS();
 
@@ -270,14 +278,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 //m_RunOnePhase = "return is sleeping";
                 return XMRInstState.ONSLEEPQ;
-            }
-
-             // Also, someone may have called Suspend().
-            //m_RunOnePhase = "check m_SuspendCount";
-            if(m_SuspendCount > 0)
-            {
-                //m_RunOnePhase = "return is suspended";
-                return XMRInstState.SUSPENDED;
             }
 
             // Make sure we aren't being migrated in or out and prevent that 
