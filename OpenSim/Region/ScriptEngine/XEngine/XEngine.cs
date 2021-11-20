@@ -1937,7 +1937,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
+            {
                 instance.Start();
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = true;
+            }
             else
                 m_runFlags.AddOrUpdate(itemID, true, 240);
 
@@ -1958,10 +1962,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     instance.StayStopped = true;    // the script was stopped explicitly
 
                 instance.Stop(m_WaitForEventCompletionOnScriptStop);
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = false;
             }
             else
             {
-//                m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
+                //m_log.DebugFormat("[XENGINE]: Could not find script with ID {0} to stop in {1}", itemID, World.Name);
                 m_runFlags.AddOrUpdate(itemID, false, 240);
             }
 

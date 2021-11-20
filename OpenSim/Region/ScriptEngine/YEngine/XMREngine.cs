@@ -1504,14 +1504,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
+            {
                 instance.Running = true;
+                if (instance.m_Item != null)
+                    instance.m_Item.ScriptRunning = true;
+            }
         }
 
         public void OnStopScript(uint localID, UUID itemID)
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
+            {
                 instance.Running = false;
+                if (instance.m_Item != null)
+                    instance.m_Item.ScriptRunning = false;
+            }
         }
 
         public void OnGetScriptRunning(IClientAPI controllingClient,
@@ -1522,7 +1530,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 TraceCalls("[YEngine]: YEngine.OnGetScriptRunning({0},{1})", objectID.ToString(), itemID.ToString());
 
-                bool curRunnning = instance.Running & instance.m_Item.ScriptRunning;
+                bool curRunnning = instance.Running;
+                instance.m_Item.ScriptRunning = curRunnning;
                 IEventQueue eq = World.RequestModuleInterface<IEventQueue>();
                 if(eq == null)
                 {
