@@ -826,6 +826,7 @@ namespace Amib.Threading
                     InformCompleted();
                 FireOnThreadTermination();
                 _workItemsQueue.CloseThreadWaiter();
+                CurrentThreadEntry = null;
             }
         }
 
@@ -860,19 +861,8 @@ namespace Amib.Threading
 
         internal static void ValidateWorkItemsGroupWaitForIdle(IWorkItemsGroup workItemsGroup)
         {
-            if (null == CurrentThreadEntry)
-            {
-                return;
-            }
-
-            WorkItem workItem = CurrentThreadEntry.CurrentWorkItem;
-            ValidateWorkItemsGroupWaitForIdleImpl(workItemsGroup, workItem);
-            if ((null != workItemsGroup) &&
-                (null != workItem) &&
-                CurrentThreadEntry.CurrentWorkItem.WasQueuedBy(workItemsGroup))
-            {
-                throw new NotSupportedException("WaitForIdle cannot be called from a thread on its SmartThreadPool, it causes a deadlock");
-            }
+            if (CurrentThreadEntry != null)
+                ValidateWorkItemsGroupWaitForIdleImpl(workItemsGroup, CurrentThreadEntry.CurrentWorkItem);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
