@@ -833,7 +833,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
-                        if (!osUTF8Slice.TryParseInt(parts[1], out int count) || count == 0)
+                        if (!osUTF8Slice.TryParseInt(parts[1], out int count))
                             return;
                         for (int i = 0; i < count; ++i)
                         {
