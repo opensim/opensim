@@ -1136,7 +1136,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
 
-//            m_log.DebugFormat("[XEngine]: DoOnRezScript called for script {0}", itemID);
+            //m_log.DebugFormat("[XEngine]: DoOnRezScript called for script {0}", itemID);
 
             lock (m_CompileDict)
             {
@@ -1216,74 +1216,64 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 m_ScriptErrors[itemID] = new ArrayList();
 
                             m_ScriptErrors[itemID].Add(warning);
-    //                        try
-    //                        {
-    //                            // DISPLAY WARNING INWORLD
-    //                            string text = "Warning:\n" + warning;
-    //                            if (text.Length > 1000)
-    //                                text = text.Substring(0, 1000);
-    //                            if (!ShowScriptSaveResponse(item.OwnerID,
-    //                                    assetID, text, true))
-    //                            {
-    //                                if (presence != null && (!postOnRez))
-    //                                    presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
-    //
-    //                                World.SimChat(Utils.StringToBytes(text),
-    //                                              ChatTypeEnum.DebugChannel, 2147483647,
-    //                                              part.AbsolutePosition,
-    //                                              part.Name, part.UUID, false);
-    //                            }
-    //                        }
-    //                        catch (Exception e2) // LEGIT: User Scripting
-    //                        {
-    //                            m_log.Error("[XEngine]: " +
-    //                                    "Error displaying warning in-world: " +
-    //                                    e2.ToString());
-    //                            m_log.Error("[XEngine]: " +
-    //                                    "Warning:\r\n" +
-    //                                    warning);
-    //                        }
+                            //try
+                            //{
+                                  // DISPLAY WARNING INWORLD
+                            //  string text = "Warning:\n" + warning;
+                            //  if (text.Length > 1000)
+                            //      text = text.Substring(0, 1000);
+                            //  if (!ShowScriptSaveResponse(item.OwnerID,assetID, text, true))
+                            //  {
+                            //     if (presence != null && (!postOnRez))
+                            //       presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
+                            //
+                            //      World.SimChat(Utils.StringToBytes(text),
+                            //          ChatTypeEnum.DebugChannel, 2147483647,
+                            //          part.AbsolutePosition,
+                            //          part.Name, part.UUID, false);
+                            //  }
+                            //}
+                            //catch (Exception e2) // LEGIT: User Scripting
+                            //{
+                            //  m_log.Error("[XEngine]: " + "Error displaying warning in-world: " + e2.ToString());
+                            //  m_log.Error("[XEngine]: " + "Warning:\r\n" + warning);
+                            //}
                         }
                     }
                 }
                 catch (Exception e)
                 {
-//                    m_log.ErrorFormat(
-//                        "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}",
-//                        itemID, e.Message, e.StackTrace);
+                    //m_log.ErrorFormat(
+                    //      "[XEngine]: Exception when rezzing script with item ID {0}, {1}{2}",
+                    //      itemID, e.Message, e.StackTrace);
 
-    //                try
-    //                {
+                    //try
+                    //{
                         if (!m_ScriptErrors.ContainsKey(itemID))
                             m_ScriptErrors[itemID] = new ArrayList();
                         // DISPLAY ERROR INWORLD
-    //                    m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
-    //
+                        //m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
+
                         m_ScriptFailCount++;
                         m_ScriptErrors[itemID].Add(e.Message.ToString());
-    //                    string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
-    //                    if (text.Length > 1000)
-    //                        text = text.Substring(0, 1000);
-    //                    if (!ShowScriptSaveResponse(item.OwnerID,
-    //                            assetID, text, false))
-    //                    {
-    //                        if (presence != null && (!postOnRez))
-    //                            presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
-    //                        World.SimChat(Utils.StringToBytes(text),
-    //                                      ChatTypeEnum.DebugChannel, 2147483647,
-    //                                      part.AbsolutePosition,
-    //                                      part.Name, part.UUID, false);
-    //                    }
-    //                }
-    //                catch (Exception e2) // LEGIT: User Scripting
-    //                {
-    //                    m_log.Error("[XEngine]: "+
-    //                            "Error displaying error in-world: " +
-    //                            e2.ToString());
-    //                    m_log.Error("[XEngine]: " +
-    //                            "Errormessage: Error compiling script:\r\n" +
-    //                            e.Message.ToString());
-    //                }
+                        //string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
+                        //if (text.Length > 1000)
+                        //    text = text.Substring(0, 1000);
+                        //if (!ShowScriptSaveResponse(item.OwnerID,assetID, text, false))
+                        //{
+                        //  if (presence != null && (!postOnRez))
+                        //     presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
+                        //  World.SimChat(Utils.StringToBytes(text),
+                        //                  ChatTypeEnum.DebugChannel, 2147483647,
+                        //                  part.AbsolutePosition,
+                        //                  part.Name, part.UUID, false);
+                        //  }
+                        //}
+                        //catch (Exception e2) // LEGIT: User Scripting
+                        //{
+                        //  m_log.Error("[XEngine]: "+ "Error displaying error in-world: " + e2.ToString());
+                        //  m_log.Error("[XEngine]: " + "Errormessage: Error compiling script:\r\n" + e.Message.ToString());
+                        //}
 
                     lock (m_CompileDict)
                         m_CompileDict.Remove(itemID);
@@ -1866,7 +1856,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string path = Path.Combine(Directory.GetCurrentDirectory(),
                                            Path.Combine(s, assemblyName))+".dll";
 
-//                Console.WriteLine("[XEngine]: Trying to resolve {0}", path);
+                //Console.WriteLine("[XEngine]: Trying to resolve {0}", path);
 
                 if (File.Exists(path))
                     return Assembly.LoadFrom(path);

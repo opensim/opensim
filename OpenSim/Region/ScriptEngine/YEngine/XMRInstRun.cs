@@ -426,14 +426,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     CheckRunLockInvariants(true);
                     return XMRInstState.FINISHED;
                 }
-
-                 // If event handler completed, get rid of detect params.
-                if(this.eventCode == ScriptEventCode.None)
-                    m_DetectParams = null;
-
             }
             finally
             {
+                // If event handler completed, get rid of detect params.
+                if (eventCode == ScriptEventCode.None)
+                    m_DetectParams = null;
+
                 //m_RunOnePhase += "; checking exit invariants and unlocking";
                 CheckRunLockInvariants(false);
                 Monitor.Exit(m_RunLock);
@@ -910,9 +909,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             stateCode = 0;
             m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(0));
-            PostEvent(new EventParams("state_entry",
-                                      zeroObjectArray,
-                                      zeroDetectParams));
+            PostEvent(EventParams.StateEntryParams);
 
              // Tell CheckRun() to let script run.
             suspendOnCheckRunHold = false;
@@ -993,7 +990,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         break;
 
                     default:
+                    {
                         throw new Exception("callMode=" + callMode);
+                    }
                 }
 
                 //m_CheckRunPhase = "resumed";
@@ -1004,7 +1003,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Upon return from CheckRun() it should always be the case that the script is
              // going to process calls normally, neither saving nor restoring stack frame state.
             if(callMode != CallMode_NORMAL)
+            {
                 throw new Exception("bad callMode " + callMode);
+            }
         }
 
         /**

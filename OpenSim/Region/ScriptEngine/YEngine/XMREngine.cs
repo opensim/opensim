@@ -993,10 +993,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             XMRInstance instance = GetInstance(itemID);
             if(instance != null)
+            {
                 instance.Running = state;
+                if(instance.m_Item != null)
+                    instance.m_Item.ScriptRunning = instance.Running;
+            }
         }
 
-        // Control display of the "running" checkbox
         //
         public bool GetScriptState(UUID itemID)
         {
@@ -1145,8 +1148,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return false;
                 isX = true;
             }
-                // <ScriptState>...</ScriptState> contains contents of .state file.
-                XmlElement scriptStateN = (XmlElement)stateN.SelectSingleNode("ScriptState");
+
+            // <ScriptState>...</ScriptState> contains contents of .state file.
+            XmlElement scriptStateN = (XmlElement)stateN.SelectSingleNode("ScriptState");
             if(scriptStateN == null)
                 return false;
 

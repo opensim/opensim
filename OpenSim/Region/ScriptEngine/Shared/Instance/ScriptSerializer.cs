@@ -225,7 +225,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         instance.State=part.InnerText;
                         break;
                     case "Running":
-                        instance.Running=bool.Parse(part.InnerText);
+                        instance.Running = bool.Parse(part.InnerText);
                         break;
                     case "Variables":
                         XmlNodeList varL = part.ChildNodes;

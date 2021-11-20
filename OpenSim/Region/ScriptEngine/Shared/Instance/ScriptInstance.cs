@@ -264,9 +264,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             ExecutionTime = new MetricsCollectorTime(MeasurementWindow, 10);
 
-//            m_log.DebugFormat(
-//                "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
-//                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, m_AttachedAvatar, Engine.World.Name);
+            //m_log.DebugFormat(
+            //    "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
+            //    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, m_AttachedAvatar, Engine.World.Name);
         }
 
         /// <summary>
@@ -351,8 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                                LocalID, ItemID, ObjectID,
                                                                PluginData);
 
-                            // m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
-
+                            //m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
 
                             if (!Running)
                                 m_startOnInit = false;
@@ -372,12 +371,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         if (!StatePersistedHere)
                             RemoveState();
                     }
-                    //                    else
-                    //                    {
-                    //                        m_log.WarnFormat(
-                    //                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
-                    //                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
-                    //                    }
+                    //else
+                    //{
+                    //    m_log.WarnFormat(
+                    //       "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
+                    //       ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
+                    //}
                 }
                 catch (Exception e)
                 {
@@ -386,12 +385,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState, xml, e.Message, e.StackTrace);
                 }
             }
-            //            else
-            //            {
-            //                m_log.DebugFormat(
-            //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
-            //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
-            //            }
+            //else
+            //{
+            //    m_log.DebugFormat(
+            //       "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
+            //           ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
+            //}
             try
             {
                 Part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
@@ -1126,8 +1125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (m_CurrentEvent != "state_entry" || oldState != "default")
             {
                 m_SaveState = StatePersistedHere;
-                PostEvent(new EventParams("state_entry",
-                        new Object[0], new DetectParams[0]));
+                PostEvent(EventParams.StateEntryParams);
                 throw new EventAbortException();
             }
         }

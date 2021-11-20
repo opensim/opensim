@@ -370,9 +370,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 doGblInit = true;
                 stateCode = 0;
 
-                PostEvent(new EventParams("state_entry",
-                                          zeroObjectArray,
-                                          zeroDetectParams));
+                PostEvent(EventParams.StateEntryParams);
             }
             else
             {
@@ -403,52 +401,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     doGblInit = true;
                     stateCode = 0;
 
-                    PostEvent(new EventParams("state_entry",
-                                              zeroObjectArray,
-                                              zeroDetectParams));
+                    PostEvent(EventParams.StateEntryParams);
                 }
             }
 
              // Post event(s) saying what caused the script to start.
-            if(m_PostOnRez)
+            //if(m_Running)
             {
-                PostEvent(new EventParams("on_rez",
-                          new Object[] { m_StartParam },
-                          zeroDetectParams));
-            }
-
-            switch(m_StateSource)
-            {
-                case StateSource.AttachedRez:
-                    PostEvent(new EventParams("attach",
-                              new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
+                if(m_PostOnRez)
+                {
+                    PostEvent(new EventParams("on_rez",
+                              new object[] { m_StartParam },
                               zeroDetectParams));
-                    break;
+                }
 
-                case StateSource.PrimCrossing:
-                    PostEvent(new EventParams("changed",
-                              sbcCR,
-                              zeroDetectParams));
-                    break;
+                switch(m_StateSource)
+                {
+                    case StateSource.AttachedRez:
+                        PostEvent(new EventParams("attach",
+                                  new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
+                                  zeroDetectParams));
+                        break;
 
-                case StateSource.Teleporting:
-                    PostEvent(new EventParams("changed",
-                              sbcCRT,
-                              zeroDetectParams));
-                    break;
+                    case StateSource.PrimCrossing:
+                        PostEvent(changedEvent_CR);
+                        break;
 
-                case StateSource.RegionStart:
-                    PostEvent(new EventParams("changed",
-                              sbcCRS,
-                              zeroDetectParams));
-                    break;
+                    case StateSource.Teleporting:
+                        PostEvent(changedEvent_CRT);
+                        break;
+
+                    case StateSource.RegionStart:
+                        PostEvent(changedEvent_CRS);
+                        break;
+                }
             }
         }
 
-        private static Object[] sbcCRS = new Object[] { ScriptBaseClass.CHANGED_REGION_START };
-        private static Object[] sbcCR = new Object[] { ScriptBaseClass.CHANGED_REGION };
-        private static Object[] sbcCT = new Object[] { ScriptBaseClass.CHANGED_TELEPORT };
-        private static Object[] sbcCRT = new Object[] { ScriptBaseClass.CHANGED_REGION | ScriptBaseClass.CHANGED_TELEPORT };
+        private static EventParams changedEvent_CR = new EventParams("changed", new object[] { CHANGED_REGION }, zeroDetectParams);
+        private static EventParams changedEvent_CT = new EventParams("changed", new object[] { CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRT = new EventParams("changed", new object[] { CHANGED_REGION | CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRS = new EventParams("changed", new object[] { CHANGED_REGION_START }, zeroDetectParams);
 
         /**
          * @brief Save compilation error messages for later retrieval
