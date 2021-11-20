@@ -41,6 +41,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public enum StateSource
     {
+        None = -1,
         RegionStart = 0,
         NewRez = 1,
         PrimCrossing = 2,

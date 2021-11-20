@@ -2154,7 +2154,7 @@ namespace OpenSim.Region.Framework.Scenes
             taskItem.AssetID = asset.FullID;
 
             part.Inventory.AddInventoryItem(taskItem, false);
-            part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+            part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 1);
 
             part.ParentGroup.InvalidateEffectivePerms();
 
@@ -2205,6 +2205,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Group permissions
                 if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
+                    return;
+                if((srcPart.OwnerMask & (uint)PermissionMask.Transfer) == 0)
                     return;
             }
             else
@@ -2268,7 +2270,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (running > 0)
             {
-                destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 0);
+                destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 1);
             }
 
             destPart.ParentGroup.ResumeScripts();
