@@ -392,6 +392,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return new ArrayList();
             }
 
+            item.ScriptRunning = isScriptRunning;
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
@@ -399,10 +400,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
 //                asset.ID, item.Name, part.Name, remoteClient.Name);
 
-            if (isScriptRunning)
-            {
-                part.Inventory.RemoveScriptInstance(item.ItemID, false);
-            }
+            part.Inventory.RemoveScriptInstance(item.ItemID, false);
 
             // Update item with new asset
             item.AssetID = asset.FullID;
@@ -412,14 +410,8 @@ namespace OpenSim.Region.Framework.Scenes
             part.SendPropertiesToClient(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            ArrayList errors = new ArrayList();
-
-            if (isScriptRunning)
-            {
-                // Needs to determine which engine was running it and use that
-                //
-                errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
-            }
+            // Needs to determine which engine was running it and use that
+            ArrayList errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
 
             // Tell anyone managing scripts that a script has been reloaded/changed
             EventManager.TriggerUpdateScript(remoteClient.AgentId, itemId, primId, isScriptRunning, item.AssetID);
@@ -2265,13 +2257,11 @@ namespace OpenSim.Region.Framework.Scenes
             destTaskItem.Name = srcTaskItem.Name;
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
+            destTaskItem.ScriptRunning = running != 0;
 
             destPart.Inventory.AddInventoryItemExclusive(destTaskItem, false);
 
-            if (running > 0)
-            {
-                destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 1);
-            }
+            destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 1);
 
             destPart.ParentGroup.ResumeScripts();
 

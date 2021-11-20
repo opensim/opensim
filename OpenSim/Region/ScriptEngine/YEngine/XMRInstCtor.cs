@@ -363,7 +363,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(!File.Exists(m_StateFileName))
             {
-                m_Running = true;                  // event processing is enabled
                 eventCode = ScriptEventCode.None;  // not processing any event
 
                 // default state_entry() must initialize global variables
@@ -393,7 +392,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     File.Delete(m_StateFileName);
 
-                    m_Running = true;                  // event processing is enabled
                     eventCode = ScriptEventCode.None;  // not processing any event
 
                     // default state_entry() must initialize global variables
@@ -406,7 +404,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
              // Post event(s) saying what caused the script to start.
-            //if(m_Running)
+            if(m_Running)
             {
                 if(m_PostOnRez)
                 {
@@ -511,7 +509,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Get various attributes
             XmlElement runningN = (XmlElement)scriptStateN.SelectSingleNode("Running");
-            m_Running = bool.Parse(runningN.InnerText);
+            m_Running &= bool.Parse(runningN.InnerText);
 
             XmlElement doGblInitN = (XmlElement)scriptStateN.SelectSingleNode("DoGblInit");
             doGblInit = bool.Parse(doGblInitN.InnerText);

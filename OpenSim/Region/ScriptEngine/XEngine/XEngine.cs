@@ -1287,7 +1287,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // Create the object record
                 if ((!m_Scripts.ContainsKey(itemID)) || (m_Scripts[itemID].AssetID != assetID))
                 {
-
                     bool attachDomains = m_AttachmentsDomainLoading && part.ParentGroup.IsAttachmentCheckFull();
                     UUID appDomain = part.ParentGroup.RootPart.UUID;
 
@@ -1533,13 +1532,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             lock (m_CompileDict)
                 m_CompileDict.Remove(itemID);
 
-            bool runIt;
-            if (m_runFlags.TryGetValue(itemID, out runIt))
+            bool runIt = instance.ScriptTask.ScriptRunning;
+            if (m_runFlags.TryGetValue(itemID, out bool flagrunIt))
             {
-                if (!runIt)
-                    StopScript(itemID);
+                runIt &= flagrunIt;
                 m_runFlags.Remove(itemID);
             }
+
+            if (!runIt)
+                StopScript(itemID);
 
             return true;
         }
@@ -1880,8 +1881,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IScriptInstance instance = GetInstance(itemID);
             if (instance != null)
             {
+                if (instance.ScriptTask != null)
+                    instance.ScriptTask.ScriptRunning = running;
+
                 if (running)
-                        instance.Start();
+                {
+                    instance.Start();
+                }
                 else
                 {
                     if(self)
@@ -2256,82 +2262,81 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (World.m_trustBinaries)
             {
                 XmlNodeList assemL = rootE.GetElementsByTagName("Assembly");
-
-                if (assemL.Count != 1)
-                    return false;
-
-                XmlElement assemE = (XmlElement)assemL[0];
-
-                string fn = assemE.GetAttribute("Filename");
-                string base64 = assemE.InnerText;
-
-                string path = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                path = Path.Combine(path, fn);
-
-                if (!File.Exists(path))
+                if (assemL.Count > 0)
                 {
-                    Byte[] filedata = Convert.FromBase64String(base64);
+                    XmlElement assemE = (XmlElement)assemL[0];
 
-                    try
+                    string fn = assemE.GetAttribute("Filename");
+                    string base64 = assemE.InnerText;
+
+                    string path = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                    path = Path.Combine(path, fn);
+
+                    if (!File.Exists(path))
                     {
-                        using (FileStream fs = File.Create(path))
+                        Byte[] filedata = Convert.FromBase64String(base64);
+
+                        try
                         {
-//                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
-
-                            fs.Write(filedata, 0, filedata.Length);
-                        }
-                    }
-                    catch (IOException ex)
-                    {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
-                    }
-
-                    string textpath = path + ".text";
-                    try
-                    {
-                        using (FileStream fs = File.Create(textpath))
-                        {
-                            using (StreamWriter sw = new StreamWriter(fs))
+                            using (FileStream fs = File.Create(path))
                             {
-//                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+    //                            m_log.DebugFormat("[XEngine]: Writing assembly file {0}", path);
 
-                                sw.Write(base64);
+                                fs.Write(filedata, 0, filedata.Length);
                             }
                         }
-                    }
-                    catch (IOException ex)
-                    {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
-                    }
-                }
-
-                XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
-                if (mapL.Count > 0)
-                {
-                    XmlElement mapE = (XmlElement)mapL[0];
-
-                    string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
-                    mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
-
-                    try
-                    {
-                        using (FileStream mfs = File.Create(mappath))
+                        catch (IOException ex)
                         {
-                            using (StreamWriter msw = new StreamWriter(mfs))
-                            {
-    //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.ErrorFormat("[XEngine]: Error whilst writing assembly file {0}, {1}", path, ex.Message);
+                        }
 
-                                msw.Write(mapE.InnerText);
+                        string textpath = path + ".text";
+                        try
+                        {
+                            using (FileStream fs = File.Create(textpath))
+                            {
+                                using (StreamWriter sw = new StreamWriter(fs))
+                                {
+    //                                m_log.DebugFormat("[XEngine]: Writing .text file {0}", textpath);
+
+                                    sw.Write(base64);
+                                }
                             }
                         }
+                        catch (IOException ex)
+                        {
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.ErrorFormat("[XEngine]: Error whilst writing .text file {0}, {1}", textpath, ex.Message);
+                        }
                     }
-                    catch (IOException ex)
+
+                    XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
+                    if (mapL.Count > 0)
                     {
-                        // if there already exists a file at that location, it may be locked.
-                        m_log.Error(
-                            string.Format("[XEngine]: Linemap file {0} could not be written.  Exception  ", mappath), ex);
+                        XmlElement mapE = (XmlElement)mapL[0];
+
+                        string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
+                        mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+
+                        try
+                        {
+                            using (FileStream mfs = File.Create(mappath))
+                            {
+                                using (StreamWriter msw = new StreamWriter(mfs))
+                                {
+        //                            m_log.DebugFormat("[XEngine]: Writing linemap file {0}", mappath);
+
+                                    msw.Write(mapE.InnerText);
+                                }
+                            }
+                        }
+                        catch (IOException ex)
+                        {
+                            // if there already exists a file at that location, it may be locked.
+                            m_log.Error(
+                                string.Format("[XEngine]: Linemap file {0} could not be written.  Exception  ", mappath), ex);
+                        }
                     }
                 }
             }

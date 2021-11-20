@@ -316,7 +316,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
-            //            m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
+            //m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
 
             GatheredUuids[uuid] = type; 
             return true;
