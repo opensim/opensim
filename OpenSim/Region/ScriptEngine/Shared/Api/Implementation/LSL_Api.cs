@@ -8168,19 +8168,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Error("llRemoteLoadScriptPin", "Can't find script '" + name + "'");
                 return;
             }
-
-            SceneObjectPart dest = World.GetSceneObjectPart(destId);
-            if (dest != null)
+            if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
             {
-                if ((item.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
-                {
-                    // the rest of the permission checks are done in RezScript, so check the pin there as well
-                    World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
-
-                    if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
-                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
-                }
+                Error("llRemoteLoadScriptPin", "No copy rights");
+                return;
             }
+
+            // the rest of the permission checks are done in RezScript, so check the pin there as well
+            World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
+
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(m_sleepMsOnRemoteLoadScriptPin);
         }
