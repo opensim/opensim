@@ -140,62 +140,62 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         return;
                     m_EventCounts[(int)evc]++;
                     m_EventQueue.AddLast(new LinkedListNode<EventParams>(evt));
-                    return;
                 }
+                else
+                {
+                    if (m_EventCounts[(int)evc] >= MAXEVENTQUEUE)
+                        return;
 
-                if (m_EventCounts[(int)evc] >= MAXEVENTQUEUE)
-                    return;
-
-                m_EventCounts[(int)evc]++;
+                    m_EventCounts[(int)evc]++;
 
                     LinkedListNode<EventParams> lln = new LinkedListNode<EventParams>(evt);
-                switch (evc)
-                {
-                     // These need to go first.  The only time we manually
-                     // queue them is for the default state_entry() and we
-                     // need to make sure they go before any attach() events
-                     // so the heapLimit value gets properly initialized.
-                    case ScriptEventCode.state_entry:
-                        m_EventQueue.AddFirst(lln);
-                        break;
+                    switch (evc)
+                    {
+                         // These need to go first.  The only time we manually
+                         // queue them is for the default state_entry() and we
+                         // need to make sure they go before any attach() events
+                         // so the heapLimit value gets properly initialized.
+                        case ScriptEventCode.state_entry:
+                            m_EventQueue.AddFirst(lln);
+                            break;
 
-                     // The attach event sneaks to the front of the queue.
-                     // This is needed for quantum limiting to work because
-                     // we want the attach(NULL_KEY) event to come in front
-                     // of all others so the m_DetachQuantum won't run out
-                     // before attach(NULL_KEY) is executed.
-                    case ScriptEventCode.attach:
-                        if (evt.Params[0].ToString() == UUID.Zero.ToString())
-                        {
-                            LinkedListNode<EventParams> lln2 = null;
-                            for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                         // The attach event sneaks to the front of the queue.
+                         // This is needed for quantum limiting to work because
+                         // we want the attach(NULL_KEY) event to come in front
+                         // of all others so the m_DetachQuantum won't run out
+                         // before attach(NULL_KEY) is executed.
+                        case ScriptEventCode.attach:
+                            if (evt.Params[0].ToString() == UUID.Zero.ToString())
                             {
-                                EventParams evt2 = lln2.Value;
-                                m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
-                                if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
-                                    break;
+                                LinkedListNode<EventParams> lln2 = null;
+                                for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                                {
+                                    EventParams evt2 = lln2.Value;
+                                    m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
+                                    if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
+                                        break;
+                                }
+                                if(lln2 == null)
+                                    m_EventQueue.AddLast(lln);
+                                else
+                                    m_EventQueue.AddBefore(lln2, lln);
+
+                                    // If we're detaching, limit the qantum. This will also
+                                    // cause the script to self-suspend after running this
+                                    // event
+                                m_DetachReady.Reset();
+                                m_DetachQuantum = 100;
                             }
-                            if(lln2 == null)
-                                m_EventQueue.AddLast(lln);
                             else
-                                m_EventQueue.AddBefore(lln2, lln);
+                                m_EventQueue.AddLast(lln);
+                            break;
 
-                                // If we're detaching, limit the qantum. This will also
-                                // cause the script to self-suspend after running this
-                                // event
-                            m_DetachReady.Reset();
-                            m_DetachQuantum = 100;
-                        }
-                        else
+                        // All others just go on end in the order queued.
+                        default:
                             m_EventQueue.AddLast(lln);
-                        break;
-
-                    // All others just go on end in the order queued.
-                    default:
-                        m_EventQueue.AddLast(lln);
-                        break;
+                            break;
+                    }
                 }
-
                  // If instance is idle (ie, not running or waiting to run),
                  // flag it to be on m_StartQueue as we are about to do so.
                  // Flag it now before unlocking so another thread won't try
