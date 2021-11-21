@@ -46,17 +46,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public DateTime m_LastRanAt = DateTime.MinValue;
         public long m_ScriptExecTime = 0;
 
-        [ThreadStatic]
-        private static int m_ScriptThreadTID;
-
-        public static bool IsScriptThread
-        {
-            get
-            {
-                return m_ScriptThreadTID != 0;
-            }
-        }
-
         public void StartThreadWorker(int i, ThreadPriority priority, string sceneName)
         {
             Thread thd;
@@ -125,7 +114,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             XMRInstance inst;
 
             bool didevent;
-            m_ScriptThreadTID = tid;
 
             while(!m_Exiting)
             {
