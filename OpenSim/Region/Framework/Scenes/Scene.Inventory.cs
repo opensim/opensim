@@ -2444,23 +2444,24 @@ namespace OpenSim.Region.Framework.Scenes
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
                 grp.AbsolutePosition = originalPosition;
+                SceneObjectPart grpRootPart = grp.RootPart;
 
                 AssetBase asset = CreateAsset(
-                    grp.GetPartName(grp.LocalId),
-                    grp.GetPartDescription(grp.LocalId),
+                    grpRootPart.Name,
+                    grpRootPart.Description,
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml),
                     remoteClient.AgentId);
                 AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = grp.RootPart.CreatorID.ToString();
-                item.CreatorData = grp.RootPart.CreatorData;
+                item.CreatorId = grpRootPart.CreatorID.ToString();
+                item.CreatorData = grpRootPart.CreatorData;
                 item.Owner = remoteClient.AgentId;
                 item.ID = UUID.Random();
                 item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
+                item.Description = grpRootPart.Description;
+                item.Name = grpRootPart.Name;
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
 
@@ -2472,27 +2473,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Set up base perms properly
                 uint permsBase = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify);
-                permsBase &= grp.RootPart.BaseMask;
+                permsBase &= grpRootPart.BaseMask;
                 permsBase |= (uint)PermissionMask.Move;
 
                 // Make sure we don't lock it
-                grp.RootPart.NextOwnerMask |= (uint)PermissionMask.Move;
+                grpRootPart.NextOwnerMask |= (uint)PermissionMask.Move;
 
-                if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
+                if ((remoteClient.AgentId != grpRootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
-                    item.BasePermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.CurrentPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
-                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
+                    item.BasePermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.CurrentPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.NextPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grpRootPart.EveryoneMask & grpRootPart.NextOwnerMask;
+                    item.GroupPermissions = permsBase & grpRootPart.GroupMask & grpRootPart.NextOwnerMask;
                 }
                 else
                 {
                     item.BasePermissions = permsBase;
-                    item.CurrentPermissions = permsBase & grp.RootPart.OwnerMask;
-                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
-                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
+                    item.CurrentPermissions = permsBase & grpRootPart.OwnerMask;
+                    item.NextPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grpRootPart.EveryoneMask;
+                    item.GroupPermissions = permsBase & grpRootPart.GroupMask;
                 }
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
