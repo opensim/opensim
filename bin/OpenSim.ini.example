@@ -856,15 +856,6 @@
     ; strength = 1.0
 
 
-[LightShare]
-    ;# {enable_windlight} {} {Enable LightShare technology?} {true false} false
-    ;; This enables the transmission of Windlight scenes to supporting clients,
-    ;; such as the Meta7 viewer.
-    ;; It has no ill effect on viewers which do not support server-side
-    ;; windlight settings.
-    ; enable_windlight = false
-
-
 [Materials]
     ;# {enable_materials} {} {Enable Materials support?} {true false} true
     ;; This enables the use of Materials.
