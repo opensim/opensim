@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Runtime.InteropServices;
 
 using OpenSim.Framework;
 
@@ -127,38 +124,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public bool Enqueue(int pqueue, EntityUpdate value)
         {
-            ulong entry;
-            EntityUpdate existentup;
-
             uint localid = value.Entity.LocalId;
             try
             {
-                if (m_lookupTable.TryGetValue(localid, out existentup))
+                lock (m_mainLock)
                 {
-                    int eqqueue = existentup.PriorityQueue;
-
-                    existentup.UpdateFromNew(value, pqueue);
-                    value.Free();
-
-                    if (pqueue != eqqueue)
+                    if (m_lookupTable.TryGetValue(localid, out EntityUpdate existentup))
                     {
-                        lock (m_mainLock)
+                        int eqqueue = existentup.PriorityQueue;
+
+                        existentup.UpdateFromNew(value, pqueue);
+                        value.Free();
+
+                        if (pqueue != eqqueue)
                         {
                             m_heaps[eqqueue].RemoveAt(existentup.PriorityQueueIndex);
                             m_heaps[pqueue].Add(existentup);
                         }
+                        return true;
                     }
-                    return true;
-                }
 
-                lock (m_mainLock)
-                {
-                    entry = m_nextRequest++;
+                    ulong entry = m_nextRequest++;
                     value.Update(pqueue, entry);
 
                     m_heaps[pqueue].Add(value);
+                    m_lookupTable[localid] = value;
                 }
-                m_lookupTable[localid] = value;
                 return true;
             }
             catch
@@ -171,14 +162,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                EntityUpdate lookup;
-                foreach (uint localid in ids)
+                lock (m_mainLock)
                 {
-                    if (m_lookupTable.TryRemove(localid, out lookup))
+                    foreach (uint localid in ids)
                     {
-                        lock(m_mainLock)
+                        if (m_lookupTable.TryRemove(localid, out EntityUpdate lookup))
+                        {
                             m_heaps[lookup.PriorityQueue].RemoveAt(lookup.PriorityQueueIndex);
-                        lookup.Free();
+                            lookup.Free();
+                        }
                     }
                 }
             }
@@ -284,25 +276,25 @@ namespace OpenSim.Region.Framework.Scenes
             int pqueue = 0;
             try
             {
-                foreach (EntityUpdate currentEU in m_lookupTable.Values)
+                lock (m_mainLock)
                 {
-                    if (handler(ref pqueue, currentEU.Entity))
+                    foreach (EntityUpdate currentEU in m_lookupTable.Values)
                     {
-                        // unless the priority queue has changed, there is no need to modify
-                        // the entry
-                        if (pqueue != currentEU.PriorityQueue)
+                        if (handler(ref pqueue, currentEU.Entity))
                         {
-                            lock(m_mainLock)
+                            // unless the priority queue has changed, there is no need to modify
+                            // the entry
+                            if (pqueue != currentEU.PriorityQueue)
                             {
                                 m_heaps[currentEU.PriorityQueue].RemoveAt(currentEU.PriorityQueueIndex);
                                 currentEU.PriorityQueue = pqueue;
                                 m_heaps[pqueue].Add(currentEU);
                             }
                         }
-                    }
-                    else
-                    {
-                        break;
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
             }
