@@ -475,7 +475,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Stop()
         {
             StopTimer();
-            bool running = m_running
+            bool running = m_running;
             m_running = false;
             m_isCrossing = false;
             m_waitingCrossing = false;
@@ -495,7 +495,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Pause()
         {
             StopTimer();
-            bool running = m_running
+            bool running = m_running;
             m_running = false;
 
             m_group.RootPart.Velocity = Vector3.Zero;
