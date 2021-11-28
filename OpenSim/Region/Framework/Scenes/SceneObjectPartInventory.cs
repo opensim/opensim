@@ -530,10 +530,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                 m_part.LocalId, itemID, script, startParam, postOnRez, engine, stateSource);
             StoreScriptErrors(itemID, null);
-            if (!item.ScriptRunning)
-                m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, itemID);
-            m_part.ParentGroup.AddActiveScriptCount(1);
-            m_part.ScheduleFullUpdate();
+            //if (item.ScriptRunning)
+                m_part.ParentGroup.AddActiveScriptCount(1);
 
             return true;
         }

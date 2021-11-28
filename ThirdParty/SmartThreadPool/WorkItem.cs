@@ -248,10 +248,7 @@ namespace Amib.Threading.Internal
             _workItemCompletedRefCount = 0;
             _waitingOnQueueStopwatch = new Stopwatch();
             _processingStopwatch = new Stopwatch();
-            _expirationTime =
-                _workItemInfo.Timeout > 0 ?
-                DateTime.UtcNow.Ticks + _workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :
-                long.MaxValue;
+            _expirationTime = _workItemInfo.Timeout > 0 ? DateTime.UtcNow.Ticks + _workItemInfo.Timeout * TimeSpan.TicksPerMillisecond :  long.MaxValue;
         }
 
         internal bool WasQueuedBy(IWorkItemsGroup workItemsGroup)
@@ -653,24 +650,18 @@ namespace Amib.Threading.Internal
                 {
                     return _workItemState;
                 }
-
-                long nowTicks = DateTime.UtcNow.Ticks;
-
-                if (WorkItemState.Canceled != _workItemState && nowTicks > _expirationTime)
+                if (WorkItemState.Canceled != _workItemState && DateTime.UtcNow.Ticks > _expirationTime)
                 {
                     _workItemState = WorkItemState.Canceled;
-                }
-
-                if (WorkItemState.InProgress == _workItemState)
-                {
                     return _workItemState;
                 }
-
-                if (CanceledSmartThreadPool.IsCanceled || CanceledWorkItemsGroup.IsCanceled)
+                if(WorkItemState.InProgress != _workItemState)
                 {
-                    return WorkItemState.Canceled;
+                    if (CanceledSmartThreadPool.IsCanceled || CanceledWorkItemsGroup.IsCanceled)
+                    {
+                        return WorkItemState.Canceled;
+                    }
                 }
-
                 return _workItemState;
             }
         }

@@ -501,8 +501,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <returns>boolean</returns>
         LSL_Integer osRegexIsMatch(string input, string pattern);
 
-        LSL_String osRequestURL(LSL_List options);
-        LSL_String osRequestSecureURL(LSL_List options);
+        LSL_Key osRequestURL(LSL_List options);
+        LSL_Key osRequestSecureURL(LSL_List options);
         void osCollisionSound(string impact_sound, double impact_volume);
 
         void osVolumeDetect(int detect);

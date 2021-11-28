@@ -97,3 +97,14 @@ alter table assets add "creatorid" varchar(36) not null default '';
 
 BEGIN TRANSACTION;
 COMMIT;
+
+:VERSION 9
+
+BEGIN TRANSACTION;
+
+--# "creatorID" goes up to VARCHAR(128)
+
+alter table assets
+  alter column "creatorID" type varchar(128);
+
+Commit;

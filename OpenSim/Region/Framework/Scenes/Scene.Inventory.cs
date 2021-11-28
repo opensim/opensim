@@ -392,6 +392,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return new ArrayList();
             }
 
+            item.ScriptRunning = isScriptRunning;
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
@@ -399,10 +400,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[PRIM INVENTORY]: Stored asset {0} when updating item {1} in prim {2} for {3}",
 //                asset.ID, item.Name, part.Name, remoteClient.Name);
 
-            if (isScriptRunning)
-            {
-                part.Inventory.RemoveScriptInstance(item.ItemID, false);
-            }
+            part.Inventory.RemoveScriptInstance(item.ItemID, false);
 
             // Update item with new asset
             item.AssetID = asset.FullID;
@@ -412,14 +410,8 @@ namespace OpenSim.Region.Framework.Scenes
             part.SendPropertiesToClient(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
-            ArrayList errors = new ArrayList();
-
-            if (isScriptRunning)
-            {
-                // Needs to determine which engine was running it and use that
-                //
-                errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
-            }
+            // Needs to determine which engine was running it and use that
+            ArrayList errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 1);
 
             // Tell anyone managing scripts that a script has been reloaded/changed
             EventManager.TriggerUpdateScript(remoteClient.AgentId, itemId, primId, isScriptRunning, item.AssetID);
@@ -2154,7 +2146,7 @@ namespace OpenSim.Region.Framework.Scenes
             taskItem.AssetID = asset.FullID;
 
             part.Inventory.AddInventoryItem(taskItem, false);
-            part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+            part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 1);
 
             part.ParentGroup.InvalidateEffectivePerms();
 
@@ -2205,6 +2197,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Group permissions
                 if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
+                    return;
+                if((srcPart.OwnerMask & (uint)PermissionMask.Transfer) == 0)
                     return;
             }
             else
@@ -2263,13 +2257,11 @@ namespace OpenSim.Region.Framework.Scenes
             destTaskItem.Name = srcTaskItem.Name;
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
+            destTaskItem.ScriptRunning = running != 0;
 
             destPart.Inventory.AddInventoryItemExclusive(destTaskItem, false);
 
-            if (running > 0)
-            {
-                destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 0);
-            }
+            destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 1);
 
             destPart.ParentGroup.ResumeScripts();
 
@@ -2452,23 +2444,24 @@ namespace OpenSim.Region.Framework.Scenes
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
                 grp.AbsolutePosition = originalPosition;
+                SceneObjectPart grpRootPart = grp.RootPart;
 
                 AssetBase asset = CreateAsset(
-                    grp.GetPartName(grp.LocalId),
-                    grp.GetPartDescription(grp.LocalId),
+                    grpRootPart.Name,
+                    grpRootPart.Description,
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml),
                     remoteClient.AgentId);
                 AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = grp.RootPart.CreatorID.ToString();
-                item.CreatorData = grp.RootPart.CreatorData;
+                item.CreatorId = grpRootPart.CreatorID.ToString();
+                item.CreatorData = grpRootPart.CreatorData;
                 item.Owner = remoteClient.AgentId;
                 item.ID = UUID.Random();
                 item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
+                item.Description = grpRootPart.Description;
+                item.Name = grpRootPart.Name;
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
 
@@ -2480,27 +2473,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Set up base perms properly
                 uint permsBase = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify);
-                permsBase &= grp.RootPart.BaseMask;
+                permsBase &= grpRootPart.BaseMask;
                 permsBase |= (uint)PermissionMask.Move;
 
                 // Make sure we don't lock it
-                grp.RootPart.NextOwnerMask |= (uint)PermissionMask.Move;
+                grpRootPart.NextOwnerMask |= (uint)PermissionMask.Move;
 
-                if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
+                if ((remoteClient.AgentId != grpRootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
-                    item.BasePermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.CurrentPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
-                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
+                    item.BasePermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.CurrentPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.NextPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grpRootPart.EveryoneMask & grpRootPart.NextOwnerMask;
+                    item.GroupPermissions = permsBase & grpRootPart.GroupMask & grpRootPart.NextOwnerMask;
                 }
                 else
                 {
                     item.BasePermissions = permsBase;
-                    item.CurrentPermissions = permsBase & grp.RootPart.OwnerMask;
-                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
-                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
+                    item.CurrentPermissions = permsBase & grpRootPart.OwnerMask;
+                    item.NextPermissions = permsBase & grpRootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grpRootPart.EveryoneMask;
+                    item.GroupPermissions = permsBase & grpRootPart.GroupMask;
                 }
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
@@ -2849,7 +2842,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(humanRez)
                     group.ResumeScripts();
 
-                group.ScheduleGroupForFullUpdate();
+                group.ScheduleGroupForFullAnimUpdate();
             }
 
             return objlist;

@@ -2246,10 +2246,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //  m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, id, regionHandle);
 
             // remove pending entities to reduce looping chances.
-            lock (m_entityProps.SyncRoot)
-                m_entityProps.Remove(localIDs);
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Remove(localIDs);
+            m_entityProps.Remove(localIDs);
+            m_entityUpdates.Remove(localIDs);
 
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
 
@@ -3588,8 +3586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (req.AssetInf == null)
             {
-                m_log.ErrorFormat("{0} Cannot send asset {1} ({2}), asset is null",
-                                LogHeader);
+                m_log.ErrorFormat("{0} Cannot send asset, because it is null", LogHeader);
                 return;
             }
 
@@ -4780,18 +4777,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if((updateFlags ^ PrimUpdateFlags.SendInTransit) == 0)
                 {
                     List<uint> partIDs = (new List<uint> {p.LocalId});
-                    lock (m_entityProps.SyncRoot)
-                        m_entityProps.Remove(partIDs);
-                    lock (m_entityUpdates.SyncRoot)
-                        m_entityUpdates.Remove(partIDs);
+                    m_entityProps.Remove(partIDs);
+                    m_entityUpdates.Remove(partIDs);
                     return;
                 }
             }
 
             int priority = m_prioritizer.GetUpdatePriority(this, entity);
-
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, EntityUpdatesPool.Get(entity, updateFlags));
+            m_entityUpdates.Enqueue(priority, EntityUpdatesPool.Get(entity, updateFlags));
         }
 
         /// <summary>
@@ -4805,9 +4798,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If the update exists in priority queue, it will be updated.
             // If it does not exist then it will be added with the current (rather than its original) priority
             int priority = m_prioritizer.GetUpdatePriority(this, update.Entity);
-
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, update);
+            m_entityUpdates.Enqueue(priority, update);
         }
 
         /// <summary>
@@ -4917,18 +4908,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!IsActive)
                     return;
 
-                lock (m_entityUpdates.SyncRoot)
+                if(orderedDequeue)
                 {
-                    if(orderedDequeue)
-                    {
-                        if (!m_entityUpdates.TryOrderedDequeue(out update))
-                            break;
-                    }
-                    else
-                    {
-                        if (!m_entityUpdates.TryDequeue(out update))
-                            break;
-                    }
+                    if (!m_entityUpdates.TryOrderedDequeue(out update))
+                        break;
+                }
+                else
+                {
+                    if (!m_entityUpdates.TryDequeue(out update))
+                        break;
                 }
 
                 PrimUpdateFlags updateFlags = update.Flags;
@@ -5702,8 +5690,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 */
         public void ReprioritizeUpdates()
         {
-            lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Reprioritize(UpdatePriorityHandler);
+            m_entityUpdates.Reprioritize(UpdatePriorityHandler);
             CheckGroupsInView();
         }
 
@@ -5796,10 +5783,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 kills.Clear();
                 if(partIDs.Count > 0)
                 {
-                    lock (m_entityProps.SyncRoot)
-                        m_entityProps.Remove(partIDs);
-                    lock (m_entityUpdates.SyncRoot)
-                        m_entityUpdates.Remove(partIDs);
+                    m_entityProps.Remove(partIDs);
+                    m_entityUpdates.Remove(partIDs);
                 }
             }
 
@@ -6030,17 +6015,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
-
         public void SendObjectPropertiesFamilyData(ISceneEntity entity, uint requestFlags)
         {
-            lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity, (PrimUpdateFlags)requestFlags, true, false));
+            m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity, (PrimUpdateFlags)requestFlags, true, false));
         }
 
         private void ResendPropertyUpdate(EntityUpdate update)
         {
-            lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(0, update);
+            m_entityProps.Enqueue(0, update);
         }
 
         private void ResendPropertyUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
@@ -6065,8 +6047,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendObjectPropertiesReply(ISceneEntity entity)
         {
-            lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity,0,false,true));
+            m_entityProps.Enqueue(0, EntityUpdatesPool.Get(entity,0,false,true));
         }
 
         static private readonly byte[] ObjectPropertyUpdateHeader = new byte[] {
@@ -6096,18 +6077,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (maxUpdateBytes > 0)
             {
-                lock (m_entityProps.SyncRoot)
+                if(orderedDequeue)
                 {
-                    if(orderedDequeue)
-                    {
-                        if (!m_entityProps.TryOrderedDequeue(out update))
-                            break;
-                    }
-                    else
-                    {
-                        if (!m_entityProps.TryDequeue(out update))
-                            break;
-                    }
+                    if (!m_entityProps.TryOrderedDequeue(out update))
+                        break;
+                }
+                else
+                {
+                    if (!m_entityProps.TryDequeue(out update))
+                        break;
                 }
 
                 if (update.PropsFlags == 0)

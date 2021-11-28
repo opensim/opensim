@@ -72,10 +72,10 @@ namespace OpenSim.Services.HypergridService
 
         private static OSHHTPHost m_gatekeeperHost;
         private static string m_gatekeeperURL;
-        private HashSet<OSHHTPHost> m_gateKeeperAlias;
+        private static HashSet<OSHHTPHost> m_gateKeeperAlias;
 
         private static GridRegion m_DefaultGatewayRegion;
-        private bool m_allowDuplicatePresences = false;
+        private static bool m_allowDuplicatePresences = false;
         private static string m_messageKey;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)

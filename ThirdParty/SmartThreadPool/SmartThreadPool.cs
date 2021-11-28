@@ -291,9 +291,6 @@ namespace Amib.Threading
         /// </summary>
         private ISTPInstancePerformanceCounters _localPCs = NullSTPInstancePerformanceCounters.Instance;
 
-        [ThreadStatic]
-        private static ThreadEntry _threadEntry;
-
         /// <summary>
         /// An event to call after a thread is created, but before 
         /// it's first use.
@@ -308,23 +305,15 @@ namespace Amib.Threading
 
         #endregion
 
-        #region Per thread properties
+        #region Per thread
 
         /// <summary>
         /// A reference to the current work item a thread from the thread pool 
         /// is executing.
         /// </summary>
-        internal static ThreadEntry CurrentThreadEntry
-        {
-            get
-            {
-                return _threadEntry;
-            }
-            set
-            {
-                _threadEntry = value;
-            }
-        }
+        [ThreadStatic]
+        internal static ThreadEntry CurrentThreadEntry;
+
         #endregion
 
         #region Construction and Finalization
@@ -826,6 +815,7 @@ namespace Amib.Threading
                     InformCompleted();
                 FireOnThreadTermination();
                 _workItemsQueue.CloseThreadWaiter();
+                CurrentThreadEntry = null;
             }
         }
 
@@ -860,19 +850,8 @@ namespace Amib.Threading
 
         internal static void ValidateWorkItemsGroupWaitForIdle(IWorkItemsGroup workItemsGroup)
         {
-            if (null == CurrentThreadEntry)
-            {
-                return;
-            }
-
-            WorkItem workItem = CurrentThreadEntry.CurrentWorkItem;
-            ValidateWorkItemsGroupWaitForIdleImpl(workItemsGroup, workItem);
-            if ((null != workItemsGroup) &&
-                (null != workItem) &&
-                CurrentThreadEntry.CurrentWorkItem.WasQueuedBy(workItemsGroup))
-            {
-                throw new NotSupportedException("WaitForIdle cannot be called from a thread on its SmartThreadPool, it causes a deadlock");
-            }
+            if (CurrentThreadEntry != null)
+                ValidateWorkItemsGroupWaitForIdleImpl(workItemsGroup, CurrentThreadEntry.CurrentWorkItem);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

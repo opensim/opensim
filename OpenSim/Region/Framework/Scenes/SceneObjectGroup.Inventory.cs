@@ -78,8 +78,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
-                    scriptsStarted
-                        += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
+                    scriptsStarted += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
             }
 
             return scriptsStarted;

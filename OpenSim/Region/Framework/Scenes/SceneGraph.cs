@@ -467,9 +467,9 @@ namespace OpenSim.Region.Framework.Scenes
                     part = parts[i];
                     Vector3 scale = part.Shape.Scale;
 
-                    scale.X = Util.Clamp(scale.X, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
-                    scale.Y = Util.Clamp(scale.Y, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
-                    scale.Z = Util.Clamp(scale.Z, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
+                    scale.X = Utils.Clamp(scale.X, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
+                    scale.Y = Utils.Clamp(scale.Y, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
+                    scale.Z = Utils.Clamp(scale.Z, m_parentScene.m_minNonphys, m_parentScene.m_maxNonphys);
 
                     part.Shape.Scale = scale;
                 }

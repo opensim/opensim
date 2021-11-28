@@ -401,11 +401,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     else
                     {
-                        if(m_IState == XMRInstState.ONSLEEPQ)
+                        if (m_IState == XMRInstState.ONSLEEPQ)
                         {
                             m_Engine.RemoveFromSleep(this);
                             m_IState = XMRInstState.SUSPENDED;
                         }
+                        else if (m_IState == XMRInstState.IDLE)
+                            m_IState = XMRInstState.SUSPENDED;
+
                         EmptyEventQueues();
                     }
                 }

@@ -3698,15 +3698,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCollisionFilter(LSL_String name, LSL_Key id, LSL_Integer accept)
         {
-            m_host.CollisionFilter.Clear();
-
-            if (!UUID.TryParse(id, out UUID objectID))
-                return;
-
-            if (objectID == UUID.Zero && name == "")
-                return;
-
-            m_host.CollisionFilter.Add(accept, objectID.ToString() + name);
+            UUID.TryParse(id, out UUID objectID);
+            if(objectID == UUID.Zero)
+                m_host.SetCollisionFilter(accept != 0, name.m_string.ToLower(System.Globalization.CultureInfo.InvariantCulture), string.Empty);
+            else
+                m_host.SetCollisionFilter(accept != 0, name.m_string.ToLower(System.Globalization.CultureInfo.InvariantCulture), objectID.ToString());
         }
 
         public void llTakeControls(int controls, int accept, int pass_on)
@@ -4233,11 +4229,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void TargetOmega(SceneObjectPart part, LSL_Vector axis, double spinrate, double gain)
         {
-            PhysicsActor pa = part.PhysActor;
-            if ( ( pa == null || !pa.IsPhysical ) && gain == 0.0d )
-                spinrate = 0.0d;
-            part.UpdateAngularVelocity(axis * spinrate);
-         }
+            if(gain == 0)
+            {
+                part.UpdateAngularVelocity(Vector3.Zero);
+                part.ScheduleFullAnimUpdate();
+            }
+            else
+                part.UpdateAngularVelocity(axis * spinrate);
+        }
 
         public LSL_Integer llGetStartParameter()
         {
@@ -8169,19 +8168,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Error("llRemoteLoadScriptPin", "Can't find script '" + name + "'");
                 return;
             }
-
-            SceneObjectPart dest = World.GetSceneObjectPart(destId);
-            if (dest != null)
+            if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
             {
-                if ((item.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
-                {
-                    // the rest of the permission checks are done in RezScript, so check the pin there as well
-                    World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
-
-                    if ((item.BasePermissions & (uint)PermissionMask.Copy) == 0)
-                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
-                }
+                Error("llRemoteLoadScriptPin", "No copy rights");
+                return;
             }
+
+            // the rest of the permission checks are done in RezScript, so check the pin there as well
+            World.RezScriptFromPrim(item.ItemID, m_host, destId, pin, running, start_param);
+
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(m_sleepMsOnRemoteLoadScriptPin);
         }
