@@ -353,7 +353,6 @@ namespace OpenSim
             if (startupConfig == null || startupConfig.GetBoolean("JobEngineEnabled", true))
                 WorkManager.JobEngine.Start();
 
-           
             if(m_networkServersInfo.HttpUsesSSL)
             {
                 m_httpServerSSL = true;
@@ -449,6 +448,7 @@ namespace OpenSim
             Scene scene = SetupScene(regionInfo, proxyOffset, Config);
 
             m_log.Info("[REGIONMODULES]: Loading Region's modules");
+
             if (controller != null)
                 controller.AddRegionToModules(scene);
 

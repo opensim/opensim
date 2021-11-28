@@ -6724,7 +6724,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(val is int)
                             nval = (char)(int)val;
                     }
-                    if(castTo is TokenTypeFloat)
+                    else if (castTo is TokenTypeFloat)
                     {
                         if(val is double)
                             return rVal;
@@ -6733,7 +6733,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(val is string)
                             nval = new LSL_Float((string)val).value;
                     }
-                    if(castTo is TokenTypeInt)
+                    else if (castTo is TokenTypeInt)
                     {
                         if(val is int)
                             return rVal;
@@ -6744,14 +6744,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(val is string)
                             nval = new LSL_Integer((string)val).value;
                     }
-                    if(castTo is TokenTypeRot)
+                    else if (castTo is TokenTypeRot)
                     {
                         if(val is LSL_Rotation)
                             return rVal;
                         if(val is string)
                             nval = new LSL_Rotation((string)val);
                     }
-                    if((castTo is TokenTypeKey) || (castTo is TokenTypeStr))
+                    else if ((castTo is TokenTypeKey) || (castTo is TokenTypeStr))
                     {
                         if(val is string)
                             nval = val;  // in case of key/string conversion
@@ -6766,13 +6766,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         if(val is LSL_Vector)
                             nval = TypeCast.VectorToString((LSL_Vector)val);
                     }
-                    if(castTo is TokenTypeVec)
+                    else if (castTo is TokenTypeVec)
                     {
                         if(val is LSL_Vector)
                             return rVal;
                         if(val is string)
                             nval = new LSL_Vector((string)val);
                     }
+
                     if(nval != null)
                     {
                         TokenRVal rValConst = new TokenRValConst(castTo, nval);

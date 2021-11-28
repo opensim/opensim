@@ -540,7 +540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OqrEngine = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
-                    "OUTGOING QUEUE REFILL ENGINE", 2000);
+                    "OutQueueRefillEng", 4500);
 
             StatsManager.RegisterStat(
                 new Stat(

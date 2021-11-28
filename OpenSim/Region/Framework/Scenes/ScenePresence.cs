@@ -3976,8 +3976,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if(IsSatOnObject)
                     m_delayedStop = -1;  
-                else
-                if(Util.GetTimeStampMS() > m_delayedStop)
+                else if(Util.GetTimeStampMS() > m_delayedStop)
                     AddNewMovement(Vector3.Zero);
             }
 
@@ -4358,6 +4357,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             foreach (ScenePresence p in presences)
             {
+                if(p.IsDeleted || p.IsNPC)
+                    continue;
+
                 if (sitroot != null) //  we need to send the sitting root prim
                 {
                     p.ControllingClient.SendEntityFullUpdateImmediate(ParentPart.ParentGroup.RootPart);
@@ -4425,6 +4427,9 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
             {
+                if(scenePresence.IsNPC)
+                    return;
+
                 // only send information to other root agents
                 if (scenePresence.UUID == UUID)
                     return;
@@ -4490,6 +4495,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.ForEachScenePresence(delegate(ScenePresence p)
             {
+                if(p.IsNPC)
+                    return;
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     return;
                 p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
@@ -6069,8 +6076,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScriptControlled allflags;
                 // convert mouse from edge to level
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 ||
-                            (flags & unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP)) != 0)
+                if ((flags & ((uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP))) != 0)
                 {
                     allflags = ScriptControlled.CONTROL_ZERO;
                 }
@@ -6084,12 +6090,12 @@ namespace OpenSim.Region.Framework.Scenes
                     allflags |= ScriptControlled.CONTROL_LBUTTON;
 
                 // find all activated controls, whether the scripts are interested in them or not
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
+                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_FWD;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG) != 0)
+                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_BACK;
                 }
@@ -6099,17 +6105,17 @@ namespace OpenSim.Region.Framework.Scenes
                     allflags |= ScriptControlled.CONTROL_UP;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0)
+                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_DOWN;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS) != 0)
+                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_LEFT;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG) != 0)
+                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_RIGHT;
                 }
@@ -6129,17 +6135,15 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (KeyValuePair<UUID, ScriptControllers> kvp in scriptedcontrols)
                     {
-                        UUID scriptUUID = kvp.Key;
-                        ScriptControllers scriptControlData = kvp.Value;
-
-                        ScriptControlled localHeld = allflags & scriptControlData.eventControls;     // the flags interesting for us
-                        ScriptControlled localLast = LastCommands & scriptControlData.eventControls; // the activated controls in the last cycle
-                        ScriptControlled localChange = localHeld ^ localLast;                        // the changed bits
+                        ScriptControlled eventcnt = kvp.Value.eventControls;
+                        ScriptControlled localHeld = allflags & eventcnt;     // the flags interesting for us
+                        ScriptControlled localLast = LastCommands & eventcnt; // the activated controls in the last cycle
+                        ScriptControlled localChange = localHeld ^ localLast; // the changed bits
 
                         if (localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO)
                         {
                             // only send if still pressed or just changed
-                            m_scene.EventManager.TriggerControlEvent(scriptUUID, UUID, (uint)localHeld, (uint)localChange);
+                            m_scene.EventManager.TriggerControlEvent(kvp.Key, UUID, (uint)localHeld, (uint)localChange);
                         }
                     }
                 }

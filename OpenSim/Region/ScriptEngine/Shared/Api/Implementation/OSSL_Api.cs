@@ -1019,12 +1019,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             TeleportAgent(agent, regionName, position, lookat);
         }
 
-        private void TeleportAgent(string agent, string regionName,
-            LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        private void TeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
-            if(String.IsNullOrEmpty(regionName))
-                regionName = World.RegionInfo.RegionName;
-
             if (UUID.TryParse(agent, out UUID agentId))
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
@@ -1038,10 +1034,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                if (regionName == World.RegionInfo.RegionName)
+                if (string.IsNullOrEmpty(regionName) || regionName.Equals(World.RegionInfo.RegionName, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    // should be faster than going to threadpool
-                    World.RequestTeleportLocation(presence.ControllingClient, regionName, position,
+                    World.RequestTeleportLocation(presence.ControllingClient, World.RegionInfo.RegionName, position,
                         lookat, (uint)TPFlags.ViaLocation);
                     ScriptSleep(500);
                 }
@@ -3852,6 +3847,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 presence.setHealthWithUpdate(health);
                 if (health <= 0)
                 {
+                    // check to see if it is an NPC and just remove it
+                    if (presence.IsNPC)
+                    {
+                        INPCModule NPCmodule = World.RequestModuleInterface<INPCModule>();
+                        if (NPCmodule != null)
+                            NPCmodule.DeleteNPC(presence.UUID, World);
+                    return;
+                    }
+
                     float healthliveagain = 100;
                     presence.ControllingClient.SendAgentAlertMessage("You died!", true);
                     presence.setHealthWithUpdate(healthliveagain);
@@ -4630,9 +4634,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public LSL_String osRequestURL(LSL_List options)
+        public LSL_Key osRequestURL(LSL_List options)
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osRequestSecureURL");
+            CheckThreatLevel(ThreatLevel.Moderate, "osRequestURL");
 
             Hashtable opts = new Hashtable();
             for (int i = 0 ; i < options.Length ; i++)
@@ -4647,7 +4651,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ScriptBaseClass.NULL_KEY;
         }
 
-        public LSL_String osRequestSecureURL(LSL_List options)
+        public LSL_Key osRequestSecureURL(LSL_List options)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osRequestSecureURL");
 

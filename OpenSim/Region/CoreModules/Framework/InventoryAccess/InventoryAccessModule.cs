@@ -161,6 +161,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #endregion
 
+        private readonly byte[]  DEFAULTSCRIPT = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
         #region Inventory Access
 
         /// <summary>
@@ -253,6 +254,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 creationDate, false); // Data from viewer
                         return;
                     }
+                }
+                else if( assetType == (byte)AssetType.LSLText)
+                {
+                    if(data == null)
+                        data = DEFAULTSCRIPT;
                 }
                 else if( assetType == (byte)AssetType.Clothing ||
                          assetType == (byte)AssetType.Bodypart)
@@ -837,7 +843,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         while(true)
                         {
                             parent = m_Scene.InventoryService.GetFolder(userID, parent.ParentID);
-                            if (parent != null && parent.ParentID == UUID.Zero)
+                            if (parent != null && (parent.ParentID == UUID.Zero || parent.ID == parent.ParentID))
                                 break;
                             if (parent == null || parent.Type == (int)FolderType.Trash || parent.Type == (int)FolderType.LostAndFound)
                             {

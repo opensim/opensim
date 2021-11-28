@@ -559,11 +559,13 @@ namespace OpenSim
         {
             if (File.Exists(fileName))
             {
-                StreamReader readFile = File.OpenText(fileName);
-                string currentLine;
-                while ((currentLine = readFile.ReadLine()) != null)
+                using(StreamReader readFile = File.OpenText(fileName))
                 {
-                    m_log.Info("[!]" + currentLine);
+                    string currentLine;
+                    while ((currentLine = readFile.ReadLine()) != null)
+                    {
+                        m_log.Info("[!]" + currentLine);
+                    }
                 }
             }
         }

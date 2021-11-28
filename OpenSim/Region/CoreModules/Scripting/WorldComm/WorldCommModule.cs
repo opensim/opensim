@@ -283,20 +283,15 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg)
         {
-            Vector3 position;
             SceneObjectPart source;
             ScenePresence avatar;
 
             if ((source = m_scene.GetSceneObjectPart(id)) != null)
-                position = source.AbsolutePosition;
+                DeliverMessage(type, channel, name, id, msg, source.AbsolutePosition);
             else if ((avatar = m_scene.GetScenePresence(id)) != null)
-                position = avatar.AbsolutePosition;
+                DeliverMessage(type, channel, name, id, msg, avatar.AbsolutePosition);
             else if (ChatTypeEnum.Region == type)
-                position = CenterOfRegion;
-            else
-                return;
-
-            DeliverMessage(type, channel, name, id, msg, position);
+                DeliverMessage(type, channel, name, id, msg, CenterOfRegion);
         }
 
         /// <summary>

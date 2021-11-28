@@ -856,15 +856,6 @@
     ; strength = 1.0
 
 
-[LightShare]
-    ;# {enable_windlight} {} {Enable LightShare technology?} {true false} false
-    ;; This enables the transmission of Windlight scenes to supporting clients,
-    ;; such as the Meta7 viewer.
-    ;; It has no ill effect on viewers which do not support server-side
-    ;; windlight settings.
-    ; enable_windlight = false
-
-
 [Materials]
     ;# {enable_materials} {} {Enable Materials support?} {true false} true
     ;; This enables the use of Materials.
@@ -1149,9 +1140,8 @@
     ; GroupsServerURI = ""
 
     ;# {HomeURI} {ServicesConnectorModule:Groups HG Service Connector} {What's the home address of this world?} {}
-    ;; Used for V2 in HG only. For example
     ;; http://mygridserver.com:9000 or http://mygridserver.com:8002
-    ;; If you have this set under [Startup], no need to set it here, leave it commented
+    ;; If you have this set in [Hypergrid] section of GridCommon.ini or StandaloneCommon.ini files in config-include folder, leave it commented
     ; HomeURI = ""
 
     ;# {MessagingEnabled} {Module:GroupsModule Module:Groups Module V2} {Is groups messaging enabled?} {true false} true

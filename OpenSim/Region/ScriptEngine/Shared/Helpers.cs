@@ -316,7 +316,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
     /// </summary>
     public class EventParams
     {
-        public EventParams(string eventName, Object[] eventParams, DetectParams[] detectParams)
+        public EventParams(string eventName, object[] eventParams, DetectParams[] detectParams)
         {
             EventName = eventName;
             Params = eventParams;
@@ -324,7 +324,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
 
         public string EventName;
-        public Object[] Params;
+        public object[] Params;
         public DetectParams[] DetectParams;
+
+        public static EventParams StateEntryParams = new EventParams("state_entry", new object[0], new DetectParams[0]);
     }
+
 }

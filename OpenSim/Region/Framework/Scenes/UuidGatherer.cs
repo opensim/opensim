@@ -316,7 +316,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_assetUuidsToInspect.Contains(uuid))
                 return false;
 
-            //            m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
+            //m_log.DebugFormat("[UUID GATHERER]: Adding asset {0} for inspection", uuid);
 
             GatheredUuids[uuid] = type; 
             return true;
@@ -833,7 +833,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (parts[1].Length == 0)
                             return;
                         parts[1].SelfTrim(wearableSeps);
-                        if (!osUTF8Slice.TryParseInt(parts[1], out int count) || count == 0)
+                        if (!osUTF8Slice.TryParseInt(parts[1], out int count))
                             return;
                         for (int i = 0; i < count; ++i)
                         {
