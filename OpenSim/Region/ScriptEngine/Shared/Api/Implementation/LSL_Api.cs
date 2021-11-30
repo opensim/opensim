@@ -2245,29 +2245,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction,
             float wind, float tension, LSL_Vector Force)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+            if (part == null)
+                return;
+            SceneObjectGroup sog = part.ParentGroup;
+
+            if(sog == null || sog.IsDeleted || sog.inTransit)
                 return;
 
-            if (flexi)
+            PrimitiveBaseShape pbs = part.Shape;
+            pbs.FlexiSoftness = softness;
+            pbs.FlexiGravity = gravity;
+            pbs.FlexiDrag = friction;
+            pbs.FlexiWind = wind;
+            pbs.FlexiTension = tension;
+            pbs.FlexiForceX = (float)Force.x;
+            pbs.FlexiForceY = (float)Force.y;
+            pbs.FlexiForceZ = (float)Force.z;
+
+            pbs.FlexiEntry = flexi;
+
+            if (!pbs.SculptEntry && (pbs.PathCurve == (byte)Extrusion.Straight || pbs.PathCurve == (byte)Extrusion.Flexible))
             {
-                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
-                                                                // work once the prim is already flexi
-                part.Shape.FlexiSoftness = softness;
-                part.Shape.FlexiGravity = gravity;
-                part.Shape.FlexiDrag = friction;
-                part.Shape.FlexiWind = wind;
-                part.Shape.FlexiTension = tension;
-                part.Shape.FlexiForceX = (float)Force.x;
-                part.Shape.FlexiForceY = (float)Force.y;
-                part.Shape.FlexiForceZ = (float)Force.z;
-                part.Shape.PathCurve = (byte)Extrusion.Flexible;
-            }
-            else
-            {
-                // Other values not set, they do not seem to be sent to the viewer
-                // Setting PathCurve appears to be what actually toggles the check box and turns Flexi on and off
-                part.Shape.PathCurve = (byte)Extrusion.Straight;
-                part.Shape.FlexiEntry = false;
+                if(flexi)
+                {                 
+                    pbs.PathCurve = (byte)Extrusion.Flexible;
+                    if(!sog.IsPhantom)
+                    {
+                        sog.ScriptSetPhantomStatus(true);
+                        return;
+                    }
+                }
+                else
+                {
+                    // Other values not set, they do not seem to be sent to the viewer
+                    // Setting PathCurve appears to be what actually toggles the check box and turns Flexi on and off
+                    pbs.PathCurve = (byte)Extrusion.Straight;
+                }
             }
             part.ParentGroup.HasGroupChanged = true;
             part.ScheduleFullUpdate();
@@ -2289,19 +2302,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
+            PrimitiveBaseShape pbs = part.Shape;
+
             if (light)
             {
-                part.Shape.LightEntry = true;
-                part.Shape.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
-                part.Shape.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
-                part.Shape.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
-                part.Shape.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
-                part.Shape.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
-                part.Shape.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
+                pbs.LightEntry = true;
+                pbs.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
+                pbs.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
+                pbs.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
+                pbs.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
+                pbs.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
+                pbs.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
             }
             else
             {
-                part.Shape.LightEntry = false;
+                pbs.LightEntry = false;
             }
 
             part.ParentGroup.HasGroupChanged = true;
@@ -11498,10 +11513,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
                     }
-                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                    case ScriptBaseClass.PRIM_FLEXIBLE:
                         PrimitiveBaseShape shape = part.Shape;
 
+                        // at sl this does not return true state, but if data was set
                         if (shape.FlexiEntry)
+                        // correct check should had been:
+                        //if (shape.PathCurve == (byte)Extrusion.Flexible)
                             res.Add(new LSL_Integer(1));              // active
                         else
                             res.Add(new LSL_Integer(0));

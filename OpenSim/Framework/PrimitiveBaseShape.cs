@@ -890,6 +890,7 @@ namespace OpenSim.Framework
             }
         }
 
+        // only means we do have flexi data
         public bool FlexiEntry {
             get {
                 return _flexiEntry;
