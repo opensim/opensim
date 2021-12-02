@@ -519,7 +519,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
 
         }
 
-         public void RegionLoaded()
+        public void RegionLoaded()
         {
             mesher = m_frameWorkScene.RequestModuleInterface<IMesher>();
             if (mesher == null)

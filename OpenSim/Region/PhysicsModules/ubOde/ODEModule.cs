@@ -47,6 +47,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (physics == Name)
                 {
                     m_config = source;
+                    string mesher = config.GetString("meshing", string.Empty);
+                    
+                    if (string.IsNullOrEmpty(mesher) || !mesher.Equals("ubODEMeshmerizer"))
+                    {
+                        m_log.Error("[ubODE] Opensim.ini meshing option must be set to \"ubODEMeshmerizer\"");
+                        throw new Exception("Invalid physics meshing option");
+                    }
+
                     m_Enabled = true;
 
                     if (Util.IsWindows())

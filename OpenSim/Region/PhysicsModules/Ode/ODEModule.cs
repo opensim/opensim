@@ -44,6 +44,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
                 if (physics == Name)
                 {
                     m_config = source;
+                    string mesher = config.GetString("meshing", string.Empty);
+                    if (string.IsNullOrEmpty(mesher) || !mesher.Equals("Meshmerizer"))
+                    {
+                        m_log.Error("[ODE] Opensim.ini meshing option must be set to \"Meshmerizer\"");
+                        throw new Exception("Invalid physics meshing option");
+                    }
+
                     m_Enabled = true;
                 }
             }
