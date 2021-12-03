@@ -167,7 +167,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool m_OSOdeLib = false;
         public Scene m_frameWorkScene = null;
 
 //        private int threadid = 0;
@@ -311,15 +310,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion, bool pOSOdeLib)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
         {
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;
             m_config = psourceconfig;
-            m_OSOdeLib = pOSOdeLib;
-
-//            m_OSOdeLib = false; //debug
 
             m_frameWorkScene = pscene;
 
