@@ -167,7 +167,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool m_OSOdeLib = false;
         public Scene m_frameWorkScene = null;
 
 //        private int threadid = 0;
@@ -192,6 +191,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         // they should be identical except on mega regions
         private int m_regionWidth = (int)Constants.RegionSize;
         private int m_regionHeight = (int)Constants.RegionSize;
+
+        private int m_heightmapWidthSamples = (int)Constants.RegionSize + 3;
+        private int m_heightmapHeightSamples = (int)Constants.RegionSize + 3;
 
         public float ODE_STEPSIZE = 0.020f;
         public float HalfOdeStep = 0.01f;
@@ -308,15 +310,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         IConfig physicsconfig = null;
 
-        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion, bool pOSOdeLib)
+        public ODEScene(Scene pscene, IConfigSource psourceconfig, string pname, string pversion)
         {
             EngineType = pname;
             PhysicsSceneName = EngineType + "/" + pscene.RegionInfo.RegionName;
             EngineName = pname + " " + pversion;
             m_config = psourceconfig;
-            m_OSOdeLib = pOSOdeLib;
-
-//            m_OSOdeLib = false; //debug
 
             m_frameWorkScene = pscene;
 
@@ -1787,7 +1786,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return fps;
         }
 
-        public float GetTerrainHeightAtXY(float x, float y)
+        public unsafe float GetTerrainHeightAtXY(float x, float y)
         {
             if (m_terrainGeom == IntPtr.Zero)
                 return 0f;
@@ -1812,28 +1811,24 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float dx;
             float dy;
 
-            int regsizeX = (int)m_regionWidth + 3; // map size see setterrain number of samples
-            int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
-            int regsize = regsizeX;
-
-            if (x < regsizeX - 1)
+            if (x < m_heightmapWidthSamples - 1)
             {
                 ix = (int)x;
-                dx = x - (float)ix;
+                dx = x - ix;
             }
             else // out world use external height
             {
-                ix = regsizeX - 2;
+                ix = m_heightmapWidthSamples - 2;
                 dx = 0;
             }
-            if (y < regsizeY - 1)
+            if (y < m_heightmapHeightSamples - 1)
             {
                 iy = (int)y;
-                dy = y - (float)iy;
+                dy = y - iy;
             }
             else
             {
-                iy = regsizeY - 2;
+                iy = m_heightmapHeightSamples - 2;
                 dy = 0;
             }
 
@@ -1841,45 +1836,49 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float h1;
             float h2;
 
-            iy *= regsize;
+            iy *= m_heightmapWidthSamples;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = m_terrainHeights;
-            /*
-                        if ((dx + dy) <= 1.0f)
-                        {
-                            h0 = ((float)heights[iy]); // 0,0 vertice
-                            h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
-                            h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
-                        }
-                        else
-                        {
-                            h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
-                            h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
-                            h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
-                        }
-            */
-            h0 = ((float)heights[iy]); // 0,0 vertice
-
-            if (dy>dx)
+            fixed(float* heightsb = &m_terrainHeights[iy])
             {
-                iy += regsize;
-                h2 = (float)heights[iy]; // 0,1 vertice
-                h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
-                h2 = ((float)heights[iy + 1] - h2) * dx; // 1,1 vertice minus 0,1
-            }
-            else
-            {
-                iy++;
-                h2 = (float)heights[iy]; // vertice 1,0
-                h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
-                h2 = (((float)heights[iy + regsize]) - h2) * dy; // 1,1 vertice minus 1,0
-            }
+                float* heights = heightsb;
+                /*
+                if ((dx + dy) <= 1.0f)
+                {
+                    h0 = ((float)heights[iy]); // 0,0 vertice
+                    h1 = (((float)heights[iy + 1]) - h0) * dx; // 1,0 vertice minus 0,0
+                    h2 = (((float)heights[iy + regsize]) - h0) * dy; // 0,1 vertice minus 0,0
+                }
+                else
+                {
+                    h0 = ((float)heights[iy + regsize + 1]); // 1,1 vertice
+                    h1 = (((float)heights[iy + 1]) - h0) * (1 - dy); // 1,1 vertice minus 1,0
+                    h2 = (((float)heights[iy + regsize]) - h0) * (1 - dx); // 1,1 vertice minus 0,1
+                }
+                */
+                h0 = *heights; // 0,0 vertice
 
+                if (dy>dx)
+                {
+                    heights += m_heightmapWidthSamples;
+                    h2 = *heights; // 0,1 vertice
+                    h1 = (h2 - h0) * dy; // 0,1 vertice minus 0,0
+                    ++heights;
+                    h2 = (*heights - h2) * dx; // 1,1 vertice minus 0,1
+                }
+                else
+                {
+                    ++heights;
+                    h2 = *heights; // vertice 1,0
+                    h1 = (h2 - h0) * dx; // 1,0 vertice minus 0,0
+                    heights += m_heightmapWidthSamples;
+                    h2 = (*heights - h2) * dy; // 1,1 vertice minus 1,0
+                }
+            }
             return h0 + h1 + h2;
         }
 
-        public Vector3 GetTerrainNormalAtXY(float x, float y)
+        public unsafe Vector3 GetTerrainNormalAtXY(float x, float y)
         {
             Vector3 norm = new Vector3(0, 0, 1);
 
@@ -1906,64 +1905,56 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float dx;
             float dy;
 
-            int regsizeX = (int)m_regionWidth + 3; // map size see setterrain number of samples
-            int regsizeY = (int)m_regionHeight + 3; // map size see setterrain number of samples
-            int regsize = regsizeX;
-
-            int xstep = 1;
-            int ystep = regsizeX;
-            bool firstTri = false;
-
-            if (x < regsizeX - 1)
+            if (x < m_heightmapWidthSamples - 1)
             {
                 ix = (int)x;
-                dx = x - (float)ix;
+                dx = x - ix;
             }
             else // out world use external height
             {
-                ix = regsizeX - 2;
+                ix = m_heightmapWidthSamples - 2;
                 dx = 0;
             }
-            if (y < regsizeY - 1)
+            if (y < m_heightmapHeightSamples - 1)
             {
                 iy = (int)y;
-                dy = y - (float)iy;
+                dy = y - iy;
             }
             else
             {
-                iy = regsizeY - 2;
+                iy = m_heightmapHeightSamples - 2;
                 dy = 0;
             }
-            firstTri = dy > dx;
 
             float h0;
             float h1;
             float h2;
 
-            iy *= regsize;
+            iy *= m_heightmapWidthSamples;
             iy += ix; // all indexes have iy + ix
 
-            float[] heights = m_terrainHeights;
-
-            if (firstTri)
+            fixed(float* heightsB = &m_terrainHeights[iy])
             {
-                h1 = ((float)heights[iy]); // 0,0 vertice
-                iy += ystep;
-                h0 = (float)heights[iy]; // 0,1
-                h2 = (float)heights[iy+xstep]; // 1,1 vertice
-                norm.X = h0 - h2;
-                norm.Y = h1 - h0;
+                float* heights = heightsB;
+                if (dy > dx)
+                {
+                    h1 = *heights; // 0,0 vertice
+                    heights += m_heightmapWidthSamples;
+                    h0 = *heights; // 0,1
+                    h2 = *(heights + 1); // 1,1 vertice
+                    norm.X = h0 - h2;
+                    norm.Y = h1 - h0;
+                }
+                else
+                {
+                    h2 = *heights; // 0,0 vertice
+                    heights++;
+                    h0 = *heights; // 1,0 vertice
+                    h1 = *(heights + m_heightmapWidthSamples); // vertice 1,1
+                    norm.X = h2 - h0;
+                    norm.Y = h0 - h1;
+                }
             }
-            else
-            {
-                h2 = ((float)heights[iy]); // 0,0 vertice
-                iy += xstep;
-                h0 = ((float)heights[iy]); // 1,0 vertice
-                h1 = (float)heights[iy+ystep]; // vertice 1,1
-                norm.X = h2 - h0;
-                norm.Y = h0 - h1;
-            }
-            norm.Z = 1;
             norm.Normalize();
             return norm;
         }
@@ -1985,17 +1976,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_terrainHeightsHandler.Free();
                 m_terrainHeights = null;
 
-                int heightmapWidthSamples = m_regionWidth + 3;
-                int heightmapHeightSamples = m_regionHeight + 3;
+                m_heightmapWidthSamples = m_regionWidth + 3;
+                m_heightmapHeightSamples = m_regionHeight + 3;
 
-                m_terrainHeights = new float[heightmapWidthSamples * heightmapHeightSamples];
+                m_terrainHeights = new float[m_heightmapWidthSamples * m_heightmapHeightSamples];
                 m_terrainHeightsHandler = GCHandle.Alloc(m_terrainHeights, GCHandleType.Pinned);
 
                 m_lastRegionWidth = m_regionWidth;
 
                 HeightmapData = SafeNativeMethods.GeomOSTerrainDataCreate();
                 SafeNativeMethods.GeomOSTerrainDataBuild(HeightmapData, m_terrainHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
-                                                 heightmapWidthSamples, heightmapHeightSamples,
+                                                 m_heightmapWidthSamples, m_heightmapHeightSamples,
                                                  1, 0);
 
                 m_terrainGeom = SafeNativeMethods.CreateOSTerrain(GroundSpace, HeightmapData, 1);
@@ -2035,8 +2026,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int heightmapWidth = regionsizeX + 2;
             int heightmapHeight = regionsizeY + 2;
 
-            int heightmapWidthSamples = heightmapWidth + 1;
-            int heightmapHeightSamples = heightmapHeight + 1;
+            m_heightmapWidthSamples = heightmapWidth + 1;
+            m_heightmapHeightSamples = heightmapHeight + 1;
 
             float val;
 
@@ -2050,7 +2041,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float minH = float.MaxValue;
             float maxH = float.MinValue;
 
-            for (int y = 0; y < heightmapHeightSamples; y++)
+            for (int y = 0; y < m_heightmapHeightSamples; y++)
             {
                 if (y > 1 && y < maxYY)
                     yy += regionsizeX;
@@ -2058,12 +2049,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 lock(OdeLock)
                 {
-                    for (int x = 0; x < heightmapWidthSamples; x++)
+                    for (int x = 0; x < m_heightmapWidthSamples; x++)
                     {
                         if (x > 1 && x < maxXX)
                             xx++;
 
-                        val = Util.Clamp(heightMap[yy + xx], Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);
+                        val = Utils.Clamp(heightMap[yy + xx], Constants.MinTerrainHeightmap, Constants.MaxTerrainHeightmap);
                         if(val > maxH)
                             maxH = val;
                         if(val < minH)
@@ -2071,7 +2062,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_terrainHeights[yt + x] = val;
                     }
                 }
-                yt += heightmapWidthSamples;
+                yt += m_heightmapWidthSamples;
             }
 
             lock(SimulationLock)

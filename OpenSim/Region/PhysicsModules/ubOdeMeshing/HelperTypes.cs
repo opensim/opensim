@@ -26,192 +26,81 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using OpenMetaverse;
-using OpenSim.Region.PhysicsModules.SharedBase;
-using OpenSim.Region.PhysicsModule.ubODEMeshing;
 
-public class Vertex : IComparable<Vertex>
+[StructLayout(LayoutKind.Sequential)]
+public class Vertex : IComparable<Vertex>, IEquatable<Vertex>
 {
-    Vector3 vector;
+    public float X;
+    public float Y;
+    public float Z;
 
-    public float X
-    {
-        get { return vector.X; }
-        set { vector.X = value; }
-    }
-
-    public float Y
-    {
-        get { return vector.Y; }
-        set { vector.Y = value; }
-    }
-
-    public float Z
-    {
-        get { return vector.Z; }
-        set { vector.Z = value; }
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vertex(float x, float y, float z)
     {
-        vector.X = x;
-        vector.Y = y;
-        vector.Z = z;
+        X = x;
+        Y = y;
+        Z = z;
     }
 
-    public Vertex normalize()
-    {
-        float tlength = vector.Length();
-        if (tlength != 0f)
-        {
-            float mul = 1.0f / tlength;
-            return new Vertex(vector.X * mul, vector.Y * mul, vector.Z * mul);
-        }
-        else
-        {
-            return new Vertex(0f, 0f, 0f);
-        }
-    }
-
-    public Vertex cross(Vertex v)
-    {
-        return new Vertex(vector.Y * v.Z - vector.Z * v.Y, vector.Z * v.X - vector.X * v.Z, vector.X * v.Y - vector.Y * v.X);
-    }
-
-    // disable warning: mono compiler moans about overloading
-    // operators hiding base operator but should not according to C#
-    // language spec
-#pragma warning disable 0108
-    public static Vertex operator *(Vertex v, Quaternion q)
-    {
-        // From http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/
-
-        Vertex v2 = new Vertex(0f, 0f, 0f);
-
-        v2.X =   q.W * q.W * v.X +
-            2f * q.Y * q.W * v.Z -
-            2f * q.Z * q.W * v.Y +
-                 q.X * q.X * v.X +
-            2f * q.Y * q.X * v.Y +
-            2f * q.Z * q.X * v.Z -
-                 q.Z * q.Z * v.X -
-                 q.Y * q.Y * v.X;
-
-        v2.Y =
-            2f * q.X * q.Y * v.X +
-                 q.Y * q.Y * v.Y +
-            2f * q.Z * q.Y * v.Z +
-            2f * q.W * q.Z * v.X -
-                 q.Z * q.Z * v.Y +
-                 q.W * q.W * v.Y -
-            2f * q.X * q.W * v.Z -
-                 q.X * q.X * v.Y;
-
-        v2.Z =
-            2f * q.X * q.Z * v.X +
-            2f * q.Y * q.Z * v.Y +
-                 q.Z * q.Z * v.Z -
-            2f * q.W * q.Y * v.X -
-                 q.Y * q.Y * v.Z +
-            2f * q.W * q.X * v.Y -
-                 q.X * q.X * v.Z +
-                 q.W * q.W * v.Z;
-
-        return v2;
-    }
-
-    public static Vertex operator +(Vertex v1, Vertex v2)
-    {
-        return new Vertex(v1.X + v2.X, v1.Y + v2.Y, v1.Z + v2.Z);
-    }
-
-    public static Vertex operator -(Vertex v1, Vertex v2)
-    {
-        return new Vertex(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
-    }
-
-    public static Vertex operator *(Vertex v1, Vertex v2)
-    {
-        return new Vertex(v1.X * v2.X, v1.Y * v2.Y, v1.Z * v2.Z);
-    }
-
-    public static Vertex operator +(Vertex v1, float am)
-    {
-        v1.X += am;
-        v1.Y += am;
-        v1.Z += am;
-        return v1;
-    }
-
-    public static Vertex operator -(Vertex v1, float am)
-    {
-        v1.X -= am;
-        v1.Y -= am;
-        v1.Z -= am;
-        return v1;
-    }
-
-    public static Vertex operator *(Vertex v1, float am)
-    {
-        v1.X *= am;
-        v1.Y *= am;
-        v1.Z *= am;
-        return v1;
-    }
-
-    public static Vertex operator /(Vertex v1, float am)
-    {
-        if (am == 0f)
-        {
-            return new Vertex(0f,0f,0f);
-        }
-        float mul = 1.0f / am;
-        v1.X *= mul;
-        v1.Y *= mul;
-        v1.Z *= mul;
-        return v1;
-    }
-#pragma warning restore 0108
-
-
-    public float dot(Vertex v)
-    {
-        return X * v.X + Y * v.Y + Z * v.Z;
-    }
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vertex(Vector3 v)
     {
-        vector = v;
+        X = v.X;
+        Y = v.Y;
+        Z = v.Z;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vertex Clone()
     {
         return new Vertex(X, Y, Z);
     }
 
-    public static Vertex FromAngle(double angle)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override int GetHashCode()
     {
-        return new Vertex((float) Math.Cos(angle), (float) Math.Sin(angle), 0.0f);
+        int hash = X.GetHashCode();
+        hash = Utils.CombineHash(hash, Y.GetHashCode());
+        hash = Utils.CombineHash(hash, Z.GetHashCode());
+        return hash;
     }
 
-    public float Length()
+    public override bool Equals(object obj)
     {
-        return vector.Length();
+        return (obj is Vertex) ? this == (Vertex)obj : false;
     }
 
-    public virtual bool Equals(Vertex v, float tolerance)
+    public bool Equals(Vertex other)
     {
-        Vertex diff = this - v;
-        float d = diff.Length();
-        if (d < tolerance)
-            return true;
-
-        return false;
+        return this == other;
     }
 
+    public bool Equals(Vertex v, float tolerance)
+    {
+        float x = X - v.X;
+        float y = Y - v.Y;
+        float z = Z - v.Z;
+
+        double d = x * x + y * y + z * z;
+        double t = tolerance * tolerance;
+        return d < t;
+    }
+
+    public static bool operator ==(Vertex value1, Vertex value2)
+    {
+        return value1.X == value2.X
+            && value1.Y == value2.Y
+            && value1.Z == value2.Z;
+    }
+
+    public static bool operator !=(Vertex value1, Vertex value2)
+    {
+        return !(value1 == value2);
+    }
 
     public int CompareTo(Vertex other)
     {
@@ -234,16 +123,6 @@ public class Vertex : IComparable<Vertex>
             return 1;
 
         return 0;
-    }
-
-    public static bool operator >(Vertex me, Vertex other)
-    {
-        return me.CompareTo(other) > 0;
-    }
-
-    public static bool operator <(Vertex me, Vertex other)
-    {
-        return me.CompareTo(other) < 0;
     }
 
     public String ToRaw()
@@ -297,37 +176,6 @@ public class Triangle
         String s3 = "<" + v3.X.ToString(nfi) + "," + v3.Y.ToString(nfi) + "," + v3.Z.ToString(nfi) + ">";
 
         return s1 + ";" + s2 + ";" + s3;
-    }
-
-    public Vector3 getNormal()
-    {
-        // Vertices
-
-        // Vectors for edges
-        Vector3 e1;
-        Vector3 e2;
-
-        e1 = new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
-        e2 = new Vector3(v1.X - v3.X, v1.Y - v3.Y, v1.Z - v3.Z);
-
-        // Cross product for normal
-        Vector3 n = Vector3.Cross(e1, e2);
-
-        // Length
-        float l = n.Length();
-
-        // Normalized "normal"
-        n = n/l;
-
-        return n;
-    }
-
-    public void invertNormal()
-    {
-        Vertex vt;
-        vt = v1;
-        v1 = v2;
-        v2 = vt;
     }
 
     // Dumps a triangle in the "raw faces" format, blender can import. This is for visualisation and

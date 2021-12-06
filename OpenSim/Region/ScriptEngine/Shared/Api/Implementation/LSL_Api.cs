@@ -106,7 +106,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected bool throwErrorOnNotImplemented = false;
         protected float m_ScriptDelayFactor = 1.0f;
-        protected float m_ScriptDistanceFactor = 1.0f;
+        protected float m_Script10mDistance = 10.0f;
+        protected float m_Script10mDistanceSquare = 100.0f;
         protected float m_MinTimerInterval = 0.5f;
         protected float m_recoilScaleFactor = 0.0f;
         protected bool m_AllowGodFunctions;
@@ -254,6 +255,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private int m_whisperdistance = 10;
         private int m_saydistance = 20;
         private int m_shoutdistance = 100;
+
+        bool m_disable_underground_movement = true;
 
         private string m_lsl_shard = "OpenSim";
         private string m_lsl_user_agent = string.Empty;
@@ -417,22 +420,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (seConfig != null)
             {
-                m_ScriptDelayFactor =
-                    seConfig.GetFloat("ScriptDelayFactor", m_ScriptDelayFactor);
-                m_ScriptDistanceFactor =
-                    seConfig.GetFloat("ScriptDistanceLimitFactor", m_ScriptDistanceFactor);
-                m_MinTimerInterval =
-                    seConfig.GetFloat("MinTimerInterval", m_MinTimerInterval);
-                m_automaticLinkPermission =
-                    seConfig.GetBoolean("AutomaticLinkPermission", m_automaticLinkPermission);
-                m_notecardLineReadCharsMax =
-                    seConfig.GetInt("NotecardLineReadCharsMax", m_notecardLineReadCharsMax);
+                float scriptDistanceFactor = seConfig.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+                m_Script10mDistance = 10.0f * scriptDistanceFactor;
+                m_Script10mDistanceSquare = m_Script10mDistance * m_Script10mDistance;
+
+                m_ScriptDelayFactor = seConfig.GetFloat("ScriptDelayFactor", m_ScriptDelayFactor);
+                m_MinTimerInterval         = seConfig.GetFloat("MinTimerInterval", m_MinTimerInterval);
+                m_automaticLinkPermission  = seConfig.GetBoolean("AutomaticLinkPermission", m_automaticLinkPermission);
+                m_notecardLineReadCharsMax = seConfig.GetInt("NotecardLineReadCharsMax", m_notecardLineReadCharsMax);
 
                 // Rezzing an object with a velocity can create recoil. This feature seems to have been
                 //    removed from recent versions of SL. The code computes recoil (vel*mass) and scales
                 //    it by this factor. May be zero to turn off recoil all together.
                 m_recoilScaleFactor = seConfig.GetFloat("RecoilScaleFactor", m_recoilScaleFactor);
                 m_AllowGodFunctions = seConfig.GetBoolean("AllowGodFunctions", false);
+
+                m_disable_underground_movement = seConfig.GetBoolean("DisableUndergroundMovement", true);
             }
 
             if (m_notecardLineReadCharsMax > 65535)
@@ -604,14 +607,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((item = GetScriptByName(name)) == UUID.Zero)
             {
-                    Error("llResetOtherScript", "Can't find script '" + name + "'");
+                Error("llResetOtherScript", "Can't find script '" + name + "'");
                 return;
             }
             if(item == m_item.ItemID)
                 llResetScript();
             else
             {
-                    m_ScriptEngine.ResetScript(item);
+                m_ScriptEngine.ResetScript(item);
             }
         }
 
@@ -963,6 +966,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double dy = a.y - b.y;
             double dz = a.z - b.z;
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        private double VecDistSquare(LSL_Vector a, LSL_Vector b)
+        {
+            double dx = a.x - b.x;
+            double dy = a.y - b.y;
+            double dz = a.z - b.z;
+            return dx * dx + dy * dy + dz * dz;
         }
 
         public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
@@ -2234,29 +2245,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction,
             float wind, float tension, LSL_Vector Force)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+            if (part == null)
+                return;
+            SceneObjectGroup sog = part.ParentGroup;
+
+            if(sog == null || sog.IsDeleted || sog.inTransit)
                 return;
 
-            if (flexi)
+            PrimitiveBaseShape pbs = part.Shape;
+            pbs.FlexiSoftness = softness;
+            pbs.FlexiGravity = gravity;
+            pbs.FlexiDrag = friction;
+            pbs.FlexiWind = wind;
+            pbs.FlexiTension = tension;
+            pbs.FlexiForceX = (float)Force.x;
+            pbs.FlexiForceY = (float)Force.y;
+            pbs.FlexiForceZ = (float)Force.z;
+
+            pbs.FlexiEntry = flexi;
+
+            if (!pbs.SculptEntry && (pbs.PathCurve == (byte)Extrusion.Straight || pbs.PathCurve == (byte)Extrusion.Flexible))
             {
-                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
-                                                                // work once the prim is already flexi
-                part.Shape.FlexiSoftness = softness;
-                part.Shape.FlexiGravity = gravity;
-                part.Shape.FlexiDrag = friction;
-                part.Shape.FlexiWind = wind;
-                part.Shape.FlexiTension = tension;
-                part.Shape.FlexiForceX = (float)Force.x;
-                part.Shape.FlexiForceY = (float)Force.y;
-                part.Shape.FlexiForceZ = (float)Force.z;
-                part.Shape.PathCurve = (byte)Extrusion.Flexible;
-            }
-            else
-            {
-                // Other values not set, they do not seem to be sent to the viewer
-                // Setting PathCurve appears to be what actually toggles the check box and turns Flexi on and off
-                part.Shape.PathCurve = (byte)Extrusion.Straight;
-                part.Shape.FlexiEntry = false;
+                if(flexi)
+                {                 
+                    pbs.PathCurve = (byte)Extrusion.Flexible;
+                    if(!sog.IsPhantom)
+                    {
+                        sog.ScriptSetPhantomStatus(true);
+                        return;
+                    }
+                }
+                else
+                {
+                    // Other values not set, they do not seem to be sent to the viewer
+                    // Setting PathCurve appears to be what actually toggles the check box and turns Flexi on and off
+                    pbs.PathCurve = (byte)Extrusion.Straight;
+                }
             }
             part.ParentGroup.HasGroupChanged = true;
             part.ScheduleFullUpdate();
@@ -2278,19 +2302,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
+            PrimitiveBaseShape pbs = part.Shape;
+
             if (light)
             {
-                part.Shape.LightEntry = true;
-                part.Shape.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
-                part.Shape.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
-                part.Shape.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
-                part.Shape.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
-                part.Shape.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
-                part.Shape.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
+                pbs.LightEntry = true;
+                pbs.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
+                pbs.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
+                pbs.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
+                pbs.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
+                pbs.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
+                pbs.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
             }
             else
             {
-                part.Shape.LightEntry = false;
+                pbs.LightEntry = false;
             }
 
             part.ParentGroup.HasGroupChanged = true;
@@ -2690,38 +2716,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SetPos(m_host.ParentGroup.RootPart, pos, false);
 
-            return VecDist(pos, llGetRootPosition()) <= 0.1 ? 1 : 0;
+            return VecDistSquare(pos, llGetRootPosition()) <= 0.01 ? 1 : 0;
         }
 
         // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
         // note linked setpos is capped "differently"
         private LSL_Vector SetPosAdjust(LSL_Vector start, LSL_Vector end)
         {
-            if (llVecDist(start, end) > 10.0f * m_ScriptDistanceFactor)
-                return start + m_ScriptDistanceFactor * 10.0f * llVecNorm(end - start);
+            if (VecDistSquare(start, end) > m_Script10mDistanceSquare)
+                return start + m_Script10mDistance * llVecNorm(end - start);
             else
                 return end;
         }
 
         protected LSL_Vector GetSetPosTarget(SceneObjectPart part, LSL_Vector targetPos, LSL_Vector fromPos, bool adjust)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return fromPos;
+            if (part == null)
+                return targetPos;
+            SceneObjectGroup grp = part.ParentGroup;
+            if (grp == null || grp.IsDeleted || grp.inTransit)
+                return targetPos;
 
-            // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
-
-
-            float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
-            bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
-
-            if (part.ParentGroup.RootPart == part)
-            {
-                if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
-                    targetPos.z = ground;
-            }
             if (adjust)
-                return SetPosAdjust(fromPos, targetPos);
+                targetPos = SetPosAdjust(fromPos, targetPos);
 
+            if (m_disable_underground_movement && grp.AttachmentPoint == 0)
+            {
+                if (part.IsRoot)
+                {
+                    float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
+                    if ((targetPos.z < ground))
+                        targetPos.z = ground;
+                }
+            }
             return targetPos;
         }
 
@@ -2733,20 +2760,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="adjust">if TRUE, will cap the distance to 10m.</param>
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos, bool adjust)
         {
-            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted || part.ParentGroup.inTransit)
+            if (part == null)
                 return;
 
-            
+            SceneObjectGroup grp = part.ParentGroup;
+            if (grp == null || grp.IsDeleted || grp.inTransit)
+                return;
+ 
             LSL_Vector currentPos = GetPartLocalPos(part);
             LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos, adjust);
 
-
-            if (part.ParentGroup.RootPart == part)
+            if (part.IsRoot)
             {
-                SceneObjectGroup parent = part.ParentGroup;
-                if (!parent.IsAttachment && !World.Permissions.CanObjectEntry(parent, false, (Vector3)toPos))
+                if (!grp.IsAttachment && !World.Permissions.CanObjectEntry(grp, false, (Vector3)toPos))
                     return;
-                parent.UpdateGroupPosition((Vector3)toPos);
+                grp.UpdateGroupPosition((Vector3)toPos);
             }
             else
             {
@@ -2770,23 +2798,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
         {
-
             Vector3 pos;
-
-            if (!part.IsRoot)
-            {
-                pos = part.OffsetPosition;
-            }
-            else
+            if (part.IsRoot)
             {
                 if (part.ParentGroup.IsAttachment)
                     pos = part.AttachedPos;
                 else
                     pos = part.AbsolutePosition;
             }
+            else
+            {
+                pos = part.OffsetPosition;
+            }
 
-//            m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
-
+            //m_log.DebugFormat("[LSL API]: Returning {0} in GetPartLocalPos()", pos);
             return new LSL_Vector(pos);
         }
 
@@ -3521,9 +3546,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (string.IsNullOrEmpty(inventory) || Double.IsNaN(rot.x) || Double.IsNaN(rot.y) || Double.IsNaN(rot.z) || Double.IsNaN(rot.s))
                 return;
 
-            float dist = (float)llVecDist(llGetPos(), pos);
-
-            if (dist > m_ScriptDistanceFactor * 10.0f)
+            if (VecDistSquare(llGetPos(), pos) > m_Script10mDistanceSquare)
                 return;
 
             TaskInventoryItem item = m_host.Inventory.GetInventoryItem(inventory);
@@ -3542,7 +3565,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Util.FireAndForget(x =>
             {
-
                 Quaternion wrot = rot;
                 wrot.Normalize();
                 List<SceneObjectGroup> new_groups = World.RezObject(m_host, item, pos, wrot, vel, param, atRoot);
@@ -11491,10 +11513,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
                     }
-                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                    case ScriptBaseClass.PRIM_FLEXIBLE:
                         PrimitiveBaseShape shape = part.Shape;
 
+                        // at sl this does not return true state, but if data was set
                         if (shape.FlexiEntry)
+                        // correct check should had been:
+                        //if (shape.PathCurve == (byte)Extrusion.Flexible)
                             res.Add(new LSL_Integer(1));              // active
                         else
                             res.Add(new LSL_Integer(0));
