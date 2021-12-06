@@ -931,8 +931,9 @@
     ;; implements non preemptive microthreading, so fixing problems like llSleep or long events handlers
     ;; but those will suffer from timeslicing, so will be slower.
     ;; warning: scripts state is lost on TP or cross to Xengine regions (cars stop, etc)
-	;; ignore its extensions (subset of original XMRengine), those are still undefined.
-    ; Enabled = false
+    ;; ignore its extensions (subset of original XMRengine), those are still undefined.
+    ;# {Enabled} {} {Enable the YEngine scripting engine?} {true false} true
+    ; Enabled = true
 
     ;; llSetTimerEvent minimum value. Default 0.5s, 0.05s whould be more resonable
     ; MinTimerInterval = 0.5
@@ -964,9 +965,9 @@
 
 
 [XEngine]
-    ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
+    ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} false
     ;; Enable this engine in this OpenSim instance
-    ; Enabled = true
+    ; Enabled = false
 
     ;; How many threads to keep alive even if nothing is happening
     ; MinThreads = 2

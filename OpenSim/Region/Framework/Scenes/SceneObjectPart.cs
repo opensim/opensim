@@ -4026,7 +4026,7 @@ namespace OpenSim.Region.Framework.Scenes
             ProfileShape ps = (ProfileShape)(Shape.ProfileCurve & 0x07);
             if (ps == ProfileShape.Square)
             {
-                if (Shape.PathCurve == (byte)Extrusion.Straight)
+                if (Shape.PathCurve == (byte)Extrusion.Straight || Shape.PathCurve == (byte)Extrusion.Flexible)
                     return PrimType.BOX;
                 else if (Shape.PathCurve == (byte)Extrusion.Curve1)
                     return PrimType.TUBE;

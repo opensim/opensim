@@ -1,4 +1,4 @@
-2017, August Unit Umarov
+2017, August Ubit Umarov
 	* add Freak Tech patch for prefer32bit default to false
 	* fix comand line target override
 	* fix CSharp target assembly name

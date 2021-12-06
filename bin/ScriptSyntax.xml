@@ -1,4 +1,4 @@
-1d4e1fad-92d3-eb1f-3f14-4a86e39192b0
+4b833b57-d52b-5503-85a4-76754ac3b8ff
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1625,7 +1625,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>19</string>
+  <key>value</key><string>20</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -7598,14 +7598,14 @@
  </map>
  <key>osRequestSecureURL</key>
  <map>
-  <key>return</key><string>string</string>
+  <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
  <key>osRequestURL</key>
  <map>
-  <key>return</key><string>string</string>
+  <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
