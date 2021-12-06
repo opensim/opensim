@@ -4024,13 +4024,15 @@ namespace OpenSim.Region.Framework.Scenes
             //Check if the viewer is banned or in the viewer access list
             //We check if the substring is listed for higher flexebility
             bool ViewerDenied = true;
+            string cV = null;
 
             //Check if the specific viewer is listed in the allowed viewer list
             if (m_AllowedViewers.Count > 0)
             {
+                cV = curViewer.Trim().ToLower();
                 foreach (string viewer in m_AllowedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
+                    if (viewer == cV.Substring(0, Math.Min(viewer.Length, curViewer.Length)))
                     {
                         ViewerDenied = false;
                         break;
@@ -4045,9 +4047,11 @@ namespace OpenSim.Region.Framework.Scenes
             //Check if the viewer is in the banned list
             if (m_BannedViewers.Count > 0)
             {
+                if (cV == null)
+                    cV = curViewer.Trim().ToLower();
                 foreach (string viewer in m_BannedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
+                    if (viewer == cV.Substring(0, Math.Min(viewer.Length, curViewer.Length)))
                     {
                         ViewerDenied = true;
                         break;
