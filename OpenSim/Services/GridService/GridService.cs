@@ -790,17 +790,21 @@ namespace OpenSim.Services.GridService
             List<GridRegion> ret = new List<GridRegion>();
 
             List<RegionData> regions = m_Database.GetFallbackRegions(scopeID);
+            if(regions.Count > 0)
+            {                  
+                if (regions.Count > 1)
+                {
+                    regions.Sort(new RegionDataDistanceCompare(x, y));
+                }
 
-            if(regions.Count > 1)
-            {
-                RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
-                regions.Sort(distanceComparer);
-            }
-
-            foreach (RegionData r in regions)
-            {
-                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
-                    ret.Add(RegionData2RegionInfo(r));
+                foreach (RegionData r in regions)
+                {
+                    int rflags = Convert.ToInt32(r.Data["flags"]);
+                    if((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+                        continue;
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
+                        ret.Add(RegionData2RegionInfo(r));
+                }
             }
 
             m_log.DebugFormat("[GRID SERVICE]: Fallback returned {0} regions", ret.Count);
