@@ -568,7 +568,7 @@ namespace OpenSim.Server.Handlers.Grid
             if (request.TryGetValue("MC", out o))
                 Int32.TryParse(o.ToString(), out max);
             else
-                m_log.WarnFormat("[GRID HANDLER]: no Y in request to get online regions");
+                m_log.WarnFormat("[GRID HANDLER]: no Max Count in request to get online regions");
 
             List<GridRegion> rinfos = null;
             if (max > 0)
