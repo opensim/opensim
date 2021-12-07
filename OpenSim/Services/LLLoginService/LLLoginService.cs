@@ -70,7 +70,6 @@ namespace OpenSim.Services.LLLoginService
 
         protected GatekeeperServiceConnector m_GatekeeperConnector;
 
-        protected string m_DefaultRegionName;
         protected string m_WelcomeMessage;
         protected bool m_RequireInventory;
         protected int m_MinLoginLevel;
@@ -92,6 +91,8 @@ namespace OpenSim.Services.LLLoginService
         protected string m_DSTZone;
         protected bool m_allowDuplicatePresences = false;
         protected string m_messageKey;
+        protected bool m_allowLoginFallbackToAnyRegion = true;  // if login requested region if not found and there are no Default or fallback regions,
+                                                                // try any online. This is legacy behaviour
 
         IConfig m_LoginServerConfig;
 //        IConfig m_ClientsConfig;
@@ -114,7 +115,6 @@ namespace OpenSim.Services.LLLoginService
             string avatarService = m_LoginServerConfig.GetString("AvatarService", string.Empty);
             string simulationService = m_LoginServerConfig.GetString("SimulationService", string.Empty);
 
-            m_DefaultRegionName = m_LoginServerConfig.GetString("DefaultRegion", string.Empty);
             m_WelcomeMessage = m_LoginServerConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_RequireInventory = m_LoginServerConfig.GetBoolean("RequireInventory", true);
             m_AllowRemoteSetLoginLevel = m_LoginServerConfig.GetBoolean("AllowRemoteSetLoginLevel", false);
@@ -128,7 +128,9 @@ namespace OpenSim.Services.LLLoginService
             m_Currency = m_LoginServerConfig.GetString("Currency", string.Empty);
             m_ClassifiedFee = m_LoginServerConfig.GetString("ClassifiedFee", string.Empty);
             m_DestinationGuide = m_LoginServerConfig.GetString ("DestinationGuide", string.Empty);
-            m_AvatarPicker = m_LoginServerConfig.GetString ("AvatarPicker", string.Empty);
+            m_AvatarPicker = m_LoginServerConfig.GetString("AvatarPicker", string.Empty);
+
+            m_allowLoginFallbackToAnyRegion = m_LoginServerConfig.GetBoolean("AllowLoginFallbackToAnyRegion", m_allowLoginFallbackToAnyRegion);
 
             string[] possibleAccessControlConfigSections = new string[] { "AccessControl", "LoginService" };
             m_AllowedClients = Util.GetConfigVarFromSections<string>(
@@ -801,12 +803,15 @@ namespace OpenSim.Services.LLLoginService
         private GridRegion FindAlternativeRegion(UUID scopeID)
         {
             List<GridRegion> regions = m_GridService.GetFallbackRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000));
-            if (regions != null && regions.Count > 0)
+            if (regions != null && regions.Count > 0 )
               return regions[0];
 
-            regions = m_GridService.GetOnlineRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000), 10);
-            if (regions != null && regions.Count > 0)
-                return regions[0];
+            if(m_allowLoginFallbackToAnyRegion)
+            {
+                regions = m_GridService.GetOnlineRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000), 10);
+                if (regions != null && regions.Count > 0)
+                    return regions[0];
+            }
 
             return null;
         }
