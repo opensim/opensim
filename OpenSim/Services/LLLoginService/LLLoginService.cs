@@ -800,24 +800,14 @@ namespace OpenSim.Services.LLLoginService
 
         private GridRegion FindAlternativeRegion(UUID scopeID)
         {
-            List<GridRegion> hyperlinks = null;
             List<GridRegion> regions = m_GridService.GetFallbackRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000));
             if (regions != null && regions.Count > 0)
-            {
               return regions[0];
-            }
 
-            // No fallbacks, try to find an arbitrary region that is not a hyperlink
-            // maxNumber is fixed for now; maybe use some search pattern with increasing maxSize here?
-            regions = m_GridService.GetRegionsByName(scopeID, "", 10);
+            regions = m_GridService.GetOnlineRegions(scopeID, (int)Util.RegionToWorldLoc(1000), (int)Util.RegionToWorldLoc(1000), 10);
             if (regions != null && regions.Count > 0)
-            {
-                if (hyperlinks == null)
-                    hyperlinks = m_GridService.GetHyperlinks(scopeID);
-                IEnumerable<GridRegion> availableRegions = regions.Except(hyperlinks);
-                if (availableRegions.Count() > 0)
-                    return availableRegions.ElementAt(0);
-            }
+                return regions[0];
+
             return null;
         }
 
