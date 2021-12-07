@@ -431,6 +431,11 @@ namespace OpenSim.Data.PGSQL
             return Get((int)RegionFlags.Hyperlink, scopeID);
         }
 
+        public List<RegionData> GetOnlineRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.RegionOnline, scopeID);
+        }
+
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
             string sql = "SELECT * FROM " + m_Realm + " WHERE (\"flags\" & " + regionFlags.ToString() + ") <> 0";

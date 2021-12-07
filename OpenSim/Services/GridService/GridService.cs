@@ -790,8 +790,8 @@ namespace OpenSim.Services.GridService
             List<GridRegion> ret = new List<GridRegion>();
 
             List<RegionData> regions = m_Database.GetFallbackRegions(scopeID);
-            if(regions.Count > 0)
-            {                  
+            if (regions.Count > 0)
+            {
                 if (regions.Count > 1)
                 {
                     regions.Sort(new RegionDataDistanceCompare(x, y));
@@ -800,7 +800,7 @@ namespace OpenSim.Services.GridService
                 foreach (RegionData r in regions)
                 {
                     int rflags = Convert.ToInt32(r.Data["flags"]);
-                    if((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                         continue;
                     if ((rflags & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
                         ret.Add(RegionData2RegionInfo(r));
@@ -808,6 +808,33 @@ namespace OpenSim.Services.GridService
             }
 
             m_log.DebugFormat("[GRID SERVICE]: Fallback returned {0} regions", ret.Count);
+            return ret;
+        }
+
+        public List<GridRegion> GetOnlineRegions(UUID scopeID, int x, int y, int maxCount)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetOnlineRegions(scopeID);
+            if (regions.Count > 0)
+            {
+                if (regions.Count > 1)
+                {
+                    regions.Sort(new RegionDataDistanceCompare(x, y));
+                }
+
+                foreach (RegionData r in regions)
+                {
+                    int rflags = Convert.ToInt32(r.Data["flags"]);
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+                        continue;
+                    ret.Add(RegionData2RegionInfo(r));
+                    if(ret.Count >= maxCount)
+                        break;
+                }
+            }
+
+            m_log.DebugFormat("[GRID SERVICE]: online returned {0} regions", ret.Count);
             return ret;
         }
 

@@ -640,6 +640,58 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
+        public List<GridRegion> GetOnlineRegions(UUID scopeID, int x, int y, int maxCount)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["SCOPEID"] = scopeID.ToString();
+            sendData["X"] = x.ToString();
+            sendData["Y"] = y.ToString();
+            sendData["MC"] = maxCount.ToString();
+
+            sendData["METHOD"] = "get_online_regions";
+
+            List<GridRegion> rinfos = new List<GridRegion>();
+            string reply = string.Empty;
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakePostRequest(m_ServerURI + "/grid",
+                        ServerUtils.BuildQueryString(sendData), m_Auth);
+
+                //m_log.DebugFormat("[GRID CONNECTOR]: reply was {0}", reply);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID CONNECTOR]: Exception when contacting grid server at {0}: {1}", m_ServerURI + "/grid", e.Message);
+                return rinfos;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                if (replyData != null)
+                {
+                    Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
+                    foreach (object r in rinfosList)
+                    {
+                        if (r is Dictionary<string, object>)
+                        {
+                            GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
+                            rinfos.Add(rinfo);
+                        }
+                    }
+                }
+                else
+                    m_log.DebugFormat("[GRID CONNECTOR]: GetOnlineRegions {0}, {1}-{2} received null response",
+                        scopeID, x, y);
+            }
+            else
+                m_log.DebugFormat("[GRID CONNECTOR]: GetOnlineRegions received null reply");
+
+            return rinfos;
+        }
+
         public List<GridRegion> GetHyperlinks(UUID scopeID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();

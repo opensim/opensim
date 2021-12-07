@@ -107,6 +107,7 @@ namespace OpenSim.Services.Interfaces
         List<GridRegion> GetDefaultHypergridRegions(UUID scopeID);
         List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
         List<GridRegion> GetHyperlinks(UUID scopeID);
+        List<GridRegion> GetOnlineRegions(UUID scopeID, int x, int y, int maxCount);
 
         /// <summary>
         /// Get internal OpenSimulator region flags.

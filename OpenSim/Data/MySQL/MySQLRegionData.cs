@@ -402,6 +402,11 @@ namespace OpenSim.Data.MySQL
             return Get((int)RegionFlags.Hyperlink, scopeID);
         }
 
+        public List<RegionData> GetOnlineRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.RegionOnline, scopeID);
+        }
+
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
             string command = "select * from `" + m_Realm + "` where (flags & " + regionFlags.ToString() + ") <> 0";
