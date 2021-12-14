@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             string fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore }))
                 {
                     try
                     {
@@ -78,7 +78,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
             }
         }
-
+        /*
         public static SceneObjectGroup FromOriginalXmlData(byte[] data)
         {
             int len = data.Length;
@@ -104,6 +104,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
             }
         }
+        */
 
         /// <summary>
         /// Deserialize a scene object from the original xml format
@@ -295,7 +296,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 using(StringReader sr = new StringReader(parts[0].OuterXml))
                 {
                     using(XmlTextReader reader = new XmlTextReader(sr))
+                    {
+                        reader.DtdProcessing = DtdProcessing.Ignore;
                         sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+                    }
                 }
 
                 // Then deal with the rest
@@ -306,6 +310,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     {
                         using(XmlTextReader reader = new XmlTextReader(sr))
                         {
+                            reader.DtdProcessing = DtdProcessing.Ignore;
                             part = SceneObjectPart.FromXml(reader);
                         }
                     }

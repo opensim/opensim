@@ -122,6 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                     {
                         using(XmlTextReader sr = new XmlTextReader(s))
                         {
+                            sr.DtdProcessing = DtdProcessing.Ignore;
                             sr.ReadStartElement("BakedAppearance");
                             while (sr.LocalName == "BakedTexture")
                             {

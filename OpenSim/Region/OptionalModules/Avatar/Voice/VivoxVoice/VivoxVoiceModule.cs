@@ -711,6 +711,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             response.RawBuffer = Util.UTF8.GetBytes("<llsd><undef /></llsd>");
         }
 
+        /*
         /// <summary>
         /// Callback for a client request for a private chat channel
         /// </summary>
@@ -736,6 +737,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             response.RawBuffer = Util.UTF8.GetBytes("<llsd>true</llsd>");
             response.StatusCode = (int)HttpStatusCode.OK;
         }
+        */
 
         private string RegionGetOrCreateChannel(Scene scene, LandData land)
         {
@@ -1183,7 +1185,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
                     using (Stream s = rsp.GetResponseStream())
                     using (XmlTextReader rdr = new XmlTextReader(s))
-                            doc.Load(rdr);
+                    {
+                        rdr.DtdProcessing = DtdProcessing.Ignore;
+                        doc.Load(rdr);
+                    }
                 }
                 catch (Exception e)
                 {

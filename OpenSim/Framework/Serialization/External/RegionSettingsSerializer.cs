@@ -69,6 +69,7 @@ namespace OpenSim.Framework.Serialization.External
 
             StringReader sr = new StringReader(serializedSettings);
             XmlTextReader xtr = new XmlTextReader(sr);
+            xtr.DtdProcessing = DtdProcessing.Ignore;
 
             xtr.ReadStartElement("RegionSettings");
 

@@ -1192,6 +1192,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
             XmlTextReader xtr = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
+            xtr.DtdProcessing = DtdProcessing.Ignore;
 
             // Loaded metadata will be empty if no information exists in the archive
             dearchivedScenes.LoadedCreationDateTime = 0;

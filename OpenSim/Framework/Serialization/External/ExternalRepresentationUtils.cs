@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -221,7 +222,7 @@ namespace OpenSim.Framework.Serialization.External
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
             using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
-            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore}))
             {
                 TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
 

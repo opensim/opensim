@@ -593,6 +593,7 @@ namespace OpenSim.Region.Framework.Scenes
             UTF8Encoding enc = new UTF8Encoding();
             MemoryStream ms = new MemoryStream(enc.GetBytes(text));
             XmlTextReader xreader = new XmlTextReader(ms);
+            xreader.DtdProcessing = DtdProcessing.Ignore;
 
             SOPVehicle v = new SOPVehicle();
             bool error;
