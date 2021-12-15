@@ -191,12 +191,11 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // needs more exclusion ?
-                return(Backup && !IsTemporary && !inTransit && !IsSelected && !UsesPhysics && !IsAttachmentCheckFull() &&
+                return(Backup && !IsTemporary && !inTransit && !UsesPhysics && !IsAttachmentCheckFull() &&
                 !RootPart.Shape.MeshFlagEntry && // animations are not sent correctly for now
                 RootPart.KeyframeMotion == null &&
-                (DateTime.UtcNow.Ticks - timeLastChanged > 36000000000) && //36000000000 is one hour
-                RootPart.Velocity.LengthSquared() < 1e8f && // should not be needed
-                RootPart.Acceleration.LengthSquared() < 1e4f // should not be needed
+                (DateTime.UtcNow.Ticks - timeLastChanged > 3000000000) //&& //3000000000 is 5min
+                //(DateTime.UtcNow.Ticks - timeLastChanged > 36000000000) //&& //36000000000 is one hour
                 );
             }
         }
@@ -669,9 +668,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                bool triggerScriptEvent = m_rootPart.GroupPosition != val;
+                bool triggerScriptEvent;
                 if (m_dupeInProgress || IsDeleted)
                     triggerScriptEvent = false;
+                else
+                    triggerScriptEvent = m_rootPart.GroupPosition != val;
 
                 m_rootPart.GroupPosition = val;
 
