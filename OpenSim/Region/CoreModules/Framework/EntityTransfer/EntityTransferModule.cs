@@ -1944,10 +1944,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             RegionInfo curregion = sp.Scene.RegionInfo;
 
             int rtmp = region.RegionLocX - (int)Util.RegionToWorldLoc(curregion.RegionLocX) - (int)pos.X;
-            if (rtmp < -(viewrange + region.RegionSizeX) || rtmp > viewrange + curregion.RegionSizeX)
+            if ( rtmp > viewrange || rtmp < -(viewrange + region.RegionSizeX))
                 return;
             rtmp = region.RegionLocY - (int)Util.RegionToWorldLoc(curregion.RegionLocY) - (int)pos.Y;
-            if (rtmp < -(viewrange + region.RegionSizeY) || rtmp > viewrange + curregion.RegionSizeY)
+            if (rtmp > viewrange || rtmp < -(viewrange + region.RegionSizeY))
                 return;
 
             m_log.DebugFormat("[ENTITY TRANSFER]: Enabling child agent in new neighbour {0}", region.RegionName);
