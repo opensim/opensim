@@ -1939,7 +1939,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="region"></param>
         public void EnableChildAgent(ScenePresence sp, GridRegion region)
         {           
-            int viewrange =(int) sp.RegionViewDistance;
+            int viewrange = (int)sp.RegionViewDistance;
+            if(viewrange == 0)
+                return;
+
             Vector3 pos = sp.AbsolutePosition;
             RegionInfo curregion = sp.Scene.RegionInfo;
 

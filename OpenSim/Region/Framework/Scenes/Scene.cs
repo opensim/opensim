@@ -1388,10 +1388,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     return;
 
                                 agent.DropOldNeighbours(old);
-
-                                if(agent.RegionViewDistance == 0)
-                                    return;
-                            
+                           
                                 EntityTransferModule.EnableChildAgent(agent, otherRegion);
                             });
                         }
