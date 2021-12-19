@@ -1377,22 +1377,29 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Let the grid service module know, so this can be cached
                     m_eventManager.TriggerOnRegionUp(otherRegion);
-
-                    try
+                    if (EntityTransferModule != null)
                     {
-                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                        try
                         {
-                            List<ulong> old = new List<ulong>() {otherRegion.RegionHandle};
-                            agent.DropOldNeighbours(old);
-                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
+                            List<ulong> old = new List<ulong>() { otherRegion.RegionHandle };
+                            ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                if(agent.IsNPC)
+                                    return;
+
+                                agent.DropOldNeighbours(old);
+
+                                if(agent.RegionViewDistance == 0)
+                                    return;
+                            
                                 EntityTransferModule.EnableChildAgent(agent, otherRegion);
-                        });
-                    }
-                    catch (NullReferenceException)
-                    {
-                        // This means that we're not booted up completely yet.
-                        // This shouldn't happen too often anymore.
-                        m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
+                            });
+                        }
+                        catch
+                        {
+                            m_log.Error("[SCENE]: Couldn't inform clients of regionup");
+                    
+                        }
                     }
                 }
                 else
@@ -1408,12 +1415,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX;
 
-            if (tmp < -otherRegion.RegionSizeX && tmp > RegionInfo.RegionSizeX)
+            if (tmp < -otherRegion.RegionSizeX || tmp > RegionInfo.RegionSizeX)
                 return false;
 
             tmp = otherRegion.RegionLocY - (int)RegionInfo.WorldLocY;
 
-            if (tmp < -otherRegion.RegionSizeY && tmp > RegionInfo.RegionSizeY)
+            if (tmp < -otherRegion.RegionSizeY || tmp > RegionInfo.RegionSizeY)
                 return false;
 
             return true;
@@ -1484,21 +1491,24 @@ namespace OpenSim.Region.Framework.Scenes
             m_restartWaitTimer.Stop();
             lock (m_regionRestartNotifyList)
             {
-                foreach (RegionInfo region in m_regionRestartNotifyList)
+                if(EntityTransferModule != null)
                 {
-                    GridRegion r = new GridRegion(region);
-                    try
+                    foreach (RegionInfo region in m_regionRestartNotifyList)
                     {
-                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                        GridRegion r = new GridRegion(region);
+                        try
                         {
-                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
-                                EntityTransferModule.EnableChildAgent(agent, r);
-                        });
-                    }
-                    catch (NullReferenceException)
-                    {
-                        // This means that we're not booted up completely yet.
-                        // This shouldn't happen too often anymore.
+                            ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                if (!agent.IsNPC)
+                                    EntityTransferModule.EnableChildAgent(agent, r);
+                            });
+                        }
+                        catch (NullReferenceException)
+                        {
+                            // This means that we're not booted up completely yet.
+                            // This shouldn't happen too often anymore.
+                        }
                     }
                 }
 

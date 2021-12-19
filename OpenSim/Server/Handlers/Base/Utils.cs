@@ -40,8 +40,9 @@ namespace OpenSim.Server.Handlers.Base
         /// <summary>
         /// Extract the param from an uri.
         /// </summary>
-        /// <param name="uri">Something like this: /xxxx/uuid/ or /uuid/handle/release</param>
-        /// <param name="uri">uuid on uuid field</param>
+        /// <param name="uri">Something like this: /xxxx/uuid/ or /xxxx/uuid/handle/release</param>
+        /// <param name="uuid">uuid on uuid field</param>
+        /// <param name="regionHandle">optional regionHandle</param>
         /// <param name="action">optional action</param>
         public static bool GetParams(string path, out UUID uuid, out ulong regionHandle, out string action)
         {
