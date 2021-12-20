@@ -2031,8 +2031,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (responsecode == (int)HttpStatusCode.Moved)
             {
-                response.AddHeader("Location:", (string)responsedata["str_redirect_location"]);
-                response.StatusCode = responsecode;
+                response.Redirect((string)responsedata["str_redirect_location"], HttpStatusCode.Moved);
             }
 
             response.AddHeader("Content-Type", contentType);
@@ -2430,15 +2429,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (httpRequest.QueryString.Count == 0)
             {
-                httpResponse.StatusCode = (int)HttpStatusCode.Redirect;
-                httpResponse.AddHeader("Location", "http://opensimulator.org");
+                httpResponse.Redirect("http://opensimulator.org");
                 return;
             }
             if (httpRequest.QueryFlags.Contains("about"))
             {
-
-                httpResponse.StatusCode = (int)HttpStatusCode.Redirect;
-                httpResponse.AddHeader("Location", "http://opensimulator.org/wiki/0.9.2.1_Release");
+                httpResponse.Redirect("http://opensimulator.org/wiki/0.9.2.1_Release");
                 return;
             }
             if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string methods) || string.IsNullOrWhiteSpace(methods))

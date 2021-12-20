@@ -113,6 +113,13 @@ namespace OSHttpServer
         ResponseCookies Cookies { get; }
 
         /// <summary>
+        /// Set response as a http redirect
+        /// </summary>
+        /// <param name="url">redirection target url</param>
+        /// <param name="redirStatusCode">the response Status, must be Found, Redirect, Moved,MovedPermanently,RedirectKeepVerb, RedirectMethod, TemporaryRedirect. Defaults to Redirect</param>
+        void Redirect(string url, HttpStatusCode redirStatusCode = HttpStatusCode.Redirect);
+
+        /// <summary>
         /// Add another header to the document.
         /// </summary>
         /// <param name="name">Name of the header, case sensitive, use lower cases.</param>
