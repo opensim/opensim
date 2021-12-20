@@ -63,10 +63,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if(Constants.TerrainPatchSize != 16)
                 throw new Exception("Terrain patch size must be 16m x 16m");
 
-            // Initialize the decompression tables
-            BuildDequantizeTable16();
+            // Initialize the compression tables
+            BuildQuantizeTables16();
             BuildCopyMatrix16();
-            BuildQuantizeTable16();
         }
 
         // Used to send cloud and wind patches
@@ -387,29 +386,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Initialization
 
-        private static void BuildDequantizeTable16()
-        {
-            for (int j = 0; j < 16; j++)
-            {
-                int c = j * 16;
-                for (int i = 0; i < 16; i++)
-                {
-                    DequantizeTable16[c + i] = 1.0f + 2.0f * (i + j);
-                }
-            }
-        }
-
-        private unsafe static void BuildQuantizeTable16()
+         private unsafe static void BuildQuantizeTables16()
         {
             const float oosob = 2.0f / 16;
-            fixed(float* fQuantizeTable16 = QuantizeTable16)
+            float tmp;
+            fixed(float* fQuantizeTable16 = QuantizeTable16, fDeQuantizeTable16 = DequantizeTable16)
             {
+                float* dqptr = fDeQuantizeTable16;
+                float* qptr = fQuantizeTable16;
+
                 for (int j = 0; j < 16; j++)
                 {
-                    int c = j * 16;
                     for (int i = 0; i < 16; i++)
                     {
-                        fQuantizeTable16[c + i] = oosob / (1.0f + 2.0f * (i + j));
+                        tmp = 1.0f + 2.0f * (i + j);
+                        *dqptr++ = tmp;
+                        *qptr++ = oosob / tmp;
                     }
                 }
             }

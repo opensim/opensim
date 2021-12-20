@@ -106,8 +106,6 @@ namespace OpenSim.Server.Handlers.Neighbour
         // TODO: unused: private bool m_AllowForeignGuests;
         protected void ProcessPostRequest(OSDMap args, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID regionID)
         {
-            byte[] result = new byte[0];
-
             if (m_AuthenticationService != null)
             {
                 // Authentication
