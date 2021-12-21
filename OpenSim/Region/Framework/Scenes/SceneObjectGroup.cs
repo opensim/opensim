@@ -191,7 +191,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // needs more exclusion ?
-                return(Backup && !IsTemporary && !inTransit && !UsesPhysics && !IsAttachmentCheckFull() &&
+                return(Backup && !IsTemporary && !inTransit && !UsesPhysics && !IsSelected && !IsAttachmentCheckFull() &&
                 !RootPart.Shape.MeshFlagEntry && // animations are not sent correctly for now
                 RootPart.KeyframeMotion == null &&
                 (DateTime.UtcNow.Ticks - timeLastChanged > 3000000000) //&& //3000000000 is 5min
