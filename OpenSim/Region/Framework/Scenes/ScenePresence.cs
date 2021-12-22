@@ -5981,16 +5981,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleForceReleaseControls(IClientAPI remoteClient, UUID agentID)
         {
-            foreach (ScriptControllers c in scriptedcontrols.Values)
-            {
-                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(c.objectID);
-                if(sog != null && !sog.IsDeleted && sog.RootPart.PhysActor != null)
-                    sog.RootPart.PhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
-            }
-
-            IgnoredControls = ScriptControlled.CONTROL_ZERO;
             lock (scriptedcontrols)
             {
+                foreach (ScriptControllers c in scriptedcontrols.Values)
+                {
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(c.objectID);
+                    if(sog != null && !sog.IsDeleted && sog.RootPart.PhysActor != null)
+                        sog.RootPart.PhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+                }
+
+                IgnoredControls = ScriptControlled.CONTROL_ZERO;
                 scriptedcontrols.Clear();
             }
             ControllingClient.SendTakeControls(int.MaxValue, false, false);
