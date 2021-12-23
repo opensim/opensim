@@ -339,7 +339,7 @@
     ;; Persistent       When the simulator is shutdown, the region is signalled as offline but left registered on the grid.
     ;;
     ;; Example specification:
-    ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
+    ; Region_Welcome_Area = "DefaultRegion, DefaultHGRegion"
     ; (replace spaces with underscore)
 
     ;; Allow Hyperlinks to be created at the console
