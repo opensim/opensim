@@ -140,26 +140,36 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
-            // Try root avatar only first
+            ScenePresence achildsp = null;
+            // Try root avatar first
             foreach (Scene scene in m_Scenes)
             {
-//                m_log.DebugFormat(
-//                    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}",
-//                    toAgentID.ToString(), scene.RegionInfo.RegionName);
+                //m_log.DebugFormat(
+                //    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}",
+                //     toAgentID.ToString(), scene.RegionInfo.RegionName);
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if (sp != null && !sp.IsChildAgent && !sp.IsDeleted)
+                if (sp != null && !sp.IsDeleted)
                 {
-                    // Local message
-//                  m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
-                    sp.ControllingClient.SendInstantMessage(im);
-
-                    // Message sent
-                    result(true);
-                    return;
+                    if(sp.IsChildAgent)
+                        achildsp = sp;
+                    else
+                    {
+                        // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
+                        sp.ControllingClient.SendInstantMessage(im);
+                        result(true);
+                        return;
+                    }
                 }
             }
+            if(achildsp != null)
+            {
+                // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
+                achildsp.ControllingClient.SendInstantMessage(im);
+                result(true);
+                return;
+            }
 
-//            m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
+            // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
             // Is the user a local user?
             string url = string.Empty;
             bool foreigner = false;
