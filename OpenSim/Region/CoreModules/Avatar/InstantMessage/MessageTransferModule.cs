@@ -140,6 +140,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
+            if (toAgentID == UUID.Zero)
+                return;
 
             ScenePresence achildsp = null;
             // Try root avatar first
