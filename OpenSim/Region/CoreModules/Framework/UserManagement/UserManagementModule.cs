@@ -698,7 +698,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(userdata.LastWebFail > 0)
             {
-                if(Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
+                if(Util.GetTimeStamp() - userdata.LastWebFail < BADURLEXPIRE)
                     return string.Empty;
                 userdata.LastWebFail = -1;
             }
@@ -768,9 +768,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (userdata.LastWebFail > 0)
             {
                 if (Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
-                    recentFail = true;
-                else
                     userdata.LastWebFail = -1;
+                else
+                    recentFail = true;
             }
 
             if (userdata.ServerURLs != null)
