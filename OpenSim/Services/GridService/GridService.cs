@@ -355,31 +355,26 @@ namespace OpenSim.Services.GridService
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
 
+            int regionFlags = 0;
             if (region != null)
             {
-                int oldFlags = Convert.ToInt32(region.Data["flags"]);
-
-                oldFlags &= ~(int)OpenSim.Framework.RegionFlags.Reservation;
-
-                rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
+                regionFlags = Convert.ToInt32(region.Data["flags"]);
+                regionFlags &= ~(int)OpenSim.Framework.RegionFlags.Reservation;
             }
-            else
+
+            if ((gridConfig != null) && !string.IsNullOrEmpty(rdata.RegionName))
             {
-                rdata.Data["flags"] = "0";
-                if ((gridConfig != null) && rdata.RegionName != string.Empty)
-                {
-                    int newFlags = 0;
-                    string regionName = rdata.RegionName.Trim().Replace(' ', '_');
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("DefaultRegionFlags", String.Empty));
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + regionName, String.Empty));
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
-                    rdata.Data["flags"] = newFlags.ToString();
-                }
+                string regionName = rdata.RegionName.Trim().Replace(' ', '_');
+                regionFlags = ParseFlags(regionFlags, gridConfig.GetString("DefaultRegionFlags", string.Empty));
+                string byregionname = gridConfig.GetString("Region_" + regionName, string.Empty);
+                if(!string.IsNullOrEmpty(byregionname))
+                    regionFlags = ParseFlags(regionFlags, byregionname);
+                else
+                    regionFlags = ParseFlags(regionFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), string.Empty));
             }
 
-            int flags = Convert.ToInt32(rdata.Data["flags"]);
-            flags |= (int)OpenSim.Framework.RegionFlags.RegionOnline;
-            rdata.Data["flags"] = flags.ToString();
+            regionFlags |= (int)OpenSim.Framework.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = regionFlags.ToString();
 
             try
             {
@@ -395,9 +390,9 @@ namespace OpenSim.Services.GridService
                 ("[GRID SERVICE]: Region {0} ({1}, {2}x{3}) registered at {4},{5} with flags {6}",
                 regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionSizeX, regionInfos.RegionSizeY,
                 regionInfos.RegionCoordX, regionInfos.RegionCoordY,
-                (OpenSim.Framework.RegionFlags)flags);
+                (OpenSim.Framework.RegionFlags)regionFlags);
 
-            return String.Empty;
+            return string.Empty;
         }
 
         // String describing name and region location of passed region
