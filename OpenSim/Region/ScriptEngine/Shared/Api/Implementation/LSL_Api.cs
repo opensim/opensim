@@ -1243,6 +1243,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_SayShoutCount++;
         }
 
+        public void ThrottleSay(int channelID, int timeMs)
+        {
+            if (channelID == 0)
+                CheckSayShoutTime();
+            if (m_SayShoutCount >= 11)
+                ScriptSleep(timeMs);
+        }
+
         public void llSay(int channelID, string text)
         {
 

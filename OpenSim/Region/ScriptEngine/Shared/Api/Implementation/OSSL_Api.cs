@@ -3308,6 +3308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
+                m_LSL_Api.ThrottleSay(channel, 2000);
                 module.Say(npcId, World, message, channel);
             }
         }
@@ -3318,6 +3319,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module == null)
+                return;
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if (wComm == null)
                 return;
 
             if (!UUID.TryParse(npc.m_string, out UUID npcId))
@@ -3336,9 +3340,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 npcPOS = NPCpresence.AbsolutePosition;
             string npcNAME = NPCpresence.Name;
 
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            if (wComm != null)
-                wComm.DeliverMessageTo(TargetID, channel, npcPOS, npcNAME, npcId, msg);
+            m_LSL_Api.ThrottleSay(channel, 2000);
+            wComm.DeliverMessageTo(TargetID, channel, npcPOS, npcNAME, npcId, msg);
         }
 
         public void osNpcShout(LSL_Key npc, int channel, string message)
@@ -3353,6 +3356,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
+                m_LSL_Api.ThrottleSay(channel, 2000);
                 module.Shout(npcId, World, message, channel);
             }
         }
@@ -3509,7 +3513,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 SceneObjectPart part = null;
-                if (UUID.TryParse(LSL_String.ToString(object_key), out UUID objectId))
+                if (UUID.TryParse(object_key.m_string, out UUID objectId))
                     part = World.GetSceneObjectPart(objectId);
 
                 if (part == null)
@@ -3519,16 +3523,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (linkNum == 0 || linkNum == ScriptBaseClass.LINK_ROOT)
                     { // 0 and 1 are treated as root, find the root if the current part isnt it
-                        if (!part.IsRoot)
-                            part = part.ParentGroup.RootPart;
+                        part = part.ParentGroup.RootPart;
                     }
                     else
                     { // Find the prim with the given link number if not found then fail silently
                         part = part.ParentGroup.GetLinkNumPart(linkNum);
-                        if (part == null)
-                            return;
                     }
                 }
+
+                if (part == null)
+                    return;
 
                 module.Touch(npcId, part.UUID);
             }
