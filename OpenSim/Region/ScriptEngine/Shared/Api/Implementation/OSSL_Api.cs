@@ -3308,6 +3308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
+                InitLSL();
                 m_LSL_Api.ThrottleSay(channel, 2000);
                 module.Say(npcId, World, message, channel);
             }
@@ -3340,6 +3341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 npcPOS = NPCpresence.AbsolutePosition;
             string npcNAME = NPCpresence.Name;
 
+            InitLSL();
             m_LSL_Api.ThrottleSay(channel, 2000);
             wComm.DeliverMessageTo(TargetID, channel, npcPOS, npcNAME, npcId, msg);
         }
@@ -3356,6 +3358,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
+                InitLSL();
                 m_LSL_Api.ThrottleSay(channel, 2000);
                 module.Shout(npcId, World, message, channel);
             }
