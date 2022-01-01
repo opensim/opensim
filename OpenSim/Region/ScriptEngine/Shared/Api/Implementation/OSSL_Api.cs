@@ -4349,6 +4349,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             if (target.IsDeleted || target.IsInTransit)
                return;
+            if(target.GetAttachmentsCount() == 0)
+                return;
 
             bool invertPoints = (options & ScriptBaseClass.OS_ATTACH_MSG_INVERT_POINTS) != 0;
             bool msgAll = false;
@@ -4368,47 +4370,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         msgAll = true;
                         break;
                     }
-                    else 
+                    else if(ipoint > 0)
                         aps.Add(ipoint);
                 }
             }
             else
-            {
-                if (!invertPoints)
-                    return;
                 aps = new List<int>();
-            }
 
             if(aps.Count == 0)
             {
+                if (!invertPoints && !msgAll)
+                    return;
                 msgAll = true;
                 invertPoints = false;
             }
 
-            if (msgAll && invertPoints)
-                return;
-
-            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> attachments;
             if (msgAll || invertPoints)
             {
                 attachments = target.GetAttachments();
             }
             else
             {
+                attachments = new List<SceneObjectGroup>();
                 foreach (int point in aps)
-                {
-                    if (point > 0)
-                    {
-                        attachments.AddRange(target.GetAttachments((uint)point));
-                    }
-                }
+                    attachments.AddRange(target.GetAttachments((uint)point));
             }
 
             // if we have no attachments at this point, exit now
             if (attachments.Count == 0)
-            {
                 return;
-            }
 
             bool optionObjCreator = (options & ScriptBaseClass.OS_ATTACH_MSG_OBJECT_CREATOR) != 0;
             bool optionScriptCreator = (options & ScriptBaseClass.OS_ATTACH_MSG_SCRIPT_CREATOR) != 0;
