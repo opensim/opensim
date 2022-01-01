@@ -4320,17 +4320,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (object point in attachmentPoints.Data)
                 {
-                    listObjToInt(point, out int ipoint);
-                    resp.Add(new LSL_Integer(ipoint));
-                    if (ipoint == 0)
+                    if(listObjToInt(point, out int ipoint))
                     {
-                        // indicates zero attachments
-                        resp.Add(new LSL_Integer(0));
-                    }
-                    else
-                    {
-                        // gets the number of attachments on the attachment point
-                        resp.Add(new LSL_Integer(target.GetAttachments((uint)ipoint).Count));
+                        resp.Add(new LSL_Integer(ipoint));
+                        if (ipoint <= 0)
+                        {
+                            // indicates zero attachments
+                            resp.Add(new LSL_Integer(0));
+                        }
+                        else
+                        {
+                            // gets the number of attachments on the attachment point
+                            resp.Add(new LSL_Integer(target.GetAttachments((uint)ipoint).Count));
+                        }
                     }
                 }
             }
@@ -4361,7 +4363,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 aps = new List<int>(attachmentPoints.Length);
                 foreach (object point in attachmentPoints.Data)
                 {
-                    if (!int.TryParse(point.ToString(), out int ipoint))
+                    if (!listObjToInt(point, out int ipoint))
                         return;
                     if(ipoint == ScriptBaseClass.OS_ATTACH_MSG_ALL)
                     {
