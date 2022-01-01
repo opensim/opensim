@@ -285,12 +285,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         /// <summary>
         /// Instructs osMessageAttachements to send the message to attachments
         ///     on every point.
+        /// Note that is to be present on selected attachment points list, not options
         /// </summary>
         /// <remarks>
-        /// One might expect this to be named OS_ATTACH_ALL, but then one might
-        ///     also expect functions designed to attach or detach or get
-        ///     attachments to work with it too. Attaching a no-copy item to
-        ///     many attachments could be dangerous.
         /// when combined with OS_ATTACH_MSG_INVERT_POINTS, will prevent the
         ///     message from being sent.
         /// if combined with OS_ATTACH_MSG_OBJECT_CREATOR or
