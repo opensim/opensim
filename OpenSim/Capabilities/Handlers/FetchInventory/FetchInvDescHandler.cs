@@ -201,7 +201,7 @@ namespace OpenSim.Capabilities.Handlers
                     LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
                     LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
                     LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
-                    LLSDxmlEncode2.AddElem("version", thiscoll.Version, lastresponse);
+                    LLSDxmlEncode2.AddElem_version(thiscoll.Version, lastresponse);
 
                     if (thiscoll.Folders == null || thiscoll.Folders.Count == 0)
                         LLSDxmlEncode2.AddEmptyArray("categories", lastresponse);
@@ -212,11 +212,11 @@ namespace OpenSim.Capabilities.Handlers
                         {
                             LLSDxmlEncode2.AddMap(lastresponse);
 
-                            LLSDxmlEncode2.AddElem("category_id", invFolder.ID, lastresponse);
+                            LLSDxmlEncode2.AddElem_category_id(invFolder.ID, lastresponse);
                             LLSDxmlEncode2.AddElem_parent_id(invFolder.ParentID, lastresponse);
                             LLSDxmlEncode2.AddElem_name(invFolder.Name, lastresponse);
                             LLSDxmlEncode2.AddElem("type_default", invFolder.Type, lastresponse);
-                            LLSDxmlEncode2.AddElem("version", invFolder.Version, lastresponse);
+                            LLSDxmlEncode2.AddElem_version( invFolder.Version, lastresponse);
 
                             LLSDxmlEncode2.AddEndMap(lastresponse);
                         }
