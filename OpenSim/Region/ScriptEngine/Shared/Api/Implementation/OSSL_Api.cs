@@ -2257,10 +2257,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Description = description
             };
 
-            osUTF8 contents = new osUTF8(data);
-            osUTF8Slice utf = new osUTF8Slice(contents.Length + 128);
+            osUTF8 contents = new osUTF8(data, 65536);
+            int len = contents.Length;
+            osUTF8Slice utf = new osUTF8Slice(len + 128);
             utf.AppendASCII("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length ");
-            utf.AppendASCII(contents.Length.ToString());
+            utf.AppendASCII(len.ToString());
             utf.AppendASCII("\n");
             utf.Append(contents);
             utf.AppendASCII("}");
