@@ -2139,7 +2139,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             MessageObject(objUUID, message);
-            ScriptSleep(25); // mostly a thread yield
+            //ScriptSleep(25); // mostly a thread yield
         }
 
         private void MessageObject(UUID objUUID, string message)
@@ -4409,7 +4409,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID hostCreatorID = m_host.CreatorID;
             UUID itemCreatorID = m_item.CreatorID;
 
-            int penalty = 200;
+            //int penalty = 200;
+            int penalty = 100;
             foreach (SceneObjectGroup sog in attachments)
             {
                 if(sog.IsDeleted || sog.inTransit || ((sog.ScriptEvents & scriptEvents.dataserver) == 0))
