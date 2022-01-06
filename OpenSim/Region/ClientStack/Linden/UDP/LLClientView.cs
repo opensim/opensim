@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Runtime;
@@ -4966,7 +4967,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                         // Someone else's HUD, why are we getting these?
-                        if (grp.OwnerID != AgentId && grp.HasPrivateAttachmentPoint)
+                        if (grp.HasPrivateAttachmentPoint && grp.OwnerID != AgentId)
                         {
                             update.Free();
                             continue;
@@ -8828,10 +8829,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private class DeRezObjectInfo
         {
-            public int count;
             public List<uint> objectids;
+            public HashSet<int> rcvedpackets;
         }
-        private Dictionary<UUID, DeRezObjectInfo> m_DeRezObjectDelayed = new Dictionary<UUID, DeRezObjectInfo>();
+        private ConcurrentDictionary<UUID, DeRezObjectInfo> m_DeRezObjectDelayed;
 
         private void HandlerDeRezObject(Packet Pack)
         {
@@ -8851,17 +8852,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (numberPackets > 1)
             {
-                DeRezObjectInfo info;
-                if (!m_DeRezObjectDelayed.TryGetValue(id, out info))
+                if(m_DeRezObjectDelayed == null)
+                    m_DeRezObjectDelayed = new ConcurrentDictionary<UUID, DeRezObjectInfo>();
+
+                if (!m_DeRezObjectDelayed.TryGetValue(id, out DeRezObjectInfo info))
                 {
-                    deRezIDs = new List<uint>();
+                    deRezIDs = new List<uint>(DeRezPacket.ObjectData.Length);
                     info = new DeRezObjectInfo();
-                    info.count = 0;
+                    info.rcvedpackets = new HashSet<int>() { curPacket };
                     info.objectids = deRezIDs;
                     m_DeRezObjectDelayed[id] = info;
                 }
                 else
                 {
+                    if(info.rcvedpackets.Contains(curPacket))
+                        return;
+                    info.rcvedpackets.Add(curPacket);
                     deRezIDs = info.objectids;
                 }
 
@@ -8870,16 +8876,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     deRezIDs.Add(data.ObjectLocalID);
                 }
 
-                info.count++;
-                if (info.count < numberPackets)
+                if (info.rcvedpackets.Count < numberPackets)
                     return;
 
-                m_DeRezObjectDelayed.Remove(id);
+                m_DeRezObjectDelayed.TryRemove(id, out info);
                 info.objectids = null;
+                info.rcvedpackets = null;
             }
             else
             {
-                deRezIDs = new List<uint>();
+                deRezIDs = new List<uint>(DeRezPacket.ObjectData.Length);
                 foreach (DeRezObjectPacket.ObjectDataBlock data in DeRezPacket.ObjectData)
                 {
                     deRezIDs.Add(data.ObjectLocalID);

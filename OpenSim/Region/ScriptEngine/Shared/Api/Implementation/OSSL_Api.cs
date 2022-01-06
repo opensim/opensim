@@ -2220,7 +2220,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </remarks>
         /// <param name="notecardName">The name of the notecard to write.</param>
         /// <param name="contents">The contents of the notecard.</param>
-        public void osMakeNotecard(string notecardName, LSL_Types.list contents)
+        public void osMakeNotecard(string notecardName, LSL_String contents)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osMakeNotecard");
+            SaveNotecard(notecardName, "Script generated notecard", contents + "\n", false);
+        }
+
+        public void osMakeNotecard(string notecardName, LSL_List contents)
         {
             CheckThreatLevel(ThreatLevel.High, "osMakeNotecard");
 
@@ -2250,23 +2256,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Description = description
             };
-            byte[] a;
-            byte[] b;
-            byte[] c;
 
-            b = Util.UTF8.GetBytes(data);
+            osUTF8 contents = new osUTF8(data);
+            osUTF8Slice utf = new osUTF8Slice(contents.Length + 128);
+            utf.AppendASCII("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length ");
+            utf.AppendASCII(contents.Length.ToString());
+            utf.AppendASCII("\n");
+            utf.Append(contents);
+            utf.AppendASCII("}");
 
-            a = Util.UTF8.GetBytes(
-                "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length " + b.Length.ToString() + "\n");
-
-            c = Util.UTF8.GetBytes("}");
-
-            byte[] d = new byte[a.Length + b.Length + c.Length];
-            Buffer.BlockCopy(a, 0, d, 0, a.Length);
-            Buffer.BlockCopy(b, 0, d, a.Length, b.Length);
-            Buffer.BlockCopy(c, 0, d, a.Length + b.Length, c.Length);
-
-            asset.Data = d;
+            asset.Data = utf.ToArray();
             World.AssetService.Store(asset);
 
             // Create Task Entry
