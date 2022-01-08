@@ -1496,7 +1496,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return false;
             }
 
-            if (uinfo.HomeRegionID == UUID.Zero)
+            if (uinfo.HomeRegionID.IsZero())
             {
                 // can't find the Home region: Tell viewer and abort
                 m_log.ErrorFormat("[ENTITY TRANSFER MODULE] no home set {0}", id);
@@ -1833,7 +1833,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         agent.Name, neighbourRegion.RegionName, reason);
 
                     ReInstantiateScripts(agent);
-                    if(agent.ParentID == 0 && agent.ParentUUID == UUID.Zero)
+                    if(agent.ParentID == 0 && agent.ParentUUID.IsZero())
                     {
                         agent.AddToPhysicalScene(isFlying);
                     }

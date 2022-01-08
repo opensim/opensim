@@ -505,7 +505,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             Dictionary<UUID, string> classifieds = new Dictionary<UUID, string>();
 
             UUID targetID;
-            if(!UUID.TryParse(args[0], out targetID) || targetID == UUID.Zero)
+            if(!UUID.TryParse(args[0], out targetID) || targetID.IsZero())
                 return;
 
             if (targetID ==  Constants.m_MrOpenSimID)
@@ -667,7 +667,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
             ad = (UserClassifiedAdd) Ad;
 
-            if(ad.CreatorId == UUID.Zero)
+            if(ad.CreatorId.IsZero())
                 return;
 
             if(foreign)
@@ -1485,14 +1485,14 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            if (avatarID == UUID.Zero)
+            if (avatarID.IsZero())
             {
                 // Looking for a reason that some viewers are sending null Id's
                 m_log.Debug("[PROFILES]: got request of null ID");
                 return;
             }
 
-            if (avatarID == Constants.m_MrOpenSimID)
+            if (avatarID.Equals(Constants.m_MrOpenSimID))
             {
                 remoteClient.SendAvatarProperties(avatarID, "Creator of OpenSimulator shared assets library", Constants.m_MrOpenSimBorn.ToString(),
                       Utils.StringToBytes("System agent"), "MrOpenSim has no life", 0x10,
@@ -1884,7 +1884,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         void cacheForeignImage(UUID agent, UUID imageID)
         {
-            if(imageID == null || imageID == UUID.Zero)
+            if(imageID.IsZero())
                 return;
 
             string assetServerURI = UserManagementModule.GetUserServerURL(agent, "AssetServerURI");

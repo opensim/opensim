@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
-            if (toAgentID == UUID.Zero)
+            if (toAgentID.IsZero())
                 return;
 
             ScenePresence achildsp = null;

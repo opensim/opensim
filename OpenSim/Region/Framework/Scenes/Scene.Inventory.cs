@@ -263,7 +263,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
             }
 
-            if (objectID == UUID.Zero)
+            if (objectID.IsZero())
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
@@ -845,7 +845,7 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.BasePermissions = item.BasePermissions;
             }
 
-            if (itemCopy.Folder == UUID.Zero)
+            if (itemCopy.Folder.IsZero())
             {
                 InventoryFolderBase folder = null;
                 if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
@@ -936,7 +936,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            if (recipientParentFolderId == UUID.Zero)
+            if (recipientParentFolderId.IsZero())
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
                 if (recipientRootFolder != null)
@@ -996,7 +996,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            if (recipientParentFolderId == UUID.Zero)
+            if (recipientParentFolderId.IsZero())
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
                 if (recipientRootFolder != null)
@@ -1538,7 +1538,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
             // Can't move a null item
-            if (itemId == UUID.Zero)
+            if (itemId.IsZero())
                 return;
 
             if (null == part)
@@ -1829,7 +1829,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         uint primLocalID)
         {
             UUID itemID = itemInfo.ItemID;
-            if (itemID == UUID.Zero)
+            if (itemID.IsZero())
             {
                 m_log.ErrorFormat(
                             "[PRIM INVENTORY]: UpdateTaskInventory called with item ID Zero on update for {1}!",
@@ -1923,7 +1923,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (remoteClient.AgentId != part.OwnerID) // Not owner
                     {
                         noChange = true;
-                        if(itemInfo.OwnerID == UUID.Zero && itemInfo.GroupID != UUID.Zero)
+                        if(itemInfo.OwnerID.IsZero() && !itemInfo.GroupID.IsZero())
                         {
                             if(remoteClient.IsGroupMember(itemInfo.GroupID))
                             {
@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (srcPart.OwnerID != destPart.OwnerID)
             {
                 // Group permissions
-                if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
+                if ((destPart.GroupID.IsZero()) || (destPart.GroupID.NotEqual(srcPart.GroupID)) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
                     return;
                 if((srcPart.OwnerMask & (uint)PermissionMask.Transfer) == 0)
@@ -2643,7 +2643,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}",
 //                remoteClient.Name, itemID, fromTaskID);
 
-            if (fromTaskID == UUID.Zero)
+            if (fromTaskID.IsZero())
             {
                 // rez from user inventory
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();

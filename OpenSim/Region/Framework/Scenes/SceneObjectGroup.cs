@@ -2419,7 +2419,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (IsDeleted || inTransit || UUID == UUID.Zero)
+            if (IsDeleted || inTransit || UUID.IsZero())
             {
 //                m_log.DebugFormat(
 //                    "[WATER WARS]: Ignoring backup of {0} {1} since object is marked as already deleted", Name, UUID);
@@ -2445,8 +2445,8 @@ namespace OpenSim.Region.Framework.Scenes
                             parcel.LandData.OtherCleanTime != 0)
                     {
                         if (parcel.LandData.OwnerID != OwnerID &&
-                                (parcel.LandData.GroupID != GroupID ||
-                                parcel.LandData.GroupID == UUID.Zero))
+                                (parcel.LandData.GroupID.NotEqual(GroupID) ||
+                                parcel.LandData.GroupID.IsZero()))
                         {
                             if ((DateTime.UtcNow - RootPart.Rezzed).TotalMinutes >
                                     parcel.LandData.OtherCleanTime)

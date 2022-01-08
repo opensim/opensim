@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         // Disconnect the Telehub:
         public void Disconnect()
         {
-            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 return;
 
             m_Scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         // Add a SpawnPoint to the Telehub
         public void AddSpawnPoint(Vector3 point)
         {
-            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 return;
 
             SceneObjectGroup grp = m_Scene.GetSceneObjectGroup(m_Scene.RegionInfo.RegionSettings.TelehubObject);
@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         // Remove a SpawnPoint from the Telehub
         public void RemoveSpawnPoint(int spawnpoint)
         {
-            if (m_Scene.RegionInfo.RegionSettings.TelehubObject == UUID.Zero)
+            if (m_Scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 return;
 
             m_Scene.RegionInfo.RegionSettings.RemoveSpawnPoint(spawnpoint);

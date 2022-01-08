@@ -647,7 +647,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             ScenePresence av = null;
             MapRequestState st = o as MapRequestState;
 
-            if (st == null || st.agentID == UUID.Zero)
+            if (st == null || st.agentID.IsZero())
                 return;
 
             if (m_blacklistedregions.ContainsKey(st.regionhandle))
@@ -765,7 +765,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
             UUID agentID = requestState.agentID;
-            if (agentID == UUID.Zero || !m_scene.TryGetScenePresence(agentID, out ScenePresence sp))
+            if (agentID.IsZero() || !m_scene.TryGetScenePresence(agentID, out ScenePresence sp))
             {
                 m_cachedRegionMapItemsResponses.Remove(regionhandle);
                 Interlocked.Decrement(ref nAsyncRequests);
@@ -1169,7 +1169,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public void OnHTTPGetMapImage(IOSHttpRequest request, IOSHttpResponse response)
         {
             response.KeepAlive = false;
-            if (request.HttpMethod != "GET" || m_scene.RegionInfo.RegionSettings.TerrainImageID == UUID.Zero)
+            if (request.HttpMethod != "GET" || m_scene.RegionInfo.RegionSettings.TerrainImageID.IsZero())
             {
                 response.StatusCode = (int)HttpStatusCode.NotFound;
                 return;
@@ -1367,7 +1367,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 foreach(GridRegion r in regions)
                 {
-                    if(r.TerrainImage == UUID.Zero)
+                    if(r.TerrainImage.IsZero())
                         continue;
 
                     if(doneLocal && r.RegionHandle == m_regionHandle)

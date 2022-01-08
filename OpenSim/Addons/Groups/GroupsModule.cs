@@ -249,8 +249,8 @@ namespace OpenSim.Groups
             // There might be some problem with the thread we're generating this on but not
             //   doing the update at this time causes problems (Mantis #7920 and #7915)
             // TODO: move sending this update to a later time in the rootification of the client.
-            if(!sp.m_haveGroupInformation)
-                SendAgentGroupDataUpdate(sp.ControllingClient, false);
+            //if(!sp.m_haveGroupInformation)
+            //    SendAgentGroupDataUpdate(sp.ControllingClient, false);
         }
 
         private void OnMakeChild(ScenePresence sp)
@@ -347,7 +347,7 @@ namespace OpenSim.Groups
             if (m_debugEnabled)
                 m_log.DebugFormat("[Groups]: OnInstantMessage called");
 
-            if(remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId == UUID.Zero)
+            if(remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId.IsZero())
                 return;
 
             Scene scene = (Scene)remoteClient.Scene;
@@ -526,7 +526,7 @@ namespace OpenSim.Groups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteClient.AgentId);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 UUID folderID = UUID.Zero;
@@ -580,7 +580,7 @@ namespace OpenSim.Groups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[GROUPS]: Accepted notice {0} for {1}", noticeID, remoteAgentIDstr);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 UUID remoteAgentID = remoteClient.AgentId;
@@ -598,7 +598,7 @@ namespace OpenSim.Groups
                 UUID attachmentUUID = notice.noticeData.AttachmentItemID;
 
                 if (attachmentUUID == null ||
-                        attachmentUUID == UUID.Zero ||
+                        attachmentUUID.IsZero() ||
                         giver == null ||
                         giver == UUID.Zero.ToString()
                         )

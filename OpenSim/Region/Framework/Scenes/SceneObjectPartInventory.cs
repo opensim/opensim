@@ -1238,10 +1238,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
 
-                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                if(item.OwnerID.IsZero()) // viewer to internal enconding of group owned
                     item.OwnerID = item.GroupID; 
 
-                if (item.AssetID == UUID.Zero)
+                if (item.AssetID.IsZero())
                     item.AssetID = m_items[item.ItemID].AssetID;
 
                 m_items[item.ItemID] = item;

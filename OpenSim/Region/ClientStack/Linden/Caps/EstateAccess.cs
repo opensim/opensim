@@ -173,7 +173,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (int i = 0; i < allowed.Length; ++i)
                 {
                     UUID id = allowed[i];
-                    if (id == UUID.Zero)
+                    if (id.IsZero())
                         continue;
                     LLSDxmlEncode2.AddMap(sb);
                         LLSDxmlEncode2.AddElem("id", id, sb);
@@ -190,7 +190,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 for (int i = 0; i < groups.Length; ++i)
                 {
                     UUID id = groups[i];
-                    if (id == UUID.Zero)
+                    if (id.IsZero())
                         continue;
                     LLSDxmlEncode2.AddMap(sb);
                         LLSDxmlEncode2.AddElem("id", id, sb);
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     EstateBan ban = EstateBans[i];
                     UUID id = ban.BannedUserID;
-                    if (id == UUID.Zero)
+                    if (id.IsZero())
                         continue;
                     LLSDxmlEncode2.AddMap(sb);
                         LLSDxmlEncode2.AddElem("id", id, sb);

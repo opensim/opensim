@@ -161,7 +161,7 @@ namespace OpenSim.Groups
                 return null;
 
             ExtendedGroupRecord grec;
-            if (GroupID == UUID.Zero)
+            if (GroupID.IsZero())
                 grec = GetGroupRecord(RequestingAgentID, groupName);
             else
                 grec = GetGroupRecord(RequestingAgentID, GroupID);

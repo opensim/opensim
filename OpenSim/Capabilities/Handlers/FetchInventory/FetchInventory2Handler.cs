@@ -84,7 +84,7 @@ namespace OpenSim.Capabilities.Handlers
             osUTF8 lsl = LLSDxmlEncode2.Start(4096);
             LLSDxmlEncode2.AddMap(lsl);
 
-            if(m_agentID == UUID.Zero && items.Length > 0)
+            if(m_agentID.IsZero() && items.Length > 0)
                 LLSDxmlEncode2.AddElem("agent_id", items[0].Owner, lsl);
             else
                 LLSDxmlEncode2.AddElem("agent_id", m_agentID, lsl);

@@ -1511,7 +1511,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (value == invalidCollisionSoundUUID)
                     m_collisionSoundType = -1;
-                else if (value == UUID.Zero)
+                else if (value.IsZero())
                     m_collisionSoundType = 0;
                 else
                     m_collisionSoundType = 1;
@@ -3032,7 +3032,7 @@ namespace OpenSim.Region.Framework.Scenes
         // The Collision sounds code calls this
         public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
         {
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
@@ -5626,7 +5626,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                if (IsSitTargetSet && SitTargetAvatar.IsZero())
                     SitTargetAvatar = sp.UUID;
 
                 if (m_sittingAvatars == null)
@@ -5762,7 +5762,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool AddAnimation(UUID animId, string animName)
         {
-            if (animId == UUID.Zero || string.IsNullOrEmpty(animName) ||
+            if (animId.IsZero() || string.IsNullOrEmpty(animName) ||
                     ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
@@ -5785,7 +5785,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool RemoveAnimation(UUID animId)
         {
-            if (animId == UUID.Zero || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+            if (animId.IsZero() || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
             lock (animsLock)
@@ -5944,7 +5944,7 @@ namespace OpenSim.Region.Framework.Scenes
                 while(--count >= 0)
                 {
                     UUID id = new UUID(data, pos);
-                    if(id == UUID.Zero)
+                    if(id.IsZero())
                         break;
                     pos += 16;
                     int strlen = data[pos++];

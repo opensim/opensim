@@ -850,10 +850,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             UUID owner = npccli.Owner;
 
-            if(owner == UUID.Zero)
+            if(owner.IsZero())
                 return true;
 
-            if (owner == LandData.OwnerID)
+            if (owner.Equals(LandData.OwnerID))
                 return false;
 
             return !IsInLandAccessList(owner);
@@ -1043,7 +1043,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         parcelAccessList.Remove(entry);
 
                     // a delete all command ?
-                    if (entries.Count == 1 && entries[0].AgentID == UUID.Zero)
+                    if (entries.Count == 1 && entries[0].AgentID.IsZero())
                     {
                         LandData.ParcelAccessList = parcelAccessList;
                         if ((flags & (uint)AccessList.Access) != 0)
@@ -1839,11 +1839,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (obj.OwnerID != LandData.OwnerID &&
                             (obj.GroupID != LandData.GroupID ||
-                            LandData.GroupID == UUID.Zero))
+                            LandData.GroupID.IsZero()))
                         {
                             if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] =
-                                        new List<SceneObjectGroup>();
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
                             returns[obj.OwnerID].Add(obj);
                         }
                     }

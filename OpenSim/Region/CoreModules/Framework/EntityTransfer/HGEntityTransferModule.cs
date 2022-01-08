@@ -646,7 +646,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // Equally, we can't use so.AttachedAvatar here.
-            if (OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
+            if (OwnerID.IsZero() || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // foreign user

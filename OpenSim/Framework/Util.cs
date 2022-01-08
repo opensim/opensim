@@ -3466,7 +3466,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddToGatheredIds(Dictionary<UUID, sbyte> uuids, UUID id, sbyte type)
         {
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return;
             uuids[id] = type;
         }

@@ -598,7 +598,7 @@ namespace OpenSim.Framework
 
             lock (m_attachments)
             {
-                if (item == UUID.Zero)
+                if (item.IsZero())
                 {
                     if (m_attachments.ContainsKey(attachpoint))
                     {
@@ -848,7 +848,7 @@ namespace OpenSim.Framework
                 if (m_texture.FaceTextures[idx] == null)
                     continue;
                 if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
-                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
+                        m_texture.FaceTextures[idx].TextureID.IsZero())
                     continue;
                 needExtra = true;
             }
@@ -1036,8 +1036,7 @@ namespace OpenSim.Framework
                 int idx = BAKE_INDICES[i];
                 if (m_texture.FaceTextures[idx] == null)
                     continue;
-                if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
-                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
+                if (m_texture.FaceTextures[idx].TextureID.IsZero() || m_texture.FaceTextures[idx].TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                     continue;
                 return false;
             }

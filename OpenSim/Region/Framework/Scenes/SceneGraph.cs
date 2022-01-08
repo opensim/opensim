@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[SCENEGRAPH]: Tried to add null scene object");
                 return false;
             }
-            if (sceneObject.UUID == UUID.Zero)
+            if (sceneObject.UUID.IsZero())
             {
                 m_log.ErrorFormat(
                     "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",

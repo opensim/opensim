@@ -314,7 +314,7 @@ namespace OpenSim.Groups
                 if (!all)
                 {
                     ExtendedGroupMembershipData membership = null;
-                    if (groupID == UUID.Zero)
+                    if (groupID.IsZero())
                     {
                         membership = m_GroupsService.GetAgentActiveMembership(requestingAgentID, agentID);
                     }

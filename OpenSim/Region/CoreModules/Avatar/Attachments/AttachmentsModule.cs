@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 ct.AddRow("Attachment Name", attachmentObject.Name);
                 ct.AddRow("Local ID", attachmentObject.LocalId);
                 ct.AddRow("Item ID", attachmentObject.UUID);
-                if(attachmentObject.FromItemID == UUID.Zero)
+                if(attachmentObject.FromItemID.IsZero())
                     ct.AddRow("Temporary", "");
                 else
                     ct.AddRow("From Item ID", attachmentObject.FromItemID);
@@ -697,7 +697,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             // Add the new attachment to inventory if we don't already have it.
             UUID newAttachmentItemID = group.FromItemID;
-            if (newAttachmentItemID == UUID.Zero)
+            if (newAttachmentItemID.IsZero())
                 newAttachmentItemID = AddSceneObjectAsNewAttachmentInInv(sp, group).ID;
 
             ShowAttachInUserInventory(sp, attachmentPt, newAttachmentItemID, group, append);
@@ -794,7 +794,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             UUID inventoryID = so.FromItemID;
 
             // As per Linden spec, drop is disabled for temp attachs
-            if (inventoryID == UUID.Zero)
+            if (inventoryID.IsZero())
                 return;
 
             if (DebugLevel > 0)
@@ -872,7 +872,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // If this didn't come from inventory, it also shouldn't go there
             // on detach. It's likely a temp attachment.
-            if (so.FromItemID == UUID.Zero)
+            if (so.FromItemID.IsZero())
             {
                 PrepareScriptInstanceForSave(so, true);
 
@@ -970,7 +970,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="saveAllScripted"></param>
         private void UpdateKnownItem(IScenePresence sp, SceneObjectGroup grp, string scriptedState)
         {
-            if (grp.FromItemID == UUID.Zero)
+            if (grp.FromItemID.IsZero())
             {
                 // We can't save temp attachments
                 grp.HasGroupChanged = false;

@@ -479,7 +479,7 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("Loading prims", scene);
             }
 
-            while (regionInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
+            while (regionInfo.EstateSettings.EstateOwner.IsZero() && MainConsole.Instance != null)
                 SetUpEstateOwner(scene);
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
@@ -638,7 +638,7 @@ namespace OpenSim
                     }
 
                     // If we've been given a zero uuid then this signals that we should use a random user id
-                    if (estateOwnerUuid == UUID.Zero)
+                    if (estateOwnerUuid.IsZero())
                         estateOwnerUuid = UUID.Random();
 
                     account

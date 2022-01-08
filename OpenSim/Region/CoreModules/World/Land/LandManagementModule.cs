@@ -1423,13 +1423,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                         curByte = LandChannel.LAND_TYPE_OWNED_BY_GROUP;
                     }
                     else if (currentParcel.LandData.SalePrice > 0 &&
-                                (currentParcel.LandData.AuthBuyerID == UUID.Zero ||
-                                currentParcel.LandData.AuthBuyerID == remote_client.AgentId))
+                                (currentParcel.LandData.AuthBuyerID.IsZero() ||
+                                currentParcel.LandData.AuthBuyerID.Equals(remote_client.AgentId)))
                     {
                         //Sale type
                         curByte = LandChannel.LAND_TYPE_IS_FOR_SALE;
                     }
-                    else if (currentParcel.LandData.OwnerID == UUID.Zero)
+                    else if (currentParcel.LandData.OwnerID.IsZero())
                     {
                         //Public type
                         curByte = LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
@@ -1790,7 +1790,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     bool landforsale = ((lob.LandData.Flags &
                                          (uint)(ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects)) != 0);
-                    if ((AuthorizedID == UUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
+                    if ((AuthorizedID.IsZero() || AuthorizedID.Equals(e.agentId)) && e.parcelPrice >= saleprice && landforsale)
                     {
                         // TODO I don't think we have to lock it here, no?
                         //lock (e)
@@ -2204,7 +2204,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID == UUID.Zero ? args.ToString() :"");
+            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID.IsZero() ? args.ToString() :"");
             osUTF8 sb = LLSDxmlEncode2.Start();
                 LLSDxmlEncode2.AddMap(sb);
                   LLSDxmlEncode2.AddElem("parcel_id", parcelID,sb);
@@ -2217,7 +2217,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void ClientOnParcelInfoRequest(IClientAPI remoteClient, UUID parcelID)
         {
-            if (parcelID == UUID.Zero)
+            if (parcelID.IsZero())
                 return;
 
             if(!m_parcelInfoCache.TryGetValue(parcelID, 30000, out ExtendedLandData data))

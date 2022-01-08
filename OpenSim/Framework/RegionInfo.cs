@@ -488,7 +488,7 @@ namespace OpenSim.Framework
             if (!UUID.TryParse(regionUUID.Trim(), out RegionID))
             {
                 UUID newID = UUID.Random();
-                while (RegionID == UUID.Zero)
+                while (RegionID.IsZero())
                 {
                     regionUUID = MainConsole.Instance.Prompt("RegionUUID", newID.ToString());
                     if (!UUID.TryParse(regionUUID.Trim(), out RegionID))

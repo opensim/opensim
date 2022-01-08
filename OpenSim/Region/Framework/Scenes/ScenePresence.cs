@@ -4638,7 +4638,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         AgentPosition agentpos = new AgentPosition()
                         {
-                            AgentID = new UUID(UUID.Guid),
+                            AgentID = UUID,
                             SessionID = ControllingClient.SessionId,
                             Size = Appearance.AvatarSize,
                             Center = CameraPosition,

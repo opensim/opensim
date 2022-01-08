@@ -2176,7 +2176,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     break;
 
                 groupID = tmp.AsUUID();
-                if(groupID == UUID.Zero)
+                if(groupID.IsZero())
                     break;
 
                 List<GroupRolesData> roles = m_GroupsModule.GroupRoleDataRequest(client, groupID);
@@ -2309,7 +2309,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         fullname = "(hippos)";
                     }
 
-                    if(kvp.Key == UUID.Zero)
+                    if(kvp.Key.IsZero())
                         continue;
 
                 // dont tell about unknown users, we can't send them back on Bad either

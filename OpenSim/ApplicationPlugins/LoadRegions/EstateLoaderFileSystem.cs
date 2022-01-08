@@ -124,7 +124,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     if (string.IsNullOrWhiteSpace(ownerString))
                         continue;
 
-                    if (!UUID.TryParse(ownerString, out UUID estateOwner) || estateOwner == UUID.Zero)
+                    if (!UUID.TryParse(ownerString, out UUID estateOwner) || estateOwner.IsZero())
                         continue;
 
                     // Check If Estate Exists (Skip If So)

@@ -332,7 +332,7 @@ namespace OpenSim.Capabilities.Handlers
             bool doneZeroID = false;
             foreach(LLSDFetchInventoryDescendents f in fetchFolders)
             {
-                if (f.folder_id == UUID.Zero)
+                if (f.folder_id.IsZero())
                 {
                     if(doneZeroID)
                         continue;
@@ -427,7 +427,7 @@ namespace OpenSim.Capabilities.Handlers
 
             // The inventory server isn't sending FolderID in the collection...
             // Must fetch it individually
-            if (contents.FolderID == UUID.Zero)
+            if (contents.FolderID.IsZero())
             {
                 InventoryFolderBase containingFolder = m_InventoryService.GetFolder(freq.owner_id, freq.folder_id);
                 if (containingFolder == null)

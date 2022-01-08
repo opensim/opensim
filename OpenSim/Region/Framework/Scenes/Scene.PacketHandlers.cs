@@ -548,7 +548,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[USER INVENTORY]: HandleFetchInventoryDescendents() for {0}, folder={1}, fetchFolders={2}, fetchItems={3}, sortOrder={4}",
 //                remoteClient.Name, folderID, fetchFolders, fetchItems, sortOrder);
 
-            if (folderID == UUID.Zero)
+            if (folderID.IsZero())
                 return;
 
             // FIXME MAYBE: We're not handling sortOrder!

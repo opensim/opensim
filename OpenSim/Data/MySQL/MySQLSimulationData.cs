@@ -378,7 +378,7 @@ namespace OpenSim.Data.MySQL
             // Create all of the SOGs from the root prims first
             foreach (SceneObjectPart prim in prims.Values)
             {
-                if (prim.ParentUUID == UUID.Zero)
+                if (prim.ParentUUID.IsZero())
                 {
                     objects[prim.UUID] = new SceneObjectGroup(prim);
                 }

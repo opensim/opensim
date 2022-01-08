@@ -316,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 if (found.Contains(data.Id))
                     continue;
-                if (data.Id == UUID.Zero || data.IsUnknownUser)
+                if (data.Id.IsZero() || data.IsUnknownUser)
                     continue;
                 if (data.FirstName.ToLower().StartsWith(q) || data.LastName.ToLower().StartsWith(q))
                     users.Add(data);
@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             var untried = new Dictionary<UUID, UserData>();
             foreach (string id in ids)
             {
-                if(!UUID.TryParse(id, out UUID uuid) || uuid == UUID.Zero)
+                if(!UUID.TryParse(id, out UUID uuid) || uuid.IsZero())
                     continue;
 
                 if (m_userCacheByID.TryGetValue(uuid, out UserData userdata))
@@ -551,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             var untried = new Dictionary<UUID, UserData>();
             foreach (string id in ids)
             {
-                if (!UUID.TryParse(id, out UUID uuid) || uuid == UUID.Zero)
+                if (!UUID.TryParse(id, out UUID uuid) || uuid.IsZero())
                     continue;
 
                 if (m_userCacheByID.TryGetValue(uuid, out UserData userdata))

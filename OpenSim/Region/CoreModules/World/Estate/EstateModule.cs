@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void OnEstateTeleportOneUserHomeRequest(IClientAPI client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
-            if (prey == UUID.Zero)
+            if (prey.IsZero())
                 return;
 
             if (!(client.Scene is Scene))

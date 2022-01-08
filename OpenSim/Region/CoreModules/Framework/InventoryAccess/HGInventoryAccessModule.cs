@@ -319,7 +319,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
-            if (item == null || item.AssetID == UUID.Zero)
+            if (item == null || item.AssetID.IsZero())
                 return null;
 
             string userAssetServer;

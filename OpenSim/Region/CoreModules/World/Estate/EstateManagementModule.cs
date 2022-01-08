@@ -498,7 +498,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void SetEstateTerrainBaseTexture(IClientAPI remoteClient, int level, UUID texture)
         {
-            if (texture == UUID.Zero)
+            if (texture.IsZero())
                 return;
 
             switch (level)
@@ -1185,7 +1185,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void HandleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
-            if (prey == UUID.Zero)
+            if (prey.IsZero())
                 return;
 
              EstateTeleportOneUserHomeRequest evOverride = OnEstateTeleportOneUserHomeRequest;

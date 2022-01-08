@@ -182,7 +182,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                int j = m_defaultAnimation.AnimID == UUID.Zero ? 0 : 1;
+                int j = m_defaultAnimation.AnimID.IsZero() ? 0 : 1;
 
                 int defaultSize = m_animations.Count + j;
                 animIDs = new UUID[defaultSize];

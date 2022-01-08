@@ -605,7 +605,7 @@ namespace OpenSim.Groups
         private string AgentUUI(string AgentIDStr)
         {
             UUID AgentID = UUID.Zero;
-            if (!UUID.TryParse(AgentIDStr, out AgentID) || AgentID == UUID.Zero)
+            if (!UUID.TryParse(AgentIDStr, out AgentID) || AgentID.IsZero())
                 return UUID.Zero.ToString();
 
             if (m_UserManagement.IsLocalGridUser(AgentID))
@@ -630,8 +630,8 @@ namespace OpenSim.Groups
         private string AgentUUIForOutside(string AgentIDStr)
         {
             UUID AgentID = UUID.Zero;
-            if (!UUID.TryParse(AgentIDStr, out AgentID) || AgentID == UUID.Zero)
-                return UUID.Zero.ToString();
+            if (!UUID.TryParse(AgentIDStr, out AgentID) || AgentID.IsZero())
+                return UUID.ZeroString;
 
             AgentCircuitData agent = null;
             foreach (Scene scene in m_Scenes)
