@@ -67,7 +67,7 @@ namespace OpenSim.Data.MySQL
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
             string command = "select * from `"+m_Realm+"` where regionName like ?regionName";
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
             command += " order by regionName";
@@ -84,7 +84,7 @@ namespace OpenSim.Data.MySQL
         public RegionData GetSpecific(string regionName, UUID scopeID)
         {
             string command = "select * from `" + m_Realm + "` where regionName = ?regionName";
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
             using (MySqlCommand cmd = new MySqlCommand(command))
@@ -104,7 +104,7 @@ namespace OpenSim.Data.MySQL
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
             string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
             int startX = posX - (int)Constants.MaximumRegionSize;
@@ -145,7 +145,7 @@ namespace OpenSim.Data.MySQL
         public RegionData Get(UUID regionID, UUID scopeID)
         {
             string command = "select * from `"+m_Realm+"` where uuid = ?regionID";
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
             using (MySqlCommand cmd = new MySqlCommand(command))
@@ -325,7 +325,7 @@ namespace OpenSim.Data.MySQL
 
                 update += " where uuid = ?regionID";
 
-                if (data.ScopeID != UUID.Zero)
+                if (!data.ScopeID.IsZero())
                     update += " and ScopeID = ?scopeID";
 
                 cmd.CommandText = update;
@@ -410,7 +410,7 @@ namespace OpenSim.Data.MySQL
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
             string command = "select * from `" + m_Realm + "` where (flags & " + regionFlags.ToString() + ") <> 0";
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
             using (MySqlCommand cmd = new MySqlCommand(command))

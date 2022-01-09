@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
-            if (transactionID != UUID.Zero && assetType != (byte)AssetType.Settings)
+            if (!transactionID.IsZero() && assetType != (byte)AssetType.Settings)
             {
                 IAgentAssetTransactions agentTransactions = m_Scene.AgentTransactionsModule;
                 if (agentTransactions != null)

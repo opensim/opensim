@@ -1420,9 +1420,9 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
                     invString.AddNameValueLine("group_id",groupID.ToString());
-                    if(groupID != UUID.Zero && ownerID == groupID)
+                    if(!groupID.IsZero() && ownerID.Equals(groupID))
                     {
-                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("owner_id", UUID.ZeroString);
                         invString.AddNameValueLine("group_owned","1");
                     }
                     else

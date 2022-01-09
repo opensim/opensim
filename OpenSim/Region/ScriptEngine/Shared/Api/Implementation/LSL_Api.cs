@@ -620,10 +620,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llGetScriptState(string name)
         {
-            UUID item;
+            UUID item = GetScriptByName(name);
 
-
-            if ((item = GetScriptByName(name)) != UUID.Zero)
+            if (!item.IsZero())
             {
                 return m_ScriptEngine.GetScriptState(item) ?1:0;
             }
@@ -638,15 +637,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetScriptState(string name, int run)
         {
-            UUID item;
+            UUID item = GetScriptByName(name);
 
 
             // These functions are supposed to be robust,
             // so get the state one step at a time.
 
-            if ((item = GetScriptByName(name)) != UUID.Zero)
+            if (!item.IsZero())
             {
-                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true, item == m_item.ItemID);
+                m_ScriptEngine.SetScriptState(item, run == 0 ? false : true, item.Equals(m_item.ItemID));
             }
             else
             {
@@ -3737,7 +3736,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
-            if (m_item.PermsGranter != UUID.Zero)
+            if (!m_item.PermsGranter.IsZero())
             {
                 ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
@@ -3755,7 +3754,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llReleaseControls()
         {
 
-            if (m_item.PermsGranter != UUID.Zero)
+            if (!m_item.PermsGranter.IsZero())
             {
                 ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
 
@@ -4906,12 +4905,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Key llRequestAgentData(string id, int data)
         {
-
-            if (UUID.TryParse(id, out UUID uuid) && uuid != UUID.Zero)
+            if (UUID.TryParse(id, out UUID uuid) && !uuid.IsZero())
             {
-                if (uuid == UUID.Zero)
-                    return string.Empty;
-
                 //pre process fast local avatars
                 switch(data)
                 {
@@ -4960,7 +4955,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     {
                                         foreach (PresenceInfo p in pinfos)
                                         {
-                                            if (p.RegionID != UUID.Zero)
+                                            if (!p.RegionID.IsZero())
                                             {
                                                 pinfo = p;
                                             }
@@ -5096,7 +5091,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTeleportAgent(string agent, string destination, LSL_Vector targetPos, LSL_Vector targetLookAt)
         {
             // If attached using llAttachToAvatarTemp, cowardly refuse
-            if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID == UUID.Zero)
+            if (m_host.ParentGroup.AttachmentPoint != 0 && m_host.ParentGroup.FromItemID.IsZero())
                 return;
 
             if (UUID.TryParse(agent, out UUID agentId))
@@ -5242,14 +5237,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // TODO: Parameter check logic required.
             UUID soundId = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
-            if(soundId != UUID.Zero)
+            if(soundId.IsZero())
+                m_host.CollisionSoundType = -1;
+            else
             {
                 m_host.CollisionSound = soundId;
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSoundType = 1;
             }
-            else
-                 m_host.CollisionSoundType = -1;
 
             m_host.aggregateScriptEvents();
         }
@@ -6807,7 +6802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (userManager != null)
                     {
                         userID = userManager.GetUserIdByName(firstName, lastName);
-                        if (userID != UUID.Zero)
+                        if (!userID.IsZero())
                             reply = userID.ToString();
                     }
                 }
@@ -6822,7 +6817,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             string hgfirst = firstName + "." + lastName;
                             string hglast = "@" + server;
                             userID = userManager.GetUserIdByName(hgfirst, hglast);
-                            if (userID != UUID.Zero)
+                            if (!userID.IsZero())
                             {
                                 notfound = false;
                                 reply = userID.ToString();
@@ -6837,7 +6832,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 if (userConnection != null)
                                 {
                                     userID = userConnection.GetUUID(firstName, lastName);
-                                    if (userID != UUID.Zero)
+                                    if (!userID.IsZero())
                                     {
                                         if (userManager != null)
                                             userManager.AddUser(userID, firstName, lastName, url);
@@ -11747,7 +11742,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(m_materialsModule != null)
                 matID = texface.MaterialID;
 
-            if(matID != UUID.Zero)
+            if(!matID.IsZero())
             {
                 FaceMaterial mat = m_materialsModule.GetMaterial(matID);
                 if(mat != null)
@@ -14223,10 +14218,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (status == HttpInitialRequestStatus.DISALLOWED_BY_FILTER)
                 Error("llHttpRequest", string.Format("Request to {0} disallowed by filter", url));
 
-            if (reqID != UUID.Zero)
-                return reqID.ToString();
-            else
-                return "";
+            return reqID.IsZero() ? "" : reqID.ToString();
         }
 
 
@@ -15235,7 +15227,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetDisplayName(LSL_Key id)
         {
-            if (UUID.TryParse(id, out UUID key) && key != UUID.Zero)
+            if (UUID.TryParse(id, out UUID key) && !key.IsZero())
             {
                 ScenePresence presence = World.GetScenePresence(key);
                 if (presence != null)
@@ -17448,7 +17440,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (presence == null)
                 return;
 
-            if (m_item.PermsGranter == UUID.Zero)
+            if (m_item.PermsGranter.IsZero())
             {
                 llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
                 return;
@@ -17492,7 +17484,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (presence == null)
                 return String.Empty;
 
-            if (m_item.PermsGranter == UUID.Zero)
+            if (m_item.PermsGranter.IsZero())
             {
                 llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
                 return String.Empty;
@@ -17521,7 +17513,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             UUID animID = presence.GetAnimationOverride(state);
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
                 return animState;
 
             foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUIDbyName)
@@ -18591,5 +18583,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return line;
         }
+
     }
 }

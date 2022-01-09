@@ -377,7 +377,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 wearableCache = WearableCacheItem.GetDefaultCacheItem();
             else
             {
-                hadSkirt = (wearableCache[19].TextureID != UUID.Zero);
+                hadSkirt = !wearableCache[19].TextureID.IsZero();
             }
 
             HashSet<uint> updatedFaces = new HashSet<uint>();
@@ -562,8 +562,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             continue;
                         }
 
-                        if (face.TextureID == wearableCache[idx].TextureID &&
-                            face.TextureID != UUID.Zero)
+                        if (face.TextureID.Equals(wearableCache[idx].TextureID) && !face.TextureID.IsZero())
                         {
                             if (cache.Check((wearableCache[idx].TextureID).ToString()))
                             {
@@ -628,7 +627,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     hits++;
                                 }
                                 else if(sp.Appearance.Texture.FaceTextures[idx] == null ||
-                                    sp.Appearance.Texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                                    sp.Appearance.Texture.FaceTextures[idx].TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                                     hits++;
                                 wearableCache[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
                                 wearableCache[idx].CacheId = UUID.Zero;
@@ -1058,7 +1057,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private void TryAndRepairBrokenWearable(WearableType type, IInventoryService invService, UUID userID,AvatarAppearance appearance)
         {
             UUID defaultwearable = GetDefaultItem(type);
-            if (defaultwearable != UUID.Zero)
+            if (!defaultwearable.IsZero())
             {
                 UUID newInvItem = UUID.Random();
                 InventoryItemBase itembase = new InventoryItemBase(newInvItem, userID)

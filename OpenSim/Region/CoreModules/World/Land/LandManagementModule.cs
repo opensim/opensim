@@ -269,11 +269,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (m_landList.TryGetValue(local_id, out land))
                 {
                     m_landGlobalIDs.Remove(land.LandData.GlobalID);
-                    if (land.LandData.FakeID != UUID.Zero)
+                    if (!land.LandData.FakeID.IsZero())
                         m_landFakeIDs.Remove(land.LandData.FakeID);
                     land.LandData = newData;
                     m_landGlobalIDs[newData.GlobalID] = local_id;
-                    if (newData.FakeID != UUID.Zero)
+                    if (!newData.FakeID.IsZero())
                         m_landFakeIDs[newData.FakeID] = local_id;
                 }
             }
@@ -852,7 +852,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
-            if(landGlobalID != UUID.Zero)
+            if(!landGlobalID.IsZero())
             {
                 m_scene.EventManager.TriggerLandObjectRemoved(landGlobalID);
                 land.Clear();
@@ -2338,13 +2338,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
 
             bool validParcelOwner = false;
-            if (DefaultGodParcelOwner != UUID.Zero && m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
+            if (!DefaultGodParcelOwner.IsZero() && m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
                 validParcelOwner = true;
 
             bool validParcelGroup = false;
             if (m_groupManager != null)
             {
-                if (DefaultGodParcelGroup != UUID.Zero && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
+                if (!DefaultGodParcelGroup.IsZero() && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
                     validParcelGroup = true;
             }
 
@@ -2583,7 +2583,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             // Gather some data
             ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
             SceneObjectGroup telehub = null;
-            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+            if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 // Does the telehub exist in the scene?
                 telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
 

@@ -754,7 +754,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     return collection;
                 }
 
-                bool itemIDNotZero = itemID != UUID.Zero;
+                bool itemIDNotZero = !itemID.IsZero();
                 foreach (ListenerInfo li in listeners)
                 {
                     if (!li.IsActive())
@@ -763,7 +763,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     if (itemIDNotZero && itemID != li.GetItemID())
                         continue;
 
-                    if (li.GetID() != UUID.Zero && id != li.GetID())
+                    if (!li.GetID().IsZero() && id.NotEqual(li.GetID()))
                         continue;
 
                     if (li.GetName().Length > 0)

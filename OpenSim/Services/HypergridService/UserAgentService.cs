@@ -211,7 +211,7 @@ namespace OpenSim.Services.HypergridService
             GridUserInfo uinfo = m_GridUserService.GetGridUserInfo(userID.ToString());
             if (uinfo != null)
             {
-                if (uinfo.HomeRegionID != UUID.Zero)
+                if (!uinfo.HomeRegionID.IsZero())
                 {
                     home = m_GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                     position = uinfo.HomePosition;
@@ -459,7 +459,7 @@ namespace OpenSim.Services.HypergridService
             {
                 PresenceInfo friendSession = null;
                 foreach (PresenceInfo pinfo in friendSessions)
-                    if (pinfo.RegionID != UUID.Zero) // let's guard against traveling agents
+                    if (!pinfo.RegionID.IsZero()) // let's guard against traveling agents
                     {
                         friendSession = pinfo;
                         break;

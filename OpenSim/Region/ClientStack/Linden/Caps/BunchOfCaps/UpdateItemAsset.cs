@@ -74,7 +74,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            if (objectID != UUID.Zero)
+            if (!objectID.IsZero())
             {
                 SceneObjectPart sop = m_Scene.GetSceneObjectPart(objectID);
                 if (sop == null)

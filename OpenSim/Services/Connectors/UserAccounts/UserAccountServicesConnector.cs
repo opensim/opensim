@@ -211,7 +211,7 @@ namespace OpenSim.Services.Connectors
             UUID uuid = UUID.Zero;
             foreach(string id in IDs)
             {
-                if(UUID.TryParse(id, out uuid) && uuid != UUID.Zero)
+                if(UUID.TryParse(id, out uuid) && !uuid.IsZero())
                     accs.Add(GetUserAccount(scopeID,uuid));
             }
 

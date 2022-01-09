@@ -458,7 +458,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                        if (client != null)
                        {
 
-                           if (soundId != UUID.Zero)
+                           if (!soundId.IsZero())
                                client.SendPlayAttachedSound(soundId, UUID.Zero, UUID.Zero, 1.0f, 0);
 
                            client.SendBlueBoxMessage(UUID.Zero, "", text);

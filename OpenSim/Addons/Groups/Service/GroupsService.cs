@@ -564,7 +564,7 @@ namespace OpenSim.Groups
             if (rdata != null)
                 foreach (RoleMembershipData r in rdata)
                 {
-                    if (r.RoleID != UUID.Zero)
+                    if (!r.RoleID.IsZero())
                     {
                         newRoleID = r.RoleID;
                         break;
@@ -837,7 +837,7 @@ namespace OpenSim.Groups
             _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, UUID.Zero);
 
             // Add principal to role, if different from everyone role
-            if (RoleID != UUID.Zero)
+            if (!RoleID.IsZero())
                 _AddAgentToGroupRole(RequestingAgentID, AgentID, GroupID, RoleID);
 
             // Make this the active group

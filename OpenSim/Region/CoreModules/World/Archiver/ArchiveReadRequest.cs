@@ -712,7 +712,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (m_debug)
                     m_log.DebugFormat("[ARCHIVER]: Placing object from OAR in scene at position {0}.  ", pos.ToString());
 
-                bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
+                bool isTelehub = (sceneObject.UUID.Equals(oldTelehubUUID)) && (!oldTelehubUUID.IsZero());
 
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
                 // on the same region server and multiple examples a single object archive to be imported
@@ -752,7 +752,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (ignoredObjects > 0)
                 m_log.WarnFormat("[ARCHIVER]:     Ignored {0} possible out of bounds", ignoredObjects);
 
-            if (oldTelehubUUID != UUID.Zero)
+            if (!oldTelehubUUID.IsZero())
             {
                 m_log.WarnFormat("[ARCHIVER]: Telehub object not found: {0}", oldTelehubUUID);
                 scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
@@ -933,15 +933,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (parcel.IsGroupOwned)
                 {
-                    if (parcel.GroupID != UUID.Zero)
-                    {
-                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
-                        parcel.OwnerID = parcel.GroupID;
-                    }
-                    else
+                    if (parcel.GroupID.IsZero())
                     {
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
                         parcel.IsGroupOwned = false;
+                    }
+                    else
+                    {
+                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
+                        parcel.OwnerID = parcel.GroupID;
                     }
                 }
                 else

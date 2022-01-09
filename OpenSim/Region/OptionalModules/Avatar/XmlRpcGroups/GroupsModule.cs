@@ -527,7 +527,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         return;
                     }
 
-                    if(itemID != UUID.Zero && ownerID != UUID.Zero)
+                    if(!itemID.IsZero() && !ownerID.IsZero())
                     {
                         item = scene.InventoryService.GetItem(ownerID, itemID);
                         if (item != null)

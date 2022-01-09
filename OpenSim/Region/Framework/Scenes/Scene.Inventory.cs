@@ -139,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item"></param>
         public bool AddInventoryItem(InventoryItemBase item, bool trigger)
         {
-            if (item.Folder != UUID.Zero && InventoryService.AddItem(item))
+            if (!item.Folder.IsZero() && InventoryService.AddItem(item))
             {
                 int userlevel = 0;
                 if (Permissions.IsGod(item.Owner))
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (trigger)
                     EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
-                if (originalFolder != UUID.Zero)
+                if (!originalFolder.IsZero())
                 {
                     // Tell the viewer that the item didn't go there
                     ChangePlacement(item, f);
@@ -1898,7 +1898,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
                 // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
                 // will not pass in a transaction ID in the update message.
-                if (transactionID != UUID.Zero && AgentTransactionsModule != null)
+                if (!transactionID.IsZero() && AgentTransactionsModule != null)
                 {
                     AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
                         remoteClient, part, transactionID, currentItem);
@@ -1999,10 +1999,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart partWhereRezzed;
 
-            if (itemBase.ID != UUID.Zero)
-                partWhereRezzed = RezScriptFromAgentInventory(remoteClient.AgentId, itemBase.ID, localID);
-            else
+            if (itemBase.ID.IsZero())
                 partWhereRezzed = RezNewScript(remoteClient.AgentId, itemBase);
+            else
+                partWhereRezzed = RezScriptFromAgentInventory(remoteClient.AgentId, itemBase.ID, localID);
 
             if (partWhereRezzed != null)
                 partWhereRezzed.SendPropertiesToClient(remoteClient);
@@ -2887,9 +2887,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs)
         {
+            
             if (!Permissions.IsGod(remoteClient.AgentId))
             {
-                if (ownerID != UUID.Zero)
+                if (!ownerID.IsZero())
                     return;
             }
 
@@ -2907,7 +2908,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup sog in groups)
             {
-                if (ownerID != UUID.Zero)
+                if (!ownerID.IsZero())
                 {
                     sog.SetOwnerId(ownerID);
                     sog.SetGroup(groupID, remoteClient);

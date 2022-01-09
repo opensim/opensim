@@ -180,7 +180,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_NumberScenes <= 0)
                 return;
             APollRequest poolreq = o as APollRequest;
-            if (poolreq != null && poolreq.reqID != UUID.Zero)
+            if (poolreq != null && !poolreq.reqID.IsZero())
                 poolreq.thepoll.Process(poolreq);
         }
 

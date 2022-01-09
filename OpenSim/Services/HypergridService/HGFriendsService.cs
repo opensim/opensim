@@ -260,7 +260,7 @@ namespace OpenSim.Services.HypergridService
             {
                 PresenceInfo friendSession = null;
                 foreach (PresenceInfo pinfo in friendSessions)
-                    if (pinfo.RegionID != UUID.Zero) // let's guard against traveling agents
+                    if (!pinfo.RegionID.IsZero()) // let's guard against traveling agents
                     {
                         friendSession = pinfo;
                         break;

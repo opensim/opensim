@@ -205,7 +205,7 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (itemID != UUID.Zero)
+            if (!itemID.IsZero())
             {
                 m_ids.Remove(itemID);
                 m_items.Remove(itemID);

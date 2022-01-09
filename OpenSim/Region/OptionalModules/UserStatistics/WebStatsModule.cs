@@ -478,7 +478,7 @@ namespace OpenSim.Region.UserStatistics
 
             lock (m_sessions)
             {
-                if (agentID != UUID.Zero)
+                if (!agentID.IsZero())
                 {
                     if (!m_sessions.ContainsKey(agentID))
                     {

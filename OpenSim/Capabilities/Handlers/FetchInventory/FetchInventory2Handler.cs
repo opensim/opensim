@@ -70,15 +70,15 @@ namespace OpenSim.Capabilities.Handlers
 
             InventoryItemBase[] items = null;
 
-            if (m_agentID != UUID.Zero)
-            {
-                items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
-            }
-            else
+            if (m_agentID.IsZero())
             {
                 items = new InventoryItemBase[itemsRequested.Count];
                 foreach (UUID id in itemIDs)
                     items[i++] = m_inventoryService.GetItem(UUID.Zero, id);
+            }
+            else
+            {
+                items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
             }
 
             osUTF8 lsl = LLSDxmlEncode2.Start(4096);

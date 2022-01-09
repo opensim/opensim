@@ -1769,7 +1769,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (parcelOwner == m_AgentID)
                     showType = 2;
-                else if (landdata.GroupID != UUID.Zero)
+                else if (!landdata.GroupID.IsZero())
                 {
                     ulong powers = sp.ControllingClient.GetGroupPowers(landdata.GroupID);
                     if ((powers & (ulong)(GroupPowers.ReturnGroupOwned | GroupPowers.ReturnGroupSet | GroupPowers.ReturnNonGroup)) != 0)
@@ -2058,7 +2058,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 ulong gpowers = client.GetGroupPowers(land.LandData.GroupID);
                 SceneObjectGroup telehub = null;
-                if (m_Scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+                if (!m_Scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 // Does the telehub exist in the scene?
                     telehub = m_Scene.GetSceneObjectGroup(m_Scene.RegionInfo.RegionSettings.TelehubObject);
 

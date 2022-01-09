@@ -407,7 +407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                     {
                                         if (UUID.TryParse(current, out UUID uuid))
                                         {
-                                            if (uuid != UUID.Zero)
+                                            if (!uuid.IsZero())
                                             {
                                                 if (perms.AllowedOwners == null)
                                                     perms.AllowedOwners = new List<UUID>();
@@ -435,7 +435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 string current = id.Trim();
                                 if (UUID.TryParse(current, out UUID uuid))
                                 {
-                                    if (uuid != UUID.Zero)
+                                    if (!uuid.IsZero())
                                     {
                                         if (perms.AllowedCreators == null)
                                             perms.AllowedCreators = new List<UUID>();
@@ -497,7 +497,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((functionControl & AllowedControlFlags.PARCEL_GROUP_MEMBER) != 0)
             {
                 ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-                if (land.LandData.GroupID == m_item.GroupID && land.LandData.GroupID != UUID.Zero)
+                if (land.LandData.GroupID.Equals(m_item.GroupID) && !land.LandData.GroupID.IsZero())
                 {
                     return String.Empty;
                 }
@@ -2310,7 +2310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID assetID = CacheNotecard(notecardNameOrUuid);
 
-            if (assetID != UUID.Zero)
+            if (!assetID.IsZero())
             {
                 StringBuilder notecardData = new StringBuilder();
 
@@ -2495,7 +2495,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // Check local grid
             UUID userID = userManager.GetUserIdByName(firstname, lastname);
-            if (userID != UUID.Zero)
+            if (!userID.IsZero())
                 return userID.ToString();
 
             // HG ?
@@ -2508,7 +2508,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (userConnection != null)
                     {
                         userID = userConnection.GetUUID(realFirstName, realLastName);
-                        if (userID != UUID.Zero)
+                        if (!userID.IsZero())
                         {
                             userManager.AddUser(userID, realFirstName, realLastName, serverURI);
                             return userID.ToString();
@@ -2952,7 +2952,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 senseAsAgent = false;
             }
 
-            if(hostGroupID && m_host.GroupID != UUID.Zero)
+            if(hostGroupID && !m_host.GroupID.IsZero())
             {
                 if (m_groupsModule != null)
                 {
@@ -3116,7 +3116,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (UUID.TryParse(npc.m_string, out UUID npcId))
                 {
                     UUID owner = npcModule.GetOwner(npcId);
-                    if (owner != UUID.Zero)
+                    if (!owner.IsZero())
                         return new LSL_Key(owner.ToString());
                     else
                         return npc;
@@ -4697,14 +4697,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             // TODO: Parameter check logic required.
             UUID soundId = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, impact_sound, AssetType.Sound);
-            if(soundId != UUID.Zero)
+            if(soundId.IsZero())
+                m_host.CollisionSoundType = -1;
+            else
             {
                 m_host.CollisionSound = soundId;
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSoundType = 1;
             }
-            else
-                 m_host.CollisionSoundType = -1;
 
             m_host.aggregateScriptEvents();
         }
@@ -6053,7 +6053,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(objkey, out UUID obj))
                 return -4;
 
-            if(obj != UUID.Zero)
+            if(!obj.IsZero())
             {
                 ScenePresence objSP = World.GetScenePresence(obj);
                 if(objSP == null)

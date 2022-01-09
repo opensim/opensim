@@ -3163,7 +3163,7 @@ Console.WriteLine(" JointCreateFixed");
 
         private void CheckMeshAsset()
         {
-            if (_pbs.SculptEntry && !m_assetFailed && _pbs.SculptTexture != UUID.Zero)
+            if (_pbs.SculptEntry && !m_assetFailed && !_pbs.SculptTexture.IsZero())
             {
                 m_assetFailed = true;
                 Util.FireAndForget(delegate

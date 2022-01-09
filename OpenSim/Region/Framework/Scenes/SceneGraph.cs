@@ -679,7 +679,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
-            if (primId != UUID.Zero)
+            if (!primId.IsZero())
             {
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
                 if (part != null)
@@ -689,7 +689,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
-            if (primId != UUID.Zero)
+            if (!primId.IsZero())
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
 

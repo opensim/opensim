@@ -265,7 +265,7 @@ namespace OpenSim.Framework
                     UUID itemID = m_wearables[i][j].ItemID;
                     UUID assetID = app.Wearables[i].GetAsset(itemID);
 
-                    if (assetID != UUID.Zero)
+                    if (!assetID.IsZero())
                         m_wearables[i].Add(itemID, assetID);
                 }
             }
@@ -622,7 +622,7 @@ namespace OpenSim.Framework
 //                        "[AVATAR APPEARANCE]: Found existing attachment for {0}, asset {1} at point {2}",
 //                        existingAttachment.ItemID, existingAttachment.AssetID, existingAttachment.AttachPoint);
 
-                    if (existingAttachment.AssetID != UUID.Zero && existingAttachment.AttachPoint == (attachpoint & 0x7F))
+                    if (!existingAttachment.AssetID.IsZero() && existingAttachment.AttachPoint == (attachpoint & 0x7F))
                     {
                         m_log.DebugFormat(
                             "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}",

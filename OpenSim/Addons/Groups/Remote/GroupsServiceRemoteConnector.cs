@@ -224,7 +224,7 @@ namespace OpenSim.Groups
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["AgentID"] = AgentID;
-            if (GroupID != UUID.Zero)
+            if (!GroupID.IsZero())
                 sendData["GroupID"] = GroupID.ToString();
             sendData["RequestingAgentID"] = RequestingAgentID;
             Dictionary<string, object> ret = MakeRequest("GETMEMBERSHIP", sendData);

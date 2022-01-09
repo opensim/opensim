@@ -665,7 +665,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     for (int i = 0; i< toRemove.Count; ++i)
                     {
                         SceneObjectGroup g = toRemove[i];
-                        if (g.FromItemID != UUID.Zero)
+                        if (!g.FromItemID.IsZero())
                             DetachSingleAttachmentToInv(sp, g);
                     }
                 }
@@ -809,7 +809,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
 
                 bool changed = false;
-                if (inventoryID != UUID.Zero)
+                if (!inventoryID.IsZero())
                     changed = sp.Appearance.DetachAttachment(inventoryID);
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(sp.UUID);
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 return null;
             }
 
-            bool ItemIDNotZero = itemID != UUID.Zero;
+            bool ItemIDNotZero = !itemID.IsZero();
 
             if (ItemIDNotZero)
                 objatt = m_invAccessModule.RezObject(sp.ControllingClient,
@@ -1499,7 +1499,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 foreach (SceneObjectGroup group in attachments)
                 {
-                    if (group.FromItemID == itemID && group.FromItemID != UUID.Zero)
+                    if (group.FromItemID.Equals(itemID) && !group.FromItemID.IsZero())
                     {
                         DetachSingleAttachmentToInv(sp, group);
                         return;

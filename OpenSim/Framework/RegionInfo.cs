@@ -828,13 +828,13 @@ namespace OpenSim.Framework
             if (AgentCapacity > 0)
                 config.Set("MaxAgents", AgentCapacity);
 
-            if (ScopeID != UUID.Zero)
+            if (!ScopeID.IsZero())
                 config.Set("ScopeID", ScopeID.ToString());
 
             if (RegionType != String.Empty)
                 config.Set("RegionType", RegionType);
 
-            if (m_maptileStaticUUID != UUID.Zero)
+            if (!m_maptileStaticUUID.IsZero())
                 config.Set("MaptileStaticUUID", m_maptileStaticUUID.ToString());
 
             if (MaptileStaticFile != null && MaptileStaticFile != String.Empty)

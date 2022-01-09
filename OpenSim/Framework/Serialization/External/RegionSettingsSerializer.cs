@@ -321,7 +321,7 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteEndElement();
 
             xtw.WriteStartElement("Telehub");
-            if (settings.TelehubObject != UUID.Zero)
+            if (!settings.TelehubObject.IsZero())
             {
                 xtw.WriteElementString("TelehubObject", settings.TelehubObject.ToString());
                 foreach (SpawnPoint sp in settings.SpawnPoints())

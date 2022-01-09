@@ -506,7 +506,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 {
                     foreach (PresenceInfo p in presences)
                     {
-                        if (p.RegionID != UUID.Zero)
+                        if (!p.RegionID.IsZero())
                         {
                             upd = p;
                             break;

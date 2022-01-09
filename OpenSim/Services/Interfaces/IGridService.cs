@@ -441,7 +441,7 @@ namespace OpenSim.Services.Interfaces
             if ((object)region == null)
                 return false;
             // Return true if the non-zero UUIDs are equal:
-            return (RegionID != UUID.Zero) && RegionID.Equals(region.RegionID);
+            return (!RegionID.IsZero()) && RegionID.Equals(region.RegionID);
         }
 
         public override bool Equals(Object obj)

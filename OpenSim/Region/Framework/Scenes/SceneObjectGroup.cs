@@ -910,7 +910,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (av.IsChildAgent)
                     {
                         // avatar crossed do some extra cleanup
-                        if (av.ParentUUID != UUID.Zero)
+                        if (!av.ParentUUID.IsZero())
                         {
                             av.ClearControls();
                             av.ParentPart = null;
@@ -1479,7 +1479,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (node.Attributes["UUID"] != null)
                     {
                         UUID itemid = new UUID(node.Attributes["UUID"].Value);
-                        if (itemid != UUID.Zero)
+                        if (!itemid.IsZero())
                             m_savedScriptState[itemid] = node.InnerXml;
                     }
                 }
@@ -1510,7 +1510,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                        m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
 
                         UUID itemid = new UUID(uuid);
-                        if (itemid != UUID.Zero)
+                        if (!itemid.IsZero())
                             m_savedScriptState[itemid] = innerXml;
                     }
                     else

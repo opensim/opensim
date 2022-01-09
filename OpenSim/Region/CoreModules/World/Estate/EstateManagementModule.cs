@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 // propagate the change
                 List<UUID> regions = Scene.GetEstateRegions(estateID);
                 UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
-                if (regionId != UUID.Zero)
+                if (!regionId.IsZero())
                 {
                      OnEstateInfoChange?.Invoke(regionId);
                 }
@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                    // propagate the change
                     List<UUID> regions = Scene.GetEstateRegions(estateID);
                     UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
-                    if (regionId != UUID.Zero)
+                    if (!regionId.IsZero())
                     {
                         OnEstateInfoChange?.Invoke(regionId);
                     }

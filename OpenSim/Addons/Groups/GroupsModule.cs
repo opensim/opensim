@@ -477,7 +477,7 @@ namespace OpenSim.Groups
                         return;
                     }
 
-                    if (itemID != UUID.Zero && ownerID != UUID.Zero)
+                    if (!itemID.IsZero() && !ownerID.IsZero())
                     {
                         item = scene.InventoryService.GetItem(ownerID, itemID);
                         if(item != null)
@@ -927,7 +927,7 @@ namespace OpenSim.Groups
             UUID groupID = m_groupData.CreateGroup(remoteClient.AgentId, name, charter, showInList, insigniaID, membershipFee, openEnrollment,
                 allowPublish, maturePublish, remoteClient.AgentId, out reason);
 
-            if (groupID != UUID.Zero)
+            if (!groupID.IsZero())
             {
                 if (money != null && money.GroupCreationCharge > 0)
                     money.ApplyCharge(remoteClient.AgentId, money.GroupCreationCharge, MoneyTransactionType.GroupCreate, name);

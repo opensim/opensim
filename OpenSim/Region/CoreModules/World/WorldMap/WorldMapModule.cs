@@ -1514,7 +1514,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
             }
 
-            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+            if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
             {
                 SceneObjectGroup sog = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
                 if (sog != null)
@@ -1572,7 +1572,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             // remove old assets
             UUID lastID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
-            if (lastID != UUID.Zero)
+            if (!lastID.IsZero())
             {
                 m_scene.AssetService.Delete(lastID.ToString());
                 m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Zero;
@@ -1581,7 +1581,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
 
             lastID = m_scene.RegionInfo.RegionSettings.ParcelImageID;
-            if (lastID != UUID.Zero)
+            if (!lastID.IsZero())
             {
                 m_scene.AssetService.Delete(lastID.ToString());
                 m_scene.RegionInfo.RegionSettings.ParcelImageID = UUID.Zero;

@@ -563,7 +563,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             foreach (PresenceInfo friendSession in friendSessions)
             {
                 // let's guard against sessions-gone-bad
-                if (friendSession != null && friendSession.RegionID != UUID.Zero)
+                if (friendSession != null && !friendSession.RegionID.IsZero())
                 {
                     //m_log.DebugFormat("[FRIENDS]: Get region {0}", friendSession.RegionID);
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);

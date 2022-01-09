@@ -536,7 +536,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         continue;
                     }
 
-                    if (itemId != UUID.Zero)
+                    if (!itemId.IsZero())
                     {
                         IScriptInstance instance = GetInstance(itemId);
                         if (instance == null)

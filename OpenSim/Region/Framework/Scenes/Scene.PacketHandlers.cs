@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
             // reasonable for a UUID.Zero group.
-            if (groupID != UUID.Zero)
+            if (!groupID.IsZero())
             {
                 GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
 

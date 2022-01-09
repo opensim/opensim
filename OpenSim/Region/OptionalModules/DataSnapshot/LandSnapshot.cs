@@ -222,7 +222,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         //TODO: figure how to figure out teleport system landData.landingType
 
                         //land texture snapshot uuid
-                        if (parcel.SnapshotID != UUID.Zero)
+                        if (!parcel.SnapshotID.IsZero())
                         {
                             XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
                             textureuuid.InnerText = parcel.SnapshotID.ToString();
@@ -232,7 +232,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         string groupName = String.Empty;
 
                         //attached user and group
-                        if (parcel.GroupID != UUID.Zero)
+                        if (!parcel.GroupID.IsZero())
                         {
                             XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
                             XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "groupuuid", "");

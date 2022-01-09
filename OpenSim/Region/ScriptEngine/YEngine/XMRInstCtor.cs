@@ -851,7 +851,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                     {
                                         UUID granter = new UUID();
                                         UUID.TryParse(tmpPerm, out granter);
-                                        if (granter != UUID.Zero)
+                                        if (!granter.IsZero())
                                         {
                                             permsMask = mask;
                                             permsGranter = granter;

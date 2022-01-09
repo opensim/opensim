@@ -768,7 +768,7 @@ namespace OpenSim.Services.InventoryService
 
             UUID parentFolder = folder[0].parentFolderID;
 
-            while (parentFolder != UUID.Zero)
+            while (!parentFolder.IsZero())
             {
                 XInventoryFolder[] parent = m_Database.GetFolders(new string[] {"folderID"}, new string[] {parentFolder.ToString()});
                 if (parent.Length < 1)
@@ -795,7 +795,7 @@ namespace OpenSim.Services.InventoryService
 
             UUID parentFolder = folder[0].parentFolderID;
 
-            while (parentFolder != UUID.Zero)
+            while (!parentFolder.IsZero())
             {
                 XInventoryFolder[] parent = m_Database.GetFolders(new string[] { "folderID" }, new string[] { parentFolder.ToString() });
                 if (parent.Length < 1)

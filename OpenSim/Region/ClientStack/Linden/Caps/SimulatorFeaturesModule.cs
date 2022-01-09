@@ -148,7 +148,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 typesMap["prim"] = true;
                 m_features["PhysicsShapeTypes"] = typesMap;
 
-                if(m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero)
+                if(m_doScriptSyntax && !m_scriptSyntaxID.IsZero())
                     m_features["LSLSyntaxId"] = OSD.FromUUID(m_scriptSyntaxID);
 
                 OSDMap meshAnim = new OSDMap();
@@ -194,7 +194,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         HandleSimulatorFeaturesRequest(request, response, agentID);
                     }));
 
-            if (m_doScriptSyntax && m_scriptSyntaxID != UUID.Zero && m_scriptSyntaxXML != null)
+            if (m_doScriptSyntax && !m_scriptSyntaxID.IsZero() && m_scriptSyntaxXML != null)
             {
                 caps.RegisterSimpleHandler("LSLSyntax",
                     new SimpleStreamHandler("/" + UUID.Random(), HandleSyntaxRequest));
@@ -389,7 +389,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             lock(m_scriptSyntaxLock)
             {
-                if(!m_doScriptSyntax || m_scriptSyntaxID != UUID.Zero)
+                if(!m_doScriptSyntax || !m_scriptSyntaxID.IsZero())
                     return;
 
                 if(!File.Exists("ScriptSyntax.xml"))

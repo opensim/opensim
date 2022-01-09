@@ -428,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             else
             {
                 m_Scene.AssetService.Store(m_asset);
-                if (m_asset.FullID != UUID.Zero)
+                if (!m_asset.FullID.IsZero())
                 {
                     item.AssetID = m_asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);

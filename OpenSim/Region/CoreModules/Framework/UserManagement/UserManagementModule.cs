@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 m_userAccountService = s.UserAccountService;
             if(m_gridUserService == null)
                 m_gridUserService = s.GridUserService;
-            if (s.RegionInfo.ScopeID != UUID.Zero)
+            if (!s.RegionInfo.ScopeID.IsZero())
                 m_scopeID = s.RegionInfo.ScopeID;
         }
 

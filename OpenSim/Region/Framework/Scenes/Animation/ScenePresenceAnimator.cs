@@ -146,7 +146,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-            if (animID != UUID.Zero)
+            if (!animID.IsZero())
             {
                 if (addRemove)
                     m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero);
@@ -201,14 +201,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 //                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
 //                    anim, m_scenePresence.Name);
 
-                if (aoSitGndAnim != UUID.Zero)
+                if (!aoSitGndAnim.IsZero())
                 {
                     avnChangeAnim(aoSitGndAnim, false, true);
                     aoSitGndAnim = UUID.Zero;
                 }
 
                 UUID overridenAnim = m_scenePresence.Overrides.GetOverriddenAnimation(anim);
-                if (overridenAnim != UUID.Zero)
+                if (!overridenAnim.IsZero())
                 {
                     if (anim == "SITGROUND")
                     {
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 currentControlState = motionControlStates.sitted;
                 return "SITGROUND";
             }
-            if (m_scenePresence.ParentID != 0 || m_scenePresence.ParentUUID != UUID.Zero)
+            if (m_scenePresence.ParentID != 0 || !m_scenePresence.ParentUUID.IsZero())
             {
                 currentControlState = motionControlStates.sitted;
                 return "SIT";

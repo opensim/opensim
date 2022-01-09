@@ -2099,7 +2099,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if(landdata.OwnerID == userID)
                 return true;
             
-            if (landdata.IsGroupOwned && parcel.LandData.GroupID != UUID.Zero &&  
+            if (landdata.IsGroupOwned && !parcel.LandData.GroupID.IsZero() &&  
                     IsGroupMember(landdata.GroupID, userID, (ulong)GroupPowers.AllowEditLand))
                 return true;
 
