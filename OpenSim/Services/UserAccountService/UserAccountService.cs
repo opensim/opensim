@@ -912,7 +912,7 @@ namespace OpenSim.Services.UserAccountService
 
                         if(item != null && item.AssetType == (int)AssetType.Link)
                         {
-                            if(item.AssetID == UUID.Zero )
+                            if(item.AssetID.IsZero())
                                 item = null;
                             else
                               item = m_InventoryService.GetItem(source, item.AssetID);

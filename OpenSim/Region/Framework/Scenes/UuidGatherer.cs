@@ -297,7 +297,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool AddGathered(UUID uuid, sbyte type)
         {
-            if (uuid == UUID.Zero)
+            if (uuid.IsZero())
                 return false;
 
             if (ToSkip.Contains(uuid))
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="uuid">UUID.</param>
         public bool AddForInspection(UUID uuid)
         {
-            if(uuid == UUID.Zero)
+            if(uuid.IsZero())
                 return false;
 
             if(ToSkip.Contains(uuid))
@@ -522,7 +522,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         private void GetAssetUuids(UUID assetUuid)
         {
-            if(assetUuid == UUID.Zero)
+            if(assetUuid.IsZero())
                 return;
 
             if(FailedUUIDs.Contains(assetUuid))
@@ -621,7 +621,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void AddForInspection(UUID assetUuid, sbyte assetType)
         {
-            if(assetUuid == UUID.Zero)
+            if(assetUuid.IsZero())
                 return;
 
             // Here, we want to collect uuids which require further asset fetches but mark the others as gathered
@@ -776,7 +776,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             for (int i = 0; i < ids.Count; ++i)
             {
-                if (ids[i] == UUID.Zero)
+                if (ids[i].IsZero())
                     continue;
                 if (!UncertainAssetsUUIDs.Contains(ids[i]))
                     UncertainAssetsUUIDs.Add(ids[i]);
@@ -1007,7 +1007,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 while (--count >= 0)
                                 {
                                     UUID id = new UUID(abytes, pos);
-                                    if (id == UUID.Zero)
+                                    if (id.IsZero())
                                         break;
                                     if (!ToSkip.Contains(id) &&
                                         !FailedUUIDs.Contains(id))

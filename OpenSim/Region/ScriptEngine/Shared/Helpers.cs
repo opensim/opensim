@@ -252,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
         public void Populate(Scene scene, DetectedObject obj)
         {
-            if(obj.keyUUID == UUID.Zero) // land
+            if(obj.keyUUID.IsZero()) // land
             {
                 Position = new LSL_Types.Vector3(obj.posVector);
                 Rotation.s = 1.0;

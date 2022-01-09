@@ -670,13 +670,13 @@ namespace OpenSim.Services.FSAssetService
 
             if (asset.ID == string.Empty)
             {
-                if (asset.FullID == UUID.Zero)
+                if (asset.FullID.IsZero())
                 {
                     asset.FullID = UUID.Random();
                 }
                 asset.ID = asset.FullID.ToString();
             }
-            else if (asset.FullID == UUID.Zero)
+            else if (asset.FullID.IsZero())
             {
                 UUID uuid = UUID.Zero;
                 if (UUID.TryParse(asset.ID, out uuid))

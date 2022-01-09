@@ -240,7 +240,7 @@ namespace OpenSim.Services.GridService
         {
             IConfig gridConfig = m_config.Configs["GridService"];
 
-            if (regionInfos.RegionID == UUID.Zero)
+            if (regionInfos.RegionID.IsZero())
                 return "Invalid RegionID - cannot be zero UUID";
 
             if (regionInfos.RegionLocY <= Constants.MaximumRegionSize)
@@ -284,7 +284,7 @@ namespace OpenSim.Services.GridService
                 if ((rflags & OpenSim.Framework.RegionFlags.Reservation) != 0)
                 {
                     // Regions reserved for the null key cannot be taken.
-                    if ((string)region.Data["PrincipalID"] == UUID.Zero.ToString())
+                    if ((string)region.Data["PrincipalID"] == UUID.ZeroString)
                         return "Region location is reserved";
 
                     // Treat it as an auth request

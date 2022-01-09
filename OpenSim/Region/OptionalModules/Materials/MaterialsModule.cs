@@ -319,8 +319,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                 if(fmat == null ||
                                         ( fmat.DiffuseAlphaMode == 1
-                                        && fmat.NormalMapID == UUID.Zero
-                                        && fmat.SpecularMapID == UUID.Zero))
+                                        && fmat.NormalMapID.IsZero()
+                                        && fmat.SpecularMapID.IsZero()))
                                     continue;
 
                                 fmat.ID = id; 
@@ -383,7 +383,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         private bool GetStoredMaterialInFace(SceneObjectPart part, Primitive.TextureEntryFace face)
         {
             UUID id = face.MaterialID;
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return false;
 
             OSDMap mat;
@@ -419,8 +419,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 if(fmat == null ||
                         (fmat.DiffuseAlphaMode == 1
-                        && fmat.NormalMapID == UUID.Zero
-                        && fmat.SpecularMapID == UUID.Zero))
+                        && fmat.NormalMapID.IsZero()
+                        && fmat.SpecularMapID.IsZero()))
                 {
                         face.MaterialID = UUID.Zero;
                         return true;
@@ -463,7 +463,7 @@ namespace OpenSim.Region.OptionalModules.Materials
        private void RemoveMaterialInFace(Primitive.TextureEntryFace face)
         {
             UUID id = face.MaterialID;
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return;
 
             lock (materialslock)
@@ -662,9 +662,8 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     {
                                         newFaceMat = new FaceMaterial(mat);
                                         if(newFaceMat.DiffuseAlphaMode == 1 
-                                                && newFaceMat.NormalMapID == UUID.Zero 
-                                                && newFaceMat.SpecularMapID == UUID.Zero
-                                                )
+                                                && newFaceMat.NormalMapID.IsZero()
+                                                && newFaceMat.SpecularMapID.IsZero())
                                             id = UUID.Zero;
                                         else
                                         {
@@ -686,12 +685,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         sop.Shape.TextureEntry = te.GetBytes(9);
                                     }
 
-                                    if(oldid != UUID.Zero)
+                                    if(!oldid.IsZero())
                                         RemoveMaterial(oldid);
 
                                     lock(materialslock)
                                     {
-                                        if(id != UUID.Zero)
+                                        if(!id.IsZero())
                                         {
                                             if (m_Materials.ContainsKey(id))
                                                 m_MaterialsRefCount[id]++;
@@ -851,7 +850,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public UUID AddNewMaterial(FaceMaterial fm)
         {
-            if(fm.DiffuseAlphaMode == 1 && fm.NormalMapID == UUID.Zero && fm.SpecularMapID == UUID.Zero)
+            if(fm.DiffuseAlphaMode == 1 && fm.NormalMapID.IsZero() && fm.SpecularMapID.IsZero())
             {
                 fm.ID = UUID.Zero;
                 return UUID.Zero;
@@ -875,7 +874,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public void RemoveMaterial(UUID id)
         {
-            if(id == UUID.Zero)
+            if(id.IsZero())
                 return;
 
             lock(materialslock)

@@ -984,7 +984,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return false;
 
             UUID landGroup = landdata.GroupID;
-            if(landGroup == UUID.Zero)
+            if(landGroup.IsZero())
                 return false;
 
             if(landGroup == m_host.GroupID)
@@ -1197,7 +1197,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (presence != null &&
                 part != null &&
-                part.SitTargetAvatar == UUID.Zero)
+                part.SitTargetAvatar.IsZero())
                 presence.HandleAgentRequestSit(presence.ControllingClient,
                     agentID,
                     targetID,
@@ -1264,7 +1264,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
                 target.Animator.AddAnimation(animation, m_host.UUID);
             else
                 target.Animator.AddAnimation(animID, m_host.UUID);
@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     animID = UUID.Zero;
             }
 
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
                 target.Animator.RemoveAnimation(animation);
             else
                 target.Animator.RemoveAnimation(animID, true);
@@ -1872,9 +1872,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             if (UUID.TryParse(arg, out uuid))
                             {
-                                if(newLand.GroupID != uuid)
+                                if(newLand.GroupID.NotEqual(uuid))
                                 {
-                                    if(uuid == UUID.Zero)
+                                    if(uuid.IsZero())
                                     {
                                         changed = true;
                                         newLand.GroupID = uuid;
@@ -2180,7 +2180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             InitLSL();
             // harakiri check
-            if(objUUID == UUID.Zero)
+            if(objUUID.IsZero())
             {
                 if (!m_host.ParentGroup.IsAttachment)
                     m_LSL_Api.llDie();
@@ -2348,7 +2348,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 assetID = SearchTaskInventoryForAssetId(notecardNameOrUuid);
             }
 
-            if (assetID == UUID.Zero)
+            if (assetID.IsZero())
                 return UUID.Zero;
 
             if (!NotecardCache.IsCached(assetID))
@@ -2360,7 +2360,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Whoops, it's still possible here that the notecard name was properly
                     // formatted like a UUID but isn't an asset UUID so lets look it up by name after all
                     assetID = SearchTaskInventoryForAssetId(notecardNameOrUuid);
-                    if (assetID == UUID.Zero)
+                    if (assetID.IsZero())
                         return UUID.Zero;
 
                     if (!NotecardCache.IsCached(assetID))
@@ -2413,7 +2413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID assetID = CacheNotecard(name);
 
-            if (assetID == UUID.Zero)
+            if (assetID.IsZero())
             {
                 OSSLShoutError("Notecard '" + name + "' could not be found.");
                 return "ERROR!";
@@ -2469,7 +2469,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID assetID = CacheNotecard(name);
 
-            if (assetID == UUID.Zero)
+            if (assetID.IsZero())
             {
                 OSSLShoutError("Notecard '" + name + "' could not be found.");
                 return -1;
@@ -3280,7 +3280,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 ImageID = ScriptUtils.GetAssetIdFromItemName(m_host, image, (int)AssetType.Texture);
 
-                if (ImageID == null || ImageID == UUID.Zero)
+                if (ImageID == null || ImageID.IsZero())
                 {
                     if (!UUID.TryParse(image, out ImageID))
                         return;
@@ -3450,7 +3450,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.TaskInventory.LockItemsForRead(false);
 
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
                 target.Animator.AddAnimation(animation, m_host.UUID);
             else
                 target.Animator.AddAnimation(animID, m_host.UUID);
@@ -3483,7 +3483,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     animID = UUID.Zero;
             }
 
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
                 target.Animator.RemoveAnimation(animation);
             else
                 target.Animator.RemoveAnimation(animID, true);
@@ -3805,7 +3805,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
 
-            if (!UUID.TryParse(agentKey, out UUID id) || id == UUID.Zero)
+            if (!UUID.TryParse(agentKey, out UUID id) || id.IsZero())
                 return;
 
             ScenePresence sp = World.GetScenePresence(id);
@@ -3826,7 +3826,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             LSL_Float health = new LSL_Float(-1);
 
-            if (!UUID.TryParse(agentKey, out UUID id) || id == UUID.Zero)
+            if (!UUID.TryParse(agentKey, out UUID id) || id.IsZero())
                 return health;
 
             ScenePresence presence = World.GetScenePresence(id);
@@ -4096,7 +4096,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.FALSE;
 
             // object has to be set to a group, but not group owned
-            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
+            if (m_host.GroupID.IsZero() || m_host.GroupID.Equals(m_host.OwnerID))
                 return ScriptBaseClass.FALSE;
 
             // invited agent has to be present in this scene
@@ -4135,7 +4135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.FALSE;
 
             // object has to be set to a group, but not group owned
-            if (m_host.GroupID == UUID.Zero || m_host.GroupID == m_host.OwnerID)
+            if (m_host.GroupID.IsZero() || m_host.GroupID.Equals(m_host.OwnerID))
                 return ScriptBaseClass.FALSE;
 
             // object owner needs eject power
@@ -4344,7 +4344,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osMessageAttachments");
 
-            if (!UUID.TryParse(avatar.ToString(), out UUID targetUUID) || targetUUID == UUID.Zero)
+            if (!UUID.TryParse(avatar.ToString(), out UUID targetUUID) || targetUUID.IsZero())
                 return;
 
             if (!World.TryGetScenePresence(targetUUID, out ScenePresence target))
@@ -4484,7 +4484,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetRezzingObject");
 
             UUID rezID = m_host.ParentGroup.RezzerID;
-            if(rezID == UUID.Zero || m_host.ParentGroup.Scene.GetScenePresence(rezID) != null)
+            if(rezID.IsZero() || m_host.ParentGroup.Scene.GetScenePresence(rezID) != null)
                 return new LSL_Key(ScriptBaseClass.NULL_KEY);
             return new LSL_Key(rezID.ToString());
         }
@@ -4964,7 +4964,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return false;
 
             UUID landGroup = landdata.GroupID;
-            if(landGroup == UUID.Zero)
+            if(landGroup.IsZero())
                 return false;
 
             if(landGroup == m_host.GroupID)
@@ -5080,7 +5080,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             // send the sound, once, to all clients in range
@@ -5097,7 +5097,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             m_SoundModule.LoopSound(sop.UUID, soundID, volume, false,false);
@@ -5113,7 +5113,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             m_SoundModule.LoopSound(sop.UUID, soundID, volume, true, false);
@@ -5129,7 +5129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             m_SoundModule.LoopSound(sop.UUID, soundID, volume, false, true);
@@ -5145,7 +5145,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             // send the sound, once, to all clients in range
@@ -5162,7 +5162,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             // send the sound, once, to all clients in rangeTrigger or play an attached sound in this part's inventory.
@@ -5180,7 +5180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             m_SoundModule.TriggerSoundLimited(sop.UUID, soundID, volume,
@@ -5213,7 +5213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(sop, m_host, sound, AssetType.Sound);
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             m_SoundModule.PreloadSound(sop.UUID, soundID);
@@ -5263,7 +5263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (detectedParams == null)
                 return String.Empty;
             UUID key = detectedParams.Key;
-            if (key == UUID.Zero)
+            if (key.IsZero())
                 return String.Empty;
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
             return account.UserCountry;
@@ -5278,7 +5278,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(id, out UUID key))
                 return String.Empty;
-            if (key == UUID.Zero)
+            if (key.IsZero())
                 return String.Empty;
 
             //if owner is not god, target must be in region, or nearby regions
@@ -5569,7 +5569,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return ScriptBaseClass.NULL_KEY;
 
             UUID id = item.LastOwnerID;
-            if(id == UUID.Zero)
+            if(id.IsZero())
                 id= item.OwnerID;
             return id.ToString();
         }
@@ -5828,7 +5828,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
-            if (envID == UUID.Zero)
+            if (envID.IsZero())
                 return -3;
 
             AssetBase asset = World.AssetService.Get(envID.ToString());
@@ -5876,7 +5876,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
 
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
-                if (envID == UUID.Zero)
+                if (envID.IsZero())
                     return -4;
 
                 AssetBase asset = World.AssetService.Get(envID.ToString());
@@ -5919,7 +5919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
 
                 UUID envID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, daycycle);
-                if (envID == UUID.Zero)
+                if (envID.IsZero())
                     return -4;
 
                 AssetBase asset = World.AssetService.Get(envID.ToString());

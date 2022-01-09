@@ -480,7 +480,7 @@ namespace OpenSim.Services.LLLoginService
                 // spamming the console.
                 if (guinfo != null)
                 {
-                    if (guinfo.HomeRegionID == UUID.Zero)
+                    if (guinfo.HomeRegionID.IsZero())
                     {
                         if(startLocation == "home")
                             m_log.WarnFormat(

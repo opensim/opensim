@@ -81,7 +81,7 @@ namespace OpenSim.Server.Handlers.Neighbour
                     }
 
                     if (!RestHandlerUtils.GetParams(httpRequest.UriPath, out UUID regionID, out ulong regionHandle, out string action)
-                        || regionID == UUID.Zero)
+                        || regionID.IsZero())
                     {
                         m_log.InfoFormat("[RegionPostHandler]: Invalid parameters for neighbour message {0}", httpRequest.UriPath);
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
