@@ -8020,7 +8020,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.SetCameraEyeOffset(offset);
 
-            if (m_host.ParentGroup.RootPart.GetCameraEyeOffset() == Vector3.Zero)
+            if (m_host.ParentGroup.RootPart.GetCameraEyeOffset().IsZero())
                 m_host.ParentGroup.RootPart.SetCameraEyeOffset(offset);
         }
 
@@ -8028,7 +8028,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.SetCameraAtOffset(offset);
 
-            if (m_host.ParentGroup.RootPart.GetCameraAtOffset() == Vector3.Zero)
+            if (m_host.ParentGroup.RootPart.GetCameraAtOffset().IsZero())
                 m_host.ParentGroup.RootPart.SetCameraAtOffset(offset);
         }
 
@@ -15506,7 +15506,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 Vector3 v = t.p3 - t.p1;
                 Vector3 n = Vector3.Cross(u, v);
 
-                if (n == Vector3.Zero)
+                if (n.IsZero())
                     continue;
 
                 Vector3 w0 = rayStart - t.p1;

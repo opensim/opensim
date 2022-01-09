@@ -3498,7 +3498,7 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
 
-                if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                if (cameraAtOffset.IsZero() && cameraEyeOffset.IsZero())
                 {
                     cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
@@ -3645,7 +3645,7 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
 
-                if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                if (cameraAtOffset.IsZero() && cameraEyeOffset.IsZero())
                 {
                     cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
@@ -6271,7 +6271,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             Vector3 landLocation = land.LandData.UserLocation;
-            if(landLocation == Vector3.Zero)
+            if(landLocation.IsZero())
                 return true;
 
             if (currDistanceSQ < Vector3.DistanceSquared(landLocation, pos))

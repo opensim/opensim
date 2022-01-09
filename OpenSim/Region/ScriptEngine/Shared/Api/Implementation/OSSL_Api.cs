@@ -3276,11 +3276,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!module.CheckPermissions(npcId, m_host.OwnerID))
                     return;
 
-                UUID ImageID = new UUID();
-
-                ImageID = ScriptUtils.GetAssetIdFromItemName(m_host, image, (int)AssetType.Texture);
-
-                if (ImageID == null || ImageID.IsZero())
+                UUID ImageID = ScriptUtils.GetAssetIdFromItemName(m_host, image, (int)AssetType.Texture);
+                if (ImageID.IsZero())
                 {
                     if (!UUID.TryParse(image, out ImageID))
                         return;

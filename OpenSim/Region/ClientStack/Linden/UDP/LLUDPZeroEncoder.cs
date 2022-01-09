@@ -273,7 +273,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void AddVector3(Vector3 v)
         {
-            if (v == Vector3.Zero)
+            if (v.IsZero())
                 AddZeros(12);
             else
             {

@@ -8434,7 +8434,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             MoneyTransferRequestPacket money = (MoneyTransferRequestPacket)Pack;
             // validate the agent owns the agentID and sessionID
-            if (money.MoneyData.SourceID == m_agentId && money.AgentData.AgentID.Equals(m_agentId) &&
+            if (money.MoneyData.SourceID.Equals(m_agentId) && money.AgentData.AgentID.Equals(m_agentId) &&
                 money.AgentData.SessionID.Equals(m_sessionId))
             {
                 OnMoneyTransferRequest?.Invoke(money.MoneyData.SourceID, money.MoneyData.DestID,
@@ -11326,7 +11326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void HandleGodKickUser(Packet Pack)
         {
             GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
-            if (gkupack.UserInfo.GodSessionID.NotEqual(m_sessionId) || gkupack.UserInfo.GodID != m_agentId)
+            if (gkupack.UserInfo.GodSessionID.NotEqual(m_sessionId) || gkupack.UserInfo.GodID.NotEqual(m_agentId))
                 return;
 
             OnGodKickUser?.Invoke(gkupack.UserInfo.GodID, gkupack.UserInfo.AgentID, gkupack.UserInfo.KickFlags, gkupack.UserInfo.Reason);
