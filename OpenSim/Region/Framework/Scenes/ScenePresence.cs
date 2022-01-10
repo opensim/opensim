@@ -3994,7 +3994,7 @@ namespace OpenSim.Region.Framework.Scenes
                         !vel.ApproxEquals(m_lastVelocity) ||
                         !m_bodyRot.ApproxEquals(m_lastRotation) ||
 
-                        (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
+                        (vel.IsZero() && !m_lastVelocity.IsZero()) ||
 
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
@@ -6453,7 +6453,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Don't restrict gods, estate managers, or land owners to
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero &&
+                        !land.LandData.UserLocation.IsZero() &&
                         !IsViewerUIGod &&
                         ((land.LandData.OwnerID != m_uuid &&
                           !m_scene.Permissions.IsGod(m_uuid) &&
@@ -6510,12 +6510,12 @@ namespace OpenSim.Region.Framework.Scenes
                         || (m_teleportFlags & adicionalLandPointFlags) != 0)
                 {
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero )
+                        !land.LandData.UserLocation.IsZero() )
                         // &&
                         // land.LandData.OwnerID != m_uuid )
                     {
                         pos = land.LandData.UserLocation;
-                        if(land.LandData.UserLookAt != Vector3.Zero)
+                        if(!land.LandData.UserLookAt.IsZero())
                             lookat = land.LandData.UserLookAt;
                         positionChanged = true;
                     }
@@ -6559,7 +6559,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
-            else if (detobj.velVector != Vector3.Zero)
+            else if (!detobj.velVector.IsZero())
                 detobj.colliderType |= 0x2; //active
             return detobj;
         }

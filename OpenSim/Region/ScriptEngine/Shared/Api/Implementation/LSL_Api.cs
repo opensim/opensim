@@ -5012,7 +5012,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 Error("llRequestAgentData","Invalid UUID passed to llRequestAgentData.");
             }
-            return "";
+            return String.Empty;
         }
 
         //bad if lm is HG
@@ -5226,7 +5226,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSound(LSL_String impact_sound, LSL_Float impact_volume)
         {
 
-            if(impact_sound == "")
+            if(String.IsNullOrEmpty(impact_sound.m_string))
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;

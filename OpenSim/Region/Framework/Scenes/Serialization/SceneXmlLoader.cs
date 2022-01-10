@@ -200,7 +200,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup g = (SceneObjectGroup)ent;
-                    if (!min.Equals(Vector3.Zero) || !max.Equals(Vector3.Zero))
+                    if (!min.IsZero() || !max.IsZero())
                     {
                         Vector3 pos = g.RootPart.GetWorldPosition();
                         if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)

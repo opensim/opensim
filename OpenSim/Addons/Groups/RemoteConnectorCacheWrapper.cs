@@ -101,7 +101,7 @@ namespace OpenSim.Groups
             //ExtendedGroupRecord group = m_GroupsService.UpdateGroup(RequestingAgentID, groupID, charter, showInList, insigniaID, membershipFee, openEnrollment, allowPublish, maturePublish);
             ExtendedGroupRecord group = d();
 
-            if (group != null && !group.GroupID.IsZero())
+            if (!group.GroupID.IsZero())
                 m_Cache.AddOrUpdate("group-" + group.GroupID.ToString(), group, GROUPS_CACHE_TIMEOUT);
 
             return true;

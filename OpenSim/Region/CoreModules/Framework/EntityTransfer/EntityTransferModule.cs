@@ -2903,7 +2903,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return false;
             }
 
-            if (newPosition != Vector3.Zero)
+            if (!newPosition.IsZero())
                 so.RootPart.GroupPosition = newPosition;
 
             if (!Scene.AddSceneObject(so))

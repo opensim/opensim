@@ -695,7 +695,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         pos.X -= m_boundingOrigin.X;
                         pos.Y -= m_boundingOrigin.Y;
                     }
-                    if (m_displacement != Vector3.Zero)
+                    if (!m_displacement.IsZero())
                     {
                         pos += m_displacement;
                         if (pos.X < 0 || pos.X >= scene.RegionInfo.RegionSizeX
@@ -1164,7 +1164,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
             using (MemoryStream ms = new MemoryStream(data))
             {
-                if (m_displacement != Vector3.Zero || m_rotation != 0f || m_boundingBox)
+               if (!m_displacement.IsZero() || m_rotation != 0f || m_boundingBox)
                 {
                     Vector2 boundingOrigin = new Vector2(m_boundingOrigin.X, m_boundingOrigin.Y);
                     Vector2 boundingSize = new Vector2(m_boundingSize.X, m_boundingSize.Y);

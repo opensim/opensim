@@ -3729,7 +3729,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 reply.Data.Flags |= 0x04;
 
             Vector3 pos = land.UserLocation;
-            if (pos.Equals(Vector3.Zero))
+            if (pos.IsZero())
             {
                 pos = (land.AABBMax + land.AABBMin) * 0.5f;
             }

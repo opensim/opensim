@@ -165,7 +165,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                          // of all others so the m_DetachQuantum won't run out
                          // before attach(NULL_KEY) is executed.
                         case ScriptEventCode.attach:
-                            if (evt.Params[0].ToString() == UUID.ZeroString)
+                            if (evt.Params[0].ToString().Equals(UUID.ZeroString))
                             {
                                 LinkedListNode<EventParams> lln2 = null;
                                 for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
