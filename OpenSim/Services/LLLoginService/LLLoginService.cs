@@ -266,7 +266,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
                 UUID secureSession = UUID.Zero;
-                if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
+                if ((token == string.Empty) || (!UUID.TryParse(token, out secureSession)))
                 {
                     m_log.InfoFormat("[LLOGIN SERVICE]: SetLevel failed, reason: authentication failed");
                     return response;

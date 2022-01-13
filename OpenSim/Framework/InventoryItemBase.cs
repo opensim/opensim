@@ -134,7 +134,7 @@ namespace OpenSim.Framework
             }
             set
             {
-                if ((value == null) || (value != null && value == string.Empty))
+                if (string.IsNullOrEmpty(value))
                 {
                     m_creatorData = string.Empty;
                     return;

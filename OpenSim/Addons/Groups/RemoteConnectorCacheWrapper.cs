@@ -109,7 +109,7 @@ namespace OpenSim.Groups
 
         public ExtendedGroupRecord GetGroupRecord(string RequestingAgentID, UUID GroupID, string GroupName, GroupRecordDelegate d)
         {
-            //if (GroupID.IsZero() && (GroupName == null || GroupName != null && GroupName == string.Empty))
+            //if (GroupID.IsZero() && string.IsNullOrEmpty(GroupName))
             //    return null;
 
             object group = null;

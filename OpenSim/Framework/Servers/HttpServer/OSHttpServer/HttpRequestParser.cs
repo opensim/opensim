@@ -358,7 +358,7 @@ namespace OSHttpServer.Parser
                     {
                         if (ch == '\r' || ch == '\n')
                         {
-                            if (m_curHeaderName == string.Empty)
+                            if (m_curHeaderName.Length == 0)
                                 throw new BadRequestException("Missing header on line " + currentLine);
  
                             if (currentPos - startPos > 8190)
