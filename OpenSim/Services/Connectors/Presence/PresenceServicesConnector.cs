@@ -73,7 +73,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = gridConfig.GetString("PresenceServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[PRESENCE CONNECTOR]: No Server URI named in section PresenceService");
                 throw new Exception("Presence connector init error");

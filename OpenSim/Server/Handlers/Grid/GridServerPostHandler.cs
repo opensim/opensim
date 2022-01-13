@@ -202,7 +202,7 @@ namespace OpenSim.Server.Handlers.Grid
             if (rinfo != null)
                 result = m_GridService.RegisterRegion(scopeID, rinfo);
 
-            if (result == String.Empty)
+            if (result.Length == 0)
                 return SuccessResult();
             else
                 return FailureResult(result);

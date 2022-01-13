@@ -505,7 +505,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // We need to look for its information in the friends list itself
                 FriendInfo[] finfos = null;
                 bool confirming = false;
-                if (friendUUI == string.Empty)
+                if (friendUUI.Length == 0)
                 {
                     finfos = GetFriendsFromCache(agentID);
                     foreach (FriendInfo finfo in finfos)

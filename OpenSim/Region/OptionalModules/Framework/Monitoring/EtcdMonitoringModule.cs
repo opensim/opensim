@@ -77,7 +77,7 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
             IConfig etcdConfig = source.Configs["Etcd"];
 
             string etcdUrls = etcdConfig.GetString("EtcdUrls", String.Empty);
-            if (etcdUrls == String.Empty)
+            if (etcdUrls.Length == 0)
                 return;
 
             m_etcdBasePath = etcdConfig.GetString("BasePath", m_etcdBasePath);

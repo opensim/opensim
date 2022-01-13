@@ -1863,7 +1863,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     this.Scene.RegionInfo.RegionSettings;
 
             SceneObjectGroup telehub = null;
-            if (settings.TelehubObject != UUID.Zero &&
+            if (!settings.TelehubObject.IsZero() &&
                 (telehub = Scene.GetSceneObjectGroup(settings.TelehubObject)) != null)
             {
                 List<Vector3> spawnPoints = new List<Vector3>();

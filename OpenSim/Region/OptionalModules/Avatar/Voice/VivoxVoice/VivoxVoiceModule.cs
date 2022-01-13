@@ -1303,7 +1303,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private bool XmlFind(XmlElement root, string tag, int nth, out string result)
         {
-            if (root == null || tag == null || tag == String.Empty)
+            if (root == null || string.IsNullOrEmpty(tag))
             {
                 result = String.Empty;
                 return false;
@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         private bool XmlFind(XmlElement root, string tag, out string result)
         {
             int nth = 0;
-            if (root == null || tag == null || tag == String.Empty)
+            if (root == null || string.IsNullOrEmpty(tag))
             {
                 result = String.Empty;
                 return false;

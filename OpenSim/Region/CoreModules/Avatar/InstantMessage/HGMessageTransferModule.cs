@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             Util.FireAndForget(delegate
             {
                 bool success = false;
-                if (foreigner && url == string.Empty) // we don't know about this user
+                if (foreigner && url.Length == 0) // we don't know about this user
                 {
                     string recipientUUI = TryGetRecipientUUI(new UUID(im.fromAgentID), toAgentID);
                     //m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);

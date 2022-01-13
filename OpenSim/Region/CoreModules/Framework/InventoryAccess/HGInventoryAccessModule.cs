@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private bool IsLocalInventoryAssetsUser(UUID uuid, out string assetsURL)
         {
             assetsURL = UserManagementModule.GetUserServerURL(uuid, "AssetServerURI");
-            if (assetsURL == string.Empty)
+            if (assetsURL.Length == 0)
             {
                 AgentCircuitData agent = m_Scene.AuthenticateHandler.GetAgentCircuitData(uuid);
                 if (agent != null)

@@ -182,7 +182,7 @@ namespace OpenSim
             // The location can also be specified in the environment. If there
             // is no location in the configuration, we must call the constructor
             // without a location parameter to allow that to happen.
-            if (registryLocation == String.Empty)
+            if (registryLocation.Length == 0)
             {
                 using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this)))
                 {

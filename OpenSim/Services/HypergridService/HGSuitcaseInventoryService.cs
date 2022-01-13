@@ -80,7 +80,7 @@ namespace OpenSim.Services.HypergridService
             if (invConfig != null)
             {
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
-                if (userAccountsDll == string.Empty)
+                if (userAccountsDll.Length == 0)
                     throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
 
                 Object[] args = new Object[] { config };
@@ -89,7 +89,7 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
                 string avatarDll = invConfig.GetString("AvatarService", string.Empty);
-                if (avatarDll == string.Empty)
+                if (avatarDll.Length == 0)
                     throw new Exception("Please specify AvatarService in HGInventoryService configuration");
 
                 m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarDll, args);

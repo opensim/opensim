@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            if (newName == String.Empty)
+            if (newName.Length == 0)
                 newName = item.Name;
 
             AssetBase asset = AssetService.Get(item.AssetID.ToString());

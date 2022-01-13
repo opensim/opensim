@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
                     string serviceDll = userConfig.GetString("LocalServiceModule", String.Empty);
 
-                    if (serviceDll == String.Empty)
+                    if (serviceDll.Length == 0)
                     {
                         m_log.Error("[LOCAL GRID USER SERVICE CONNECTOR]: No LocalServiceModule named in section GridUserService");
                         return;

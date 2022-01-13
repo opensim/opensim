@@ -58,7 +58,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private const int KEEPALIVE = 60; // this could be larger now, but viewers expect it on opensim
         // we need to go back to close before viwers, or we may lose data
-        private const int VIEWERKEEPALIVE = (KEEPALIVE - 1) * 1000; // do it shorter
+        private const int VIEWERKEEPALIVE = (KEEPALIVE - 2) * 1000; // do it shorter
 
         /// <value>
         /// Debug level.

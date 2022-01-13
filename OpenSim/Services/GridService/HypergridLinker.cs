@@ -224,7 +224,7 @@ namespace OpenSim.Services.GridService
             regInfo.RegionSizeX = sizeX;
             regInfo.RegionSizeY = sizeY;
 
-            if (externalName == string.Empty)
+            if (externalName.Length == 0)
                 regInfo.RegionName = regInfo.ServerURI;
             else
                 regInfo.RegionName = externalName;
@@ -402,7 +402,7 @@ namespace OpenSim.Services.GridService
             regInfo.RegionSizeX = sizeX;
             regInfo.RegionSizeY = sizeY;
 
-            if (externalName == string.Empty)
+            if (externalName.Length == 0)
                 regInfo.RegionName = regInfo.ServerURI;
              else
                 regInfo.RegionName = externalName;

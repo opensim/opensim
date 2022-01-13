@@ -1008,7 +1008,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void AddInventoryItem(string name, TaskInventoryItem item, bool allowedDrop)
         {
             name = FindAvailableInventoryName(name);
-            if (name == String.Empty)
+            if (name.Length == 0)
                 return;
 
             item.ParentID = m_part.UUID;

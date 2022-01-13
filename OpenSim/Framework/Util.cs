@@ -2587,7 +2587,7 @@ namespace OpenSim.Framework
 
         public static string ServerURIasIP(string uri)
         {
-            if (uri == string.Empty)
+            if (uri.Length == 0)
                 return string.Empty;
 
             // Get rid of eventual slashes at the end
@@ -2869,7 +2869,7 @@ namespace OpenSim.Framework
                         return false;
 
                     string rawEnd = rangeValues[1].Trim();
-                    if (rawEnd == "")
+                    if (rawEnd.Length == 0)
                     {
                         end = -1;
                         return true;
@@ -3554,7 +3554,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static IPEndPoint GetClientIPFromXFF(string xff)
         {
-            if (xff == string.Empty)
+            if (xff.Length == 0)
                 return null;
 
             string[] parts = xff.Split(new char[] { ',' });

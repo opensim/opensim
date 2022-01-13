@@ -403,7 +403,7 @@ namespace OpenSim.Groups
                         // Here we always return true. The user has been added to the local group,
                         // independent of whether the remote operation succeeds or not
                         url = m_UserManagement.GetUserServerURL(uid, "GroupsServerURI");
-                        if (url == string.Empty)
+                        if (url.Length == 0)
                         {
                             reason = "You don't have an accessible groups server in your home world. You membership to this group in only within this grid.";
                             return true;

@@ -165,7 +165,7 @@ namespace OpenSim.Services.LLLoginService
             if (messagingConfig != null)
                 m_messageKey = messagingConfig.GetString("MessageKey", string.Empty);
             // These are required; the others aren't
-            if (accountService == string.Empty || authService == string.Empty)
+            if (accountService.Length == 0 || authService.Length == 0)
                 throw new Exception("LoginService is missing service specifications");
 
             // replace newlines in welcome message
@@ -266,7 +266,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
                 UUID secureSession = UUID.Zero;
-                if ((token == string.Empty) || (!UUID.TryParse(token, out secureSession)))
+                if ((token.Length == 0) || (!UUID.TryParse(token, out secureSession)))
                 {
                     m_log.InfoFormat("[LLOGIN SERVICE]: SetLevel failed, reason: authentication failed");
                     return response;
@@ -919,7 +919,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 if (gatekeeper == null) // login to local grid
                 {
-                    if (hostName == string.Empty)
+                    if (hostName.Length == 0)
                         SetHostAndPort(m_GatekeeperURL);
 
                     gatekeeper = new GridRegion(destination);

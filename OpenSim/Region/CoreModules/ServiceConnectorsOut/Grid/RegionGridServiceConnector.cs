@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             string msg = m_LocalGridService.RegisterRegion(scopeID, regionInfo);
-            if (msg == string.Empty && m_RemoteGridService != null)
+            if (msg.Length == 0 && m_RemoteGridService != null)
                 return m_RemoteGridService.RegisterRegion(scopeID, regionInfo);
 
             return msg;

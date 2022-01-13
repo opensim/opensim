@@ -75,7 +75,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = gridConfig.GetString("GridServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[GRID CONNECTOR]: No Server URI named in section GridService");
                 throw new Exception("Grid connector init error");
@@ -106,7 +106,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
-                if (reply != string.Empty)
+                if (!string.IsNullOrEmpty(reply))
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 

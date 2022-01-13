@@ -545,7 +545,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Scene s = (Scene)ins;
 
-            if (objXMLData == String.Empty)
+            if (objXMLData.Length == 0)
                 return;
 
             IScriptModule scriptModule = null;

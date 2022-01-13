@@ -713,7 +713,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     seconds -= 15;
             }
 
-            if (msg == String.Empty)
+            if (msg.Length == 0)
                 restartModule.ScheduleRestart(UUID.Zero, "Region: " + World.RegionInfo.RegionName + " is about to restart.\n\nIf you stay here you will be logged out.\n\n\nTime remaining: {0}.\n", times.ToArray(), true);
 
             else
@@ -782,7 +782,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURL");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
@@ -803,7 +803,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURLBlend");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
@@ -824,7 +824,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osSetDynamicTextureURLBlendFace");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 UUID createdTexture =
@@ -851,12 +851,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureData");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    if (extraParams == String.Empty)
+                    if (extraParams.Length == 0)
                     {
                         extraParams = "256";
                     }
@@ -880,12 +880,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetDynamicTextureDataBlend");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    if (extraParams == String.Empty)
+                    if (extraParams.Length == 0)
                     {
                         extraParams = "256";
                     }
@@ -908,12 +908,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.VeryLow , "osSetDynamicTextureDataBlendFace");
 
-            if (dynamicID == String.Empty)
+            if (dynamicID.Length == 0)
             {
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 if (textureManager != null)
                 {
-                    if (extraParams == String.Empty)
+                    if (extraParams.Length == 0)
                     {
                         extraParams = "256";
                     }
@@ -2711,7 +2711,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 returnValue = userManager.GetUserServerURL(new UUID(uuid), "HomeURI");
             }
 
-            if (returnValue == "")
+            if (returnValue.Length == 0)
                 return World.SceneGridInfo.HomeURLNoEndSlash;
 
             return returnValue;
@@ -4679,7 +4679,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel();
 
-            if(impact_sound == "")
+            if(impact_sound.Length == 0)
             {
                 m_host.CollisionSoundVolume = (float)impact_volume;
                 m_host.CollisionSound = m_host.invalidCollisionSoundUUID;

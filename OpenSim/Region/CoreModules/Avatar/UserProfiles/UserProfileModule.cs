@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
                             bool ok = true;
                             bool foreign = GetUserProfileServerURI(avatarID, out serverURI);
-                            if(serverURI == string.Empty)
+                            if(serverURI.Length == 0)
                                 ok = false;
 
                             Byte[] membershipType = new Byte[1];
@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                                 int val_flags = acc.UserFlags;
                                 flags = (uint)(val_flags & 0xff);
 
-                                if (acc.UserTitle == "")
+                                if (acc.UserTitle.Length == 0)
                                     membershipType[0] = (byte)((val_flags & 0x0f00) >> 8);
                                 else
                                     membershipType = Utils.StringToBytes(acc.UserTitle);
@@ -1594,7 +1594,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
             if (null != account)
             {
-                if (account.UserTitle == "")
+                if (account.UserTitle.Length == 0)
                     membershipType[0] = (Byte)((account.UserFlags & 0xf00) >> 8);
                 else
                     membershipType = Utils.StringToBytes(account.UserTitle);
@@ -1607,7 +1607,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if (GetUserAccountData(avatarID, out userInfo) == true)
                 {
-                    if ((string)userInfo["user_title"] == "")
+                    if ((string)userInfo["user_title"].Length == 0)
                         membershipType[0] = (Byte)(((Byte)userInfo["user_flags"] & 0xf00) >> 8);
                     else
                         membershipType = Utils.StringToBytes((string)userInfo["user_title"]);

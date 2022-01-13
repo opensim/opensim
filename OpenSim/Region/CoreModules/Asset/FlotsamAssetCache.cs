@@ -1673,7 +1673,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public string Store(AssetBase asset)
         {
-            if (asset.FullID == UUID.Zero)
+            if (asset.FullID.IsZero())
             {
                 asset.FullID = UUID.Random();
             }

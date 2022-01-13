@@ -301,7 +301,7 @@ namespace OpenSim.Capabilities.Handlers
 
                     string rawEnd = rangeValues[1];
 
-                    if (rawEnd == "")
+                    if (rawEnd.Length == 0)
                     {
                         end = -1;
                         return true;

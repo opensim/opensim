@@ -587,7 +587,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static SOPVehicle FromXml2(string text)
         {
-            if (text == String.Empty)
+            if (text.Length == 0)
                 return null;
 
             UTF8Encoding enc = new UTF8Encoding();

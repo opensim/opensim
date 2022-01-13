@@ -345,7 +345,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         protected void CreateMarkerFile()
         {
-            if (m_MarkerPath == String.Empty)
+            if (m_MarkerPath.Length == 0)
                 return;
 
             string path = Path.Combine(m_MarkerPath, m_Scene.RegionInfo.RegionID.ToString());

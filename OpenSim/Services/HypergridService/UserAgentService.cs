@@ -117,7 +117,7 @@ namespace OpenSim.Services.HypergridService
 
                 m_BypassClientVerification = serverConfig.GetBoolean("BypassClientVerification", false);
 
-                if (gridService == string.Empty || gridUserService == string.Empty || gatekeeperService == string.Empty)
+                if (gridService.Length == 0 || gridUserService.Length == 0 || gatekeeperService.Length == 0)
                     throw new Exception(String.Format("Incomplete specifications, UserAgent Service cannot function."));
 
                 Object[] args = new Object[] { config };
@@ -141,7 +141,7 @@ namespace OpenSim.Services.HypergridService
                 if (string.IsNullOrEmpty(m_GridName)) // Legacy. Remove soon.
                 {
                     m_GridName = serverConfig.GetString("ExternalName", string.Empty);
-                    if (m_GridName == string.Empty)
+                    if (m_GridName.Length == 0)
                     {
                         serverConfig = config.Configs["GatekeeperService"];
                         m_GridName = serverConfig.GetString("ExternalName", string.Empty);
