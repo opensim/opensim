@@ -8,8 +8,17 @@ set VALUE_NAME=MSBuildToolsPath
 if "%PROCESSOR_ARCHITECTURE%"=="x86" set PROGRAMS=%ProgramFiles%
 if defined ProgramFiles(x86) set PROGRAMS=%ProgramFiles(x86)%
 
-rem Try to find VS2019
-for %%e in (Enterprise Professional Community) do (
+set PROGRAMS64 = %PROGRAMS%
+if defined ProgramFiles set PROGRAMS64=%ProgramFiles%
+
+
+rem Try to find VS2019/22
+for %%e in (Community Enterprise Professional) do (
+    if exist "%PROGRAMS64%\Microsoft Visual Studio\2022\%%e\MSBuild\Current\Bin\MSBuild.exe" (
+
+        set ValueValue="%PROGRAMS64%\Microsoft Visual Studio\2022\%%e\MSBuild\Current\Bin\MSBuild"
+		goto :found
+    )
     if exist "%PROGRAMS%\Microsoft Visual Studio\2019\%%e\MSBuild\Current\Bin\MSBuild.exe" (
 
         set ValueValue="%PROGRAMS%\Microsoft Visual Studio\2019\%%e\MSBuild\Current\Bin\MSBuild"
