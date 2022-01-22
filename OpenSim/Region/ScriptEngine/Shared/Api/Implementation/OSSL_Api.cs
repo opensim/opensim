@@ -4406,8 +4406,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID hostCreatorID = m_host.CreatorID;
             UUID itemCreatorID = m_item.CreatorID;
 
-            //int penalty = 200;
-            int penalty = 100;
+            //int penalty = 100;
             foreach (SceneObjectGroup sog in attachments)
             {
                 if(sog.IsDeleted || sog.inTransit || ((sog.ScriptEvents & scriptEvents.dataserver) == 0))
@@ -4429,11 +4428,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if((p.ScriptEvents & scriptEvents.dataserver) != 0)
                     {
                         MessageObject(p.UUID, message);
-                        penalty += 10;
+                        //penalty += 10;
                     }
                 }
             }
-            ScriptSleep(penalty);
+            //ScriptSleep(penalty);
         }
 
         #endregion
