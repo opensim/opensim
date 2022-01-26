@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (type == AssetType.Link)
                 return;
 
-            if (IsForeignUser(avatarID, out string userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
+            if (IsForeignUser(avatarID, out string userAssetServer) && userAssetServer.Length > 0 && (m_OutboundPermission || (type == AssetType.Landmark)))
             {
                 m_assMapper.Post(assetID, avatarID, userAssetServer);
             }
