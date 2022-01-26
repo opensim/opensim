@@ -2294,6 +2294,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> takeCopyGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeDeleteGroups = new List<SceneObjectGroup>();
 
+            List<SceneObjectGroup> noPermtakeCopyGroups = new List<SceneObjectGroup>();
+
             ScenePresence sp = null;
             if(remoteClient != null)
                 sp = remoteClient.SceneAgent as ScenePresence;
@@ -2352,6 +2354,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (Permissions.CanTakeCopyObject(grp, sp))
                             takeCopyGroups.Add(grp);
+                        else                                  
+                            noPermtakeCopyGroups.Add(grp);
                         break;
                     }
 
@@ -2407,6 +2411,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(deleteIDs.Count > 0)
                 SendKillObject(deleteIDs);
+
+            if (noPermtakeCopyGroups != null && remoteClient != null)
+            {
+                if(noPermtakeCopyGroups.Count == 1)
+                    remoteClient.SendAlertMessage("No permission to take copy object " + noPermtakeCopyGroups[0].Name);
+                else
+                {
+                    StringBuilder sb = new StringBuilder(1024);
+                    sb.Append("No permission to take copy object ");
+                    int i = 0;
+                    for (; i < noPermtakeCopyGroups.Count - 1; ++i)
+                    {
+                        sb.Append(noPermtakeCopyGroups[i].Name);
+                        sb.Append(", ");
+                    }
+                    sb.Append(noPermtakeCopyGroups[i].Name);
+                    remoteClient.SendAlertMessage(sb.ToString());
+                }
+            }
 
             if (takeDeleteGroups.Count > 0)
             {
