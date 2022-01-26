@@ -2412,7 +2412,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(deleteIDs.Count > 0)
                 SendKillObject(deleteIDs);
 
-            if (noPermtakeCopyGroups != null && remoteClient != null)
+            if (noPermtakeCopyGroups.Count > 0 && remoteClient != null)
             {
                 if(noPermtakeCopyGroups.Count == 1)
                     remoteClient.SendAlertMessage("No permission to take copy object " + noPermtakeCopyGroups[0].Name);
