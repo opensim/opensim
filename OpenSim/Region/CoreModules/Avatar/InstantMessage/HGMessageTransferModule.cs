@@ -176,10 +176,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             bool foreigner = false;
             if (UserManagementModule != null) // foreign user
             {
-                url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
                 foreigner = !UserManagementModule.IsLocalGridUser(toAgentID);
+                if(foreigner)
+                    url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
             }
-
             Util.FireAndForget(delegate
                 {
                     UUID toDelAgentID = new UUID(im.toAgentID);
