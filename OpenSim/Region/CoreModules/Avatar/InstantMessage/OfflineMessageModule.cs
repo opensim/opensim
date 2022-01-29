@@ -216,11 +216,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             // invitations
                             //
 
-                            im.offline = 1;
-
-                            Scene s = FindScene(client.AgentId);
+                            Scene s = client.Scene as Scene;
                             if (s != null)
+                            {
+                                im.offline = 1;
                                 s.EventManager.TriggerIncomingInstantMessage(im);
+                            }
                         }
                     }
                 }

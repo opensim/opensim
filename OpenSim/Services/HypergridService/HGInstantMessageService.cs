@@ -26,18 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Services.Connectors.Friends;
-using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.InstantMessage;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
-using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 using OpenMetaverse;
 using log4net;
@@ -46,7 +41,7 @@ using Nini.Config;
 namespace OpenSim.Services.HypergridService
 {
     /// <summary>
-    /// Inter-grid IM
+    /// HG IM Service
     /// </summary>
     public class HGInstantMessageService : IInstantMessage
     {
@@ -60,14 +55,14 @@ namespace OpenSim.Services.HypergridService
         protected static IOfflineIMService m_OfflineIMService;
 
         protected static IInstantMessageSimConnector m_IMSimConnector;
-        protected static readonly ExpiringCacheOS<UUID, string> m_UserLocationMap = new ExpiringCacheOS<UUID, string>(1000);
+        protected static readonly ExpiringCacheOS<UUID, string> m_UserLocationMap = new ExpiringCacheOS<UUID, string>(10000);
+        protected static readonly ExpiringCacheOS<UUID, string> m_RegionsCache = new ExpiringCacheOS<UUID, string>(60000);
 
         private static bool m_ForwardOfflineGroupMessages;
         private static bool m_InGatekeeper;
         private string m_messageKey;
 
-        public HGInstantMessageService(IConfigSource config)
-            : this(config, null)
+        public HGInstantMessageService(IConfigSource config) : this(config, null)
         {
         }
 
@@ -122,14 +117,16 @@ namespace OpenSim.Services.HypergridService
                     m_log.WarnFormat("[HG IM SERVICE]: Unable to load PresenceService");
                 }
 
-
                 m_InGatekeeper = serverConfig.GetBoolean("InGatekeeper", false);
 
                 IConfig cnf = config.Configs["Messaging"];
                 if (cnf == null)
+                {
+                    m_log.Debug("[HG IM SERVICE]: Starting (without [MEssaging])");
                     return;
+                }
 
-                m_messageKey = cnf.GetString("MessageKey", String.Empty);
+                m_messageKey = cnf.GetString("MessageKey", string.Empty);
                 m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", false);
 
                 if (m_InGatekeeper)
@@ -173,93 +170,96 @@ namespace OpenSim.Services.HypergridService
             return TrySendInstantMessage(im, url, true, foreigner);
         }
 
-        protected bool TrySendInstantMessage(GridInstantMessage im, string previousLocation, bool firstTime, bool foreigner)
+        protected bool TrySendInstantMessage(GridInstantMessage im, string foreignerkurl, bool firstTime, bool foreigner)
         {
             UUID toAgentID = new UUID(im.toAgentID);
-
             string url = null;
-            if(firstTime)
+
+            // first try cache
+            if (m_UserLocationMap.TryGetValue(toAgentID, out url))
             {
-                if(!string.IsNullOrEmpty(previousLocation))
-                    url = previousLocation;
-                else 
-                    m_UserLocationMap.TryGetValue(toAgentID, out url);
+                if (ForwardIMToGrid(url, im, toAgentID))
+                    return true;
             }
 
-            //m_log.DebugFormat("[XXX] Neeed lookup ? {0}", (lookupAgent ? "yes" : "no"));
-            // Are we needing to look-up an agent?
-            if (string.IsNullOrEmpty(url))
+            // try the provided url (for a foreigner)
+            if(!string.IsNullOrEmpty(foreignerkurl))
             {
-                PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { toAgentID.ToString() });
-                if (presences != null && presences.Length > 0)
+                if (ForwardIMToGrid(foreignerkurl, im, toAgentID))
+                    return true;
+            }
+
+            //try to find it in local grid
+            PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { toAgentID.ToString() });
+            if (presences != null && presences.Length > 0)
+            {
+                foreach (PresenceInfo p in presences)
                 {
-                    foreach (PresenceInfo p in presences)
+                    if (!p.RegionID.IsZero())
                     {
-                        if (!p.RegionID.IsZero())
+                        //m_log.DebugFormat("[XXX]: Found presence in {0}", p.RegionID);
+                        // stupid service does not cache region, even in region code
+                        if(m_RegionsCache.TryGetValue(p.RegionID, out url))
+                            break;
+
+                        GridRegion reginfo = m_GridService.GetRegionByUUID(UUID.Zero, p.RegionID);
+                        if (reginfo != null)
                         {
-                            //m_log.DebugFormat("[XXX]: Found presence in {0}", p.RegionID);
-                            GridRegion reginfo = m_GridService.GetRegionByUUID(UUID.Zero, p.RegionID);
-                            if (reginfo != null)
-                            {
-                                url = reginfo.ServerURI;
-                                break;
-                            }
+                            url = reginfo.ServerURI;
+                            m_RegionsCache.AddOrUpdate(p.RegionID, url, 300);
+                            break;
                         }
                     }
                 }
-
-                if (!foreigner && string.IsNullOrEmpty(url) && m_UserAgentService != null)
-                {
-                    // Let's check with the UAS if the user is elsewhere
-                    m_log.DebugFormat("[HG IM SERVICE]: User is not present. Checking location with User Agent service");
-                    try
-                    {
-                        url = m_UserAgentService.LocateUser(toAgentID);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Warn("[HG IM SERVICE]: LocateUser call failed ", e);
-                        url = string.Empty;
-                    }
-                }
-
-                // check if we've tried this before..
-                // This is one way to end the recursive loop
-                if (!firstTime && previousLocation.Equals(url))
-                {
-                    // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                    m_log.DebugFormat("[HG IM SERVICE]: Fail 2 {0} {1}", previousLocation, url);
-                    return false;
-                }
             }
 
-            if (!string.IsNullOrEmpty(url))
+            if (string.IsNullOrEmpty(url) && !foreigner && m_UserAgentService != null)
             {
-                // ok, the user is around somewhere. Let's send back the reply with "success"
-                // even though the IM may still fail. Just don't keep the caller waiting for
-                // the entire time we're trying to deliver the IM
-                return ForwardIMToGrid(url, im, toAgentID, foreigner);
+                // Let's check with the UAS if the user is elsewhere in HG
+                m_log.DebugFormat("[HG IM SERVICE]: User is not present. Checking location with User Agent service");
+                try
+                {
+                    url = m_UserAgentService.LocateUser(toAgentID);
+                }
+                catch (Exception e)
+                {
+                    m_log.Warn("[HG IM SERVICE]: LocateUser call failed ", e);
+                    url = string.Empty;
+                }
             }
 
-            m_log.DebugFormat("[HG IM SERVICE]: Unable to locate user {0}", toAgentID);
-            return false;
+            if (string.IsNullOrEmpty(url))
+            {
+                m_log.DebugFormat("[HG IM SERVICE]: Unable to locate user {0}", toAgentID);
+                return false;
+            }
+
+            // check if we've tried this before..
+            if (!string.IsNullOrEmpty(foreignerkurl) && url.Equals(foreignerkurl, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
+                m_log.DebugFormat("[HG IM SERVICE]: Unable to send to user {0}, at {1}", toAgentID, foreignerkurl);
+                return false;
+            }
+
+            // ok, the user is around somewhere. Let's send back the reply with "success"
+            // even though the IM may still fail. Just don't keep the caller waiting for
+            // the entire time we're trying to deliver the IM
+            return ForwardIMToGrid(url, im, toAgentID);
         }
 
-        bool ForwardIMToGrid(string url, GridInstantMessage im, UUID toAgentID, bool foreigner)
+        bool ForwardIMToGrid(string url, GridInstantMessage im, UUID toAgentID)
         {
             if (InstantMessageServiceConnector.SendInstantMessage(url, im, m_messageKey))
             {
                 // IM delivery successful, so store the Agent's location in our local cache.
-                m_UserLocationMap.AddOrUpdate(toAgentID, url, 30);
+                m_UserLocationMap.AddOrUpdate(toAgentID, url, 120);
                 return true;
             }
             else
-            {
-                // try again, but lookup user this time.
                 m_UserLocationMap.Remove(toAgentID);
-                // This is recursive!!!!!
-                return TrySendInstantMessage(im, "", false, foreigner);
-            }
+
+            return false;
         }
 
         private bool UndeliveredMessage(GridInstantMessage im)
@@ -267,25 +267,35 @@ namespace OpenSim.Services.HypergridService
             if (m_OfflineIMService == null)
                 return false;
 
-            if (im.dialog != (byte)InstantMessageDialog.MessageFromObject &&
-                im.dialog != (byte)InstantMessageDialog.MessageFromAgent &&
-                im.dialog != (byte)InstantMessageDialog.GroupNotice &&
-                im.dialog != (byte)InstantMessageDialog.GroupInvitation &&
-                im.dialog != (byte)InstantMessageDialog.InventoryOffered)
+            if (m_ForwardOfflineGroupMessages)
             {
-                return false;
+                switch (im.dialog)
+                {
+                    case (byte)InstantMessageDialog.MessageFromObject:
+                    case (byte)InstantMessageDialog.MessageFromAgent:
+                    case (byte)InstantMessageDialog.GroupNotice:
+                    case (byte)InstantMessageDialog.GroupInvitation:
+                    case (byte)InstantMessageDialog.InventoryOffered:
+                        break;
+                    default:
+                        return false;
+                }
+            }
+            else
+            {
+                switch (im.dialog)
+                {
+                    case (byte)InstantMessageDialog.MessageFromObject:
+                    case (byte)InstantMessageDialog.MessageFromAgent:
+                    case (byte)InstantMessageDialog.InventoryOffered:
+                        break;
+                    default:
+                        return false;
+                }
             }
 
-            if (!m_ForwardOfflineGroupMessages)
-            {
-                if (im.dialog == (byte)InstantMessageDialog.GroupNotice ||
-                    im.dialog == (byte)InstantMessageDialog.GroupInvitation)
-                    return false;
-            }
-
-//                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
-            string reason = string.Empty;
-            return m_OfflineIMService.StoreMessage(im, out reason);
+            //m_log.DebugFormat("[HG IM SERVICE]: Message saved");
+            return m_OfflineIMService.StoreMessage(im, out string reason);
         }
     }
 }
