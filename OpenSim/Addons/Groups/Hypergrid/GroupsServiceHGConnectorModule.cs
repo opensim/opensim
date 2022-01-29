@@ -672,7 +672,7 @@ namespace OpenSim.Groups
 
             serviceLocation = group.ServiceLocation;
             name = group.GroupName;
-            bool isLocal = (group.ServiceLocation == string.Empty);
+            bool isLocal = (group.ServiceLocation.Length == 0);
             //m_log.DebugFormat("[XXX]: IsLocal? {0}", isLocal);
             return isLocal;
         }

@@ -185,9 +185,12 @@ namespace OpenSim.OfflineIM
                     // Needed for proper state management for stored group
                     // invitations
                     //
-                    Scene s = FindScene(client.AgentId);
+                    Scene s = client.Scene as Scene;
                     if (s != null)
+                    {
+                        im.offline = 1;
                         s.EventManager.TriggerIncomingInstantMessage(im);
+                    }
                 }
             }
         }
