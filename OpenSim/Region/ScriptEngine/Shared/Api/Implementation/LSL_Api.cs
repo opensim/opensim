@@ -5252,28 +5252,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetAnimation(LSL_Key id)
         {
             // This should only return a value if the avatar is in the same region
-            if(!UUID.TryParse(id, out UUID avatar))
+            if(!UUID.TryParse(id, out UUID avatar) || avatar.IsZero())
                 return "";
+
             ScenePresence presence = World.GetScenePresence(avatar);
-            if (presence == null)
-                return "";
+            if (presence == null || presence.IsChildAgent || presence.Animator == null)
+                return string.Empty;
 
-            if (m_host.RegionHandle == presence.RegionHandle)
-            {
-                if (presence != null)
-                {
-//                    if (presence.SitGround)
-//                        return "Sitting on Ground";
-//                    if (presence.ParentID != 0 || presence.ParentUUID != UUID.Zero)
-//                        return "Sitting";
+            //if (presence.SitGround)
+            //    return "Sitting on Ground";
+            //if (presence.ParentID != 0 || presence.ParentUUID != UUID.Zero)
+            //    return "Sitting";
+            string movementAnimation = presence.Animator.CurrentMovementAnimation;
+            if (MovementAnimationsForLSL.TryGetValue(movementAnimation, out string lslMovementAnimation))
+                return lslMovementAnimation;
 
-                    string movementAnimation = presence.Animator.CurrentMovementAnimation;
-                    if (MovementAnimationsForLSL.TryGetValue(movementAnimation, out string lslMovementAnimation))
-                        return lslMovementAnimation;
-                }
-            }
-
-            return String.Empty;
+            return string.Empty;
         }
 
         public void llMessageLinked(int linknumber, int num, string msg, string id)
@@ -17381,6 +17375,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetAnimationOverride(LSL_String animState, LSL_String anim)
         {
+            if (m_item.PermsGranter.IsZero())
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return;
+            }
+
+            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
+            {
+                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
+                return;
+            }
+
+            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
+            if (presence == null)
+                return;
+
             string state = String.Empty;
 
             foreach (KeyValuePair<string, string> kvp in MovementAnimationsForLSL)
@@ -17398,22 +17408,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (m_item.PermsGranter.IsZero())
-            {
-                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
-                return;
-            }
-
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_OVERRIDE_ANIMATIONS) == 0)
-            {
-                llShout(ScriptBaseClass.DEBUG_CHANNEL, "No permission to override animations");
-                return;
-            }
-
-            ScenePresence presence = World.GetScenePresence(m_item.PermsGranter);
-
-            if (presence == null)
-                return;
 
             UUID animID;
 
