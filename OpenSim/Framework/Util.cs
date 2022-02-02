@@ -3707,11 +3707,12 @@ namespace OpenSim.Framework
 
                 if (parts.Length >= 3)
                 {
-                    string[] name = parts[2].Split();
-                    if (name.Length == 2)
+                    string[] name = parts[2].Split(new char[] {' ' },StringSplitOptions.RemoveEmptyEntries);
+                    if(name.Length > 0)
                     {
                         firstname = name[0];
-                        lastname = name[1];
+                        if (name.Length > 1)
+                            lastname = name[1];
                     }
 
                     if (parts.Length >= 4)
@@ -3875,10 +3876,10 @@ namespace OpenSim.Framework
             {
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
-                    return CalcUniversalIdentifier(id, agentsURI, parts[0] + " " + parts[1]);
+                    return CalcUniversalIdentifier(id, agentsURI, parts[0].Trim() + " " + parts[1].Trim());
             }
 
-            return CalcUniversalIdentifier(id, agentsURI, firstName + " " + lastName);
+            return CalcUniversalIdentifier(id, agentsURI, firstName.Trim() + " " + lastName.Trim());
         }
 
         private static string CalcUniversalIdentifier(UUID id, string agentsURI, string name)
@@ -3902,9 +3903,9 @@ namespace OpenSim.Framework
             }
             catch (UriFormatException)
             {
-                return firstName + " " + lastName;
+                return firstName.Trim() + " " + lastName.Trim();
             }
-            return firstName + "." + lastName + " " + "@" + uri.Authority;
+            return firstName.Trim() + "." + lastName.Trim() + " " + "@" + uri.Authority;
         }
         #endregion
 
