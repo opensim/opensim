@@ -422,10 +422,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
                 if (m_userCacheByID.TryGetValue(uuid, out UserData userdata))
                 {
-                    string name = userdata.FirstName + " " + userdata.LastName;
                     if (userdata.HasGridUserTried)
                     {
-                        ret[uuid] = name;
+                        ret[uuid] = userdata.FirstName + " " + userdata.LastName; ;
                         continue;
                     }
                     untried[uuid] = userdata;
@@ -445,7 +444,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 {
                     if (uac != null)
                     {
-                        string name = uac.FirstName + " " + uac.LastName;
                         UUID id = uac.PrincipalID;
 
                         var userdata = new UserData();
@@ -458,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.HasGridUserTried = true;
                         m_userCacheByID.Add(id, userdata, 1800000);
 
-                        ret[id] = name;
+                        ret[id] = uac.FirstName + " " + uac.LastName;
                         missing.Remove(id.ToString()); // slowww
                         untried.Remove(id);
                     }
@@ -502,8 +500,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                                 userdata.HasGridUserTried = true;
                                 m_userCacheByID.Add(u, userdata, 1800000);
 
-                                string name = userdata.FirstName + " " + userdata.LastName;
-                                ret[u] = name;
+                                ret[u] = userdata.FirstName + " " + userdata.LastName;
                                 missing.Remove(u.ToString());
                                 untried.Remove(u);
                             }
