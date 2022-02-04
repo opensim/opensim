@@ -8,13 +8,16 @@
     ; SQLite
     Include-Storage = "config-include/storage/SQLiteStandalone.ini";
 
-    ; MySql
-    ; Uncomment these lines if you want to use mysql storage
+    ; MySQL
+    ; Uncomment these lines if you want to use MySQL storage
     ; Change the connection string to your db details
-    ; Remove SslMode=None if you need secure connection to the local mysql
-    ; In most cases ssl is just a pure waste of resources, specially when mySql is on same machine, and closed to outside
+    ; Remove SslMode=None if you need secure connection to the local MySQL
+    ; In most cases ssl is just a pure waste of resources, specially when MySQL is on same machine, and closed to outside
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
+    ; If using MySQL 8.0.4 or later, check that default-authentication-plugin=mysql_native_password
+    ;  rather than caching_sha2_password is set in /etc/mysql/mysql.conf.d/mysqld.cnf (not applicable to MariaDB).
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;SslMode=None;"
+
     ; Uncomment this line if you are using MySQL and want to use a different database for estates
     ; The usual application for this is to allow estates to be spread out across multiple simulators by share the same database.
     ; Most people won't need to do this so only uncomment if you know what you're doing.
