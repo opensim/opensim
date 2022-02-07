@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             List<UUID> regions = m_EstateModule.Scenes[0].GetEstateRegions((int)EstateID);
 
             // Don't send to the same instance twice
-            List<string> done = new List<string>();
+            HashSet<string> done = new HashSet<string>();
 
             // Handle local regions locally
             lock (m_EstateModule.Scenes)
@@ -191,9 +191,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             try
             {
                 string url = "";
-                if(region.HttpPort != 0)
-                    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
-                else
+                //if(region.HttpPort != 0)
+                //    url = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/";
+                //else
                     url = region.ServerURI;
 
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
