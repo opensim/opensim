@@ -211,7 +211,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         protected bool SendIMToScene(GridInstantMessage gim, UUID toAgentID)
         {
-            bool successful = false;
             Scene childScene = null;
             foreach (Scene scene in m_Scenes)
             {
@@ -223,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     else
                     {
                         scene.EventManager.TriggerIncomingInstantMessage(gim);
-                        successful = true;
+                        return true;
                     }
                 }
             }
@@ -231,22 +230,18 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if(childScene != null)
             {
                 childScene.EventManager.TriggerIncomingInstantMessage(gim);
-                successful = true;
+                return true;
             }
 
-            if (!successful)
-            {
-                // If the message can't be delivered to an agent, it
-                // is likely to be a group IM. On a group IM, the
-                // imSessionID = toAgentID = group id. Raise the
-                // unhandled IM event to give the groups module
-                // a chance to pick it up. We raise that in a random
-                // scene, since the groups module is shared.
-                //
-                m_Scenes[0].EventManager.TriggerUnhandledInstantMessage(gim);
-            }
-
-            return successful;
+            // If the message can't be delivered to an agent, it
+            // is likely to be a group IM. On a group IM, the
+            // imSessionID = toAgentID = group id. Raise the
+            // unhandled IM event to give the groups module
+            // a chance to pick it up. We raise that in a random
+            // scene, since the groups module is shared.
+            //
+            m_Scenes[0].EventManager.TriggerUnhandledInstantMessage(gim);
+            return false;
         }
 
         public void HandleUndeliverableMessage(GridInstantMessage im, MessageResultNotification result)
