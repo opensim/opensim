@@ -776,7 +776,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!m_uMan.IsLocalGridUser(friendID))
             {
                 string friendsURL = m_uMan.GetUserServerURL(friendID, "FriendsServerURI");
-                if (friendsURL != string.Empty)
+                if (!string.IsNullOrEmpty(friendsURL))
                 {
                     m_log.DebugFormat("[HGFRIENDS MODULE]: Forwading friendship from {0} to {1} @ {2}", agentID, friendID, friendsURL);
                     GridRegion region = new GridRegion();

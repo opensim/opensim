@@ -491,7 +491,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 foreach (Scene scene in m_Scenes)
                 {
                     ScenePresence presence = scene.GetScenePresence(agentID);
-                    if (presence != null && !presence.IsChildAgent)
+                    if (presence != null && !presence.IsDeleted && !presence.IsChildAgent)
                         return presence.ControllingClient;
                 }
             }
@@ -627,8 +627,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendSession != null)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
-                    return true;
+                    if(region != null)
+                    {
+                        m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
+                        return true;
+                    }
                 }
             }
             // If the prospective friend is not online, he'll get the message upon login.
