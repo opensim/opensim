@@ -70,6 +70,8 @@ namespace OpenSim.Region.OptionalModules.Materials
         private Queue<UUID> delayedDelete = new Queue<UUID>();
         private bool m_storeBusy;
 
+        private static byte[] GetPutEmptyResponseBytes = osUTF8.GetASCIIBytes("<llsd><map><key>Zipped</key><binary>eNqLZgCCWAAChQC5</binary></map></llsd>");
+
         public void Initialise(IConfigSource source)
         {
             m_enabled = true; // default is enabled
@@ -733,15 +735,13 @@ namespace OpenSim.Region.OptionalModules.Materials
                 }
             }
 
-            OSDMap resp = new OSDMap();
-            OSDArray respArr = new OSDArray();
-            resp["Zipped"] = ZCompressOSD(respArr, false);
-            response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(resp);
+            //OSDMap resp = new OSDMap();
+            //OSDArray respArr = new OSDArray();
+            //resp["Zipped"] = ZCompressOSD(respArr, false);
+            //string tmp = OSDParser.SerializeLLSDXmlString(resp);
+            //response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(resp);
 
-            //m_log.Debug("[Materials]: cap request: " + request);
-            //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
-            //m_log.Debug("[Materials]: cap response: " + response);
-
+            response.RawBuffer = GetPutEmptyResponseBytes;
         }
 
         private AssetBase MakeAsset(FaceMaterial fm, bool local)
@@ -758,9 +758,9 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public void RenderMaterialsGetCap(IOSHttpRequest request, IOSHttpResponse response)
         {
-            OSDMap resp = new OSDMap();
-            OSDArray allOsd = new OSDArray();
-/*
+            //OSDMap resp = new OSDMap();
+            //OSDArray allOsd = new OSDArray();
+            /*
             // this violates all idea of caching and geting things only if needed, so disabled
 
             int matsCount = 0;
@@ -775,12 +775,14 @@ namespace OpenSim.Region.OptionalModules.Materials
                     matsCount++;
                 }
             }
-*/
-            resp["Zipped"] = ZCompressOSD(allOsd, false);
-
-            response.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            */
+            //resp["Zipped"] = ZCompressOSD(allOsd, false);
+            //string tmp = OSDParser.SerializeLLSDXmlString(resp);
+            //response.RawBuffer = Encoding.UTF8.GetBytes(tmp);
+            response.RawBuffer = GetPutEmptyResponseBytes;
         }
 
+        
         private static string ZippedOsdBytesToString(byte[] bytes)
         {
             try
