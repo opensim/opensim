@@ -569,27 +569,22 @@ namespace OpenSim.Region.OptionalModules.Materials
                 return;
             }
 
-            OSDMap materialsFromViewer = null;
-            OSDArray respArr = new OSDArray();
-
             OSD tmpOSD;
-            HashSet<SceneObjectPart> parts = new HashSet<SceneObjectPart>();
             if (req.TryGetValue("Zipped", out tmpOSD))
             {
-                OSD osd = null;
-
-                byte[] inBytes = tmpOSD.AsBinary();
-
                 try
                 {
-                    osd = ZDecompressBytesToOsd(inBytes);
+                    byte[] inBytes = tmpOSD.AsBinary();
+                    OSD osd = ZDecompressBytesToOsd(inBytes);
 
                     if (osd != null && osd is OSDMap)
                     {
-                        materialsFromViewer = osd as OSDMap;
+                        OSDMap materialsFromViewer = osd as OSDMap;
 
                         if (materialsFromViewer.TryGetValue("FullMaterialsPerFace", out tmpOSD) && (tmpOSD is OSDArray))
                         {
+                            Dictionary<uint, SceneObjectPart> parts = new Dictionary<uint, SceneObjectPart>();
+                            HashSet<uint> errorReported = new HashSet<uint>();
                             OSDArray matsArr = tmpOSD as OSDArray;
                             try
                             {
@@ -615,7 +610,11 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                     if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
                                     {
-                                        m_log.WarnFormat("User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                        if(!errorReported.Contains(primLocalID))
+                                        {
+                                            m_log.WarnFormat("[Materials]: User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                            errorReported.Add(primLocalID);
+                                        }
                                         continue;
                                     }
 
@@ -703,11 +702,11 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         }
                                     }
 
-                                    if(!parts.Contains(sop))
-                                        parts.Add(sop);
+                                    if(!parts.ContainsKey(primLocalID))
+                                        parts[primLocalID] = sop;
                                 }
 
-                                foreach(SceneObjectPart sop in parts)
+                                foreach(SceneObjectPart sop in parts.Values)
                                 {
                                     if (sop.ParentGroup != null && !sop.ParentGroup.IsDeleted)
                                     {
@@ -735,8 +734,9 @@ namespace OpenSim.Region.OptionalModules.Materials
             }
 
             OSDMap resp = new OSDMap();
+            OSDArray respArr = new OSDArray();
             resp["Zipped"] = ZCompressOSD(respArr, false);
-            response.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(resp);
 
             //m_log.Debug("[Materials]: cap request: " + request);
             //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
