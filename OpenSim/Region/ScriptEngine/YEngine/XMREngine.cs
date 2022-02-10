@@ -1482,9 +1482,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 string stateFileName = XMRInstance.GetStateFileName(m_ScriptBasePath, itemID);
                 File.Delete(stateFileName);
 
-                ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
-                if(handlerScriptRemoved != null)
-                    handlerScriptRemoved(itemID);
+                OnScriptRemoved?.Invoke(itemID);
 
                 m_LockedDict = "~~OnRemoveScript";
             }

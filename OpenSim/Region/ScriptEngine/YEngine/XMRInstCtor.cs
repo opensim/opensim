@@ -135,9 +135,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Initialize the API instance.
             scriptApi.Initialize(m_Engine, m_Part, m_Item);
-            this.InitApi(api, scriptApi);
+            InitApi(api, scriptApi);
         }
-
 
         /*
          * Get script object code loaded in memory and all ready to run,
@@ -250,7 +249,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             catch
             {
-
                 // If any error loading, decrement object code reference count.
                 DecObjCodeRefCount();
                 throw;
@@ -326,16 +324,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void LoadObjCode()
         {
             // Script must leave this much stack remaining on calls to CheckRun().
-            this.stackLimit = m_StackSize / 2;
+            stackLimit = m_StackSize / 2;
 
             // This is how many total heap bytes script is allowed to use.
-            this.heapLimit = m_HeapSize;
+            heapLimit = m_HeapSize;
 
             // Allocate global variable arrays.
-            this.glblVars.AllocVarArrays(m_ObjCode.glblSizes);
+            glblVars.AllocVarArrays(m_ObjCode.glblSizes);
 
             // Script can handle these event codes.
-            m_HaveEventHandlers = new bool[m_ObjCode.scriptEventHandlerTable.GetLength(1)];
             for(int i = m_ObjCode.scriptEventHandlerTable.GetLength(0); --i >= 0;)
             {
                 for(int j = m_ObjCode.scriptEventHandlerTable.GetLength(1); --j >= 0;)
