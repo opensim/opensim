@@ -3862,11 +3862,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirEventsReplyPacket.QueryDataBlock();
             packet.QueryData.QueryID = queryID;
 
-            packet.QueryReplies = new DirEventsReplyPacket.QueryRepliesBlock[
-                    data.Length];
-
-            packet.StatusData = new DirEventsReplyPacket.StatusDataBlock[
-                    data.Length];
+            packet.QueryReplies = new DirEventsReplyPacket.QueryRepliesBlock[data.Length];
+            packet.StatusData = new DirEventsReplyPacket.StatusDataBlock[data.Length];
 
             int i = 0;
             foreach (DirEventsReplyData d in data)
@@ -3874,11 +3871,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.QueryReplies[i] = new DirEventsReplyPacket.QueryRepliesBlock();
                 packet.StatusData[i] = new DirEventsReplyPacket.StatusDataBlock();
                 packet.QueryReplies[i].OwnerID = d.ownerID;
-                packet.QueryReplies[i].Name =
-                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
                 packet.QueryReplies[i].EventID = d.eventID;
-                packet.QueryReplies[i].Date =
-                        Utils.StringToBytes(d.date);
+                packet.QueryReplies[i].Date = Utils.StringToBytes(d.date);
                 packet.QueryReplies[i].UnixTime = d.unixTime;
                 packet.QueryReplies[i].EventFlags = d.eventFlags;
                 packet.StatusData[i].Status = d.Status;
@@ -3924,10 +3919,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirClassifiedReplyPacket.QueryDataBlock();
             packet.QueryData.QueryID = queryID;
 
-            packet.QueryReplies = new DirClassifiedReplyPacket.QueryRepliesBlock[
-                    data.Length];
-            packet.StatusData = new DirClassifiedReplyPacket.StatusDataBlock[
-                    data.Length];
+            packet.QueryReplies = new DirClassifiedReplyPacket.QueryRepliesBlock[data.Length];
+            packet.StatusData = new DirClassifiedReplyPacket.StatusDataBlock[data.Length];
 
             int i = 0;
             foreach (DirClassifiedReplyData d in data)
@@ -3935,8 +3928,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.QueryReplies[i] = new DirClassifiedReplyPacket.QueryRepliesBlock();
                 packet.StatusData[i] = new DirClassifiedReplyPacket.StatusDataBlock();
                 packet.QueryReplies[i].ClassifiedID = d.classifiedID;
-                packet.QueryReplies[i].Name =
-                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
                 packet.QueryReplies[i].ClassifiedFlags = d.classifiedFlags;
                 packet.QueryReplies[i].CreationDate = d.creationDate;
                 packet.QueryReplies[i].ExpirationDate = d.expirationDate;
@@ -3958,16 +3950,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirLandReplyPacket.QueryDataBlock();
             packet.QueryData.QueryID = queryID;
 
-            packet.QueryReplies = new DirLandReplyPacket.QueryRepliesBlock[
-                    data.Length];
+            packet.QueryReplies = new DirLandReplyPacket.QueryRepliesBlock[data.Length];
 
             int i = 0;
             foreach (DirLandReplyData d in data)
             {
                 packet.QueryReplies[i] = new DirLandReplyPacket.QueryRepliesBlock();
                 packet.QueryReplies[i].ParcelID = d.parcelID;
-                packet.QueryReplies[i].Name =
-                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
                 packet.QueryReplies[i].Auction = d.auction;
                 packet.QueryReplies[i].ForSale = d.forSale;
                 packet.QueryReplies[i].SalePrice = d.salePrice;
@@ -3988,16 +3978,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirPopularReplyPacket.QueryDataBlock();
             packet.QueryData.QueryID = queryID;
 
-            packet.QueryReplies = new DirPopularReplyPacket.QueryRepliesBlock[
-                    data.Length];
+            packet.QueryReplies = new DirPopularReplyPacket.QueryRepliesBlock[data.Length];
 
             int i = 0;
             foreach (DirPopularReplyData d in data)
             {
                 packet.QueryReplies[i] = new DirPopularReplyPacket.QueryRepliesBlock();
                 packet.QueryReplies[i].ParcelID = d.parcelID;
-                packet.QueryReplies[i].Name =
-                        Utils.StringToBytes(d.name);
+                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
                 packet.QueryReplies[i].Dwell = d.dwell;
                 i++;
             }
@@ -4194,8 +4182,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             AvatarClassifiedReplyPacket ac =
-                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.AvatarClassifiedReply);
+                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarClassifiedReply);
 
             ac.AgentData = new AvatarClassifiedReplyPacket.AgentDataBlock();
             ac.AgentData.AgentID = m_agentId;
@@ -4219,8 +4206,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 classifiedFlags |= 0x4; // pg
 
             ClassifiedInfoReplyPacket cr =
-                    (ClassifiedInfoReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.ClassifiedInfoReply);
+                    (ClassifiedInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.ClassifiedInfoReply);
 
             cr.AgentData = new ClassifiedInfoReplyPacket.AgentDataBlock();
             cr.AgentData.AgentID = m_agentId;
@@ -4261,8 +4247,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAvatarNotesReply(UUID targetID, string text)
         {
             AvatarNotesReplyPacket an =
-                    (AvatarNotesReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.AvatarNotesReply);
+                    (AvatarNotesReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarNotesReply);
 
             an.AgentData = new AvatarNotesReplyPacket.AgentDataBlock();
             an.AgentData.AgentID = m_agentId;
@@ -4277,8 +4262,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAvatarPicksReply(UUID targetID, Dictionary<UUID, string> picks)
         {
             AvatarPicksReplyPacket ap =
-                    (AvatarPicksReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.AvatarPicksReply);
+                    (AvatarPicksReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarPicksReply);
 
             ap.AgentData = new AvatarPicksReplyPacket.AgentDataBlock();
             ap.AgentData.AgentID = m_agentId;
@@ -4301,8 +4285,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds)
         {
             AvatarClassifiedReplyPacket ac =
-                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.AvatarClassifiedReply);
+                    (AvatarClassifiedReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarClassifiedReply);
 
             ac.AgentData = new AvatarClassifiedReplyPacket.AgentDataBlock();
             ac.AgentData.AgentID = m_agentId;
@@ -4325,8 +4308,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendParcelDwellReply(int localID, UUID parcelID, float dwell)
         {
             ParcelDwellReplyPacket pd =
-                    (ParcelDwellReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.ParcelDwellReply);
+                    (ParcelDwellReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelDwellReply);
 
             pd.AgentData = new ParcelDwellReplyPacket.AgentDataBlock();
             pd.AgentData.AgentID = m_agentId;
@@ -4342,19 +4324,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendUserInfoReply(bool imViaEmail, bool visible, string email)
         {
             UserInfoReplyPacket ur =
-                    (UserInfoReplyPacket)PacketPool.Instance.GetPacket(
-                    PacketType.UserInfoReply);
+                    (UserInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.UserInfoReply);
 
-            string Visible = "hidden";
-            if (visible)
-                Visible = "default";
-
-            ur.AgentData = new UserInfoReplyPacket.AgentDataBlock();
+             ur.AgentData = new UserInfoReplyPacket.AgentDataBlock();
             ur.AgentData.AgentID = m_agentId;
 
             ur.UserData = new UserInfoReplyPacket.UserDataBlock();
             ur.UserData.IMViaEMail = imViaEmail;
-            ur.UserData.DirectoryVisibility = Utils.StringToBytes(Visible);
+            ur.UserData.DirectoryVisibility = Utils.StringToBytes(visible ? "default" : "hidden");
             ur.UserData.EMail = Utils.StringToBytes(email);
 
             OutPacket(ur, ThrottleOutPacketType.Task);
@@ -4364,10 +4341,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             CreateGroupReplyPacket createGroupReply = (CreateGroupReplyPacket)PacketPool.Instance.GetPacket(PacketType.CreateGroupReply);
 
-            createGroupReply.AgentData =
-                new CreateGroupReplyPacket.AgentDataBlock();
-            createGroupReply.ReplyData =
-                new CreateGroupReplyPacket.ReplyDataBlock();
+            createGroupReply.AgentData = new CreateGroupReplyPacket.AgentDataBlock();
+            createGroupReply.ReplyData = new CreateGroupReplyPacket.ReplyDataBlock();
 
             createGroupReply.AgentData.AgentID = m_agentId;
             createGroupReply.ReplyData.GroupID = groupID;
@@ -4472,9 +4447,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             aw.WearableData[idx] = awb;
                             idx++;
 
-                            //                                m_log.DebugFormat(
-                            //                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
-                            //                                    awb.ItemID, awb.AssetID, i, Name);
+                            //m_log.DebugFormat(
+                            //    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
+                            //    awb.ItemID, awb.AssetID, i, Name);
                         }
                     }
 
