@@ -176,7 +176,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             List<InventoryFolderBase> foundFolders = new List<InventoryFolderBase>();
 
-            if (path == string.Empty)
+            if (path.Length == 0)
             {
                 foundFolders.Add(startFolder);
                 return foundFolders;

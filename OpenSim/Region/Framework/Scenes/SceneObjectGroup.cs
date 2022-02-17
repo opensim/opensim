@@ -191,12 +191,11 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // needs more exclusion ?
-                return(Backup && !IsTemporary && !inTransit && !IsSelected && !UsesPhysics && !IsAttachmentCheckFull() &&
+                return(Backup && !IsTemporary && !inTransit && !UsesPhysics && !IsSelected && !IsAttachmentCheckFull() &&
                 !RootPart.Shape.MeshFlagEntry && // animations are not sent correctly for now
                 RootPart.KeyframeMotion == null &&
-                (DateTime.UtcNow.Ticks - timeLastChanged > 36000000000) && //36000000000 is one hour
-                RootPart.Velocity.LengthSquared() < 1e8f && // should not be needed
-                RootPart.Acceleration.LengthSquared() < 1e4f // should not be needed
+                (DateTime.UtcNow.Ticks - timeLastChanged > 3000000000) //&& //3000000000 is 5min
+                //(DateTime.UtcNow.Ticks - timeLastChanged > 36000000000) //&& //36000000000 is one hour
                 );
             }
         }
@@ -669,9 +668,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                bool triggerScriptEvent = m_rootPart.GroupPosition != val;
+                bool triggerScriptEvent;
                 if (m_dupeInProgress || IsDeleted)
                     triggerScriptEvent = false;
+                else
+                    triggerScriptEvent = m_rootPart.GroupPosition != val;
 
                 m_rootPart.GroupPosition = val;
 
@@ -909,7 +910,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (av.IsChildAgent)
                     {
                         // avatar crossed do some extra cleanup
-                        if (av.ParentUUID != UUID.Zero)
+                        if (!av.ParentUUID.IsZero())
                         {
                             av.ClearControls();
                             av.ParentPart = null;
@@ -1478,7 +1479,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (node.Attributes["UUID"] != null)
                     {
                         UUID itemid = new UUID(node.Attributes["UUID"].Value);
-                        if (itemid != UUID.Zero)
+                        if (!itemid.IsZero())
                             m_savedScriptState[itemid] = node.InnerXml;
                     }
                 }
@@ -1509,7 +1510,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                        m_log.DebugFormat("[SCENE OBJECT GROUP]: Found state for item ID {0} in object {1}", uuid, Name);
 
                         UUID itemid = new UUID(uuid);
-                        if (itemid != UUID.Zero)
+                        if (!itemid.IsZero())
                             m_savedScriptState[itemid] = innerXml;
                     }
                     else
@@ -2418,7 +2419,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (IsDeleted || inTransit || UUID == UUID.Zero)
+            if (IsDeleted || inTransit || UUID.IsZero())
             {
 //                m_log.DebugFormat(
 //                    "[WATER WARS]: Ignoring backup of {0} {1} since object is marked as already deleted", Name, UUID);
@@ -2444,8 +2445,8 @@ namespace OpenSim.Region.Framework.Scenes
                             parcel.LandData.OtherCleanTime != 0)
                     {
                         if (parcel.LandData.OwnerID != OwnerID &&
-                                (parcel.LandData.GroupID != GroupID ||
-                                parcel.LandData.GroupID == UUID.Zero))
+                                (parcel.LandData.GroupID.NotEqual(GroupID) ||
+                                parcel.LandData.GroupID.IsZero()))
                         {
                             if ((DateTime.UtcNow - RootPart.Rezzed).TotalMinutes >
                                     parcel.LandData.OtherCleanTime)

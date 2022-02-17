@@ -2587,7 +2587,7 @@ namespace OpenSim.Framework
 
         public static string ServerURIasIP(string uri)
         {
-            if (uri == string.Empty)
+            if (uri.Length == 0)
                 return string.Empty;
 
             // Get rid of eventual slashes at the end
@@ -2869,7 +2869,7 @@ namespace OpenSim.Framework
                         return false;
 
                     string rawEnd = rangeValues[1].Trim();
-                    if (rawEnd == "")
+                    if (rawEnd.Length == 0)
                     {
                         end = -1;
                         return true;
@@ -3466,7 +3466,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddToGatheredIds(Dictionary<UUID, sbyte> uuids, UUID id, sbyte type)
         {
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return;
             uuids[id] = type;
         }
@@ -3554,7 +3554,7 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public static IPEndPoint GetClientIPFromXFF(string xff)
         {
-            if (xff == string.Empty)
+            if (xff.Length == 0)
                 return null;
 
             string[] parts = xff.Split(new char[] { ',' });
@@ -3707,11 +3707,12 @@ namespace OpenSim.Framework
 
                 if (parts.Length >= 3)
                 {
-                    string[] name = parts[2].Split();
-                    if (name.Length == 2)
+                    string[] name = parts[2].Split(new char[] {' ' },StringSplitOptions.RemoveEmptyEntries);
+                    if(name.Length > 0)
                     {
                         firstname = name[0];
-                        lastname = name[1];
+                        if (name.Length > 1)
+                            lastname = name[1];
                     }
 
                     if (parts.Length >= 4)
@@ -3875,10 +3876,10 @@ namespace OpenSim.Framework
             {
                 string[] parts = firstName.Split(new char[] { '.' });
                 if (parts.Length == 2)
-                    return CalcUniversalIdentifier(id, agentsURI, parts[0] + " " + parts[1]);
+                    return CalcUniversalIdentifier(id, agentsURI, parts[0].Trim() + " " + parts[1].Trim());
             }
 
-            return CalcUniversalIdentifier(id, agentsURI, firstName + " " + lastName);
+            return CalcUniversalIdentifier(id, agentsURI, firstName.Trim() + " " + lastName.Trim());
         }
 
         private static string CalcUniversalIdentifier(UUID id, string agentsURI, string name)
@@ -3902,9 +3903,9 @@ namespace OpenSim.Framework
             }
             catch (UriFormatException)
             {
-                return firstName + " " + lastName;
+                return firstName.Trim() + " " + lastName.Trim();
             }
-            return firstName + "." + lastName + " " + "@" + uri.Authority;
+            return firstName.Trim() + "." + lastName.Trim() + " " + "@" + uri.Authority;
         }
         #endregion
 

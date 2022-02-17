@@ -2093,7 +2093,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 // Leading plus sign is allowed, but ignored
                 v = v.Replace("+", "");
 
-                if (v == String.Empty)
+                if (v.Length == 0)
                 {
                     value = 0;
                 }
@@ -2436,7 +2436,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 v = v.Trim();
 
-                if (v == String.Empty || v == null)
+                if (v.Length == 0 || v == null)
                     v = "0.0";
                 else
                     if (!v.Contains(".") && !v.ToLower().Contains("e"))

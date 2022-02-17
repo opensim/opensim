@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
                     string serviceDll = userConfig.GetString("LocalServiceModule",
                             String.Empty);
 
-                    if (serviceDll == String.Empty)
+                    if (serviceDll.Length == 0)
                     {
                         m_log.Error("[AUTH CONNECTOR]: No LocalServiceModule named in section AuthenticationService");
                         return;

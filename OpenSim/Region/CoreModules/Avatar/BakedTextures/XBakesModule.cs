@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                 return;
 
             m_URL = config.GetString("URL", String.Empty);
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return;
 
             m_enabled = true;
@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
         public WearableCacheItem[] Get(UUID id)
         {
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return null;
 
             using (RestClient rc = new RestClient(m_URL))
@@ -122,6 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
                     {
                         using(XmlTextReader sr = new XmlTextReader(s))
                         {
+                            sr.DtdProcessing = DtdProcessing.Ignore;
                             sr.ReadStartElement("BakedAppearance");
                             while (sr.LocalName == "BakedTexture")
                             {
@@ -187,7 +188,7 @@ namespace OpenSim.Region.CoreModules.Avatar.BakedTextures
 
         public void Store(UUID agentId, WearableCacheItem[] data)
         {
-            if (m_URL == String.Empty)
+            if (m_URL.Length == 0)
                 return;
 
             int numberWears = 0;

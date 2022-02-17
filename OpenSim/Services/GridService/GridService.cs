@@ -240,7 +240,7 @@ namespace OpenSim.Services.GridService
         {
             IConfig gridConfig = m_config.Configs["GridService"];
 
-            if (regionInfos.RegionID == UUID.Zero)
+            if (regionInfos.RegionID.IsZero())
                 return "Invalid RegionID - cannot be zero UUID";
 
             if (regionInfos.RegionLocY <= Constants.MaximumRegionSize)
@@ -284,7 +284,7 @@ namespace OpenSim.Services.GridService
                 if ((rflags & OpenSim.Framework.RegionFlags.Reservation) != 0)
                 {
                     // Regions reserved for the null key cannot be taken.
-                    if ((string)region.Data["PrincipalID"] == UUID.Zero.ToString())
+                    if ((string)region.Data["PrincipalID"] == UUID.ZeroString)
                         return "Region location is reserved";
 
                     // Treat it as an auth request
@@ -355,31 +355,26 @@ namespace OpenSim.Services.GridService
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
 
+            int regionFlags = 0;
             if (region != null)
             {
-                int oldFlags = Convert.ToInt32(region.Data["flags"]);
-
-                oldFlags &= ~(int)OpenSim.Framework.RegionFlags.Reservation;
-
-                rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
+                regionFlags = Convert.ToInt32(region.Data["flags"]);
+                regionFlags &= ~(int)OpenSim.Framework.RegionFlags.Reservation;
             }
-            else
+
+            if ((gridConfig != null) && !string.IsNullOrEmpty(rdata.RegionName))
             {
-                rdata.Data["flags"] = "0";
-                if ((gridConfig != null) && rdata.RegionName != string.Empty)
-                {
-                    int newFlags = 0;
-                    string regionName = rdata.RegionName.Trim().Replace(' ', '_');
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("DefaultRegionFlags", String.Empty));
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + regionName, String.Empty));
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
-                    rdata.Data["flags"] = newFlags.ToString();
-                }
+                string regionName = rdata.RegionName.Trim().Replace(' ', '_');
+                regionFlags = ParseFlags(regionFlags, gridConfig.GetString("DefaultRegionFlags", string.Empty));
+                string byregionname = gridConfig.GetString("Region_" + regionName, string.Empty);
+                if(!string.IsNullOrEmpty(byregionname))
+                    regionFlags = ParseFlags(regionFlags, byregionname);
+                else
+                    regionFlags = ParseFlags(regionFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), string.Empty));
             }
 
-            int flags = Convert.ToInt32(rdata.Data["flags"]);
-            flags |= (int)OpenSim.Framework.RegionFlags.RegionOnline;
-            rdata.Data["flags"] = flags.ToString();
+            regionFlags |= (int)OpenSim.Framework.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = regionFlags.ToString();
 
             try
             {
@@ -395,9 +390,9 @@ namespace OpenSim.Services.GridService
                 ("[GRID SERVICE]: Region {0} ({1}, {2}x{3}) registered at {4},{5} with flags {6}",
                 regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionSizeX, regionInfos.RegionSizeY,
                 regionInfos.RegionCoordX, regionInfos.RegionCoordY,
-                (OpenSim.Framework.RegionFlags)flags);
+                (OpenSim.Framework.RegionFlags)regionFlags);
 
-            return String.Empty;
+            return string.Empty;
         }
 
         // String describing name and region location of passed region
@@ -790,20 +785,51 @@ namespace OpenSim.Services.GridService
             List<GridRegion> ret = new List<GridRegion>();
 
             List<RegionData> regions = m_Database.GetFallbackRegions(scopeID);
-
-            if(regions.Count > 1)
+            if (regions.Count > 0)
             {
-                RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
-                regions.Sort(distanceComparer);
-            }
+                if (regions.Count > 1)
+                {
+                    regions.Sort(new RegionDataDistanceCompare(x, y));
+                }
 
-            foreach (RegionData r in regions)
-            {
-                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
-                    ret.Add(RegionData2RegionInfo(r));
+                foreach (RegionData r in regions)
+                {
+                    int rflags = Convert.ToInt32(r.Data["flags"]);
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+                        continue;
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.RegionOnline) != 0)
+                        ret.Add(RegionData2RegionInfo(r));
+                }
             }
 
             m_log.DebugFormat("[GRID SERVICE]: Fallback returned {0} regions", ret.Count);
+            return ret;
+        }
+
+        public List<GridRegion> GetOnlineRegions(UUID scopeID, int x, int y, int maxCount)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetOnlineRegions(scopeID);
+            if (regions.Count > 0)
+            {
+                if (regions.Count > 1)
+                {
+                    regions.Sort(new RegionDataDistanceCompare(x, y));
+                }
+
+                foreach (RegionData r in regions)
+                {
+                    int rflags = Convert.ToInt32(r.Data["flags"]);
+                    if ((rflags & (int)OpenSim.Framework.RegionFlags.Hyperlink) != 0)
+                        continue;
+                    ret.Add(RegionData2RegionInfo(r));
+                    if(ret.Count >= maxCount)
+                        break;
+                }
+            }
+
+            m_log.DebugFormat("[GRID SERVICE]: online returned {0} regions", ret.Count);
             return ret;
         }
 

@@ -223,7 +223,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (land != null)
                         m_currentParcelHide = !land.LandData.SeeAVs;
 
-                    if (m_previusParcelUUID != UUID.Zero || checksame)
+                    if (!m_previusParcelUUID.IsZero() || checksame)
                         ParcelCrossCheck(m_currentParcelUUID, m_previusParcelUUID, m_currentParcelHide, m_previusParcelHide, oldhide,checksame);
                 }
              }
@@ -1245,7 +1245,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // if ParentUUID is NOT UUID.Zero, we are looking to
                     // be sat on an object that isn't there yet. Should
                     // be treated as if sat.
-                    if(ParentID == 0 && !SitGround && ParentUUID == UUID.Zero) // skip it if sitting
+                    if(ParentID == 0 && !SitGround && ParentUUID.IsZero()) // skip it if sitting
                         Animator.UpdateMovementAnimations();
                 }
                 else
@@ -1367,7 +1367,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //                "[SCENE]: Upgrading child to root agent for {0} in {1}",
                 //                Name, m_scene.RegionInfo.RegionName);
 
-                if (ParentUUID != UUID.Zero)
+                if (!ParentUUID.IsZero())
                 {
                     m_log.DebugFormat("[SCENE PRESENCE]: Sitting avatar back on prim {0}", ParentUUID);
                     SceneObjectPart part = m_scene.GetSceneObjectPart(ParentUUID);
@@ -3425,7 +3425,7 @@ namespace OpenSim.Region.Framework.Scenes
             //look for prims with explicit sit targets that are available
             foreach (SceneObjectPart part in partArray)
             {
-                if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero && part.SitActiveRange >= 0)
+                if (part.IsSitTargetSet && part.SitTargetAvatar.IsZero() && part.SitActiveRange >= 0)
                 {
                     //switch the target to this prim
                     return part;
@@ -3460,7 +3460,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (PhysicsActor != null)
                 m_sitAvatarHeight = PhysicsActor.Size.Z * 0.5f;
 
-            if (part.IsSitTargetSet && part.SitTargetAvatar == UUID.Zero)
+            if (part.IsSitTargetSet && part.SitTargetAvatar.IsZero())
             {
                 offset = part.SitTargetPosition;
                 sitOrientation = part.SitTargetOrientation;
@@ -3498,7 +3498,7 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
 
-                if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                if (cameraAtOffset.IsZero() && cameraEyeOffset.IsZero())
                 {
                     cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
@@ -3645,7 +3645,7 @@ namespace OpenSim.Region.Framework.Scenes
                 offset = offset * part.RotationOffset;
                 offset += part.OffsetPosition;
 
-                if (cameraAtOffset == Vector3.Zero && cameraEyeOffset == Vector3.Zero)
+                if (cameraAtOffset.IsZero() && cameraEyeOffset.IsZero())
                 {
                     cameraAtOffset = part.ParentGroup.RootPart.GetCameraAtOffset();
                     cameraEyeOffset = part.ParentGroup.RootPart.GetCameraEyeOffset();
@@ -3994,7 +3994,7 @@ namespace OpenSim.Region.Framework.Scenes
                         !vel.ApproxEquals(m_lastVelocity) ||
                         !m_bodyRot.ApproxEquals(m_lastRotation) ||
 
-                        (vel ==  Vector3.Zero && m_lastVelocity != Vector3.Zero) ||
+                        (vel.IsZero() && !m_lastVelocity.IsZero()) ||
 
                         Math.Abs(dpos.X) > POSITION_LARGETOLERANCE ||
                         Math.Abs(dpos.Y) > POSITION_LARGETOLERANCE ||
@@ -4638,7 +4638,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         AgentPosition agentpos = new AgentPosition()
                         {
-                            AgentID = new UUID(UUID.Guid),
+                            AgentID = UUID,
                             SessionID = ControllingClient.SessionId,
                             Size = Appearance.AvatarSize,
                             Center = CameraPosition,
@@ -4683,7 +4683,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Also don't do this while sat, sitting avatars cross with the
             // object they sit on. ParentUUID denoted a pending sit, don't
             // interfere with it.
-            if (ParentID != 0 || PhysicsActor == null || ParentUUID != UUID.Zero)
+            if (ParentID != 0 || PhysicsActor == null || !ParentUUID.IsZero())
                 return;
 
             Vector3 pos2 = AbsolutePosition;
@@ -4701,7 +4701,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.PositionIsInCurrentRegion(pos2))
                 return;
 
-            if (!CrossToNewRegion() && m_requestedSitTargetUUID == UUID.Zero)
+            if (!CrossToNewRegion() && m_requestedSitTargetUUID.IsZero())
             {
                 // we don't have entity transfer module
                 Vector3 pos = AbsolutePosition;
@@ -4726,7 +4726,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CrossToNewRegionFail()
         {
-            if (m_requestedSitTargetUUID == UUID.Zero)
+            if (m_requestedSitTargetUUID.IsZero())
             {
                 bool isFlying = Flying;
                 RemoveFromPhysicalScene();
@@ -5981,16 +5981,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleForceReleaseControls(IClientAPI remoteClient, UUID agentID)
         {
-            foreach (ScriptControllers c in scriptedcontrols.Values)
-            {
-                SceneObjectGroup sog = m_scene.GetSceneObjectGroup(c.objectID);
-                if(sog != null && !sog.IsDeleted && sog.RootPart.PhysActor != null)
-                    sog.RootPart.PhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
-            }
-
-            IgnoredControls = ScriptControlled.CONTROL_ZERO;
             lock (scriptedcontrols)
             {
+                foreach (ScriptControllers c in scriptedcontrols.Values)
+                {
+                    SceneObjectGroup sog = m_scene.GetSceneObjectGroup(c.objectID);
+                    if(sog != null && !sog.IsDeleted && sog.RootPart.PhysActor != null)
+                        sog.RootPart.PhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+                }
+
+                IgnoredControls = ScriptControlled.CONTROL_ZERO;
                 scriptedcontrols.Clear();
             }
             ControllingClient.SendTakeControls(int.MaxValue, false, false);
@@ -6214,7 +6214,7 @@ namespace OpenSim.Region.Framework.Scenes
             // first check telehub
 
             UUID TelehubObjectID = m_scene.RegionInfo.RegionSettings.TelehubObject;
-            if ( TelehubObjectID != UUID.Zero)
+            if ( !TelehubObjectID.IsZero())
             {
                 SceneObjectGroup telehubSOG =  m_scene.GetSceneObjectGroup(TelehubObjectID);
                 if(telehubSOG != null)
@@ -6271,7 +6271,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             Vector3 landLocation = land.LandData.UserLocation;
-            if(landLocation == Vector3.Zero)
+            if(landLocation.IsZero())
                 return true;
 
             if (currDistanceSQ < Vector3.DistanceSquared(landLocation, pos))
@@ -6428,7 +6428,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
 
             SceneObjectGroup telehub = null;
-            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
+            if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero() && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
             {
                 if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
@@ -6453,7 +6453,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Don't restrict gods, estate managers, or land owners to
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero &&
+                        !land.LandData.UserLocation.IsZero() &&
                         !IsViewerUIGod &&
                         ((land.LandData.OwnerID != m_uuid &&
                           !m_scene.Permissions.IsGod(m_uuid) &&
@@ -6485,7 +6485,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
             {
                 SceneObjectGroup telehub = null;
-                if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
+                if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero() && (telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject)) != null)
                 {
                     if(CheckAndAdjustTelehub(telehub, ref pos, ref positionChanged))
                         return true;
@@ -6510,12 +6510,12 @@ namespace OpenSim.Region.Framework.Scenes
                         || (m_teleportFlags & adicionalLandPointFlags) != 0)
                 {
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
-                        land.LandData.UserLocation != Vector3.Zero )
+                        !land.LandData.UserLocation.IsZero() )
                         // &&
                         // land.LandData.OwnerID != m_uuid )
                     {
                         pos = land.LandData.UserLocation;
-                        if(land.LandData.UserLookAt != Vector3.Zero)
+                        if(!land.LandData.UserLookAt.IsZero())
                             lookat = land.LandData.UserLookAt;
                         positionChanged = true;
                     }
@@ -6559,7 +6559,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
-            else if (detobj.velVector != Vector3.Zero)
+            else if (!detobj.velVector.IsZero())
                 detobj.colliderType |= 0x2; //active
             return detobj;
         }
@@ -6894,7 +6894,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // now on a private parcel
                     allpresences = m_scene.GetScenePresences();
 
-                    if (previusParcelHide && previusParcelID != UUID.Zero)
+                    if (previusParcelHide && !previusParcelID.IsZero())
                     {
                         foreach (ScenePresence p in allpresences)
                         {
@@ -6943,7 +6943,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     // now on public parcel
-                    if (previusParcelHide && previusParcelID != UUID.Zero)
+                    if (previusParcelHide && !previusParcelID.IsZero())
                     {
                         // was on private area
                         allpresences = m_scene.GetScenePresences();

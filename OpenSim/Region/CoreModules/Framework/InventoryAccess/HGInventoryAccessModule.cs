@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (type == AssetType.Link)
                 return;
 
-            if (IsForeignUser(avatarID, out string userAssetServer) && userAssetServer != string.Empty && m_OutboundPermission)
+            if (IsForeignUser(avatarID, out string userAssetServer) && userAssetServer.Length > 0 && (m_OutboundPermission || (type == AssetType.Landmark)))
             {
                 m_assMapper.Post(assetID, avatarID, userAssetServer);
             }
@@ -319,7 +319,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
             InventoryItemBase item = m_Scene.InventoryService.GetItem(remoteClient.AgentId, itemID);
-            if (item == null || item.AssetID == UUID.Zero)
+            if (item == null || item.AssetID.IsZero())
                 return null;
 
             string userAssetServer;
@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         private bool IsLocalInventoryAssetsUser(UUID uuid, out string assetsURL)
         {
             assetsURL = UserManagementModule.GetUserServerURL(uuid, "AssetServerURI");
-            if (assetsURL == string.Empty)
+            if (assetsURL.Length == 0)
             {
                 AgentCircuitData agent = m_Scene.AuthenticateHandler.GetAgentCircuitData(uuid);
                 if (agent != null)

@@ -47,7 +47,7 @@ namespace OpenSim.Groups
             string connString = String.Empty;
             string realm = "os_groups";
             string usersRealm = "GridUser";
-            string configName = (cName == string.Empty) ? "Groups" : cName;
+            string configName = (cName.Length == 0) ? "Groups" : cName;
 
             //
             // Try reading the [DatabaseService] section, if it exists
@@ -55,9 +55,9 @@ namespace OpenSim.Groups
             IConfig dbConfig = config.Configs["DatabaseService"];
             if (dbConfig != null)
             {
-                if (dllName == String.Empty)
+                if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
+                if (connString.Length == 0)
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 

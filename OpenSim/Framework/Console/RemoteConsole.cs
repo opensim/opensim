@@ -402,7 +402,7 @@ namespace OpenSim.Framework.Console
             reply["content_type"] = "text/plain";
 
             // Check user name and password
-            if (m_UserName == String.Empty)
+            if (m_UserName.Length == 0)
                 return reply;
 
             if (post["USER"] == null || post["PASS"] == null)

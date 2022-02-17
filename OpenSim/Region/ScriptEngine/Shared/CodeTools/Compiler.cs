@@ -298,7 +298,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
 //            m_log.DebugFormat("[Compiler]: Compiling assembly {0} for asset {1} in {2}", assembly, asset, m_scriptEngine.World.Name);
 
-            if (source == String.Empty)
+            if (source.Length == 0)
                 throw new Exception("Cannot find script assembly and no script text present");
 
             enumCompileType language = DefaultCompileLanguage;

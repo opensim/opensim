@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
                     string serviceDll = inventoryConfig.GetString("LocalServiceModule", String.Empty);
 
-                    if (serviceDll == String.Empty)
+                    if (serviceDll.Length == 0)
                     {
                         m_log.Error("[LOCAL INVENTORY SERVICES CONNECTOR]: No LocalServiceModule named in section InventoryService");
                         return;
@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 // Protect ourselves against the caller subsequently modifying the items list
                 List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
 
-                WorkManager.RunInThread(delegate
+                WorkManager.RunInThreadPool(delegate
                 {
                     foreach (InventoryItemBase item in items)
                         if (!string.IsNullOrEmpty(item.CreatorData))

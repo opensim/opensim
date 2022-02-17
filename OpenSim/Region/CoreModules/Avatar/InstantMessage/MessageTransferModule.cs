@@ -140,41 +140,39 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
         {
             UUID toAgentID = new UUID(im.toAgentID);
-
-            if (toAgentID == UUID.Zero)
+            if (toAgentID.IsZero())
                 return;
 
-            IClientAPI client = null;
-
-            // Try root avatar only first
+            ScenePresence achildsp = null;
+            // Try root avatar first
             foreach (Scene scene in m_Scenes)
             {
+                //m_log.DebugFormat(
+                //    "[HG INSTANT MESSAGE]: Looking for root agent {0} in {1}",
+                //     toAgentID.ToString(), scene.RegionInfo.RegionName);
                 ScenePresence sp = scene.GetScenePresence(toAgentID);
-                if (sp != null && !sp.IsDeleted && sp.ControllingClient.IsActive)
+                if (sp != null && !sp.IsDeleted)
                 {
-                    // actualy don't send via child agents
-                    // ims can be complex things, and not sure viewers will not mess up
-                    if(sp.IsChildAgent)
-                        continue;
-
-                    client = sp.ControllingClient;
-                    if(!sp.IsChildAgent)
-                        break;
+                    if (sp.IsChildAgent)
+                        achildsp = sp;
+                    else
+                    {
+                        // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", sp.Name, toAgentID);
+                        sp.ControllingClient.SendInstantMessage(im);
+                        result(true);
+                        return;
+                    }
                 }
             }
-
-            if(client != null)
+            if (achildsp != null)
             {
-                // Local message
-//                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", sp.Name, toAgentID);
-
-                client.SendInstantMessage(im);
-
-                    // Message sent
+                // m_log.DebugFormat("[HG INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", sp.Name, toAgentID);
+                achildsp.ControllingClient.SendInstantMessage(im);
                 result(true);
                 return;
             }
-//            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
+
+            //m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
 
             SendGridInstantMessageViaXMLRPC(im, result);
         }
@@ -508,7 +506,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 {
                     foreach (PresenceInfo p in presences)
                     {
-                        if (p.RegionID != UUID.Zero)
+                        if (!p.RegionID.IsZero())
                         {
                             upd = p;
                             break;
@@ -621,7 +619,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} the host didn't respond " + e.ToString(), reginfo.ServerURI.ToString());
+                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} : {1}",  reginfo.ServerURI.ToString(), e.Message);
             }
 
             return false;

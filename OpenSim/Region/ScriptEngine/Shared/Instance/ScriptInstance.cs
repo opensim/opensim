@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool StatePersistedHere { get { return m_AttachedAvatar == UUID.Zero; } }
+        public bool StatePersistedHere { get { return m_AttachedAvatar.IsZero(); } }
 
         /// <summary>
         /// The current work item if an event for this script is running or waiting to run,

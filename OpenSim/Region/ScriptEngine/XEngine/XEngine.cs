@@ -536,7 +536,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         continue;
                     }
 
-                    if (itemId != UUID.Zero)
+                    if (!itemId.IsZero())
                     {
                         IScriptInstance instance = GetInstance(itemId);
                         if (instance == null)
@@ -2228,7 +2228,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
 //            m_log.DebugFormat("[XEngine]: Writing state for script item with ID {0}", itemID);
 
-            if (xml == String.Empty)
+            if (xml.Length == 0)
                 return false;
 
             XmlDocument doc = new XmlDocument();

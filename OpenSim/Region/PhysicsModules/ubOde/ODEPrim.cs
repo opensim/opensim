@@ -3660,7 +3660,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             (m_PIDTarget.Z - lpos.Z)
                             );
 
-                    if (_target_velocity.ApproxEquals(Vector3.Zero, 0.02f))
+                    if (_target_velocity.ApproxZero(0.02f))
                     {
                         SafeNativeMethods.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
                         SafeNativeMethods.BodySetLinearVel(Body, 0, 0, 0);

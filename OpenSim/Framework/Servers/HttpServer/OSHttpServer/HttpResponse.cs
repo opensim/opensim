@@ -192,9 +192,23 @@ namespace OSHttpServer
         }
 
         /// <summary>
+        /// Set response as a http redirect
+        /// </summary>
+        /// <param name="url">redirection target url</param>
+        /// <param name="redirStatusCode">the response Status, must be Found, Redirect, Moved,MovedPermanently,RedirectKeepVerb, RedirectMethod, TemporaryRedirect. Defaults to Redirect</param>
+        public void Redirect(string url, HttpStatusCode redirStatusCode = HttpStatusCode.Redirect)
+        {
+            if (HeadersSent)
+                throw new InvalidOperationException("Headers have already been sent.");
+
+            m_headers["Location"] = url;
+            Status = redirStatusCode;
+        }
+
+        /// <summary>
         /// Add another header to the document.
         /// </summary>
-        /// <param name="name">Name of the header, case sensitive, use lower cases.</param>
+        /// <param name="name">Name of the header, case sensitive.</param>
         /// <param name="value">Header values can span over multiple lines as long as each line starts with a white space. New line chars should be \r\n</param>
         /// <exception cref="InvalidOperationException">If headers already been sent.</exception>
         /// <exception cref="ArgumentException">If value conditions have not been met.</exception>

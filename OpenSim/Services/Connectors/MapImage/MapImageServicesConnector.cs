@@ -78,7 +78,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = config.GetString("MapImageServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[MAP IMAGE CONNECTOR]: No Server URI named in section MapImageService");
                 throw new Exception("MapImage connector init error");

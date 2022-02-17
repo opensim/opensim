@@ -70,6 +70,8 @@ namespace OpenSim.Region.OptionalModules.Materials
         private Queue<UUID> delayedDelete = new Queue<UUID>();
         private bool m_storeBusy;
 
+        private static byte[] GetPutEmptyResponseBytes = osUTF8.GetASCIIBytes("<llsd><map><key>Zipped</key><binary>eNqLZgCCWAAChQC5</binary></map></llsd>");
+
         public void Initialise(IConfigSource source)
         {
             m_enabled = true; // default is enabled
@@ -319,8 +321,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                 if(fmat == null ||
                                         ( fmat.DiffuseAlphaMode == 1
-                                        && fmat.NormalMapID == UUID.Zero
-                                        && fmat.SpecularMapID == UUID.Zero))
+                                        && fmat.NormalMapID.IsZero()
+                                        && fmat.SpecularMapID.IsZero()))
                                     continue;
 
                                 fmat.ID = id; 
@@ -383,7 +385,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         private bool GetStoredMaterialInFace(SceneObjectPart part, Primitive.TextureEntryFace face)
         {
             UUID id = face.MaterialID;
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return false;
 
             OSDMap mat;
@@ -419,8 +421,8 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 if(fmat == null ||
                         (fmat.DiffuseAlphaMode == 1
-                        && fmat.NormalMapID == UUID.Zero
-                        && fmat.SpecularMapID == UUID.Zero))
+                        && fmat.NormalMapID.IsZero()
+                        && fmat.SpecularMapID.IsZero()))
                 {
                         face.MaterialID = UUID.Zero;
                         return true;
@@ -463,7 +465,7 @@ namespace OpenSim.Region.OptionalModules.Materials
        private void RemoveMaterialInFace(Primitive.TextureEntryFace face)
         {
             UUID id = face.MaterialID;
-            if (id == UUID.Zero)
+            if (id.IsZero())
                 return;
 
             lock (materialslock)
@@ -569,27 +571,22 @@ namespace OpenSim.Region.OptionalModules.Materials
                 return;
             }
 
-            OSDMap materialsFromViewer = null;
-            OSDArray respArr = new OSDArray();
-
             OSD tmpOSD;
-            HashSet<SceneObjectPart> parts = new HashSet<SceneObjectPart>();
             if (req.TryGetValue("Zipped", out tmpOSD))
             {
-                OSD osd = null;
-
-                byte[] inBytes = tmpOSD.AsBinary();
-
                 try
                 {
-                    osd = ZDecompressBytesToOsd(inBytes);
+                    byte[] inBytes = tmpOSD.AsBinary();
+                    OSD osd = ZDecompressBytesToOsd(inBytes);
 
                     if (osd != null && osd is OSDMap)
                     {
-                        materialsFromViewer = osd as OSDMap;
+                        OSDMap materialsFromViewer = osd as OSDMap;
 
                         if (materialsFromViewer.TryGetValue("FullMaterialsPerFace", out tmpOSD) && (tmpOSD is OSDArray))
                         {
+                            Dictionary<uint, SceneObjectPart> parts = new Dictionary<uint, SceneObjectPart>();
+                            HashSet<uint> errorReported = new HashSet<uint>();
                             OSDArray matsArr = tmpOSD as OSDArray;
                             try
                             {
@@ -615,7 +612,11 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                                     if (!m_scene.Permissions.CanEditObject(sop.UUID, agentID))
                                     {
-                                        m_log.WarnFormat("User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                        if(!errorReported.Contains(primLocalID))
+                                        {
+                                            m_log.WarnFormat("[Materials]: User {0} can't edit object {1} {2}", agentID, sop.Name, sop.UUID);
+                                            errorReported.Add(primLocalID);
+                                        }
                                         continue;
                                     }
 
@@ -662,9 +663,8 @@ namespace OpenSim.Region.OptionalModules.Materials
                                     {
                                         newFaceMat = new FaceMaterial(mat);
                                         if(newFaceMat.DiffuseAlphaMode == 1 
-                                                && newFaceMat.NormalMapID == UUID.Zero 
-                                                && newFaceMat.SpecularMapID == UUID.Zero
-                                                )
+                                                && newFaceMat.NormalMapID.IsZero()
+                                                && newFaceMat.SpecularMapID.IsZero())
                                             id = UUID.Zero;
                                         else
                                         {
@@ -686,12 +686,12 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         sop.Shape.TextureEntry = te.GetBytes(9);
                                     }
 
-                                    if(oldid != UUID.Zero)
+                                    if(!oldid.IsZero())
                                         RemoveMaterial(oldid);
 
                                     lock(materialslock)
                                     {
-                                        if(id != UUID.Zero)
+                                        if(!id.IsZero())
                                         {
                                             if (m_Materials.ContainsKey(id))
                                                 m_MaterialsRefCount[id]++;
@@ -704,11 +704,11 @@ namespace OpenSim.Region.OptionalModules.Materials
                                         }
                                     }
 
-                                    if(!parts.Contains(sop))
-                                        parts.Add(sop);
+                                    if(!parts.ContainsKey(primLocalID))
+                                        parts[primLocalID] = sop;
                                 }
 
-                                foreach(SceneObjectPart sop in parts)
+                                foreach(SceneObjectPart sop in parts.Values)
                                 {
                                     if (sop.ParentGroup != null && !sop.ParentGroup.IsDeleted)
                                     {
@@ -735,14 +735,13 @@ namespace OpenSim.Region.OptionalModules.Materials
                 }
             }
 
-            OSDMap resp = new OSDMap();
-            resp["Zipped"] = ZCompressOSD(respArr, false);
-            response.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            //OSDMap resp = new OSDMap();
+            //OSDArray respArr = new OSDArray();
+            //resp["Zipped"] = ZCompressOSD(respArr, false);
+            //string tmp = OSDParser.SerializeLLSDXmlString(resp);
+            //response.RawBuffer = OSDParser.SerializeLLSDXmlToBytes(resp);
 
-            //m_log.Debug("[Materials]: cap request: " + request);
-            //m_log.Debug("[Materials]: cap request (zipped portion): " + ZippedOsdBytesToString(req["Zipped"].AsBinary()));
-            //m_log.Debug("[Materials]: cap response: " + response);
-
+            response.RawBuffer = GetPutEmptyResponseBytes;
         }
 
         private AssetBase MakeAsset(FaceMaterial fm, bool local)
@@ -759,9 +758,9 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public void RenderMaterialsGetCap(IOSHttpRequest request, IOSHttpResponse response)
         {
-            OSDMap resp = new OSDMap();
-            OSDArray allOsd = new OSDArray();
-/*
+            //OSDMap resp = new OSDMap();
+            //OSDArray allOsd = new OSDArray();
+            /*
             // this violates all idea of caching and geting things only if needed, so disabled
 
             int matsCount = 0;
@@ -776,12 +775,14 @@ namespace OpenSim.Region.OptionalModules.Materials
                     matsCount++;
                 }
             }
-*/
-            resp["Zipped"] = ZCompressOSD(allOsd, false);
-
-            response.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(resp));
+            */
+            //resp["Zipped"] = ZCompressOSD(allOsd, false);
+            //string tmp = OSDParser.SerializeLLSDXmlString(resp);
+            //response.RawBuffer = Encoding.UTF8.GetBytes(tmp);
+            response.RawBuffer = GetPutEmptyResponseBytes;
         }
 
+        
         private static string ZippedOsdBytesToString(byte[] bytes)
         {
             try
@@ -851,7 +852,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public UUID AddNewMaterial(FaceMaterial fm)
         {
-            if(fm.DiffuseAlphaMode == 1 && fm.NormalMapID == UUID.Zero && fm.SpecularMapID == UUID.Zero)
+            if(fm.DiffuseAlphaMode == 1 && fm.NormalMapID.IsZero() && fm.SpecularMapID.IsZero())
             {
                 fm.ID = UUID.Zero;
                 return UUID.Zero;
@@ -875,7 +876,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
         public void RemoveMaterial(UUID id)
         {
-            if(id == UUID.Zero)
+            if(id.IsZero())
                 return;
 
             lock(materialslock)

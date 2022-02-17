@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
             string serviceDll = config.GetString("LocalServiceModule", String.Empty);
 
-            if (serviceDll == String.Empty)
+            if (serviceDll.Length == 0)
             {
                 m_log.Error("[LOCAL USERPROFILES SERVICE CONNECTOR]: No LocalServiceModule named in section UserProfilesService");
                 return;

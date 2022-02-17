@@ -158,10 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // assume SitTargetOrientation is normalized (as needed elsewhere)
-                if( SitTargetPosition != Vector3.Zero ||
-                    SitTargetOrientation.X != 0f ||
-                    SitTargetOrientation.Y != 0f ||
-                    SitTargetOrientation.Z != 0f)
+                if( !SitTargetPosition.IsZero() || !SitTargetOrientation.IsIdentityOrZero())
                     return true;
                 return false;
             }
@@ -534,7 +531,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 CreatorData = string.Empty;
-                if ((value == null) || (value != null && value == string.Empty))
+                if (string.IsNullOrEmpty(value))
                     return;
 
                 // value is uuid  or uuid;homeuri;firstname lastname
@@ -1511,7 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (value == invalidCollisionSoundUUID)
                     m_collisionSoundType = -1;
-                else if (value == UUID.Zero)
+                else if (value.IsZero())
                     m_collisionSoundType = 0;
                 else
                     m_collisionSoundType = 1;
@@ -2779,7 +2776,7 @@ namespace OpenSim.Region.Framework.Scenes
             };
             if(av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
-            else if(detobj.velVector != Vector3.Zero)
+            else if(!detobj.velVector.IsZero())
                 detobj.colliderType |= 0x2; //active
             return detobj;
         }
@@ -3032,7 +3029,7 @@ namespace OpenSim.Region.Framework.Scenes
         // The Collision sounds code calls this
         public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
         {
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
@@ -5626,7 +5623,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                if (IsSitTargetSet && SitTargetAvatar.IsZero())
                     SitTargetAvatar = sp.UUID;
 
                 if (m_sittingAvatars == null)
@@ -5762,7 +5759,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool AddAnimation(UUID animId, string animName)
         {
-            if (animId == UUID.Zero || string.IsNullOrEmpty(animName) ||
+            if (animId.IsZero() || string.IsNullOrEmpty(animName) ||
                     ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
@@ -5785,7 +5782,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool RemoveAnimation(UUID animId)
         {
-            if (animId == UUID.Zero || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+            if (animId.IsZero() || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
             lock (animsLock)
@@ -5944,7 +5941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 while(--count >= 0)
                 {
                     UUID id = new UUID(data, pos);
-                    if(id == UUID.Zero)
+                    if(id.IsZero())
                         break;
                     pos += 16;
                     int strlen = data[pos++];

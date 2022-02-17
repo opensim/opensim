@@ -228,7 +228,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Group = part.GroupID;
             Name = part.Name;
             Owner = part.OwnerID;
-            if (part.Velocity == Vector3.Zero)
+            if (part.Velocity.IsZero())
                 Type = PASSIVE;
             else
                 Type = ACTIVE;
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
         public void Populate(Scene scene, DetectedObject obj)
         {
-            if(obj.keyUUID == UUID.Zero) // land
+            if(obj.keyUUID.IsZero()) // land
             {
                 Position = new LSL_Types.Vector3(obj.posVector);
                 Rotation.s = 1.0;
@@ -289,7 +289,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             Rotation = new LSL_Types.Quaternion(obj.rotQuat);
             Velocity = new LSL_Types.Vector3(obj.velVector);
             LinkNum = obj.linkNumber;
-            if(obj.velVector == Vector3.Zero)
+            if(obj.velVector.IsZero())
                 Type = 4;
             else
                 Type = 2;

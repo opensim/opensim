@@ -54,18 +54,16 @@ namespace OpenSim.Server.Handlers.Asset
             if (serverConfig == null)
                 throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
 
-            string assetService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string assetService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
-            if (assetService == String.Empty)
+            if (string.IsNullOrEmpty(assetService))
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config, m_ConfigName };
-            m_AssetService =
-                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
+            object[] args = new object[] { config, m_ConfigName };
+            m_AssetService = ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
             if (m_AssetService == null)
-                throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
+                throw new Exception(string.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
 
             bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
             bool allowDeleteAllTypes = serverConfig.GetBoolean("AllowRemoteDeleteAllTypes", false);

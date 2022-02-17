@@ -478,7 +478,7 @@ namespace OpenSim.Region.UserStatistics
 
             lock (m_sessions)
             {
-                if (agentID != UUID.Zero)
+                if (!agentID.IsZero())
                 {
                     if (!m_sessions.ContainsKey(agentID))
                     {
@@ -500,7 +500,7 @@ namespace OpenSim.Region.UserStatistics
                     {
                         UUID sessionID = mmap["session_id"].AsUUID();
 
-                        if (sessionID == UUID.Zero)
+                        if (sessionID.IsZero())
                             return new UserSession();
 
 
@@ -518,7 +518,7 @@ namespace OpenSim.Region.UserStatistics
                         }
 
                         // can't find a session
-                        if (agentID == UUID.Zero)
+                        if (agentID.IsZero())
                         {
                             return new UserSession();
                         }
@@ -623,7 +623,7 @@ namespace OpenSim.Region.UserStatistics
 //            m_log.DebugFormat(
 //                "[WEB STATS MODULE]: Updating user stats for {0} {1}, session {2}", uid.name_f, uid.name_l, uid.session_id);
 
-            if (uid.session_id == UUID.Zero)
+            if (uid.session_id.IsZero())
                 return;
 
             lock (db)

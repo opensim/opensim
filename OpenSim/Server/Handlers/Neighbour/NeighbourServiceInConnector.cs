@@ -60,7 +60,7 @@ namespace OpenSim.Server.Handlers.Neighbour
             //if (authentication)
             //    m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();
 
-            server.AddSimpleStreamHandler(new NeighbourSimpleHandler(m_NeighbourService, m_AuthenticationService));
+            server.AddSimpleStreamHandler(new NeighbourSimpleHandler(m_NeighbourService, m_AuthenticationService), true);
         }
     }
 }

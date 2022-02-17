@@ -257,7 +257,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[GRID USER CONNECTOR]: GetGridUserInfo received null or empty reply");
                     return null;

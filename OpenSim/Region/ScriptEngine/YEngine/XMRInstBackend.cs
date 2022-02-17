@@ -194,7 +194,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 public string xmrSetParcelMusicURLGroup (string newurl)
                 {
                     string groupname = m_ScriptEngine.Config.GetString ("SetParcelMusicURLGroup", "");
-                    if (groupname == "") throw new ApplicationException ("no SetParcelMusicURLGroup config param set");
+                    if (groupname.Length == 0) throw new ApplicationException ("no SetParcelMusicURLGroup config param set");
 
                     IGroupsModule igm = World.RequestModuleInterface<IGroupsModule> ();
                     if (igm == null) throw new ApplicationException ("no GroupsModule loaded");

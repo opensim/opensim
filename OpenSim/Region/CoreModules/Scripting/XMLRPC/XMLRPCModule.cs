@@ -231,9 +231,9 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 }
             }
 
-            if (newChannel == UUID.Zero)
+            if (newChannel.IsZero())
             {
-                newChannel = (channelID == UUID.Zero) ? UUID.Random() : channelID;
+                newChannel = (channelID.IsZero()) ? UUID.Random() : channelID;
                 RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, newChannel);
                 lock (XMLRPCListLock)
                 {
@@ -283,10 +283,10 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
 
             RPCRequestInfo rpcInfo = null;
 
-            if (message_key == UUID.Zero)
+            if (message_key.IsZero())
             {
                 foreach (RPCRequestInfo oneRpcInfo in m_rpcPendingResponses.Values)
-                    if (oneRpcInfo.GetChannelKey() == channel_key)
+                    if (oneRpcInfo.GetChannelKey().Equals(channel_key))
                         rpcInfo = oneRpcInfo;
             }
             else

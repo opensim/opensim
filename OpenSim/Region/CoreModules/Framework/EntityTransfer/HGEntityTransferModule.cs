@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         if (m_RestrictAppearanceAbroad)
                         {
                             m_AccountName = transferConfig.GetString("AccountForAppearance", string.Empty);
-                            if (m_AccountName == string.Empty)
+                            if (m_AccountName.Length == 0)
                                 m_log.WarnFormat("[HG ENTITY TRANSFER MODULE]: RestrictAppearanceAbroad is on, but no account has been given for avatar appearance!");
                         }
                     }
@@ -550,10 +550,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
                 return;
 
-            GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
-            // Local region?
-            if (info != null)
+            OSHHTPHost gatekeeperHost = new OSHHTPHost(lm.Gatekeeper);
+            if (m_thisGridInfo.IsLocalGrid(gatekeeperHost) != 0)
             {
+                // Local region?
+                GridRegion info = Scene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+                if (info == null)
+                {
+                    remoteClient.SendTeleportFailed("Landmark region not found");
+                    return;
+                }
+
                 //check if region on same position and fix local offset
                 if (Util.CompareRegionHandles(lm.RegionHandle, lm.Position, info.RegionLocX, info.RegionLocY, info.RegionSizeX, info.RegionSizeY, out Vector3 offset))
                 {
@@ -566,19 +573,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            if (string.IsNullOrEmpty(lm.Gatekeeper))
+            if (!gatekeeperHost.ResolveDNS())
             {
-                remoteClient.SendTeleportFailed("Landmark region not found");
+                remoteClient.SendTeleportFailed("Could not resolve Landmark grid gatekeeper");
                 return;
             }
 
             // Foreign region
-            GridRegion gatekeeper = MakeGateKeeperRegion(lm.Gatekeeper);
-            if (gatekeeper == null)
-            {
-                remoteClient.SendTeleportFailed("Could not parse landmark destiny gatekeeper");
-                return;
-            }
+            GridRegion gatekeeper = new GridRegion()
+                {
+                    ExternalHostName = gatekeeperHost.Host,
+                    HttpPort = (uint)gatekeeperHost.Port,
+                    ServerURI = lm.Gatekeeper,
+                    RegionName = string.Empty,
+                    InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), (int)0),
+                    RegionFlags = OpenSim.Framework.RegionFlags.Hyperlink
+                };
 
             string homeURI = Scene.GetAgentHomeURI(remoteClient.AgentId);
 
@@ -646,7 +656,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // Equally, we can't use so.AttachedAvatar here.
-            if (OwnerID == UUID.Zero || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
+            if (OwnerID.IsZero() || Scene.UserManagementModule.IsLocalGridUser(OwnerID))
                 return base.HandleIncomingSceneObject(so, newPosition);
 
             // foreign user

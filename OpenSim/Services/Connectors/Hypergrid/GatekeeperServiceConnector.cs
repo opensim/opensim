@@ -215,7 +215,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
         {
             Hashtable hash = new Hashtable();
             hash["region_uuid"] = regionID.ToString();
-            if (agentID != UUID.Zero)
+            if (!agentID.IsZero())
             {
                 hash["agent_id"] = agentID.ToString();
                 if (agentHomeURI != null)
