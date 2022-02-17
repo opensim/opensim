@@ -487,7 +487,7 @@ namespace OpenSim.Groups
                                 {
                                     return gmd.AgentID == sp.UUID;
                                 });
-                            if (m.AgentID == UUID.Zero)
+                            if (m.AgentID.IsZero())
                             {
                                 if (m_debugEnabled)
                                     m_log.DebugFormat("[Groups.Messaging]: skipping agent {0} because he is not a member of the group", sp.UUID);

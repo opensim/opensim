@@ -44,7 +44,7 @@ using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "XEstate")]
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EstateModule")]
     public class EstateModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private Scene FindScene(UUID RegionID)
         {
-            foreach (Scene s in Scenes)
+            foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.RegionID == RegionID)
                     return s;
@@ -187,16 +187,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             uint estateID = senderScenes.RegionInfo.EstateSettings.EstateID;
 
-            foreach (Scene s in Scenes)
+            foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.EstateSettings.EstateID == estateID)
                 {
                     IDialogModule dm = s.RequestModuleInterface<IDialogModule>();
-
                     if (dm != null)
                     {
-                        dm.SendNotificationToUsersInRegion(FromID, FromName,
-                                Message);
+                        dm.SendNotificationToUsersInRegion(FromID, FromName, Message);
                     }
                 }
             }
@@ -206,20 +204,18 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void OnEstateTeleportOneUserHomeRequest(IClientAPI client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
-            if (prey == UUID.Zero)
+            if (prey.IsZero())
                 return;
 
-            if (!(client.Scene is Scene))
+            Scene scene = client.Scene as Scene;
+            if (scene == null)
                 return;
-
-            Scene scene = (Scene)client.Scene;
-
-            uint estateID = scene.RegionInfo.EstateSettings.EstateID;
 
             if (!scene.Permissions.CanIssueEstateCommand(client.AgentId, false))
                 return;
 
-            foreach (Scene s in Scenes)
+            uint estateID = scene.RegionInfo.EstateSettings.EstateID;
+            foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.EstateSettings.EstateID != estateID)
                     continue;
@@ -250,17 +246,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void OnEstateTeleportAllUsersHomeRequest(IClientAPI client, UUID invoice, UUID senderID)
         {
-            if (!(client.Scene is Scene))
+            Scene scene = client.Scene as Scene;
+            if(scene == null)
                 return;
-
-            Scene scene = (Scene)client.Scene;
-
-            uint estateID = scene.RegionInfo.EstateSettings.EstateID;
 
             if (!scene.Permissions.CanIssueEstateCommand(client.AgentId, false))
                 return;
 
-            foreach (Scene s in Scenes)
+            uint estateID = scene.RegionInfo.EstateSettings.EstateID;
+            foreach (Scene s in m_Scenes)
             {
                 if (s.RegionInfo.EstateSettings.EstateID != estateID)
                     continue;

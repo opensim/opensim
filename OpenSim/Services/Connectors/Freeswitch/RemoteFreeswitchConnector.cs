@@ -73,7 +73,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = freeswitchConfig.GetString("FreeswitchServiceURL",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[FREESWITCH CONNECTOR]: No FreeswitchServiceURL named in section FreeSwitchVoice");
                 throw new Exception("Freeswitch connector init error");

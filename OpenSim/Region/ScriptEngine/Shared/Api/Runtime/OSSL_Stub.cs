@@ -493,7 +493,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osMessageObject(objectUUID,message);
         }
 
-        public void osMakeNotecard(string notecardName, LSL_Types.list contents)
+        public void osMakeNotecard(string notecardName, LSL_String contents)
+        {
+            m_OSSL_Functions.osMakeNotecard(notecardName, contents);
+        }
+
+        public void osMakeNotecard(string notecardName, LSL_List contents)
         {
             m_OSSL_Functions.osMakeNotecard(notecardName, contents);
         }

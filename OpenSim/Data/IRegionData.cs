@@ -86,6 +86,7 @@ namespace OpenSim.Data
         List<RegionData> GetDefaultHypergridRegions(UUID scopeID);
         List<RegionData> GetFallbackRegions(UUID scopeID);
         List<RegionData> GetHyperlinks(UUID scopeID);
+        List<RegionData> GetOnlineRegions(UUID scopeID);
     }
 
     public class RegionDataDistanceCompare : IComparer<RegionData>

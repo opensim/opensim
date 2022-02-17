@@ -90,7 +90,7 @@ namespace OpenSim.Data.MySQL
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                if (scopeID != UUID.Zero)
+                if (!scopeID.IsZero())
                 {
                     where = "(ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (" + where + ")";
                     cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());

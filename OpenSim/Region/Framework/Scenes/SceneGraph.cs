@@ -398,7 +398,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
-            if (pa != null && pa.IsPhysical && vel != Vector3.Zero)
+            if (pa != null && pa.IsPhysical && !vel.IsZero())
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
             }
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.ErrorFormat("[SCENEGRAPH]: Tried to add null scene object");
                 return false;
             }
-            if (sceneObject.UUID == UUID.Zero)
+            if (sceneObject.UUID.IsZero())
             {
                 m_log.ErrorFormat(
                     "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",
@@ -679,7 +679,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
-            if (primId != UUID.Zero)
+            if (!primId.IsZero())
             {
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
                 if (part != null)
@@ -689,7 +689,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
-            if (primId != UUID.Zero)
+            if (!primId.IsZero())
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
 

@@ -724,7 +724,7 @@ namespace OpenSim.Framework.Servers
                     while ((currentCommand = readFile.ReadLine()) != null)
                     {
                         currentCommand = currentCommand.Trim();
-                        if (!(currentCommand == ""
+                        if (!(currentCommand.Length == 0
                             || currentCommand.StartsWith(";")
                             || currentCommand.StartsWith("//")
                             || currentCommand.StartsWith("#")))

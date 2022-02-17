@@ -277,7 +277,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osMessageObject(key objectUUID,string message);
 
-        void osMakeNotecard(string notecardName, LSL_Types.list contents);
+        void osMakeNotecard(string notecardName, LSL_String contents);
+        void osMakeNotecard(string notecardName, LSL_List contents);
 
         string osGetNotecardLine(string name, int line);
         string osGetNotecard(string name);

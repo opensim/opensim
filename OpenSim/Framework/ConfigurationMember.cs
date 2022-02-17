@@ -382,7 +382,7 @@ namespace OpenSim.Framework
                             {
                                 convertSuccess = true;
 
-                                if (uuidResult2 == UUID.Zero)
+                                if (uuidResult2.IsZero())
                                     uuidResult2 = UUID.Random();
 
                                 return_result = uuidResult2;

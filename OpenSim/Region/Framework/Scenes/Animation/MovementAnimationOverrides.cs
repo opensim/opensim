@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<string, UUID> m_overrides = new Dictionary<string, UUID>();
         public void SetOverride(string state, UUID animID)
         {
-            if (animID == UUID.Zero)
+            if (animID.IsZero())
             {
                 if (state == "ALL")
                     m_overrides.Clear();

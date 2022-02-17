@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 using log4net;
 using OpenMetaverse;
@@ -152,7 +153,7 @@ namespace OpenSim.Framework.Serialization.External
         [Obsolete("This method is deprecated. Use RewriteSOP instead.")]
         public static string RewriteSOP_Old(string xml, string homeURL, IUserAccountService userService, UUID scopeID)
         {
-            if (xml == string.Empty || homeURL == string.Empty || userService == null)
+            if (xml.Length == 0 || homeURL.Length == 0 || userService == null)
                 return xml;
 
             XmlDocument doc = new XmlDocument();
@@ -212,7 +213,7 @@ namespace OpenSim.Framework.Serialization.External
         public static string RewriteSOP(string xmlData, string sceneName, string homeURL, IUserAccountService userService, UUID scopeID)
         {
             //            Console.WriteLine("Input XML [{0}]", xmlData);
-            if (xmlData == string.Empty || homeURL == string.Empty || userService == null)
+            if (xmlData.Length == 0 || homeURL.Length == 0 || userService == null)
                 return xmlData;
 
             // Deal with bug introduced in Oct. 20 2014 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
@@ -221,7 +222,7 @@ namespace OpenSim.Framework.Serialization.External
             using (StringWriter sw = new StringWriter())
             using (XmlTextWriter writer = new XmlTextWriter(sw))
             using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
-            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
+            using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore}))
             {
                 TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);
 

@@ -63,7 +63,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
                 bool allowRegionless = startupConfig.GetBoolean("allow_regionless", false);
 
-                if (url == String.Empty)
+                if (url.Length == 0)
                 {
                     m_log.Error("[WEBLOADER]: Unable to load webserver URL - URL was empty.");
                     return null;

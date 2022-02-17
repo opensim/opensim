@@ -117,6 +117,9 @@ namespace OpenSim.Server.Handlers.Grid
                     case "get_fallback_regions":
                         return GetFallbackRegions(request);
 
+                    case "get_online_regions":
+                        return GetOnlineRegions(request);
+
                     case "get_hyperlinks":
                         return GetHyperlinks(request);
 
@@ -199,7 +202,7 @@ namespace OpenSim.Server.Handlers.Grid
             if (rinfo != null)
                 result = m_GridService.RegisterRegion(scopeID, rinfo);
 
-            if (result == String.Empty)
+            if (result.Length == 0)
                 return SuccessResult();
             else
                 return FailureResult(result);
@@ -523,6 +526,53 @@ namespace OpenSim.Server.Handlers.Grid
 
 
             List<GridRegion> rinfos = m_GridService.GetFallbackRegions(scopeID, x, y);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridRegion rinfo in rinfos)
+                {
+                    Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
+                    result["region" + i] = rinfoDict;
+                    i++;
+                }
+            }
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            return Util.UTF8NoBomEncoding.GetBytes(xmlString);
+        }
+
+        byte[] GetOnlineRegions(Dictionary<string, object> request)
+        {
+            UUID scopeID = UUID.Zero;
+            object o;
+
+            if (request.TryGetValue("SCOPEID", out o))
+                UUID.TryParse(o.ToString(), out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get online regions");
+
+            int x = 0, y = 0, max = 0;
+            if (request.TryGetValue("X", out o))
+                Int32.TryParse(o.ToString(), out x);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no X in request to get online regions");
+            if (request.TryGetValue("Y", out o))
+                Int32.TryParse(o.ToString(), out y);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no Y in request to get online regions");
+            if (request.TryGetValue("MC", out o))
+                Int32.TryParse(o.ToString(), out max);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no Max Count in request to get online regions");
+
+            List<GridRegion> rinfos = null;
+            if (max > 0)
+                rinfos = m_GridService.GetOnlineRegions(scopeID, x, y, max);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))

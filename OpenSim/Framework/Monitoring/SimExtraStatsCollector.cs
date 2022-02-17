@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Monitoring
         public void ReceiveClassicSimStatsPacket(SimStats stats)
         {
             UUID id = stats.RegionUUID;
-            if (id != UUID.Zero)
+            if (!id.IsZero())
             {
                 if(ReceivedStats.Count == 0)
                     firstReceivedRegion = id;

@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 // propagate the change
                 List<UUID> regions = Scene.GetEstateRegions(estateID);
                 UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
-                if (regionId != UUID.Zero)
+                if (!regionId.IsZero())
                 {
                      OnEstateInfoChange?.Invoke(regionId);
                 }
@@ -320,7 +320,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                    // propagate the change
                     List<UUID> regions = Scene.GetEstateRegions(estateID);
                     UUID regionId = (regions.Count() > 0) ? regions.ElementAt(0) : UUID.Zero;
-                    if (regionId != UUID.Zero)
+                    if (!regionId.IsZero())
                     {
                         OnEstateInfoChange?.Invoke(regionId);
                     }
@@ -498,7 +498,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void SetEstateTerrainBaseTexture(IClientAPI remoteClient, int level, UUID texture)
         {
-            if (texture == UUID.Zero)
+            if (texture.IsZero())
                 return;
 
             switch (level)
@@ -1185,7 +1185,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void HandleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey, bool kick)
         {
-            if (prey == UUID.Zero)
+            if (prey.IsZero())
                 return;
 
              EstateTeleportOneUserHomeRequest evOverride = OnEstateTeleportOneUserHomeRequest;
@@ -1863,7 +1863,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     this.Scene.RegionInfo.RegionSettings;
 
             SceneObjectGroup telehub = null;
-            if (settings.TelehubObject != UUID.Zero &&
+            if (!settings.TelehubObject.IsZero() &&
                 (telehub = Scene.GetSceneObjectGroup(settings.TelehubObject)) != null)
             {
                 List<Vector3> spawnPoints = new List<Vector3>();

@@ -36,15 +36,6 @@ using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.Framework.Scenes;
-using log4net;
-
-using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
-using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
-using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
-using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
@@ -63,10 +54,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PostEvent(EventParams evt)
         {
-            if(!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
+            if (!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
                 return;
 
-            if (((uint)evc >= (uint)m_HaveEventHandlers.Length) || !m_HaveEventHandlers[(int)evc]) // don't bother if we don't have such a handler in any state
+            if (!m_HaveEventHandlers[(int)evc]) // don't bother if we don't have such a handler in any state
                 return;
 
             // Put event on end of event queue.
@@ -165,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                          // of all others so the m_DetachQuantum won't run out
                          // before attach(NULL_KEY) is executed.
                         case ScriptEventCode.attach:
-                            if (evt.Params[0].ToString() == UUID.Zero.ToString())
+                            if (evt.Params[0].ToString().Equals(UUID.ZeroString))
                             {
                                 LinkedListNode<EventParams> lln2 = null;
                                 for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
@@ -312,7 +303,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Exception e = null;
 
                 // Do some more of the last event if it didn't finish.
-                if (this.eventCode != ScriptEventCode.None)
+                if (eventCode != ScriptEventCode.None)
                 {
                     lock(m_QueueLock)
                     {
@@ -492,7 +483,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 throw new Exception("still processing event " + this.eventCode.ToString());
 
             // Silly to even try if there is no handler defined for this event.
-            if (((int)newEventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode, (int)newEventCode] == null))
+            if ((newEventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[stateCode, (int)newEventCode] == null))
                 return null;
 
             // Save eventCode so we know what event handler to run in the microthread.

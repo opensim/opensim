@@ -403,13 +403,13 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         meshOsd = (OSDMap)osd;
                     else
                     {
-                        m_log.WarnFormat("[Mesh}: unable to cast mesh asset to OSDMap prim: {0}",primName);
+                        m_log.WarnFormat("[Mesh}: unable to cast mesh asset to OSDMap prim: {0} asset {1}",primName, primShape.SculptTexture);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
+                    m_log.ErrorFormat("[MESH]: Error deserializing mesh asset header: {0} in Prim '{1}' asset {2}", e.Message, primName, primShape.SculptTexture);
                     return false;
                 }
 

@@ -273,6 +273,11 @@ namespace OpenSim.Data.Null
             return Get((int)RegionFlags.Hyperlink, scopeID);
         }
 
+        public List<RegionData> GetOnlineRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.RegionOnline, scopeID);
+        }
+
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
             if (Instance != this)

@@ -1692,10 +1692,10 @@ namespace OpenSim.Data.SQLite
 
             prim.Sound = new UUID(row["LoopedSound"].ToString());
             prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
-            if (prim.Sound != UUID.Zero)
-                prim.SoundFlags = 1; // If it's persisted at all, it's looped
-            else
+            if (prim.Sound.IsZero())
                 prim.SoundFlags = 0;
+            else
+                prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
             if (!row.IsNull("TextureAnimation"))
                 prim.TextureAnimation = Convert.FromBase64String(row["TextureAnimation"].ToString());

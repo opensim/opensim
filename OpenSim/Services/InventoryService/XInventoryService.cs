@@ -80,16 +80,16 @@ namespace OpenSim.Services.InventoryService
             IConfig dbConfig = config.Configs["DatabaseService"];
             if (dbConfig != null)
             {
-                if (dllName == String.Empty)
+                if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
+                if (connString.Length == 0)
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName == String.Empty)
+            if (dllName.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IXInventoryData>(dllName,
@@ -768,7 +768,7 @@ namespace OpenSim.Services.InventoryService
 
             UUID parentFolder = folder[0].parentFolderID;
 
-            while (parentFolder != UUID.Zero)
+            while (!parentFolder.IsZero())
             {
                 XInventoryFolder[] parent = m_Database.GetFolders(new string[] {"folderID"}, new string[] {parentFolder.ToString()});
                 if (parent.Length < 1)
@@ -795,7 +795,7 @@ namespace OpenSim.Services.InventoryService
 
             UUID parentFolder = folder[0].parentFolderID;
 
-            while (parentFolder != UUID.Zero)
+            while (!parentFolder.IsZero())
             {
                 XInventoryFolder[] parent = m_Database.GetFolders(new string[] { "folderID" }, new string[] { parentFolder.ToString() });
                 if (parent.Length < 1)

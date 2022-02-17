@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
             try
             {
-                if (agentID == UUID.Zero)
+                if (agentID.IsZero())
                     npcAvatar = new NPCAvatar(firstname, lastname, position,
                             owner, senseAsAgent, scene);
                 else
@@ -477,8 +477,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         /// <returns>true if they do, false if they don't.</returns>
         private bool CheckPermissions(NPCAvatar av, UUID callerID)
         {
-            return callerID == UUID.Zero || av.OwnerID == UUID.Zero ||
-                av.OwnerID == callerID  || av.AgentId == callerID;
+            return callerID.IsZero() || av.OwnerID.IsZero() ||
+                av.OwnerID.Equals(callerID)  || av.AgentId.Equals(callerID);
         }
     }
 }

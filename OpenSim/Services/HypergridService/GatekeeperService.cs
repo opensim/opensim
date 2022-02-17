@@ -96,7 +96,7 @@ namespace OpenSim.Services.HypergridService
                 string gridUserService = serverConfig.GetString("GridUserService", string.Empty);
                 string bansService = serverConfig.GetString("BansService", string.Empty);
                 // These are mandatory, the others aren't
-                if (gridService == string.Empty || presenceService == string.Empty)
+                if (gridService.Length == 0 || presenceService.Length == 0)
                     throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
 
                 string scope = serverConfig.GetString("ScopeID", UUID.Zero.ToString());
@@ -205,8 +205,8 @@ namespace OpenSim.Services.HypergridService
             reason = string.Empty;
             GridRegion region = null;
 
-            //m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName == string.Empty)? "default region" : regionName);
-            if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
+            //m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName.Length == 0)? "default region" : regionName);
+            if (!m_AllowTeleportsToAnyRegion || regionName.Length == 0)
             {
                 List<GridRegion> defs = m_GridService.GetDefaultHypergridRegions(m_ScopeID);
                 if (defs != null && defs.Count > 0)

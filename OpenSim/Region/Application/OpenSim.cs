@@ -99,7 +99,7 @@ namespace OpenSim
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "shutdown_commands.txt");
 
-                if (startupConfig.GetString("console", String.Empty) == String.Empty)
+                if (startupConfig.GetString("console", String.Empty).Length == 0)
                     m_gui = startupConfig.GetBoolean("gui", false);
                 else
                     m_consoleType= startupConfig.GetString("console", String.Empty);
@@ -1322,7 +1322,7 @@ namespace OpenSim
                     // send it off for processing.
                     IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
                     response = estateModule.CreateEstate(estateName, userID);
-                    if (response == String.Empty)
+                    if (response.Length == 0)
                     {
                         List<int> estates = scene.EstateDataService.GetEstates(estateName);
                         response = String.Format("Estate {0} created as \"{1}\"", estates.ElementAt(0), estateName);
@@ -1393,7 +1393,7 @@ namespace OpenSim
                         if (account != null)
                             response = estateModule.SetEstateOwner(estateId, account);
 
-                        if (response == String.Empty)
+                        if (response.Length == 0)
                         {
                             response = String.Format("Estate owner changed to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
                         }
@@ -1441,7 +1441,7 @@ namespace OpenSim
                         // send it off for processing.
                         response = estateModule.SetEstateName(estateId, estateName);
 
-                        if (response == String.Empty)
+                        if (response.Length == 0)
                         {
                             response = String.Format("Estate {0} renamed to \"{1}\"", estateId, estateName);
                         }
@@ -1492,7 +1492,7 @@ namespace OpenSim
             // send it off for processing.
             IEstateModule estateModule = scene.RequestModuleInterface<IEstateModule>();
             response = estateModule.SetRegionEstate(scene.RegionInfo, estateId);
-            if (response == String.Empty)
+            if (response.Length == 0)
             {
                 estateModule.TriggerRegionInfoChange();
                 estateModule.sendRegionHandshakeToAll();

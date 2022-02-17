@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // XXX: Might be better to get rid of this special casing and have GetMembershipData return something
             // reasonable for a UUID.Zero group.
-            if (groupID != UUID.Zero)
+            if (!groupID.IsZero())
             {
                 GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, remoteClient.AgentId);
 
@@ -548,7 +548,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[USER INVENTORY]: HandleFetchInventoryDescendents() for {0}, folder={1}, fetchFolders={2}, fetchItems={3}, sortOrder={4}",
 //                remoteClient.Name, folderID, fetchFolders, fetchItems, sortOrder);
 
-            if (folderID == UUID.Zero)
+            if (folderID.IsZero())
                 return;
 
             // FIXME MAYBE: We're not handling sortOrder!

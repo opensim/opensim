@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors.InstantMessage
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} the host didn't respond " + e.ToString(), url);
+                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} : {1}", url, e.Message);
             }
 
             return false;

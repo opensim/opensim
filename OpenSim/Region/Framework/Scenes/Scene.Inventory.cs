@@ -139,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="item"></param>
         public bool AddInventoryItem(InventoryItemBase item, bool trigger)
         {
-            if (item.Folder != UUID.Zero && InventoryService.AddItem(item))
+            if (!item.Folder.IsZero() && InventoryService.AddItem(item))
             {
                 int userlevel = 0;
                 if (Permissions.IsGod(item.Owner))
@@ -191,7 +191,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (trigger)
                     EventManager.TriggerOnNewInventoryItemUploadComplete(item, userlevel);
 
-                if (originalFolder != UUID.Zero)
+                if (!originalFolder.IsZero())
                 {
                     // Tell the viewer that the item didn't go there
                     ChangePlacement(item, f);
@@ -263,7 +263,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
             }
 
-            if (objectID == UUID.Zero)
+            if (objectID.IsZero())
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
@@ -845,7 +845,7 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.BasePermissions = item.BasePermissions;
             }
 
-            if (itemCopy.Folder == UUID.Zero)
+            if (itemCopy.Folder.IsZero())
             {
                 InventoryFolderBase folder = null;
                 if (Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
@@ -936,7 +936,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            if (recipientParentFolderId == UUID.Zero)
+            if (recipientParentFolderId.IsZero())
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
                 if (recipientRootFolder != null)
@@ -996,7 +996,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-            if (recipientParentFolderId == UUID.Zero)
+            if (recipientParentFolderId.IsZero())
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
                 if (recipientRootFolder != null)
@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            if (newName == String.Empty)
+            if (newName.Length == 0)
                 newName = item.Name;
 
             AssetBase asset = AssetService.Get(item.AssetID.ToString());
@@ -1538,7 +1538,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
             // Can't move a null item
-            if (itemId == UUID.Zero)
+            if (itemId.IsZero())
                 return;
 
             if (null == part)
@@ -1829,7 +1829,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         uint primLocalID)
         {
             UUID itemID = itemInfo.ItemID;
-            if (itemID == UUID.Zero)
+            if (itemID.IsZero())
             {
                 m_log.ErrorFormat(
                             "[PRIM INVENTORY]: UpdateTaskInventory called with item ID Zero on update for {1}!",
@@ -1898,7 +1898,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only look for an uploaded updated asset if we are passed a transaction ID.  This is only the
                 // case for updates uploded through UDP.  Updates uploaded via a capability (e.g. a script update)
                 // will not pass in a transaction ID in the update message.
-                if (transactionID != UUID.Zero && AgentTransactionsModule != null)
+                if (!transactionID.IsZero() && AgentTransactionsModule != null)
                 {
                     AgentTransactionsModule.HandleTaskItemUpdateFromTransaction(
                         remoteClient, part, transactionID, currentItem);
@@ -1923,7 +1923,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (remoteClient.AgentId != part.OwnerID) // Not owner
                     {
                         noChange = true;
-                        if(itemInfo.OwnerID == UUID.Zero && itemInfo.GroupID != UUID.Zero)
+                        if(itemInfo.OwnerID.IsZero() && !itemInfo.GroupID.IsZero())
                         {
                             if(remoteClient.IsGroupMember(itemInfo.GroupID))
                             {
@@ -1999,10 +1999,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart partWhereRezzed;
 
-            if (itemBase.ID != UUID.Zero)
-                partWhereRezzed = RezScriptFromAgentInventory(remoteClient.AgentId, itemBase.ID, localID);
-            else
+            if (itemBase.ID.IsZero())
                 partWhereRezzed = RezNewScript(remoteClient.AgentId, itemBase);
+            else
+                partWhereRezzed = RezScriptFromAgentInventory(remoteClient.AgentId, itemBase.ID, localID);
 
             if (partWhereRezzed != null)
                 partWhereRezzed.SendPropertiesToClient(remoteClient);
@@ -2195,7 +2195,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (srcPart.OwnerID != destPart.OwnerID)
             {
                 // Group permissions
-                if ((destPart.GroupID == UUID.Zero) || (destPart.GroupID != srcPart.GroupID) ||
+                if ((destPart.GroupID.IsZero()) || (destPart.GroupID.NotEqual(srcPart.GroupID)) ||
                     ((destPart.GroupMask & (uint)PermissionMask.Modify) == 0))
                     return;
                 if((srcPart.OwnerMask & (uint)PermissionMask.Transfer) == 0)
@@ -2294,6 +2294,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> takeCopyGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeDeleteGroups = new List<SceneObjectGroup>();
 
+            List<SceneObjectGroup> noPermtakeCopyGroups = new List<SceneObjectGroup>();
+
             ScenePresence sp = null;
             if(remoteClient != null)
                 sp = remoteClient.SceneAgent as ScenePresence;
@@ -2352,6 +2354,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (Permissions.CanTakeCopyObject(grp, sp))
                             takeCopyGroups.Add(grp);
+                        else                                  
+                            noPermtakeCopyGroups.Add(grp);
                         break;
                     }
 
@@ -2407,6 +2411,25 @@ namespace OpenSim.Region.Framework.Scenes
 
             if(deleteIDs.Count > 0)
                 SendKillObject(deleteIDs);
+
+            if (noPermtakeCopyGroups.Count > 0 && remoteClient != null)
+            {
+                if(noPermtakeCopyGroups.Count == 1)
+                    remoteClient.SendAlertMessage("No permission to take copy object " + noPermtakeCopyGroups[0].Name);
+                else
+                {
+                    StringBuilder sb = new StringBuilder(1024);
+                    sb.Append("No permission to take copy object ");
+                    int i = 0;
+                    for (; i < noPermtakeCopyGroups.Count - 1; ++i)
+                    {
+                        sb.Append(noPermtakeCopyGroups[i].Name);
+                        sb.Append(", ");
+                    }
+                    sb.Append(noPermtakeCopyGroups[i].Name);
+                    remoteClient.SendAlertMessage(sb.ToString());
+                }
+            }
 
             if (takeDeleteGroups.Count > 0)
             {
@@ -2543,7 +2566,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 using (XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null))
                 {
-                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment}))
+                    using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore}))
                     {
                         reader.Read();
                         bool isSingleObject = reader.Name != "CoalescedObject";
@@ -2643,7 +2666,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}",
 //                remoteClient.Name, itemID, fromTaskID);
 
-            if (fromTaskID == UUID.Zero)
+            if (fromTaskID.IsZero())
             {
                 // rez from user inventory
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
@@ -2887,9 +2910,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         void ObjectOwner(IClientAPI remoteClient, UUID ownerID, UUID groupID, List<uint> localIDs)
         {
+            
             if (!Permissions.IsGod(remoteClient.AgentId))
             {
-                if (ownerID != UUID.Zero)
+                if (!ownerID.IsZero())
                     return;
             }
 
@@ -2907,7 +2931,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup sog in groups)
             {
-                if (ownerID != UUID.Zero)
+                if (!ownerID.IsZero())
                 {
                     sog.SetOwnerId(ownerID);
                     sog.SetGroup(groupID, remoteClient);
