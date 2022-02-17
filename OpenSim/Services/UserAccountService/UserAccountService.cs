@@ -591,6 +591,8 @@ namespace OpenSim.Services.UserAccountService
         /// <param name="model"></param>
         public UserAccount CreateUser(UUID scopeID, UUID principalID, string firstName, string lastName, string password, string email, string model = "")
         {
+            firstName = firstName.Trim();
+            lastName = lastName.Trim();
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
             {

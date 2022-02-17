@@ -244,7 +244,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void ChatterBoxSessionAgentListUpdates(UUID sessionID, UUID toAgent, List<GroupChatListAgentUpdateData> updates)
         {
-            osUTF8 sb = StartEvent("ChatterBoxSessionAgentListUpdates",1024);
+            osUTF8 sb = StartEvent("ChatterBoxSessionAgentListUpdates");
             LLSDxmlEncode2.AddMap("agent_updates",sb);
             foreach (GroupChatListAgentUpdateData up in updates)
             {
