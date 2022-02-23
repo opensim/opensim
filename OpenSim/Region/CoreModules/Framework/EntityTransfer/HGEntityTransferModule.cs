@@ -543,6 +543,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <param name="position"></param>
         public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
+            if (lm == null || lm.Data == null || lm.Data.Length == 0)
+                return;
+
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}",
                 (string.IsNullOrEmpty(lm.Gatekeeper)) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
 
@@ -595,7 +598,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
             GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, lm.RegionID, remoteClient.AgentId, homeURI, out string message);
             if(finalDestination == null)
+            {
                 remoteClient.SendTeleportFailed(message);
+                return;
+            }
 
             // Validate assorted conditions
             if (!ValidateGenericConditions(sp, gatekeeper, finalDestination, 0, out string reason))
