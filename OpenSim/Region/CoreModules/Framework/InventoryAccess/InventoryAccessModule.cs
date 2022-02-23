@@ -161,6 +161,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         #endregion
 
+        private readonly byte[]  DEFAULTSCRIPT = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
         #region Inventory Access
 
         /// <summary>
@@ -200,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (folder == null || folder.Owner != remoteClient.AgentId)
                 return;
 
-            if (transactionID != UUID.Zero && assetType != (byte)AssetType.Settings)
+            if (!transactionID.IsZero() && assetType != (byte)AssetType.Settings)
             {
                 IAgentAssetTransactions agentTransactions = m_Scene.AgentTransactionsModule;
                 if (agentTransactions != null)
@@ -239,7 +240,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         if(envModule == null)
                             return;
                         UUID assetID = envModule.GetDefaultAsset(subType);
-                        if(assetID == UUID.Zero)
+                        if(assetID.IsZero())
                         {
                             m_log.ErrorFormat(
                             "[INVENTORY ACCESS MODULE CreateNewInventoryItem]: failed to create default environment setting asset {0} for agent {1}", name, remoteClient.AgentId);
@@ -253,6 +254,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 creationDate, false); // Data from viewer
                         return;
                     }
+                }
+                else if( assetType == (byte)AssetType.LSLText)
+                {
+                    if(data == null)
+                        data = DEFAULTSCRIPT;
                 }
                 else if( assetType == (byte)AssetType.Clothing ||
                          assetType == (byte)AssetType.Bodypart)
@@ -737,7 +743,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    action, userID);
             }
 
-            if (userID == UUID.Zero) // Can't proceed
+            if (userID.IsZero()) // Can't proceed
             {
                 return null;
             }
@@ -791,7 +797,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 folder = m_Scene.InventoryService.GetFolderForType(userID, FolderType.LostAndFound);
             }
 
-            if (folderID == UUID.Zero && folder == null)
+            if (folderID.IsZero() && folder == null)
             {
                 if (action == DeRezAction.Delete)
                 {
@@ -823,7 +829,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             {
                 // Override and put into where it came from, if it came
                 // from anywhere in inventory and the owner is taking it back.
-                if (so.FromFolderID != UUID.Zero && so.RootPart.OwnerID == remoteClient.AgentId)
+                if (!so.FromFolderID.IsZero() && so.RootPart.OwnerID.Equals(remoteClient.AgentId))
                 {
                     folder = m_Scene.InventoryService.GetFolder(userID, so.FromFolderID);
 
@@ -837,7 +843,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         while(true)
                         {
                             parent = m_Scene.InventoryService.GetFolder(userID, parent.ParentID);
-                            if (parent != null && parent.ParentID == UUID.Zero)
+                            if (parent != null && (parent.ParentID.IsZero() || parent.ID.Equals(parent.ParentID)))
                                 break;
                             if (parent == null || parent.Type == (int)FolderType.Trash || parent.Type == (int)FolderType.LostAndFound)
                             {
@@ -917,7 +923,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 byte BypassRayCast, bool RayEndIsIntersection,
                 bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            if(assetID == UUID.Zero)
+            if(assetID.IsZero())
                 return null;
 
             AssetBase rezAsset = m_Scene.AssetService.Get(assetID.ToString());
@@ -1036,7 +1042,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //                    remoteClient.Name);
 
 //                        Vector3 storedPosition = group.AbsolutePosition;
-                if (group.UUID == UUID.Zero)
+                if (group.UUID.IsZero())
                 {
                     m_log.Debug("[INVENTORY ACCESS MODULE]: Object has UUID.Zero! Position 3");
                 }

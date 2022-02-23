@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 // Swap empty terrain textureIDs with default IDs
                 for(int i = 0; i < textureIDs.Length; i++)
                 {
-                    if(textureIDs[i] == UUID.Zero)
+                    if(textureIDs[i].IsZero())
                         textureIDs[i] = DEFAULT_TERRAIN_DETAIL[i];
                 }
 

@@ -1304,7 +1304,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             foreach(string st in stlines)
             {
                 string stline = st.Trim();
-                if(stline == "")
+                if(stline.Length == 0)
                     continue;
 
                 // strip 'at' off the front of line

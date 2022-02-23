@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            if (m_FriendsModule == null)
+            if (m_FriendsModule == null || m_FriendsModule.Scene == null)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
                 return;

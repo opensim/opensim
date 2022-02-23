@@ -183,7 +183,7 @@ namespace OpenSim.Groups
 
         public ExtendedGroupRecord GetGroupRecord(string RequestingAgentID, UUID GroupID, string GroupName)
         {
-            if (GroupID == UUID.Zero && (GroupName == null || GroupName != null && GroupName == string.Empty))
+            if (GroupID.IsZero() && string.IsNullOrEmpty(GroupName))
                 return null;
 
             return m_CacheWrapper.GetGroupRecord(RequestingAgentID,GroupID,GroupName, delegate

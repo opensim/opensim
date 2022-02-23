@@ -73,7 +73,7 @@ namespace OpenSim.Services.HypergridService
             {
                 // realm = authConfig.GetString("Realm", realm);
                 string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
-                if (userAccountsDll == string.Empty)
+                if (userAccountsDll.Length == 0)
                     throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
 
                 Object[] args = new Object[] { config };

@@ -156,7 +156,7 @@ namespace OpenSim.Services.UserAccountService
 
             UserAccountData[] d;
 
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
             {
                 d = m_Database.Get(
                         new string[] { "ScopeID", "FirstName", "LastName" },
@@ -234,7 +234,7 @@ namespace OpenSim.Services.UserAccountService
         {
             UserAccountData[] d;
 
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
             {
                 d = m_Database.Get(
                         new string[] { "ScopeID", "Email" },
@@ -263,7 +263,7 @@ namespace OpenSim.Services.UserAccountService
         {
             UserAccountData[] d;
 
-            if (scopeID != UUID.Zero)
+            if (!scopeID.IsZero())
             {
                 d = m_Database.Get(
                         new string[] { "ScopeID", "PrincipalID" },
@@ -591,6 +591,8 @@ namespace OpenSim.Services.UserAccountService
         /// <param name="model"></param>
         public UserAccount CreateUser(UUID scopeID, UUID principalID, string firstName, string lastName, string password, string email, string model = "")
         {
+            firstName = firstName.Trim();
+            lastName = lastName.Trim();
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
             {
@@ -903,7 +905,7 @@ namespace OpenSim.Services.UserAccountService
                 for(int j = 0; j < basewearable.Count; j++)
                 {
                     wearable = basewearable[j];
-                    if (wearable.ItemID != UUID.Zero)
+                    if (!wearable.ItemID.IsZero())
                     {
                         m_log.DebugFormat("[XXX]: Getting item {0} from avie {1} for {2} {3}",
                             wearable.ItemID, source, i, j);
@@ -912,7 +914,7 @@ namespace OpenSim.Services.UserAccountService
 
                         if(item != null && item.AssetType == (int)AssetType.Link)
                         {
-                            if(item.AssetID == UUID.Zero )
+                            if(item.AssetID.IsZero())
                                 item = null;
                             else
                               item = m_InventoryService.GetItem(source, item.AssetID);
@@ -970,7 +972,7 @@ namespace OpenSim.Services.UserAccountService
                 int attachpoint = attachment.AttachPoint;
                 UUID itemID = attachment.ItemID;
 
-                if (itemID != UUID.Zero)
+                if (!itemID.IsZero())
                 {
                     // Get inventory item and copy it
                     InventoryItemBase item = m_InventoryService.GetItem(source, itemID);

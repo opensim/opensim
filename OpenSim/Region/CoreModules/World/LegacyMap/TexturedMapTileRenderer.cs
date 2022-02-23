@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         // return either the average color of the texture, or the defaultColor if the texturID is invalid
         // or the texture couldn't be found
         private Color computeAverageColor(UUID textureID, Color defaultColor) {
-            if (textureID == UUID.Zero) return defaultColor; // not set
+            if (textureID.IsZero()) return defaultColor; // not set
             if (m_mapping.ContainsKey(textureID)) return m_mapping[textureID]; // one of the predefined textures
 
             Color color;

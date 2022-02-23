@@ -180,7 +180,7 @@ namespace OpenSim.Services.Interfaces
             Dictionary<int, List<string>> atts = new Dictionary<int, List<string>>();
             foreach (AvatarAttachment attach in attachments)
             {
-                if (attach.ItemID != UUID.Zero)
+                if (!attach.ItemID.IsZero())
                 {
                     if (!atts.ContainsKey(attach.AttachPoint))
                         atts[attach.AttachPoint] = new List<string>();

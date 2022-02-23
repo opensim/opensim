@@ -277,7 +277,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         void osMessageObject(key objectUUID,string message);
 
-        void osMakeNotecard(string notecardName, LSL_Types.list contents);
+        void osMakeNotecard(string notecardName, LSL_String contents);
+        void osMakeNotecard(string notecardName, LSL_List contents);
 
         string osGetNotecardLine(string name, int line);
         string osGetNotecard(string name);
@@ -501,8 +502,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         /// <returns>boolean</returns>
         LSL_Integer osRegexIsMatch(string input, string pattern);
 
-        LSL_String osRequestURL(LSL_List options);
-        LSL_String osRequestSecureURL(LSL_List options);
+        LSL_Key osRequestURL(LSL_List options);
+        LSL_Key osRequestSecureURL(LSL_List options);
         void osCollisionSound(string impact_sound, double impact_volume);
 
         void osVolumeDetect(int detect);
@@ -512,7 +513,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetInertia(LSL_Float mass, vector centerOfMass, vector principalInertiaScaled,  rotation rot);
         void osSetInertiaAsBox(LSL_Float mass, vector boxSize, vector centerOfMass, rotation rot);
         void osSetInertiaAsSphere(LSL_Float mass,  LSL_Float radius, vector centerOfMass);
-        void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot);
+        void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, vector centerOfMass,rotation lslrot);
 
         LSL_Integer osTeleportObject(LSL_Key objectUUID, vector targetPos, rotation targetrotation, LSL_Integer flags);
         LSL_Integer osGetLinkNumber(LSL_String name);

@@ -407,6 +407,21 @@ namespace OpenSim.Framework
 
         public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
 
+        public void SetLookAt(Vector3 value)
+        {
+            if (value.X == 0 && value.Y == 0)
+            {
+                AtAxis = Vector3.UnitX;
+                LeftAxis = Vector3.UnitY;
+                AtAxis = Vector3.UnitZ;
+                return;
+            }
+            AtAxis = new Vector3(value.X, value.Y, 0);
+            AtAxis.Normalize();
+            LeftAxis = new Vector3(-AtAxis.Y, AtAxis.X, 0);
+            UpAxis = Vector3.UnitZ;
+        }
+
         public virtual OSDMap Pack(EntityTransferContext ctx)
         {
 //            m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
@@ -600,10 +615,10 @@ namespace OpenSim.Framework
                 Vector3.TryParse(tmp.AsString(), out AtAxis);
 
             if (args.TryGetValue("left_axis", out tmp) && tmp != null)
-                Vector3.TryParse(tmp.AsString(), out AtAxis);
+                Vector3.TryParse(tmp.AsString(), out LeftAxis);
 
             if (args.TryGetValue("up_axis", out tmp) && tmp != null)
-                Vector3.TryParse(tmp.AsString(), out AtAxis);
+                Vector3.TryParse(tmp.AsString(), out UpAxis);
 
             if (args.TryGetValue("wait_for_root", out tmp) && tmp != null)
                 SenderWantsToWaitForRoot = tmp.AsBoolean();

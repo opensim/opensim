@@ -530,10 +530,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                 m_part.LocalId, itemID, script, startParam, postOnRez, engine, stateSource);
             StoreScriptErrors(itemID, null);
-            if (!item.ScriptRunning)
-                m_part.ParentGroup.Scene.EventManager.TriggerStopScript(m_part.LocalId, itemID);
-            m_part.ParentGroup.AddActiveScriptCount(1);
-            m_part.ScheduleFullUpdate();
+            //if (item.ScriptRunning)
+                m_part.ParentGroup.AddActiveScriptCount(1);
 
             return true;
         }
@@ -1010,7 +1008,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void AddInventoryItem(string name, TaskInventoryItem item, bool allowedDrop)
         {
             name = FindAvailableInventoryName(name);
-            if (name == String.Empty)
+            if (name.Length == 0)
                 return;
 
             item.ParentID = m_part.UUID;
@@ -1240,10 +1238,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
 
-                if(item.OwnerID == UUID.Zero) // viewer to internal enconding of group owned
+                if(item.OwnerID.IsZero()) // viewer to internal enconding of group owned
                     item.OwnerID = item.GroupID; 
 
-                if (item.AssetID == UUID.Zero)
+                if (item.AssetID.IsZero())
                     item.AssetID = m_items[item.ItemID].AssetID;
 
                 m_items[item.ItemID] = item;
@@ -1422,9 +1420,9 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
                     invString.AddNameValueLine("group_id",groupID.ToString());
-                    if(groupID != UUID.Zero && ownerID == groupID)
+                    if(!groupID.IsZero() && ownerID.Equals(groupID))
                     {
-                        invString.AddNameValueLine("owner_id", UUID.Zero.ToString());
+                        invString.AddNameValueLine("owner_id", UUID.ZeroString);
                         invString.AddNameValueLine("group_owned","1");
                     }
                     else

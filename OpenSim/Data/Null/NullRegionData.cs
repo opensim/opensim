@@ -73,17 +73,12 @@ namespace OpenSim.Data.Null
             if (m_useStaticInstance && Instance != this)
                 return Instance.GetSpecific(regionName, scopeID);
 
-            string cleanName = regionName.ToLower();
-            Matcher queryMatch;
-            queryMatch = delegate (string s) { return s.Equals(cleanName); };
-
-            lock (m_regionData)
+             lock (m_regionData)
             {
                 foreach (RegionData r in m_regionData.Values)
                 {
-                    // m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
-                    if (queryMatch(r.RegionName.ToLower()))
-                        return(r);
+                    if(r.RegionName.Equals(regionName, StringComparison.InvariantCultureIgnoreCase))
+                        return r;
                 }
             }
 
@@ -268,17 +263,19 @@ namespace OpenSim.Data.Null
             return Get((int)RegionFlags.DefaultHGRegion, scopeID);
         }
 
-        public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
+        public List<RegionData> GetFallbackRegions(UUID scopeID)
         {
-            List<RegionData> regions = Get((int)RegionFlags.FallbackRegion, scopeID);
-            RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
-            regions.Sort(distanceComparer);
-            return regions;
+            return Get((int)RegionFlags.FallbackRegion, scopeID);
         }
 
         public List<RegionData> GetHyperlinks(UUID scopeID)
         {
             return Get((int)RegionFlags.Hyperlink, scopeID);
+        }
+
+        public List<RegionData> GetOnlineRegions(UUID scopeID)
+        {
+            return Get((int)RegionFlags.RegionOnline, scopeID);
         }
 
         private List<RegionData> Get(int regionFlags, UUID scopeID)

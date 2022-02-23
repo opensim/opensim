@@ -111,7 +111,7 @@ namespace OpenSim.Data.PGSQL
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
-            if (user == UUID.Zero)
+            if (user.IsZero())
                 return new List<InventoryFolderBase>();
 
             return getInventoryFolders(UUID.Zero, user);
@@ -197,7 +197,7 @@ namespace OpenSim.Data.PGSQL
 
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
 
-            if (parentID == UUID.Zero)
+            if (parentID.IsZero())
                 return folders;
 
             string sql = "SELECT * FROM inventoryfolders WHERE \"parentFolderID\" = :parentID";
@@ -702,7 +702,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
             {
-                if (user == UUID.Zero)
+                if (user.IsZero())
                 {
                     command.Parameters.Add(database.CreateParameter("uuid", "%"));
                 }

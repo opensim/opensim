@@ -182,14 +182,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             lock (m_animations)
             {
-                int j = m_defaultAnimation.AnimID == UUID.Zero ? 0 : 1;
+                int j = m_defaultAnimation.AnimID.IsZero() ? 0 : 1;
 
                 int defaultSize = m_animations.Count + j;
                 animIDs = new UUID[defaultSize];
                 sequenceNums = new int[defaultSize];
                 objectIDs = new UUID[defaultSize];
 
-                if (m_defaultAnimation.AnimID != UUID.Zero)
+                if (!m_defaultAnimation.AnimID.IsZero())
                 {
                     animIDs[0] = m_defaultAnimation.AnimID;
                     sequenceNums[0] = m_defaultAnimation.SequenceNum;

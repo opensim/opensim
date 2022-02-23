@@ -134,7 +134,7 @@ namespace OpenSim.Framework
             }
             set
             {
-                if ((value == null) || (value != null && value == string.Empty))
+                if (string.IsNullOrEmpty(value))
                 {
                     m_creatorData = string.Empty;
                     return;
@@ -416,13 +416,13 @@ namespace OpenSim.Framework
         {
             LLSDxmlEncode2.AddMap(lsl);
                 LLSDxmlEncode2.AddElem_parent_id(Folder, lsl);
-                LLSDxmlEncode2.AddElem("asset_id", AssetID, lsl);
-                LLSDxmlEncode2.AddElem("item_id", ID, lsl);
+                LLSDxmlEncode2.AddElem_asset_id( AssetID, lsl);
+                LLSDxmlEncode2.AddElem_item_id( ID, lsl);
 
                 LLSDxmlEncode2.AddMap("permissions",lsl);
-                    LLSDxmlEncode2.AddElem("creator_id", CreatorIdAsUuid, lsl);
-                    LLSDxmlEncode2.AddElem_owner_id( Owner, lsl);
-                    LLSDxmlEncode2.AddElem("group_id", GroupID, lsl);
+                    LLSDxmlEncode2.AddElem_creator_id(CreatorIdAsUuid, lsl);
+                    LLSDxmlEncode2.AddElem_owner_id(Owner, lsl);
+                    LLSDxmlEncode2.AddElem_group_id(GroupID, lsl);
                     LLSDxmlEncode2.AddElem("base_mask", (int)CurrentPermissions, lsl);
                     LLSDxmlEncode2.AddElem("owner_mask", (int)CurrentPermissions, lsl);
                     LLSDxmlEncode2.AddElem("group_mask", (int)GroupPermissions, lsl);
@@ -435,10 +435,7 @@ namespace OpenSim.Framework
                 LLSDxmlEncode2.AddElem("inv_type", InvType, lsl);
                 LLSDxmlEncode2.AddElem("flags", (int)(Flags & flagsMask), lsl);
 
-                LLSDxmlEncode2.AddMap("sale_info",lsl);
-                    LLSDxmlEncode2.AddElem("sale_price", SalePrice, lsl);
-                    LLSDxmlEncode2.AddElem("sale_type", SaleType, lsl);
-                LLSDxmlEncode2.AddEndMap(lsl);
+                LLSDxmlEncode2.AddElem_sale_info(SalePrice, SaleType, lsl);
 
                 LLSDxmlEncode2.AddElem_name(Name, lsl);
                 LLSDxmlEncode2.AddElem("desc", Description, lsl);

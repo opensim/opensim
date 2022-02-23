@@ -2182,5 +2182,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llGetRegionMoonRotation();
         }
+
+        public LSL_String llChar(LSL_Integer unicode)
+        {
+            return m_LSL_Functions.llChar(unicode);
+        }
+
+        public LSL_Integer llOrd(LSL_String s, LSL_Integer index)
+        {
+            return m_LSL_Functions.llOrd(s, index);
+        }
+
+        public LSL_Integer llHash(LSL_String s)
+        {
+            return m_LSL_Functions.llHash(s);
+        }
     }
 }

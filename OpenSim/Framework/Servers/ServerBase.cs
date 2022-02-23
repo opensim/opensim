@@ -724,7 +724,7 @@ namespace OpenSim.Framework.Servers
                     while ((currentCommand = readFile.ReadLine()) != null)
                     {
                         currentCommand = currentCommand.Trim();
-                        if (!(currentCommand == ""
+                        if (!(currentCommand.Length == 0
                             || currentCommand.StartsWith(";")
                             || currentCommand.StartsWith("//")
                             || currentCommand.StartsWith("#")))
@@ -855,7 +855,7 @@ namespace OpenSim.Framework.Servers
             sb.Append("\n");
             int totalThreads = Process.GetCurrentProcess().Threads.Count;
             if (totalThreads > 0)
-                sb.AppendFormat("Total process threads active: {0}\n\n", totalThreads);
+                sb.AppendFormat("Total process threads: {0}\n\n", totalThreads);
 
             return sb.ToString();
         }

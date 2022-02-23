@@ -102,7 +102,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
             m_userManagementModule = m_scene.RequestModuleInterface<IUserManagement>();
             m_presenceService = m_scene.RequestModuleInterface<IPresenceService>();
 
-            if (m_friendsModule != null && m_userManagementModule != null && m_presenceService != null)
+            if (m_friendsModule != null && ((FriendsModule)m_friendsModule).Scene != null && m_userManagementModule != null && m_presenceService != null)
             {
                 m_scene.AddCommand(
                     "Friends", this, "friends show",
@@ -134,7 +134,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
 //            UserAccount ua
 //                = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, firstName, lastName);
 
-            if (userId == UUID.Zero)
+            if (userId.IsZero())
             {
                 MainConsole.Instance.Output("No such user as {0} {1}", firstName, lastName);
                 return;

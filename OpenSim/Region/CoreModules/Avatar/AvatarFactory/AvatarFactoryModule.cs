@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 Primitive.TextureEntryFace bakedTextureFace = bakedTextures[bakeType];
 
-                if (bakedTextureFace == null || bakedTextureFace.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                if (bakedTextureFace == null || bakedTextureFace.TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                     continue;
 
                 AssetBase asset;
@@ -377,7 +377,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 wearableCache = WearableCacheItem.GetDefaultCacheItem();
             else
             {
-                hadSkirt = (wearableCache[19].TextureID != UUID.Zero);
+                hadSkirt = !wearableCache[19].TextureID.IsZero();
             }
 
             HashSet<uint> updatedFaces = new HashSet<uint>();
@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 wearableCache[idx].TextureAsset = null; // just in case
                 Primitive.TextureEntryFace face = sp.Appearance.Texture.FaceTextures[idx];
 
-                if (face == null || face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                if (face == null || face.TextureID.IsZero() || face.TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                 {
                     wearableCache[idx].CacheId = UUID.Zero;
                     wearableCache[idx].TextureID = UUID.Zero;
@@ -554,7 +554,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         int idx = AvatarAppearance.BAKE_INDICES[i];
                         face = sp.Appearance.Texture.FaceTextures[idx];
 
-                        if(face == null || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                        if(face == null || face.TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                         {
                             wearableCache[idx].CacheId = UUID.Zero;
                             wearableCache[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
@@ -562,8 +562,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             continue;
                         }
 
-                        if (face.TextureID == wearableCache[idx].TextureID &&
-                            face.TextureID != UUID.Zero)
+                        if (face.TextureID.Equals(wearableCache[idx].TextureID) && !face.TextureID.IsZero())
                         {
                             if (cache.Check((wearableCache[idx].TextureID).ToString()))
                             {
@@ -628,7 +627,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     hits++;
                                 }
                                 else if(sp.Appearance.Texture.FaceTextures[idx] == null ||
-                                    sp.Appearance.Texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                                    sp.Appearance.Texture.FaceTextures[idx].TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                                     hits++;
                                 wearableCache[idx].TextureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
                                 wearableCache[idx].CacheId = UUID.Zero;
@@ -679,7 +678,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face == null)
                     continue;
 
-                if (face.TextureID == UUID.Zero || face.TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                if (face.TextureID.IsZero() || face.TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                     continue;
 
                 if (missingTexturesOnly)
@@ -837,7 +836,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     for (int j = 0; j < appearance.Wearables[i].Count; j++)
                     {
-                        if (appearance.Wearables[i][j].ItemID == UUID.Zero)
+                        if (appearance.Wearables[i][j].ItemID.IsZero())
                         {
                             m_log.WarnFormat(
                                 "[AVFACTORY]: Wearable item {0}:{1} for user {2} unexpectedly UUID.Zero.  Ignoring.",
@@ -1058,7 +1057,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private void TryAndRepairBrokenWearable(WearableType type, IInventoryService invService, UUID userID,AvatarAppearance appearance)
         {
             UUID defaultwearable = GetDefaultItem(type);
-            if (defaultwearable != UUID.Zero)
+            if (!defaultwearable.IsZero())
             {
                 UUID newInvItem = UUID.Random();
                 InventoryItemBase itembase = new InventoryItemBase(newInvItem, userID)
