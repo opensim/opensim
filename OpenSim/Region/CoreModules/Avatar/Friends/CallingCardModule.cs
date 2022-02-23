@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (inv == null)
                 return UUID.Zero;
 
-            if (folderID == UUID.Zero)
+            if (folderID.IsZero())
             {
                 InventoryFolderBase folder = inv.GetFolderForType(userID,
                         FolderType.CallingCard);

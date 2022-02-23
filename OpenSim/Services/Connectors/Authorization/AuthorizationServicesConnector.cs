@@ -72,7 +72,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = authorizationConfig.GetString("AuthorizationServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[AUTHORIZATION CONNECTOR]: No Server URI named in section AuthorizationService");
                 throw new Exception("Authorization connector init error");

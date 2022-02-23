@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         public void SendEmail(UUID objectID, string address, string subject, string body)
         {
             //Check if address is empty
-            if (address == string.Empty)
+            if (address.Length == 0)
                 return;
 
             //FIXED:Check the email is correct form in REGEX

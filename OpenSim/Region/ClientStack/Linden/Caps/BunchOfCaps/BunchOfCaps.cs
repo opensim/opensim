@@ -114,7 +114,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private bool m_enableFreeTestUpload = false; // allows "TEST-" prefix hack
         private bool m_ForceFreeTestUpload = false; // forces all uploads to be test
 
-        private bool m_enableModelUploadTextureToInventory = false; // place uploaded textures also in inventory
+        private bool m_enableModelUploadTextureToInventory = true; // place uploaded textures also in inventory
                                                                     // may not be visible till relog
 
         private bool m_RestrictFreeTestUploadPerms = false; // reduces also the permitions. Needs a creator defined!!
@@ -1769,7 +1769,7 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 if (parcelOwner == m_AgentID)
                     showType = 2;
-                else if (landdata.GroupID != UUID.Zero)
+                else if (!landdata.GroupID.IsZero())
                 {
                     ulong powers = sp.ControllingClient.GetGroupPowers(landdata.GroupID);
                     if ((powers & (ulong)(GroupPowers.ReturnGroupOwned | GroupPowers.ReturnGroupSet | GroupPowers.ReturnNonGroup)) != 0)
@@ -2058,7 +2058,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 ulong gpowers = client.GetGroupPowers(land.LandData.GroupID);
                 SceneObjectGroup telehub = null;
-                if (m_Scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+                if (!m_Scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 // Does the telehub exist in the scene?
                     telehub = m_Scene.GetSceneObjectGroup(m_Scene.RegionInfo.RegionSettings.TelehubObject);
 
@@ -2176,7 +2176,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     break;
 
                 groupID = tmp.AsUUID();
-                if(groupID == UUID.Zero)
+                if(groupID.IsZero())
                     break;
 
                 List<GroupRolesData> roles = m_GroupsModule.GroupRoleDataRequest(client, groupID);
@@ -2309,7 +2309,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         fullname = "(hippos)";
                     }
 
-                    if(kvp.Key == UUID.Zero)
+                    if(kvp.Key.IsZero())
                         continue;
 
                 // dont tell about unknown users, we can't send them back on Bad either

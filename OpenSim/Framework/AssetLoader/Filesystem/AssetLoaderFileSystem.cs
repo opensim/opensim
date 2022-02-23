@@ -113,12 +113,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e);
+                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
                 }
             }
             else
             {
-                m_log.ErrorFormat("[ASSETS]: Asset set control file {0} does not exist!  No assets loaded.", assetSetFilename);
+                m_log.ErrorFormat("[ASSETS]: Asset set control file {0} does not exist! No assets loaded.", assetSetFilename);
             }
 
             assets.ForEach(action);
@@ -155,7 +155,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 }
                 catch (XmlException e)
                 {
-                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e);
+                    m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e.Message);
                 }
             }
             else

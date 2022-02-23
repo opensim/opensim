@@ -172,7 +172,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (instance.ScriptTask != null)
             {
-                if (instance.ScriptTask.PermsMask != 0 && instance.ScriptTask.PermsGranter != UUID.Zero)
+                if (instance.ScriptTask.PermsMask != 0 && !instance.ScriptTask.PermsGranter.IsZero())
                 {
                     XmlNode permissions = xmldoc.CreateElement("", "Permissions", "");
                     XmlAttribute granter = xmldoc.CreateAttribute("", "granter", "");
@@ -225,7 +225,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         instance.State=part.InnerText;
                         break;
                     case "Running":
-                        instance.Running=bool.Parse(part.InnerText);
+                        instance.Running = bool.Parse(part.InnerText);
                         break;
                     case "Variables":
                         XmlNodeList varL = part.ChildNodes;
@@ -369,7 +369,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                 {
                                     UUID granter = new UUID();
                                     UUID.TryParse(tmpPerm, out granter);
-                                    if (granter != UUID.Zero)
+                                    if (!granter.IsZero())
                                     {
                                         instance.ScriptTask.PermsMask = mask;
                                         instance.ScriptTask.PermsGranter = granter;

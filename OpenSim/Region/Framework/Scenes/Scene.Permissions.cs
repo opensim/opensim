@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.Framework.Scenes
             DeedObjectHandler handler = OnDeedObject;
             if (handler != null)
             {
-               if(sog == null || client == null || client.SceneAgent == null || targetGroupID == UUID.Zero)
+               if(sog == null || client == null || client.SceneAgent == null || targetGroupID.IsZero())
                     return false;
 
                 ScenePresence sp = client.SceneAgent as ScenePresence;

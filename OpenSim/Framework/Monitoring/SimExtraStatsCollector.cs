@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Monitoring
         public void ReceiveClassicSimStatsPacket(SimStats stats)
         {
             UUID id = stats.RegionUUID;
-            if (id != UUID.Zero)
+            if (!id.IsZero())
             {
                 if(ReceivedStats.Count == 0)
                     firstReceivedRegion = id;
@@ -234,6 +234,7 @@ namespace OpenSim.Framework.Monitoring
                 args["GeoPrims"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.TotalGeoPrim]));
                 args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.TotalMesh]));
                 args["Script Engine Thread Count"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.ScriptEngineThreadCount]));
+                args["RegionName"] = sdata.RegionName;
             }
             else
                 args["Error"] = "No Region data";
@@ -246,7 +247,6 @@ namespace OpenSim.Framework.Monitoring
             args["Memory"] = OSD.FromString(base.XReport(uptime, version));
             args["Uptime"] = OSD.FromString(uptime);
             args["Version"] = OSD.FromString(version);
-            args["RegionName"] = sdata.RegionName;
 
             return args;
         }

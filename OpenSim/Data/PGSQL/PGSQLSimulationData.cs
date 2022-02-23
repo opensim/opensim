@@ -148,7 +148,7 @@ namespace OpenSim.Data.PGSQL
                             // this case, force the UUID to be the same as the group UUID so that at least these can be
                             // deleted (we need to change the UUID so that any other prims in the linkset can also be
                             // deleted).
-                            if (sceneObjectPart.UUID != groupID && groupID != UUID.Zero)
+                            if (!groupID.IsZero() && sceneObjectPart.UUID.NotEqual(groupID))
                             {
                                 _Log.WarnFormat(
                                     "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID",
@@ -1314,10 +1314,10 @@ namespace OpenSim.Data.PGSQL
 
             prim.Sound = new UUID((Guid)primRow["LoopedSound"]);
             prim.SoundGain = Convert.ToSingle(primRow["LoopedSoundGain"]);
-            if (prim.Sound != UUID.Zero)
-                prim.SoundFlags = 1; // If it's persisted at all, it's looped
-            else
+            if (prim.Sound.IsZero())
                 prim.SoundFlags = 0;
+            else
+                prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
             if (!(primRow["TextureAnimation"] is DBNull))
                 prim.TextureAnimation = (Byte[])primRow["TextureAnimation"];

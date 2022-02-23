@@ -175,7 +175,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             foreach (RegionInfo region in regions)
             {
-                if (region.RegionID == UUID.Zero)
+                if (region.RegionID.IsZero())
                 {
                     m_log.ErrorFormat(
                         "[LOAD REGIONS PLUGIN]: Region {0} has invalid UUID {1}",

@@ -715,7 +715,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool HasGroupAccess(UUID avatar)
         {
-            if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            if (!LandData.GroupID.IsZero() && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
             {
                 if (m_groupMemberCache.TryGetValue(avatar, out bool isMember))
                 {
@@ -850,10 +850,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             UUID owner = npccli.Owner;
 
-            if(owner == UUID.Zero)
+            if(owner.IsZero())
                 return true;
 
-            if (owner == LandData.OwnerID)
+            if (owner.Equals(LandData.OwnerID))
                 return false;
 
             return !IsInLandAccessList(owner);
@@ -1043,7 +1043,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         parcelAccessList.Remove(entry);
 
                     // a delete all command ?
-                    if (entries.Count == 1 && entries[0].AgentID == UUID.Zero)
+                    if (entries.Count == 1 && entries[0].AgentID.IsZero())
                     {
                         LandData.ParcelAccessList = parcelAccessList;
                         if ((flags & (uint)AccessList.Access) != 0)
@@ -1635,16 +1635,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             if (obj.LocalId > 0)
                             {
-                                if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == LandData.OwnerID)
+                                if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID.Equals(LandData.OwnerID))
                                 {
                                     resultLocalIDs.Add(obj.LocalId);
                                 }
-                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_GROUP && obj.GroupID == LandData.GroupID && LandData.GroupID != UUID.Zero)
+                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_GROUP && obj.GroupID.Equals(LandData.GroupID) && !LandData.GroupID.IsZero())
                                 {
                                     resultLocalIDs.Add(obj.LocalId);
                                 }
-                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
-                                         obj.OwnerID != remote_client.AgentId)
+                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER && obj.OwnerID.NotEqual(remote_client.AgentId))
                                 {
                                     resultLocalIDs.Add(obj.LocalId);
                                 }
@@ -1818,7 +1817,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                     }
                 }
-                else if (type == (uint)ObjectReturnType.Group && LandData.GroupID != UUID.Zero)
+                else if (type == (uint)ObjectReturnType.Group && !LandData.GroupID.IsZero())
                 {
                     foreach (SceneObjectGroup obj in primsOverMe)
                     {
@@ -1839,11 +1838,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (obj.OwnerID != LandData.OwnerID &&
                             (obj.GroupID != LandData.GroupID ||
-                            LandData.GroupID == UUID.Zero))
+                            LandData.GroupID.IsZero()))
                         {
                             if (!returns.ContainsKey(obj.OwnerID))
-                                returns[obj.OwnerID] =
-                                        new List<SceneObjectGroup>();
+                                returns[obj.OwnerID] = new List<SceneObjectGroup>();
                             returns[obj.OwnerID].Add(obj);
                         }
                     }

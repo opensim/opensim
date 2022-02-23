@@ -147,26 +147,56 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             return (a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z);
         }
 
-        public static Quaternion slerp(Quaternion a, Quaternion b, float interp)
+        public static Quaternion slerp(Quaternion q1, Quaternion q2, float amount)
         {
-            if (dot(a, b) < 0.0)
+            float angle = (q1.x * q2.x) + (q1.y * q2.y) + (q1.z * q2.z) + (q1.w * q2.w);
+
+            if (angle < 0f)
             {
-                a.w = -a.w;
-                a.x = -a.x;
-                a.y = -a.y;
-                a.z = -a.z;
+                q1.x = -q1.x;
+                q1.y = -q1.y;
+                q1.z = -q1.z;
+                q1.w = -q1.w;
+                angle = -angle;
             }
-            float d = dot(a, b);
-            if (d >= 1.0)
+
+            float scale;
+            float invscale;
+
+            if ((angle + 1.0) > 0.0005)
             {
-                return a;
+                if ((1f - angle) >= 0.0005)
+                {
+                    // slerp
+                    float theta = (float)Math.Acos(angle);
+                    float invsintheta = 1.0f / (float)Math.Sin(theta);
+                    scale = (float)Math.Sin(theta * (1.0 - amount)) * invsintheta;
+                    invscale = (float)Math.Sin(theta * amount) * invsintheta;
+                }
+                else
+                {
+                    // lerp
+                    scale = 1.0f - amount;
+                    invscale = amount;
+                }
             }
-            float theta = (float)Math.Acos(d);
-            if (theta == 0.0f)
+            else
             {
-                return (a);
+                q2.x = -q1.y;
+                q2.y = q1.x;
+                q2.z = -q1.w;
+                q2.w = q1.z;
+
+                scale = (float)Math.Sin(Math.PI * (0.5f - amount));
+                invscale = (float)Math.Sin(Math.PI * amount);
             }
-            return a * ((float)Math.Sin(theta - interp * theta) / (float)Math.Sin(theta)) + b * ((float)Math.Sin(interp * theta) / (float)Math.Sin(theta));
+
+            return new Quaternion(
+                q1.x * scale + q2.x * invscale,
+                q1.y * scale + q2.y * invscale,
+                q1.z * scale + q2.z * invscale,
+                q1.w * scale + q2.w * invscale
+                );
         }
 
         public static Quaternion Interpolate(Quaternion q0, Quaternion q1, float alpha)

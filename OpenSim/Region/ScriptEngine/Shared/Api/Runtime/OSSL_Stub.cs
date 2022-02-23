@@ -493,7 +493,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osMessageObject(objectUUID,message);
         }
 
-        public void osMakeNotecard(string notecardName, LSL_Types.list contents)
+        public void osMakeNotecard(string notecardName, LSL_String contents)
+        {
+            m_OSSL_Functions.osMakeNotecard(notecardName, contents);
+        }
+
+        public void osMakeNotecard(string notecardName, LSL_List contents)
         {
             m_OSSL_Functions.osMakeNotecard(notecardName, contents);
         }
@@ -1172,12 +1177,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osRegexIsMatch(input, pattern);
         }
 
-        public LSL_String osRequestURL(LSL_List options)
+        public LSL_Key osRequestURL(LSL_List options)
         {
             return m_OSSL_Functions.osRequestURL(options);
         }
 
-        public LSL_String osRequestSecureURL(LSL_List options)
+        public LSL_Key osRequestSecureURL(LSL_List options)
         {
             return m_OSSL_Functions.osRequestSecureURL(options);
         }
@@ -1212,9 +1217,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osSetInertiaAsSphere(mass, radius, centerOfMass);
         }
 
-        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float lenght, vector centerOfMass,rotation lslrot)
+        public void osSetInertiaAsCylinder(LSL_Float mass,  LSL_Float radius, LSL_Float length, vector centerOfMass,rotation lslrot)
         {
-            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, lenght, centerOfMass, lslrot);
+            m_OSSL_Functions.osSetInertiaAsCylinder( mass, radius, length, centerOfMass, lslrot);
         }
 
         public void osClearInertia()

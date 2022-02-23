@@ -232,6 +232,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 string physics = config.GetString("physics", string.Empty);
                 if (physics == Name)
                 {
+                    string mesher = config.GetString("meshing", string.Empty);
+                    if (string.IsNullOrEmpty(mesher) || !mesher.Equals("Meshmerizer"))
+                    {
+                        m_log.Error("[BulletSim] Opensim.ini meshing option must be set to \"Meshmerizer\"");
+                        throw new Exception("Invalid physics meshing option");
+                    }
+
                     m_Enabled = true;
                     m_Config = source;
                 }

@@ -200,7 +200,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         //default location
                         XmlNode tpLocation = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
                         Vector3 loc = parcel.UserLocation;
-                        if (loc.Equals(Vector3.Zero)) // This test is moot at this point: the location is wrong by default
+                        if (loc.IsZero()) // This test is moot at this point: the location is wrong by default
                             loc = new Vector3((parcel.AABBMax.X + parcel.AABBMin.X) / 2, (parcel.AABBMax.Y + parcel.AABBMin.Y) / 2, (parcel.AABBMax.Z + parcel.AABBMin.Z) / 2);
                         tpLocation.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
                         xmlparcel.AppendChild(tpLocation);
@@ -222,7 +222,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         //TODO: figure how to figure out teleport system landData.landingType
 
                         //land texture snapshot uuid
-                        if (parcel.SnapshotID != UUID.Zero)
+                        if (!parcel.SnapshotID.IsZero())
                         {
                             XmlNode textureuuid = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
                             textureuuid.InnerText = parcel.SnapshotID.ToString();
@@ -232,7 +232,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         string groupName = String.Empty;
 
                         //attached user and group
-                        if (parcel.GroupID != UUID.Zero)
+                        if (!parcel.GroupID.IsZero())
                         {
                             XmlNode groupblock = nodeFactory.CreateNode(XmlNodeType.Element, "group", "");
                             XmlNode groupuuid = nodeFactory.CreateNode(XmlNodeType.Element, "groupuuid", "");

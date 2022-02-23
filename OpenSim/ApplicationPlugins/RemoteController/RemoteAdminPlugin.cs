@@ -2873,7 +2873,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             for (int i = 0; i<wearables.Length; i++)
             {
                 wearable = wearables[i];
-                if (wearable[0].ItemID != UUID.Zero)
+                if (!wearable[0].ItemID.IsZero())
                 {
                     // Get inventory item and copy it
                     InventoryItemBase item = inventoryService.GetItem(source, wearable[0].ItemID);
@@ -2926,7 +2926,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 int attachpoint = attachment.AttachPoint;
                 UUID itemID = attachment.ItemID;
 
-                if (itemID != UUID.Zero)
+                if (!itemID.IsZero())
                 {
                     // Get inventory item and copy it
                     InventoryItemBase item = inventoryService.GetItem(source, itemID);

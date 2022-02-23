@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
                 result = this.parseParameters(args, out data);
 
                 // Context-specific validation
-                if (result == String.Empty)
+                if (result.Length == 0)
                 {
                     if (data.bevel == "taper")
                     {
@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
                         result = String.Format("Smoothing strength must be 0.0 to 1.0: {0}", data.elevation);
                     }
 
-                    if (data.shape == String.Empty)
+                    if (data.shape.Length == 0)
                     {
                         data.shape = "rectangle";
                         data.x0 = 0;
@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.Modifiers
                 }
 
                 // if it's all good, then do the work
-                if (result == String.Empty)
+                if (result.Length == 0)
                 {
                     this.applyModification(map, data);
                 }

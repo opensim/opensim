@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool StatePersistedHere { get { return m_AttachedAvatar == UUID.Zero; } }
+        public bool StatePersistedHere { get { return m_AttachedAvatar.IsZero(); } }
 
         /// <summary>
         /// The current work item if an event for this script is running or waiting to run,
@@ -264,9 +264,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             ExecutionTime = new MetricsCollectorTime(MeasurementWindow, 10);
 
-//            m_log.DebugFormat(
-//                "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
-//                ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, m_AttachedAvatar, Engine.World.Name);
+            //m_log.DebugFormat(
+            //    "[SCRIPT INSTANCE]: Instantiated script instance {0} (id {1}) in part {2} (id {3}) in object {4} attached avatar {5} in {6}",
+            //    ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, m_AttachedAvatar, Engine.World.Name);
         }
 
         /// <summary>
@@ -351,8 +351,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                                                LocalID, ItemID, ObjectID,
                                                                PluginData);
 
-                            // m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
-
+                            //m_log.DebugFormat("[Script] Successfully retrieved state for script {0}.{1}", PrimName, m_ScriptName);
 
                             if (!Running)
                                 m_startOnInit = false;
@@ -372,12 +371,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         if (!StatePersistedHere)
                             RemoveState();
                     }
-                    //                    else
-                    //                    {
-                    //                        m_log.WarnFormat(
-                    //                            "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
-                    //                            ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
-                    //                    }
+                    //else
+                    //{
+                    //    m_log.WarnFormat(
+                    //       "[SCRIPT INSTANCE]: Not starting script {0} (id {1}) in part {2} (id {3}) in object {4} in {5}.  Unable to load script state file {6}.  Memory limit exceeded.",
+                    //       ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState);
+                    //}
                 }
                 catch (Exception e)
                 {
@@ -386,12 +385,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         ScriptTask.Name, ScriptTask.ItemID, Part.Name, Part.UUID, Part.ParentGroup.Name, Engine.World.Name, savedState, xml, e.Message, e.StackTrace);
                 }
             }
-            //            else
-            //            {
-            //                m_log.DebugFormat(
-            //                    "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
-            //                    ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
-            //            }
+            //else
+            //{
+            //    m_log.DebugFormat(
+            //       "[SCRIPT INSTANCE]: Did not find state for script {0} for {1} ({2}) at {3} in {4}",
+            //           ItemID, savedState, Part.Name, Part.ParentGroup.Name, Part.ParentGroup.Scene.Name);
+            //}
             try
             {
                 Part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
@@ -409,44 +408,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (ShuttingDown)
                 return;
 
+            if (m_startOnInit)
+                Start();
+
             if (m_startedFromSavedState)
             {
-                if (m_startOnInit)
-                    Start();
                 if (m_postOnRez)
                 {
                     PostEvent(new EventParams("on_rez",
                         new Object[] {new LSL_Types.LSLInteger(StartParam)}, new DetectParams[0]));
                 }
-                if (m_stateSource == StateSource.AttachedRez)
+                switch(m_stateSource)
                 {
-                    PostEvent(new EventParams("attach",
-                        new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
-                }
-                else if (m_stateSource == StateSource.RegionStart)
-                {
+                    case StateSource.AttachedRez:
+                        PostEvent(new EventParams("attach",
+                            new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
+                        break;
+                    case StateSource.RegionStart:
                     //m_log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
-                    PostEvent(new EventParams("changed",
-                        new Object[] { new LSL_Types.LSLInteger((int)Changed.REGION_RESTART) }, new DetectParams[0]));
-                }
-                else if (m_stateSource == StateSource.PrimCrossing || m_stateSource == StateSource.Teleporting)
-                {
-                    // CHANGED_REGION
-                    PostEvent(new EventParams("changed",
-                        new Object[] { new LSL_Types.LSLInteger((int)Changed.REGION) }, new DetectParams[0]));
-
-                    // CHANGED_TELEPORT
-                    if (m_stateSource == StateSource.Teleporting)
                         PostEvent(new EventParams("changed",
-                            new Object[] { new LSL_Types.LSLInteger((int)Changed.TELEPORT) }, new DetectParams[0]));
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION_RESTART)}, new DetectParams[0]));
+                        break;
+                    case StateSource.PrimCrossing:
+                        PostEvent(new EventParams("changed",
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION)}, new DetectParams[0]));
+                        break;
+                    case StateSource.Teleporting:
+                        PostEvent(new EventParams("changed",
+                            new Object[] {new LSL_Types.LSLInteger((int)Changed.REGION | (int)Changed.TELEPORT) }, new DetectParams[0]));
+                        break;
                 }
             }
             else
             {
-                if (m_startOnInit)
-                    Start();
-                PostEvent(new EventParams("state_entry",
-                                          new Object[0], new DetectParams[0]));
+                if(Running & ScriptTask.ScriptRunning)
+                    PostEvent(EventParams.StateEntryParams);
+                else
+                    QueueEvent(EventParams.StateEntryParams);
+
                 if (m_postOnRez)
                 {
                     PostEvent(new EventParams("on_rez",
@@ -679,8 +678,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                            new DetectParams[0]));
                 PostEvent(new EventParams("state", new Object[] { state },
                                            new DetectParams[0]));
-                PostEvent(new EventParams("state_entry", new Object[0],
-                                           new DetectParams[0]));
+                PostEvent(EventParams.StateEntryParams);
 
                 // Requeue the timer event after the state changing events
                 if (lastTimerEv != null) EventQueue.Enqueue(lastTimerEv);
@@ -691,6 +689,58 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             }
 
             throw new EventAbortException();
+        }
+
+        public void QueueEvent(EventParams data)
+        {
+            lock (EventQueue)
+            {
+                // The only events that persist across state changes are timers
+                if (m_StateChangeInProgress && data.EventName != "timer")
+                    return;
+                if (EventQueue.Count >= m_MaxScriptQueue)
+                    return;
+                if (data.EventName == "timer")
+                {
+                    if (m_TimerQueued)
+                        return;
+                    m_TimerQueued = true;
+                }
+                if (data.EventName == "control")
+                {
+                    int held = ((LSL_Types.LSLInteger)data.Params[1]).value;
+                    // int changed = ((LSL_Types.LSLInteger)data.Params[2]).value;
+
+                    // If the last message was a 0 (nothing held)
+                    // and this one is also nothing held, drop it
+                    //
+                    if (m_LastControlLevel == held && held == 0)
+                        return;
+
+                    // If there is one or more queued, then queue
+                    // only changed ones, else queue unconditionally
+                    //
+                    if (m_ControlEventsInQueue > 0)
+                    {
+                        if (m_LastControlLevel == held)
+                            return;
+                    }
+
+                    m_LastControlLevel = held;
+                    m_ControlEventsInQueue++;
+                }
+
+                if (data.EventName == "collision")
+                {
+                    if (m_CollisionInQueue)
+                        return;
+                    if (data.DetectParams == null)
+                        return;
+
+                    m_CollisionInQueue = true;
+                }
+                EventQueue.Enqueue(data);
+            }
         }
 
         /// <summary>
@@ -1091,13 +1141,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             part.CollisionSound = UUID.Zero;
             part.RemoveScriptTargets(ItemID);
             part.SetScriptEvents(ItemID, m_Script.GetStateEventFlags(State));
-            if (running)
+            if (running & ScriptTask.ScriptRunning)
+            {
                 Start();
-
+                PostEvent(EventParams.StateEntryParams);
+            }
+            else
+                QueueEvent(EventParams.StateEntryParams);
             m_SaveState = StatePersistedHere;
-
-            PostEvent(new EventParams("state_entry",
-                    new Object[0], new DetectParams[0]));
         }
 
         [DebuggerNonUserCode] //Stops the VS debugger from farting in this function
@@ -1128,8 +1179,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (m_CurrentEvent != "state_entry" || oldState != "default")
             {
                 m_SaveState = StatePersistedHere;
-                PostEvent(new EventParams("state_entry",
-                        new Object[0], new DetectParams[0]));
+                PostEvent(EventParams.StateEntryParams);
                 throw new EventAbortException();
             }
         }

@@ -430,7 +430,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
                         inventoryFolder.Name,
                         inventoryFolder.ID,
-                        m_invPath == String.Empty ? InventoryFolderImpl.PATH_DELIMITER : m_invPath);
+                        m_invPath.Length == 0 ? InventoryFolderImpl.PATH_DELIMITER : m_invPath);
 
                     //recurse through all dirs getting dirs and files
                     SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !saveFolderContentsOnly, options, userAccountService);

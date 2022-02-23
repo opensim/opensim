@@ -122,7 +122,7 @@ namespace OpenSim.Framework
         {
             m_agentCircuitsByUUID.TryRemove(ac.AgentID, out AgentCircuitData dummy);
             m_agentCircuits.TryRemove(ac.circuitcode, out AgentCircuitData dummyb);
-            if (dummy.circuitcode != ac.circuitcode) //??
+            if (dummy!= null && dummy.circuitcode != ac.circuitcode) //??
                 m_agentCircuits.TryRemove(dummy.circuitcode, out AgentCircuitData dummyc);
         }
 

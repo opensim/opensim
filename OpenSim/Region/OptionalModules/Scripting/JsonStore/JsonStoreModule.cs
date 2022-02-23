@@ -250,7 +250,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         public bool CreateStore(string value, ref UUID result)
         {
-            if (result == UUID.Zero)
+            if (result.IsZero())
                 result = UUID.Random();
 
             JsonStore map = null;

@@ -240,7 +240,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 case "QUERYACCESS":
                 {
-                    if (agentID == UUID.Zero || regionID == UUID.Zero)
+                    if (agentID.IsZero() || regionID.IsZero())
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                         httpResponse.RawBuffer = Utils.falseStrBytes;
@@ -271,7 +271,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
                 case "POST":
                 {
-                    if (agentID == UUID.Zero)
+                    if (agentID.IsZero())
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                         httpResponse.RawBuffer = Utils.falseStrBytes;
@@ -289,7 +289,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
                 case "DELETE":
                 {
-                    if (agentID == UUID.Zero || regionID == UUID.Zero)
+                    if (agentID.IsZero() || regionID.IsZero())
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                         httpResponse.RawBuffer = Utils.falseStrBytes;

@@ -540,7 +540,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OqrEngine = new JobEngine(
                     string.Format("Outgoing Queue Refill Engine ({0})", Scene.Name),
-                    "OUTGOING QUEUE REFILL ENGINE", 2000);
+                    "OutQueueRefillEng", 4500);
 
             StatsManager.RegisterStat(
                 new Stat(
@@ -1241,15 +1241,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return; // Drop undersized packet
             }
 
+            int bufferDataptr = buffer.Data[5] + 6;
             int headerLen = 7;
-            if (buffer.Data[6] == 0xFF)
+            if (buffer.Data[bufferDataptr] == 0xFF)
             {
-                if (buffer.Data[7] == 0xFF)
+                if (buffer.Data[bufferDataptr + 1] == 0xFF)
                     headerLen = 10;
                 else
                     headerLen = 8;
             }
 
+            headerLen += buffer.Data[5];
             if (bufferLen < headerLen)
             {
 //                m_log.WarnFormat(
@@ -1272,8 +1274,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     zerodecodebuffer = zerodecodebufferholder.Data;
                 }
 
-                int packetEnd = bufferLen - 1;
-                packet = Packet.BuildPacket(buffer.Data, ref packetEnd, zerodecodebuffer);
+                packet = Packet.BuildPacket(buffer.Data, ref bufferLen, zerodecodebuffer);
                 if(zerodecodebufferholder != null)
                     FreeUDPBuffer(zerodecodebufferholder);
             }

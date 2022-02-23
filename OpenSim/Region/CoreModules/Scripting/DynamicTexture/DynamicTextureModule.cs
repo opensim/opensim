@@ -538,7 +538,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 UUID oldID = UpdatePart(part, asset.FullID);
 
-                if (oldID != UUID.Zero && ((Disp & DISP_EXPIRE) != 0))
+                if (!oldID.IsZero() && ((Disp & DISP_EXPIRE) != 0))
                 {
                     if (oldAsset == null)
                         oldAsset = scene.AssetService.Get(oldID.ToString());

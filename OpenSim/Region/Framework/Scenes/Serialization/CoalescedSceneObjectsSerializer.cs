@@ -132,6 +132,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Quickly check if this is a coalesced object, without fully parsing the XML
                 using (XmlTextReader reader = new XmlTextReader(new StringReader(xml)))
                 {
+                    reader.DtdProcessing = DtdProcessing.Ignore;
                     reader.MoveToContent(); // skip possible xml declaration
 
                     if (reader.Name != "CoalescedObject")
@@ -196,22 +197,27 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     return false;
                 if (data[len - 1] == 0)
                     --len;
+
+                MemoryStream ms;
+                XmlDocument doc;
                 // Quickly check if this is a coalesced object, without fully parsing the XML
-                MemoryStream ms = new MemoryStream(data, 0, len, false);
-                StreamReader sr = new StreamReader(ms, Encoding.UTF8);
-                using (XmlTextReader reader = new XmlTextReader(sr))
-                {
-                    reader.MoveToContent(); // skip possible xml declaration
-
-                    if (reader.Name != "CoalescedObject")
-                    {
-                        return false;
-                    }
-                }
-
-                XmlDocument doc = new XmlDocument();
                 using (ms = new MemoryStream(data, 0, len, false))
+                {
+                    using(StreamReader sr = new StreamReader(ms, Encoding.UTF8))
+                    {
+                        using (XmlTextReader reader = new XmlTextReader(sr))
+                        {
+                            reader.DtdProcessing = DtdProcessing.Ignore;
+                            reader.MoveToContent(); // skip possible xml declaration
+                            if (reader.Name != "CoalescedObject")
+                                return false;
+                        }
+                    }
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    doc = new XmlDocument();
                     doc.Load(ms);
+                }
 
                 XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
                 if (e == null)

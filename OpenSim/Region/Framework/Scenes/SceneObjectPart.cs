@@ -158,10 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // assume SitTargetOrientation is normalized (as needed elsewhere)
-                if( SitTargetPosition != Vector3.Zero ||
-                    SitTargetOrientation.X != 0f ||
-                    SitTargetOrientation.Y != 0f ||
-                    SitTargetOrientation.Z != 0f)
+                if( !SitTargetPosition.IsZero() || !SitTargetOrientation.IsIdentityOrZero())
                     return true;
                 return false;
             }
@@ -232,7 +229,8 @@ namespace OpenSim.Region.Framework.Scenes
         [XmlIgnore]
         public int STATUS_ROTATE_Z;  // this should not be used
 
-        private Dictionary<int, string> m_CollisionFilter = new Dictionary<int, string>();
+        private int m_CollisionFilterType = 0; // -1 not in use, 0 accept false, 1 accept true
+        private string m_CollisionFilterString = string.Empty;
 
         /// <value>
         /// The UUID of the user inventory item from which this object was rezzed if this is a root part.
@@ -533,7 +531,7 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 CreatorData = string.Empty;
-                if ((value == null) || (value != null && value == string.Empty))
+                if (string.IsNullOrEmpty(value))
                     return;
 
                 // value is uuid  or uuid;homeuri;firstname lastname
@@ -680,15 +678,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_isSelected = value;
                 if (ParentGroup != null)
                     ParentGroup.PartSelectChanged(value);
-            }
-        }
-
-        public Dictionary<int, string> CollisionFilter
-        {
-            get { return m_CollisionFilter; }
-            set
-            {
-                m_CollisionFilter = value;
             }
         }
 
@@ -1519,7 +1508,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (value == invalidCollisionSoundUUID)
                     m_collisionSoundType = -1;
-                else if (value == UUID.Zero)
+                else if (value.IsZero())
                     m_collisionSoundType = 0;
                 else
                     m_collisionSoundType = 1;
@@ -2690,24 +2679,67 @@ namespace OpenSim.Region.Framework.Scenes
         {
         }
 
+        public void SetCollisionFilter(bool access, string name, string id)
+        {
+            if(string.IsNullOrEmpty(id))
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    m_CollisionFilterString = string.Empty;
+                    m_CollisionFilterType = access ? 0 : -1;
+                }
+                else
+                {
+                    m_CollisionFilterString = name;
+                    m_CollisionFilterType = access ? 11 : 1;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    m_CollisionFilterString = id;
+                    m_CollisionFilterType = access ? 12 : 2;
+                }
+                else
+                {
+                    m_CollisionFilterString = name + id;
+                    m_CollisionFilterType = access ? 13 : 3;
+                }
+            }
+        }
+
+        public void ClearCollisionFilter()
+        {
+            m_CollisionFilterType = 0;
+            m_CollisionFilterString = string.Empty;
+        }
+
         public bool CollisionFilteredOut(UUID objectID, string objectName)
         {
-            if(CollisionFilter.Count == 0)
-                return false;
-
-            if (CollisionFilter.ContainsValue(objectID.ToString()) ||
-                CollisionFilter.ContainsValue(objectID.ToString() + objectName) ||
-                CollisionFilter.ContainsValue(UUID.Zero.ToString() + objectName))
+            switch(m_CollisionFilterType)
             {
-                if (CollisionFilter.ContainsKey(1))
+                case 0: // not set
                     return false;
-                return true;
+                case -1: // disable all
+                    return true;
+
+                case 1: // false by name
+                    return m_CollisionFilterString.Equals(objectName, StringComparison.InvariantCultureIgnoreCase);
+                case 2: // false by id 
+                    return m_CollisionFilterString.Equals(objectID.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                case 3: // false by name and id 
+                    return m_CollisionFilterString.Equals(objectName + objectID.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                case 11: // true by name
+                    return !m_CollisionFilterString.Equals(objectName, StringComparison.InvariantCultureIgnoreCase);
+                case 12: // true by id
+                    return !m_CollisionFilterString.Equals(objectID.ToString(), StringComparison.InvariantCultureIgnoreCase);
+                case 13: // true by name and id
+                    return !m_CollisionFilterString.Equals(objectName + objectID.ToString(), StringComparison.InvariantCultureIgnoreCase);
+
+                default:
+                    return false;
             }
-
-            if (CollisionFilter.ContainsKey(1))
-                return true;
-
-            return false;
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -2744,7 +2776,7 @@ namespace OpenSim.Region.Framework.Scenes
             };
             if(av.IsSatOnObject)
                 detobj.colliderType |= 0x4; //passive
-            else if(detobj.velVector != Vector3.Zero)
+            else if(!detobj.velVector.IsZero())
                 detobj.colliderType |= 0x2; //active
             return detobj;
         }
@@ -2997,7 +3029,7 @@ namespace OpenSim.Region.Framework.Scenes
         // The Collision sounds code calls this
         public void SendCollisionSound(UUID soundID, double volume, Vector3 position)
         {
-            if (soundID == UUID.Zero)
+            if (soundID.IsZero())
                 return;
 
             ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
@@ -3166,9 +3198,9 @@ namespace OpenSim.Region.Framework.Scenes
                     minsize = ParentGroup.Scene.m_minPhys;
                     maxsize = ParentGroup.Scene.m_maxPhys;
                     }
-                scale.X = Util.Clamp(scale.X, minsize, maxsize);
-                scale.Y = Util.Clamp(scale.Y, minsize, maxsize);
-                scale.Z = Util.Clamp(scale.Z, minsize, maxsize);
+                scale.X = Utils.Clamp(scale.X, minsize, maxsize);
+                scale.Y = Utils.Clamp(scale.Y, minsize, maxsize);
+                scale.Z = Utils.Clamp(scale.Z, minsize, maxsize);
             }
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
 
@@ -3450,9 +3482,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private const float ROTATION_TOLERANCE = 0.01f;
+        private const float ROTATION_TOLERANCE = 0.002f;
         private const float VELOCITY_TOLERANCE = 0.1f;
-        private const float ANGVELOCITY_TOLERANCE = 0.005f;
+        private const float ANGVELOCITY_TOLERANCE = 0.002f;
         private const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
         private const double TIME_MS_TOLERANCE = 250.0; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
 
@@ -3991,7 +4023,7 @@ namespace OpenSim.Region.Framework.Scenes
             ProfileShape ps = (ProfileShape)(Shape.ProfileCurve & 0x07);
             if (ps == ProfileShape.Square)
             {
-                if (Shape.PathCurve == (byte)Extrusion.Straight)
+                if (Shape.PathCurve == (byte)Extrusion.Straight || Shape.PathCurve == (byte)Extrusion.Flexible)
                     return PrimType.BOX;
                 else if (Shape.PathCurve == (byte)Extrusion.Curve1)
                     return PrimType.TUBE;
@@ -5591,7 +5623,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (IsSitTargetSet && SitTargetAvatar == UUID.Zero)
+                if (IsSitTargetSet && SitTargetAvatar.IsZero())
                     SitTargetAvatar = sp.UUID;
 
                 if (m_sittingAvatars == null)
@@ -5727,7 +5759,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool AddAnimation(UUID animId, string animName)
         {
-            if (animId == UUID.Zero || string.IsNullOrEmpty(animName) ||
+            if (animId.IsZero() || string.IsNullOrEmpty(animName) ||
                     ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
@@ -5750,7 +5782,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool RemoveAnimation(UUID animId)
         {
-            if (animId == UUID.Zero || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
+            if (animId.IsZero() || ParentGroup == null || ParentGroup.IsDeleted || ParentGroup.inTransit)
                 return false;
 
             lock (animsLock)
@@ -5909,7 +5941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 while(--count >= 0)
                 {
                     UUID id = new UUID(data, pos);
-                    if(id == UUID.Zero)
+                    if(id.IsZero())
                         break;
                     pos += 16;
                     int strlen = data[pos++];

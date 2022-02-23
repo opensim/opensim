@@ -63,7 +63,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
                 bool allowRegionless = startupConfig.GetBoolean("allow_regionless", false);
 
-                if (url == String.Empty)
+                if (url.Length == 0)
                 {
                     m_log.Error("[WEBLOADER]: Unable to load webserver URL - URL was empty.");
                     return null;
@@ -80,16 +80,18 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                         try
                         {
-                            HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse();
-                            m_log.Debug("[WEBLOADER]: Downloading region information...");
-                            StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                             string xmlSource = String.Empty;
-                            string tempStr = reader.ReadLine();
-                            while (tempStr != null)
+                            m_log.Debug("[WEBLOADER]: Downloading region information...");
+                            using (HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse())
+                            using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
                             {
-                                xmlSource = xmlSource + tempStr;
-                                tempStr = reader.ReadLine();
+                                string tempStr;
+                                while ((tempStr = reader.ReadLine()) != null)
+                                {
+                                    xmlSource += tempStr;
+                                }
                             }
+
                             m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
                                         xmlSource.Length);
                             XmlDocument xmlDoc = new XmlDocument();

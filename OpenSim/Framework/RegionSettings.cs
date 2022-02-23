@@ -227,7 +227,7 @@ namespace OpenSim.Framework
             get { return m_TerrainTexture1; }
             set
             {
-                if (value == UUID.Zero)
+                if (value.IsZero())
                     m_TerrainTexture1 = DEFAULT_TERRAIN_TEXTURE_1;
                 else
                     m_TerrainTexture1 = value;
@@ -241,7 +241,7 @@ namespace OpenSim.Framework
             get { return m_TerrainTexture2; }
             set
             {
-                if (value == UUID.Zero)
+                if (value.IsZero())
                     m_TerrainTexture2 = DEFAULT_TERRAIN_TEXTURE_2;
                 else
                     m_TerrainTexture2 = value;
@@ -255,7 +255,7 @@ namespace OpenSim.Framework
             get { return m_TerrainTexture3; }
             set
             {
-                if (value == UUID.Zero)
+                if (value.IsZero())
                     m_TerrainTexture3 = DEFAULT_TERRAIN_TEXTURE_3;
                 else
                     m_TerrainTexture3 = value;
@@ -269,7 +269,7 @@ namespace OpenSim.Framework
             get { return m_TerrainTexture4; }
             set
             {
-                if (value == UUID.Zero)
+                if (value.IsZero())
                     m_TerrainTexture4 = DEFAULT_TERRAIN_TEXTURE_4;
                 else
                     m_TerrainTexture4 = value;

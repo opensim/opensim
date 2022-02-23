@@ -51,7 +51,7 @@ namespace OpenSim.Server.Handlers.Authorization
             string authorizationService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (authorizationService == String.Empty)
+            if (authorizationService.Length == 0)
                 throw new Exception("No AuthorizationService in config file");
 
             Object[] args = new Object[] { config };

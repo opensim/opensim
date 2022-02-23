@@ -1,4 +1,4 @@
-727420c2-45b3-4627-8c6e-5c478e6a736e
+4b833b57-d52b-5503-85a4-76754ac3b8ff
 <llsd><map><key>llsd-lsl-syntax-version</key><integer>2</integer>
 <key>controls</key>
 <map>
@@ -1371,6 +1371,50 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>0x20</string>
  </map>
+ <key>NPCLOOKAT_CLEAR</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>10</string>
+ </map>
+ <key>NPCLOOKAT_CONVERSATION</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>6</string>
+ </map>
+ <key>NPCLOOKAT_FOCUS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>8</string>
+ </map>
+ <key>NPCLOOKAT_FREELOOK</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>3</string>
+ </map>
+ <key>NPCLOOKAT_HOVER</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>5</string>
+ </map>
+ <key>NPCLOOKAT_IDLE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>1</string>
+ </map>
+ <key>NPCLOOKAT_LISTEN</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>2</string>
+ </map>
+ <key>NPCLOOKAT_MOUSELOOK</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>9</string>
+ </map>
+ <key>NPCLOOKAT_NONE</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0</string>
+ </map>
+ <key>NPCLOOKAT_RESPOND</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>4</string>
+ </map>
+ <key>NPCLOOKAT_SELECT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>7</string>
+ </map>
  <key>NULL_KEY</key><map>
   <key>type</key><string>string</string>
   <key>value</key><string>00000000-0000-0000-0000-000000000000</string>
@@ -1581,7 +1625,7 @@
  </map>
  <key>OS_APIVERSION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>16</string>
+  <key>value</key><string>20</string>
  </map>
  <key>OS_ATTACH_MSG_ALL</key><map>
   <key>type</key><string>integer</string>
@@ -1911,27 +1955,27 @@
  </map>
  <key>PERMISSION_ATTACH</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>32</string>
+  <key>value</key><string>0x20</string>
  </map>
  <key>PERMISSION_CHANGE_JOINTS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>256</string>
+  <key>value</key><string>0x100</string>
  </map>
  <key>PERMISSION_CHANGE_LINKS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>128</string>
+  <key>value</key><string>0x80</string>
  </map>
  <key>PERMISSION_CHANGE_PERMISSIONS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>512</string>
+  <key>value</key><string>0x200</string>
  </map>
  <key>PERMISSION_CONTROL_CAMERA</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>2048</string>
+  <key>value</key><string>0x800</string>
  </map>
  <key>PERMISSION_DEBIT</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>2</string>
+  <key>value</key><string>0x02</string>
  </map>
  <key>PERMISSION_OVERRIDE_ANIMATIONS</key><map>
   <key>type</key><string>integer</string>
@@ -1939,27 +1983,35 @@
  </map>
  <key>PERMISSION_RELEASE_OWNERSHIP</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>64</string>
+  <key>value</key><string>0x40</string>
  </map>
  <key>PERMISSION_REMAP_CONTROLS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>8</string>
+  <key>value</key><string>0x08</string>
+ </map>
+ <key>PERMISSION_RETURN_OBJECTS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x10000</string>
+ </map>
+ <key>PERMISSION_SILENT_ESTATE_MANAGEMENT</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>0x4000</string>
  </map>
  <key>PERMISSION_TAKE_CONTROLS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>4</string>
+  <key>value</key><string>0x04</string>
  </map>
  <key>PERMISSION_TELEPORT</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>4096</string>
+  <key>value</key><string>0x1000</string>
  </map>
  <key>PERMISSION_TRACK_CAMERA</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>1024</string>
+  <key>value</key><string>0x400</string>
  </map>
  <key>PERMISSION_TRIGGER_ANIMATION</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>16</string>
+  <key>value</key><string>0x010</string>
  </map>
  <key>PI</key><map>
   <key>type</key><string>float</string>
@@ -2845,13 +2897,29 @@
   <key>type</key><string>integer</string>
   <key>value</key><string>4</string>
  </map>
+ <key>STATS_SCRIPT_EPS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>28</string>
+ </map>
  <key>STATS_SCRIPT_LPS</key><map>
   <key>type</key><string>integer</string>
-  <key>value</key><string>20</string>
+  <key>value</key><string>38</string>
+ </map>
+ <key>STATS_SCRIPT_NPCS</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>47</string>
+ </map>
+ <key>STATS_SCRIPT_TIME</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>37</string>
  </map>
  <key>STATS_SIM_FPS</key><map>
   <key>type</key><string>integer</string>
   <key>value</key><string>1</string>
+ </map>
+ <key>STATS_SIM_SLEEP</key><map>
+  <key>type</key><string>integer</string>
+  <key>value</key><string>20</string>
  </map>
  <key>STATS_TIME_DILATION</key><map>
   <key>type</key><string>integer</string>
@@ -3515,6 +3583,13 @@
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
    <map><key>f</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>llChar</key>
+ <map>
+  <key>return</key><string>string</string>
+  <key>arguments</key><array>
+   <map><key>unicode</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>llClearCameraParams</key>
@@ -4614,6 +4689,13 @@
    <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
   </array>
  </map>
+ <key>llHash</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>s</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
  <key>llHTTPRequest</key>
  <map>
   <key>return</key><string>key</string>
@@ -5046,6 +5128,14 @@
  <key>llOpenRemoteDataChannel</key>
  <map>
   <key>arguments</key><undef/>
+ </map>
+ <key>llOrd</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>s</key><map><key>type</key><string>string</string></map></map>
+   <map><key>index</key><map><key>type</key><string>integer</string></map></map>
+  </array>
  </map>
  <key>llOverMyLand</key>
  <map>
@@ -6315,8 +6405,25 @@
  <map>
   <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
-   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>a</key><map><key>type</key><string>float</string></map></map>
+   <map><key>b</key><map><key>type</key><string>float</string></map></map>
+   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
+   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
@@ -6334,32 +6441,15 @@
   <key>arguments</key><array>
    <map><key>va</key><map><key>type</key><string>vector</string></map></map>
    <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osApproxEquals</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>ra</key><map><key>type</key><string>rotation</string></map></map>
+   <map><key>rb</key><map><key>type</key><string>rotation</string></map></map>
    <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>va</key><map><key>type</key><string>vector</string></map></map>
-   <map><key>vb</key><map><key>type</key><string>vector</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
-   <map><key>margin</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
- <key>osApproxEquals</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>a</key><map><key>type</key><string>float</string></map></map>
-   <map><key>b</key><map><key>type</key><string>float</string></map></map>
   </array>
  </map>
  <key>osAvatarName2Key</key>
@@ -6382,6 +6472,21 @@
   <key>arguments</key><array>
    <map><key>avatarId</key><map><key>type</key><string>key</string></map></map>
    <map><key>animation</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osAvatarType</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>sFirstName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>sLastName</key><map><key>type</key><string>string</string></map></map>
+  </array>
+ </map>
+ <key>osAvatarType</key>
+ <map>
+  <key>return</key><string>integer</string>
+  <key>arguments</key><array>
+   <map><key>avkey</key><map><key>type</key><string>key</string></map></map>
   </array>
  </map>
  <key>osCauseDamage</key>
@@ -6490,6 +6595,8 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
+   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6499,8 +6606,6 @@
   <key>return</key><string>string</string>
   <key>arguments</key><array>
    <map><key>drawList</key><map><key>type</key><string>string</string></map></map>
-   <map><key>startX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>startY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endX</key><map><key>type</key><string>integer</string></map></map>
    <map><key>endY</key><map><key>type</key><string>integer</string></map></map>
   </array>
@@ -6639,13 +6744,13 @@
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
+   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osForceOtherSit</key>
  <map>
   <key>arguments</key><array>
    <map><key>avatar</key><map><key>type</key><string>string</string></map></map>
-   <map><key>target</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osFormatString</key>
@@ -7041,6 +7146,21 @@
    <map><key>alert</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
+ <key>osLinkParticleSystem</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>rules</key><map><key>type</key><string>list</string></map></map>
+  </array>
+ </map>
+ <key>osListSortInPlace</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>src</key><map><key>type</key><string>list</string></map></map>
+   <map><key>stride</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>ascending</key><map><key>type</key><string>integer</string></map></map>
+  </array>
+ </map>
  <key>osLoadedCreationDate</key>
  <map>
   <key>return</key><string>string</string>
@@ -7198,13 +7318,13 @@
  </map>
  <key>osNpcLookAt</key>
  <map>
+  <key>return</key><string>integer</string>
   <key>arguments</key><array>
-   <map><key>npc</key><map><key>type</key><string>key</string></map></map>
+   <map><key>npckey</key><map><key>type</key><string>key</string></map></map>
    <map><key>type</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>target</key><map><key>type</key><string>key</string></map></map>
+   <map><key>objkey</key><map><key>type</key><string>key</string></map></map>
    <map><key>offset</key><map><key>type</key><string>vector</string></map></map>
   </array>
-  <key>tooltip</key><string>Makes an NPC look at a target. Other effects besides looking are also supported.</string>
  </map>
  <key>osNpcMoveTo</key>
  <map>
@@ -7352,6 +7472,7 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
+   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osOwnerSaveAppearance</key>
@@ -7359,7 +7480,6 @@
   <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>notecard</key><map><key>type</key><string>string</string></map></map>
-   <map><key>includeHuds</key><map><key>type</key><string>integer</string></map></map>
   </array>
  </map>
  <key>osParcelJoin</key>
@@ -7381,6 +7501,12 @@
   <key>arguments</key><array>
    <map><key>pos1</key><map><key>type</key><string>vector</string></map></map>
    <map><key>pos2</key><map><key>type</key><string>vector</string></map></map>
+  </array>
+ </map>
+ <key>osParticleSystem</key>
+ <map>
+  <key>arguments</key><array>
+   <map><key>rules</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
  <key>osPlaySound</key>
@@ -7417,13 +7543,13 @@
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
+   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
  <key>osRegionNotice</key>
  <map>
   <key>arguments</key><array>
-   <map><key>agentID</key><map><key>type</key><string>key</string></map></map>
    <map><key>msg</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
@@ -7459,19 +7585,6 @@
    <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
   </array>
  </map>
- <key>osReplaceRegionEnvironment</key>
- <map>
-  <key>return</key><string>integer</string>
-  <key>arguments</key><array>
-   <map><key>transition</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>daycycle</key><map><key>type</key><string>string</string></map></map>
-   <map><key>daylen</key><map><key>type</key><string>float</string></map></map>
-   <map><key>dayoffset</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude1</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude2</key><map><key>type</key><string>float</string></map></map>
-   <map><key>altitude3</key><map><key>type</key><string>float</string></map></map>
-  </array>
- </map>
  <key>osReplaceString</key>
  <map>
   <key>return</key><string>string</string>
@@ -7485,14 +7598,14 @@
  </map>
  <key>osRequestSecureURL</key>
  <map>
-  <key>return</key><string>string</string>
+  <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
  </map>
  <key>osRequestURL</key>
  <map>
-  <key>return</key><string>string</string>
+  <key>return</key><string>key</string>
   <key>arguments</key><array>
    <map><key>options</key><map><key>type</key><string>list</string></map></map>
   </array>
@@ -7620,7 +7733,7 @@
   <key>arguments</key><array>
    <map><key>mass</key><map><key>type</key><string>float</string></map></map>
    <map><key>radius</key><map><key>type</key><string>float</string></map></map>
-   <map><key>lenght</key><map><key>type</key><string>float</string></map></map>
+   <map><key>length</key><map><key>type</key><string>float</string></map></map>
    <map><key>centerOfMass</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lslrot</key><map><key>type</key><string>rotation</string></map></map>
   </array>
@@ -7738,6 +7851,7 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
+   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7748,7 +7862,6 @@
  <key>osSetProjectionParams</key>
  <map>
   <key>arguments</key><array>
-   <map><key>linknumber</key><map><key>type</key><string>integer</string></map></map>
    <map><key>projection</key><map><key>type</key><string>integer</string></map></map>
    <map><key>texture</key><map><key>type</key><string>key</string></map></map>
    <map><key>fov</key><map><key>type</key><string>float</string></map></map>
@@ -7985,7 +8098,8 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -7994,8 +8108,7 @@
  <map>
   <key>arguments</key><array>
    <map><key>agent</key><map><key>type</key><string>string</string></map></map>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8020,8 +8133,7 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
-   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>
@@ -8029,7 +8141,8 @@
  <key>osTeleportOwner</key>
  <map>
   <key>arguments</key><array>
-   <map><key>regionName</key><map><key>type</key><string>string</string></map></map>
+   <map><key>regionX</key><map><key>type</key><string>integer</string></map></map>
+   <map><key>regionY</key><map><key>type</key><string>integer</string></map></map>
    <map><key>position</key><map><key>type</key><string>vector</string></map></map>
    <map><key>lookat</key><map><key>type</key><string>vector</string></map></map>
   </array>

@@ -695,7 +695,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         pos.X -= m_boundingOrigin.X;
                         pos.Y -= m_boundingOrigin.Y;
                     }
-                    if (m_displacement != Vector3.Zero)
+                    if (!m_displacement.IsZero())
                     {
                         pos += m_displacement;
                         if (pos.X < 0 || pos.X >= scene.RegionInfo.RegionSizeX
@@ -712,7 +712,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (m_debug)
                     m_log.DebugFormat("[ARCHIVER]: Placing object from OAR in scene at position {0}.  ", pos.ToString());
 
-                bool isTelehub = (sceneObject.UUID == oldTelehubUUID) && (oldTelehubUUID != UUID.Zero);
+                bool isTelehub = (sceneObject.UUID.Equals(oldTelehubUUID)) && (!oldTelehubUUID.IsZero());
 
                 // For now, give all incoming scene objects new uuids.  This will allow scenes to be cloned
                 // on the same region server and multiple examples a single object archive to be imported
@@ -752,7 +752,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (ignoredObjects > 0)
                 m_log.WarnFormat("[ARCHIVER]:     Ignored {0} possible out of bounds", ignoredObjects);
 
-            if (oldTelehubUUID != UUID.Zero)
+            if (!oldTelehubUUID.IsZero())
             {
                 m_log.WarnFormat("[ARCHIVER]: Telehub object not found: {0}", oldTelehubUUID);
                 scene.RegionInfo.RegionSettings.TelehubObject = UUID.Zero;
@@ -933,15 +933,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (parcel.IsGroupOwned)
                 {
-                    if (parcel.GroupID != UUID.Zero)
-                    {
-                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
-                        parcel.OwnerID = parcel.GroupID;
-                    }
-                    else
+                    if (parcel.GroupID.IsZero())
                     {
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
                         parcel.IsGroupOwned = false;
+                    }
+                    else
+                    {
+                        // In group-owned parcels, OwnerID=GroupID. This should already be the case, but let's make sure.
+                        parcel.OwnerID = parcel.GroupID;
                     }
                 }
                 else
@@ -1164,7 +1164,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
             using (MemoryStream ms = new MemoryStream(data))
             {
-                if (m_displacement != Vector3.Zero || m_rotation != 0f || m_boundingBox)
+               if (!m_displacement.IsZero() || m_rotation != 0f || m_boundingBox)
                 {
                     Vector2 boundingOrigin = new Vector2(m_boundingOrigin.X, m_boundingOrigin.Y);
                     Vector2 boundingSize = new Vector2(m_boundingSize.X, m_boundingSize.Y);
@@ -1192,6 +1192,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
             XmlTextReader xtr = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
+            xtr.DtdProcessing = DtdProcessing.Ignore;
 
             // Loaded metadata will be empty if no information exists in the archive
             dearchivedScenes.LoadedCreationDateTime = 0;

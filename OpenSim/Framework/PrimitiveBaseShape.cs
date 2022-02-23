@@ -890,6 +890,7 @@ namespace OpenSim.Framework
             }
         }
 
+        // only means we do have flexi data
         public bool FlexiEntry {
             get {
                 return _flexiEntry;
@@ -1557,6 +1558,7 @@ namespace OpenSim.Framework
                     {
                         using (XmlTextReader xtr = new XmlTextReader(sr))
                         {
+                            xtr.DtdProcessing = DtdProcessing.Ignore;
                             xtr.MoveToContent();
 
                             string type = xtr.GetAttribute("type");
