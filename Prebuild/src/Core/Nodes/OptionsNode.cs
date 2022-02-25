@@ -297,6 +297,24 @@ namespace Prebuild.Core.Nodes
 			}
 		}
         
+		[OptionNode("OutDir")]
+		private string m_OutDir = "bin/";
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string OutDir
+		{
+			get
+			{
+				return m_OutDir;
+			}
+			set
+			{
+				m_OutDir = value;
+			}
+		}
+
 		[OptionNode("OutputPath")]
 		private string m_OutputPath = "bin/";
 
@@ -672,6 +690,14 @@ namespace Prebuild.Core.Nodes
         {
 			return m_FieldsDefined.Contains("m_" + name);
         }
+
+		// Return the names of all the fields that have had a value set
+		public IEnumerable<string> AllDefined()
+        {
+			foreach (string name in m_FieldsDefined) {
+				yield return name.Substring(2);
+            }
+		}
 
 		/// <summary>
 		/// Copies to.

@@ -592,14 +592,10 @@ namespace Prebuild.Core.Targets
 					if (conf.Name == "unknown")
                     {
                         ps.WriteLine("  <PropertyGroup>");
-                        string[] optionNames = new string[] { "OutputPath", "OutputType", "RootNamespace" };
-                        foreach (var opt in optionNames)
+						foreach (string opt in conf.Options.AllDefined())
                         {
-                            if (conf.Options.IsDefined(opt))
-                            {
-                                ps.WriteLine("    <{0}>{1}</{0}>", opt,
-                                             Helper.EndPath(Helper.NormalizePath(conf.Options[opt].ToString())));
-                            }
+                            ps.WriteLine("    <{0}>{1}</{0}>", opt,
+                                 Helper.EndPath(Helper.NormalizePath(conf.Options[opt].ToString())));
                         }
                         ps.WriteLine("  </PropertyGroup>");
                         ps.WriteLine();
