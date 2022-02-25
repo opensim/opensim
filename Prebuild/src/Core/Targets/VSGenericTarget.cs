@@ -154,9 +154,9 @@ namespace Prebuild.Core.Targets
 		}
 
 		private void WriteProject(SolutionNode solution, ProjectNode project)
-		{
+        {
 			if (!tools.ContainsKey(project.Language))
-			{
+            {
 				throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
 			}
 
@@ -166,6 +166,23 @@ namespace Prebuild.Core.Targets
 
 			kernel.CurrentWorkingDirectory.Push();
 			Helper.SetCurrentDir(Path.GetDirectoryName(projectFile));
+
+			FrameworkVersion fv = project.FrameworkVersion;
+			if (fv == FrameworkVersion.net5_0 || fv == FrameworkVersion.net6_0 || fv == FrameworkVersion.netstandard2_0)
+            {
+				// Write the newer .csproj file format
+				WriteProjectDotNet(solution, project, ps);
+			}
+			else
+			{
+				WriteProjectFramework(solution, project, toolInfo, projectFile, ps);
+			}
+
+			kernel.CurrentWorkingDirectory.Pop();
+		}
+
+		private void WriteProjectFramework(SolutionNode solution, ProjectNode project, ToolInfo toolInfo, string projectFile, StreamWriter ps)
+        {
 
 			#region Project File
 			using (ps)
@@ -260,77 +277,16 @@ namespace Prebuild.Core.Targets
 
 				//ps.WriteLine("	  </Settings>");
 
-				Dictionary<ReferenceNode, ProjectNode> projectReferences = new Dictionary<ReferenceNode, ProjectNode>();
-				List<ReferenceNode> otherReferences = new List<ReferenceNode>();
+				// Output warnings if NET6 stuff is in a Framework4 definition
+				if (project.ProjectReferences.Count > 0) {
+					kernel.Log.Write(LogType.Warning, "ProjectReference is not processed for Frameworks.");
+                }
+				if (project.PackageReferences.Count > 0) {
+					kernel.Log.Write(LogType.Warning, "PackageReference is not processed for Frameworks.");
+                }
 
-				foreach (ReferenceNode refr in project.References)
-				{
-					ProjectNode projectNode = FindProjectInSolution(refr.Name, solution);
-
-					if (projectNode == null)
-						otherReferences.Add(refr);
-					else
-						projectReferences.Add(refr, projectNode);
-				}
-				// Assembly References
-				ps.WriteLine("	<ItemGroup>");
-
-				foreach (ReferenceNode refr in otherReferences)
-				{
-					ps.Write("	  <Reference");
-					ps.Write(" Include=\"");
-					ps.Write(refr.Name);
-					ps.WriteLine("\" >");
-					ps.Write("		  <Name>");
-					ps.Write(refr.Name);
-					ps.WriteLine("</Name>");
-										
-					if(!String.IsNullOrEmpty(refr.Path))
-					{
-						// Use absolute path to assembly (for determining assembly type)
-						string absolutePath = Path.Combine(project.FullPath, refr.Path);
-						if(File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "exe"))) {
-							// Assembly is an executable (exe)
-							ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "exe"));
-						} else if(File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "dll"))) {
-							// Assembly is an library (dll)							
-							ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
-						} else {
-							string referencePath = Helper.MakeFilePath(refr.Path, refr.Name, "dll");
-							kernel.Log.Write(LogType.Warning, "Reference \"{0}\": The specified file doesn't exist.", referencePath);
-							ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
-						}
-					}
-					
-					ps.WriteLine("		<Private>{0}</Private>", refr.LocalCopy);
-					ps.WriteLine("	  </Reference>");
-				}
-				ps.WriteLine("	</ItemGroup>");
-
-				//Project References
-				ps.WriteLine("	<ItemGroup>");
-				foreach (KeyValuePair<ReferenceNode, ProjectNode> pair in projectReferences)
-				{
-					ToolInfo tool = tools[pair.Value.Language];
-					if (tools == null)
-						throw new UnknownLanguageException();
-
-					string path =
-						Helper.MakePathRelativeTo(project.FullPath,
-						                          Helper.MakeFilePath(pair.Value.FullPath, pair.Value.Name, tool.FileExtension));
-					ps.WriteLine("	  <ProjectReference Include=\"{0}\">", path);
-
-					// TODO: Allow reference to visual basic projects
-					ps.WriteLine("		<Name>{0}</Name>", pair.Value.Name);
-					ps.WriteLine("		<Project>{0}</Project>", pair.Value.Guid.ToString("B").ToUpper());
-					ps.WriteLine("		<Package>{0}</Package>", tool.Guid.ToUpper());
-
-					//This is the Copy Local flag in VS
-					ps.WriteLine("		<Private>{0}</Private>", pair.Key.LocalCopy);
-
-					ps.WriteLine("	  </ProjectReference>");
-				}
-				ps.WriteLine("	</ItemGroup>");
+				// Output the ItemGroup for project.References
+				WriteProjectReferences(solution, project, ps);
 
 				//				  ps.WriteLine("	</Build>");
 				ps.WriteLine("	<ItemGroup>");
@@ -351,7 +307,8 @@ namespace Prebuild.Core.Targets
 				}
 
 
-				foreach (string filePath in project.Files)
+                #region Files
+                foreach (string filePath in project.Files)
 				{
                     // Add the filePath with the destination as the key
                     // will use it later to form the copy parameters with Include lists
@@ -526,6 +483,7 @@ namespace Prebuild.Core.Targets
 					}
 				}
                 ps.WriteLine("  </ItemGroup>");
+                #endregion
 
                 /*
                  * Copy Task
@@ -611,11 +569,159 @@ namespace Prebuild.Core.Targets
 				ps.WriteLine("</Project>");
 			}
 			#endregion
-
-			kernel.CurrentWorkingDirectory.Pop();
 		}
 
-		private void WriteSolution(SolutionNode solution, bool writeSolutionToDisk)
+		private void WriteProjectDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
+        {
+			#region Project File
+			using (ps)
+            {
+				ps.WriteLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
+				ps.WriteLine();
+
+				ps.WriteLine("  <PropertyGroup>");
+				ps.WriteLine("    <TargetFramework>{0}</TargetFramework>", project.FrameworkVersion.ToString().Replace("_","."));
+                ps.WriteLine("    <AssemblyName>{0}</AssemblyName>", project.Name);
+				ps.WriteLine("  </PropertyGroup>");
+				ps.WriteLine();
+
+				// For .NET5/6 files, the Configuration section does not specify a build target
+				//     so here we look for the "unknown" target type for the specified parameters.
+				foreach (ConfigurationNode conf in project.Configurations)
+                {
+					if (conf.Name == "unknown")
+                    {
+                        ps.WriteLine("  <PropertyGroup>");
+                        string[] optionNames = new string[] { "OutputPath", "OutputType", "RootNamespace" };
+                        foreach (var opt in optionNames)
+                        {
+                            if (conf.Options.IsDefined(opt))
+                            {
+                                ps.WriteLine("    <{0}>{1}</{0}>", opt,
+                                             Helper.EndPath(Helper.NormalizePath(conf.Options[opt].ToString())));
+                            }
+                        }
+                        ps.WriteLine("  </PropertyGroup>");
+                        ps.WriteLine();
+                    }
+                }
+
+				if (project.ProjectReferences.Count > 0)
+                {
+                    ps.WriteLine("  <ItemGroup>");
+					foreach (ProjectReferenceNode refer in project.ProjectReferences)
+                    {
+						ps.WriteLine("    <ProjectReference Include=\"{0}\" />", refer.Include);
+					}
+                    ps.WriteLine("  </ItemGroup>");
+                    ps.WriteLine();
+				}
+				if (project.PackageReferences.Count > 0)
+                {
+                    ps.WriteLine("  <ItemGroup>");
+					foreach (PackageReferenceNode pack in project.PackageReferences)
+                    {
+						ps.WriteLine("    <PackageReference Include=\"{0}\" Version=\"{1}\" />",
+							pack.Name, pack.Version);
+					}
+                    ps.WriteLine("  </ItemGroup>");
+                    ps.WriteLine();
+				}
+				// Output the ItemGroup for project.References
+				WriteProjectReferences(solution, project, ps);
+
+				ps.WriteLine("</Project>");
+            }
+            #endregion
+        }
+
+		private void WriteProjectReferences(SolutionNode solution, ProjectNode project, StreamWriter ps)
+        {
+            Dictionary<ReferenceNode, ProjectNode> projectReferences = new Dictionary<ReferenceNode, ProjectNode>();
+            List<ReferenceNode> otherReferences = new List<ReferenceNode>();
+
+            foreach (ReferenceNode refr in project.References)
+            {
+                ProjectNode projectNode = FindProjectInSolution(refr.Name, solution);
+
+                if (projectNode == null)
+                    otherReferences.Add(refr);
+                else
+                    projectReferences.Add(refr, projectNode);
+            }
+			// Assembly References
+			if (otherReferences.Count > 0)
+            {
+                ps.WriteLine("	<ItemGroup>");
+
+                foreach (ReferenceNode refr in otherReferences)
+                {
+                    ps.Write("	  <Reference");
+                    ps.Write(" Include=\"");
+                    ps.Write(refr.Name);
+                    ps.WriteLine("\" >");
+                    ps.Write("		  <Name>");
+                    ps.Write(refr.Name);
+                    ps.WriteLine("</Name>");
+
+                    if(!String.IsNullOrEmpty(refr.Path))
+                    {
+                        // Use absolute path to assembly (for determining assembly type)
+                        string absolutePath = Path.Combine(project.FullPath, refr.Path);
+                        if(File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "exe")))
+                        {
+                            // Assembly is an executable (exe)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "exe"));
+                        } else if(File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "dll")))
+                        {
+                            // Assembly is an library (dll)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
+                        } else
+						{
+                            string referencePath = Helper.MakeFilePath(refr.Path, refr.Name, "dll");
+                            kernel.Log.Write(LogType.Warning, "Reference \"{0}\": The specified file doesn't exist.", referencePath);
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
+                        }
+                    }
+
+                    ps.WriteLine("		<Private>{0}</Private>", refr.LocalCopy);
+                    ps.WriteLine("	  </Reference>");
+                }
+                ps.WriteLine("	</ItemGroup>");
+                ps.WriteLine();
+			}
+
+			//Project References
+			if (projectReferences.Count > 0)
+            {
+                ps.WriteLine("	<ItemGroup>");
+                foreach (KeyValuePair<ReferenceNode, ProjectNode> pair in projectReferences)
+                {
+                    ToolInfo tool = tools[pair.Value.Language];
+                    if (tools == null)
+                        throw new UnknownLanguageException();
+
+                    string path =
+                        Helper.MakePathRelativeTo(project.FullPath,
+                                                  Helper.MakeFilePath(pair.Value.FullPath, pair.Value.Name, tool.FileExtension));
+                    ps.WriteLine("	  <ProjectReference Include=\"{0}\">", path);
+
+                    // TODO: Allow reference to visual basic projects
+                    ps.WriteLine("		<Name>{0}</Name>", pair.Value.Name);
+                    ps.WriteLine("		<Project>{0}</Project>", pair.Value.Guid.ToString("B").ToUpper());
+                    ps.WriteLine("		<Package>{0}</Package>", tool.Guid.ToUpper());
+
+                    //This is the Copy Local flag in VS
+                    ps.WriteLine("		<Private>{0}</Private>", pair.Key.LocalCopy);
+
+                    ps.WriteLine("	  </ProjectReference>");
+                }
+                ps.WriteLine("	</ItemGroup>");
+                ps.WriteLine();
+			}
+		}
+
+        private void WriteSolution(SolutionNode solution, bool writeSolutionToDisk)
 		{
 			kernel.Log.Write("Creating {0} solution and project files", VersionName);
 

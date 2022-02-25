@@ -26,6 +26,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Xml;
 
 using Prebuild.Core.Attributes;
@@ -311,6 +312,42 @@ namespace Prebuild.Core.Nodes
 			set
 			{
 				m_OutputPath = value;
+			}
+		}
+
+		[OptionNode("OutputType")]
+		private string m_OutputType = "Exe";
+
+		/// <summary>
+		///
+		/// </summary>
+		public string OutputType
+		{
+			get
+			{
+				return m_OutputType;
+			}
+			set
+			{
+				m_OutputType = value;
+			}
+		}
+
+		[OptionNode("RootNamespace")]
+		private string m_RootNamespace = "";
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public string RootNamespace
+		{
+			get
+			{
+				return m_RootNamespace;
+			}
+			set
+			{
+				m_RootNamespace = value;
 			}
 		}
 
@@ -627,6 +664,16 @@ namespace Prebuild.Core.Nodes
 		}
 
 		/// <summary>
+		/// Return 'true' if the option symbol has had a value set
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns>'true' if the option value has been set</returns>
+		public bool IsDefined(string name)
+        {
+			return m_FieldsDefined.Contains("m_" + name);
+        }
+
+		/// <summary>
 		/// Copies to.
 		/// </summary>
 		/// <param name="opt">The opt.</param>
@@ -647,6 +694,22 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-		#endregion        
-	}
+        public override string ToString()
+        {
+			StringBuilder buff = new StringBuilder();
+			foreach(FieldInfo f in m_OptionFields.Values)
+			{
+				if(m_FieldsDefined.Contains(f.Name))
+				{
+					buff.Append(f.Name);
+					buff.Append("=");
+					buff.Append(f.GetValue(this).ToString());
+					buff.Append(",");
+				}
+			}
+            return buff.ToString();
+        }
+
+        #endregion
+    }
 }

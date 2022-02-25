@@ -82,7 +82,8 @@ namespace Prebuild.Core
 		private CommandLineCollection m_CommandLine;
 		private Log m_Log;
 		private CurrentDirectory m_CurrentWorkingDirectory;
-		private XmlSchemaCollection m_Schemas;
+        [Obsolete]
+        private XmlSchemaCollection m_Schemas;
 
         private readonly Dictionary<string, ITarget> m_Targets = new Dictionary<string, ITarget>();
         private readonly Dictionary<string, NodeEntry> m_Nodes = new Dictionary<string, NodeEntry>();

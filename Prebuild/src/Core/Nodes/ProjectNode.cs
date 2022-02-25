@@ -114,7 +114,10 @@ namespace Prebuild.Core.Nodes
 		v4_7,
 		v4_7_1,
 		v4_7_2,
-		v4_8
+		v4_8,
+		netstandard2_0,
+		net5_0,
+		net6_0
 	}
 	/// <summary>
 	/// The Node object representing /Prebuild/Solution/Project elements
@@ -146,6 +149,8 @@ namespace Prebuild.Core.Nodes
 
         private readonly Dictionary<string, ConfigurationNode> m_Configurations = new Dictionary<string, ConfigurationNode>();
         private readonly List<ReferencePathNode> m_ReferencePaths = new List<ReferencePathNode>();
+		private readonly List<ProjectReferenceNode> m_ProjectReferences = new List<ProjectReferenceNode>();
+		private readonly List<PackageReferenceNode> m_PackageReferences = new List<PackageReferenceNode>();
 		private readonly List<ReferenceNode> m_References = new List<ReferenceNode>();
         private readonly List<AuthorNode> m_Authors = new List<AuthorNode>();
 		private FilesNode m_Files;
@@ -417,6 +422,34 @@ namespace Prebuild.Core.Nodes
                 return tmp;
 			}
 		}
+
+		/// <summary>
+		/// Gets the references.
+		/// </summary>
+		/// <value>The references.</value>
+        public List<ProjectReferenceNode> ProjectReferences
+		{
+			get
+			{
+                List<ProjectReferenceNode> tmp = new List<ProjectReferenceNode>(m_ProjectReferences);
+                tmp.Sort();
+                return tmp;
+			}
+		}
+
+		/// <summary>
+		/// Gets the package references.
+		/// </summary>
+		/// <value>The references.</value>
+        public List<PackageReferenceNode> PackageReferences
+		{
+			get
+			{
+                List<PackageReferenceNode> tmp = new List<PackageReferenceNode>(m_PackageReferences);
+                tmp.Sort();
+                return tmp;
+			}
+		}
 		
 		/// <summary>
 		/// Gets the Authors list.
@@ -591,6 +624,14 @@ namespace Prebuild.Core.Nodes
 					else if(dataNode is ReferenceNode)
 					{
                         m_References.Add((ReferenceNode)dataNode);
+					}
+					else if(dataNode is PackageReferenceNode)
+					{
+                        m_PackageReferences.Add((PackageReferenceNode)dataNode);
+					}
+					else if(dataNode is ProjectReferenceNode)
+					{
+                        m_ProjectReferences.Add((ProjectReferenceNode)dataNode);
 					}
 					else if(dataNode is AuthorNode)
 					{
