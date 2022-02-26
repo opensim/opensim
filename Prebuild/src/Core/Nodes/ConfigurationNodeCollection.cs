@@ -1,4 +1,4 @@
-﻿#region BSD License
+#region BSD License
 /*
 Copyright (c) 2004-2005 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehead (dan05a@gmail.com)
 
