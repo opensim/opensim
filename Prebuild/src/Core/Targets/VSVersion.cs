@@ -25,44 +25,44 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 
 namespace Prebuild.Core.Targets
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public enum VSVersion
-	{
-		/// <summary>
-		/// Visual Studio 2002 
-		/// </summary>
-		VS70,
-		/// <summary>
-		/// Visual Studio 2003 
-		/// </summary>
-		VS71,
-		/// <summary>
-		/// Visual Studio 2005 
-		/// </summary>
-		VS80,
-		/// <summary>
-		/// Visual Studio 2008 
-		/// </summary>
-		VS90,
-		/// <summary>
-		/// Visual Studio 2010 
-		/// </summary>
-		VS10,
-		/// <summary>
-		/// Visual Studio 2012 
-		/// </summary>
-		VS11,
-		/// <summary>
-		/// Visual Studio 2013 
-		/// </summary>
-		VS12,
-		/// <summary>
-		/// Visual Studio 2015 
-		/// </summary>
-		VS15,
-		VS17,
-		VS19
-	}
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum VSVersion
+    {
+        /// <summary>
+        /// Visual Studio 2002 
+        /// </summary>
+        VS70,
+        /// <summary>
+        /// Visual Studio 2003 
+        /// </summary>
+        VS71,
+        /// <summary>
+        /// Visual Studio 2005 
+        /// </summary>
+        VS80,
+        /// <summary>
+        /// Visual Studio 2008 
+        /// </summary>
+        VS90,
+        /// <summary>
+        /// Visual Studio 2010 
+        /// </summary>
+        VS10,
+        /// <summary>
+        /// Visual Studio 2012 
+        /// </summary>
+        VS11,
+        /// <summary>
+        /// Visual Studio 2013 
+        /// </summary>
+        VS12,
+        /// <summary>
+        /// Visual Studio 2015 
+        /// </summary>
+        VS15,
+        VS17,
+        VS19
+    }
 }

@@ -32,60 +32,60 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("ProjectReference")]
-	public class ProjectReferenceNode : DataNode, IComparable
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("ProjectReference")]
+    public class ProjectReferenceNode : DataNode, IComparable
+    {
+        #region Fields
 
-		private string m_Name = "unknown";
-		private string m_Include;
+        private string m_Name = "unknown";
+        private string m_Include;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name
-		{
-			get
-			{
-				return m_Name;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+        }
 
-		/// <summary>
-		/// Gets the path.
-		/// </summary>
-		/// <value>The path.</value>
-		public string Include
-		{
-			get
-			{
-				return m_Include;
-			}
-		}
+        /// <summary>
+        /// Gets the path.
+        /// </summary>
+        /// <value>The path.</value>
+        public string Include
+        {
+            get
+            {
+                return m_Include;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			m_Name = Helper.AttributeValue(node, "name", m_Name);
-			m_Include = Helper.AttributeValue(node, "include", m_Include);
-		}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            m_Name = Helper.AttributeValue(node, "name", m_Name);
+            m_Include = Helper.AttributeValue(node, "include", m_Include);
+        }
 
-		#endregion
+        #endregion
 
         #region IComparable Members
 
@@ -96,5 +96,5 @@ namespace Prebuild.Core.Nodes
         }
 
         #endregion
-	}
+    }
 }

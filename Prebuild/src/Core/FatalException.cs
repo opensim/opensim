@@ -28,58 +28,58 @@ using System.Runtime.Serialization;
 
 namespace Prebuild.Core
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[Serializable()]
-	public class FatalException : Exception
-	{
-		#region Constructors
+    /// <summary>
+    /// 
+    /// </summary>
+    [Serializable()]
+    public class FatalException : Exception
+    {
+        #region Constructors
 
-		
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FatalException"/> class.
-		/// </summary>
-		public FatalException()
-		{
-		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FatalException"/> class.
-		/// </summary>
-		/// <param name="format">The format.</param>
-		/// <param name="args">The args.</param>
-		public FatalException(string format, params object[] args)
-			: base(String.Format(format, args))
-		{
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FatalException"/> class.
+        /// </summary>
+        public FatalException()
+        {
+        }
 
-		/// <summary>
-		/// Exception with specified string
-		/// </summary>
-		/// <param name="message">Exception message</param>
-		public FatalException(string message): base(message)
-		{
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FatalException"/> class.
+        /// </summary>
+        /// <param name="format">The format.</param>
+        /// <param name="args">The args.</param>
+        public FatalException(string format, params object[] args)
+            : base(String.Format(format, args))
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="exception"></param>
-		public FatalException(string message, Exception exception) : base(message, exception)
-		{
-		}
+        /// <summary>
+        /// Exception with specified string
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public FatalException(string message) : base(message)
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="info"></param>
-		/// <param name="context"></param>
-		protected FatalException(SerializationInfo info, StreamingContext context) : base( info, context )
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public FatalException(string message, Exception exception) : base(message, exception)
+        {
+        }
 
-		#endregion
-	}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
+        protected FatalException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        #endregion
+    }
 }

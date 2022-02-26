@@ -35,51 +35,51 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Match")]
-	public class MatchNode : DataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Match")]
+    public class MatchNode : DataNode
+    {
+        #region Fields
 
         private readonly List<string> m_Files = new List<string>();
-		private Regex m_Regex;
-		private BuildAction? m_BuildAction;
-		private SubType? m_SubType;
-		string m_ResourceName = "";
-		private CopyToOutput m_CopyToOutput;
-		private bool m_Link;
-		private string m_LinkPath;
+        private Regex m_Regex;
+        private BuildAction? m_BuildAction;
+        private SubType? m_SubType;
+        string m_ResourceName = "";
+        private CopyToOutput m_CopyToOutput;
+        private bool m_Link;
+        private string m_LinkPath;
         private bool m_PreservePath;
         private string m_Destination = "";
         private readonly List<ExcludeNode> m_Exclusions = new List<ExcludeNode>();
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public IEnumerable<string> Files
-		{
-			get
-			{
-				return m_Files;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public IEnumerable<string> Files
+        {
+            get
+            {
+                return m_Files;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public BuildAction? BuildAction
-		{
-			get
-			{
-				return m_BuildAction;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public BuildAction? BuildAction
+        {
+            get
+            {
+                return m_BuildAction;
+            }
+        }
 
         public string DestinationPath
         {
@@ -88,50 +88,50 @@ namespace Prebuild.Core.Nodes
                 return m_Destination;
             }
         }
-		/// <summary>
-		/// 
-		/// </summary>
-		public SubType? SubType
-		{
-			get
-			{
-				return m_SubType;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public SubType? SubType
+        {
+            get
+            {
+                return m_SubType;
+            }
+        }
 
-		public CopyToOutput CopyToOutput
-		{
-			get
-			{
-				return m_CopyToOutput;
-			}
-		}
+        public CopyToOutput CopyToOutput
+        {
+            get
+            {
+                return m_CopyToOutput;
+            }
+        }
 
-		public bool IsLink
-		{
-			get
-			{
-				return m_Link;
-			}
-		}
+        public bool IsLink
+        {
+            get
+            {
+                return m_Link;
+            }
+        }
 
-		public string LinkPath
-		{
-			get
-			{
-				return m_LinkPath;
-			}
-		}
-		/// <summary>
-		/// 
-		/// </summary>
-		public string ResourceName
-		{
-			get
-			{
-				return m_ResourceName;
-			}
-		}
+        public string LinkPath
+        {
+            get
+            {
+                return m_LinkPath;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ResourceName
+        {
+            get
+            {
+                return m_ResourceName;
+            }
+        }
 
         public bool PreservePath
         {
@@ -141,27 +141,27 @@ namespace Prebuild.Core.Nodes
             }
         }
 
-		#endregion
+        #endregion
 
-		#region Private Methods
+        #region Private Methods
 
-		/// <summary>
-		/// Recurses the directories.
-		/// </summary>
-		/// <param name="path">The path.</param>
-		/// <param name="pattern">The pattern.</param>
-		/// <param name="recurse">if set to <c>true</c> [recurse].</param>
-		/// <param name="useRegex">if set to <c>true</c> [use regex].</param>
-		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, List<ExcludeNode> exclusions)
-		{
-			Match match;
-		    try
-			{
-				string[] files;
+        /// <summary>
+        /// Recurses the directories.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <param name="recurse">if set to <c>true</c> [recurse].</param>
+        /// <param name="useRegex">if set to <c>true</c> [use regex].</param>
+        private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, List<ExcludeNode> exclusions)
+        {
+            Match match;
+            try
+            {
+                string[] files;
 
-			    Boolean excludeFile;
-			    if(!useRegex)
-				{
+                Boolean excludeFile;
+                if (!useRegex)
+                {
                     try
                     {
                         files = Directory.GetFiles(path, pattern);
@@ -177,46 +177,46 @@ namespace Prebuild.Core.Nodes
                         files = null;
                     }
 
-					if(files != null)
-					{
-					    foreach (string file in files)
-						{
+                    if (files != null)
+                    {
+                        foreach (string file in files)
+                        {
                             excludeFile = false;
-						    string fileTemp;
-						    if (file.Substring(0,2) == "./" || file.Substring(0,2) == ".\\")
-							{
-								fileTemp = file.Substring(2);
-							}
-							else
-							{
-								fileTemp = file;
-							}
+                            string fileTemp;
+                            if (file.Substring(0, 2) == "./" || file.Substring(0, 2) == ".\\")
+                            {
+                                fileTemp = file.Substring(2);
+                            }
+                            else
+                            {
+                                fileTemp = file;
+                            }
 
                             // Check all excludions and set flag if there are any hits.
-                            foreach ( ExcludeNode exclude in exclusions )
+                            foreach (ExcludeNode exclude in exclusions)
                             {
-                                Regex exRegEx = new Regex( exclude.Pattern );
-                                match = exRegEx.Match( file );
+                                Regex exRegEx = new Regex(exclude.Pattern);
+                                match = exRegEx.Match(file);
                                 excludeFile |= match.Success;
                             }
 
-                            if ( !excludeFile )
+                            if (!excludeFile)
                             {
-                                m_Files.Add( fileTemp );
+                                m_Files.Add(fileTemp);
                             }
 
-						}
-					}
+                        }
+                    }
 
                     // don't call return here, because we may need to recursively search directories below
                     // this one, even if no matches were found in this directory.
-				}
-				else
-				{
-					try
- 					{
-						files = Directory.GetFiles(path);
-					}
+                }
+                else
+                {
+                    try
+                    {
+                        files = Directory.GetFiles(path);
+                    }
                     catch (IOException)
                     {
                         // swallow weird IOException error when running in a virtual box
@@ -248,12 +248,12 @@ namespace Prebuild.Core.Nodes
                             }
                         }
                     }
-				}
-                
-				if(recurse)
-				{
-					string[] dirs = Directory.GetDirectories(path);
-					if(dirs != null && dirs.Length > 0)
+                }
+
+                if (recurse)
+                {
+                    string[] dirs = Directory.GetDirectories(path);
+                    if (dirs != null && dirs.Length > 0)
                     {
                         foreach (string str in dirs)
                         {
@@ -265,98 +265,98 @@ namespace Prebuild.Core.Nodes
                             RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
                         }
                     }
-				}
-			}
-			catch(DirectoryNotFoundException)
-			{
-				return;
-			}
-			catch(ArgumentException)
-			{
-				return;
-			}
-		}
+                }
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return;
+            }
+            catch (ArgumentException)
+            {
+                return;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="node"></param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
-			string path = Helper.AttributeValue(node, "path", ".");
-			string pattern = Helper.AttributeValue(node, "pattern", "*");
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        public override void Parse(XmlNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
+            string path = Helper.AttributeValue(node, "path", ".");
+            string pattern = Helper.AttributeValue(node, "pattern", "*");
             string destination = Helper.AttributeValue(node, "destination", string.Empty);
-			bool recurse = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "recurse", "false"));
-			bool useRegex = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "useRegex", "false"));
-			string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
-			if (buildAction != string.Empty)
-				m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
+            bool recurse = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "recurse", "false"));
+            bool useRegex = (bool)Helper.TranslateValue(typeof(bool), Helper.AttributeValue(node, "useRegex", "false"));
+            string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
+            if (buildAction != string.Empty)
+                m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
 
 
-			//TODO: Figure out where the subtype node is being assigned
-			//string subType = Helper.AttributeValue(node, "subType", string.Empty);
-			//if (subType != String.Empty)
-			//    m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
-			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName);
-			m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", m_CopyToOutput.ToString()));
-			m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
-			if ( m_Link )
-			{
-				m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
-			}
-            m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
+            //TODO: Figure out where the subtype node is being assigned
+            //string subType = Helper.AttributeValue(node, "subType", string.Empty);
+            //if (subType != String.Empty)
+            //    m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
+            m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName);
+            m_CopyToOutput = (CopyToOutput)Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", m_CopyToOutput.ToString()));
+            m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
+            if (m_Link)
+            {
+                m_LinkPath = Helper.AttributeValue(node, "linkPath", string.Empty);
+            }
+            m_PreservePath = bool.Parse(Helper.AttributeValue(node, "preservePath", bool.FalseString));
 
-            if ( buildAction == "Copy")
+            if (buildAction == "Copy")
                 m_Destination = destination;
 
-			if(path != null && path.Length == 0)
-				path = ".";//use current directory
-            
-			//throw new WarningException("Match must have a 'path' attribute");
+            if (path != null && path.Length == 0)
+                path = ".";//use current directory
 
-			if(pattern == null)
-			{
-				throw new WarningException("Match must have a 'pattern' attribute");
-			}
+            //throw new WarningException("Match must have a 'path' attribute");
 
-			path = Helper.NormalizePath(path);
-			if(!Directory.Exists(path))
-			{
-				throw new WarningException("Match path does not exist: {0}", path);
-			}
+            if (pattern == null)
+            {
+                throw new WarningException("Match must have a 'pattern' attribute");
+            }
 
-			try
-			{
-				if(useRegex)
-				{
-					m_Regex = new Regex(pattern);
-				}
-			}
-			catch(ArgumentException ex)
-			{
-				throw new WarningException("Could not compile regex pattern: {0}", ex.Message);
-			}
+            path = Helper.NormalizePath(path);
+            if (!Directory.Exists(path))
+            {
+                throw new WarningException("Match path does not exist: {0}", path);
+            }
+
+            try
+            {
+                if (useRegex)
+                {
+                    m_Regex = new Regex(pattern);
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                throw new WarningException("Could not compile regex pattern: {0}", ex.Message);
+            }
 
 
-			foreach(XmlNode child in node.ChildNodes)
-			{
-				IDataNode dataNode = Kernel.Instance.ParseNode(child, this);
-				if(dataNode is ExcludeNode)
-				{
-					ExcludeNode excludeNode = (ExcludeNode)dataNode;
-                    m_Exclusions.Add( excludeNode );
-				}
-			}
+            foreach (XmlNode child in node.ChildNodes)
+            {
+                IDataNode dataNode = Kernel.Instance.ParseNode(child, this);
+                if (dataNode is ExcludeNode)
+                {
+                    ExcludeNode excludeNode = (ExcludeNode)dataNode;
+                    m_Exclusions.Add(excludeNode);
+                }
+            }
 
-            RecurseDirectories( path, pattern, recurse, useRegex, m_Exclusions );
+            RecurseDirectories(path, pattern, recurse, useRegex, m_Exclusions);
 
             if (m_Files.Count < 1)
             {
@@ -371,8 +371,8 @@ namespace Prebuild.Core.Nodes
                 throw new WarningException("Match" + projectName + " returned no files: {0}{1}", Helper.EndPath(path), pattern);
             }
             m_Regex = null;
-		}
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

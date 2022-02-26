@@ -28,45 +28,45 @@ using System.Collections.Specialized;
 
 namespace Prebuild.Core.Attributes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple=true)]
-	public sealed class DataNodeAttribute : Attribute
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
+    public sealed class DataNodeAttribute : Attribute
+    {
+        #region Fields
 
-		private string m_Name = "unknown";
+        private string m_Name = "unknown";
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="DataNodeAttribute"/> class.
-		/// </summary>
-		/// <param name="name">The name.</param>
-		public DataNodeAttribute(string name)
-		{
-			m_Name = name;
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataNodeAttribute"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        public DataNodeAttribute(string name)
+        {
+            m_Name = name;
+        }
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name
-		{
-			get
-			{
-				return m_Name;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

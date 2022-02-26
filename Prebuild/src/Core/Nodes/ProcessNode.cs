@@ -32,77 +32,77 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Process")]
-	public class ProcessNode : DataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Process")]
+    public class ProcessNode : DataNode
+    {
+        #region Fields
 
-		private string m_Path;
-		private bool m_IsValid = true;
+        private string m_Path;
+        private bool m_IsValid = true;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the path.
-		/// </summary>
-		/// <value>The path.</value>
-		public string Path
-		{
-			get
-			{
-				return m_Path;
-			}
-		}
+        /// <summary>
+        /// Gets the path.
+        /// </summary>
+        /// <value>The path.</value>
+        public string Path
+        {
+            get
+            {
+                return m_Path;
+            }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether this instance is valid.
-		/// </summary>
-		/// <value><c>true</c> if this instance is valid; otherwise, <c>false</c>.</value>
-		public bool IsValid
-		{
-			get
-			{
-				return m_IsValid;
-			}
-		}
+        /// <summary>
+        /// Gets a value indicating whether this instance is valid.
+        /// </summary>
+        /// <value><c>true</c> if this instance is valid; otherwise, <c>false</c>.</value>
+        public bool IsValid
+        {
+            get
+            {
+                return m_IsValid;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
 
-			m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
-			if(m_Path == null)
-			{
-				m_Path = "";
-			}
+            m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
+            if (m_Path == null)
+            {
+                m_Path = "";
+            }
 
-			try
-			{
-				m_Path = Helper.ResolvePath(m_Path);
-			}
-			catch(ArgumentException)
-			{
-				Kernel.Instance.Log.Write(LogType.Warning, "Could not find prebuild file for processing: {0}", m_Path);
-				m_IsValid = false;
-			}
-		}
+            try
+            {
+                m_Path = Helper.ResolvePath(m_Path);
+            }
+            catch (ArgumentException)
+            {
+                Kernel.Instance.Log.Write(LogType.Warning, "Could not find prebuild file for processing: {0}", m_Path);
+                m_IsValid = false;
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
