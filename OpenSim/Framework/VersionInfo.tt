@@ -1,4 +1,10 @@
-﻿/*
+﻿<#@ output extension=".cs" #>
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -31,7 +37,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string BuildNumber = "8095";
+        public const string BuildNumber = "<#= (int)DateTimeOffset.UtcNow.Subtract(new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalDays #>";
         public const string VersionNumber = "0.9.2."+BuildNumber;
         public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
 
