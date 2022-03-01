@@ -5174,7 +5174,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             AssetBase lma = World.AssetService.Get(assetID.ToString());
-            if (lma == null)
+            if (lma == null || lma.Data == null || lma.Data.Length == 0)
                 return;
 
             if (lma.Type != (sbyte)AssetType.Landmark)

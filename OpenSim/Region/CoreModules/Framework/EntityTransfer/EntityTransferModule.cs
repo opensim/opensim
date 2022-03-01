@@ -1412,6 +1412,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
         {
+            if (lm == null || lm.Data == null || lm.Data.Length == 0)
+                return;
+
             ScenePresence sp = Scene.GetScenePresence(remoteClient.AgentId);
             if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
                 return;
