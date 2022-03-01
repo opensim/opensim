@@ -67,7 +67,6 @@ namespace OpenSim.Region.CoreModules.World.Land
     public class LandManagementModule : INonSharedRegionModule , ILandChannel
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly string LogHeader = "[LAND MANAGEMENT MODULE]";
 
         /// <summary>
         /// Minimum land unit size in region co-ordinates.
@@ -270,11 +269,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (m_landList.TryGetValue(local_id, out land))
                 {
                     m_landGlobalIDs.Remove(land.LandData.GlobalID);
-                    if (land.LandData.FakeID != UUID.Zero)
+                    if (!land.LandData.FakeID.IsZero())
                         m_landFakeIDs.Remove(land.LandData.FakeID);
                     land.LandData = newData;
                     m_landGlobalIDs[newData.GlobalID] = local_id;
-                    if (newData.FakeID != UUID.Zero)
+                    if (!newData.FakeID.IsZero())
                         m_landFakeIDs[newData.FakeID] = local_id;
                 }
             }
@@ -320,7 +319,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>The parcel created.</returns>
         protected ILandObject CreateDefaultParcel()
         {
-            m_log.DebugFormat("{0} Creating default parcel for region {1}", LogHeader, m_scene.RegionInfo.RegionName);
+            m_log.Debug("[LAND MANAGEMENT MODULE]: Creating default parcel for region " + m_scene.RegionInfo.RegionName);
 
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
 
@@ -516,7 +515,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 avatar.currentParcelUUID = over.LandData.GlobalID;
                 over.SendLandUpdateToClient(avatar.ControllingClient);
             }
-            if(overlay)
+            if (overlay)
                 SendParcelOverlay(remoteClient);
         }
 
@@ -731,7 +730,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             else
             {
-                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Invalid local land ID {0}", landLocalID);
+                m_log.Warn("[LAND MANAGEMENT MODULE]: Invalid local land ID " + landLocalID.ToString());
             }
         }
 
@@ -758,8 +757,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (landBitmap.GetLength(0) != m_landIDList.GetLength(0) || landBitmap.GetLength(1) != m_landIDList.GetLength(1))
                 {
                     // Going to variable sized regions can cause mismatches
-                    m_log.ErrorFormat("{0} AddLandObject. Added land bitmap different size than region ID map. bitmapSize=({1},{2}), landIDSize=({3},{4})",
-                        LogHeader, landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1));
+                    m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Added land bitmap has different size than region ID map. bitmapSize=({0},{1}), landIDSize=({2},{3})",
+                        landBitmap.GetLength(0), landBitmap.GetLength(1), m_landIDList.GetLength(0), m_landIDList.GetLength(1));
                 }
                 else
                 {
@@ -780,8 +779,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     if (lastRecordedLo.LandBitmap[x, y])
                                     {
                                         m_log.ErrorFormat(
-                                            "{0}: Cannot add parcel \"{1}\", local ID {2} at tile {3},{4} because this is still occupied by parcel \"{5}\", local ID {6} in {7}",
-                                            LogHeader, new_land.LandData.Name, new_land.LandData.LocalID, x, y,
+                                            "[LAND MANAGEMENT MODULE]: Cannot add parcel \"{0}\", local ID {1} at tile {2},{3} because this is still occupied by parcel \"{4}\", local ID {5} in {6}",
+                                            new_land.LandData.Name, new_land.LandData.LocalID, x, y,
                                             lastRecordedLo.LandData.Name, lastRecordedLo.LandData.LocalID, m_scene.Name);
 
                                         return null;
@@ -797,9 +796,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             if (landBitmap[x, y])
                             {
-                                //                            m_log.DebugFormat(
-                                //                                "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}",
-                                //                                new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
+                                //m_log.DebugFormat(
+                                //    "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}",
+                                //    new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
 
                                 m_landIDList[x, y] = newLandLocalID;
                             }
@@ -853,7 +852,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
-            if(landGlobalID != UUID.Zero)
+            if(!landGlobalID.IsZero())
             {
                 m_scene.EventManager.TriggerLandObjectRemoved(landGlobalID);
                 land.Clear();
@@ -1252,16 +1251,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
              //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
             ILandObject newLand = startLandObject.Copy();
+            LandData newLandData = newLand.LandData;
 
-            newLand.LandData.Name = newLand.LandData.Name;
-            newLand.LandData.GlobalID = UUID.Random();
-            newLand.LandData.Dwell = 0;
+            newLandData.GlobalID = UUID.Random();
+            newLandData.Dwell = 0;
             // Clear "Show in search" on the cut out parcel to prevent double-charging
-            newLand.LandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
+            newLandData.Flags &= ~(uint)ParcelFlags.ShowDirectory;
             // invalidate landing point
-            newLand.LandData.LandingType = (byte)LandingType.Direct;
-            newLand.LandData.UserLocation = Vector3.Zero;
-            newLand.LandData.UserLookAt = Vector3.Zero;
+            newLandData.LandingType = (byte)LandingType.Direct;
+            newLandData.UserLocation = Vector3.Zero;
+            newLandData.UserLookAt = Vector3.Zero;
 
             newLand.SetLandBitmap(newLand.GetSquareLandBitmap(start_x, start_y, end_x, end_y));
 
@@ -1269,17 +1268,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             int startLandObjectIndex = startLandObject.LandData.LocalID;
             lock (m_landList)
             {
-                m_landList[startLandObjectIndex].SetLandBitmap(
-                    newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
+                m_landList[startLandObjectIndex].SetLandBitmap(newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
                 m_landList[startLandObjectIndex].ForceUpdateLandInfo();
             }
+
+            UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
 
             //add the new land object
             ILandObject result = AddLandObject(newLand);
 
-            UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);
-
-            if(startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
+            if (startLandObject.LandData.LandingType == (byte)LandingType.LandingPoint)
             {
                 int x = (int)startLandObject.LandData.UserLocation.X;
                 int y = (int)startLandObject.LandData.UserLocation.Y;
@@ -1376,7 +1374,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         //legacy name
         public void SendParcelsOverlay(IClientAPI client)
         {
-            SendParcelsOverlay(client);
+            SendParcelOverlay(client);
         }
 
         /// <summary>
@@ -1425,13 +1423,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                         curByte = LandChannel.LAND_TYPE_OWNED_BY_GROUP;
                     }
                     else if (currentParcel.LandData.SalePrice > 0 &&
-                                (currentParcel.LandData.AuthBuyerID == UUID.Zero ||
-                                currentParcel.LandData.AuthBuyerID == remote_client.AgentId))
+                                (currentParcel.LandData.AuthBuyerID.IsZero() ||
+                                currentParcel.LandData.AuthBuyerID.Equals(remote_client.AgentId)))
                     {
                         //Sale type
                         curByte = LandChannel.LAND_TYPE_IS_FOR_SALE;
                     }
-                    else if (currentParcel.LandData.OwnerID == UUID.Zero)
+                    else if (currentParcel.LandData.OwnerID.IsZero())
                     {
                         //Public type
                         curByte = LandChannel.LAND_TYPE_PUBLIC; // this does nothing, its zero
@@ -1792,7 +1790,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     bool landforsale = ((lob.LandData.Flags &
                                          (uint)(ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects)) != 0);
-                    if ((AuthorizedID == UUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
+                    if ((AuthorizedID.IsZero() || AuthorizedID.Equals(e.agentId)) && e.parcelPrice >= saleprice && landforsale)
                     {
                         // TODO I don't think we have to lock it here, no?
                         //lock (e)
@@ -1842,8 +1840,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             if (m_landList.Count == 1)
                             {
                                 m_log.DebugFormat(
-                                    "[{0}]: Auto-extending land parcel as landID at {1},{2} is 0 and only one land parcel is present in {3}",
-                                    LogHeader, x, y, m_scene.Name);
+                                    "[LAND MANAGEMENT MODULE]: Auto-extending land parcel as landID at {0},{1} is 0 and only one land parcel is present in {2}",
+                                    x, y, m_scene.Name);
 
                                 int onlyParcelID = 0;
                                 ILandObject onlyLandObject = null;
@@ -1865,8 +1863,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             else if (m_landList.Count > 1)
                             {
                                 m_log.DebugFormat(
-                                    "{0}: Auto-creating land parcel as landID at {1},{2} is 0 and more than one land parcel is present in {3}",
-                                    LogHeader, x, y, m_scene.Name);
+                                    "[LAND MANAGEMENT MODULE]: Auto-creating land parcel as landID at {0},{1} is 0 and more than one land parcel is present in {2}",
+                                    x, y, m_scene.Name);
 
                                 // There are several other parcels so we must create a new one for the unassigned space
                                 ILandObject newLand = new LandObject(UUID.Zero, false, m_scene);
@@ -1879,9 +1877,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                             else
                             {
                                 // We should never reach this point as the separate code path when no land data exists should have fired instead.
-                                m_log.WarnFormat(
-                                    "{0}: Ignoring request to auto-create parcel in {1} as there are no other parcels present",
-                                    LogHeader, m_scene.Name);
+                                m_log.Warn(
+                                    "[LAND MANAGEMENT MODULE]: Ignoring request to auto-create parcel in {1} as there are no other parcels present" + m_scene.Name);
                             }
                         }
                     }
@@ -2207,7 +2204,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID == UUID.Zero ? args.ToString() :"");
+            //m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0} {1}", parcelID, parcelID.IsZero() ? args.ToString() :"");
             osUTF8 sb = LLSDxmlEncode2.Start();
                 LLSDxmlEncode2.AddMap(sb);
                   LLSDxmlEncode2.AddElem("parcel_id", parcelID,sb);
@@ -2220,7 +2217,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void ClientOnParcelInfoRequest(IClientAPI remoteClient, UUID parcelID)
         {
-            if (parcelID == UUID.Zero)
+            if (parcelID.IsZero())
                 return;
 
             if(!m_parcelInfoCache.TryGetValue(parcelID, 30000, out ExtendedLandData data))
@@ -2341,13 +2338,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
 
             bool validParcelOwner = false;
-            if (DefaultGodParcelOwner != UUID.Zero && m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
+            if (!DefaultGodParcelOwner.IsZero() && m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, DefaultGodParcelOwner) != null)
                 validParcelOwner = true;
 
             bool validParcelGroup = false;
             if (m_groupManager != null)
             {
-                if (DefaultGodParcelGroup != UUID.Zero && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
+                if (!DefaultGodParcelGroup.IsZero() && m_groupManager.GetGroupRecord(DefaultGodParcelGroup) != null)
                     validParcelGroup = true;
             }
 
@@ -2586,7 +2583,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             // Gather some data
             ulong gpowers = remoteClient.GetGroupPowers(land.LandData.GroupID);
             SceneObjectGroup telehub = null;
-            if (m_scene.RegionInfo.RegionSettings.TelehubObject != UUID.Zero)
+            if (!m_scene.RegionInfo.RegionSettings.TelehubObject.IsZero())
                 // Does the telehub exist in the scene?
                 telehub = m_scene.GetSceneObjectGroup(m_scene.RegionInfo.RegionSettings.TelehubObject);
 

@@ -38,6 +38,11 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class BaseStatsCollector : IStatsCollector
     {
+        public virtual string Report(IScene scene = null)
+        {
+            return string.Empty;
+        }
+
         public virtual string Report()
         {
             StringBuilder sb = new StringBuilder(Environment.NewLine);
@@ -66,6 +71,7 @@ namespace OpenSim.Framework.Monitoring
                             Math.Round(myprocess.PeakWorkingSet64 / 1024.0 / 1024.0),
                             Math.Round(myprocess.PeakPagedMemorySize64 / 1024.0 / 1024.0),
                             Math.Round(myprocess.PeakVirtualMemorySize64 / 1024.0 / 1024.0));
+                    sb.AppendFormat("\nTotal process Threads {0}\n", myprocess.Threads.Count);
                 }
             }
             catch
@@ -78,10 +84,22 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual string XReport(string uptime, string version)
         {
-            return (string) Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0).ToString() ;
+            return (string)Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0).ToString();
         }
 
         public virtual OSDMap OReport(string uptime, string version)
+        {
+            OSDMap ret = new OSDMap();
+            ret.Add("TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
+            return ret;
+        }
+
+        public virtual string XReport(string uptime, string version, string scene)
+        {
+            return (string)Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0).ToString();
+        }
+
+        public virtual OSDMap OReport(string uptime, string version, string scene)
         {
             OSDMap ret = new OSDMap();
             ret.Add("TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));

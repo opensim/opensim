@@ -156,7 +156,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[ACCOUNT CONNECTOR]: GetUserAccounts received null or empty reply");
                     return null;
@@ -211,7 +211,7 @@ namespace OpenSim.Services.Connectors
             UUID uuid = UUID.Zero;
             foreach(string id in IDs)
             {
-                if(UUID.TryParse(id, out uuid) && uuid != UUID.Zero)
+                if(UUID.TryParse(id, out uuid) && !uuid.IsZero())
                     accs.Add(GetUserAccount(scopeID,uuid));
             }
 
@@ -240,7 +240,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[ACCOUNT CONNECTOR]: GetMultiUserAccounts received null or empty reply");
                     return null;
@@ -364,7 +364,7 @@ namespace OpenSim.Services.Connectors
                         uri,
                         reqString,
                         m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[ACCOUNT CONNECTOR]: GetUserAccount received null or empty reply");
                     return null;

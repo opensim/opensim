@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
 
             m_RestURL = cnf.GetString("OfflineMessageURL", "");
-            if (m_RestURL == "")
+            if (m_RestURL.Length == 0)
             {
                 m_log.Error("[OFFLINE MESSAGING] Module was enabled, but no URL is given, disabling");
                 enabled = false;
@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void RetrieveInstantMessages(IClientAPI client)
         {
-            if (m_RestURL == String.Empty)
+            if (m_RestURL.Length == 0)
             {
                 return;
             }
@@ -216,11 +216,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             // invitations
                             //
 
-                            im.offline = 1;
-
-                            Scene s = FindScene(client.AgentId);
+                            Scene s = client.Scene as Scene;
                             if (s != null)
+                            {
+                                im.offline = 1;
                                 s.EventManager.TriggerIncomingInstantMessage(im);
+                            }
                         }
                     }
                 }

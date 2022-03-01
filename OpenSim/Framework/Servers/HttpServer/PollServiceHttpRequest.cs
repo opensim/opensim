@@ -116,15 +116,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return;
             }
 
-            response.StatusCode = responsecode;
             if (responsecode == (int)HttpStatusCode.Moved)
             {
-                response.AddHeader("Location", (string)responsedata["str_redirect_location"]);
+                response.Redirect((string)responsedata["str_redirect_location"], HttpStatusCode.Moved);
                 response.KeepAlive = false;
                 PollServiceArgs.RequestsHandled++;
                 response.Send();
                 return;
             }
+
+            response.StatusCode = responsecode;
 
             if (responsedata.ContainsKey("http_protocol_version"))
                 response.ProtocolVersion = (string)responsedata["http_protocol_version"];
@@ -134,10 +135,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (responsedata.ContainsKey("keepaliveTimeout"))
                 response.KeepAliveTimeout = (int)responsedata["keepaliveTimeout"];
-
-
-            if (responsedata.ContainsKey("prio"))
-                response.Priority = (int)responsedata["prio"];
 
             if (responsedata.ContainsKey("error_status_text"))
                 response.StatusDescription = (string)responsedata["error_status_text"];

@@ -475,6 +475,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Stop()
         {
             StopTimer();
+            bool running = m_running;
             m_running = false;
             m_isCrossing = false;
             m_waitingCrossing = false;
@@ -487,12 +488,14 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_group.SendGroupRootTerseUpdate();
             m_group.RootPart.ScheduleTerseUpdate();
             m_frames.Clear();
-            m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
+            if(running)
+                m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
         }
 
         public void Pause()
         {
             StopTimer();
+            bool running = m_running;
             m_running = false;
 
             m_group.RootPart.Velocity = Vector3.Zero;
@@ -500,7 +503,8 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_skippedUpdates = 1000;
 //            m_group.SendGroupRootTerseUpdate();
             m_group.RootPart.ScheduleTerseUpdate();
-            m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
+            if(running)
+                m_group.Scene.EventManager.TriggerMovingEndEvent(m_group.RootPart.LocalId);
         }
 
         public void Suspend()

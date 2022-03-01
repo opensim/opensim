@@ -130,10 +130,10 @@ namespace OpenSim.Services.FSAssetService
 
             if (dbConfig != null)
             {
-                if (dllName == String.Empty)
+                if (dllName.Length == 0)
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
 
-                if (connectionString == String.Empty)
+                if (connectionString.Length == 0)
                     connectionString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
@@ -178,7 +178,7 @@ namespace OpenSim.Services.FSAssetService
             Directory.CreateDirectory(spoolTmp);
 
             m_FSBase = assetConfig.GetString("BaseDirectory", String.Empty);
-            if (m_FSBase == String.Empty)
+            if (m_FSBase.Length == 0)
             {
                 m_log.ErrorFormat("[FSASSETS]: BaseDirectory not specified");
                 throw new Exception("Configuration error");
@@ -668,15 +668,15 @@ namespace OpenSim.Services.FSAssetService
                 }
             }
 
-            if (asset.ID == string.Empty)
+            if (asset.ID.Length == 0)
             {
-                if (asset.FullID == UUID.Zero)
+                if (asset.FullID.IsZero())
                 {
                     asset.FullID = UUID.Random();
                 }
                 asset.ID = asset.FullID.ToString();
             }
-            else if (asset.FullID == UUID.Zero)
+            else if (asset.FullID.IsZero())
             {
                 UUID uuid = UUID.Zero;
                 if (UUID.TryParse(asset.ID, out uuid))
@@ -833,6 +833,11 @@ namespace OpenSim.Services.FSAssetService
         public AssetBase GetCached(string id)
         {
             return Get(id);
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            return;
         }
     }
 }

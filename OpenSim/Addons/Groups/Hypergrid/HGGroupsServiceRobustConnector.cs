@@ -66,7 +66,7 @@ namespace OpenSim.Groups
 
             string homeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI",
                 new string[] { "Startup", "Hypergrid", m_ConfigName}, string.Empty);
-            if (homeURI == string.Empty)
+            if (homeURI.Length == 0)
                 throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide the HomeURI [Startup] or in section {0}", m_ConfigName));
 
             IConfig cnf = config.Configs[m_ConfigName];
@@ -76,7 +76,7 @@ namespace OpenSim.Groups
             if (im == null)
             {
                 string imDll = cnf.GetString("OfflineIMService", string.Empty);
-                if (imDll == string.Empty)
+                if (imDll.Length == 0)
                     throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide OfflineIMService in section {0}", m_ConfigName));
 
                 Object[] args = new Object[] { config };
@@ -86,7 +86,7 @@ namespace OpenSim.Groups
             if (users == null)
             {
                 string usersDll = cnf.GetString("UserAccountService", string.Empty);
-                if (usersDll == string.Empty)
+                if (usersDll.Length == 0)
                     throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide UserAccountService in section {0}", m_ConfigName));
 
                 Object[] args = new Object[] { config };

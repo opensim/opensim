@@ -62,6 +62,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name='client'></param>
         bool TeleportHome(UUID id, IClientAPI client);
 
+        void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt);
+
         /// <summary>
         /// Teleport an agent directly to a given region without checking whether the region should be substituted.
         /// </summary>

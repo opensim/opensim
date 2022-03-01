@@ -55,6 +55,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 using(XmlTextReader reader = new XmlTextReader(fileName))
                 {
+                    reader.DtdProcessing = DtdProcessing.Ignore;
                     reader.WhitespaceHandling = WhitespaceHandling.None;
 
                     doc.Load(reader);
@@ -199,7 +200,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup g = (SceneObjectGroup)ent;
-                    if (!min.Equals(Vector3.Zero) || !max.Equals(Vector3.Zero))
+                    if (!min.IsZero() || !max.IsZero())
                     {
                         Vector3 pos = g.RootPart.GetWorldPosition();
                         if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)
@@ -236,7 +237,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="fileName"></param>
         public static void LoadPrimsFromXml2(Scene scene, string fileName)
         {
-            LoadPrimsFromXml2(scene, new XmlTextReader(fileName), false);
+            var xr = new XmlTextReader(fileName);
+            xr.DtdProcessing = DtdProcessing.Ignore;
+            LoadPrimsFromXml2(scene, xr , false);
         }
 
         /// <summary>
@@ -247,7 +250,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="startScripts"></param>
         public static void LoadPrimsFromXml2(Scene scene, TextReader reader, bool startScripts)
         {
-            LoadPrimsFromXml2(scene, new XmlTextReader(reader), startScripts);
+            var xr = new XmlTextReader(reader);
+            xr.DtdProcessing = DtdProcessing.Ignore;
+            LoadPrimsFromXml2(scene, xr, startScripts);
         }
 
         /// <summary>
@@ -258,7 +263,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="startScripts"></param>
         protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader, bool startScripts)
         {
+
             XmlDocument doc = new XmlDocument();
+            reader.DtdProcessing = DtdProcessing.Ignore; 
             reader.WhitespaceHandling = WhitespaceHandling.None;
             doc.Load(reader);
             reader.Close();

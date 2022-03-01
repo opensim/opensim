@@ -76,7 +76,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = gridConfig.GetString("AvatarServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[AVATAR CONNECTOR]: No Server URI named in section AvatarService");
                 throw new Exception("Avatar connector init error");
@@ -118,7 +118,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 reply = SynchronousRestFormsRequester.MakeRequest("POST", uri, reqString, m_Auth);
-                if (reply == null || (reply != null && reply == string.Empty))
+                if (string.IsNullOrEmpty(reply))
                 {
                     m_log.DebugFormat("[AVATAR CONNECTOR]: GetAgent received null or empty reply");
                     return null;

@@ -49,11 +49,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         //private Dictionary<UUID, UUID> m_rootAgents = new Dictionary<UUID, UUID>();
 
         /// <summary>
-        /// Scenes by Region Handle
-        /// </summary>
-        private Dictionary<ulong, Scene> m_scenel = new Dictionary<ulong, Scene>();
-
-        /// <summary>
         /// Startup
         /// </summary>
         /// <param name="scene"></param>
@@ -64,26 +59,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 
         public void AddRegion(Scene scene)
         {
-            lock (m_scenel)
-            {
-                if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
-                {
-                    m_scenel[scene.RegionInfo.RegionHandle] = scene;
-                }
-                else
-                {
-                    m_scenel.Add(scene.RegionInfo.RegionHandle, scene);
-                }
-            }
-
             scene.EventManager.OnAvatarKilled += KillAvatar;
         }
 
         public void RemoveRegion(Scene scene)
         {
-            if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
-                m_scenel.Remove(scene.RegionInfo.RegionHandle);
-
             scene.EventManager.OnAvatarKilled -= KillAvatar;
         }
 
@@ -109,17 +89,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             get { return null; }
         }
 
-
         private void KillAvatar(uint killerObjectLocalID, ScenePresence deadAvatar)
         {
             string deadAvatarMessage;
             ScenePresence killingAvatar = null;
-//            string killingAvatarMessage;
 
             // check to see if it is an NPC and just remove it
-            INPCModule NPCmodule = deadAvatar.Scene.RequestModuleInterface<INPCModule>();
-            if (NPCmodule != null && NPCmodule.DeleteNPC(deadAvatar.UUID, deadAvatar.Scene))
+            if(deadAvatar.IsNPC)
             {
+                INPCModule NPCmodule = deadAvatar.Scene.RequestModuleInterface<INPCModule>();
+                if (NPCmodule != null)
+                    NPCmodule.DeleteNPC(deadAvatar.UUID, deadAvatar.Scene);
                 return;
             }
 

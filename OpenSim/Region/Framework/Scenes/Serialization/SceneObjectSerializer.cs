@@ -60,10 +60,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The scene object deserialized.  Null on failure.</returns>
         public static SceneObjectGroup FromOriginalXmlFormat(string xmlData)
         {
-            String fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
+            string fixedData = ExternalRepresentationUtils.SanitizeXml(xmlData);
             using (XmlTextReader wrappedReader = new XmlTextReader(fixedData, XmlNodeType.Element, null))
             {
-                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment }))
+                using (XmlReader reader = XmlReader.Create(wrappedReader, new XmlReaderSettings() { IgnoreWhitespace = true, ConformanceLevel = ConformanceLevel.Fragment, DtdProcessing = DtdProcessing.Ignore }))
                 {
                     try
                     {
@@ -78,7 +78,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
             }
         }
-
+        /*
         public static SceneObjectGroup FromOriginalXmlData(byte[] data)
         {
             int len = data.Length;
@@ -104,6 +104,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
             }
         }
+        */
 
         /// <summary>
         /// Deserialize a scene object from the original xml format
@@ -295,7 +296,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 using(StringReader sr = new StringReader(parts[0].OuterXml))
                 {
                     using(XmlTextReader reader = new XmlTextReader(sr))
+                    {
+                        reader.DtdProcessing = DtdProcessing.Ignore;
                         sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+                    }
                 }
 
                 // Then deal with the rest
@@ -306,6 +310,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     {
                         using(XmlTextReader reader = new XmlTextReader(sr))
                         {
+                            reader.DtdProcessing = DtdProcessing.Ignore;
                             part = SceneObjectPart.FromXml(reader);
                         }
                     }
@@ -1572,7 +1577,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
-            if(sop.StandOffset != Vector3.Zero)
+            if(!sop.StandOffset.IsZero())
                 WriteVector(writer, "StandTarget", sop.StandOffset);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
@@ -1601,7 +1606,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteFlags(writer, "Flags", sop.Flags.ToString(), options);
             WriteUUID(writer, "CollisionSound", sop.CollisionSound, options);
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString(Culture.FormatProvider));
-            if (sop.MediaUrl != null)
+            if (!string.IsNullOrEmpty(sop.MediaUrl))
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
             WriteVector(writer, "AttachedPos", sop.AttachedPos);
 

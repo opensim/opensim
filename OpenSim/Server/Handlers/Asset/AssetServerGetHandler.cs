@@ -102,13 +102,11 @@ namespace OpenSim.Server.Handlers.Asset
 
                     if (metadata != null)
                     {
-                        XmlSerializer xs =
-                                new XmlSerializer(typeof(AssetMetadata));
+                        XmlSerializer xs = new XmlSerializer(typeof(AssetMetadata));
                         result = ServerUtils.SerializeResult(xs, metadata);
 
                         httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                        httpResponse.ContentType =
-                                SLUtil.SLAssetTypeToContentType(metadata.Type);
+                        httpResponse.ContentType = SLUtil.SLAssetTypeToContentType(metadata.Type);
                     }
                     else
                     {
@@ -138,8 +136,7 @@ namespace OpenSim.Server.Handlers.Asset
                     result = ServerUtils.SerializeResult(xs, asset);
 
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                    httpResponse.ContentType =
-                            SLUtil.SLAssetTypeToContentType(asset.Type);
+                    httpResponse.ContentType = SLUtil.SLAssetTypeToContentType(asset.Type);
                 }
                 else
                 {
@@ -158,12 +155,11 @@ namespace OpenSim.Server.Handlers.Asset
 
             if (httpResponse.StatusCode == (int)HttpStatusCode.NotFound && !string.IsNullOrEmpty(m_RedirectURL) && !string.IsNullOrEmpty(id))
             {
-                httpResponse.StatusCode = (int)HttpStatusCode.Redirect;
                 string rurl = m_RedirectURL;
                 if (!path.StartsWith("/"))
                     rurl += "/";
                 rurl += path;
-                httpResponse.AddHeader("Location", rurl);
+                httpResponse.Redirect(rurl);
                 m_log.DebugFormat("[ASSET GET HANDLER]: Asset not found, redirecting to {0} ({1})", rurl, httpResponse.StatusCode);
             }
             return result;

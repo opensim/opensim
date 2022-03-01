@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         {
             FileInfo file = new FileInfo(filename);
 
-            using (FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write))
+            using (FileStream s = file.Open(FileMode.Create, FileAccess.Write))
                 SaveStream(s, map);
         }
 

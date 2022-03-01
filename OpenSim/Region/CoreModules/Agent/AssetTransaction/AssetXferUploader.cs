@@ -428,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             else
             {
                 m_Scene.AssetService.Store(m_asset);
-                if (m_asset.FullID != UUID.Zero)
+                if (!m_asset.FullID.IsZero())
                 {
                     item.AssetID = m_asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);
@@ -556,7 +556,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                             UUID tx = new UUID(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
 
-                            if (defaultIDs.Contains(tx) || tx == UUID.Zero ||
+                            if (defaultIDs.Contains(tx) || tx.IsZero() ||
                                 (allowed.ContainsKey(id) && allowed[id] == tx))
                             {
                                 continue;

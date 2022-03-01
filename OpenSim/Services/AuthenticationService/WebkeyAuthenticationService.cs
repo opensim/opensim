@@ -68,7 +68,7 @@ namespace OpenSim.Services.AuthenticationService
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
-            if (new UUID(password) == UUID.Zero)
+            if (new UUID(password).IsZero())
             {
                 m_log.DebugFormat("[AUTH SERVICE]: UUID.Zero is not a valid web_login_key on PrincipalID {0}", principalID);
             }

@@ -57,7 +57,7 @@ namespace OpenSim.Services.UserAccountService
 
             dllName = userConfig.GetString("StorageProvider", dllName);
 
-            if (dllName == String.Empty)
+            if (dllName.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
             connString = userConfig.GetString("ConnectionString", connString);

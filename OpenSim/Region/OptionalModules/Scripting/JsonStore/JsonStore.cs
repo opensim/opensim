@@ -671,7 +671,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             string pkey = "";
             foreach (string k in path)
-                pkey = (pkey == "") ? k : (k + "." + pkey);
+                pkey = (pkey.Length == 0) ? k : (k + "." + pkey);
 
             return pkey;
         }

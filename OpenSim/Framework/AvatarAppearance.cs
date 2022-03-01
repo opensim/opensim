@@ -265,7 +265,7 @@ namespace OpenSim.Framework
                     UUID itemID = m_wearables[i][j].ItemID;
                     UUID assetID = app.Wearables[i].GetAsset(itemID);
 
-                    if (assetID != UUID.Zero)
+                    if (!assetID.IsZero())
                         m_wearables[i].Add(itemID, assetID);
                 }
             }
@@ -598,7 +598,7 @@ namespace OpenSim.Framework
 
             lock (m_attachments)
             {
-                if (item == UUID.Zero)
+                if (item.IsZero())
                 {
                     if (m_attachments.ContainsKey(attachpoint))
                     {
@@ -622,7 +622,7 @@ namespace OpenSim.Framework
 //                        "[AVATAR APPEARANCE]: Found existing attachment for {0}, asset {1} at point {2}",
 //                        existingAttachment.ItemID, existingAttachment.AssetID, existingAttachment.AttachPoint);
 
-                    if (existingAttachment.AssetID != UUID.Zero && existingAttachment.AttachPoint == (attachpoint & 0x7F))
+                    if (!existingAttachment.AssetID.IsZero() && existingAttachment.AttachPoint == (attachpoint & 0x7F))
                     {
                         m_log.DebugFormat(
                             "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}",
@@ -848,7 +848,7 @@ namespace OpenSim.Framework
                 if (m_texture.FaceTextures[idx] == null)
                     continue;
                 if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
-                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
+                        m_texture.FaceTextures[idx].TextureID.IsZero())
                     continue;
                 needExtra = true;
             }
@@ -1036,8 +1036,7 @@ namespace OpenSim.Framework
                 int idx = BAKE_INDICES[i];
                 if (m_texture.FaceTextures[idx] == null)
                     continue;
-                if (m_texture.FaceTextures[idx].TextureID == AppearanceManager.DEFAULT_AVATAR_TEXTURE ||
-                        m_texture.FaceTextures[idx].TextureID == UUID.Zero)
+                if (m_texture.FaceTextures[idx].TextureID.IsZero() || m_texture.FaceTextures[idx].TextureID.Equals(AppearanceManager.DEFAULT_AVATAR_TEXTURE))
                     continue;
                 return false;
             }

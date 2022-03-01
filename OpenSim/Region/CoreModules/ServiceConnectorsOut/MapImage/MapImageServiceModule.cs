@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             }
 
             string service = config.GetString("LocalServiceModule", string.Empty);
-            if (service == string.Empty)
+            if (service.Length == 0)
             {
                 m_log.WarnFormat("[MAP IMAGE SERVICE MODULE]: No service dll given in config. Unable to proceed.");
                 return;

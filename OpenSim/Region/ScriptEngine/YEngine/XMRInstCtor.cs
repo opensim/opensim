@@ -135,9 +135,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Initialize the API instance.
             scriptApi.Initialize(m_Engine, m_Part, m_Item);
-            this.InitApi(api, scriptApi);
+            InitApi(api, scriptApi);
         }
-
 
         /*
          * Get script object code loaded in memory and all ready to run,
@@ -250,7 +249,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             catch
             {
-
                 // If any error loading, decrement object code reference count.
                 DecObjCodeRefCount();
                 throw;
@@ -326,16 +324,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void LoadObjCode()
         {
             // Script must leave this much stack remaining on calls to CheckRun().
-            this.stackLimit = m_StackSize / 2;
+            stackLimit = m_StackSize / 2;
 
             // This is how many total heap bytes script is allowed to use.
-            this.heapLimit = m_HeapSize;
+            heapLimit = m_HeapSize;
 
             // Allocate global variable arrays.
-            this.glblVars.AllocVarArrays(m_ObjCode.glblSizes);
+            glblVars.AllocVarArrays(m_ObjCode.glblSizes);
 
             // Script can handle these event codes.
-            m_HaveEventHandlers = new bool[m_ObjCode.scriptEventHandlerTable.GetLength(1)];
             for(int i = m_ObjCode.scriptEventHandlerTable.GetLength(0); --i >= 0;)
             {
                 for(int j = m_ObjCode.scriptEventHandlerTable.GetLength(1); --j >= 0;)
@@ -363,16 +360,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(!File.Exists(m_StateFileName))
             {
-                m_Running = true;                  // event processing is enabled
                 eventCode = ScriptEventCode.None;  // not processing any event
 
                 // default state_entry() must initialize global variables
                 doGblInit = true;
                 stateCode = 0;
 
-                PostEvent(new EventParams("state_entry",
-                                          zeroObjectArray,
-                                          zeroDetectParams));
+                PostEvent(EventParams.StateEntryParams);
             }
             else
             {
@@ -395,7 +389,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     File.Delete(m_StateFileName);
 
-                    m_Running = true;                  // event processing is enabled
                     eventCode = ScriptEventCode.None;  // not processing any event
 
                     // default state_entry() must initialize global variables
@@ -403,54 +396,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     doGblInit = true;
                     stateCode = 0;
 
-                    PostEvent(new EventParams("state_entry",
-                                              zeroObjectArray,
-                                              zeroDetectParams));
+                    PostEvent(EventParams.StateEntryParams);
                 }
             }
 
              // Post event(s) saying what caused the script to start.
-            if(m_PostOnRez)
+            if(m_Running)
             {
-                PostEvent(new EventParams("on_rez",
-                          new Object[] { m_StartParam },
-                          zeroDetectParams));
-            }
+                if(m_PostOnRez)
+                {
+                    PostEvent(new EventParams("on_rez",
+                              new object[] { m_StartParam },
+                              zeroDetectParams));
+                }
 
-            switch(m_StateSource)
-            {
-                case StateSource.AttachedRez:
-                    PostEvent(new EventParams("attach",
-                              new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
-                              zeroDetectParams));
-                    break;
+                switch(m_StateSource)
+                {
+                    case StateSource.AttachedRez:
+                        PostEvent(new EventParams("attach",
+                                  new object[] { m_Part.ParentGroup.AttachedAvatar.ToString() }, 
+                                  zeroDetectParams));
+                        break;
 
-                case StateSource.PrimCrossing:
-                    PostEvent(new EventParams("changed",
-                              sbcCR,
-                              zeroDetectParams));
-                    break;
+                    case StateSource.PrimCrossing:
+                        PostEvent(changedEvent_CR);
+                        break;
 
-                case StateSource.Teleporting:
-                    PostEvent(new EventParams("changed",
-                              sbcCR,
-                              zeroDetectParams));
-                    PostEvent(new EventParams("changed",
-                              sbcCT,
-                              zeroDetectParams));
-                    break;
+                    case StateSource.Teleporting:
+                        PostEvent(changedEvent_CRT);
+                        break;
 
-                case StateSource.RegionStart:
-                    PostEvent(new EventParams("changed",
-                              sbcCRS,
-                              zeroDetectParams));
-                    break;
+                    case StateSource.RegionStart:
+                        PostEvent(changedEvent_CRS);
+                        break;
+                }
             }
         }
 
-        private static Object[] sbcCRS = new Object[] { ScriptBaseClass.CHANGED_REGION_START };
-        private static Object[] sbcCR = new Object[] { ScriptBaseClass.CHANGED_REGION };
-        private static Object[] sbcCT = new Object[] { ScriptBaseClass.CHANGED_TELEPORT };
+        private static EventParams changedEvent_CR = new EventParams("changed", new object[] { CHANGED_REGION }, zeroDetectParams);
+        private static EventParams changedEvent_CT = new EventParams("changed", new object[] { CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRT = new EventParams("changed", new object[] { CHANGED_REGION | CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRS = new EventParams("changed", new object[] { CHANGED_REGION_START }, zeroDetectParams);
 
         /**
          * @brief Save compilation error messages for later retrieval
@@ -520,7 +506,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Get various attributes
             XmlElement runningN = (XmlElement)scriptStateN.SelectSingleNode("Running");
-            m_Running = bool.Parse(runningN.InnerText);
+            m_Running &= bool.Parse(runningN.InnerText);
 
             XmlElement doGblInitN = (XmlElement)scriptStateN.SelectSingleNode("DoGblInit");
             doGblInit = bool.Parse(doGblInitN.InnerText);
@@ -619,7 +605,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             Dictionary<string, int> rotationNames = new Dictionary<string, int>();
             Dictionary<string, int> listNames = new Dictionary<string, int>();
 
-            int nn = m_ObjCode.globalVarNames.Count;
             int[] ints = null;
             double[] doubles = null;
             string[] strings = null;
@@ -627,37 +612,39 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             LSL_Rotation[] rotations = null;
             LSL_List[] lists = null;
 
+            int nn = m_ObjCode.globalVarNames.Count;
             if (nn > 0)
             {
-                if (m_ObjCode.globalVarNames.ContainsKey("iarIntegers"))
+                Dictionary<int, string> tmpVars;
+                if (m_ObjCode.globalVarNames.TryGetValue("iarIntegers", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarIntegers"], intNames);
-                    ints = new int[m_ObjCode.globalVarNames["iarIntegers"].Count];
+                    getvarNames(tmpVars, intNames);
+                    ints = new int[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarFloats"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarFloats", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarFloats"], doubleNames);
-                    doubles = new double[m_ObjCode.globalVarNames["iarFloats"].Count];
+                    getvarNames(tmpVars, doubleNames);
+                    doubles = new double[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarVectors"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarVectors", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarVectors"], vectorNames);
-                    vectors = new LSL_Vector[m_ObjCode.globalVarNames["iarVectors"].Count];
+                    getvarNames(tmpVars, vectorNames);
+                    vectors = new LSL_Vector[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarRotations"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarRotations", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarRotations"], rotationNames);
-                    rotations = new LSL_Rotation[m_ObjCode.globalVarNames["iarRotations"].Count];
+                    getvarNames(tmpVars, rotationNames);
+                    rotations = new LSL_Rotation[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarStrings"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarStrings", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarStrings"], stringNames);
-                    strings = new string[m_ObjCode.globalVarNames["iarStrings"].Count];
+                    getvarNames(tmpVars, stringNames);
+                    strings = new string[tmpVars.Count];
                 }
-                if (m_ObjCode.globalVarNames.ContainsKey("iarLists"))
+                if (m_ObjCode.globalVarNames.TryGetValue("iarLists", out tmpVars))
                 {
-                    getvarNames(m_ObjCode.globalVarNames["iarLists"], listNames);
-                    lists = new LSL_List[m_ObjCode.globalVarNames["iarLists"].Count];
+                    getvarNames(tmpVars, listNames);
+                    lists = new LSL_List[tmpVars.Count];
                 }
             }
 
@@ -861,7 +848,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                     {
                                         UUID granter = new UUID();
                                         UUID.TryParse(tmpPerm, out granter);
-                                        if (granter != UUID.Zero)
+                                        if (!granter.IsZero())
                                         {
                                             permsMask = mask;
                                             permsGranter = granter;
@@ -902,12 +889,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             lock (m_RunLock)
             {
-                glblVars.iarIntegers = ints;
-                glblVars.iarFloats = doubles;
-                glblVars.iarVectors = vectors;
-                glblVars.iarRotations = rotations;
-                glblVars.iarStrings = strings;
-                glblVars.iarLists = lists;
+                glblVars.iarIntegers = (ints != null) ? ints : XMRInstArrays.noIntegers;
+                glblVars.iarFloats = (doubles != null) ? doubles : XMRInstArrays.noFloats;
+                glblVars.iarStrings = (strings != null) ? strings : XMRInstArrays.noStrings;
+                glblVars.iarVectors = (vectors != null) ? vectors : XMRInstArrays.noVectors;
+                glblVars.iarRotations = (rotations != null) ? rotations : XMRInstArrays.noRotations;
+                glblVars.iarLists = (lists != null) ? lists : XMRInstArrays.noLists;
+                glblVars.iarChars = XMRInstArrays.noChars;
+                glblVars.iarArrays = XMRInstArrays.noArrays;
+                glblVars.iarObjects = XMRInstArrays.noObjects;
+                glblVars.iarSDTClObjs = XMRInstArrays.noSDTClObjs;
+                glblVars.iarSDTIntfObjs = XMRInstArrays.noSDTIntfObjs;
 
                 AddArraysHeapUse(heapsz);
                 CheckRunLockInvariants(true);
@@ -1161,7 +1153,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 BinaryReader br = new BinaryReader(stream);
                 this.MigrateIn(br);
 
-                m_RunOnePhase = "MigrateInEventHandler finished";
+                //m_RunOnePhase = "MigrateInEventHandler finished";
                 CheckRunLockInvariants(true);
             }
         }
