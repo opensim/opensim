@@ -404,7 +404,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.DebugFormat("[xmlGROUPS]: OnInstantMessage called for {0}, message type {1}",
                          remoteClient.Name, (InstantMessageDialog)im.dialog);
 
-            if (remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId == UUID.Zero)
+            if (remoteClient == null || !remoteClient.IsActive || remoteClient.AgentId.IsZero())
                 return;
 
             Scene scene = (Scene)remoteClient.Scene;
@@ -527,7 +527,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         return;
                     }
 
-                    if(itemID != UUID.Zero && ownerID != UUID.Zero)
+                    if(!itemID.IsZero() && !ownerID.IsZero())
                     {
                         item = scene.InventoryService.GetItem(ownerID, itemID);
                         if (item != null)
@@ -623,7 +623,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteClient.AgentId);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 UUID folderID = UUID.Zero;
@@ -691,7 +691,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteAgentID);
 
-                if (noticeID == UUID.Zero)
+                if (noticeID.IsZero())
                     return;
 
                 GroupNoticeInfo notice = m_groupData.GetGroupNotice(remoteAgentID, noticeID);
@@ -1195,8 +1195,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 if (info.BinaryBucket[0] > 0)
                 {
-                    //32 is due to not needing space for two of the UUIDs.
-                    //(Don't need UUID of attachment or its owner in IM)
                     //50 offset gets us to start of attachment name.
                     bucket = new byte[info.BinaryBucket.Length - 32];
                     Array.Copy(info.BinaryBucket, 0,
@@ -1209,6 +1207,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     bucket = new byte[19];
                     bucket[0] = 0;      //No attachment
                     bucket[1] = 0;      //Attachment type
+                    info.GroupID.ToBytes(bucket, 2);
                     bucket[18] = 0;     //NUL terminate name
                 }
 
@@ -1321,7 +1320,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             GroupRecord groupInfo = m_groupData.GetGroupRecord(agentID, groupID, null);
             if (groupInfo == null)
                 return;
-
 
             IClientAPI ejecteeClient = GetActiveRootClient(ejecteeID);
 

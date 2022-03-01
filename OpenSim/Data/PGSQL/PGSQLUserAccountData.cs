@@ -257,9 +257,9 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
                 if (m_FieldTypes.ContainsKey(item))
-                    cmd.Parameters.Add(m_database.CreateParameter("" + item, value, m_FieldTypes[item]));
+                    cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value, m_FieldTypes[item]));
                 else
-                    cmd.Parameters.Add(m_database.CreateParameter("" + item, value));
+                    cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
 
                 cmd.Parameters.Add(m_database.CreateParameter("UUID", principalID));
                 conn.Open();

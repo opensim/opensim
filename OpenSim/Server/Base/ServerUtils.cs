@@ -219,7 +219,7 @@ namespace OpenSim.Server.Base
         public static T LoadPlugin<T> (string dllName, Object[] args) where T:class
         {
             // This is good to debug configuration problems
-            //if (dllName == string.Empty)
+            //if (dllName.Length == 0)
             //    Util.PrintCallStack();
 
             string className = String.Empty;

@@ -30,28 +30,12 @@ using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
-using System.Security.Policy;
-using System.IO;
-using System.Xml;
-using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Yengine;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
-
-using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
-using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
-using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
-using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 // This class exists in the main app domain
 //
@@ -132,13 +116,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public int m_StartParam = 0;
         public StateSource m_StateSource;
         public string m_DescName;
-        private bool[] m_HaveEventHandlers;
+        private bool[] m_HaveEventHandlers = new bool[(int)ScriptEventCode.Size];
         public int m_StackSize;
         public int m_HeapSize;
         private ArrayList m_CompilerErrors;
         private DateTime m_LastRanAt = DateTime.MinValue;
-        private string m_RunOnePhase = "hasn't run";
-        private string m_CheckRunPhase = "hasn't checked";
+        //private string m_RunOnePhase = "hasn't run";
+        //private string m_CheckRunPhase = "hasn't checked";
         public int m_InstEHEvent = 0;  // number of events dequeued (StartEventHandler called)
         public int m_InstEHSlice = 0;  // number of times handler timesliced (ResumeEx called)
         public double m_CPUTime = 0;  // accumulated CPU time (milliseconds)

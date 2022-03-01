@@ -63,8 +63,8 @@ namespace OpenSim.Services.Connectors
         private int m_requestTimeoutSecs = -1;
         private string m_configName = "InventoryService";
 
-        private const double CACHE_EXPIRATION_SECONDS = 20.0;
-        private static ExpiringCache<UUID, InventoryItemBase> m_ItemCache = new ExpiringCache<UUID,InventoryItemBase>();
+        private const double CACHE_EXPIRATION_SECONDS = 60.0;
+        private static ExpiringCacheOS<UUID, InventoryItemBase> m_ItemCache = new ExpiringCacheOS<UUID,InventoryItemBase>(30000);
 
         public XInventoryServicesConnector()
         {
@@ -100,7 +100,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = config.GetString("InventoryServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
                 throw new Exception("Inventory connector init error");
@@ -180,7 +180,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception unwrapping folder list: ", e);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception unwrapping folder list: " + e.Message);
             }
 
             return fldrs;
@@ -516,6 +516,7 @@ namespace OpenSim.Services.Connectors
             foreach (InventoryItemBase item in items)
             {
                 idlist.Add(item.ID.ToString());
+                m_ItemCache.Remove(item.ID);
                 destlist.Add(item.Folder.ToString());
             }
 
@@ -535,14 +536,17 @@ namespace OpenSim.Services.Connectors
             List<string> slist = new List<string>();
 
             foreach (UUID f in itemIDs)
+            {
                 slist.Add(f.ToString());
+                m_ItemCache.Remove(f);
+            }
 
             Dictionary<string,object> ret = MakeRequest(
-                    new Dictionary<string,object> {
-                        { "METHOD", "DELETEITEMS"},
-                        { "PRINCIPAL", principalID.ToString() },
-                        { "ITEMS", slist }
-                    });
+                new Dictionary<string,object> {
+                    { "METHOD", "DELETEITEMS"},
+                    { "PRINCIPAL", principalID.ToString() },
+                    { "ITEMS", slist }
+                });
 
             return CheckReturn(ret);
         }
@@ -571,7 +575,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: ", e);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetItem: " + e.Message);
             }
 
             m_ItemCache.AddOrUpdate(itemID, retrieved, CACHE_EXPIRATION_SECONDS);
@@ -661,7 +665,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolder: ", e);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception in GetFolder: " + e.Message);
             }
 
             return null;
@@ -753,7 +757,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception building folder: ", e);
+                m_log.Error("[XINVENTORY SERVICES CONNECTOR]: Exception building folder: " + e.Message);
             }
 
             return folder;

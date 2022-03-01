@@ -75,7 +75,7 @@ namespace OpenSim.Services.Connectors.Friends
             string serviceURI = gridConfig.GetString("FriendsServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[FRIENDS SERVICE CONNECTOR]: No Server URI named in section FriendsService");
                 throw new Exception("Friends connector init error");

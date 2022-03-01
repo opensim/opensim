@@ -76,22 +76,22 @@ namespace OpenSim.Server.Handlers.Login
             {
                 // Debug code to show exactly what login parameters the viewer is sending us.
                 // TODO: Extract into a method that can be generally applied if one doesn't already exist.
-//                foreach (string key in requestData.Keys)
-//                {
-//                    object value = requestData[key];
-//                    Console.WriteLine("{0}:{1}", key, value);
-//                    if (value is ArrayList)
-//                    {
-//                        ICollection col = value as ICollection;
-//                        foreach (object item in col)
-//                            Console.WriteLine("  {0}", item);
-//                    }
-//                }
+                // foreach (string key in requestData.Keys)
+                // {
+                //     object value = requestData[key];
+                //     Console.WriteLine("{0}:{1}", key, value);
+                //     if (value is ArrayList)
+                //     {
+                //         ICollection col = value as ICollection;
+                //         foreach (object item in col)
+                //             Console.WriteLine("  {0}", item);
+                //     }
+                // }
 
                 if (requestData.ContainsKey("first") && requestData["first"] != null &&
                     requestData.ContainsKey("last") && requestData["last"] != null && (
                         (requestData.ContainsKey("passwd") && requestData["passwd"] != null) ||
-                        (!requestData.ContainsKey("passwd") && requestData.ContainsKey("web_login_key") && requestData["web_login_key"] != null && requestData["web_login_key"].ToString() != UUID.Zero.ToString())
+                        (!requestData.ContainsKey("passwd") && requestData.ContainsKey("web_login_key") && requestData["web_login_key"] != null && requestData["web_login_key"].ToString() != UUID.ZeroString)
                     ))
                 {
                     string first = requestData["first"].ToString();
@@ -189,7 +189,6 @@ namespace OpenSim.Server.Handlers.Login
             Hashtable failHash = new Hashtable();
             failHash["success"] = "false";
             failResponse.Value = failHash;
-
             return failResponse;
 
         }

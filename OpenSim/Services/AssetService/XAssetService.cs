@@ -167,7 +167,7 @@ namespace OpenSim.Services.AssetService
         {
             //m_log.DebugFormat("[XASSET SERVICE]: Get asset async {0}", id);
 
-            if (!UUID.TryParse(id, out UUID assetID) || assetID == UUID.Zero)
+            if (!UUID.TryParse(id, out UUID assetID) || assetID.IsZero())
                 return false;
 
             AssetBase asset = Get(id);
@@ -227,5 +227,10 @@ namespace OpenSim.Services.AssetService
             Store(asset);
             m_ChainedAssetService.Delete(asset.ID);
         }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+        }
+
     }
 }

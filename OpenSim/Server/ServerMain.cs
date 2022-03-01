@@ -29,6 +29,7 @@ using Nini.Config;
 using log4net;
 using System.Reflection;
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -38,15 +39,12 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using Mono.Addins;
 
 namespace OpenSim.Server
 {
     public class OpenSimServer
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static HttpServerBase m_Server = null;
         protected static List<IServiceConnector> m_ServiceConnectors = new List<IServiceConnector>();
@@ -71,6 +69,25 @@ namespace OpenSim.Server
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Opens a file and uses it as input to the console command parser.
+        /// </summary>
+        /// <param name="fileName">name of file to use as input to the console</param>
+        private static void PrintFileToConsole(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                using(StreamReader readFile = File.OpenText(fileName))
+                {
+                    string currentLine;
+                    while ((currentLine = readFile.ReadLine()) != null)
+                    {
+                        m_log.InfoFormat("[!]" + currentLine);
+                    }
+                }
+            }
         }
 
         public static int Main(string[] args)
@@ -189,6 +206,8 @@ namespace OpenSim.Server
                     m_log.ErrorFormat("[SERVER]: Failed to load {0}", conn);
                 }
             }
+
+            PrintFileToConsole("robuststartuplogo.txt");
 
             loader = new PluginLoader(m_Server.Config, registryLocation);
 

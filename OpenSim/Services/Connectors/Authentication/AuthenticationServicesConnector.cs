@@ -74,7 +74,7 @@ namespace OpenSim.Services.Connectors
             string serviceURI = assetConfig.GetString("AuthenticationServerURI",
                     String.Empty);
 
-            if (serviceURI == String.Empty)
+            if (serviceURI.Length == 0)
             {
                 m_log.Error("[AUTH CONNECTOR]: No Server URI named in section AuthenticationService");
                 throw new Exception("Authentication connector init error");

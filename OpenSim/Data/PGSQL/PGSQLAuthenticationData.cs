@@ -183,7 +183,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(m_database.CreateParameter("" + item, value));
+                cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
                 conn.Open();
                 if (cmd.ExecuteNonQuery() > 0)
                     return true;

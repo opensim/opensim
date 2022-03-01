@@ -71,7 +71,7 @@ namespace OpenSim.Services.SimulationService
             }
 
             // We tried, but this doesn't exist. We can't proceed
-            if (dllName == String.Empty)
+            if (dllName.Length == 0)
                 throw new Exception("No StorageProvider configured");
 
             m_database = LoadPlugin<ISimulationDataStore>(dllName, new Object[] { connString });

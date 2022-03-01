@@ -36,15 +36,6 @@ using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.Framework.Scenes;
-using log4net;
-
-using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
-using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
-using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
-using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
@@ -63,38 +54,34 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public void PostEvent(EventParams evt)
         {
-            if(!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
+            if (!m_eventCodeMap.TryGetValue(evt.EventName, out ScriptEventCode evc))
                 return;
 
-             // Put event on end of event queue.
+            if (!m_HaveEventHandlers[(int)evc]) // don't bother if we don't have such a handler in any state
+                return;
+
+            // Put event on end of event queue.
             bool startIt = false;
             bool wakeIt = false;
             lock(m_QueueLock)
             {
-                bool construct = (m_IState == XMRInstState.CONSTRUCT);
-
                  // Ignore event if we don't even have such an handler in any state.
                  // We can't be state-specific here because state might be different
                  // by the time this event is dequeued and delivered to the script.
-                if(!construct &&                      // make sure m_HaveEventHandlers is filled in 
-                        ((uint)evc < (uint)m_HaveEventHandlers.Length) &&
-                        !m_HaveEventHandlers[(int)evc])  // don't bother if we don't have such a handler in any state
-                    return;
-
-                // Not running means we ignore any incoming events.
-                // But queue if still constructing because m_Running is not yet valid.
-
-                if(!m_Running && !construct)
+                if(m_IState != XMRInstState.CONSTRUCT)
                 {
-                    if(m_IState == XMRInstState.SUSPENDED)
+                    if(!m_Running)
                     {
-                        if(evc == ScriptEventCode.state_entry && m_EventQueue.Count == 0)
+                        if(m_IState == XMRInstState.SUSPENDED)
                         {
-                            LinkedListNode<EventParams> llns = new LinkedListNode<EventParams>(evt);
-                            m_EventQueue.AddFirst(llns);
+                            if(evc == ScriptEventCode.state_entry && m_EventQueue.Count == 0)
+                            {
+                                LinkedListNode<EventParams> llns = new LinkedListNode<EventParams>(evt);
+                                m_EventQueue.AddFirst(llns);
+                            }
                         }
+                        return;
                     }
-                    return;
                 }
 
                 if(m_minEventDelay != 0)
@@ -138,70 +125,68 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                 // Only so many of each event type allowed to queue.
-                if((uint)evc < (uint)m_EventCounts.Length)
+                if(evc == ScriptEventCode.timer)
                 {
-                    if(evc == ScriptEventCode.timer)
-                    {
-                        if(m_EventCounts[(int)evc] >= 1)
-                            return;
-                    }
-                    else if(m_EventCounts[(int)evc] >= MAXEVENTQUEUE)
+                    if (m_EventCounts[(int)evc] >= 1)
+                        return;
+                    m_EventCounts[(int)evc]++;
+                    m_EventQueue.AddLast(new LinkedListNode<EventParams>(evt));
+                }
+                else
+                {
+                    if (m_EventCounts[(int)evc] >= MAXEVENTQUEUE)
                         return;
 
                     m_EventCounts[(int)evc]++;
-                }
 
-                 // Put event on end of instance's event queue.
-                LinkedListNode<EventParams> lln = new LinkedListNode<EventParams>(evt);
-                switch(evc)
-                {
-                     // These need to go first.  The only time we manually
-                     // queue them is for the default state_entry() and we
-                     // need to make sure they go before any attach() events
-                     // so the heapLimit value gets properly initialized.
-                    case ScriptEventCode.state_entry:
-                        m_EventQueue.AddFirst(lln);
-                        break;
+                    LinkedListNode<EventParams> lln = new LinkedListNode<EventParams>(evt);
+                    switch (evc)
+                    {
+                         // These need to go first.  The only time we manually
+                         // queue them is for the default state_entry() and we
+                         // need to make sure they go before any attach() events
+                         // so the heapLimit value gets properly initialized.
+                        case ScriptEventCode.state_entry:
+                            m_EventQueue.AddFirst(lln);
+                            break;
 
-                     // The attach event sneaks to the front of the queue.
-                     // This is needed for quantum limiting to work because
-                     // we want the attach(NULL_KEY) event to come in front
-                     // of all others so the m_DetachQuantum won't run out
-                     // before attach(NULL_KEY) is executed.
-                    case ScriptEventCode.attach:
-                        if(evt.Params[0].ToString() == UUID.Zero.ToString())
-                        {
-                            LinkedListNode<EventParams> lln2 = null;
-                            for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                         // The attach event sneaks to the front of the queue.
+                         // This is needed for quantum limiting to work because
+                         // we want the attach(NULL_KEY) event to come in front
+                         // of all others so the m_DetachQuantum won't run out
+                         // before attach(NULL_KEY) is executed.
+                        case ScriptEventCode.attach:
+                            if (evt.Params[0].ToString().Equals(UUID.ZeroString))
                             {
-                                EventParams evt2 = lln2.Value;
-                                m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
-                                if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
-                                    break;
+                                LinkedListNode<EventParams> lln2 = null;
+                                for(lln2 = m_EventQueue.First; lln2 != null; lln2 = lln2.Next)
+                                {
+                                    EventParams evt2 = lln2.Value;
+                                    m_eventCodeMap.TryGetValue(evt2.EventName, out ScriptEventCode evc2);
+                                    if((evc2 != ScriptEventCode.state_entry) && (evc2 != ScriptEventCode.attach))
+                                        break;
+                                }
+                                if(lln2 == null)
+                                    m_EventQueue.AddLast(lln);
+                                else
+                                    m_EventQueue.AddBefore(lln2, lln);
+
+                                    // If we're detaching, limit the qantum. This will also
+                                    // cause the script to self-suspend after running this
+                                    // event
+                                m_DetachReady.Reset();
+                                m_DetachQuantum = 100;
                             }
-                            if(lln2 == null)
-                                m_EventQueue.AddLast(lln);
                             else
-                                m_EventQueue.AddBefore(lln2, lln);
+                                m_EventQueue.AddLast(lln);
+                            break;
 
-                             // If we're detaching, limit the qantum. This will also
-                             // cause the script to self-suspend after running this
-                             // event
-                            m_DetachReady.Reset();
-                            m_DetachQuantum = 100;
-                        }
-                        else
+                        // All others just go on end in the order queued.
+                        default:
                             m_EventQueue.AddLast(lln);
-
-                        break;
-
-                     // All others just go on end in the order queued.
-                    default:
-                        m_EventQueue.AddLast(lln);
-                        break;
+                            break;
+                    }
                 }
-
                  // If instance is idle (ie, not running or waiting to run),
                  // flag it to be on m_StartQueue as we are about to do so.
                  // Flag it now before unlocking so another thread won't try
@@ -267,56 +252,58 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          // ONSLEEPQ, ONYIELDQ, SUSPENDED or FINISHED.
         public XMRInstState RunOne()
         {
+            // someone may have called Suspend().
+            //m_RunOnePhase = "check m_SuspendCount";
+            if (m_SuspendCount > 0)
+            {
+                //m_RunOnePhase = "return is suspended";
+                return XMRInstState.SUSPENDED;
+            }
+
             DateTime now = DateTime.UtcNow;
             m_SliceStart = Util.GetTimeStampMS();
 
              // If script has called llSleep(), don't do any more until time is up.
-            m_RunOnePhase = "check m_SleepUntil";
+            //m_RunOnePhase = "check m_SleepUntil";
             if(m_SleepUntil > now)
             {
-                m_RunOnePhase = "return is sleeping";
+                //m_RunOnePhase = "return is sleeping";
                 return XMRInstState.ONSLEEPQ;
-            }
-
-             // Also, someone may have called Suspend().
-            m_RunOnePhase = "check m_SuspendCount";
-            if(m_SuspendCount > 0)
-            {
-                m_RunOnePhase = "return is suspended";
-                return XMRInstState.SUSPENDED;
             }
 
             // Make sure we aren't being migrated in or out and prevent that 
             // whilst we are in here.  If migration has it locked, don't call
             // back right away, delay a bit so we don't get in infinite loop.
-            m_RunOnePhase = "lock m_RunLock";
+            //m_RunOnePhase = "lock m_RunLock";
             if(!Monitor.TryEnter(m_RunLock))
             {
                 m_SleepUntil = now.AddMilliseconds(15);
-                m_RunOnePhase = "return was locked";
+                //m_RunOnePhase = "return was locked";
                 return XMRInstState.ONSLEEPQ;
             }
+
             try
             {
-                m_RunOnePhase = "check entry invariants";
+                //m_RunOnePhase = "check entry invariants";
                 CheckRunLockInvariants(true);
-                Exception e = null;
 
                  // Maybe it has been Disposed()
                 if(m_Part == null || m_Part.Inventory == null)
                 {
-                    m_RunOnePhase = "runone saw it disposed";
+                    //m_RunOnePhase = "runone saw it disposed";
                     return XMRInstState.DISPOSED;
                 }
 
                 if(!m_Running)
                 {
-                    m_RunOnePhase = "return is not running";
+                    //m_RunOnePhase = "return is not running";
                     return XMRInstState.SUSPENDED;
                 }
 
-                 // Do some more of the last event if it didn't finish.
-                if(this.eventCode != ScriptEventCode.None)
+                Exception e = null;
+
+                // Do some more of the last event if it didn't finish.
+                if (eventCode != ScriptEventCode.None)
                 {
                     lock(m_QueueLock)
                     {
@@ -324,13 +311,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         {
                             m_Suspended = true;
                             m_DetachReady.Set();
-                            m_RunOnePhase = "detach quantum went zero";
+                            //m_RunOnePhase = "detach quantum went zero";
                             CheckRunLockInvariants(true);
                             return XMRInstState.FINISHED;
                         }
                     }
 
-                    m_RunOnePhase = "resume old event handler";
+                    //m_RunOnePhase = "resume old event handler";
                     m_LastRanAt = now;
                     m_InstEHSlice++;
                     callMode = CallMode_NORMAL;
@@ -341,13 +328,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // processing it.
                 else
                 {
-                    m_RunOnePhase = "lock event queue";
+                    //m_RunOnePhase = "lock event queue";
                     EventParams evt = null;
                     ScriptEventCode evc = ScriptEventCode.None;
 
                     lock(m_QueueLock)
                     {
-
                          // We can't get here unless the script has been resumed
                          // after creation, then suspended again, and then had
                          // an event posted to it. We just pretend there is no
@@ -358,12 +344,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                         if(m_Suspended)
                         {
-                            m_RunOnePhase = "m_Suspended is set";
+                            //m_RunOnePhase = "m_Suspended is set";
                             CheckRunLockInvariants(true);
                             return XMRInstState.FINISHED;
                         }
 
-                        m_RunOnePhase = "dequeue event";
+                        //m_RunOnePhase = "dequeue event";
                         if(m_EventQueue.First != null)
                         {
                             evt = m_EventQueue.First.Value;
@@ -378,7 +364,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                     m_Suspended = true;
                                     m_DetachReady.Set();
                                     m_DetachQuantum = 0;
-                                    m_RunOnePhase = "nothing to do #3";
+                                    //m_RunOnePhase = "nothing to do #3";
                                     CheckRunLockInvariants(true);
                                     return XMRInstState.FINISHED;
                                 }
@@ -400,7 +386,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                 m_DetachReady.Set();
                                 m_DetachQuantum = 0;
                             }
-                            m_RunOnePhase = "nothing to do #4";
+                            //m_RunOnePhase = "nothing to do #4";
                             CheckRunLockInvariants(true);
                             return XMRInstState.FINISHED;
                         }
@@ -408,68 +394,66 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                      // Dequeued an event, so start it going until it either 
                      // finishes or it calls CheckRun().
-                    m_RunOnePhase = "start event handler";
+                    //m_RunOnePhase = "start event handler";
                     m_DetectParams = evt.DetectParams;
                     m_LastRanAt = now;
                     m_InstEHEvent++;
                     e = StartEventHandler(evc, evt.Params);
                 }
-                m_RunOnePhase = "done running";
+                //m_RunOnePhase = "done running";
                 m_CPUTime += DateTime.UtcNow.Subtract(now).TotalMilliseconds;
 
                  // Maybe it puqued.
                 if(e != null)
                 {
-                    m_RunOnePhase = "handling exception " + e.Message;
+                    //m_RunOnePhase = "handling exception " + e.Message;
                     HandleScriptException(e);
-                    m_RunOnePhase = "return had exception " + e.Message;
+                    //m_RunOnePhase = "return had exception " + e.Message;
                     CheckRunLockInvariants(true);
                     return XMRInstState.FINISHED;
                 }
-
-                 // If event handler completed, get rid of detect params.
-                if(this.eventCode == ScriptEventCode.None)
-                    m_DetectParams = null;
-
             }
             finally
             {
-                m_RunOnePhase += "; checking exit invariants and unlocking";
+                // If event handler completed, get rid of detect params.
+                if (eventCode == ScriptEventCode.None)
+                    m_DetectParams = null;
+
+                //m_RunOnePhase += "; checking exit invariants and unlocking";
                 CheckRunLockInvariants(false);
                 Monitor.Exit(m_RunLock);
             }
 
              // Cycle script through the yield queue and call it back asap.
-            m_RunOnePhase = "last return";
+            //m_RunOnePhase = "last return";
             return XMRInstState.ONYIELDQ;
         }
 
         /**
          * @brief Immediately after taking m_RunLock or just before releasing it, check invariants.
          */
-        private ScriptEventCode lastEventCode = ScriptEventCode.None;
-        private bool lastActive = false;
-        private string lastRunPhase = "";
+        //private ScriptEventCode lastEventCode = ScriptEventCode.None;
+        //private bool lastActive = false;
+        //private string lastRunPhase = "";
 
         public void CheckRunLockInvariants(bool throwIt)
         {
              // If not executing any event handler, there shouldn't be any saved stack frames.
              // If executing an event handler, there should be some saved stack frames.
             bool active = (stackFrames != null);
-            ScriptEventCode ec = this.eventCode;
-            if(((ec == ScriptEventCode.None) && active) ||
-                ((ec != ScriptEventCode.None) && !active))
+            if((active && (eventCode == ScriptEventCode.None)) ||
+                (!active && (eventCode != ScriptEventCode.None)))
             {
                 m_log.Error("CheckRunLockInvariants: script=" + m_DescName);
-                m_log.Error("CheckRunLockInvariants: eventcode=" + ec.ToString() + ", active=" + active.ToString());
-                m_log.Error("CheckRunLockInvariants: m_RunOnePhase=" + m_RunOnePhase);
-                m_log.Error("CheckRunLockInvariants: lastec=" + lastEventCode + ", lastAct=" + lastActive + ", lastPhase=" + lastRunPhase);
+                m_log.Error("CheckRunLockInvariants: eventcode=" + eventCode.ToString() + ", active=" + active.ToString());
+                //m_log.Error("CheckRunLockInvariants: m_RunOnePhase=" + m_RunOnePhase);
+                //m_log.Error("CheckRunLockInvariants: lastec=" + lastEventCode + ", lastAct=" + lastActive + ", lastPhase=" + lastRunPhase);
                 if(throwIt)
-                    throw new Exception("CheckRunLockInvariants: eventcode=" + ec.ToString() + ", active=" + active.ToString());
+                    throw new Exception("CheckRunLockInvariants: eventcode=" + eventCode.ToString() + ", active=" + active.ToString());
             }
-            lastEventCode = ec;
-            lastActive = active;
-            lastRunPhase = m_RunOnePhase;
+            //lastEventCode = eventCode;
+            //lastActive = active;
+            //lastRunPhase = m_RunOnePhase;
         }
 
         /*
@@ -488,30 +472,30 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private Exception StartEventHandler(ScriptEventCode newEventCode, object[] newEhArgs)
         {
-             // We use this.eventCode == ScriptEventCode.None to indicate we are idle.
-             // So trying to execute ScriptEventCode.None might make a mess.
+            // We use this.eventCode == ScriptEventCode.None to indicate we are idle.
+            // So trying to execute ScriptEventCode.None might make a mess.
             if(newEventCode == ScriptEventCode.None)
                 return new Exception("Can't process ScriptEventCode.None");
 
-             // Silly to even try if there is no handler defined for this event.
-            if(((int)newEventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[this.stateCode, (int)newEventCode] == null))
-                return null;
-
-             // The microthread shouldn't be processing any event code.
-             // These are assert checks so we throw them directly as exceptions.
-            if(this.eventCode != ScriptEventCode.None)
+            // The microthread shouldn't be processing any event code.
+            // These are assert checks so we throw them directly as exceptions.
+            if (eventCode != ScriptEventCode.None)
                 throw new Exception("still processing event " + this.eventCode.ToString());
 
-             // Save eventCode so we know what event handler to run in the microthread.
-             // And it also marks us busy so we can't be started again and this event lost.
-            this.eventCode = newEventCode;
-            this.ehArgs = newEhArgs;
+            // Silly to even try if there is no handler defined for this event.
+            if ((newEventCode >= 0) && (m_ObjCode.scriptEventHandlerTable[stateCode, (int)newEventCode] == null))
+                return null;
 
-             // This calls ScriptUThread.Main() directly, and returns when Main() [indirectly]
-             // calls Suspend() or when Main() returns, whichever occurs first.
-             // Setting stackFrames = null means run the event handler from the beginning
-             // without doing any stack frame restores first.
-            this.stackFrames = null;
+            // Save eventCode so we know what event handler to run in the microthread.
+            // And it also marks us busy so we can't be started again and this event lost.
+            eventCode = newEventCode;
+            ehArgs = newEhArgs;
+
+            // This calls ScriptUThread.Main() directly, and returns when Main() [indirectly]
+            // calls Suspend() or when Main() returns, whichever occurs first.
+            // Setting stackFrames = null means run the event handler from the beginning
+            // without doing any stack frame restores first.
+            stackFrames = null;
             return StartEx();
         }
 
@@ -527,8 +511,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             ScriptEventCode curevent = eventCode;
             eventCode = ScriptEventCode.None;
             stackFrames = null;
+            m_DetectParams = null;
 
-            if(m_Part == null || m_Part.Inventory == null)
+            if (m_Part == null || m_Part.Inventory == null)
             {
                 //we are gone and don't know it still
                 m_SleepUntil = DateTime.MaxValue;
@@ -546,14 +531,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             else if(e is ScriptDieException)
             {
                  // Script did an llDie()
-                m_RunOnePhase = "dying...";
+                //m_RunOnePhase = "dying...";
                 m_SleepUntil = DateTime.MaxValue;
                 m_Engine.World.DeleteSceneObject(m_Part.ParentGroup, false);
             }
             else if (e is ScriptResetException)
             {
                  // Script did an llResetScript().
-                m_RunOnePhase = "resetting...";
+                //m_RunOnePhase = "resetting...";
                 ResetLocked("HandleScriptResetException");
             }
             else if (e is ScriptException)
@@ -871,21 +856,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void ResetLocked(string from)
         {
-            m_RunOnePhase = "ResetLocked: releasing controls";
+            //m_RunOnePhase = "ResetLocked: releasing controls";
             ReleaseControlsOrPermissions(true);
             m_Part.CollisionSound = UUID.Zero;
 
             if (m_XMRLSLApi != null)
                 m_XMRLSLApi.llResetTime();
 
-            m_RunOnePhase = "ResetLocked: removing script";
+            //m_RunOnePhase = "ResetLocked: removing script";
             IUrlModule urlModule = m_Engine.World.RequestModuleInterface<IUrlModule>();
             if(urlModule != null)
                 urlModule.ScriptRemoved(m_ItemID);
 
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
 
-            m_RunOnePhase = "ResetLocked: clearing current event";
+            //m_RunOnePhase = "ResetLocked: clearing current event";
             this.eventCode = ScriptEventCode.None;  // not processing an event
             m_DetectParams = null;                  // not processing an event
             m_SleepUntil = DateTime.MinValue;     // not doing llSleep()
@@ -904,20 +889,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // If the script is being reset by something else, we throw them away cuz we want to start from the beginning of an event handler. 
             stackFrames = null;
 
-             // Set script to 'default' state and queue call to its 
-             // 'state_entry()' event handler.
-            m_RunOnePhase = "ResetLocked: posting default:state_entry() event";
+            // Set script to 'default' state and queue call to its 
+            // 'state_entry()' event handler.
+            //m_RunOnePhase = "ResetLocked: posting default:state_entry() event";
             stateCode = 0;
             m_Part.RemoveScriptTargets(m_ItemID);
             m_Part.SetScriptEvents(m_ItemID, GetStateEventFlags(0));
-            PostEvent(new EventParams("state_entry",
-                                      zeroObjectArray,
-                                      zeroDetectParams));
+            PostEvent(EventParams.StateEntryParams);
 
              // Tell CheckRun() to let script run.
             suspendOnCheckRunHold = false;
             suspendOnCheckRunTemp = false;
-            m_RunOnePhase = "ResetLocked: reset complete";
+            //m_RunOnePhase = "ResetLocked: reset complete";
         }
 
         private void ReleaseControlsOrPermissions(bool fullPermissions)
@@ -958,25 +941,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override void CheckRunWork()
         {
-            if(!suspendOnCheckRunHold && !suspendOnCheckRunTemp)
+            if (!suspendOnCheckRunHold && !suspendOnCheckRunTemp)
             {
                 if(Util.GetTimeStampMS() - m_SliceStart < 60.0)
                     return;
                 suspendOnCheckRunTemp = true;
             }
-            m_CheckRunPhase = "entered";
+            //m_CheckRunPhase = "entered";
 
              // Stay stuck in this loop as long as something wants us suspended.
             while(suspendOnCheckRunHold || suspendOnCheckRunTemp)
             {
-                m_CheckRunPhase = "top of while";
+                //m_CheckRunPhase = "top of while";
                 suspendOnCheckRunTemp = false;
 
                 switch(this.callMode)
                 {
                     // Now we are ready to suspend or resume.
                     case CallMode_NORMAL:
-                        m_CheckRunPhase = "suspending";
+                        //m_CheckRunPhase = "suspending";
                         callMode = XMRInstance.CallMode_SAVE;
                         stackFrames = null;
                         throw new StackHibernateException(); // does not return
@@ -993,18 +976,22 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         break;
 
                     default:
+                    {
                         throw new Exception("callMode=" + callMode);
+                    }
                 }
 
-                m_CheckRunPhase = "resumed";
+                //m_CheckRunPhase = "resumed";
             }
 
-            m_CheckRunPhase = "returning";
+            //m_CheckRunPhase = "returning";
 
              // Upon return from CheckRun() it should always be the case that the script is
              // going to process calls normally, neither saving nor restoring stack frame state.
             if(callMode != CallMode_NORMAL)
+            {
                 throw new Exception("bad callMode " + callMode);
+            }
         }
 
         /**

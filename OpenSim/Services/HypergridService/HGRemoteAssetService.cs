@@ -71,7 +71,7 @@ namespace OpenSim.Services.HypergridService
             Object[] args = new Object[] { config };
 
             string assetConnectorDll = assetConfig.GetString("AssetConnector", String.Empty);
-            if (assetConnectorDll == String.Empty)
+            if (assetConnectorDll.Length == 0)
                 throw new Exception("Please specify AssetConnector in HGAssetService configuration");
 
             m_assetConnector = ServerUtils.LoadPlugin<IAssetService>(assetConnectorDll, args);
@@ -79,7 +79,7 @@ namespace OpenSim.Services.HypergridService
                 throw new Exception(String.Format("Unable to create AssetConnector from {0}", assetConnectorDll));
 
             string userAccountsDll = assetConfig.GetString("UserAccountsService", string.Empty);
-            if (userAccountsDll == string.Empty)
+            if (userAccountsDll.Length == 0)
                 throw new Exception("Please specify UserAccountsService in HGAssetService configuration");
 
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountsDll, args);
@@ -88,7 +88,7 @@ namespace OpenSim.Services.HypergridService
 
             m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
                 new string[] { "Startup", "Hypergrid", configName }, string.Empty);
-            if (m_HomeURL == string.Empty)
+            if (m_HomeURL.Length == 0)
                 throw new Exception("[HGAssetService] No HomeURI specified");
 
             m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
@@ -177,6 +177,34 @@ namespace OpenSim.Services.HypergridService
 
                 handler(i, s, asset);
             });
+        }
+
+        public void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack)
+        {
+            m_assetConnector.Get(id, null, (i, s, asset) =>
+            {
+                if (asset != null)
+                {
+                    if (!m_AssetPerms.AllowedExport(asset.Type))
+                    {
+                        asset = null;
+                    }
+                    else
+                    {
+                        if (asset.Metadata.Type == (sbyte)AssetType.Object)
+                            asset.Data = AdjustIdentifiers(asset.Data);
+
+                        AdjustIdentifiers(asset.Metadata);
+                    }
+                }
+
+                callBack(asset);
+            });
+        }
+
+        public string Store(AssetBase asset, bool AllowRetry)
+        {
+            return Store(asset);
         }
 
         public string Store(AssetBase asset)

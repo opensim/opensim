@@ -882,25 +882,25 @@ namespace OpenSim.Region.Framework.Scenes
             m_extraSettings = simDataService.GetExtra(RegionInfo.RegionID);
 
             bool updatedTerrainTextures = false;
-            if (rs.TerrainTexture1 == UUID.Zero)
+            if (rs.TerrainTexture1.IsZero())
             {
                 rs.TerrainTexture1 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_1;
                 updatedTerrainTextures = true;
             }
 
-            if (rs.TerrainTexture2 == UUID.Zero)
+            if (rs.TerrainTexture2.IsZero())
             {
                 rs.TerrainTexture2 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_2;
                 updatedTerrainTextures = true;
             }
 
-            if (rs.TerrainTexture3 == UUID.Zero)
+            if (rs.TerrainTexture3.IsZero())
             {
                 rs.TerrainTexture3 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_3;
                 updatedTerrainTextures = true;
             }
 
-            if (rs.TerrainTexture4 == UUID.Zero)
+            if (rs.TerrainTexture4.IsZero())
             {
                 rs.TerrainTexture4 = RegionSettings.DEFAULT_TERRAIN_TEXTURE_4;
                 updatedTerrainTextures = true;
@@ -1377,22 +1377,25 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Let the grid service module know, so this can be cached
                     m_eventManager.TriggerOnRegionUp(otherRegion);
-
-                    try
+                    if (EntityTransferModule != null)
                     {
-                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                        try
                         {
-                            List<ulong> old = new List<ulong>() {otherRegion.RegionHandle};
-                            agent.DropOldNeighbours(old);
-                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
+                            List<ulong> old = new List<ulong>() { otherRegion.RegionHandle };
+                            ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                if(agent.IsNPC)
+                                    return;
+
+                                agent.DropOldNeighbours(old);
                                 EntityTransferModule.EnableChildAgent(agent, otherRegion);
-                        });
-                    }
-                    catch (NullReferenceException)
-                    {
-                        // This means that we're not booted up completely yet.
-                        // This shouldn't happen too often anymore.
-                        m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
+                            });
+                        }
+                        catch
+                        {
+                            m_log.Error("[SCENE]: Couldn't inform clients of regionup");
+                    
+                        }
                     }
                 }
                 else
@@ -1408,12 +1411,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             int tmp = otherRegion.RegionLocX - (int)RegionInfo.WorldLocX;
 
-            if (tmp < -otherRegion.RegionSizeX && tmp > RegionInfo.RegionSizeX)
+            if (tmp < -otherRegion.RegionSizeX || tmp > RegionInfo.RegionSizeX)
                 return false;
 
             tmp = otherRegion.RegionLocY - (int)RegionInfo.WorldLocY;
 
-            if (tmp < -otherRegion.RegionSizeY && tmp > RegionInfo.RegionSizeY)
+            if (tmp < -otherRegion.RegionSizeY || tmp > RegionInfo.RegionSizeY)
                 return false;
 
             return true;
@@ -1484,21 +1487,24 @@ namespace OpenSim.Region.Framework.Scenes
             m_restartWaitTimer.Stop();
             lock (m_regionRestartNotifyList)
             {
-                foreach (RegionInfo region in m_regionRestartNotifyList)
+                if(EntityTransferModule != null)
                 {
-                    GridRegion r = new GridRegion(region);
-                    try
+                    foreach (RegionInfo region in m_regionRestartNotifyList)
                     {
-                        ForEachRootScenePresence(delegate(ScenePresence agent)
+                        GridRegion r = new GridRegion(region);
+                        try
                         {
-                            if (EntityTransferModule != null && agent.PresenceType != PresenceType.Npc)
-                                EntityTransferModule.EnableChildAgent(agent, r);
-                        });
-                    }
-                    catch (NullReferenceException)
-                    {
-                        // This means that we're not booted up completely yet.
-                        // This shouldn't happen too often anymore.
+                            ForEachRootScenePresence(delegate(ScenePresence agent)
+                            {
+                                if (!agent.IsNPC)
+                                    EntityTransferModule.EnableChildAgent(agent, r);
+                            });
+                        }
+                        catch (NullReferenceException)
+                        {
+                            // This means that we're not booted up completely yet.
+                            // This shouldn't happen too often anymore.
+                        }
                     }
                 }
 
@@ -2460,7 +2466,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (physresults != null && physresults.Count > 0)
                         {
                             // look for terrain ?
-                            if(RayTargetID == UUID.Zero)
+                            if(RayTargetID.IsZero())
                             {
                                 foreach (ContactResult r in physresults)
                                 {
@@ -2504,7 +2510,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                     }
-                    if (RayTargetID != UUID.Zero)
+                    if (!RayTargetID.IsZero())
                     {
                         SceneObjectPart target = GetSceneObjectPart(RayTargetID);
 
@@ -3031,7 +3037,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if the SceneObjectGroup was added, False if it was not</returns>
         public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
-            if (sceneObject.OwnerID == UUID.Zero)
+            if (sceneObject.OwnerID.IsZero())
             {
                 m_log.ErrorFormat("[SCENE]: Owner ID for {0} was zero", sceneObject.UUID);
                 return false;
@@ -3095,7 +3101,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
 //                    RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
-                if (sceneObject.OwnerID == UUID.Zero)
+                if (sceneObject.OwnerID.IsZero())
                 {
                     m_log.ErrorFormat("[SCENE]: Owner ID for {0} was zero after attachment processing. BUG!", sceneObject.UUID);
                     return false;
@@ -3103,7 +3109,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                if (sceneObject.OwnerID == UUID.Zero)
+                if (sceneObject.OwnerID.IsZero())
                 {
                     m_log.ErrorFormat("[SCENE]: Owner ID for non-attachment {0} was zero", sceneObject.UUID);
                     return false;
@@ -3436,7 +3442,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem += UpdateInventoryItem;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
@@ -3561,7 +3567,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory -= m_asyncInventorySender.HandleFetchInventory;
-            client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
+            client.OnUpdateInventoryItem -= UpdateInventoryItem;
             client.OnCopyInventoryItem -= CopyInventoryItem;
             client.OnMoveInventoryItem -= MoveInventoryItem;
             client.OnRemoveInventoryItem -= RemoveInventoryItem;
@@ -4024,13 +4030,15 @@ namespace OpenSim.Region.Framework.Scenes
             //Check if the viewer is banned or in the viewer access list
             //We check if the substring is listed for higher flexebility
             bool ViewerDenied = true;
+            string cV = null;
 
             //Check if the specific viewer is listed in the allowed viewer list
             if (m_AllowedViewers.Count > 0)
             {
+                cV = curViewer.Trim().ToLower();
                 foreach (string viewer in m_AllowedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
+                    if (viewer == cV.Substring(0, Math.Min(viewer.Length, curViewer.Length)))
                     {
                         ViewerDenied = false;
                         break;
@@ -4045,9 +4053,11 @@ namespace OpenSim.Region.Framework.Scenes
             //Check if the viewer is in the banned list
             if (m_BannedViewers.Count > 0)
             {
+                if (cV == null)
+                    cV = curViewer.Trim().ToLower();
                 foreach (string viewer in m_BannedViewers)
                 {
-                    if (viewer == curViewer.Substring(0, Math.Min(viewer.Length, curViewer.Length)).Trim().ToLower())
+                    if (viewer == cV.Substring(0, Math.Min(viewer.Length, curViewer.Length)))
                     {
                         ViewerDenied = true;
                         break;
@@ -4261,9 +4271,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_log.InfoFormat(
-                        "[SCENE]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                        "[SCENE {0}]: authorized {1} agent {2} {3} {4} (circuit code {5})",
                         Name, (acd.child ? "child" : "root"), acd.firstname, acd.lastname,
                         acd.AgentID, acd.circuitcode);
+
 
                     if (m_capsModule != null)
                     {
@@ -4910,7 +4921,7 @@ Label_GroupsDone:
                 return true;
             }
 
-            return true;
+            return false;
         }
 
 
@@ -4993,6 +5004,20 @@ Label_GroupsDone:
                 return;
 
             EntityTransferModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
+        }
+
+        public void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm, Vector3 lookAt)
+        {
+            if (EntityTransferModule == null)
+            {
+                m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                return;
+            }
+
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp == null || sp.IsDeleted || sp.IsInTransit)
+                return;
+            EntityTransferModule.RequestTeleportLandmark(remoteClient, lm, lookAt);
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
@@ -5167,11 +5192,11 @@ Label_GroupsDone:
                 if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
                     return true;
 
-                if ((part.OwnerID == parcel.LandData.OwnerID) || Permissions.IsGod(part.OwnerID))
+                if ((part.OwnerID.Equals(parcel.LandData.OwnerID)) || Permissions.IsGod(part.OwnerID))
                     return true;
 
                 if (((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
-                    && (parcel.LandData.GroupID != UUID.Zero) && (parcel.LandData.GroupID == part.GroupID))
+                    && (!parcel.LandData.GroupID.IsZero()) && (parcel.LandData.GroupID.Equals(part.GroupID)))
                     return true;
             }
             else
@@ -5202,9 +5227,9 @@ Label_GroupsDone:
 
         #region SceneGraph wrapper methods
 
-        public void SwapRootAgentCount(bool rootChildChildRootTF)
+        public void SwapRootAgentCount(bool direction_RoottoChild, bool isnpc)
         {
-            m_sceneGraph.SwapRootChildAgent(rootChildChildRootTF);
+            m_sceneGraph.SwapRootChildAgent(direction_RoottoChild, isnpc);
         }
 
         public void AddPhysicalPrim(int num)
@@ -5218,6 +5243,11 @@ Label_GroupsDone:
         }
 
         public int GetRootAgentCount()
+        {
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        public int GetRootNPCCount()
         {
             return m_sceneGraph.GetRootAgentCount();
         }
@@ -5264,15 +5294,17 @@ Label_GroupsDone:
         /// <remarks>
         /// This method will return both root and child scene presences.
         ///
-        /// Consider using ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
+        /// Consider using only on ForEachScenePresence() or ForEachRootScenePresence() if possible since these will not
         /// involving creating a new List object.
         /// </remarks>
         /// <returns>
-        /// A list of the scene presences.  Adding or removing from the list will not affect the presences in the scene.
+        /// The shared list of the scene presences.
         /// </returns>
+        /// WARNING DO NOT MODIFY RETURNED VALUE
         public List<ScenePresence> GetScenePresences()
         {
-            return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            //return new List<ScenePresence>(m_sceneGraph.GetScenePresences());
+            return m_sceneGraph.GetScenePresences();
         }
 
         /// <summary>
@@ -6167,9 +6199,7 @@ Environment.Exit(1);
                 return false;
             }
 
-            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
-            // However, the long term fix is to make sure root agent count is always accurate.
-            m_sceneGraph.RecalculateStats();
+
 
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
             // Fake AgentCircuitData to keep IAuthorizationModule smiling
@@ -6222,7 +6252,12 @@ Environment.Exit(1);
             if(isManager)
                 return true;
 
+            // FIXME: Root agent count is currently known to be inaccurate.  This forces a recount before we check.
+            // However, the long term fix is to make sure root agent count is always accurate.
+            m_sceneGraph.RecalculateStats();
             int num = m_sceneGraph.GetRootAgentCount();
+            num -= m_sceneGraph.GetRootNPCCount();
+
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
                 reason = "The region is full";
@@ -6239,7 +6274,7 @@ Environment.Exit(1);
                 if (!RegionInfo.EstateSettings.AllowDirectTeleport)
                 {
                     SceneObjectGroup telehub;
-                    if (RegionInfo.RegionSettings.TelehubObject != UUID.Zero && (telehub = GetSceneObjectGroup  (RegionInfo.RegionSettings.TelehubObject)) != null && checkTeleHub)
+                    if (!RegionInfo.RegionSettings.TelehubObject.IsZero() && (telehub = GetSceneObjectGroup  (RegionInfo.RegionSettings.TelehubObject)) != null && checkTeleHub)
                     {
                         bool banned = true;
                         bool validTelehub = false;
@@ -6455,5 +6490,7 @@ Environment.Exit(1);
                 return lastSource == sourceID;
             return false;
         }
+
+
     }
 }

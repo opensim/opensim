@@ -73,7 +73,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
                     "XmlRpcRouterModule") == "XmlRpcGridRouterModule")
             {
                 m_ServerURI = startupConfig.GetString("XmlRpcHubURI", String.Empty);
-                if (m_ServerURI == String.Empty)
+                if (m_ServerURI.Length == 0)
                 {
                     m_log.Error("[XMLRPC GRID ROUTER] Module configured but no URI given. Disabling");
                     return;

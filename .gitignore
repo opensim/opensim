@@ -61,6 +61,7 @@ bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
 bin/config-include/GridCommon.ini
 bin/config-include/StandaloneCommon.ini
+bin/config-include/osslEnable.ini
 bin/OpenSim.Grid.AssetInventoryServer.log
 bin/OpenSim.Grid.AssetServer.log
 bin/OpenSim.Grid.GridServer.log

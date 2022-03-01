@@ -78,8 +78,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
-                    scriptsStarted
-                        += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
+                    scriptsStarted += parts[i].Inventory.CreateScriptInstances(startParam, postOnRez, engine, stateSource);
             }
 
             return scriptsStarted;
@@ -140,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}",
 //                item.Name, remoteClient.Name, localID);
 
-            UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
+            UUID newItemId = copyItemID.IsZero() ? item.ID : copyItemID;
 
             SceneObjectPart part = GetPart(localID);
             if (part == null)
@@ -546,7 +545,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Scene s = (Scene)ins;
 
-            if (objXMLData == String.Empty)
+            if (objXMLData.Length == 0)
                 return;
 
             IScriptModule scriptModule = null;

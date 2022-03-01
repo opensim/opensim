@@ -2,16 +2,13 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using OpenMetaverse;
 
 namespace OSHttpServer
 {
     public class HttpResponse : IHttpResponse
     {
-        public event EventHandler<BandWitdhEventArgs> BandWitdhEvent;
-
         private const string DefaultContentType = "text/html;charset=UTF-8";
         private readonly IHttpClientContext m_context;
         private readonly ResponseCookies m_cookies = new ResponseCookies();
@@ -195,9 +192,23 @@ namespace OSHttpServer
         }
 
         /// <summary>
+        /// Set response as a http redirect
+        /// </summary>
+        /// <param name="url">redirection target url</param>
+        /// <param name="redirStatusCode">the response Status, must be Found, Redirect, Moved,MovedPermanently,RedirectKeepVerb, RedirectMethod, TemporaryRedirect. Defaults to Redirect</param>
+        public void Redirect(string url, HttpStatusCode redirStatusCode = HttpStatusCode.Redirect)
+        {
+            if (HeadersSent)
+                throw new InvalidOperationException("Headers have already been sent.");
+
+            m_headers["Location"] = url;
+            Status = redirStatusCode;
+        }
+
+        /// <summary>
         /// Add another header to the document.
         /// </summary>
-        /// <param name="name">Name of the header, case sensitive, use lower cases.</param>
+        /// <param name="name">Name of the header, case sensitive.</param>
         /// <param name="value">Header values can span over multiple lines as long as each line starts with a white space. New line chars should be \r\n</param>
         /// <exception cref="InvalidOperationException">If headers already been sent.</exception>
         /// <exception cref="ArgumentException">If value conditions have not been met.</exception>
@@ -222,7 +233,8 @@ namespace OSHttpServer
         {
             HeadersSent = true;
 
-            var sb = new StringBuilder();
+            var sb = osStringBuilderCache.Acquire();
+
             if(string.IsNullOrWhiteSpace(m_httpVersion))
                 sb.AppendFormat("HTTP/1.1 {0} {1}\r\n", (int)Status,
                                 string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
@@ -230,57 +242,65 @@ namespace OSHttpServer
                 sb.AppendFormat("{0} {1} {2}\r\n", m_httpVersion, (int)Status,
                                 string.IsNullOrEmpty(Reason) ? Status.ToString() : Reason);
 
-            if (m_headers["Date"] == null)
-                sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
-            if (m_headers["Content-Length"] == null)
-            {
-                long len = m_contentLength;
-                if (len == 0)
-                {
-                    len = Body.Length;
-                    if (RawBuffer != null && RawBufferLen > 0)
-                        len += RawBufferLen;
-                }
-                sb.AppendFormat("Content-Length: {0}\r\n", len);
-            }
+            sb.AppendFormat("Date: {0}\r\n", DateTime.Now.ToString("r"));
+
+            long len = 0;
+            if(m_body!= null)
+                len = m_body.Length;
+            if (RawBuffer != null && RawBufferLen > 0)
+                len += RawBufferLen;
+            sb.AppendFormat("Content-Length: {0}\r\n", len);
+
             if (m_headers["Content-Type"] == null)
                 sb.AppendFormat("Content-Type: {0}\r\n", m_contentType ?? DefaultContentType);
-            if (m_headers["Server"] == null)
-                sb.Append("Server: OSWebServer\r\n");
 
-            if(Status != HttpStatusCode.OK)
+            switch(Status)
             {
-                sb.Append("Connection: close\r\n");
-                Connection = ConnectionType.Close;
-            }
-            else
-            {
-                int keepaliveS = m_context.TimeoutKeepAlive / 1000;
-                if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                case HttpStatusCode.OK:
+                case HttpStatusCode.PartialContent:
+                case HttpStatusCode.Accepted:
+                case HttpStatusCode.Continue:
+                case HttpStatusCode.Found:
                 {
-                    sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
-                    sb.Append("Connection: Keep-Alive\r\n");
+                    int keepaliveS = m_context.TimeoutKeepAlive / 1000;
+                    if (Connection == ConnectionType.KeepAlive && keepaliveS > 0 && m_context.MaxRequests > 0)
+                    {
+                        sb.AppendFormat("Keep-Alive:timeout={0}, max={1}\r\n", keepaliveS, m_context.MaxRequests);
+                        sb.Append("Connection: Keep-Alive\r\n");
+                    }
+                    else
+                    {
+                        sb.Append("Connection: close\r\n");
+                        Connection = ConnectionType.Close;
+                    }
+                    break;
                 }
-                else
-                {
+
+                default:
                     sb.Append("Connection: close\r\n");
                     Connection = ConnectionType.Close;
-                }
+                    break;
             }
-
-            if (m_headers["Connection"] != null)
-                m_headers["Connection"] = null;
-            if (m_headers["Keep-Alive"] != null)
-                m_headers["Keep-Alive"] = null;
 
             for (int i = 0; i < m_headers.Count; ++i)
             {
                 string headerName = m_headers.AllKeys[i];
+                switch(headerName)
+                {
+                    case "Connection":
+                    case "Content-Length":
+                    case "Date":
+                    case "Keep-Alive":
+                    case "Server":
+                        continue;
+                }
                 string[] values = m_headers.GetValues(i);
                 if (values == null) continue;
                 foreach (string value in values)
                     sb.AppendFormat("{0}: {1}\r\n", headerName, value);
             }
+
+            sb.Append("Server: OSWebServer\r\n");
 
             foreach (ResponseCookie cookie in Cookies)
                 sb.AppendFormat("Set-Cookie: {0}\r\n", cookie);
@@ -289,7 +309,7 @@ namespace OSHttpServer
 
             m_headers.Clear();
 
-            return Encoding.GetBytes(sb.ToString());
+            return Encoding.GetBytes(osStringBuilderCache.GetStringAndRelease(sb));
         }
 
         public void Send()
@@ -327,11 +347,11 @@ namespace OSHttpServer
             }
 
             m_headerBytes = GetHeaders();
-            /*
-            if (RawBuffer != null)
+
+            if (RawBuffer != null && RawBufferLen > 0)
             {
                 int tlen = m_headerBytes.Length + RawBufferLen;
-                if(RawBufferLen > 0 && tlen < 16384)
+                if(tlen < 8 * 1024)
                 {
                     byte[] tmp = new byte[tlen];
                     Buffer.BlockCopy(m_headerBytes, 0, tmp, 0, m_headerBytes.Length);
@@ -341,154 +361,160 @@ namespace OSHttpServer
                     RawBufferStart = 0;
                     RawBufferLen = tlen;
                 }
+
+                if (RawBufferLen == 0)
+                    RawBuffer = null;
             }
-            */
-            m_context.StartSendResponse(this);
+
+            if (m_body != null && m_body.Length == 0)
+            {
+                m_body.Dispose();
+                m_body = null;
+            }
+
+            if (m_headerBytes == null && RawBuffer == null && m_body == null)
+            {
+                Sent = true;
+                m_context.EndSendResponse(requestID, Connection);
+            }
+            else
+                m_context.StartSendResponse(this);
         }
 
-        public async Task SendNextAsync(int bytesLimit)
+        public bool SendNextAsync(int bytesLimit)
         {
             if (m_headerBytes != null)
             {
-                if(!await m_context.SendAsync(m_headerBytes, 0, m_headerBytes.Length).ConfigureAwait(false))
+                byte[] b = m_headerBytes;
+                m_headerBytes = null;
+
+                if (!m_context.SendAsyncStart(b, 0, b.Length))
                 {
-                    if (m_context.CanSend())
-                    {
-                        m_context.ContinueSendResponse(true);
-                        return;
-                    }
                     if (m_body != null)
+                    {
                         m_body.Dispose();
+                        m_body = null;
+                    }
                     RawBuffer = null;
                     Sent = true;
-                    return;
+                    return false;
                 }
-                bytesLimit -= m_headerBytes.Length;
-                m_headerBytes = null;
-                if(bytesLimit <= 0)
-                {
-                    m_context.ContinueSendResponse(true);
-                    return;
-                }
+                return true;
             }
 
+            bool sendRes;
             if (RawBuffer != null)
             {
-                if (RawBufferLen > 0)
-                {
-                    if(BandWitdhEvent!=null)
-                        bytesLimit = CheckBandwidth(RawBufferLen, bytesLimit);
-
-                    bool sendRes;
-                    if(RawBufferLen > bytesLimit)
-                    {
-                        sendRes = (await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false));
-                        if (sendRes)
-                        {
-                            RawBufferLen -= bytesLimit;
-                            RawBufferStart += bytesLimit;
-                        }
-                    }
-                    else
-                    {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        if(sendRes)
-                            RawBufferLen = 0;
-                    }
-
-                    if (!sendRes)
-                    {
-                        if (m_context.CanSend())
-                        {
-                            m_context.ContinueSendResponse(true);
-                            return;
-                        }
-
-                        RawBuffer = null;
-                        if(m_body != null)
-                            Body.Dispose();
-                        Sent = true;
-                        return;
-                    }
-                }
-                if (RawBufferLen <= 0)
-                    RawBuffer = null;
-                else
-                {
-                    m_context.ContinueSendResponse(true);
-                    return;
-                }
-            }
-
-            if (m_body != null && m_body.Length != 0)
-            {
-                MemoryStream mb = m_body as MemoryStream;
-                RawBuffer = mb.GetBuffer();
-                RawBufferStart = 0; // must be a internal buffer, or starting at 0
-                RawBufferLen = (int)mb.Length;
-                mb.Dispose();
-                m_body = null;
-
                 if(RawBufferLen > 0)
                 {
-                    bool sendRes;
+                    byte[] b = RawBuffer;
+                    int s = RawBufferStart;
+
                     if (RawBufferLen > bytesLimit)
                     {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, bytesLimit).ConfigureAwait(false);
-                        if (sendRes)
-                        {
-                            RawBufferLen -= bytesLimit;
-                            RawBufferStart += bytesLimit;
-                        }
+                        RawBufferLen -= bytesLimit;
+                        RawBufferStart += bytesLimit;
+                        if (RawBufferLen <= 0)
+                            RawBuffer = null;
+                        sendRes = m_context.SendAsyncStart(b, s, bytesLimit);
                     }
                     else
                     {
-                        sendRes = await m_context.SendAsync(RawBuffer, RawBufferStart, RawBufferLen).ConfigureAwait(false);
-                        if (sendRes)
-                            RawBufferLen = 0;
+                        int l = RawBufferLen;
+                        RawBufferLen = 0;
+                        RawBuffer = null;
+                        sendRes = m_context.SendAsyncStart(b, s, l);
                     }
 
                     if (!sendRes)
                     {
-                        if (m_context.CanSend())
-                        {
-                            m_context.ContinueSendResponse(true);
-                            return;
-                        }
                         RawBuffer = null;
+                        if(m_body != null)
+                        {
+                            m_body.Dispose();
+                            m_body = null;
+                        }
                         Sent = true;
-                        return;
+                        return false;
                     }
+                    return true;
                 }
-                if (RawBufferLen > 0)
-                {
-                    m_context.ContinueSendResponse(false);
-                    return;
-                }
+                else
+                    RawBuffer = null;
             }
 
             if (m_body != null)
-                m_body.Dispose();
+            {
+                if(m_body.Length != 0)
+                {
+                    MemoryStream mb = m_body as MemoryStream;
+                    RawBuffer = mb.GetBuffer();
+                    RawBufferStart = 0; // must be a internal buffer, or starting at 0
+                    RawBufferLen = (int)mb.Length;
+                    m_body.Dispose();
+                    m_body = null;
+
+                    if (RawBufferLen > 0)
+                    {
+                        byte[] b = RawBuffer;
+                        int s = RawBufferStart;
+
+                        if (RawBufferLen > bytesLimit)
+                        {
+                            RawBufferLen -= bytesLimit;
+                            RawBufferStart += bytesLimit;
+                            if (RawBufferLen <= 0)
+                                RawBuffer = null;
+                            sendRes = m_context.SendAsyncStart(b, s, bytesLimit);
+                        }
+                        else
+                        {
+                            int l = RawBufferLen;
+                            sendRes = m_context.SendAsyncStart(b, s, l);
+                            RawBufferLen = 0;
+                            RawBuffer = null;
+                        }
+
+                        if (!sendRes)
+                        {
+                            RawBuffer = null;
+                            Sent = true;
+                            return false;
+                        }
+                        return true; 
+                    }
+                    else
+                        RawBuffer = null;
+                }
+                else
+                {
+                    m_body.Dispose();
+                    m_body = null;
+                }
+            }
+
             Sent = true;
             m_context.EndSendResponse(requestID, Connection);
+            return false;
         }
 
-        private int CheckBandwidth(int request, int bytesLimit)
+        public void CheckSendNextAsyncContinue()
         {
-            if(request > bytesLimit)
-                request = bytesLimit;
-            var args = new BandWitdhEventArgs(request);
-            BandWitdhEvent?.Invoke(this, args);
-            if(args.Result > 8196)
-                return args.Result;
-
-            return 8196;
+            if(m_headerBytes == null && RawBuffer == null && m_body == null)
+            {
+                Sent = true;
+                m_context.EndSendResponse(requestID, Connection);
+            }
+            else
+            {
+                m_context.ContinueSendResponse();
+            }
         }
 
         public void Clear()
         {
-            if(Body != null && Body.CanRead)
-                Body.Dispose();
+            if(m_body != null && m_body.CanRead)
+                m_body.Dispose();
         }
         #endregion
     }

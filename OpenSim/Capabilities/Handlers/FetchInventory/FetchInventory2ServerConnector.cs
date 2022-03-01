@@ -52,7 +52,7 @@ namespace OpenSim.Capabilities.Handlers
 
             string invService = serverConfig.GetString("InventoryService", String.Empty);
 
-            if (invService == String.Empty)
+            if (invService.Length == 0)
                 throw new Exception("No InventoryService in config file");
 
             Object[] args = new Object[] { config };

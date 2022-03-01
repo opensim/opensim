@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 m_userAccountService = s.UserAccountService;
             if(m_gridUserService == null)
                 m_gridUserService = s.GridUserService;
-            if (s.RegionInfo.ScopeID != UUID.Zero)
+            if (!s.RegionInfo.ScopeID.IsZero())
                 m_scopeID = s.RegionInfo.ScopeID;
         }
 
@@ -316,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 if (found.Contains(data.Id))
                     continue;
-                if (data.Id == UUID.Zero || data.IsUnknownUser)
+                if (data.Id.IsZero() || data.IsUnknownUser)
                     continue;
                 if (data.FirstName.ToLower().StartsWith(q) || data.LastName.ToLower().StartsWith(q))
                     users.Add(data);
@@ -417,15 +417,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             var untried = new Dictionary<UUID, UserData>();
             foreach (string id in ids)
             {
-                if(!UUID.TryParse(id, out UUID uuid) || uuid == UUID.Zero)
+                if(!UUID.TryParse(id, out UUID uuid) || uuid.IsZero())
                     continue;
 
                 if (m_userCacheByID.TryGetValue(uuid, out UserData userdata))
                 {
-                    string name = userdata.FirstName + " " + userdata.LastName;
                     if (userdata.HasGridUserTried)
                     {
-                        ret[uuid] = name;
+                        ret[uuid] = userdata.FirstName + " " + userdata.LastName; ;
                         continue;
                     }
                     untried[uuid] = userdata;
@@ -445,7 +444,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 {
                     if (uac != null)
                     {
-                        string name = uac.FirstName + " " + uac.LastName;
                         UUID id = uac.PrincipalID;
 
                         var userdata = new UserData();
@@ -458,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                         userdata.HasGridUserTried = true;
                         m_userCacheByID.Add(id, userdata, 1800000);
 
-                        ret[id] = name;
+                        ret[id] = uac.FirstName + " " + uac.LastName;
                         missing.Remove(id.ToString()); // slowww
                         untried.Remove(id);
                     }
@@ -502,8 +500,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                                 userdata.HasGridUserTried = true;
                                 m_userCacheByID.Add(u, userdata, 1800000);
 
-                                string name = userdata.FirstName + " " + userdata.LastName;
-                                ret[u] = name;
+                                ret[u] = userdata.FirstName + " " + userdata.LastName;
                                 missing.Remove(u.ToString());
                                 untried.Remove(u);
                             }
@@ -551,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             var untried = new Dictionary<UUID, UserData>();
             foreach (string id in ids)
             {
-                if (!UUID.TryParse(id, out UUID uuid) || uuid == UUID.Zero)
+                if (!UUID.TryParse(id, out UUID uuid) || uuid.IsZero())
                     continue;
 
                 if (m_userCacheByID.TryGetValue(uuid, out UserData userdata))
@@ -698,7 +695,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             if(userdata.LastWebFail > 0)
             {
-                if(Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
+                if(Util.GetTimeStamp() - userdata.LastWebFail < BADURLEXPIRE)
                     return string.Empty;
                 userdata.LastWebFail = -1;
             }
@@ -768,9 +765,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (userdata.LastWebFail > 0)
             {
                 if (Util.GetTimeStamp() - userdata.LastWebFail > BADURLEXPIRE)
-                    recentFail = true;
-                else
                     userdata.LastWebFail = -1;
+                else
+                    recentFail = true;
             }
 
             if (userdata.ServerURLs != null)
@@ -1107,12 +1104,23 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
             else
             {
-                oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
-                oldUser.LastName = "UMMM1Unknown";
-                oldUser.IsLocal = true;
-                oldUser.HomeURL = string.Empty;
-                oldUser.HasGridUserTried = true;
-                oldUser.IsUnknownUser = true;
+                if (string.IsNullOrEmpty(homeuri.Host)) // take this as local
+                {
+                    oldUser.FirstName = firstname;
+                    oldUser.LastName = lastname;
+                    oldUser.IsLocal = true;
+                    oldUser.HomeURL = string.Empty;
+                    oldUser.HasGridUserTried = true;
+                }
+                else
+                {
+                    oldUser.FirstName = firstname + "." + lastname.Replace(" ", ".");
+                    oldUser.LastName = "UMMM1Unknown";
+                    oldUser.IsLocal = true;
+                    oldUser.HomeURL = string.Empty;
+                    oldUser.HasGridUserTried = true;
+                    oldUser.IsUnknownUser = true;
+                }
             }
             m_userCacheByID.Add(id, oldUser, NOEXPIRE);
         }

@@ -83,6 +83,8 @@ namespace OpenSim.Framework.Capabilities
         {
             using (XmlTextReader reader = new XmlTextReader(st))
             {
+                reader.DtdProcessing = DtdProcessing.Ignore;
+
                 reader.Read();
                 SkipWS(reader);
 
@@ -146,7 +148,7 @@ namespace OpenSim.Framework.Capabilities
                 writer.WriteString(obj.ToString());
                 writer.WriteEndElement();
             }
-            else if (obj is double)
+            else if (obj is double || obj is float)
             {
                 writer.WriteStartElement(String.Empty, "real", String.Empty);
                 writer.WriteString(obj.ToString());

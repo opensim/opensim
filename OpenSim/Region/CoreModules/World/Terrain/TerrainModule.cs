@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private String m_InitialTerrain = "pinhead-island";
 
         // If true, send terrain patch updates to clients based on their view distance
-        private bool m_sendTerrainUpdatesByViewDistance = true;
+        private bool m_sendTerrainUpdatesByViewDistance = false;
 
         // Class to keep the per client collection of terrain patches that must be sent.
         // A patch is set to 'true' meaning it should be sent to the client. Once the
@@ -2026,7 +2026,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     result = operation.ModifyTerrain(m_channel, cmd);
                 }
 
-                if (result == String.Empty)
+                if (result.Length == 0)
                 {
                     result = "Modified terrain";
                     m_log.DebugFormat("Performed terrain operation {0}", operationType);

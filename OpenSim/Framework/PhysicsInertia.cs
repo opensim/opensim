@@ -184,19 +184,21 @@ namespace OpenSim.Framework
 
         public static PhysicsInertiaData FromXml2(string text)
         {
-            if (text == String.Empty)
+            if (text.Length == 0)
                 return null;
 
             bool error;
             PhysicsInertiaData v;
             UTF8Encoding enc = new UTF8Encoding();
             using(MemoryStream ms = new MemoryStream(enc.GetBytes(text)))
+            {
                 using(XmlTextReader xreader = new XmlTextReader(ms))
                 {
+                    xreader.DtdProcessing = DtdProcessing.Ignore;
                     v = new PhysicsInertiaData();
                     v.FromXml2(xreader, out error);
                 }
-
+            }
             if (error)
                 return null;
 
