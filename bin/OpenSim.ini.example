@@ -292,10 +292,11 @@
     ;; Separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
 
-    ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {true false} false
+    ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {DefaultEmailModule DefaultEmailModule2} none
     ;; The email module requires some configuration. It needs an SMTP
     ;; server to send mail through.
-    ; emailmodule = DefaultEmailModule
+    ;; DefaultEmailModule2 is a improved version under test
+    ; emailmodule = DefaultEmailModule2
 
     ;# {SpawnPointRouting} {} {Set routing method for Telehub Spawnpoints} {closest random sequence} closest
     ;; SpawnPointRouting adjusts the landing for incoming avatars.
@@ -500,13 +501,24 @@
     ; internal_object_host = lsl.opensim.local
 
     ;# {host_domain_header_from} {[Startup]emailmodule:DefaultEmailModule enabled:true} {From address to use in the sent email header?} {} 127.0.0.1
+    ; if the smpt service allows the from address will be <objectUUID@host_domain_header_from>
     ; host_domain_header_from = "127.0.0.1"
+
+    ;# {SMTP_SERVER_LOGIN} {[Startup]emailmodule:DefaultEmailModule2 enabled:true} {SMTP server from name?} {}
+    ; DefaultEmailModule2 only
+    ; some smpt service require a known registered From email address or will give Error 500 - Envelope from address is not authorised
+    ; set to a valid email address that smpt will accept (in same cases same as SMTP_SERVER_LOGIN)
+    ; SMTP_SERVER_FROM = ""
 
     ;# {email_pause_time} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Period in seconds to delay after an email is sent.} {} 20
     ; email_pause_time = 20
 
     ;# {email_max_size} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Maximum total size of email in bytes.} {} 4096
     ; email_max_size = 4096
+
+    ;# {SMTP_SERVER_TLS} {[Startup]emailmodule:DefaultEmailModule2 enabled:true} {SMTP use TLS?} {} false
+    ; DefaultEmailModule2 only
+    ; SMTP_SERVER_TLS = false
 
     ;# {SMTP_SERVER_HOSTNAME} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server name?} {} 127.0.0.1
     ; SMTP_SERVER_HOSTNAME = "127.0.0.1"

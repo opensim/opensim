@@ -1628,6 +1628,8 @@
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
       <Reference name="DotNetOpenMail" path="../../../bin/"/>
+      <Reference name="MailKit"/>
+      <Reference name="MimeKit"/>
 
       <!-- To allow regions to have mono addins -->
       <Reference name="Mono.Addins" path="../../../bin/"/>
@@ -3065,6 +3067,8 @@
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
       <Reference name="DotNetOpenMail" path="../../../bin/"/>
+      <Reference name="MailKit"/>
+      <Reference name="MimeKit"/>
 
       <!--
            TODO: this is kind of lame, we basically build a duplicate
