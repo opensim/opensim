@@ -2043,7 +2043,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class OutOfHeapException: Exception
     {
         public OutOfHeapException(int oldtotal, int newtotal, int limit)
-                : base("oldtotal=" + oldtotal + ", newtotal=" + newtotal + ", limit=" + limit)
+                : base("(OWNER)oldtotal=" + oldtotal + ", newtotal=" + newtotal + ", limit=" + limit)
         {
         }
     }
