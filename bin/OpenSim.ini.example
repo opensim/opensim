@@ -508,7 +508,7 @@
     ;# {SMTP_SERVER_FROM} {[Startup]emailmodule:DefaultEmailModule2 enabled:true} {SMTP server from name?} {}
     ; DefaultEmailModule2 only
     ; some smtp servers require a known From email address or will give Error 500 - Envelope from address is not authorised
-    ; set to a valid email address that smtp will accept (in same cases same as SMTP_SERVER_LOGIN)
+    ; set to a valid email address that smtp will accept (in some cases must be like SMTP_SERVER_LOGIN)
     ; SMTP_SERVER_FROM = ""
 
     ;# {email_pause_time} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Period in seconds to delay after an email is sent.} {} 20
