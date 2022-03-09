@@ -501,13 +501,14 @@
     ; internal_object_host = lsl.opensim.local
 
     ;# {host_domain_header_from} {[Startup]emailmodule:DefaultEmailModule enabled:true} {From address to use in the sent email header?} {} 127.0.0.1
-    ; if the smpt service allows the from address will be <objectUUID@host_domain_header_from>
+    ; if the smtp service allows, the from address will be <objectUUID@host_domain_header_from>
+    ; if not set SMTP_SERVER_FROM below
     ; host_domain_header_from = "127.0.0.1"
 
-    ;# {SMTP_SERVER_LOGIN} {[Startup]emailmodule:DefaultEmailModule2 enabled:true} {SMTP server from name?} {}
+    ;# {SMTP_SERVER_FROM} {[Startup]emailmodule:DefaultEmailModule2 enabled:true} {SMTP server from name?} {}
     ; DefaultEmailModule2 only
-    ; some smpt service require a known registered From email address or will give Error 500 - Envelope from address is not authorised
-    ; set to a valid email address that smpt will accept (in same cases same as SMTP_SERVER_LOGIN)
+    ; some smtp servers require a known From email address or will give Error 500 - Envelope from address is not authorised
+    ; set to a valid email address that smtp will accept (in same cases same as SMTP_SERVER_LOGIN)
     ; SMTP_SERVER_FROM = ""
 
     ;# {email_pause_time} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Period in seconds to delay after an email is sent.} {} 20
