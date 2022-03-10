@@ -1237,9 +1237,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             cdt.AddColumn("HomeURL", 40);
             cdt.AddColumn("Checked", 10);
 
-            ICollection<UserData> copy = m_userCacheByID.Values;
-
-            foreach(UserData u in copy)
+            foreach(UserData u in m_userCacheByID.Values)
             {
                 cdt.AddRow(u.Id, string.Format("{0} {1}", u.FirstName, u.LastName), u.HomeURL, u.HasGridUserTried ? "yes" : "no");
             }
