@@ -313,7 +313,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 for (int j = 0; j < notFound.Count; ++j)
                 {
                     sb.Append(notFound[j]);
-                    if (i < j)
+                    if (j < i)
                         sb.Append(',');
                 }
                 m_log.Debug(sb.ToString());
@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 for (int j = 0; j < posted.Count; ++j)
                 {
                     sb.Append(posted[j]);
-                    if (i < j)
+                    if (j < i)
                         sb.Append(',');
                 }
                 m_log.Debug(sb.ToString());
