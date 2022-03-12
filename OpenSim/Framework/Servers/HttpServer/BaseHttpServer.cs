@@ -1615,7 +1615,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return null;
             }
 
-            byte[] buffer = new byte[0];
+            byte[] buffer = Array.Empty<byte>();
             if (llsdResponse.ToString() == "shutdown404!")
             {
                 response.ContentType = "text/plain";

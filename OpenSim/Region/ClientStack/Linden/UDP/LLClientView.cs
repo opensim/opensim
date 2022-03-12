@@ -2419,7 +2419,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.FolderData[0].FolderID = UUID.Zero;
             packet.FolderData[0].ParentID = UUID.Zero;
             packet.FolderData[0].Type = -1;
-            packet.FolderData[0].Name = new byte[0];
+            packet.FolderData[0].Name = Array.Empty<byte>();
         }
 
         private void AddNullItemBlockToDescendentsPacket(ref InventoryDescendentsPacket packet)
@@ -3106,7 +3106,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             alertPack.AlertInfo = new AlertMessagePacket.AlertInfoBlock[1];
             alertPack.AlertInfo[0] = new AlertMessagePacket.AlertInfoBlock();
             alertPack.AlertInfo[0].Message = Util.StringToBytes256(info);
-            alertPack.AlertInfo[0].ExtraParams = new Byte[0];
+            alertPack.AlertInfo[0].ExtraParams = Array.Empty<byte>();
             OutPacket(alertPack, ThrottleOutPacketType.Task);
         }
 
@@ -3717,7 +3717,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (land.Description != null && land.Description != String.Empty)
                 reply.Data.Desc = Utils.StringToBytes(land.Description.Substring(0, land.Description.Length > 254 ? 254: land.Description.Length));
             else
-                reply.Data.Desc = new Byte[0];
+                reply.Data.Desc = Array.Empty<byte>();
             reply.Data.ActualArea = land.Area;
             reply.Data.BillableArea = land.Area; // TODO: what is this?
 
@@ -4373,7 +4373,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             gmp.MethodData.Method = Util.StringToBytes256("emptymutelist");
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[1];
             gmp.ParamList[0] = new GenericMessagePacket.ParamListBlock();
-            gmp.ParamList[0].Parameter = new byte[0];
+            gmp.ParamList[0].Parameter = Array.Empty<byte>();
 
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
@@ -12626,7 +12626,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int idx = cachedtex.WearableData[i].TextureIndex;
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
-                    cachedresp.WearableData[i].HostName = new byte[0];
+                    cachedresp.WearableData[i].HostName = Array.Empty<byte>();
                     if (cachedtex.WearableData[i].ID == cacheItems[idx].CacheId)
                     {
                         cachedresp.WearableData[i].TextureID = cacheItems[idx].TextureID;
@@ -12645,7 +12645,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                     cachedresp.WearableData[i].TextureIndex = cachedtex.WearableData[i].TextureIndex;
                     cachedresp.WearableData[i].TextureID = UUID.Zero;
-                    cachedresp.WearableData[i].HostName = new byte[0];
+                    cachedresp.WearableData[i].HostName = Array.Empty<byte>();
                 }
             }
 

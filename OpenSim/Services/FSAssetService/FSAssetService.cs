@@ -596,7 +596,7 @@ namespace OpenSim.Services.FSAssetService
                 }
                 catch (Exception)
                 {
-                    return new Byte[0];
+                    return Array.Empty<byte>();
                 }
             }
             else if (File.Exists(diskFile))
@@ -611,7 +611,7 @@ namespace OpenSim.Services.FSAssetService
                 {
                 }
             }
-            return new Byte[0];
+            return Array.Empty<byte>();
 
         }
 

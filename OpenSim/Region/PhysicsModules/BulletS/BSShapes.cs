@@ -566,7 +566,7 @@ public class BSShapeMesh : BSShape
             if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
             {
                 // Release the fetched asset data once it has been used.
-                pbs.SculptData = new byte[0];
+                pbs.SculptData = Array.Empty<byte>();
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
             }
 
@@ -816,7 +816,7 @@ public class BSShapeHull : BSShape
             if (prim.PrimAssetState == BSPhysObject.PrimAssetCondition.Fetched)
             {
                 // Release the fetched asset data once it has been used.
-                pbs.SculptData = new byte[0];
+                pbs.SculptData = Array.Empty<byte>();
                 prim.PrimAssetState = BSPhysObject.PrimAssetCondition.Unknown;
             }
 

@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         client.FirstName+" "+client.LastName, targetid,
                         (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
                         message, dest, false, presence.AbsolutePosition,
-                        new Byte[0], true);
+                        Array.Empty<byte>(), true);
             }
             else
             {
@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                         client.FirstName+" "+client.LastName, targetid,
                         (byte)InstantMessageDialog.RequestTeleport, false,
                         message, dest, false, presence.AbsolutePosition,
-                        new Byte[0], true);
+                        Array.Empty<byte>(), true);
             }
 
             if (m_TransferModule != null)

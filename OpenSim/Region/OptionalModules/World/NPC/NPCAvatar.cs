@@ -208,7 +208,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             OnInstantMessage(this, new GridInstantMessage(m_scene,
                     m_uuid, m_firstname + " " + m_lastname,
                     target, 0, false, message,
-                    UUID.Zero, false, Position, new byte[0], true));
+                    UUID.Zero, false, Position, Array.Empty<byte>(), true));
         }
 
         public void SendAgentOffline(UUID[] agentIDs)
@@ -705,7 +705,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return new byte[0];
+            return Array.Empty<byte>();
         }
 
 

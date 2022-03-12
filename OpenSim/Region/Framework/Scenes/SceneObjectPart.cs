@@ -730,7 +730,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(m_particleSystemExpire > 0 && Util.GetTimeStamp() > m_particleSystemExpire)
                 {
                     m_particleSystemExpire = -1;
-                    m_particleSystem = new byte[0];
+                    m_particleSystem = Array.Empty<byte>();
                 }
                 return m_particleSystem;
             }
@@ -1950,7 +1950,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RemoveParticleSystem()
         {
-            m_particleSystem = new byte[0];
+            m_particleSystem = Array.Empty<byte>();
         }
 
         public void AddTextureAnimation(Primitive.TextureAnimation pTexAnim)

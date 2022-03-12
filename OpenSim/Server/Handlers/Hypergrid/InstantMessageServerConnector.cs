@@ -47,9 +47,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 {
     public class InstantMessageServerConnector : ServiceConnector
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IInstantMessage m_IMService;
 
@@ -105,7 +103,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 uint ParentEstateID = 0;
                 Vector3 Position = Vector3.Zero;
                 UUID RegionID = UUID.Zero;
-                byte[] binaryBucket = new byte[0];
+                byte[] binaryBucket = Array.Empty<byte>();
 
                 float pos_x = 0;
                 float pos_y = 0;
@@ -198,7 +196,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     string requestData3 = (string)requestData["binary_bucket"];
                     if (string.IsNullOrEmpty(requestData3))
                     {
-                        binaryBucket = new byte[0];
+                        binaryBucket = Array.Empty<byte>();
                     }
                     else
                     {
@@ -235,10 +233,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             // calling region uses this to know when to look up a user's location again.
             XmlRpcResponse resp = new XmlRpcResponse();
             Hashtable respdata = new Hashtable();
-            if (successful)
-                respdata["success"] = "TRUE";
-            else
-                respdata["success"] = "FALSE";
+            respdata["success"] = successful ? "TRUE" : "FALSE";
             resp.Value = respdata;
 
             return resp;

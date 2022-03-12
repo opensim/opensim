@@ -305,7 +305,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // fid is not a UUID...
             if (Util.ParseUniversalUserIdentifier(fid, out agentID, out string url, out string f, out string l, out string tmp))
             {
-                if (!agentID.Equals(UUID.Zero))
+                if (agentID.IsNotZero())
                 {
                     m_uMan.AddUser(agentID, f, l, url);
 

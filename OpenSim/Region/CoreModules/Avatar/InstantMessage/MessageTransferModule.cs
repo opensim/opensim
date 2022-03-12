@@ -225,7 +225,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 uint ParentEstateID=0;
                 Vector3 Position = Vector3.Zero;
                 UUID RegionID = UUID.Zero ;
-                byte[] binaryBucket = new byte[0];
+                byte[] binaryBucket = Array.Empty<byte>();
 
                 float pos_x = 0;
                 float pos_y = 0;
@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     string requestData3 = (string)requestData["binary_bucket"];
                     if (string.IsNullOrEmpty(requestData3))
                     {
-                        binaryBucket = new byte[0];
+                        binaryBucket = Array.Empty<byte>();
                     }
                     else
                     {

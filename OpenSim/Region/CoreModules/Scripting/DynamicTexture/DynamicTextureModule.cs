@@ -567,7 +567,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if(backImage == null)
                 {
                     SetAlpha(ref image1, newAlpha);
-                    byte[] result = new byte[0];
+                    byte[] result = Array.Empty<byte>();
 
                     try
                     {
@@ -597,7 +597,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     image1.Dispose();
                     image2.Dispose();
 
-                    byte[] result = new byte[0];
+                    byte[] result = Array.Empty<byte>();
 
                     try
                     {

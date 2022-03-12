@@ -80,7 +80,7 @@ namespace OpenSim.Server.Handlers.BakedTextures
             catch
             {
             }
-            return new byte[0];
+            return Array.Empty<byte>();
         }
 
         public void Store(string id, byte[] data, int dataLength)

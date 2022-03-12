@@ -292,7 +292,7 @@ namespace OpenSim.Capabilities.Handlers
         private byte[] ConvertTextureData(AssetBase texture, string format)
         {
             m_log.DebugFormat("[GETTEXTURE]: Converting texture {0} to {1}", texture.ID, format);
-            byte[] data = new byte[0];
+            byte[] data = Array.Empty<byte>(); ;
 
             MemoryStream imgstream = new MemoryStream();
             Bitmap mTexture = null;
