@@ -146,10 +146,10 @@ namespace OSHttpServer
 
         #endregion
 
-		/// <summary>
-		/// Remove a cookie from the collection.
-		/// </summary>
-		/// <param name="cookieName">Name of cookie.</param>
+        /// <summary>
+        /// Remove a cookie from the collection.
+        /// </summary>
+        /// <param name="cookieName">Name of cookie.</param>
         public void Remove(string cookieName)
         {
             lock (_items)
