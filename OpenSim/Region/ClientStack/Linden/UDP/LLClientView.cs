@@ -2430,12 +2430,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.ItemData[0].AssetID = UUID.Zero;
             packet.ItemData[0].CreatorID = UUID.Zero;
             packet.ItemData[0].BaseMask = 0;
-            packet.ItemData[0].Description = new byte[0];
+            packet.ItemData[0].Description = Array.Empty<byte>();
             packet.ItemData[0].EveryoneMask = 0;
             packet.ItemData[0].OwnerMask = 0;
             packet.ItemData[0].FolderID = UUID.Zero;
             packet.ItemData[0].InvType = (sbyte)0;
-            packet.ItemData[0].Name = new byte[0];
+            packet.ItemData[0].Name = Array.Empty<byte>();
             packet.ItemData[0].NextOwnerMask = 0;
             packet.ItemData[0].OwnerID = UUID.Zero;
             packet.ItemData[0].Type = -1;
@@ -2728,7 +2728,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.FolderData[0].FolderID = UUID.Zero;
             bulkUpdate.FolderData[0].ParentID = UUID.Zero;
             bulkUpdate.FolderData[0].Type = -1;
-            bulkUpdate.FolderData[0].Name = new byte[0];
+            bulkUpdate.FolderData[0].Name = Array.Empty<byte>();
 
             bulkUpdate.ItemData = new BulkUpdateInventoryPacket.ItemDataBlock[1];
             bulkUpdate.ItemData[0] = new BulkUpdateInventoryPacket.ItemDataBlock();
@@ -12682,7 +12682,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 cachedresp.WearableData[i] = new AgentCachedTextureResponsePacket.WearableDataBlock();
                 cachedresp.WearableData[i].TextureIndex = (byte)cachedTextures[i].BakedTextureIndex;
                 cachedresp.WearableData[i].TextureID = cachedTextures[i].BakedTextureID;
-                cachedresp.WearableData[i].HostName = new byte[0];
+                cachedresp.WearableData[i].HostName = Array.Empty<byte>();
             }
 
             cachedresp.Header.Zerocoded = true;

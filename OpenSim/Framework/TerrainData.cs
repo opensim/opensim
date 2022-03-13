@@ -75,8 +75,8 @@ namespace OpenSim.Framework
         // Remember subregions of the heightmap that has changed.
 
         private BitArray m_taint;
-        private int m_taintSizeX;
-        private int m_taintSizeY;
+        private readonly int m_taintSizeX;
+        private readonly int m_taintSizeY;
 
         // legacy CompressionFactor
         public float CompressionFactor { get; private set; }
