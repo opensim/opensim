@@ -1090,7 +1090,7 @@ namespace OpenSim.Framework
         {
             OSDMap args = new OSDMap();
             args["region_id"] = OSD.FromUUID(RegionID);
-            if ((RegionName != null) && !RegionName.Equals(""))
+            if (!string.IsNullOrEmpty(RegionName))
                 args["region_name"] = OSD.FromString(RegionName);
             args["external_host_name"] = OSD.FromString(ExternalHostName);
             args["http_port"] = OSD.FromString(HttpPort.ToString());
@@ -1104,10 +1104,10 @@ namespace OpenSim.Framework
 
             args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
             args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
-            if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
+            if (!string.IsNullOrEmpty(RemotingAddress))
                 args["remoting_address"] = OSD.FromString(RemotingAddress);
             args["remoting_port"] = OSD.FromString(RemotingPort.ToString());
-            if ((proxyUrl != null) && !proxyUrl.Equals(""))
+            if (!string.IsNullOrEmpty(proxyUrl))
                 args["proxy_url"] = OSD.FromString(proxyUrl);
             if (RegionType != String.Empty)
                 args["region_type"] = OSD.FromString(RegionType);

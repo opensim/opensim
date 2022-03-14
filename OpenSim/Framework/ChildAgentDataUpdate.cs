@@ -541,10 +541,10 @@ namespace OpenSim.Framework
                 args["controllers"] = controls;
             }
 
-            if ((CallbackURI != null) && (!CallbackURI.Equals("")))
+            if (!string.IsNullOrEmpty(CallbackURI))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
 
-            if ((NewCallbackURI != null) && (!NewCallbackURI.Equals("")))
+            if (!string.IsNullOrEmpty(NewCallbackURI))
                 args["cb_uri"] = OSD.FromString(NewCallbackURI);
 
             // Attachment objects for fatpack messages

@@ -411,8 +411,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                         for (i = 0; i < queue.Count; i++)
                         {
-                            if ((sender == null || sender.Equals("") || sender.Equals(queue[i].sender)) &&
-                                (subject == null || subject.Equals("") || subject.Equals(queue[i].subject)))
+                            if ((string.IsNullOrEmpty(sender) || sender.Equals(queue[i].sender)) &&
+                                (string.IsNullOrEmpty(subject) || subject.Equals(queue[i].subject)))
                             {
                                 break;
                             }
