@@ -55,12 +55,11 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         Absolute
     }
 
-    public struct CameraData
+    public class CameraData
     {
         public Quaternion CameraRotation;
         public Vector3 CameraAtAxis;
         public bool MouseLook;
-        public bool Valid;
     }
 
     public struct ContactPoint
@@ -187,12 +186,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public CameraData TryGetCameraData()
         {
             GetCameraData handler = OnPhysicsRequestingCameraData;
-            if (handler != null)
-            {
-                return handler();
-            }
-
-            return new CameraData { Valid = false };
+            return (handler == null) ? null : handler();
         }
 
         public static PhysicsActor Null

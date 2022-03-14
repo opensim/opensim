@@ -1393,10 +1393,8 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysicsActor partPhysActor = part.PhysActor;
                         if(partPhysActor != null)
                         {
-                            partPhysActor.OnPhysicsRequestingCameraData -=
-                                        physActor_OnPhysicsRequestingCameraData;
-                            partPhysActor.OnPhysicsRequestingCameraData +=
-                                        physActor_OnPhysicsRequestingCameraData;
+                            partPhysActor.OnPhysicsRequestingCameraData -= physActor_OnPhysicsRequestingCameraData;
+                            partPhysActor.OnPhysicsRequestingCameraData += physActor_OnPhysicsRequestingCameraData;
                         }
                     }
                     ParentUUID = UUID.Zero;
@@ -5888,15 +5886,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private CameraData CameraDataCache;
         CameraData physActor_OnPhysicsRequestingCameraData()
         {
-            return new CameraData
-            {
-                Valid = true,
-                MouseLook = this.m_mouseLook,
-                CameraRotation = this.CameraRotation,
-                CameraAtAxis = this.CameraAtAxis
-            };
+            if(CameraDataCache == null)
+                CameraDataCache = new CameraData();
+            CameraDataCache.MouseLook = m_mouseLook;
+            CameraDataCache.CameraRotation = CameraRotation;
+            CameraDataCache.CameraAtAxis = CameraAtAxis;
+            return CameraDataCache;
         }
 
         public void RegisterControlEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, UUID Script_item_UUID)
