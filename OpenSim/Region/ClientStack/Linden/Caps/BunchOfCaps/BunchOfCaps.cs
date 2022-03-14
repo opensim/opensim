@@ -2288,49 +2288,55 @@ namespace OpenSim.Region.ClientStack.Linden
             NameValueCollection query = httpRequest.QueryString;
             string[] ids = query.GetValues("ids");
 
-            Dictionary<UUID,string> names = m_UserManager.GetKnownUserNames(ids, m_scopeID);
-            osUTF8 lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
-            LLSDxmlEncode2.AddMap(lsl);
-            int ct = 0;
-            if(names.Count == 0)
+            osUTF8 lsl;
+            if(ids.Length == 0)
+            {
+                lsl = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(lsl);
                 LLSDxmlEncode2.AddEmptyArray("agents", lsl);
+            }
             else
             {
-                LLSDxmlEncode2.AddArray("agents", lsl);
+                Dictionary<UUID, string> names = m_UserManager.GetKnownUserNames(ids, m_scopeID);
+                lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
 
-                foreach (KeyValuePair<UUID,string> kvp in names)
+                LLSDxmlEncode2.AddMap(lsl);
+                if (names.Count == 0)
+                    LLSDxmlEncode2.AddEmptyArray("agents", lsl);
+                else
                 {
-                    string[] parts = kvp.Value.Split(new char[] {' '});
-                    string fullname = kvp.Value;
+                    LLSDxmlEncode2.AddArray("agents", lsl);
 
-                    if (string.IsNullOrEmpty(kvp.Value))
+                    foreach (KeyValuePair<UUID,string> kvp in names)
                     {
-                        parts = new string[] {"(hippos)", ""};
-                        fullname = "(hippos)";
+                        if(kvp.Key.IsZero())
+                            continue;
+
+                        string fullname = kvp.Value;
+                        // dont tell about unknown users, we can't send them back on Bad either
+                        if (string.IsNullOrEmpty(fullname))
+                            continue;
+                        string[] parts = fullname.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if(string.IsNullOrEmpty(parts[0]) || parts[0].Equals("Unknown"))
+                            continue;
+
+                        LLSDxmlEncode2.AddMap(lsl);
+                        LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
+                        LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
+                        LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
+                        LLSDxmlEncode2.AddElem("legacy_first_name", parts[0], lsl);
+                        if (string.IsNullOrEmpty(parts[1]))
+                            LLSDxmlEncode2.AddElem("legacy_last_name", "", lsl);
+                        else
+                            LLSDxmlEncode2.AddElem("legacy_last_name", parts[1], lsl);
+                        LLSDxmlEncode2.AddElem("username", fullname, lsl);
+                        LLSDxmlEncode2.AddElem("id", kvp.Key, lsl);
+                        LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
+                        LLSDxmlEncode2.AddEndMap(lsl);
                     }
-
-                    if(kvp.Key.IsZero())
-                        continue;
-
-                // dont tell about unknown users, we can't send them back on Bad either
-                    if(parts[0] == "Unknown")
-                         continue;
-
-                    LLSDxmlEncode2.AddMap(lsl);
-                    LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
-                    LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
-                    LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
-                    LLSDxmlEncode2.AddElem("legacy_first_name", parts[0], lsl);
-                    LLSDxmlEncode2.AddElem("legacy_last_name", parts[1], lsl);
-                    LLSDxmlEncode2.AddElem("username", fullname, lsl);
-                    LLSDxmlEncode2.AddElem("id", kvp.Key, lsl);
-                    LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
-                    LLSDxmlEncode2.AddEndMap(lsl);
-                    ct++;
+                    LLSDxmlEncode2.AddEndArray(lsl);
                 }
-                LLSDxmlEncode2.AddEndArray(lsl);
             }
-        
             LLSDxmlEncode2.AddEndMap(lsl);
 
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToNBBytes(lsl);
