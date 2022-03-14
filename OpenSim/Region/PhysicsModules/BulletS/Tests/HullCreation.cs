@@ -42,164 +42,164 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 {
-[TestFixture]
-public class HullCreation : OpenSimTestCase
-{
-    // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
-    // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
-
-    BSScene PhysicsScene { get; set; }
-    Vector3 ObjectInitPosition;
-
-    [TestFixtureSetUp]
-    public void Init()
+    [TestFixture]
+    public class HullCreation : OpenSimTestCase
     {
+        // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
+        // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
 
-    }
+        BSScene PhysicsScene { get; set; }
+        Vector3 ObjectInitPosition;
 
-    [TestFixtureTearDown]
-    public void TearDown()
-    {
-        if (PhysicsScene != null)
+        [TestFixtureSetUp]
+        public void Init()
         {
-            // The Dispose() will also free any physical objects in the scene
-            PhysicsScene.Dispose();
-            PhysicsScene = null;
+
         }
-    }
 
-    [TestCase(7, 2, 5f, 5f, 32, 0f)]    /* default hull parameters */
-    public void GeomHullConvexDecomp( int maxDepthSplit,
-                                        int maxDepthSplitForSimpleShapes,
-                                        float concavityThresholdPercent,
-                                        float volumeConservationThresholdPercent,
-                                        int maxVertices,
-                                        float maxSkinWidth)
-    {
-        // Setup the physics engine to use the C# version of convex decomp
-        Dictionary<string, string> engineParams = new Dictionary<string, string>();
-        engineParams.Add("MeshSculptedPrim", "true"); // ShouldMeshSculptedPrim
-        engineParams.Add("ForceSimplePrimMeshing", "false"); // ShouldForceSimplePrimMeshing
-        engineParams.Add("UseHullsForPhysicalObjects", "true"); // ShouldUseHullsForPhysicalObjects
-        engineParams.Add("ShouldRemoveZeroWidthTriangles", "true");
-        engineParams.Add("ShouldUseBulletHACD", "false");
-        engineParams.Add("ShouldUseSingleConvexHullForPrims", "true");
-        engineParams.Add("ShouldUseGImpactShapeForPrims", "false");
-        engineParams.Add("ShouldUseAssetHulls", "true");
-
-        engineParams.Add("CSHullMaxDepthSplit", maxDepthSplit.ToString());
-        engineParams.Add("CSHullMaxDepthSplitForSimpleShapes", maxDepthSplitForSimpleShapes.ToString());
-        engineParams.Add("CSHullConcavityThresholdPercent", concavityThresholdPercent.ToString());
-        engineParams.Add("CSHullVolumeConservationThresholdPercent", volumeConservationThresholdPercent.ToString());
-        engineParams.Add("CSHullMaxVertices", maxVertices.ToString());
-        engineParams.Add("CSHullMaxSkinWidth", maxSkinWidth.ToString());
-
-        PhysicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
-
-        PrimitiveBaseShape pbs;
-        Vector3 pos;
-        Vector3 size;
-        Quaternion rot;
-        bool isPhys;
-
-        // Cylinder
-        pbs = PrimitiveBaseShape.CreateCylinder();
-        pos = new Vector3(100.0f, 100.0f, 0f);
-        pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
-        ObjectInitPosition = pos;
-        size = new Vector3(2f, 2f, 2f);
-        pbs.Scale = size;
-        rot = Quaternion.Identity;
-        isPhys = true;
-        uint cylinderLocalID = 123;
-        PhysicsScene.AddPrimShape("testCylinder", pbs, pos, size, rot, isPhys, cylinderLocalID);
-        BSPrim primTypeCylinder = (BSPrim)PhysicsScene.PhysObjects[cylinderLocalID];
-
-        // Hollow Cylinder
-        pbs = PrimitiveBaseShape.CreateCylinder();
-        pbs.ProfileHollow = (ushort)(0.70f * 50000);
-        pos = new Vector3(110.0f, 110.0f, 0f);
-        pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
-        ObjectInitPosition = pos;
-        size = new Vector3(2f, 2f, 2f);
-        pbs.Scale = size;
-        rot = Quaternion.Identity;
-        isPhys = true;
-        uint hollowCylinderLocalID = 124;
-        PhysicsScene.AddPrimShape("testHollowCylinder", pbs, pos, size, rot, isPhys, hollowCylinderLocalID);
-        BSPrim primTypeHollowCylinder = (BSPrim)PhysicsScene.PhysObjects[hollowCylinderLocalID];
-
-        // Torus
-        // ProfileCurve = Circle, PathCurve = Curve1
-        pbs = PrimitiveBaseShape.CreateSphere();
-        pbs.ProfileShape = (byte)ProfileShape.Circle;
-        pbs.PathCurve = (byte)Extrusion.Curve1;
-        pbs.PathScaleX = 100;   // default hollow info as set in the viewer
-        pbs.PathScaleY = (int)(.25f / 0.01f) + 200;
-        pos = new Vector3(120.0f, 120.0f, 0f);
-        pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
-        ObjectInitPosition = pos;
-        size = new Vector3(2f, 4f, 4f);
-        pbs.Scale = size;
-        rot = Quaternion.Identity;
-        isPhys = true;
-        uint torusLocalID = 125;
-        PhysicsScene.AddPrimShape("testTorus", pbs, pos, size, rot, isPhys, torusLocalID);
-        BSPrim primTypeTorus = (BSPrim)PhysicsScene.PhysObjects[torusLocalID];
-
-        // The actual prim shape creation happens at taint time
-        PhysicsScene.ProcessTaints();
-
-        // Check out the created hull shapes and report their characteristics
-        ReportShapeGeom(primTypeCylinder);
-        ReportShapeGeom(primTypeHollowCylinder);
-        ReportShapeGeom(primTypeTorus);
-    }
-
-    [TestCase]
-    public void GeomHullBulletHACD()
-    {
-        // Cylinder
-        // Hollow Cylinder
-        // Torus
-    }
-
-    private void ReportShapeGeom(BSPrim prim)
-    {
-        if (prim != null)
+        [TestFixtureTearDown]
+        public void TearDown()
         {
-            if (prim.PhysShape.HasPhysicalShape)
+            if (PhysicsScene != null)
             {
-                BSShape physShape = prim.PhysShape;
-                string shapeType = physShape.GetType().ToString();
-                switch (shapeType)
+                // The Dispose() will also free any physical objects in the scene
+                PhysicsScene.Dispose();
+                PhysicsScene = null;
+            }
+        }
+
+        [TestCase(7, 2, 5f, 5f, 32, 0f)]    /* default hull parameters */
+        public void GeomHullConvexDecomp(int maxDepthSplit,
+                                            int maxDepthSplitForSimpleShapes,
+                                            float concavityThresholdPercent,
+                                            float volumeConservationThresholdPercent,
+                                            int maxVertices,
+                                            float maxSkinWidth)
+        {
+            // Setup the physics engine to use the C# version of convex decomp
+            Dictionary<string, string> engineParams = new Dictionary<string, string>();
+            engineParams.Add("MeshSculptedPrim", "true"); // ShouldMeshSculptedPrim
+            engineParams.Add("ForceSimplePrimMeshing", "false"); // ShouldForceSimplePrimMeshing
+            engineParams.Add("UseHullsForPhysicalObjects", "true"); // ShouldUseHullsForPhysicalObjects
+            engineParams.Add("ShouldRemoveZeroWidthTriangles", "true");
+            engineParams.Add("ShouldUseBulletHACD", "false");
+            engineParams.Add("ShouldUseSingleConvexHullForPrims", "true");
+            engineParams.Add("ShouldUseGImpactShapeForPrims", "false");
+            engineParams.Add("ShouldUseAssetHulls", "true");
+
+            engineParams.Add("CSHullMaxDepthSplit", maxDepthSplit.ToString());
+            engineParams.Add("CSHullMaxDepthSplitForSimpleShapes", maxDepthSplitForSimpleShapes.ToString());
+            engineParams.Add("CSHullConcavityThresholdPercent", concavityThresholdPercent.ToString());
+            engineParams.Add("CSHullVolumeConservationThresholdPercent", volumeConservationThresholdPercent.ToString());
+            engineParams.Add("CSHullMaxVertices", maxVertices.ToString());
+            engineParams.Add("CSHullMaxSkinWidth", maxSkinWidth.ToString());
+
+            PhysicsScene = BulletSimTestsUtil.CreateBasicPhysicsEngine(engineParams);
+
+            PrimitiveBaseShape pbs;
+            Vector3 pos;
+            Vector3 size;
+            Quaternion rot;
+            bool isPhys;
+
+            // Cylinder
+            pbs = PrimitiveBaseShape.CreateCylinder();
+            pos = new Vector3(100.0f, 100.0f, 0f);
+            pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
+            ObjectInitPosition = pos;
+            size = new Vector3(2f, 2f, 2f);
+            pbs.Scale = size;
+            rot = Quaternion.Identity;
+            isPhys = true;
+            uint cylinderLocalID = 123;
+            PhysicsScene.AddPrimShape("testCylinder", pbs, pos, size, rot, isPhys, cylinderLocalID);
+            BSPrim primTypeCylinder = (BSPrim)PhysicsScene.PhysObjects[cylinderLocalID];
+
+            // Hollow Cylinder
+            pbs = PrimitiveBaseShape.CreateCylinder();
+            pbs.ProfileHollow = (ushort)(0.70f * 50000);
+            pos = new Vector3(110.0f, 110.0f, 0f);
+            pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
+            ObjectInitPosition = pos;
+            size = new Vector3(2f, 2f, 2f);
+            pbs.Scale = size;
+            rot = Quaternion.Identity;
+            isPhys = true;
+            uint hollowCylinderLocalID = 124;
+            PhysicsScene.AddPrimShape("testHollowCylinder", pbs, pos, size, rot, isPhys, hollowCylinderLocalID);
+            BSPrim primTypeHollowCylinder = (BSPrim)PhysicsScene.PhysObjects[hollowCylinderLocalID];
+
+            // Torus
+            // ProfileCurve = Circle, PathCurve = Curve1
+            pbs = PrimitiveBaseShape.CreateSphere();
+            pbs.ProfileShape = (byte)ProfileShape.Circle;
+            pbs.PathCurve = (byte)Extrusion.Curve1;
+            pbs.PathScaleX = 100;   // default hollow info as set in the viewer
+            pbs.PathScaleY = (int)(.25f / 0.01f) + 200;
+            pos = new Vector3(120.0f, 120.0f, 0f);
+            pos.Z = PhysicsScene.TerrainManager.GetTerrainHeightAtXYZ(pos) + 10f;
+            ObjectInitPosition = pos;
+            size = new Vector3(2f, 4f, 4f);
+            pbs.Scale = size;
+            rot = Quaternion.Identity;
+            isPhys = true;
+            uint torusLocalID = 125;
+            PhysicsScene.AddPrimShape("testTorus", pbs, pos, size, rot, isPhys, torusLocalID);
+            BSPrim primTypeTorus = (BSPrim)PhysicsScene.PhysObjects[torusLocalID];
+
+            // The actual prim shape creation happens at taint time
+            PhysicsScene.ProcessTaints();
+
+            // Check out the created hull shapes and report their characteristics
+            ReportShapeGeom(primTypeCylinder);
+            ReportShapeGeom(primTypeHollowCylinder);
+            ReportShapeGeom(primTypeTorus);
+        }
+
+        [TestCase]
+        public void GeomHullBulletHACD()
+        {
+            // Cylinder
+            // Hollow Cylinder
+            // Torus
+        }
+
+        private void ReportShapeGeom(BSPrim prim)
+        {
+            if (prim != null)
+            {
+                if (prim.PhysShape.HasPhysicalShape)
                 {
-                    case "OpenSim.Region.Physics.BulletSPlugin.BSShapeNative":
-                        BSShapeNative nShape = physShape as BSShapeNative;
-                        prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
-                        break;
-                    case "OpenSim.Region.Physics.BulletSPlugin.BSShapeMesh":
-                        BSShapeMesh mShape = physShape as BSShapeMesh;
-                        prim.PhysScene.DetailLog("{0}, mesh, shapeInfo={1}", prim.Name, mShape.shapeInfo);
-                        break;
-                    case "OpenSim.Region.Physics.BulletSPlugin.BSShapeHull":
-                        // BSShapeHull hShape = physShape as BSShapeHull;
-                        // prim.PhysScene.DetailLog("{0}, hull, shapeInfo={1}", prim.Name, hShape.shapeInfo);
-                        break;
-                    case "OpenSim.Region.Physics.BulletSPlugin.BSShapeConvexHull":
-                        BSShapeConvexHull chShape = physShape as BSShapeConvexHull;
-                        prim.PhysScene.DetailLog("{0}, convexHull, shapeInfo={1}", prim.Name, chShape.shapeInfo);
-                        break;
-                    case "OpenSim.Region.Physics.BulletSPlugin.BSShapeCompound":
-                        BSShapeCompound cShape = physShape as BSShapeCompound;
-                        prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
-                        break;
-                    default:
-                        prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
-                        break;
+                    BSShape physShape = prim.PhysShape;
+                    string shapeType = physShape.GetType().ToString();
+                    switch (shapeType)
+                    {
+                        case "OpenSim.Region.Physics.BulletSPlugin.BSShapeNative":
+                            BSShapeNative nShape = physShape as BSShapeNative;
+                            prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
+                            break;
+                        case "OpenSim.Region.Physics.BulletSPlugin.BSShapeMesh":
+                            BSShapeMesh mShape = physShape as BSShapeMesh;
+                            prim.PhysScene.DetailLog("{0}, mesh, shapeInfo={1}", prim.Name, mShape.shapeInfo);
+                            break;
+                        case "OpenSim.Region.Physics.BulletSPlugin.BSShapeHull":
+                            // BSShapeHull hShape = physShape as BSShapeHull;
+                            // prim.PhysScene.DetailLog("{0}, hull, shapeInfo={1}", prim.Name, hShape.shapeInfo);
+                            break;
+                        case "OpenSim.Region.Physics.BulletSPlugin.BSShapeConvexHull":
+                            BSShapeConvexHull chShape = physShape as BSShapeConvexHull;
+                            prim.PhysScene.DetailLog("{0}, convexHull, shapeInfo={1}", prim.Name, chShape.shapeInfo);
+                            break;
+                        case "OpenSim.Region.Physics.BulletSPlugin.BSShapeCompound":
+                            BSShapeCompound cShape = physShape as BSShapeCompound;
+                            prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
+                            break;
+                        default:
+                            prim.PhysScene.DetailLog("{0}, type={1}", prim.Name, shapeType);
+                            break;
+                    }
                 }
             }
         }
     }
-}
 }
