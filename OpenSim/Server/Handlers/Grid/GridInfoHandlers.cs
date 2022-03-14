@@ -152,7 +152,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         /// <summary>
         /// Get GridInfo in json format: Used by the OSSL osGetGrid*
-        /// Adding the SRV_HomeIRI to the kvp returned for use in scripts
+        /// Adding the SRV_HomeURI to the kvp returned for use in scripts
         /// </summary>
         /// <returns>
         /// json string

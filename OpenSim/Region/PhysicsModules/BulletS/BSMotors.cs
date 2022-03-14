@@ -100,7 +100,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
         public virtual bool ErrorIsZero(Vector3 err)
         {
-            return (err == Vector3.Zero || err.ApproxEquals(Vector3.Zero, ErrorZeroThreshold));
+            return err.ApproxZero(ErrorZeroThreshold);
         }
 
         public BSVMotor(string useName)

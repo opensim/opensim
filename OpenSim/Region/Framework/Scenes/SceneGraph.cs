@@ -659,12 +659,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void AddPhysicalPrim(int number)
         {
-            m_physicalPrim += number;
+            Interlocked.Add(ref m_physicalPrim, number);
         }
 
         protected internal void RemovePhysicalPrim(int number)
         {
-            m_physicalPrim -= number;
+            Interlocked.Add(ref m_physicalPrim, -number);
         }
 
         protected internal void AddToScriptLPS(int number)
@@ -674,7 +674,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void AddActiveScripts(int number)
         {
-            m_activeScripts += number;
+            Interlocked.Add(ref m_activeScripts, number);
         }
 
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
