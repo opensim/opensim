@@ -1320,14 +1320,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_Scene.TryGetClient(agentID, out client);
 
-                if (objectID != UUID.Zero)
+                if (!objectID.IsZero())
                 {
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
                     if(part == null)
                         throw new Exception("failed to find object with notecard item" + notecardID.ToString());
 
                     TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
-                    if (taskItem == null || taskItem.AssetID == UUID.Zero)
+                    if (taskItem == null || taskItem.AssetID.IsZero())
                         throw new Exception("Failed to find notecard item" + notecardID.ToString());
 
                     if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, agentID))
@@ -1352,10 +1352,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         return;
                     }
 
-                    if (notecardID != UUID.Zero)
+                    if (!notecardID.IsZero())
                     {
                         InventoryItemBase noteItem = m_Scene.InventoryService.GetItem(agentID, notecardID);
-                        if (noteItem == null || noteItem.AssetID == UUID.Zero)
+                        if (noteItem == null || noteItem.AssetID.IsZero())
                             throw new Exception("Failed to find notecard item" + notecardID.ToString());
                         noteAssetID = noteItem.AssetID;
                     }
@@ -1385,7 +1385,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 // find where to put it
                 InventoryFolderBase folder = null;
-                if (folderID != UUID.Zero)
+                if (!folderID.IsZero())
                     folder = m_Scene.InventoryService.GetFolder(agentID, folderID);
 
                 if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))

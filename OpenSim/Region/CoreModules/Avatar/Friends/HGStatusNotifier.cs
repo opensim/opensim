@@ -44,8 +44,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     // ASSUMPTION: we assume that all users for one home domain
                     // have exactly the same set of service URLs.
                     // If this is ever not true, we need to change this.
-                    UUID friendID = UUID.Zero; String tmp = String.Empty;
-                    if (Util.ParseUniversalUserIdentifier(ids[0], out friendID, out tmp, out tmp, out tmp, out tmp))
+                    if (Util.ParseUniversalUserIdentifier(ids[0], out UUID friendID))
                     {
                         string friendsServerURI = m_FriendsModule.UserManagementModule.GetUserServerURL(friendID, "FriendsServerURI");
                         if (friendsServerURI != string.Empty)
