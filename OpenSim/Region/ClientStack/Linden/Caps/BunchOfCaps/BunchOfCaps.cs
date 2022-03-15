@@ -2297,7 +2297,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
-                Dictionary<UUID, string> names = m_UserManager.GetKnownUserNames(ids, m_scopeID);
+                List<UserData> names = m_UserManager.GetKnownUsers(ids, m_scopeID);
                 lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
 
                 LLSDxmlEncode2.AddMap(lsl);
@@ -2307,30 +2307,21 @@ namespace OpenSim.Region.ClientStack.Linden
                 {
                     LLSDxmlEncode2.AddArray("agents", lsl);
 
-                    foreach (KeyValuePair<UUID,string> kvp in names)
+                    foreach (UserData ud in names)
                     {
-                        if(kvp.Key.IsZero())
-                            continue;
-
-                        string fullname = kvp.Value;
                         // dont tell about unknown users, we can't send them back on Bad either
-                        if (string.IsNullOrEmpty(fullname))
-                            continue;
-                        string[] parts = fullname.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if(string.IsNullOrEmpty(parts[0]) || parts[0].Equals("Unknown"))
+                        if (string.IsNullOrEmpty(ud.FirstName) || ud.FirstName.Equals("Unkown"))
                             continue;
 
+                        string fullname = ud.FirstName + " " + ud.LastName;
                         LLSDxmlEncode2.AddMap(lsl);
+                        LLSDxmlEncode2.AddElem("username", fullname, lsl);
+                        LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
                         LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
                         LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
-                        LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
-                        LLSDxmlEncode2.AddElem("legacy_first_name", parts[0], lsl);
-                        if (string.IsNullOrEmpty(parts[1]))
-                            LLSDxmlEncode2.AddElem("legacy_last_name", "", lsl);
-                        else
-                            LLSDxmlEncode2.AddElem("legacy_last_name", parts[1], lsl);
-                        LLSDxmlEncode2.AddElem("username", fullname, lsl);
-                        LLSDxmlEncode2.AddElem("id", kvp.Key, lsl);
+                        LLSDxmlEncode2.AddElem("legacy_first_name", ud.FirstName, lsl);
+                        LLSDxmlEncode2.AddElem("legacy_last_name", ud.LastName, lsl);
+                        LLSDxmlEncode2.AddElem("id", ud.Id, lsl);
                         LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
                         LLSDxmlEncode2.AddEndMap(lsl);
                     }
