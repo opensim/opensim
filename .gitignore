@@ -13,6 +13,8 @@
 *.dll
 *.log
 .idea
+*.bak
+*.lnk
 
 # Ignore .user and .suo files as these are user preference specific
 # http://stackoverflow.com/questions/72298/should-i-add-the-visual-studio-suo-and-user-files-to-source-control
@@ -49,6 +51,7 @@ bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
 bin/ScriptEngines/*/*.state
+bin/ScriptEngines/Yengine/*
 bin/*.maddin
 bin/*.exe
 bin/*.ini
@@ -60,6 +63,7 @@ bin/UserAssets
 bin/assetcache
 bin/maptiles
 bin/bakes
+bin/MeshCache
 bin/estate_settings.xml
 bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
