@@ -471,11 +471,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 foreach (GridUserInfo uInfo in pinfos)
                 {
-                    if (uInfo != null && uInfo.UserID.Length >= 36)
+                    if (uInfo != null && uInfo.UserID.Length > 36)
                     {
-                        string url, first, last, tmp;
-                        UUID u;
-                        if (uInfo.UserID.Length >= 36 && Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                        if (Util.ParseFullUniversalUserIdentifier(uInfo.UserID, out UUID u, out string url, out string first, out string last))
                         {
                             bool isvalid = CheckUrl(url, out bool islocal, out OSHHTPHost host);
                             var userdata = new UserData();
@@ -605,11 +603,9 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 foreach (GridUserInfo uInfo in pinfos)
                 {
-                    if (uInfo != null && uInfo.UserID.Length >= 36)
+                    if (uInfo != null && uInfo.UserID.Length > 36)
                     {
-                        string url, first, last, tmp;
-                        UUID uuid;
-                        if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out uuid, out url, out first, out last, out tmp))
+                        if (Util.ParseFullUniversalUserIdentifier(uInfo.UserID, out UUID uuid, out string url, out string first, out string last))
                         {
                             bool isvalid = CheckUrl(url, out bool islocal, out OSHHTPHost host);
                             var userdata = new UserData();
@@ -724,7 +720,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 foreach (GridUserInfo uInfo in pinfos)
                 {
-                    if (uInfo != null && uInfo.UserID.Length >= 36)
+                    if (uInfo != null && uInfo.UserID.Length > 36)
                     {
                         if (Util.ParseFullUniversalUserIdentifier(uInfo.UserID, out UUID uuid, out string url, out string first, out string last))
                         {
@@ -1019,9 +1015,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 }
                 if (uInfo != null)
                 {
-                    string url, first, last, tmp;
-                    UUID u;
-                    if (uInfo.UserID.Length >= 36 && Util.ParseUniversalUserIdentifier(uInfo.UserID, out u, out url, out first, out last, out tmp))
+                    if (Util.ParseFullUniversalUserIdentifier(uInfo.UserID, out UUID u, out string url, out string first, out string last))
                     {
                         bool isvalid = CheckUrl(url, out bool islocal, out OSHHTPHost host);
 
