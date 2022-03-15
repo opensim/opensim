@@ -3686,57 +3686,435 @@ namespace OpenSim.Framework
         /// <param name="firstname">the first name part (e.g. Test)</param>
         /// <param name="lastname">the last name part (e.g User)</param>
         /// <param name="secret">the secret part</param>
-        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
+        public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
-            uuid = UUID.Zero;
-            url = string.Empty;
-            firstname = "Unknown";
-            lastname = "UserUPUUI";
             secret = string.Empty;
 
-            string[] parts = value.Split(';');
-            if (parts.Length < 1)
-                return false;
-
-            if (!UUID.TryParse(parts[0], out uuid))
-                return false;
-
-            if (parts.Length >= 2)
+            if (value.Length == 36)
             {
-                url = parts[1].ToLower();
-
-                if (parts.Length >= 3)
-                {
-                    string[] name = parts[2].Split(new char[] {' ' },StringSplitOptions.RemoveEmptyEntries);
-                    if(name.Length > 0)
-                    {
-                        firstname = name[0];
-                        if (name.Length > 1)
-                            lastname = name[1];
-                    }
-
-                    if (parts.Length >= 4)
-                        secret = parts[3];
-                }
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return UUID.TryParse(value, out uuid);
             }
+
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
+            ++indxB;
+            if (indxB >= value.Length)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+            string n;
+            if (nseps == 2)
+                n = value.Substring(indxB).Trim();
+            else
+            {
+                indxA = seps[2];
+                n = value.Substring(indxB, indxA - indxB);
+                ++indxA;
+                if (indxA < value.Length)
+                    secret = value.Substring(indxA);
+            }
+
+            string[] name = n.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (name.Length == 0)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            firstname = name[0];
+            lastname = (name.Length > 1) ? name[1] : string.Empty;
+
+            return firstname.Length > 0;
+        }
+
+        public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
+        {
+            secret = string.Empty;
+
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
+            ++indxB;
+            if (indxB >= value.Length)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+            string n;
+            if (nseps == 2)
+                n = value.Substring(indxB).Trim();
+            else
+            {
+                indxA = seps[2];
+                n = value.Substring(indxB, indxA - indxB);
+                ++indxA;
+                if (indxA < value.Length)
+                    secret = value.Substring(indxA);
+            }
+
+            string[] name = n.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (name.Length == 0)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            firstname = name[0];
+            lastname = (name.Length > 1) ? name[1] : string.Empty;
+
+            return firstname.Length > 0;
+        }
+
+        public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname)
+        {
+            if (value.Length == 36)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return UUID.TryParse(value, out uuid);
+            }
+
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
+            ++indxB;
+            if (indxB >= value.Length)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+            string n;
+            if (nseps == 2)
+                n = value.Substring(indxB);
+            else
+                n = value.Substring(indxB, seps[2] - indxB);
+
+            string[] name = n.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (name.Length == 0)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            firstname = name[0];
+            lastname = (name.Length > 1) ? name[1] : string.Empty;
+
+            return firstname.Length > 0;
+        }
+
+        public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname)
+        {
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
+            ++indxB;
+            if (indxB >= value.Length)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+            string n;
+            if (nseps == 2)
+                n = value.Substring(indxB);
+            else
+                n = value.Substring(indxB, seps[2] - indxB);
+
+            string[] name = n.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (name.Length == 0)
+            {
+                firstname = string.Empty;
+                lastname = string.Empty;
+                return false;
+            }
+
+            firstname = name[0];
+            lastname = (name.Length > 1) ? name[1] : string.Empty;
+
+            return firstname.Length > 0;
+        }
+
+        public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid, out string url)
+        {
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
+            indxA = seps[1] + 3;
+            indxB = nseps > 2 ? seps[2] : value.Length;
+
+            return indxA < indxB;
+        }
+
+        public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url)
+        {
+            if (value.Length < 38)
+            {
+                url = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, 36), out uuid))
+            {
+                url = string.Empty;
+                return false;
+            }
+
+            int* seps = stackalloc int[3];
+            int nseps = 0;
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+
+            if (nseps < 2)
+            {
+                url = string.Empty;
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            int indxA = seps[0] + 1;
+            int indxB = seps[1];
+            url = value.Substring(indxA, indxB - indxA).Trim().ToLower();
+
             return true;
         }
 
-        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url)
+        public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid)
         {
-            uuid = UUID.Zero;
-            url = string.Empty;
+            if (value.Length < 38)
+            {
+                uuid = UUID.Zero;
+                return false;
+            }
 
-            string[] parts = value.Split(';');
-            if (parts.Length < 1)
+            int nseps = 0;
+            int* seps = stackalloc int[3];
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+            if (nseps < 2)
+            {
+                uuid = UUID.Zero;
+                return false;
+            }
+
+            if (!UUID.TryParse(value.Substring(0, seps[0]), out uuid))
                 return false;
 
-            if (!UUID.TryParse(parts[0], out uuid))
-                return false;
+            int indxA = seps[1] + 3;
+            int indxB = nseps > 2 ? seps[2] : value.Length;
 
-            if (parts.Length >= 2)
-                url = parts[1].ToLower();
-            return true;
+            return indxA < indxB;
+        }
+
+        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid)
+        {
+            if (value.Length < 36)
+            {
+                uuid = UUID.Zero;
+                return false;
+            }
+            return (value.Length == 36) ? UUID.TryParse(value, out uuid) : UUID.TryParse(value.Substring(0, 36), out uuid);
+        }
+
+        public static unsafe string RemoveUniversalUserIdentifierSecret(string value)
+        {
+            if (value.Length < 39)
+                return value;
+            int nseps = 0;
+            int* seps = stackalloc int[3];
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
+            {
+                if (value[i] == ';')
+                    seps[nseps++] = i;
+            }
+            if (nseps < 3)
+                return value;
+            return value.Substring(0, seps[3]);
         }
 
         /// <summary>
@@ -3751,7 +4129,7 @@ namespace OpenSim.Framework
                 return false;
 
             string[] parts = firstname.Split('.');
-            if(parts.Length != 2)
+            if (parts.Length != 2)
                 return false;
 
             realFirstName = parts[0].Trim();
