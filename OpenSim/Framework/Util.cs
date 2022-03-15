@@ -3717,7 +3717,7 @@ namespace OpenSim.Framework
 
             int* seps = stackalloc int[3];
             int nseps = 0;
-            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
             {
                 if (value[i] == ';')
                     seps[nseps++] = i;
@@ -3792,7 +3792,7 @@ namespace OpenSim.Framework
 
             int* seps = stackalloc int[3];
             int nseps = 0;
-            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
             {
                 if (value[i] == ';')
                     seps[nseps++] = i;
@@ -3873,7 +3873,7 @@ namespace OpenSim.Framework
 
             int* seps = stackalloc int[3];
             int nseps = 0;
-            for (int i = 37; i < value.Length && nseps < 3; ++i)
+            for (int i = 36; i < value.Length && nseps < 3; ++i)
             {
                 if (value[i] == ';')
                     seps[nseps++] = i;

@@ -179,13 +179,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     {
                         if (finfo.TheirFlags != -1)
                         {
-                            if (!UUID.TryParse(finfo.Friend, out UUID id))
+                            if (Util.ParseFullUniversalUserIdentifier(finfo.Friend, out UUID id, out string url, out string first, out string last))
                             {
-                                if (Util.ParseFullUniversalUserIdentifier(finfo.Friend, out id, out string url, out string first, out string last))
-                                {
-                                    //m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
-                                    uMan.AddUser(id,first,last, url);
-                                }
+                                //m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
+                                uMan.AddUser(id,first,last, url);
                             }
                         }
                     }
