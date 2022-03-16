@@ -26,18 +26,14 @@
  */
 
 using System;
-using System.Xml;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using System.Timers;
-using Timer = System.Timers.Timer;
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
-using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Framework.Scenes.Types;
@@ -353,7 +349,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private uint m_requestedSitTargetID;
-        private UUID m_requestedSitTargetUUID;
 
         /// <summary>
         /// Are we sitting on the ground?
@@ -3436,9 +3431,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SendSitResponse(UUID targetID, Vector3 offset, Quaternion sitOrientation)
         {
-            Vector3 cameraEyeOffset = Vector3.Zero;
-            Vector3 cameraAtOffset = Vector3.Zero;
-            bool forceMouselook = false;
 
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part == null)
@@ -3485,10 +3477,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.AddSittingAvatar(this);
 
-            cameraAtOffset = part.GetCameraAtOffset();
-            cameraEyeOffset = part.GetCameraEyeOffset();
+            Vector3 cameraAtOffset = part.GetCameraAtOffset();
+            Vector3 cameraEyeOffset = part.GetCameraEyeOffset();
 
-            forceMouselook = part.GetForceMouselook();
+            bool forceMouselook = part.GetForceMouselook();
 
             if (!part.IsRoot)
             {
@@ -3515,8 +3507,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ParentGroup.UUID, offset, sitOrientation,
                 true, cameraAtOffset, cameraEyeOffset, forceMouselook);
 
-            m_requestedSitTargetUUID = part.UUID;
-
+            m_requestedSitTargetID = part.LocalId;
             HandleAgentSit(ControllingClient, UUID);
 
             // Moved here to avoid a race with default sit anim
@@ -3532,25 +3523,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (ParentID != 0)
             {
-                if (ParentPart.UUID == targetID)
+                if (targetID.Equals(ParentPart.UUID))
                     return; // already sitting here, ignore
-
                 StandUp();
             }
-            else if(SitGround)
+            else if (SitGround)
                 StandUp();
-
-            SceneObjectPart part = FindNextAvailableSitTarget(targetID);
-
-            if (part != null)
-            {
-                m_requestedSitTargetID = part.LocalId;
-                m_requestedSitTargetUUID = part.UUID;
-            }
-            else
-            {
-                m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
-            }
 
             SendSitResponse(targetID, offset, Quaternion.Identity);
         }
@@ -3577,11 +3555,12 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
+            m_requestedSitTargetID = part.LocalId;
             if (m_scene.PhysicsScene.SitAvatar(part.PhysActor, AbsolutePosition, CameraPosition, offset, new Vector3(0.35f, 0, 0.65f), PhysicsSitResponse) != 0)
             {
                 return true;
             }
-
+            m_requestedSitTargetID = 0;
             return false;
         }
 
@@ -3686,6 +3665,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
+            m_requestedSitTargetID = 0;
 
             if (part != null)
             {
@@ -3806,12 +3786,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 part.AddSittingAvatar(this);
                 ParentPart = part;
-                ParentID = m_requestedSitTargetID;
+                ParentID = part.LocalId;
 
                 m_AngularVelocity = Vector3.Zero;
                 Velocity = Vector3.Zero;
 
-                m_requestedSitTargetID = 0;
 
                 SendAvatarDataToAllAgents();
 
@@ -4681,25 +4660,28 @@ namespace OpenSim.Region.Framework.Scenes
             // Also don't do this while sat, sitting avatars cross with the
             // object they sit on. ParentUUID denoted a pending sit, don't
             // interfere with it.
-            if (ParentID != 0 || PhysicsActor == null || !ParentUUID.IsZero())
+            if (ParentID != 0 || PhysicsActor == null || ParentUUID.IsNotZero())
                 return;
 
             Vector3 pos2 = AbsolutePosition;
             Vector3 vel = Velocity;
 
-            float timeStep = 0.1f;
-            pos2.X += vel.X * timeStep;
-            pos2.Y += vel.Y * timeStep;
-            pos2.Z += vel.Z * timeStep;
+            RegionInfo rinfo = m_scene.RegionInfo;
 
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}",
-//                        pos2, Name, Scene.Name);
+            float timeStep = m_scene.FrameTime;
+            float t = pos2.X + vel.X * timeStep;
+            if (t >= 0 && t < rinfo.RegionSizeX)
+            {
+                t = pos2.Y + vel.Y * timeStep;
+                if (t >= 0 && t < rinfo.RegionSizeY)
+                    return;
+            }
 
-            if (Scene.PositionIsInCurrentRegion(pos2))
-                return;
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: Testing border check for projected position {0} of {1} in {2}",
+            //       pos2, Name, Scene.Name);
 
-            if (!CrossToNewRegion() && m_requestedSitTargetUUID.IsZero())
+            if (!CrossToNewRegion() && m_requestedSitTargetID == 0)
             {
                 // we don't have entity transfer module
                 Vector3 pos = AbsolutePosition;
@@ -4707,13 +4689,13 @@ namespace OpenSim.Region.Framework.Scenes
                 float px = pos.X;
                 if (px < 0)
                     pos.X += vel.X * 2;
-                else if (px > m_scene.RegionInfo.RegionSizeX)
+                else if (px > rinfo.RegionSizeX)
                     pos.X -= vel.X * 2;
 
                 float py = pos.Y;
                 if (py < 0)
                     pos.Y += vel.Y * 2;
-                else if (py > m_scene.RegionInfo.RegionSizeY)
+                else if (py > rinfo.RegionSizeY)
                     pos.Y -= vel.Y * 2;
 
                 Velocity = Vector3.Zero;
@@ -4724,7 +4706,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CrossToNewRegionFail()
         {
-            if (m_requestedSitTargetUUID.IsZero())
+            if (m_requestedSitTargetID == 0)
             {
                 bool isFlying = Flying;
                 RemoveFromPhysicalScene();
@@ -4759,22 +4741,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected bool CrossToNewRegion()
         {
-            bool result = false;
-//            parcelRegionCross(false);
             try
             {
-                result = m_scene.CrossAgentToNewRegion(this, Flying);
+                return m_scene.CrossAgentToNewRegion(this, Flying);
             }
             catch
             {
 //                result = m_scene.CrossAgentToNewRegion(this, false);
                 return false;
             }
- //           if(!result)
- //               parcelRegionCross(true);
-
-            return result;
-
         }
 
         /// <summary>
