@@ -775,7 +775,7 @@ namespace OpenSim.Framework
             // packed_appearence should contain all appearance information
             if (args.TryGetValue("packed_appearance", out tmp) && tmp is OSDMap)
             {
-                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
+                //m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
                 Appearance = new AvatarAppearance((OSDMap)tmp);
             }
             else

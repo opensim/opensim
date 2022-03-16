@@ -114,12 +114,12 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, true, false);
+            return ServiceOSDRequest(url, data, "PUT", timeout, true, false);
         }
 
         public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, false, false);
+            return ServiceOSDRequest(url, data, "PUT", timeout, false, false);
         }
 
         public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
