@@ -554,9 +554,9 @@ namespace OpenSim.Framework
 
         internal void ReplaceAttachment(AvatarAttachment attach)
         {
-                //m_log.DebugFormat(
-                //    "[AVATAR APPEARANCE]: Replacing itemID={0}, assetID={1} at {2}",
-                //    attach.ItemID, attach.AssetID, attach.AttachPoint);
+            //m_log.DebugFormat(
+            //    "[AVATAR APPEARANCE]: Replacing itemID={0}, assetID={1} at {2}",
+            //    attach.ItemID, attach.AssetID, attach.AttachPoint);
 
             lock (m_attachments)
             {
