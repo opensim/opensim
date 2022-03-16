@@ -142,8 +142,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    to the grid service.
         private class BannedRegionCache
         {
-            private ExpiringCacheOS<UUID, Dictionary<ulong, double>> m_bannedRegions =
-                    new ExpiringCacheOS<UUID, Dictionary<ulong, double>>(15000);
+            private ExpiringCacheOS<ulong, Dictionary<UUID, double>> m_bannedRegions =
+                    new ExpiringCacheOS<ulong, Dictionary<UUID, double>>(15000);
 
             public BannedRegionCache()
             {
@@ -172,16 +172,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // Return 'true' if there is a valid ban entry for this agent in this region
             public bool IfBanned(ulong pRegionHandle, UUID pAgentID)
             {
-                if (m_bannedRegions.TryGetValue(pAgentID, out Dictionary<ulong, double> idCache))
+                if (m_bannedRegions.TryGetValue(pRegionHandle, out Dictionary<UUID, double> idCache))
                 {
                     lock(idCache)
                     {
-                        if (idCache.TryGetValue(pRegionHandle, out double exp))
+                        if (idCache.TryGetValue(pAgentID, out double exp))
                         {
                             if(exp < Util.GetTimeStamp())
                                 return true;
                             else
-                                idCache.Remove(pRegionHandle);
+                                idCache.Remove(pAgentID);
                         }
                     }
                 }
@@ -190,30 +190,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             public void Add(ulong pRegionHandle, UUID pAgentID, double newTime)
             {
-                Dictionary<ulong, double> idCache;
-                if (!m_bannedRegions.TryGetValue(pAgentID, out idCache))
+                if (m_bannedRegions.TryGetValue(pRegionHandle, out Dictionary<UUID, double> idCache))
                 {
-                    idCache = new Dictionary<ulong, double>();
-                    idCache[pRegionHandle] = Util.GetTimeStamp() + newTime;
-                    m_bannedRegions.AddOrUpdate(pAgentID, idCache, newTime);
+                    lock (idCache)
+                    {
+                        idCache[pAgentID] = Util.GetTimeStamp() + newTime;
+                        m_bannedRegions.AddOrUpdate(pRegionHandle, idCache, newTime);
+                    }
                 }
                 else
                 {
-                    lock(idCache)
-                    {
-                        idCache[pRegionHandle] = Util.GetTimeStamp() + newTime;
-                        m_bannedRegions.AddOrUpdate(pAgentID, idCache, newTime);
-                    }
+                    idCache = new Dictionary<UUID, double>();
+                    idCache[pAgentID] = Util.GetTimeStamp() + newTime;
+                    m_bannedRegions.AddOrUpdate(pRegionHandle, idCache, newTime);
                 }
             }
 
             // Remove the agent from the region's banned list
             public void Remove(ulong pRegionHandle, UUID pAgentID)
             {
-                if (m_bannedRegions.TryGetValue(pAgentID, out Dictionary<ulong, double> idCache))
+                if (m_bannedRegions.TryGetValue(pRegionHandle, out Dictionary<UUID, double> idCache))
                 {
                     lock (idCache)
-                        idCache.Remove(pRegionHandle);
+                        idCache.Remove(pAgentID);
                 }
             }
         }
