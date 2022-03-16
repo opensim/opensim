@@ -1600,8 +1600,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // Compute the entity's position relative to the new region
-            newpos = new Vector3((float)(presenceWorldX - (double)neighbourRegion.RegionLocX),
-                                      (float)(presenceWorldY - (double)neighbourRegion.RegionLocY),
+            newpos = new Vector3((float)(presenceWorldX - neighbourRegion.RegionLocX),
+                                      (float)(presenceWorldY - neighbourRegion.RegionLocY),
                                       pos.Z);
 
             string homeURI = scene.GetAgentHomeURI(agentID);
@@ -2023,18 +2023,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         List<GridRegion> RegionsInView(Vector3 pos, RegionInfo curregion, List<GridRegion> fullneighbours, float viewrange)
         {
-            List<GridRegion> ret = new List<GridRegion>();
-            if(fullneighbours.Count == 0 || viewrange == 0)
-                return ret;
+            if (fullneighbours.Count == 0 || viewrange == 0)
+                return new List<GridRegion>();
 
-            int curX = (int)Util.RegionToWorldLoc(curregion.RegionLocX) + (int)pos.X;
-            int minX = curX - (int)viewrange;
-            int maxX = curX + (int)viewrange;
-            int curY = (int)Util.RegionToWorldLoc(curregion.RegionLocY) + (int)pos.Y;
-            int minY = curY - (int)viewrange;
-            int maxY = curY + (int)viewrange;
-            int rtmp;
+            int itmp = (int)curregion.WorldLocX + (int)pos.X;
+            int minX = itmp - (int)viewrange;
+            int maxX = itmp + (int)viewrange;
+            itmp = (int)curregion.WorldLocY + (int)pos.Y;
+            int minY = itmp - (int)viewrange;
+            int maxY = itmp + (int)viewrange;
 
+            List<GridRegion> ret = new List<GridRegion>(fullneighbours.Count);
             foreach (GridRegion r in fullneighbours)
             {
                 OpenSim.Framework.RegionFlags? regionFlags = r.RegionFlags;
@@ -2044,15 +2043,58 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         continue;
                 }
 
-                rtmp = r.RegionLocX;
-                if (maxX < rtmp)
+                itmp = r.RegionLocX;
+                if (maxX < itmp)
                     continue;
-                if (minX > rtmp + r.RegionSizeX)
+                if (minX > itmp + r.RegionSizeX)
                     continue;
-                rtmp = r.RegionLocY;
-                if (maxY < rtmp)
+                itmp = r.RegionLocY;
+                if (maxY < itmp)
                     continue;
-                if (minY > rtmp + r.RegionSizeY)
+                if (minY > itmp + r.RegionSizeY)
+                    continue;
+                ret.Add(r);
+            }
+            return ret;
+        }
+
+        List<GridRegion> RegionsInSPView(ScenePresence sp, RegionInfo curregion)
+        {
+            int viewrange = (int)sp.RegionViewDistance;
+            if (viewrange == 0)
+                return new List<GridRegion>();
+
+            List<GridRegion> fullneighbours = GetNeighbors(sp);
+            if (fullneighbours.Count == 0)
+                return new List<GridRegion>();
+
+            Vector3 pos = sp.AbsolutePosition;
+            int itmp = (int)curregion.WorldLocX + (int)pos.X;
+            int minX = itmp - viewrange;
+            int maxX = itmp + viewrange;
+            itmp = (int)curregion.WorldLocY + (int)pos.Y;
+            int minY = itmp - viewrange;
+            int maxY = itmp + viewrange;
+ 
+            List<GridRegion> ret = new List<GridRegion>(fullneighbours.Count);
+            foreach (GridRegion r in fullneighbours)
+            {
+                OpenSim.Framework.RegionFlags? regionFlags = r.RegionFlags;
+                if (regionFlags != null)
+                {
+                    if ((regionFlags & OpenSim.Framework.RegionFlags.RegionOnline) == 0)
+                        continue;
+                }
+
+                itmp = r.RegionLocX;
+                if (maxX < itmp)
+                    continue;
+                if (minX > itmp + r.RegionSizeX)
+                    continue;
+                itmp = r.RegionLocY;
+                if (maxY < itmp)
+                    continue;
+                if (minY > itmp + r.RegionSizeY)
                     continue;
                 ret.Add(r);
             }
@@ -2076,14 +2118,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
 
-            List<GridRegion> neighbours;
-            if (sp.RegionViewDistance > 0)
-            {
-                List<GridRegion> fullneighbours = GetNeighbors(sp);
-                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
-            }
-            else
-                neighbours = new List<GridRegion>();
+            List<GridRegion> neighbours = RegionsInSPView(sp, regionInfo);
 
             LinkedList<ulong> previousRegionNeighbourHandles;
             Dictionary<ulong, string> seeds;
@@ -2258,14 +2293,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
 
-            List<GridRegion> neighbours;
-            if (sp.RegionViewDistance > 0)
-            {
-                List<GridRegion> fullneighbours = GetNeighbors(sp);
-                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
-            }
-            else
-                neighbours = new List<GridRegion>();
+            List<GridRegion> neighbours = RegionsInSPView(sp, regionInfo);
 
             LinkedList<ulong> previousRegionNeighbourHandles = new LinkedList<ulong>(sp.KnownRegions.Keys);
 
@@ -2378,38 +2406,34 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             Scene spScene = sp.Scene;
             RegionInfo regionInfo = spScene.RegionInfo;
+            if (regionInfo == null )
+                return;
+            ICapabilitiesModule capsModule = spScene.CapsModule;
+            if (capsModule == null)
+                return;
 
-            if (regionInfo == null)
+            Dictionary<ulong, string> seeds = new Dictionary<ulong, string>(capsModule.GetChildrenSeeds(sp.UUID));
+            if (seeds.Count == 0)
                 return;
 
             ulong currentRegionHandler = regionInfo.RegionHandle;
+            seeds.Remove(currentRegionHandler);
+            if (seeds.Count == 0)
+                return;
 
-            List<GridRegion> neighbours;
-            if (sp.RegionViewDistance > 0)
+            List<GridRegion> neighbours = RegionsInSPView(sp, regionInfo);
+            foreach (GridRegion neighbour in neighbours)
             {
-                List<GridRegion> fullneighbours = GetNeighbors(sp);
-                neighbours = RegionsInView(sp.AbsolutePosition, regionInfo, fullneighbours, sp.RegionViewDistance);
+                seeds.Remove(neighbour.RegionHandle);
             }
-            else
-                neighbours = new List<GridRegion>();
 
-            LinkedList<ulong> previousRegionNeighbourHandles;
-            Dictionary<ulong, string> seeds;
-            ICapabilitiesModule capsModule = spScene.CapsModule;
+            // seeds now contains regions to forget
+            if (seeds.Count == 0)
+                return;
 
-            if (capsModule != null)
-            {
-                seeds = new Dictionary<ulong, string>(capsModule.GetChildrenSeeds(sp.UUID));
-                previousRegionNeighbourHandles = new LinkedList<ulong>(seeds.Keys);
-            }
-            else
-            {
-                seeds = new Dictionary<ulong, string>();
-                previousRegionNeighbourHandles = new LinkedList<ulong>();
-            }
+            List<ulong> toclose = new List<ulong>(seeds.Keys);
 
             IClientAPI spClient = sp.ControllingClient;
-
             // This will fail if the user aborts login
             try
             {
@@ -2421,30 +2445,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             }
 
-            foreach (GridRegion neighbour in neighbours)
-            {
-                ulong handler = neighbour.RegionHandle;
-
-                if (previousRegionNeighbourHandles.Contains(handler))
-                    previousRegionNeighbourHandles.Remove(handler);
-            }
-
-            List<ulong> toclose;
-            // previousRegionNeighbourHandles now contains regions to forget
-            if (previousRegionNeighbourHandles.Count == 0)
-                return;
-
-            if (previousRegionNeighbourHandles.Contains(currentRegionHandler))
-                previousRegionNeighbourHandles.Remove(currentRegionHandler);
-
-            foreach (ulong handler in previousRegionNeighbourHandles)
-                seeds.Remove(handler);
-
-            toclose = new List<ulong>(previousRegionNeighbourHandles);
-
-            if (capsModule != null)
-                capsModule.SetChildrenSeed(sp.UUID, seeds);
-
+            capsModule.SetChildrenSeed(sp.UUID, seeds);
             sp.KnownRegions = seeds;
             sp.SetNeighbourRegionSizeInfo(neighbours);
 
@@ -2536,10 +2537,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
          // Given a world position, get the GridRegion info for
          //   the region containing that point.
-         // for compatibility with old grids it does a scan to find large regions
-         // 0.9 grids to that
-//            m_log.DebugFormat("{0} GetRegionContainingWorldLocation: call, XY=<{1},{2}>", LogHeader, px, py);
-            GridRegion ret = null;
 
             // check if we already found it does not exist
             if (m_notFoundLocationCache.Contains(px, py))
@@ -2549,10 +2546,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // this is all that is needed on 0.9 grids
             uint possibleX = (uint)px & 0xffffff00u;
             uint possibleY = (uint)py & 0xffffff00u;
-            ret = pGridService.GetRegionByPosition(pScopeID, (int)possibleX, (int)possibleY);
+            GridRegion ret = pGridService.GetRegionByPosition(pScopeID, (int)possibleX, (int)possibleY);
             if (ret != null)
                 return ret;
  
+            /* obsolete code
             // for 0.8 regions just make a BIG area request. old code whould do it plus 4 more smaller on region open edges
             // this is what 0.9 grids now do internally
             List<GridRegion> possibleRegions = pGridService.GetRegionRange(pScopeID,
@@ -2571,6 +2569,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                 }
             }
+            */
 
             // remember this location was not found so we can quickly not find it next time
             m_notFoundLocationCache.Add(px, py);
@@ -2661,37 +2660,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <returns></returns>
         protected List<GridRegion> GetNeighbors(ScenePresence avatar)
         {
-            Scene pScene = avatar.Scene;
-
-            uint dd = (uint)pScene.MaxRegionViewDistance;
-            if(dd <= 1)
-                return new List<GridRegion>();
-
             if (Neighbors != null && (DateTime.UtcNow - LastNeighborsTime).TotalSeconds < 30)
             {
                 return Neighbors;
             }
 
+            Scene pScene = avatar.Scene;
+            uint dd = (uint)pScene.MaxRegionViewDistance;
+            if(dd <= 1)
+                return new List<GridRegion>();
+
             RegionInfo regionInfo = pScene.RegionInfo;
-            List<GridRegion> neighbours;
-
-            dd--;
-
-            uint startX = Util.RegionToWorldLoc(regionInfo.RegionLocX);
+            uint startX = regionInfo.WorldLocX;
             uint endX = startX + regionInfo.RegionSizeX;
-            uint startY = Util.RegionToWorldLoc(regionInfo.RegionLocY);
+            uint startY = regionInfo.WorldLocY;
             uint endY = startY + regionInfo.RegionSizeY;
 
+            --dd;
             startX -= dd;
             startY -= dd;
             endX += dd;
             endY += dd;
 
-            neighbours = avatar.Scene.GridService.GetRegionRange(
+            List<GridRegion> neighbours = avatar.Scene.GridService.GetRegionRange(
                     regionInfo.ScopeID, (int)startX, (int)endX, (int)startY, (int)endY);
 
             // The r.RegionFlags == null check only needs to be made for simulators before 2015-01-14 (pre 0.8.1).
-            neighbours.RemoveAll( r => r.RegionID == regionInfo.RegionID );
+            neighbours.RemoveAll( r => r.RegionID.Equals(regionInfo.RegionID));
             Neighbors = neighbours;
             LastNeighborsTime = DateTime.UtcNow;
             return neighbours;
@@ -2715,7 +2710,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Object Transfers
 
-        public GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition,out Vector3 newpos)
+        public GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos)
         {
             newpos = targetPosition;
 
