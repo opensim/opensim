@@ -1550,13 +1550,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!ascene.SimulationService.QueryAccess(destiny, agentID, homeURI, false, position,
                    agent.Scene.GetFormatsOffered(), ctx, out reason))
             {
-                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0);
+                m_bannedRegionCache.Add(destinyHandle, agentID, 60.0);
                 return false;
             }
             if (!agent.Appearance.CanTeleport(ctx.OutboundVersion))
             {
                 reason = OutfitTPError;
-                m_bannedRegionCache.Add(destinyHandle, agentID, 30.0);
+                m_bannedRegionCache.Add(destinyHandle, agentID, 60.0);
                 return false;
             }
 
@@ -1590,6 +1590,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (neighbourRegion == null)
                 return null;
+            if(neighbourRegion.RegionFlags != null && (neighbourRegion.RegionFlags & OpenSim.Framework.RegionFlags.RegionOnline) == 0)
+                return null;
 
             if (m_bannedRegionCache.IfBanned(neighbourRegion.RegionHandle, agentID))
             {
@@ -1609,8 +1611,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     scene.GetFormatsOffered(), ctx, out failureReason))
             {
                 // remember the fail
-                m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID, 45);
-                if(String.IsNullOrWhiteSpace(failureReason))
+                m_bannedRegionCache.Add(neighbourRegion.RegionHandle, agentID, 60);
+                if(string.IsNullOrWhiteSpace(failureReason))
                     failureReason = "Access Denied";
                 return null;
             }
