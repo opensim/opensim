@@ -2205,7 +2205,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face >= 0 && face < nsides)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                texcolor.A = Utils.Clamp((float)alpha, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
                 part.UpdateTextureEntry(tex);
                 return;
@@ -2217,7 +2217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (tex.FaceTextures[i] != null)
                     {
                         texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                        texcolor.A = Utils.Clamp((float)alpha, 0.0f, 1.0f);
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                 }
@@ -2227,7 +2227,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (tex.DefaultTexture != null)
                 {
                     texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                    texcolor.A = Utils.Clamp((float)alpha, 0.0f, 1.0f);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
 
@@ -2314,12 +2314,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (light)
             {
                 pbs.LightEntry = true;
-                pbs.LightColorR = Util.Clip((float)color.x, 0.0f, 1.0f);
-                pbs.LightColorG = Util.Clip((float)color.y, 0.0f, 1.0f);
-                pbs.LightColorB = Util.Clip((float)color.z, 0.0f, 1.0f);
-                pbs.LightIntensity = Util.Clip((float)intensity, 0.0f, 1.0f);
-                pbs.LightRadius = Util.Clip((float)radius, 0.1f, 20.0f);
-                pbs.LightFalloff = Util.Clip((float)falloff, 0.01f, 2.0f);
+                pbs.LightColorR = Utils.Clamp((float)color.x, 0.0f, 1.0f);
+                pbs.LightColorG = Utils.Clamp((float)color.y, 0.0f, 1.0f);
+                pbs.LightColorB = Utils.Clamp((float)color.z, 0.0f, 1.0f);
+                pbs.LightIntensity = Utils.Clamp(intensity, 0.0f, 1.0f);
+                pbs.LightRadius = Utils.Clamp(radius, 0.1f, 20.0f);
+                pbs.LightFalloff = Utils.Clamp(falloff, 0.01f, 2.0f);
             }
             else
             {
@@ -3163,7 +3163,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             UUID soundID = ScriptUtils.GetAssetIdFromKeyOrItemName(m_host, sound, AssetType.Sound);
-            if(soundID == UUID.Zero)
+            if(soundID.IsZero())
                 return;
 
             m_SoundModule.LoopSound(m_host.UUID, soundID, volume, false,false);
@@ -4886,8 +4886,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetText(string text, LSL_Vector color, double alpha)
         {
-            Vector3 av3 = Util.Clip(color, 0.0f, 1.0f);
-            m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
+            Vector3 av3 = Vector3.Clamp(color, 0.0f, 1.0f);
+            m_host.SetText(text, av3, Utils.Clamp((float)alpha, 0.0f, 1.0f));
         }
 
         public LSL_Float llWater(LSL_Vector offset)
@@ -10134,8 +10134,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_TEXT: arg #{1} - parameter 4 must be float", rulesParsed, idx - idxStart - 1));
                                return new LSL_List();
                             }
-                            Vector3 av3 = Util.Clip(primTextColor, 0.0f, 1.0f);
-                            part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
+                            Vector3 av3 = Vector3.Clamp(primTextColor, 0.0f, 1.0f);
+                            part.SetText(primText, av3, Utils.Clamp((float)primTextAlpha, 0.0f, 1.0f));
 
                             break;
 
