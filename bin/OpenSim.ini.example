@@ -533,6 +533,12 @@
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
 
+    ; using TLS and a smtp server with a self signed certificate you will need to set next two options false
+    ;# {SMTP_VerifyCertChain} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP Verify cert chain option} {} true
+    ; SMTP_VerifyCertChain = true
+    ;# {SMTP_VerifyCertNames} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP Verify cert chain option} {} true
+    ; SMTP_VerifyCertNames = true
+
 [Network]
     ;# {ConsoleUser} {} {User name for console account} {}
     ;; Configure the remote console user here. This will not actually be used

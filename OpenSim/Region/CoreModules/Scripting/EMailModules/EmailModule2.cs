@@ -27,8 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Security.Cryptography.X509Certificates;
 using log4net;
 using MailKit;
 using MailKit.Net.Smtp;
@@ -53,15 +54,15 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         //
         // Module vars
         //
-        private IConfigSource m_Config;
         private string m_HostName = string.Empty;
-        //private string m_RegionName = string.Empty;
         private bool SMTP_SERVER_TLS = false;
         private string SMTP_SERVER_HOSTNAME = string.Empty;
         private int SMTP_SERVER_PORT = 25;
-        private string SMTP_SERVER_FROM = string.Empty;
+        private MailboxAddress SMTP_MAIL_FROM = null;
         private string SMTP_SERVER_LOGIN = string.Empty;
         private string SMTP_SERVER_PASSWORD = string.Empty;
+
+        private ParserOptions m_mailParseOptions;
 
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
@@ -70,6 +71,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private string m_InterObjectHostname = "lsl.opensim.local";
 
         private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
+
+        private static SslPolicyErrors m_SMTP_SslPolicyErrorsMask;
 
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes = new Dictionary<ulong, Scene>();
@@ -80,13 +83,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void Initialise(IConfigSource config)
         {
-            m_Config = config;
-            IConfig SMTPConfig;
-
-            //FIXME: RegionName is correct??
-            //m_RegionName = scene.RegionInfo.RegionName;
-
-            IConfig startupConfig = m_Config.Configs["Startup"];
+            IConfig startupConfig = config.Configs["Startup"];
+            if(startupConfig == null)
+                return;
 
             if(startupConfig.GetString("emailmodule", "DefaultEmailModule") != "DefaultEmailModule2")
                 return;
@@ -94,27 +93,59 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             //Load SMTP SERVER config
             try
             {
-                if ((SMTPConfig = m_Config.Configs["SMTP"]) == null)
+                IConfig SMTPConfig = config.Configs["SMTP"];
+                if (SMTPConfig  == null)
                     return;
 
                 if (!SMTPConfig.GetBoolean("enabled", false))
                     return;
 
+                m_mailParseOptions = new ParserOptions()
+                {
+                    AllowAddressesWithoutDomain = false,
+                };
+
                 m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
                 m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", m_InterObjectHostname);
                 SMTP_SERVER_TLS = SMTPConfig.GetBoolean("SMTP_SERVER_TLS", SMTP_SERVER_TLS);
                 SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
+                OSHHTPHost hosttmp = new OSHHTPHost(SMTP_SERVER_HOSTNAME, true);
+                if(!hosttmp.IsResolvedHost)
+                {
+                    m_log.ErrorFormat("[EMAIL]: could not resolve SMTP_SERVER_HOSTNAME {0}", SMTP_SERVER_HOSTNAME);
+                    return;
+                }
+
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
-                SMTP_SERVER_FROM = SMTPConfig.GetString("SMTP_SERVER_FROM", SMTP_SERVER_FROM);
+                string smtpfrom = SMTPConfig.GetString("SMTP_SERVER_FROM", string.Empty);
+                if(!string.IsNullOrEmpty(smtpfrom) && !MailboxAddress.TryParse(m_mailParseOptions, smtpfrom, out SMTP_MAIL_FROM))
+                {
+                    m_log.ErrorFormat("[EMAIL]: Invalid SMTP_SERVER_FROM {0}", smtpfrom);
+                    return;
+                }
+
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
                 m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize);
+                if(m_MaxEmailSize < 256 || m_MaxEmailSize > 1000000)
+                {
+                    m_log.Warn("[EMAIL]: email_max_size out of range [256, 1000000], Changed to default 4096");
+                    m_MaxEmailSize = 4096;
+                }
+
+                bool VerifyCertChain = SMTPConfig.GetBoolean("SMTP_VerifyCertChain", true);
+                bool VerifyCertNames = SMTPConfig.GetBoolean("SMTP_VerifyCertNames", true);
+                m_SMTP_SslPolicyErrorsMask = VerifyCertChain ? 0 : SslPolicyErrors.RemoteCertificateChainErrors;
+                if(!VerifyCertNames)
+                    m_SMTP_SslPolicyErrorsMask |= SslPolicyErrors.RemoteCertificateNameMismatch;
+                m_SMTP_SslPolicyErrorsMask = ~m_SMTP_SslPolicyErrorsMask;
             }
             catch (Exception e)
             {
                 m_log.Error("[EMAIL]: DefaultEmailModule not configured: " + e.Message);
                 return;
             }
+
             m_Enabled = true;
         }
 
@@ -130,14 +161,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 scene.RegisterModuleInterface<IEmailModule>(this);
 
                 // Add to scene list
-                if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-                {
-                    m_Scenes[scene.RegionInfo.RegionHandle] = scene;
-                }
-                else
-                {
-                    m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
-                }
+                m_Scenes[scene.RegionInfo.RegionHandle] = scene;
             }
 
             m_log.Info("[EMAIL]: Activated DefaultEmailModule");
@@ -224,25 +248,26 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private bool resolveNamePositionRegionName(UUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
         {
-            ObjectName = ObjectAbsolutePosition = ObjectRegionName = String.Empty;
-            string m_ObjectRegionName;
-            int objectLocX;
-            int objectLocY;
-            int objectLocZ;
-            SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
+            SceneObjectPart part = findPrim(objectID, out ObjectRegionName);
             if (part != null)
             {
-                objectLocX = (int)part.AbsolutePosition.X;
-                objectLocY = (int)part.AbsolutePosition.Y;
-                objectLocZ = (int)part.AbsolutePosition.Z;
-                ObjectAbsolutePosition = "(" + objectLocX + ", " + objectLocY + ", " + objectLocZ + ")";
+                Vector3 pos = part.AbsolutePosition;
+                ObjectAbsolutePosition = "(" + (int)pos.X + ", " + (int)pos.Y + ", " + (int)pos.Z + ")";
                 ObjectName = part.Name;
-                ObjectRegionName = m_ObjectRegionName;
                 return true;
             }
+            ObjectName = ObjectAbsolutePosition = ObjectRegionName = String.Empty;
             return false;
         }
 
+        public static bool smptValidateServerCertificate(object sender, X509Certificate certificate,
+            X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if ((sslPolicyErrors & m_SMTP_SslPolicyErrorsMask) == SslPolicyErrors.None)
+                return true;
+
+            return false;
+        }
         /// <summary>
         /// SendMail function utilized by llEMail
         /// </summary>
@@ -256,30 +281,19 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             if (address.Length == 0)
                 return;
 
-            //FIXED:Check the email is correct form in REGEX
-            string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+"
-                + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@"
-                + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
-                + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+"
-                + @"[a-zA-Z]{2,}))$";
-            Regex EMailreStrict = new Regex(EMailpatternStrict);
-            bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
-            if (!isEMailStrictMatch)
+            if(!MailboxAddress.TryParse(address, out MailboxAddress mailTo))
             {
-                m_log.Error("[EMAIL]: REGEX Problem in EMail Address: "+address);
+                m_log.ErrorFormat("[EMAIL]: invalid TO email address {0}",address);
                 return;
             }
+
             if ((subject.Length + body.Length) > m_MaxEmailSize)
             {
                 m_log.Error("[EMAIL]: subject + body larger than limit of " + m_MaxEmailSize + " bytes");
                 return;
             }
 
-            string LastObjectName = string.Empty;
-            string LastObjectPosition = string.Empty;
-            string LastObjectRegionName = string.Empty;
-
-            if (!resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName))
+            if (!resolveNamePositionRegionName(objectID, out string LastObjectName, out string LastObjectPosition, out string LastObjectRegionName))
                 return;
 
             string objectIDstr = objectID.ToString();
@@ -291,9 +305,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     //Creation EmailMessage
                     MimeMessage mmsg = new MimeMessage();
 
-                    if(!string.IsNullOrEmpty(SMTP_SERVER_FROM))
+                    if(SMTP_MAIL_FROM != null)
                     {
-                        mmsg.From.Add(MailboxAddress.Parse(SMTP_SERVER_FROM));
+                        mmsg.From.Add(SMTP_MAIL_FROM);
                         mmsg.Subject = "(OSObj" + objectIDstr + ") " + subject;
                     }
                     else
@@ -302,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                         mmsg.Subject = subject;
                     }
 
-                    mmsg.To.Add(MailboxAddress.Parse(address));
+                    mmsg.To.Add(mailTo);
                     mmsg.Body = new TextPart("plain") {
                         Text = "Object-Name: " + LastObjectName +
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
@@ -311,8 +325,11 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                     using (var client = new SmtpClient())
                     {
-                        if(SMTP_SERVER_TLS)
+                        if (SMTP_SERVER_TLS)
+                        {
+                            client.ServerCertificateValidationCallback = smptValidateServerCertificate;
                             client.Connect(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT, MailKit.Security.SecureSocketOptions.StartTls);
+                        }
                         else
                             client.Connect(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT);
 
@@ -417,8 +434,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                         for (i = 0; i < queue.Count; i++)
                         {
-                            if ((sender == null || sender.Equals("") || sender.Equals(queue[i].sender)) &&
-                                (subject == null || subject.Equals("") || subject.Equals(queue[i].subject)))
+                            if ((string.IsNullOrEmpty(sender) || sender.Equals(queue[i].sender)) &&
+                                (string.IsNullOrEmpty(subject) || subject.Equals(queue[i].subject)))
                             {
                                 break;
                             }
