@@ -1756,8 +1756,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_X:
                     this.LockedLinearAxis.X = LockedAxis;
-                    this.LockedLinearAxisLow.X = Util.Clip(low, -linearMax, linearMax);
-                    this.LockedLinearAxisHigh.X = Util.Clip(high, -linearMax, linearMax);
+                    this.LockedLinearAxisLow.X = OMV.Utils.Clamp(low, -linearMax, linearMax);
+                    this.LockedLinearAxisHigh.X = OMV.Utils.Clamp(high, -linearMax, linearMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Y:
                     this.LockedLinearAxis.Y = LockedAxis;
@@ -1766,8 +1766,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Y:
                     this.LockedLinearAxis.Y = LockedAxis;
-                    this.LockedLinearAxisLow.Y = Util.Clip(low, -linearMax, linearMax);
-                    this.LockedLinearAxisHigh.Y = Util.Clip(high, -linearMax, linearMax);
+                    this.LockedLinearAxisLow.Y = OMV.Utils.Clamp(low, -linearMax, linearMax);
+                    this.LockedLinearAxisHigh.Y = OMV.Utils.Clamp(high, -linearMax, linearMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LOCK_LINEAR_Z:
                     this.LockedLinearAxis.Z = LockedAxis;
@@ -1776,8 +1776,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_LINEAR_Z:
                     this.LockedLinearAxis.Z = LockedAxis;
-                    this.LockedLinearAxisLow.Z = Util.Clip(low, -linearMax, linearMax);
-                    this.LockedLinearAxisHigh.Z = Util.Clip(high, -linearMax, linearMax);
+                    this.LockedLinearAxisLow.Z = OMV.Utils.Clamp(low, -linearMax, linearMax);
+                    this.LockedLinearAxisHigh.Z = OMV.Utils.Clamp(high, -linearMax, linearMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR:
                     this.LockedAngularAxis = new OMV.Vector3(LockedAxis, LockedAxis, LockedAxis);
@@ -1791,8 +1791,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_X:
                     this.LockedAngularAxis.X = LockedAxis;
-                    this.LockedAngularAxisLow.X = Util.Clip(low, -angularMax, angularMax);
-                    this.LockedAngularAxisHigh.X = Util.Clip(high, -angularMax, angularMax);
+                    this.LockedAngularAxisLow.X = OMV.Utils.Clamp(low, -angularMax, angularMax);
+                    this.LockedAngularAxisHigh.X = OMV.Utils.Clamp(high, -angularMax, angularMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Y:
                     this.LockedAngularAxis.Y = LockedAxis;
@@ -1801,8 +1801,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Y:
                     this.LockedAngularAxis.Y = LockedAxis;
-                    this.LockedAngularAxisLow.Y = Util.Clip(low, -angularMax, angularMax);
-                    this.LockedAngularAxisHigh.Y = Util.Clip(high, -angularMax, angularMax);
+                    this.LockedAngularAxisLow.Y = OMV.Utils.Clamp(low, -angularMax, angularMax);
+                    this.LockedAngularAxisHigh.Y = OMV.Utils.Clamp(high, -angularMax, angularMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LOCK_ANGULAR_Z:
                     this.LockedAngularAxis.Z = LockedAxis;
@@ -1811,8 +1811,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     break;
                 case ExtendedPhysics.PHYS_AXIS_LIMIT_ANGULAR_Z:
                     this.LockedAngularAxis.Z = LockedAxis;
-                    this.LockedAngularAxisLow.Z = Util.Clip(low, -angularMax, angularMax);
-                    this.LockedAngularAxisHigh.Z = Util.Clip(high, -angularMax, angularMax);
+                    this.LockedAngularAxisLow.Z = OMV.Utils.Clamp(low, -angularMax, angularMax);
+                    this.LockedAngularAxisHigh.Z = OMV.Utils.Clamp(high, -angularMax, angularMax);
                     break;
                 case ExtendedPhysics.PHYS_AXIS_UNLOCK_LINEAR:
                     this.LockedLinearAxis = LockedAxisFree;

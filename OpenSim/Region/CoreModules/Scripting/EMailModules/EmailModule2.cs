@@ -234,10 +234,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     SceneObjectPart part = s.GetSceneObjectPart(objectID);
                     if (part != null)
                     {
-                        ObjectRegionName = s.RegionInfo.RegionName;
-                        uint localX = s.RegionInfo.WorldLocX;
-                        uint localY = s.RegionInfo.WorldLocY;
-                        ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
+                        RegionInfo sri = s.RegionInfo;
+                        ObjectRegionName = sri.RegionName;
+                        ObjectRegionName = ObjectRegionName + " (" + sri.WorldLocX + ", " + sri.WorldLocY + ")";
                         return part;
                     }
                 }
@@ -261,13 +260,11 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         }
 
         public static bool smptValidateServerCertificate(object sender, X509Certificate certificate,
-            X509Chain chain, SslPolicyErrors sslPolicyErrors)
+                X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if ((sslPolicyErrors & m_SMTP_SslPolicyErrorsMask) == SslPolicyErrors.None)
-                return true;
-
-            return false;
+            return (sslPolicyErrors & m_SMTP_SslPolicyErrorsMask) == SslPolicyErrors.None;
         }
+
         /// <summary>
         /// SendMail function utilized by llEMail
         /// </summary>
@@ -352,15 +349,14 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 // inter object email, keep it in the family
                 Email email = new Email();
-                email.time = ((int)((DateTime.UtcNow - new DateTime(1970,1,1,0,0,0)).TotalSeconds)).ToString();
+                email.time = Util.UnixTimeSinceEpoch().ToString();
                 email.subject = subject;
                 email.sender = objectID.ToString() + "@" + m_InterObjectHostname;
                 email.message = "Object-Name: " + LastObjectName +
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
                               LastObjectPosition + "\n\n" + body;
 
-                string guid = address.Substring(0, address.IndexOf("@"));
-                UUID toID = new UUID(guid);
+                UUID toID = new UUID(mailTo.Name);
 
                 if (IsLocal(toID)) // TODO FIX check to see if it is local
                 {

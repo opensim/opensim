@@ -2667,9 +2667,9 @@ Console.WriteLine(" JointCreateFixed");
 
             SafeNativeMethods.AllocateODEDataForThread(0);
 
-            _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
-            _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
-            _position.Z = Util.Clip(_position.Z + 0.2f, -100f, 50000f);
+            _position.X = Utils.Clamp(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+            _position.Y = Utils.Clamp(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+            _position.Z = Utils.Clamp(_position.Z + 0.2f, -100f, 50000f);
 
             m_lastposition = _position;
             _velocity.X = 0;

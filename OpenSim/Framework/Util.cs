@@ -1116,35 +1116,41 @@ namespace OpenSim.Framework
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double UnixTimeSinceEpochSecs()
         {
             TimeSpan t = DateTime.UtcNow - UnixEpoch;
             return t.TotalSeconds;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int UnixTimeSinceEpoch()
         {
             TimeSpan t = DateTime.UtcNow - UnixEpoch;
             return (int)t.TotalSeconds;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong UnixTimeSinceEpoch_uS()
         {
             TimeSpan t = DateTime.UtcNow - UnixEpoch;
             return (ulong)(t.TotalMilliseconds * 1000);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ToUnixTime(DateTime stamp)
         {
             TimeSpan t = stamp.ToUniversalTime() - UnixEpoch;
             return (int)t.TotalSeconds;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTime(ulong seconds)
         {
             return UnixEpoch.AddSeconds(seconds);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DateTime ToDateTime(int seconds)
         {
             return UnixEpoch.AddSeconds(seconds);
@@ -1155,7 +1161,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Md5Hash(string data)
         {
             return Md5Hash(data, Encoding.Default);
@@ -1170,6 +1176,7 @@ namespace OpenSim.Framework
             return sb.ToString();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static byte[] ComputeMD5Hash(string data, Encoding encoding)
         {
             using (MD5 md5 = MD5.Create())
@@ -1237,11 +1244,13 @@ namespace OpenSim.Framework
             return new string(chars);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SHA1Hash(string data, Encoding enc)
         {
             return SHA1Hash(enc.GetBytes(data));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SHA1Hash(string data)
         {
             return SHA1Hash(Encoding.Default.GetBytes(data));
@@ -1266,6 +1275,7 @@ namespace OpenSim.Framework
             return ret;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UUID ComputeSHA1UUID(string src)
         {
             return ComputeSHA1UUID(Encoding.Default.GetBytes(src));
@@ -1332,6 +1342,7 @@ namespace OpenSim.Framework
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string FieldToString(byte[] bytes)
         {
             return FieldToString(bytes, String.Empty);
@@ -1416,6 +1427,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="url">URL Standard Format</param>
         /// <returns>A resolved IP Address</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPAddress GetHostFromURL(string url)
         {
             return GetHostFromDNS(url.Split(new char[] { '/', ':' })[3]);
@@ -1544,6 +1556,7 @@ namespace OpenSim.Framework
             return getEndPoint(ia, port);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Uri GetURI(string protocol, string hostname, int port, string path)
         {
             return new UriBuilder(protocol, hostname, port, path).Uri;
@@ -1553,6 +1566,7 @@ namespace OpenSim.Framework
         /// Gets a list of all local system IP addresses
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IPAddress[] GetLocalHosts()
         {
             return Dns.GetHostAddresses(Dns.GetHostName());
@@ -1641,6 +1655,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="path">path</param>
         /// <returns>safe path</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SafePath(string path)
         {
             return Regex.Replace(path, regexInvalidPathChars, String.Empty);
@@ -1651,6 +1666,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="path">filename</param>
         /// <returns>safe filename</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SafeFileName(string filename)
         {
             return Regex.Replace(filename, regexInvalidFileChars, String.Empty);
@@ -1669,21 +1685,25 @@ namespace OpenSim.Framework
             return temp;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string assetsDir()
         {
             return Path.Combine(configDir(), "assets");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string inventoryDir()
         {
             return Path.Combine(configDir(), "inventory");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string configDir()
         {
             return ".";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string dataDir()
         {
             return ".";
@@ -1715,6 +1735,7 @@ namespace OpenSim.Framework
             return "./OpenSimStats.log";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string logDir()
         {
             return Path.GetDirectoryName(logFile());
@@ -1986,22 +2007,6 @@ namespace OpenSim.Framework
         }
 
         #endregion
-
-        public static float Clip(float x, float min, float max)
-        {
-            return Math.Min(Math.Max(x, min), max);
-        }
-
-        public static int Clip(int x, int min, int max)
-        {
-            return Math.Min(Math.Max(x, min), max);
-        }
-
-        public static Vector3 Clip(Vector3 vec, float min, float max)
-        {
-            return new Vector3(Clip(vec.X, min, max), Clip(vec.Y, min, max),
-                Clip(vec.Z, min, max));
-        }
 
         /// <summary>
         /// Convert an UUID to a raw uuid string.  Right now this is a string without hyphens.

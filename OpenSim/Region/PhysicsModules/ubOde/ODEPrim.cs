@@ -972,9 +972,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (m_outbounds)
                 {
-                    _position.X = Util.Clip(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
-                    _position.Y = Util.Clip(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
-                    _position.Z = Util.Clip(_position.Z + 0.2f, Constants.MinSimulationHeight, Constants.MaxSimulationHeight);
+                    _position.X = Utils.Clamp(_position.X, 0.5f, _parent_scene.WorldExtents.X - 0.5f);
+                    _position.Y = Utils.Clamp(_position.Y, 0.5f, _parent_scene.WorldExtents.Y - 0.5f);
+                    _position.Z = Utils.Clamp(_position.Z + 0.2f, Constants.MinSimulationHeight, Constants.MaxSimulationHeight);
 
                     m_lastposition = _position;
                     _velocity.X = 0;
@@ -3815,7 +3815,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         m_outbounds = true;
 
-                        lpos.Z = Util.Clip(lpos.Z, -100f, 100000f);
+                        lpos.Z = Utils.Clamp(lpos.Z, -100f, 100000f);
                         m_acceleration.X = 0;
                         m_acceleration.Y = 0;
                         m_acceleration.Z = 0;
@@ -3845,22 +3845,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     if (lpos.X < 0f)
                     {
-                        _position.X = Util.Clip(lpos.X, -2f, -0.1f);
+                        _position.X = Utils.Clamp(lpos.X, -2f, -0.1f);
                         m_outbounds = true;
                     }
                     else if (lpos.X > _parent_scene.WorldExtents.X)
                     {
-                        _position.X = Util.Clip(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
+                        _position.X = Utils.Clamp(lpos.X, _parent_scene.WorldExtents.X + 0.1f, _parent_scene.WorldExtents.X + 2f);
                         m_outbounds = true;
                     }
                     if (lpos.Y < 0f)
                     {
-                        _position.Y = Util.Clip(lpos.Y, -2f, -0.1f);
+                        _position.Y = Utils.Clamp(lpos.Y, -2f, -0.1f);
                         m_outbounds = true;
                     }
                     else if (lpos.Y > _parent_scene.WorldExtents.Y)
                     {
-                        _position.Y = Util.Clip(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
+                        _position.Y = Utils.Clamp(lpos.Y, _parent_scene.WorldExtents.Y + 0.1f, _parent_scene.WorldExtents.Y + 2f);
                         m_outbounds = true;
                     }
 
