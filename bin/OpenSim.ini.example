@@ -492,10 +492,32 @@
     ;; The SMTP server enabled the email module to send email to external
     ;; destinations.
 
-    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} false
-    ;; Enable sending email via SMTP
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable module?} {true false} false
+    ;; Enable the email module
     ; enabled = false
 
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable send to objects to regions not on instance?} {true false} true
+    ;; Enable sending email to regions not on current opensimulator instance. Currently does not work
+    ; enableEmailToExternalObjects = true
+
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails from a object owner per hour} {} 500
+    ; MailsFromOwnerPerHour = 500
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails to a prim address per hour} {} 50
+    ; MailsToPrimAddressPerHour = 20
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails via smtp per day} {} 100
+    ; MailsToAddressPerHour = 500
+    ;SMTP_MailsPerDay = 100
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails to a SMTP address per hour} {} 10
+    ; MailsToSMTPAddressPerHour = 10
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable send to the world?} {true false} true
+    ;; Enable sending email to the world.
+    ; enableEmailToSMTP = true
+	
     ;# {internal_object_host} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Host name to treat as internal (object to object) email?} {} lsl.opensim.local
     ; internal_object_host = lsl.opensim.local
 

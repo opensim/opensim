@@ -46,6 +46,12 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EmailModule")]
     public class EmailModule : ISharedRegionModule, IEmailModule
     {
+        public class throttleControlInfo
+        {
+            public double lastTime;
+            public double count;
+        }
+
         //
         // Log
         //
@@ -56,20 +62,42 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         //
         private string m_HostName = string.Empty;
         private bool SMTP_SERVER_TLS = false;
-        private string SMTP_SERVER_HOSTNAME = string.Empty;
+        private string SMTP_SERVER_HOSTNAME = null;
         private int SMTP_SERVER_PORT = 25;
         private MailboxAddress SMTP_MAIL_FROM = null;
-        private string SMTP_SERVER_LOGIN = string.Empty;
-        private string SMTP_SERVER_PASSWORD = string.Empty;
+        private string SMTP_SERVER_LOGIN = null;
+        private string SMTP_SERVER_PASSWORD = null;
+
+        private bool m_enableEmailToExternalObjects = true;
+        private bool m_enableEmailToSMTP = true;
 
         private ParserOptions m_mailParseOptions;
 
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
         private Dictionary<UUID, double> m_LastGetEmailCall = new Dictionary<UUID, double>();
+        private Dictionary<UUID, throttleControlInfo> m_ownerThrottles = new Dictionary<UUID, throttleControlInfo>();
+        private Dictionary<string, throttleControlInfo> m_primAddressThrottles = new Dictionary<string, throttleControlInfo>();
+        private Dictionary<string, throttleControlInfo> m_SMPTAddressThrottles = new Dictionary<string, throttleControlInfo>();
         private double m_QueueTimeout = 30 * 60; // 15min;
         private double m_nextQueuesExpire;
+        private double m_nextOwnerThrottlesExpire;
+        private double m_nextPrimAddressThrottlesExpire;
+        private double m_nextSMTPAddressThrottlesExpire;
         private string m_InterObjectHostname = "lsl.opensim.local";
+
+        private int m_SMTP_MailsPerDay = 100;
+        private double m_SMTP_MailsRate = 100.0 / 86400.0;
+        private double m_SMTPLastTime;
+        private double m_SMTPCount;
+
+        private int m_MailsToPrimAddressPerHour = 50;
+        private double m_MailsToPrimAddressRate = 50.0 / 3600.0;
+        private int m_MailsToSMTPAddressPerHour = 10;
+        private double m_MailsToSMTPAddressRate = 20.0 / 3600.0;
+
+        private int m_MailsFromOwnerPerHour = 500;
+        private double m_MailsFromOwnerRate = 500.0 / 3600.0;
 
         private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
 
@@ -84,6 +112,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private bool m_Enabled = false;
 
         #region ISharedRegionModule
+
 
         public void Initialise(IConfigSource config)
         {
@@ -101,35 +130,67 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 if (SMTPConfig  == null)
                     return;
 
-                if (!SMTPConfig.GetBoolean("enabled", false))
+                if(!SMTPConfig.GetBoolean("enabled", false))
                     return;
+
+                m_enableEmailToExternalObjects = SMTPConfig.GetBoolean("enableEmailToExternalObjects", m_enableEmailToExternalObjects);
+                m_enableEmailToSMTP = SMTPConfig.GetBoolean("enableEmailToSMTP", m_enableEmailToSMTP);
+
+                m_MailsToPrimAddressPerHour = SMTPConfig.GetInt("MailsToPrimAddressPerHour", m_MailsToPrimAddressPerHour);
+                m_MailsToPrimAddressRate = m_MailsToPrimAddressPerHour / 3600.0;
+                m_MailsFromOwnerPerHour = SMTPConfig.GetInt("MailsFromOwnerPerHour", m_MailsFromOwnerPerHour);
+                m_MailsFromOwnerRate = m_MailsFromOwnerPerHour / 3600.0;
 
                 m_mailParseOptions = new ParserOptions()
                 {
                     AllowAddressesWithoutDomain = false,
                 };
 
-                m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
                 m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", m_InterObjectHostname);
-                SMTP_SERVER_TLS = SMTPConfig.GetBoolean("SMTP_SERVER_TLS", SMTP_SERVER_TLS);
-                SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
-                OSHHTPHost hosttmp = new OSHHTPHost(SMTP_SERVER_HOSTNAME, true);
-                if(!hosttmp.IsResolvedHost)
+                m_checkSpecName = !m_InterObjectHostname.Equals("lsl.secondlife.com");
+
+                if (m_enableEmailToSMTP)
                 {
-                    m_log.ErrorFormat("[EMAIL]: could not resolve SMTP_SERVER_HOSTNAME {0}", SMTP_SERVER_HOSTNAME);
-                    return;
+                    m_SMTP_MailsPerDay = SMTPConfig.GetInt("SMTP_MailsPerDay", m_SMTP_MailsPerDay);
+                    m_SMTP_MailsRate = m_SMTP_MailsPerDay / 86400.0;
+                    m_MailsToSMTPAddressPerHour = SMTPConfig.GetInt("MailsToSMTPAddressPerHour", m_MailsToPrimAddressPerHour);
+                    m_MailsToSMTPAddressRate = m_MailsToPrimAddressPerHour / 3600.0;
+
+                    SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
+                    OSHHTPHost hosttmp = new OSHHTPHost(SMTP_SERVER_HOSTNAME, true);
+                    if(!hosttmp.IsResolvedHost)
+                    {
+                        m_log.ErrorFormat("[EMAIL]: could not resolve SMTP_SERVER_HOSTNAME {0}", SMTP_SERVER_HOSTNAME);
+                        return;
+                    }
+
+                    SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
+                    SMTP_SERVER_TLS = SMTPConfig.GetBoolean("SMTP_SERVER_TLS", SMTP_SERVER_TLS);
+
+                    string smtpfrom = SMTPConfig.GetString("SMTP_SERVER_FROM", string.Empty);
+                    m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
+                    if (!string.IsNullOrEmpty(smtpfrom) && !MailboxAddress.TryParse(m_mailParseOptions, smtpfrom, out SMTP_MAIL_FROM))
+                    {
+                        m_log.ErrorFormat("[EMAIL]: Invalid SMTP_SERVER_FROM {0}", smtpfrom);
+                        return;
+                    }
+
+                    SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
+                    SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
+
+                    bool VerifyCertChain = SMTPConfig.GetBoolean("SMTP_VerifyCertChain", true);
+                    bool VerifyCertNames = SMTPConfig.GetBoolean("SMTP_VerifyCertNames", true);
+                    m_SMTP_SslPolicyErrorsMask = VerifyCertChain ? 0 : SslPolicyErrors.RemoteCertificateChainErrors;
+                    if (!VerifyCertNames)
+                        m_SMTP_SslPolicyErrorsMask |= SslPolicyErrors.RemoteCertificateNameMismatch;
+                    m_SMTP_SslPolicyErrorsMask = ~m_SMTP_SslPolicyErrorsMask;
+                }
+                else
+                {
+                    m_SMTP_SslPolicyErrorsMask = ~SslPolicyErrors.None;
+                    m_log.Warn("[EMAIL]: SMTP disabled, set enableEmailSMTP to enable");
                 }
 
-                SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
-                string smtpfrom = SMTPConfig.GetString("SMTP_SERVER_FROM", string.Empty);
-                if(!string.IsNullOrEmpty(smtpfrom) && !MailboxAddress.TryParse(m_mailParseOptions, smtpfrom, out SMTP_MAIL_FROM))
-                {
-                    m_log.ErrorFormat("[EMAIL]: Invalid SMTP_SERVER_FROM {0}", smtpfrom);
-                    return;
-                }
-
-                SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
-                SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
                 m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize);
                 if(m_MaxEmailSize < 256 || m_MaxEmailSize > 1000000)
                 {
@@ -137,14 +198,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     m_MaxEmailSize = 4096;
                 }
 
-                bool VerifyCertChain = SMTPConfig.GetBoolean("SMTP_VerifyCertChain", true);
-                bool VerifyCertNames = SMTPConfig.GetBoolean("SMTP_VerifyCertNames", true);
-                m_SMTP_SslPolicyErrorsMask = VerifyCertChain ? 0 : SslPolicyErrors.RemoteCertificateChainErrors;
-                if(!VerifyCertNames)
-                    m_SMTP_SslPolicyErrorsMask |= SslPolicyErrors.RemoteCertificateNameMismatch;
-                m_SMTP_SslPolicyErrorsMask = ~m_SMTP_SslPolicyErrorsMask;
-
-                m_checkSpecName = !m_InterObjectHostname.Equals("lsl.secondlife.com");
             }
             catch (Exception e)
             {
@@ -152,9 +205,17 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 return;
             }
 
-            m_nextQueuesExpire = Util.GetTimeStamp() + m_QueueTimeout;
+            double now = Util.GetTimeStamp();
+            m_nextQueuesExpire = now + m_QueueTimeout;
+            m_nextOwnerThrottlesExpire = now + 3600;
+            m_nextPrimAddressThrottlesExpire = now + 3600;
+            m_nextSMTPAddressThrottlesExpire = now + 3600;
+
+            m_SMTPLastTime = now;
+            m_SMTPCount = m_SMTP_MailsPerDay;
+
             m_Enabled = true;
-        }
+    }
 
         public void AddRegion(Scene scene)
         {
@@ -204,24 +265,30 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void AddPartMailBox(UUID objectID)
         {
-            lock (m_queuesLock)
+            if (m_Enabled)
             {
-                if (!m_MailQueues.TryGetValue(objectID, out List<Email> elist))
+                lock (m_queuesLock)
                 {
-                    m_MailQueues[objectID] = null;
-                    //TODO external global
+                    if (!m_MailQueues.TryGetValue(objectID, out List<Email> elist))
+                    {
+                        m_MailQueues[objectID] = null;
+                        //TODO external global
+                    }
                 }
             }
         }
 
         public void RemovePartMailBox(UUID objectID)
         {
-            lock (m_queuesLock)
+            if (m_Enabled)
             {
-                m_LastGetEmailCall.Remove(objectID);
-                if (m_MailQueues.Remove(objectID))
+                lock (m_queuesLock)
                 {
-                    //TODO external global
+                    m_LastGetEmailCall.Remove(objectID);
+                    if (m_MailQueues.Remove(objectID))
+                    {
+                        //TODO external global
+                    }
                 }
             }
         }
@@ -310,13 +377,43 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <param name="address"></param>
         /// <param name="subject"></param>
         /// <param name="body"></param>
-        public void SendEmail(UUID objectID, string address, string subject, string body)
+        public void SendEmail(UUID objectID, UUID ownerID, string address, string subject, string body)
         {
-            //Check if address is empty
-            if (address.Length == 0)
+            //Check if address is empty or too large
+            if(string.IsNullOrEmpty(address))
+                return;
+            address = address.Trim();
+            if (address.Length == 0 || address.Length > 320)
                 return;
 
-            if(!MailboxAddress.TryParse(address, out MailboxAddress mailTo))
+            double now = Util.GetTimeStamp();
+            throttleControlInfo tci;
+            lock (m_ownerThrottles)
+            {
+                if (m_ownerThrottles.TryGetValue(ownerID, out tci))
+                {
+                    tci.count += (now - tci.lastTime) * m_MailsFromOwnerRate;
+                    tci.lastTime = now;
+                    if (tci.count > m_MailsFromOwnerPerHour)
+                        tci.count = m_MailsFromOwnerPerHour;
+                    else if (tci.count <= 0)
+                        return;
+                    --tci.count;
+                }
+                else
+                {
+                    tci = new throttleControlInfo
+                    {
+                        lastTime = now,
+                        count = m_MailsFromOwnerPerHour
+                    };
+                    m_ownerThrottles[ownerID] = tci;
+                }
+            }
+
+            string addressLower = address.ToLower();
+
+            if (!MailboxAddress.TryParse(address, out MailboxAddress mailTo))
             {
                 m_log.ErrorFormat("[EMAIL]: invalid TO email address {0}",address);
                 return;
@@ -335,6 +432,40 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             if (!address.EndsWith(m_InterObjectHostname, StringComparison.InvariantCultureIgnoreCase) &&
                 !(m_checkSpecName && address.EndsWith("lsl.secondlife.com", StringComparison.InvariantCultureIgnoreCase)))
             {
+                if(!m_enableEmailToSMTP)
+                    return; //smtp disabled
+
+                m_SMTPCount += (m_SMTPLastTime - now) * m_SMTP_MailsRate;
+                m_SMTPLastTime = now;
+                if (m_SMTPCount > m_SMTP_MailsPerDay)
+                    m_SMTPCount = m_SMTP_MailsPerDay;
+                else if (m_SMTPCount <= 0)
+                    return;
+                --m_SMTPCount;
+
+                lock (m_SMPTAddressThrottles)
+                {
+                    if (m_SMPTAddressThrottles.TryGetValue(addressLower, out tci))
+                    {
+                        tci.count += (now - tci.lastTime) * m_MailsToSMTPAddressRate;
+                        tci.lastTime = now;
+                        if (tci.count > m_MailsToSMTPAddressPerHour)
+                            tci.count = m_MailsToSMTPAddressPerHour;
+                        else if (tci.count <= 0)
+                            return;
+                        --tci.count;
+                    }
+                    else
+                    {
+                        tci = new throttleControlInfo
+                        {
+                            lastTime = now,
+                            count = m_MailsToSMTPAddressPerHour
+                        };
+                        m_SMPTAddressThrottles[addressLower] = tci;
+                    }
+                }
+
                 // regular email, send it out
                 try
                 {
@@ -386,6 +517,29 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             }
             else
             {
+                lock (m_primAddressThrottles)
+                {
+                    if (m_primAddressThrottles.TryGetValue(addressLower, out tci))
+                    {
+                        tci.count += (now - tci.lastTime) * m_MailsToPrimAddressRate;
+                        tci.lastTime = now;
+                        if (tci.count > m_MailsToPrimAddressPerHour)
+                            tci.count = m_MailsToPrimAddressPerHour;
+                        else if (tci.count <= 0)
+                            return;
+                        --tci.count;
+                    }
+                    else
+                    {
+                        tci = new throttleControlInfo
+                        {
+                            lastTime = now,
+                            count = m_MailsToPrimAddressPerHour
+                        };
+                        m_primAddressThrottles[addressLower] = tci;
+                    }
+                }
+
                 // inter object email
                 int indx = address.IndexOf('@');
                 if (indx < 0)
@@ -403,11 +557,13 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                 if (IsLocal(toID))
                 {
-                    // object in this region
+                    // object in this instance
                     InsertEmail(toID, email);
                 }
                 else
                 {
+                    if (!m_enableEmailToExternalObjects)
+                        return;
                     // object on another region
                     // TODO FIX
                 }
@@ -423,12 +579,67 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
+            double now = Util.GetTimeStamp();
+            double lasthour = now - 3600;
+            lock (m_ownerThrottles)
+            {
+                if (m_ownerThrottles.Count > 0 && now > m_nextOwnerThrottlesExpire)
+                {
+                    List<UUID> removal = new List<UUID>(m_ownerThrottles.Count);
+                    foreach (KeyValuePair<UUID, throttleControlInfo> kpv in m_ownerThrottles)
+                    {
+                        if (kpv.Value.lastTime < lasthour)
+                            removal.Add(kpv.Key);
+                    }
+
+                    foreach (UUID remove in removal)
+                        m_ownerThrottles.Remove(remove);
+
+                    m_nextOwnerThrottlesExpire = now + 3600;
+                }
+            }
+
+            lock (m_primAddressThrottles)
+            {
+                if (m_primAddressThrottles.Count > 0 && now > m_nextPrimAddressThrottlesExpire)
+                {
+                    List<string> removal = new List<string>(m_primAddressThrottles.Count);
+                    foreach (KeyValuePair<string, throttleControlInfo> kpv in m_primAddressThrottles)
+                    {
+                        if (kpv.Value.lastTime < lasthour)
+                            removal.Add(kpv.Key);
+                    }
+
+                    foreach (string remove in removal)
+                        m_primAddressThrottles.Remove(remove);
+
+                    m_nextPrimAddressThrottlesExpire = now + 3600;
+                }
+            }
+
+            lock (m_SMPTAddressThrottles)
+            {
+                if (m_SMPTAddressThrottles.Count > 0 && now > m_nextSMTPAddressThrottlesExpire)
+                {
+                    List<string> removal = new List<string>(m_SMPTAddressThrottles.Count);
+                    foreach (KeyValuePair<string, throttleControlInfo> kpv in m_SMPTAddressThrottles)
+                    {
+                        if (kpv.Value.lastTime < lasthour)
+                            removal.Add(kpv.Key);
+                    }
+
+                    foreach (string remove in removal)
+                        m_SMPTAddressThrottles.Remove(remove);
+
+                    m_nextSMTPAddressThrottlesExpire = now + 3600;
+                }
+            }
+
             lock (m_queuesLock)
             {
-                double now = Util.GetTimeStamp();
                 m_LastGetEmailCall[objectID] = now + m_QueueTimeout;
 
-                if( now > m_nextQueuesExpire)
+                if(m_LastGetEmailCall.Count > 1 && now > m_nextQueuesExpire)
                 {
                     List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
                     foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
@@ -463,12 +674,16 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                                 if (emptySender || sender.Equals(ret.sender, StringComparison.InvariantCultureIgnoreCase) &&
                                    (emptySubject || subject.Equals(ret.subject, StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    queue.RemoveAt(i);
-                                    ret.numLeft = queue.Count;
-                                    if (queue.Count == 0)
+                                    if (queue.Count == 1)
                                     {
                                         m_MailQueues[objectID] = null;
                                         m_LastGetEmailCall.Remove(objectID);
+                                        ret.numLeft = 0;
+                                    }
+                                    else
+                                    {
+                                        queue.RemoveAt(i);
+                                        ret.numLeft = queue.Count;
                                     }
                                     return ret;
                                 }
