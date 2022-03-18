@@ -3991,7 +3991,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     address = account.Email;
                 }
 
-                m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+                m_emailModule.SendEmail(m_host.UUID, m_host.ParentGroup.OwnerID, address, subject, message);
                 // no dataserver event
             };
 
@@ -4079,7 +4079,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                m_emailModule.SendEmail(m_host.UUID, address, subject, message);
+                m_emailModule.SendEmail(m_host.UUID, m_host.ParentGroup.OwnerID, address, subject, message);
             };
 
             m_AsyncCommands.DataserverPlugin.RegisterRequest(m_host.LocalId,
