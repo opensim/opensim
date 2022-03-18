@@ -3680,7 +3680,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 RemoveFromPhysicalScene();
 
-                if (part.SitTargetAvatar == UUID)
+                if (part.SitTargetAvatar.Equals(UUID))
                 {
                     Vector3 sitTargetPos = part.SitTargetPosition;
                     Quaternion sitTargetOrient = part.SitTargetOrientation;
@@ -4276,7 +4276,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.ForEachRootScenePresence(delegate(ScenePresence p)
             {
                 // only send information about other root agents
-                if (p.UUID == UUID)
+                if (p.UUID.Equals(UUID))
                     return;
 
                 // get the avatar, then a kill if can't see it
@@ -4408,7 +4408,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 // only send information to other root agents
-                if (scenePresence.UUID == UUID)
+                if (scenePresence.m_localId == m_localId)
                     return;
 
                 SendAppearanceToAgent(scenePresence);
@@ -5975,7 +5975,7 @@ namespace OpenSim.Region.Framework.Scenes
         // still skeleton code
             if((permissions & (16 | 0x8000 ))  == 0) //PERMISSION_TRIGGER_ANIMATION | PERMISSION_OVERRIDE_ANIMATIONS
                 return;
-            if(objectID == m_scene.RegionInfo.RegionID) // for all objects
+            if(objectID.Equals(m_scene.RegionInfo.RegionID)) // for all objects
             {
                 List<SceneObjectGroup> sogs = m_scene.GetSceneObjectGroups();
                 for(int i = 0; i < sogs.Count; ++i)
@@ -6006,7 +6006,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (ScriptControllers c in scriptedcontrols.Values)
             {
-                if (c.objectID == obj)
+                if (c.objectID.Equals(obj))
                     takers.Add(c.itemID);
             }
             foreach (UUID t in takers)
@@ -6240,7 +6240,7 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
 
             if (land.LandData.LandingType != (byte)LandingType.LandingPoint
-                        || land.LandData.OwnerID == m_uuid)
+                        || land.LandData.OwnerID.Equals(m_uuid))
                 return true;
 
             Vector3 landLocation = land.LandData.UserLocation;
@@ -6875,7 +6875,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // only those on previous parcel need receive kills
-                            if (previusParcelID == p.currentParcelUUID)
+                            if (previusParcelID.Equals(p.currentParcelUUID))
                             {
                                 if(!p.IsViewerUIGod)
                                     killsToSendto.Add(p); // they dont see me
@@ -6883,7 +6883,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     killsToSendme.Add(p);  // i dont see them
                             }
                             // only those on new parcel need see
-                            if (currentParcelID == p.currentParcelUUID)
+                            if (currentParcelID.Equals(p.currentParcelUUID))
                             {
                                 viewsToSendto.Add(p); // they see me
                                 viewsToSendme.Add(p); // i see them
@@ -6901,7 +6901,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 continue;
 
                             // those not on new parcel dont see me
-                            if (currentParcelID != p.currentParcelUUID && !p.IsViewerUIGod)
+                            if (!p.IsViewerUIGod && currentParcelID.NotEqual(p.currentParcelUUID))
                             {
                                 killsToSendto.Add(p); // they dont see me
                             }
@@ -6926,7 +6926,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (p.IsDeleted || p == this || p.ControllingClient == null || !p.ControllingClient.IsActive)
                                 continue;
                             // only those old parcel need kills
-                            if (previusParcelID == p.currentParcelUUID && !IsViewerUIGod)
+                            if (!IsViewerUIGod && previusParcelID.Equals(p.currentParcelUUID))
                             {
                                 killsToSendme.Add(p);  // i dont see them
                             }
@@ -6997,7 +6997,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (p.IsDeleted || p == this || p.IsChildAgent || p.ControllingClient == null || !p.ControllingClient.IsActive)
                         continue;
 
-                    if (p.currentParcelUUID == m_currentParcelUUID)
+                    if (p.currentParcelUUID.Equals(m_currentParcelUUID))
                     {
                         p.SendKillTo(this);
                     }

@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
-            if (m_scene.RegionInfo.RegionID == regionID)
+            if (m_scene.RegionInfo.RegionID.Equals(regionID))
             {
                 ILandObject parcelAvatarIsEntering;
                 lock (m_landList)
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
 
                 if (parcelAvatarIsEntering != null &&
-                    avatar.currentParcelUUID != parcelAvatarIsEntering.LandData.GlobalID)
+                    avatar.currentParcelUUID.NotEqual(parcelAvatarIsEntering.LandData.GlobalID))
                 {
                     SendLandUpdate(avatar, parcelAvatarIsEntering);
                     avatar.currentParcelUUID = parcelAvatarIsEntering.LandData.GlobalID;
@@ -581,7 +581,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(ldata == null)
                 return;
 
-            if(ldata.OwnerID == targetID)
+            if(ldata.OwnerID.Equals(targetID))
                 return;
 
             if(ldata.PassHours == 0)
@@ -605,7 +605,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             int idx = land.LandData.ParcelAccessList.FindIndex(
                 delegate(LandAccessEntry e)
                 {
-                    if (e.AgentID == targetID && e.Flags == AccessList.Access)
+                    if (e.Flags == AccessList.Access && e.AgentID.Equals(targetID))
                         return true;
                     return false;
                 });
@@ -1413,7 +1413,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         continue;
 
                     // types
-                    if (currentParcel.LandData.OwnerID == remote_client.AgentId)
+                    if (currentParcel.LandData.OwnerID.Equals(remote_client.AgentId))
                     {
                         //Owner Flag
                         curByte = LandChannel.LAND_TYPE_OWNED_BY_REQUESTER;
@@ -1612,7 +1612,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         else if (land == aland)
                              aland.SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, client);
                     }
-                    if (avatar.currentParcelUUID == parcelID)
+                    if (avatar.currentParcelUUID.Equals(parcelID))
                         avatar.currentParcelUUID = parcelID; // force parcel flags review
                 });
             }
@@ -2179,7 +2179,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else if (args.TryGetValue("region_id", out tmp) && tmp is OSDUUID)
                     {
                         UUID regionID = tmp.AsUUID();
-                        if (regionID == m_scene.RegionInfo.RegionID)
+                        if (regionID.Equals(m_scene.RegionInfo.RegionID))
                         {
                             ILandObject l = GetLandObjectClippedXY(x, y);
                             if (l != null)
@@ -2423,7 +2423,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
                     {
-                        if (e.OwnerID == targetID)
+                        if (e.OwnerID.Equals(targetID))
                         {
                             returns.Add(e);
                         }
@@ -2434,7 +2434,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
                     {
-                        if (e.OwnerID == targetID)
+                        if (e.OwnerID.Equals(targetID))
                         {
                             if (e.ContainsScripts())
                             {
@@ -2447,7 +2447,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     ((Scene)client.Scene).ForEachSOG(delegate(SceneObjectGroup e)
                     {
-                        if (e.OwnerID == targetID)
+                        if (e.OwnerID.Equals(targetID))
                         {
                             ILandObject landobject = ((Scene)client.Scene).LandChannel.GetLandObject(e.AbsolutePosition.X, e.AbsolutePosition.Y);
                             if (landobject.LandData.OwnerID != e.OwnerID)
@@ -2594,7 +2594,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                  m_scene.Permissions.IsAdministrator(remoteClient.AgentId) ||
                  m_scene.Permissions.IsGod(remoteClient.AgentId) ||
                  // (b) land owners can set home
-                 remoteClient.AgentId == land.LandData.OwnerID ||
+                 remoteClient.AgentId.Equals(land.LandData.OwnerID) ||
                  // (c) members of the land-associated group in roles that can set home
                  ((gpowers & (ulong)GroupPowers.AllowSetHome) == (ulong)GroupPowers.AllowSetHome) ||
                  // (d) parcels with telehubs can be the home of anyone
