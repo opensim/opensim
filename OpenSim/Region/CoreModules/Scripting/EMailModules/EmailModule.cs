@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using DotNetOpenMail;
-using DotNetOpenMail.SmtpAuth;
+using System.Security.Cryptography.X509Certificates;
 using log4net;
+using MailKit;
+using MailKit.Net.Smtp;
+using MimeKit;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -52,25 +54,29 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         //
         // Module vars
         //
-        private IConfigSource m_Config;
         private string m_HostName = string.Empty;
-        //private string m_RegionName = string.Empty;
+        private bool SMTP_SERVER_TLS = false;
         private string SMTP_SERVER_HOSTNAME = string.Empty;
         private int SMTP_SERVER_PORT = 25;
+        private MailboxAddress SMTP_MAIL_FROM = null;
         private string SMTP_SERVER_LOGIN = string.Empty;
         private string SMTP_SERVER_PASSWORD = string.Empty;
 
+        private ParserOptions m_mailParseOptions;
+
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
-        private Dictionary<UUID, DateTime> m_LastGetEmailCall = new Dictionary<UUID, DateTime>();
-        private TimeSpan m_QueueTimeout = new TimeSpan(2, 0, 0); // 2 hours without llGetNextEmail drops the queue
+        private Dictionary<UUID, double> m_LastGetEmailCall = new Dictionary<UUID, double>();
+        private double m_QueueTimeout = 30 * 60; // 15min;
         private string m_InterObjectHostname = "lsl.opensim.local";
 
         private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
 
+        private static SslPolicyErrors m_SMTP_SslPolicyErrorsMask;
+        private bool m_checkSpecName;
+
         // Scenes by Region Handle
-        private Dictionary<ulong, Scene> m_Scenes =
-            new Dictionary<ulong, Scene>();
+        private Dictionary<ulong, Scene> m_Scenes = new Dictionary<ulong, Scene>();
 
         private bool m_Enabled = false;
 
@@ -78,46 +84,72 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void Initialise(IConfigSource config)
         {
-            m_Config = config;
-            IConfig SMTPConfig;
+            IConfig startupConfig = config.Configs["Startup"];
+            if(startupConfig == null)
+                return;
 
-            //FIXME: RegionName is correct??
-            //m_RegionName = scene.RegionInfo.RegionName;
-
-            IConfig startupConfig = m_Config.Configs["Startup"];
-
-            m_Enabled = (startupConfig.GetString("emailmodule", "DefaultEmailModule") == "DefaultEmailModule");
+            if(startupConfig.GetString("emailmodule", "DefaultEmailModule") != "DefaultEmailModule")
+                return;
 
             //Load SMTP SERVER config
             try
             {
-                if ((SMTPConfig = m_Config.Configs["SMTP"]) == null)
-                {
-                    m_Enabled = false;
+                IConfig SMTPConfig = config.Configs["SMTP"];
+                if (SMTPConfig  == null)
                     return;
-                }
 
                 if (!SMTPConfig.GetBoolean("enabled", false))
-                {
-                    m_Enabled = false;
                     return;
-                }
+
+                m_mailParseOptions = new ParserOptions()
+                {
+                    AllowAddressesWithoutDomain = false,
+                };
 
                 m_HostName = SMTPConfig.GetString("host_domain_header_from", m_HostName);
                 m_InterObjectHostname = SMTPConfig.GetString("internal_object_host", m_InterObjectHostname);
+                SMTP_SERVER_TLS = SMTPConfig.GetBoolean("SMTP_SERVER_TLS", SMTP_SERVER_TLS);
                 SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
+                OSHHTPHost hosttmp = new OSHHTPHost(SMTP_SERVER_HOSTNAME, true);
+                if(!hosttmp.IsResolvedHost)
+                {
+                    m_log.ErrorFormat("[EMAIL]: could not resolve SMTP_SERVER_HOSTNAME {0}", SMTP_SERVER_HOSTNAME);
+                    return;
+                }
+
                 SMTP_SERVER_PORT = SMTPConfig.GetInt("SMTP_SERVER_PORT", SMTP_SERVER_PORT);
+                string smtpfrom = SMTPConfig.GetString("SMTP_SERVER_FROM", string.Empty);
+                if(!string.IsNullOrEmpty(smtpfrom) && !MailboxAddress.TryParse(m_mailParseOptions, smtpfrom, out SMTP_MAIL_FROM))
+                {
+                    m_log.ErrorFormat("[EMAIL]: Invalid SMTP_SERVER_FROM {0}", smtpfrom);
+                    return;
+                }
+
                 SMTP_SERVER_LOGIN = SMTPConfig.GetString("SMTP_SERVER_LOGIN", SMTP_SERVER_LOGIN);
                 SMTP_SERVER_PASSWORD = SMTPConfig.GetString("SMTP_SERVER_PASSWORD", SMTP_SERVER_PASSWORD);
                 m_MaxEmailSize = SMTPConfig.GetInt("email_max_size", m_MaxEmailSize);
+                if(m_MaxEmailSize < 256 || m_MaxEmailSize > 1000000)
+                {
+                    m_log.Warn("[EMAIL]: email_max_size out of range [256, 1000000], Changed to default 4096");
+                    m_MaxEmailSize = 4096;
+                }
+
+                bool VerifyCertChain = SMTPConfig.GetBoolean("SMTP_VerifyCertChain", true);
+                bool VerifyCertNames = SMTPConfig.GetBoolean("SMTP_VerifyCertNames", true);
+                m_SMTP_SslPolicyErrorsMask = VerifyCertChain ? 0 : SslPolicyErrors.RemoteCertificateChainErrors;
+                if(!VerifyCertNames)
+                    m_SMTP_SslPolicyErrorsMask |= SslPolicyErrors.RemoteCertificateNameMismatch;
+                m_SMTP_SslPolicyErrorsMask = ~m_SMTP_SslPolicyErrorsMask;
+
+                m_checkSpecName = !m_InterObjectHostname.Equals("lsl.secondlife.com");
             }
             catch (Exception e)
             {
                 m_log.Error("[EMAIL]: DefaultEmailModule not configured: " + e.Message);
-                m_Enabled = false;
                 return;
             }
 
+            m_Enabled = true;
         }
 
         public void AddRegion(Scene scene)
@@ -132,14 +164,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 scene.RegisterModuleInterface<IEmailModule>(this);
 
                 // Add to scene list
-                if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-                {
-                    m_Scenes[scene.RegionInfo.RegionHandle] = scene;
-                }
-                else
-                {
-                    m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
-                }
+                m_Scenes[scene.RegionInfo.RegionHandle] = scene;
             }
 
             m_log.Info("[EMAIL]: Activated DefaultEmailModule");
@@ -175,32 +200,42 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void InsertEmail(UUID to, Email email)
         {
-            // It's tempting to create the queue here.  Don't; objects which have
-            // not yet called GetNextEmail should have no queue, and emails to them
-            // should be silently dropped.
-
             lock (m_MailQueues)
             {
-                if (m_MailQueues.ContainsKey(to))
+                if (m_MailQueues.TryGetValue(to, out List<Email> elist))
                 {
-                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
-                    {
-                        // fail silently
+                    if (elist.Count >= m_MaxQueueSize)
                         return;
-                    }
-
-                    lock (m_MailQueues[to])
+                    lock (elist)
                     {
-                        m_MailQueues[to].Add(email);
+                        elist.Add(email);
                     }
+                }
+                else
+                {
+                    elist = new List<Email>();
+                    elist.Add(email);
+                    m_MailQueues[to] = elist;
+                }
+
+                lock (m_LastGetEmailCall)
+                {
+                    m_LastGetEmailCall[to] = Util.GetTimeStamp() + m_QueueTimeout;
                 }
             }
         }
 
         private bool IsLocal(UUID objectID)
         {
-            string unused;
-            return (null != findPrim(objectID, out unused));
+            lock (m_Scenes)
+            {
+                foreach (Scene s in m_Scenes.Values)
+                {
+                    if (s.GetSceneObjectPart(objectID) != null)
+                        return true;
+                }
+            }
+            return false;
         }
 
         private SceneObjectPart findPrim(UUID objectID, out string ObjectRegionName)
@@ -212,10 +247,9 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     SceneObjectPart part = s.GetSceneObjectPart(objectID);
                     if (part != null)
                     {
-                        ObjectRegionName = s.RegionInfo.RegionName;
-                        uint localX = s.RegionInfo.WorldLocX;
-                        uint localY = s.RegionInfo.WorldLocY;
-                        ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
+                        RegionInfo sri = s.RegionInfo;
+                        ObjectRegionName = sri.RegionName;
+                        ObjectRegionName = ObjectRegionName + " (" + sri.WorldLocX + ", " + sri.WorldLocY + ")";
                         return part;
                     }
                 }
@@ -226,23 +260,22 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private bool resolveNamePositionRegionName(UUID objectID, out string ObjectName, out string ObjectAbsolutePosition, out string ObjectRegionName)
         {
-            ObjectName = ObjectAbsolutePosition = ObjectRegionName = String.Empty;
-            string m_ObjectRegionName;
-            int objectLocX;
-            int objectLocY;
-            int objectLocZ;
-            SceneObjectPart part = findPrim(objectID, out m_ObjectRegionName);
+            SceneObjectPart part = findPrim(objectID, out ObjectRegionName);
             if (part != null)
             {
-                objectLocX = (int)part.AbsolutePosition.X;
-                objectLocY = (int)part.AbsolutePosition.Y;
-                objectLocZ = (int)part.AbsolutePosition.Z;
-                ObjectAbsolutePosition = "(" + objectLocX + ", " + objectLocY + ", " + objectLocZ + ")";
+                Vector3 pos = part.AbsolutePosition;
+                ObjectAbsolutePosition = "(" + (int)pos.X + ", " + (int)pos.Y + ", " + (int)pos.Z + ")";
                 ObjectName = part.Name;
-                ObjectRegionName = m_ObjectRegionName;
                 return true;
             }
+            ObjectName = ObjectAbsolutePosition = ObjectRegionName = string.Empty;
             return false;
+        }
+
+        public static bool smptValidateServerCertificate(object sender, X509Certificate certificate,
+                X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return (sslPolicyErrors & m_SMTP_SslPolicyErrorsMask) == SslPolicyErrors.None;
         }
 
         /// <summary>
@@ -258,64 +291,65 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             if (address.Length == 0)
                 return;
 
-            //FIXED:Check the email is correct form in REGEX
-            string EMailpatternStrict = @"^(([^<>()[\]\\.,;:\s@\""]+"
-                + @"(\.[^<>()[\]\\.,;:\s@\""]+)*)|(\"".+\""))@"
-                + @"((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
-                + @"\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+"
-                + @"[a-zA-Z]{2,}))$";
-            Regex EMailreStrict = new Regex(EMailpatternStrict);
-            bool isEMailStrictMatch = EMailreStrict.IsMatch(address);
-            if (!isEMailStrictMatch)
+            if(!MailboxAddress.TryParse(address, out MailboxAddress mailTo))
             {
-                m_log.Error("[EMAIL]: REGEX Problem in EMail Address: "+address);
+                m_log.ErrorFormat("[EMAIL]: invalid TO email address {0}",address);
                 return;
             }
+
             if ((subject.Length + body.Length) > m_MaxEmailSize)
             {
                 m_log.Error("[EMAIL]: subject + body larger than limit of " + m_MaxEmailSize + " bytes");
                 return;
             }
 
-            string LastObjectName = string.Empty;
-            string LastObjectPosition = string.Empty;
-            string LastObjectRegionName = string.Empty;
-
-            if (!resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName))
+            if (!resolveNamePositionRegionName(objectID, out string LastObjectName, out string LastObjectPosition, out string LastObjectRegionName))
                 return;
 
-            if (!address.EndsWith(m_InterObjectHostname))
+            string objectIDstr = objectID.ToString();
+            if (!address.EndsWith(m_InterObjectHostname, StringComparison.InvariantCultureIgnoreCase) &&
+                !(m_checkSpecName && address.EndsWith("lsl.secondlife.com", StringComparison.InvariantCultureIgnoreCase)))
             {
                 // regular email, send it out
                 try
                 {
                     //Creation EmailMessage
-                    EmailMessage emailMessage = new EmailMessage();
-                    //From
-                    emailMessage.FromAddress = new EmailAddress(objectID.ToString() + "@" + m_HostName);
-                    //To - Only One
-                    emailMessage.AddToAddress(new EmailAddress(address));
-                    //Subject
-                    emailMessage.Subject = subject;
-                    //TEXT Body
-                    if (!resolveNamePositionRegionName(objectID, out LastObjectName, out LastObjectPosition, out LastObjectRegionName))
-                        return;
-                    emailMessage.BodyText = "Object-Name: " + LastObjectName +
-                              "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
-                              LastObjectPosition + "\n\n" + body;
+                    MimeMessage mmsg = new MimeMessage();
 
-                    //Config SMTP Server
-                    //Set SMTP SERVER config
-                    SmtpServer smtpServer=new SmtpServer(SMTP_SERVER_HOSTNAME,SMTP_SERVER_PORT);
-                    // Add authentication only when requested
-                    //
-                    if (SMTP_SERVER_LOGIN != String.Empty && SMTP_SERVER_PASSWORD != String.Empty)
+                    if(SMTP_MAIL_FROM != null)
                     {
-                        //Authentication
-                        smtpServer.SmtpAuthToken=new SmtpAuthToken(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+                        mmsg.From.Add(SMTP_MAIL_FROM);
+                        mmsg.Subject = "(OSObj" + objectIDstr + ") " + subject;
                     }
-                    //Send Email Message
-                    emailMessage.Send(smtpServer);
+                    else
+                    {
+                        mmsg.From.Add(MailboxAddress.Parse(objectIDstr + "@" + m_HostName));
+                        mmsg.Subject = subject;
+                    }
+
+                    mmsg.To.Add(mailTo);
+                    mmsg.Body = new TextPart("plain") {
+                        Text = "Object-Name: " + LastObjectName +
+                              "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
+                              LastObjectPosition + "\n\n" + body
+                        };
+
+                    using (var client = new SmtpClient())
+                    {
+                        if (SMTP_SERVER_TLS)
+                        {
+                            client.ServerCertificateValidationCallback = smptValidateServerCertificate;
+                            client.Connect(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT, MailKit.Security.SecureSocketOptions.StartTls);
+                        }
+                        else
+                            client.Connect(SMTP_SERVER_HOSTNAME, SMTP_SERVER_PORT);
+
+                        if (!string.IsNullOrEmpty(SMTP_SERVER_LOGIN) && !string.IsNullOrEmpty(SMTP_SERVER_PASSWORD))
+                            client.Authenticate(SMTP_SERVER_LOGIN, SMTP_SERVER_PASSWORD);
+
+                        client.Send(mmsg);
+                        client.Disconnect(true);
+                    }
 
                     //Log
                     m_log.Info("[EMAIL]: EMail sent to: " + address + " from object: " + objectID.ToString() + "@" + m_HostName);
@@ -327,19 +361,22 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             }
             else
             {
-                // inter object email, keep it in the family
+                // inter object email
+                int indx = address.IndexOf('@');
+                if (indx < 0)
+                    return;
+                if (!UUID.TryParse(address.Substring(0, indx), out UUID toID))
+                    return;
+
                 Email email = new Email();
-                email.time = ((int)((DateTime.UtcNow - new DateTime(1970,1,1,0,0,0)).TotalSeconds)).ToString();
+                email.time = Util.UnixTimeSinceEpoch().ToString();
                 email.subject = subject;
                 email.sender = objectID.ToString() + "@" + m_InterObjectHostname;
                 email.message = "Object-Name: " + LastObjectName +
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
                               LastObjectPosition + "\n\n" + body;
 
-                string guid = address.Substring(0, address.IndexOf("@"));
-                UUID toID = new UUID(guid);
-
-                if (IsLocal(toID)) // TODO FIX check to see if it is local
+                if (IsLocal(toID))
                 {
                     // object in this region
                     InsertEmail(toID, email);
@@ -361,26 +398,16 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
-            List<Email> queue = null;
-
             lock (m_LastGetEmailCall)
             {
-                if (m_LastGetEmailCall.ContainsKey(objectID))
-                {
-                    m_LastGetEmailCall.Remove(objectID);
-                }
+                double now = Util.GetTimeStamp();
+                m_LastGetEmailCall[objectID] = now + m_QueueTimeout;
 
-                m_LastGetEmailCall.Add(objectID, DateTime.Now);
-
-                // Hopefully this isn't too time consuming.  If it is, we can always push it into a worker thread.
-                DateTime now = DateTime.Now;
-                List<UUID> removal = new List<UUID>();
-                foreach (UUID uuid in m_LastGetEmailCall.Keys)
+                List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
+                foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
                 {
-                    if ((now - m_LastGetEmailCall[uuid]) > m_QueueTimeout)
-                    {
-                        removal.Add(uuid);
-                    }
+                    if (kpv.Value < now)
+                        removal.Add(kpv.Key);
                 }
 
                 foreach (UUID remove in removal)
@@ -393,12 +420,10 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 }
             }
 
+            List<Email> queue = null;
             lock (m_MailQueues)
             {
-                if (m_MailQueues.ContainsKey(objectID))
-                {
-                    queue = m_MailQueues[objectID];
-                }
+                m_MailQueues.TryGetValue(objectID, out queue);
             }
 
             if (queue != null)
@@ -407,35 +432,34 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 {
                     if (queue.Count > 0)
                     {
-                        int i;
+                        bool emptySender = string.IsNullOrEmpty(sender);
+                        bool emptySubject = string.IsNullOrEmpty(subject);
 
+                        int i;
+                        Email ret;
                         for (i = 0; i < queue.Count; i++)
                         {
-                            if ((string.IsNullOrEmpty(sender) || sender.Equals(queue[i].sender)) &&
-                                (string.IsNullOrEmpty(subject) || subject.Equals(queue[i].subject)))
+                            ret = queue[i];
+                            if (emptySender || sender.Equals(ret.sender, StringComparison.InvariantCultureIgnoreCase) &&
+                               (emptySubject || subject.Equals(ret.subject, StringComparison.InvariantCultureIgnoreCase)))
                             {
-                                break;
+                                queue.RemoveAt(i);
+                                ret.numLeft = queue.Count;
+                                if (queue.Count == 0)
+                                {
+                                    lock (m_MailQueues)
+                                    {
+                                        m_MailQueues.Remove(objectID);
+                                        lock (m_LastGetEmailCall)
+                                            m_LastGetEmailCall.Remove(objectID);
+                                    }
+                                }
+                                return ret;
                             }
-                        }
-
-                        if (i != queue.Count)
-                        {
-                            Email ret = queue[i];
-                            queue.Remove(ret);
-                            ret.numLeft = queue.Count;
-                            return ret;
                         }
                     }
                 }
             }
-            else
-            {
-                lock (m_MailQueues)
-                {
-                    m_MailQueues.Add(objectID, new List<Email>());
-                }
-            }
-
             return null;
         }
     }
