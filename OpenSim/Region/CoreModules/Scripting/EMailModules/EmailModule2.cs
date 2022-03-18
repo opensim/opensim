@@ -66,13 +66,14 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
-        private Dictionary<UUID, DateTime> m_LastGetEmailCall = new Dictionary<UUID, DateTime>();
-        private TimeSpan m_QueueTimeout = new TimeSpan(2, 0, 0); // 2 hours without llGetNextEmail drops the queue
+        private Dictionary<UUID, double> m_LastGetEmailCall = new Dictionary<UUID, double>();
+        private double m_QueueTimeout = 30 * 60; // 15min;
         private string m_InterObjectHostname = "lsl.opensim.local";
 
         private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
 
         private static SslPolicyErrors m_SMTP_SslPolicyErrorsMask;
+        private bool m_checkSpecName;
 
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes = new Dictionary<ulong, Scene>();
@@ -139,6 +140,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 if(!VerifyCertNames)
                     m_SMTP_SslPolicyErrorsMask |= SslPolicyErrors.RemoteCertificateNameMismatch;
                 m_SMTP_SslPolicyErrorsMask = ~m_SMTP_SslPolicyErrorsMask;
+
+                m_checkSpecName = !m_InterObjectHostname.Equals("lsl.secondlife.com");
             }
             catch (Exception e)
             {
@@ -197,32 +200,42 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         public void InsertEmail(UUID to, Email email)
         {
-            // It's tempting to create the queue here.  Don't; objects which have
-            // not yet called GetNextEmail should have no queue, and emails to them
-            // should be silently dropped.
-
             lock (m_MailQueues)
             {
-                if (m_MailQueues.ContainsKey(to))
+                if (m_MailQueues.TryGetValue(to, out List<Email> elist))
                 {
-                    if (m_MailQueues[to].Count >= m_MaxQueueSize)
-                    {
-                        // fail silently
+                    if (elist.Count >= m_MaxQueueSize)
                         return;
-                    }
-
-                    lock (m_MailQueues[to])
+                    lock (elist)
                     {
-                        m_MailQueues[to].Add(email);
+                        elist.Add(email);
                     }
+                }
+                else
+                {
+                    elist = new List<Email>();
+                    elist.Add(email);
+                    m_MailQueues[to] = elist;
+                }
+
+                lock (m_LastGetEmailCall)
+                {
+                    m_LastGetEmailCall[to] = Util.GetTimeStamp() + m_QueueTimeout;
                 }
             }
         }
 
         private bool IsLocal(UUID objectID)
         {
-            string unused;
-            return (null != findPrim(objectID, out unused));
+            lock (m_Scenes)
+            {
+                foreach (Scene s in m_Scenes.Values)
+                {
+                    if (s.GetSceneObjectPart(objectID) != null)
+                        return true;
+                }
+            }
+            return false;
         }
 
         private SceneObjectPart findPrim(UUID objectID, out string ObjectRegionName)
@@ -255,7 +268,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 ObjectName = part.Name;
                 return true;
             }
-            ObjectName = ObjectAbsolutePosition = ObjectRegionName = String.Empty;
+            ObjectName = ObjectAbsolutePosition = ObjectRegionName = string.Empty;
             return false;
         }
 
@@ -294,7 +307,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 return;
 
             string objectIDstr = objectID.ToString();
-            if (!address.EndsWith(m_InterObjectHostname))
+            if (!address.EndsWith(m_InterObjectHostname, StringComparison.InvariantCultureIgnoreCase) &&
+                !(m_checkSpecName && address.EndsWith("lsl.secondlife.com", StringComparison.InvariantCultureIgnoreCase)))
             {
                 // regular email, send it out
                 try
@@ -347,7 +361,13 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             }
             else
             {
-                // inter object email, keep it in the family
+                // inter object email
+                int indx = address.IndexOf('@');
+                if (indx < 0)
+                    return;
+                if (!UUID.TryParse(address.Substring(0, indx), out UUID toID))
+                    return;
+
                 Email email = new Email();
                 email.time = Util.UnixTimeSinceEpoch().ToString();
                 email.subject = subject;
@@ -356,9 +376,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
                               LastObjectPosition + "\n\n" + body;
 
-                UUID toID = new UUID(mailTo.Name);
-
-                if (IsLocal(toID)) // TODO FIX check to see if it is local
+                if (IsLocal(toID))
                 {
                     // object in this region
                     InsertEmail(toID, email);
@@ -380,26 +398,16 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
-            List<Email> queue = null;
-
             lock (m_LastGetEmailCall)
             {
-                if (m_LastGetEmailCall.ContainsKey(objectID))
-                {
-                    m_LastGetEmailCall.Remove(objectID);
-                }
+                double now = Util.GetTimeStamp();
+                m_LastGetEmailCall[objectID] = now + m_QueueTimeout;
 
-                m_LastGetEmailCall.Add(objectID, DateTime.Now);
-
-                // Hopefully this isn't too time consuming.  If it is, we can always push it into a worker thread.
-                DateTime now = DateTime.Now;
-                List<UUID> removal = new List<UUID>();
-                foreach (UUID uuid in m_LastGetEmailCall.Keys)
+                List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
+                foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
                 {
-                    if ((now - m_LastGetEmailCall[uuid]) > m_QueueTimeout)
-                    {
-                        removal.Add(uuid);
-                    }
+                    if (kpv.Value < now)
+                        removal.Add(kpv.Key);
                 }
 
                 foreach (UUID remove in removal)
@@ -412,12 +420,10 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 }
             }
 
+            List<Email> queue = null;
             lock (m_MailQueues)
             {
-                if (m_MailQueues.ContainsKey(objectID))
-                {
-                    queue = m_MailQueues[objectID];
-                }
+                m_MailQueues.TryGetValue(objectID, out queue);
             }
 
             if (queue != null)
@@ -426,32 +432,32 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 {
                     if (queue.Count > 0)
                     {
-                        int i;
+                        bool emptySender = string.IsNullOrEmpty(sender);
+                        bool emptySubject = string.IsNullOrEmpty(subject);
 
+                        int i;
+                        Email ret;
                         for (i = 0; i < queue.Count; i++)
                         {
-                            if ((string.IsNullOrEmpty(sender) || sender.Equals(queue[i].sender)) &&
-                                (string.IsNullOrEmpty(subject) || subject.Equals(queue[i].subject)))
+                            ret = queue[i];
+                            if (emptySender || sender.Equals(ret.sender, StringComparison.InvariantCultureIgnoreCase) &&
+                               (emptySubject || subject.Equals(ret.subject, StringComparison.InvariantCultureIgnoreCase)))
                             {
-                                break;
+                                queue.RemoveAt(i);
+                                ret.numLeft = queue.Count;
+                                if (queue.Count == 0)
+                                {
+                                    lock (m_MailQueues)
+                                    {
+                                        m_MailQueues.Remove(objectID);
+                                        lock (m_LastGetEmailCall)
+                                            m_LastGetEmailCall.Remove(objectID);
+                                    }
+                                }
+                                return ret;
                             }
                         }
-
-                        if (i != queue.Count)
-                        {
-                            Email ret = queue[i];
-                            queue.Remove(ret);
-                            ret.numLeft = queue.Count;
-                            return ret;
-                        }
                     }
-                }
-            }
-            else
-            {
-                lock (m_MailQueues)
-                {
-                    m_MailQueues.Add(objectID, new List<Email>());
                 }
             }
             return null;
