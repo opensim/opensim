@@ -68,12 +68,15 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
         private Dictionary<UUID, double> m_LastGetEmailCall = new Dictionary<UUID, double>();
         private double m_QueueTimeout = 30 * 60; // 15min;
+        private double m_nextQueuesExpire;
         private string m_InterObjectHostname = "lsl.opensim.local";
 
         private int m_MaxEmailSize = 4096;  // largest email allowed by default, as per lsl docs.
 
         private static SslPolicyErrors m_SMTP_SslPolicyErrorsMask;
         private bool m_checkSpecName;
+
+        private object m_queuesLock = new object();
 
         // Scenes by Region Handle
         private Dictionary<ulong, Scene> m_Scenes = new Dictionary<ulong, Scene>();
@@ -149,6 +152,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 return;
             }
 
+            m_nextQueuesExpire = Util.GetTimeStamp() + m_QueueTimeout;
             m_Enabled = true;
         }
 
@@ -198,28 +202,49 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         #endregion
 
+        public void AddPartMailBox(UUID objectID)
+        {
+            lock (m_queuesLock)
+            {
+                if (!m_MailQueues.TryGetValue(objectID, out List<Email> elist))
+                {
+                    m_MailQueues[objectID] = null;
+                    //TODO external global
+                }
+            }
+        }
+
+        public void RemovePartMailBox(UUID objectID)
+        {
+            lock (m_queuesLock)
+            {
+                m_LastGetEmailCall.Remove(objectID);
+                if (m_MailQueues.Remove(objectID))
+                {
+                    //TODO external global
+                }
+            }
+        }
+
         public void InsertEmail(UUID to, Email email)
         {
-            lock (m_MailQueues)
+            lock (m_queuesLock)
             {
                 if (m_MailQueues.TryGetValue(to, out List<Email> elist))
                 {
-                    if (elist.Count >= m_MaxQueueSize)
-                        return;
-                    lock (elist)
+                    if(elist == null)
                     {
+                        elist = new List<Email>();
                         elist.Add(email);
+                        m_MailQueues[to] = elist;
                     }
-                }
-                else
-                {
-                    elist = new List<Email>();
-                    elist.Add(email);
-                    m_MailQueues[to] = elist;
-                }
-
-                lock (m_LastGetEmailCall)
-                {
+                    else
+                    {
+                        if (elist.Count >= m_MaxQueueSize)
+                            return;
+                        lock (elist)
+                            elist.Add(email);
+                    }
                     m_LastGetEmailCall[to] = Util.GetTimeStamp() + m_QueueTimeout;
                 }
             }
@@ -398,63 +423,55 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         /// <returns></returns>
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
-            lock (m_LastGetEmailCall)
+            lock (m_queuesLock)
             {
                 double now = Util.GetTimeStamp();
                 m_LastGetEmailCall[objectID] = now + m_QueueTimeout;
 
-                List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
-                foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
+                if( now > m_nextQueuesExpire)
                 {
-                    if (kpv.Value < now)
-                        removal.Add(kpv.Key);
-                }
-
-                foreach (UUID remove in removal)
-                {
-                    m_LastGetEmailCall.Remove(remove);
-                    lock (m_MailQueues)
+                    List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
+                    foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
                     {
-                        m_MailQueues.Remove(remove);
+                        if (kpv.Value < now)
+                            removal.Add(kpv.Key);
                     }
-                }
-            }
 
-            List<Email> queue = null;
-            lock (m_MailQueues)
-            {
-                m_MailQueues.TryGetValue(objectID, out queue);
-            }
-
-            if (queue != null)
-            {
-                lock (queue)
-                {
-                    if (queue.Count > 0)
+                    foreach (UUID remove in removal)
                     {
-                        bool emptySender = string.IsNullOrEmpty(sender);
-                        bool emptySubject = string.IsNullOrEmpty(subject);
+                        m_LastGetEmailCall.Remove(remove);
+                        m_MailQueues[remove] = null;
+                    }
+                    m_nextQueuesExpire = now + m_QueueTimeout;
+                }
 
-                        int i;
-                        Email ret;
-                        for (i = 0; i < queue.Count; i++)
+                m_MailQueues.TryGetValue(objectID, out List<Email> queue);
+                if (queue != null)
+                {
+                    lock (queue)
+                    {
+                        if (queue.Count > 0)
                         {
-                            ret = queue[i];
-                            if (emptySender || sender.Equals(ret.sender, StringComparison.InvariantCultureIgnoreCase) &&
-                               (emptySubject || subject.Equals(ret.subject, StringComparison.InvariantCultureIgnoreCase)))
+                            bool emptySender = string.IsNullOrEmpty(sender);
+                            bool emptySubject = string.IsNullOrEmpty(subject);
+
+                            int i;
+                            Email ret;
+                            for (i = 0; i < queue.Count; i++)
                             {
-                                queue.RemoveAt(i);
-                                ret.numLeft = queue.Count;
-                                if (queue.Count == 0)
+                                ret = queue[i];
+                                if (emptySender || sender.Equals(ret.sender, StringComparison.InvariantCultureIgnoreCase) &&
+                                   (emptySubject || subject.Equals(ret.subject, StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    lock (m_MailQueues)
+                                    queue.RemoveAt(i);
+                                    ret.numLeft = queue.Count;
+                                    if (queue.Count == 0)
                                     {
-                                        m_MailQueues.Remove(objectID);
-                                        lock (m_LastGetEmailCall)
-                                            m_LastGetEmailCall.Remove(objectID);
+                                        m_MailQueues[objectID] = null;
+                                        m_LastGetEmailCall.Remove(objectID);
                                     }
+                                    return ret;
                                 }
-                                return ret;
                             }
                         }
                     }

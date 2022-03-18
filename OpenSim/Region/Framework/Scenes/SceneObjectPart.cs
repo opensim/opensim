@@ -3106,6 +3106,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if((ev & (scriptEvents.anyTarget)) != 0 && ParentGroup != null)
                             ParentGroup.RemoveScriptTargets(scriptid);
+                    if ((AggregatedScriptEvents & scriptEvents.email) != 0)
+                    {
+                        IEmailModule scriptEmail = ParentGroup.Scene.RequestModuleInterface<IEmailModule>();
+                        if (scriptEmail != null)
+                            scriptEmail.RemovePartMailBox(UUID);
+                    }
                     m_scriptEvents.Remove(scriptid);
                     aggregateScriptEvents();
                 }
@@ -5384,7 +5390,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_localFlags = (PrimFlags)objectflagupdate;
 
-            if (ParentGroup != null && ParentGroup.RootPart == this)
+            if ((AggregatedScriptEvents & scriptEvents.email) != 0)
+            {
+                IEmailModule imm = ParentGroup.Scene.RequestModuleInterface<IEmailModule>();
+                if (imm != null)
+                    imm.AddPartMailBox(UUID);
+            }
+
+            if (ParentGroup.RootPart == this)
             {
                 ParentGroup.aggregateScriptEvents();
             }

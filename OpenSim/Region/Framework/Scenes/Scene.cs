@@ -2872,6 +2872,12 @@ namespace OpenSim.Region.Framework.Scenes
                     part.KeyframeMotion = null;
                 }
 
+                if ((part.AggregatedScriptEvents & scriptEvents.email) != 0)
+                {
+                    IEmailModule imm = RequestModuleInterface<IEmailModule>();
+                    if (imm != null)
+                        imm.RemovePartMailBox(part.UUID);
+                }
                 if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
                 {
                     PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
