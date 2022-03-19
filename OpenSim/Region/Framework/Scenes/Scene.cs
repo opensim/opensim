@@ -785,25 +785,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.PhysicsScene; }
             set
             {
-                // If we're not doing the initial set
-                // Then we've got to remove the previous
-                // event handler
-                if (PhysicsScene != null && PhysicsScene.SupportsNINJAJoints)
-                {
-                    PhysicsScene.OnJointMoved -= jointMoved;
-                    PhysicsScene.OnJointDeactivated -= jointDeactivated;
-                    PhysicsScene.OnJointErrorMessage -= jointErrorMessage;
-                }
-
                 m_sceneGraph.PhysicsScene = value;
-
-                if (PhysicsScene != null && m_sceneGraph.PhysicsScene.SupportsNINJAJoints)
-                {
-                    // register event handlers to respond to joint movement/deactivation
-                    PhysicsScene.OnJointMoved += jointMoved;
-                    PhysicsScene.OnJointDeactivated += jointDeactivated;
-                    PhysicsScene.OnJointErrorMessage += jointErrorMessage;
-                }
             }
         }
 
@@ -2878,11 +2860,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (imm != null)
                         imm.RemovePartMailBox(part.UUID);
                 }
-                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
-                {
-                    PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
-                }
-                else if (part.PhysActor != null)
+                if (part.PhysActor != null)
                 {
                     part.RemoveFromPhysics();
                 }
@@ -2991,6 +2969,7 @@ namespace OpenSim.Region.Framework.Scenes
         // This test is mostly used to see if a region crossing is necessary.
         // Assuming the position is relative to the region so anything outside its bounds.
         // Return 'true' if position inside region.
+
         public bool PositionIsInCurrentRegion(Vector3 pos)
         {
             float t = pos.X;
@@ -5630,139 +5609,6 @@ Environment.Exit(1);
             return health;
         }
 
-        // This callback allows the PhysicsScene to call back to its caller (the SceneGraph) and
-        // update non-physical objects like the joint proxy objects that represent the position
-        // of the joints in the scene.
-
-        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
-        // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
-        // from within the OdePhysicsScene.
-
-        protected internal void jointMoved(PhysicsJoint joint)
-        {
-            // m_parentScene.PhysicsScene.DumpJointInfo(); // non-thread-locked version; we should already be in a lock (OdeLock) when this callback is invoked
-            SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
-            if (jointProxyObject == null)
-            {
-                jointErrorMessage(joint, "WARNING, joint proxy not found, name " + joint.ObjectNameInScene);
-                return;
-            }
-
-            // now update the joint proxy object in the scene to have the position of the joint as returned by the physics engine
-            SceneObjectPart trackedBody = GetSceneObjectPart(joint.TrackedBodyName); // FIXME: causes a sequential lookup
-            if (trackedBody == null) return; // the actor may have been deleted but the joint still lingers around a few frames waiting for deletion. during this time, trackedBody is NULL to prevent further motion of the joint proxy.
-            jointProxyObject.Velocity = trackedBody.Velocity;
-            jointProxyObject.AngularVelocity = trackedBody.AngularVelocity;
-            switch (joint.Type)
-            {
-                case PhysicsJointType.Ball:
-                    {
-                        Vector3 jointAnchor = PhysicsScene.GetJointAnchor(joint);
-                        Vector3 proxyPos = jointAnchor;
-                        jointProxyObject.ParentGroup.UpdateGroupPosition(proxyPos); // schedules the entire group for a terse update
-                    }
-                    break;
-
-                case PhysicsJointType.Hinge:
-                    {
-                        Vector3 jointAnchor = PhysicsScene.GetJointAnchor(joint);
-
-                        // Normally, we would just ask the physics scene to return the axis for the joint.
-                        // Unfortunately, ODE sometimes returns <0,0,0> for the joint axis, which should
-                        // never occur. Therefore we cannot rely on ODE to always return a correct joint axis.
-                        // Therefore the following call does not always work:
-                        //PhysicsVector phyJointAxis = _PhyScene.GetJointAxis(joint);
-
-                        // instead we compute the joint orientation by saving the original joint orientation
-                        // relative to one of the jointed bodies, and applying this transformation
-                        // to the current position of the jointed bodies (the tracked body) to compute the
-                        // current joint orientation.
-
-                        if (joint.TrackedBodyName == null)
-                        {
-                            jointErrorMessage(joint, "joint.TrackedBodyName is null, joint " + joint.ObjectNameInScene);
-                        }
-
-                        Vector3 proxyPos = jointAnchor;
-                        Quaternion q = trackedBody.RotationOffset * joint.LocalRotation;
-
-                        jointProxyObject.ParentGroup.UpdateGroupPosition(proxyPos); // schedules the entire group for a terse update
-                        jointProxyObject.ParentGroup.UpdateGroupRotationR(q); // schedules the entire group for a terse update
-                    }
-                    break;
-            }
-        }
-
-        // This callback allows the PhysicsScene to call back to its caller (the SceneGraph) and
-        // update non-physical objects like the joint proxy objects that represent the position
-        // of the joints in the scene.
-
-        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
-        // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
-        // from within the OdePhysicsScene.
-        protected internal void jointDeactivated(PhysicsJoint joint)
-        {
-            //m_log.Debug("[NINJA] SceneGraph.jointDeactivated, joint:" + joint.ObjectNameInScene);
-            SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
-            if (jointProxyObject == null)
-            {
-                jointErrorMessage(joint, "WARNING, trying to deactivate (stop interpolation of) joint proxy, but not found, name " + joint.ObjectNameInScene);
-                return;
-            }
-
-            // turn the proxy non-physical, which also stops its client-side interpolation
-            bool wasUsingPhysics = ((jointProxyObject.Flags & PrimFlags.Physics) != 0);
-            if (wasUsingPhysics)
-            {
-                jointProxyObject.UpdatePrimFlags(false, false, true, false,false); // FIXME: possible deadlock here; check to make sure all the scene alterations set into motion here won't deadlock
-            }
-        }
-
-        // This callback allows the PhysicsScene to call back to its caller (the SceneGraph) and
-        // alert the user of errors by using the debug channel in the same way that scripts alert
-        // the user of compile errors.
-
-        // This routine is normally called from within a lock (OdeLock) from within the OdePhysicsScene
-        // WARNING: be careful of deadlocks here if you manipulate the scene. Remember you are being called
-        // from within the OdePhysicsScene.
-        public void jointErrorMessage(PhysicsJoint joint, string message)
-        {
-            if (joint != null)
-            {
-                if (joint.ErrorMessageCount > PhysicsJoint.maxErrorMessages)
-                    return;
-
-                SceneObjectPart jointProxyObject = GetSceneObjectPart(joint.ObjectNameInScene);
-                if (jointProxyObject != null)
-                {
-                    SimChat(Utils.StringToBytes("[NINJA]: " + message),
-                        ChatTypeEnum.DebugChannel,
-                        2147483647,
-                        jointProxyObject.AbsolutePosition,
-                        jointProxyObject.Name,
-                        jointProxyObject.UUID,
-                        false);
-
-                    joint.ErrorMessageCount++;
-
-                    if (joint.ErrorMessageCount > PhysicsJoint.maxErrorMessages)
-                    {
-                        SimChat(Utils.StringToBytes("[NINJA]: Too many messages for this joint, suppressing further messages."),
-                            ChatTypeEnum.DebugChannel,
-                            2147483647,
-                            jointProxyObject.AbsolutePosition,
-                            jointProxyObject.Name,
-                            jointProxyObject.UUID,
-                            false);
-                    }
-                }
-                else
-                {
-                    // couldn't find the joint proxy object; the error message is silently suppressed
-                }
-            }
-        }
-
         public Scene ConsoleScene()
         {
             if (MainConsole.Instance == null)
@@ -6109,40 +5955,40 @@ Environment.Exit(1);
                 mapModule.GenerateMaptile();
         }
 
-//        public void CleanDroppedAttachments()
-//        {
-//            List<SceneObjectGroup> objectsToDelete =
-//                    new List<SceneObjectGroup>();
-//
-//            lock (m_cleaningAttachments)
-//            {
-//                ForEachSOG(delegate (SceneObjectGroup grp)
-//                        {
-//                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
-//                            {
-//                                UUID agentID = grp.OwnerID;
-//                                if (agentID == UUID.Zero)
-//                                {
-//                                    objectsToDelete.Add(grp);
-//                                    return;
-//                                }
-//
-//                                ScenePresence sp = GetScenePresence(agentID);
-//                                if (sp == null)
-//                                {
-//                                    objectsToDelete.Add(grp);
-//                                    return;
-//                                }
-//                            }
-//                        });
-//            }
-//
-//            foreach (SceneObjectGroup grp in objectsToDelete)
-//            {
-//                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
-//                DeleteSceneObject(grp, true);
-//            }
-//        }
+        //        public void CleanDroppedAttachments()
+        //        {
+        //            List<SceneObjectGroup> objectsToDelete =
+        //                    new List<SceneObjectGroup>();
+        //
+        //            lock (m_cleaningAttachments)
+        //            {
+        //                ForEachSOG(delegate (SceneObjectGroup grp)
+        //                        {
+        //                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
+        //                            {
+        //                                UUID agentID = grp.OwnerID;
+        //                                if (agentID.IsZero())
+        //                                {
+        //                                    objectsToDelete.Add(grp);
+        //                                    return;
+        //                                }
+        //
+        //                                ScenePresence sp = GetScenePresence(agentID);
+        //                                if (sp == null)
+        //                                {
+        //                                    objectsToDelete.Add(grp);
+        //                                    return;
+        //                                }
+        //                            }
+        //                        });
+        //            }
+        //
+        //            foreach (SceneObjectGroup grp in objectsToDelete)
+        //            {
+        //                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+        //                DeleteSceneObject(grp, true);
+        //            }
+        //        }
 
         public void ThreadAlive(int threadCode)
         {
