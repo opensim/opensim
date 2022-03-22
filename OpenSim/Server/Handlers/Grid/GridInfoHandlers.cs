@@ -147,6 +147,7 @@ namespace OpenSim.Server.Handlers.Grid
                 osb.AppendASCII('>');
             }
             osb.AppendASCII("</gridinfo>");
+            httpResponse.ContentType = "application/xml";
             httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(osb);
         }
 
@@ -196,7 +197,7 @@ namespace OpenSim.Server.Handlers.Grid
                 if (!string.IsNullOrEmpty(HomeURI))
                     map["home"] = OSD.FromString(HomeURI);
             }
-
+            httpResponse.ContentType = "application/json";
             httpResponse.RawBuffer =  OSDParser.SerializeJsonToBytes(map);
         }
     }
