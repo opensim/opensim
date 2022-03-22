@@ -26,22 +26,22 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 using System;
 using System.Xml;
 
-namespace Prebuild.Core.Interfaces 
+namespace Prebuild.Core.Interfaces
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public interface IDataNode 
-	{
-		/// <summary>
-		/// Gets or sets the parent.
-		/// </summary>
-		/// <value>The parent.</value>
-		IDataNode Parent { get; set; }        
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		void Parse(XmlNode node);
-	}
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IDataNode
+    {
+        /// <summary>
+        /// Gets or sets the parent.
+        /// </summary>
+        /// <value>The parent.</value>
+        IDataNode Parent { get; set; }
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        void Parse(XmlNode node);
+    }
 }

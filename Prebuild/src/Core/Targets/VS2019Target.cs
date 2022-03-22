@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 
@@ -124,9 +124,9 @@ namespace Prebuild.Core.Targets
                 case FrameworkVersion.v3_5:
                     return "ToolsVersion=\"4.0\"";
                 case FrameworkVersion.v3_0:
-                return "ToolsVersion=\"3.0\"";
-            default:
-                return "ToolsVersion=\"2.0\"";
+                    return "ToolsVersion=\"3.0\"";
+                default:
+                    return "ToolsVersion=\"2.0\"";
             }
         }
 

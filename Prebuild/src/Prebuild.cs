@@ -42,50 +42,50 @@ using System.EnterpriseServices.Internal;
 using Prebuild.Core;
 using Prebuild.Core.Utilities;
 
-namespace Prebuild 
+namespace Prebuild
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	class Prebuild
-	{
-		#region	Main
+    /// <summary>
+    /// 
+    /// </summary>
+    class Prebuild
+    {
+        #region	Main
 
-		[STAThread]
-		static void	Main(string[] args)	
-		{
-			Kernel	kernel = null;
-			try	
-			{
-				kernel = Kernel.Instance;
-				kernel.Initialize(LogTargets.File | LogTargets.Console, args);
-				bool exit =	false;
+        [STAThread]
+        static void Main(string[] args)
+        {
+            Kernel kernel = null;
+            try
+            {
+                kernel = Kernel.Instance;
+                kernel.Initialize(LogTargets.File | LogTargets.Console, args);
+                bool exit = false;
 
-				if(kernel.CommandLine.WasPassed("usage")) 
-				{
-					exit = true;
-					OutputUsage();
-				}
-				if(kernel.CommandLine.WasPassed("showtargets"))	
-				{
-					exit = true;
-					OutputTargets(kernel);
-				}
-				if(kernel.CommandLine.WasPassed("install")) 
-				{
-					exit = true;
-					InstallAssembly(kernel);
-				}
-				if(kernel.CommandLine.WasPassed("remove")) 
-				{
-					exit = true;
-					RemoveAssembly(kernel);
-				}
+                if (kernel.CommandLine.WasPassed("usage"))
+                {
+                    exit = true;
+                    OutputUsage();
+                }
+                if (kernel.CommandLine.WasPassed("showtargets"))
+                {
+                    exit = true;
+                    OutputTargets(kernel);
+                }
+                if (kernel.CommandLine.WasPassed("install"))
+                {
+                    exit = true;
+                    InstallAssembly(kernel);
+                }
+                if (kernel.CommandLine.WasPassed("remove"))
+                {
+                    exit = true;
+                    RemoveAssembly(kernel);
+                }
 
-				if(!exit)
-				{
-					kernel.Process();
-				}
+                if (!exit)
+                {
+                    kernel.Process();
+                }
             }
 #if !DEBUG
             catch (Exception ex)
@@ -96,70 +96,70 @@ namespace Prebuild
 #endif
             finally
             {
-				if(kernel != null && kernel.PauseAfterFinish)	
-				{
-					Console.WriteLine("\nPress enter to continue...");
-					Console.ReadLine();
-				}
-			}
-		}
+                if (kernel != null && kernel.PauseAfterFinish)
+                {
+                    Console.WriteLine("\nPress enter to continue...");
+                    Console.ReadLine();
+                }
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region	Private	Methods
+        #region	Private	Methods
 
-		private static void InstallAssembly(Kernel kernel)
-		{
-			Publish publish = new Publish();
-			string file = kernel.CommandLine["install"];
+        private static void InstallAssembly(Kernel kernel)
+        {
+            Publish publish = new Publish();
+            string file = kernel.CommandLine["install"];
             //Console.WriteLine(".."+file+"..");
-			publish.GacInstall(file);
-		}
+            publish.GacInstall(file);
+        }
 
-		private static void RemoveAssembly(Kernel kernel)
-		{
-			Publish publish = new Publish();
-			string file = kernel.CommandLine["remove"];
-			publish.GacRemove(file);
-		}
+        private static void RemoveAssembly(Kernel kernel)
+        {
+            Publish publish = new Publish();
+            string file = kernel.CommandLine["remove"];
+            publish.GacRemove(file);
+        }
 
-		private	static void	OutputUsage() 
-		{
-			Console.WriteLine("Usage: prebuild /target <target> [options]");
-			Console.WriteLine("Available command-line switches:");
-			Console.WriteLine();
-			Console.WriteLine("/target          Target for Prebuild");
-			Console.WriteLine("/clean           Clean the build files for the given target");
-			Console.WriteLine("/file            XML file to process");
-			Console.WriteLine("/log             Log file to write to");
-			Console.WriteLine("/ppo             Pre-process the file, but perform no other processing");
-			Console.WriteLine("/pause           Pauses the application after execution to view the output");
-			Console.WriteLine("/yes             Default to yes to any questions asked");
-			Console.WriteLine("/install         Install assembly into the GAC");
-			Console.WriteLine("/remove          Remove assembly from the GAC");
-			Console.WriteLine();
-			Console.WriteLine("See 'prebuild /showtargets for a list of available targets");
-			Console.WriteLine("See readme.txt or check out http://dnpb.sourceforge.net for more information");
-			Console.WriteLine();
-		}
+        private static void OutputUsage()
+        {
+            Console.WriteLine("Usage: prebuild /target <target> [options]");
+            Console.WriteLine("Available command-line switches:");
+            Console.WriteLine();
+            Console.WriteLine("/target          Target for Prebuild");
+            Console.WriteLine("/clean           Clean the build files for the given target");
+            Console.WriteLine("/file            XML file to process");
+            Console.WriteLine("/log             Log file to write to");
+            Console.WriteLine("/ppo             Pre-process the file, but perform no other processing");
+            Console.WriteLine("/pause           Pauses the application after execution to view the output");
+            Console.WriteLine("/yes             Default to yes to any questions asked");
+            Console.WriteLine("/install         Install assembly into the GAC");
+            Console.WriteLine("/remove          Remove assembly from the GAC");
+            Console.WriteLine();
+            Console.WriteLine("See 'prebuild /showtargets for a list of available targets");
+            Console.WriteLine("See readme.txt or check out http://dnpb.sourceforge.net for more information");
+            Console.WriteLine();
+        }
 
-		private	static void	OutputTargets(Kernel kern)
-		{
-			Console.WriteLine("Targets available in Prebuild:");
-			Console.WriteLine("");
-			if(kern.Targets.Keys.Count > 0)
-			{
-				string[] targs = new string[kern.Targets.Keys.Count];
-				kern.Targets.Keys.CopyTo(targs,	0);
-				Array.Sort(targs);
-				foreach(string target in targs)
-				{
-					Console.WriteLine(target);
-				}
-			}
-			Console.WriteLine("");
-		}
-		
-		#endregion
-	}
+        private static void OutputTargets(Kernel kern)
+        {
+            Console.WriteLine("Targets available in Prebuild:");
+            Console.WriteLine("");
+            if (kern.Targets.Keys.Count > 0)
+            {
+                string[] targs = new string[kern.Targets.Keys.Count];
+                kern.Targets.Keys.CopyTo(targs, 0);
+                Array.Sort(targs);
+                foreach (string target in targs)
+                {
+                    Console.WriteLine(target);
+                }
+            }
+            Console.WriteLine("");
+        }
+
+        #endregion
+    }
 }

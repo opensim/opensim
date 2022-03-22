@@ -123,5 +123,5 @@ echo.
 if %framework%==4_5 set %vstudio%=2012
 
 echo Calling Prebuild for target %vstudio% with framework %framework%...
-Prebuild.exe /target vs%vstudio% /targetframework v%framework% /conditionals ISWIN;NET_%framework%
+..\bin\Prebuild.exe /target vs%vstudio% /targetframework v%framework% /conditionals ISWIN;NET_%framework%
 

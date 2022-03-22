@@ -28,41 +28,41 @@ using System.Collections.Generic;
 
 namespace Prebuild.Core.Utilities
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public class CurrentDirectory
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public class CurrentDirectory
+    {
+        #region Fields
 
-		private readonly Stack<string> m_Stack = new Stack<string>();
+        private readonly Stack<string> m_Stack = new Stack<string>();
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Pushes this instance.
-		/// </summary>
-		public void Push()
-		{
-			m_Stack.Push(Environment.CurrentDirectory);
-		}
+        /// <summary>
+        /// Pushes this instance.
+        /// </summary>
+        public void Push()
+        {
+            m_Stack.Push(Environment.CurrentDirectory);
+        }
 
-		/// <summary>
-		/// Pops this instance.
-		/// </summary>
-		public void Pop()
-		{
-			if(m_Stack.Count < 1)
-			{
-				return;
-			}
-            
-			string cwd = m_Stack.Pop();
-			Helper.SetCurrentDir(cwd);
-		}
+        /// <summary>
+        /// Pops this instance.
+        /// </summary>
+        public void Pop()
+        {
+            if (m_Stack.Count < 1)
+            {
+                return;
+            }
 
-		#endregion
-	}
+            string cwd = m_Stack.Pop();
+            Helper.SetCurrentDir(cwd);
+        }
+
+        #endregion
+    }
 }

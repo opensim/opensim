@@ -29,11 +29,11 @@ using Prebuild.Core.Attributes;
 
 namespace Prebuild.Core.Targets
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[Target("sharpdev2")]
-	public class SharpDevelop2Target : VS2005Target
+    /// <summary>
+    /// 
+    /// </summary>
+    [Target("sharpdev2")]
+    public class SharpDevelop2Target : VS2005Target
     {
         #region Properties
         public override string VersionName
@@ -45,38 +45,38 @@ namespace Prebuild.Core.Targets
         }
         #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Writes the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Write(Kernel kern)
-		{
-			base.Write(kern);
-		}
+        /// <summary>
+        /// Writes the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public override void Write(Kernel kern)
+        {
+            base.Write(kern);
+        }
 
-		/// <summary>
-		/// Cleans the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Clean(Kernel kern)
-		{
-			base.Clean(kern);
-		}
+        /// <summary>
+        /// Cleans the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public override void Clean(Kernel kern)
+        {
+            base.Clean(kern);
+        }
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public override string Name
-		{
-			get
-			{
-				return "sharpdev2";
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public override string Name
+        {
+            get
+            {
+                return "sharpdev2";
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

@@ -32,31 +32,31 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Exclude")]
-	public class ExcludeNode : DataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Exclude")]
+    public class ExcludeNode : DataNode
+    {
+        #region Fields
 
         private string m_Pattern = "";
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name
-		{
-			get
-			{
-				return m_Pattern;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Pattern;
+            }
+        }
 
         /// <summary>
         /// Gets the pattern.
@@ -72,18 +72,18 @@ namespace Prebuild.Core.Nodes
 
         #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-            m_Pattern = Helper.AttributeValue( node, "name", m_Pattern );
-            m_Pattern = Helper.AttributeValue(node, "pattern", m_Pattern );
-		}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            m_Pattern = Helper.AttributeValue(node, "name", m_Pattern);
+            m_Pattern = Helper.AttributeValue(node, "pattern", m_Pattern);
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
