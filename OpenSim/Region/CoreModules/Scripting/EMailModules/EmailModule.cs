@@ -484,6 +484,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     }
 
                     mmsg.To.Add(mailTo);
+                    mmsg.Headers["X-Owner-ID"] = ownerID.ToString();
+                    mmsg.Headers["X-Task-ID"] = objectIDstr;
                     mmsg.Body = new TextPart("plain") {
                         Text = "Object-Name: " + LastObjectName +
                               "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
