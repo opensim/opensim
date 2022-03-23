@@ -753,8 +753,9 @@ namespace Prebuild.Core.Targets
                 WriteProjectReferencesDotNet(solution, project, ps);
 
                 ps.WriteLine("</Project>");
+                #endregion
+          
             }
-            #endregion
         }
 
         private void WriteProjectReferencesDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
@@ -807,7 +808,28 @@ namespace Prebuild.Core.Targets
                             ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
                         }
                     }
-
+                    else
+                    {
+                        // this may be wrong
+                        // Use absolute path to assembly (for determining assembly type)
+                        string absolutePath = Path.Combine(project.FullPath, MakeRefPath(project));
+                        if (File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "exe")))
+                        {
+                            // Assembly is an executable (exe)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(absolutePath, refr.Name, "exe"));
+                        }
+                        else if (File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "dll")))
+                        {
+                            // Assembly is an library (dll)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(absolutePath, refr.Name, "dll"));
+                        }
+                        else
+                        {
+                            // string referencePath = Helper.MakeFilePath(refr.Path, refr.Name, "dll");
+                            // kernel.Log.Write(LogType.Warning, "Reference \"{0}\": The specified file doesn't exist.", referencePath);
+                            // ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(absolutePath, refr.Name, "dll"));
+                        }
+                    }
                     ps.WriteLine("		<Private>{0}</Private>", refr.LocalCopy);
                     ps.WriteLine("	  </Reference>");
                 }
