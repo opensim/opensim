@@ -574,66 +574,6 @@ namespace Prebuild.Core.Targets
             #endregion
         }
 
-        private void WriteProjectDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
-        {
-            #region Project File
-            using (ps)
-            {
-                ps.WriteLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
-                ps.WriteLine();
-
-                ps.WriteLine("  <PropertyGroup>");
-                ps.WriteLine("    <TargetFramework>{0}</TargetFramework>", project.FrameworkVersion.ToString().Replace("_", "."));
-                ps.WriteLine("    <AssemblyName>{0}</AssemblyName>", project.Name);
-                ps.WriteLine("  </PropertyGroup>");
-                ps.WriteLine();
-
-                // For .NET5/6 files, the Configuration section does not specify a build target
-                //     so here we look for the "unknown" target type for the specified parameters.
-                foreach (ConfigurationNode conf in project.Configurations)
-                {
-                    if (conf.Name == "unknown")
-                    {
-                        ps.WriteLine("  <PropertyGroup>");
-                        foreach (string opt in conf.Options.AllDefined())
-                        {
-                            ps.WriteLine("    <{0}>{1}</{0}>", opt,
-                                 Helper.EndPath(Helper.NormalizePath(conf.Options[opt].ToString())));
-                        }
-                        ps.WriteLine("  </PropertyGroup>");
-                        ps.WriteLine();
-                    }
-                }
-
-                if (project.ProjectReferences.Count > 0)
-                {
-                    ps.WriteLine("  <ItemGroup>");
-                    foreach (ProjectReferenceNode refer in project.ProjectReferences)
-                    {
-                        ps.WriteLine("    <ProjectReference Include=\"{0}\" />", refer.Include);
-                    }
-                    ps.WriteLine("  </ItemGroup>");
-                    ps.WriteLine();
-                }
-                if (project.PackageReferences.Count > 0)
-                {
-                    ps.WriteLine("  <ItemGroup>");
-                    foreach (PackageReferenceNode pack in project.PackageReferences)
-                    {
-                        ps.WriteLine("    <PackageReference Include=\"{0}\" Version=\"{1}\" />",
-                            pack.Name, pack.Version);
-                    }
-                    ps.WriteLine("  </ItemGroup>");
-                    ps.WriteLine();
-                }
-                // Output the ItemGroup for project.References
-                WriteProjectReferences(solution, project, ps);
-
-                ps.WriteLine("</Project>");
-            }
-            #endregion
-        }
-
         private void WriteProjectReferences(SolutionNode solution, ProjectNode project, StreamWriter ps)
         {
             Dictionary<ReferenceNode, ProjectNode> projectReferences = new Dictionary<ReferenceNode, ProjectNode>();
@@ -716,6 +656,179 @@ namespace Prebuild.Core.Targets
                     ps.WriteLine("		<Private>{0}</Private>", pair.Key.LocalCopy);
 
                     ps.WriteLine("	  </ProjectReference>");
+                }
+                ps.WriteLine("	</ItemGroup>");
+                ps.WriteLine();
+            }
+        }
+
+        private void WriteProjectDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
+        {
+            #region Project File
+            using (ps)
+            {
+                ps.WriteLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
+                ps.WriteLine();
+
+                ps.WriteLine("  <PropertyGroup>");
+                ps.WriteLine("    <TargetFramework>{0}</TargetFramework>", project.FrameworkVersion.ToString().Replace("_", "."));
+                ps.WriteLine("    <OutputType>{0}</OutputType>", project.Type == ProjectType.Web ? ProjectType.Library.ToString() : project.Type.ToString());
+                ps.WriteLine("    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>");
+                ps.WriteLine("    <RuntimeFrameworkVersion>5.0.0</RuntimeFrameworkVersion>");
+                ps.WriteLine("    <ImplicitUsings>disable</ImplicitUsings>");
+                ps.WriteLine("    <AssemblyName>{0}</AssemblyName>", project.AssemblyName);
+                ps.WriteLine("    <Deterministic>true</Deterministic>");
+                ps.WriteLine("  </PropertyGroup>");
+                ps.WriteLine();
+
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
+                    if (conf.Name == "unknown")
+                    {
+                        ps.WriteLine("  <PropertyGroup>");
+                        foreach (string opt in conf.Options.AllDefined())
+                        {
+                            ps.WriteLine("    <{0}>{1}</{0}>", opt,
+                                 Helper.EndPath(Helper.NormalizePath(conf.Options[opt].ToString())));
+                        }
+                        ps.WriteLine("  </PropertyGroup>");
+                        ps.WriteLine();
+                    }
+                    else
+                    {
+                        ps.Write("	<PropertyGroup ");
+                        ps.WriteLine("Condition=\" '$(Configuration)|$(Platform)' == '{0}|{1}' \">", conf.Name, conf.Platform);
+                        ps.WriteLine("	  <AllowUnsafeBlocks>{0}</AllowUnsafeBlocks>", conf.Options["AllowUnsafe"]);
+                        ps.WriteLine("	  <BaseAddress>{0}</BaseAddress>", conf.Options["BaseAddress"]);
+                        if ((bool)conf.Options["CheckUnderflowOverflow"])
+                            ps.WriteLine("	  <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>");
+                        ps.WriteLine("	  <ConfigurationOverrideFile>");
+                        ps.WriteLine("	  </ConfigurationOverrideFile>");
+                        ps.WriteLine("	  <DefineConstants>{0}</DefineConstants>",
+                            conf.Options["CompilerDefines"].ToString() == "" ? this.kernel.ForcedConditionals : conf.Options["CompilerDefines"] + ";" + kernel.ForcedConditionals);
+                        ps.WriteLine("	  <DocumentationFile>{0}</DocumentationFile>", Helper.NormalizePath(conf.Options["XmlDocFile"].ToString()));
+                        ps.WriteLine("	  <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
+                        ps.WriteLine("	  <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
+                        ps.WriteLine("	  <Optimize>{0}</Optimize>", conf.Options["OptimizeCode"]);
+                        if (project.Type != ProjectType.Web)
+                            ps.WriteLine("	  <OutputPath>{0}</OutputPath>",
+                                         Helper.EndPath(Helper.NormalizePath(conf.Options["OutputPath"].ToString())));
+                        else
+                            ps.WriteLine("	  <OutputPath>{0}</OutputPath>",
+                                         Helper.EndPath(Helper.NormalizePath("bin\\")));
+
+                        ps.WriteLine("	  <RegisterForComInterop>{0}</RegisterForComInterop>", conf.Options["RegisterComInterop"]);
+                        ps.WriteLine("	  <RemoveIntegerChecks>{0}</RemoveIntegerChecks>", conf.Options["RemoveIntegerChecks"]);
+                        ps.WriteLine("	  <TreatWarningsAsErrors>{0}</TreatWarningsAsErrors>", conf.Options["WarningsAsErrors"]);
+                        ps.WriteLine("	  <WarningLevel>{0}</WarningLevel>", conf.Options["WarningLevel"]);
+                        ps.WriteLine("	  <NoStdLib>{0}</NoStdLib>", conf.Options["NoStdLib"]);
+                        ps.WriteLine("	  <NoWarn>{0}</NoWarn>", conf.Options["SuppressWarnings"]);
+                        ps.WriteLine("	  <PlatformTarget>{0}</PlatformTarget>", conf.Platform);
+                        ps.WriteLine("	</PropertyGroup>");
+                    }
+                }
+
+                if (project.ProjectReferences.Count > 0)
+                {
+                    ps.WriteLine("  <ItemGroup>");
+                    foreach (ProjectReferenceNode refer in project.ProjectReferences)
+                    {
+                        ps.WriteLine("    <ProjectReference Include=\"{0}\" />", refer.Include);
+                    }
+                    ps.WriteLine("  </ItemGroup>");
+                    ps.WriteLine();
+                }
+                if (project.PackageReferences.Count > 0)
+                {
+                    ps.WriteLine("  <ItemGroup>");
+                    foreach (PackageReferenceNode pack in project.PackageReferences)
+                    {
+                        ps.WriteLine("    <PackageReference Include=\"{0}\" Version=\"{1}\" />",
+                            pack.Name, pack.Version);
+                    }
+                    ps.WriteLine("  </ItemGroup>");
+                    ps.WriteLine();
+                }
+                // Output the ItemGroup for project.References
+                WriteProjectReferencesDotNet(solution, project, ps);
+
+                ps.WriteLine("</Project>");
+            }
+            #endregion
+        }
+
+        private void WriteProjectReferencesDotNet(SolutionNode solution, ProjectNode project, StreamWriter ps)
+        {
+            Dictionary<ReferenceNode, ProjectNode> projectReferences = new Dictionary<ReferenceNode, ProjectNode>();
+            List<ReferenceNode> otherReferences = new List<ReferenceNode>();
+
+            foreach (ReferenceNode refr in project.References)
+            {
+                ProjectNode projectNode = FindProjectInSolution(refr.Name, solution);
+
+                if (projectNode == null)
+                    otherReferences.Add(refr);
+                else
+                    projectReferences.Add(refr, projectNode);
+            }
+            // Assembly References
+            if (otherReferences.Count > 0)
+            {
+                ps.WriteLine("	<ItemGroup>");
+
+                foreach (ReferenceNode refr in otherReferences)
+                {
+                    ps.Write("	  <Reference");
+                    ps.Write(" Include=\"");
+                    ps.Write(refr.Name);
+                    ps.WriteLine("\" >");
+                    ps.Write("		  <Name>");
+                    ps.Write(refr.Name);
+                    ps.WriteLine("</Name>");
+
+                    if (!String.IsNullOrEmpty(refr.Path))
+                    {
+                        // Use absolute path to assembly (for determining assembly type)
+                        string absolutePath = Path.Combine(project.FullPath, refr.Path);
+                        if (File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "exe")))
+                        {
+                            // Assembly is an executable (exe)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "exe"));
+                        }
+                        else if (File.Exists(Helper.MakeFilePath(absolutePath, refr.Name, "dll")))
+                        {
+                            // Assembly is an library (dll)
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
+                        }
+                        else
+                        {
+                            string referencePath = Helper.MakeFilePath(refr.Path, refr.Name, "dll");
+                            kernel.Log.Write(LogType.Warning, "Reference \"{0}\": The specified file doesn't exist.", referencePath);
+                            ps.WriteLine("		<HintPath>{0}</HintPath>", Helper.MakeFilePath(refr.Path, refr.Name, "dll"));
+                        }
+                    }
+
+                    ps.WriteLine("		<Private>{0}</Private>", refr.LocalCopy);
+                    ps.WriteLine("	  </Reference>");
+                }
+                ps.WriteLine("	</ItemGroup>");
+                ps.WriteLine();
+            }
+
+            //Project References
+            if (projectReferences.Count > 0)
+            {
+                ps.WriteLine("	<ItemGroup>");
+                foreach (KeyValuePair<ReferenceNode, ProjectNode> pair in projectReferences)
+                {
+                    ToolInfo tool = tools[pair.Value.Language];
+                    if (tools == null)
+                        throw new UnknownLanguageException();
+
+                    string path =
+                        Helper.MakePathRelativeTo(project.FullPath,
+                                                  Helper.MakeFilePath(pair.Value.FullPath, pair.Value.Name, tool.FileExtension));
+                    ps.WriteLine("	  <ProjectReference Include=\"{0}\" />", path);
                 }
                 ps.WriteLine("	</ItemGroup>");
                 ps.WriteLine();
