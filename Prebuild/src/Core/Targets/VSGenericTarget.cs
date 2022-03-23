@@ -710,6 +710,7 @@ namespace Prebuild.Core.Targets
                         ps.WriteLine("	  <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
                         ps.WriteLine("	  <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
                         ps.WriteLine("	  <Optimize>{0}</Optimize>", conf.Options["OptimizeCode"]);
+                        ps.WriteLine("	  <TieredCompilation>false</TieredCompilation>");
                         if (project.Type != ProjectType.Web)
                             ps.WriteLine("	  <OutputPath>{0}</OutputPath>",
                                          Helper.EndPath(Helper.NormalizePath(conf.Options["OutputPath"].ToString())));
