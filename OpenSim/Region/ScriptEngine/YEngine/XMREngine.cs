@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             MainConsole.Instance.Commands.AddCommand("yeng", false,
                     "yeng", "yeng [...|help|...] ...",
                     "Run YEngine script engine commands",
-                    RunConsoleCmds);
+                    HandleConsoleCmds);
 
             TraceCalls("[YEngine]: Initialize successful");
         }
@@ -764,7 +764,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TraceCalls("[YEngine]: YEngine.Close()");
         }
 
-        private void RunConsoleCmds(string module, string[] args)
+        private void HandleConsoleCmds(string module, string[] args)
         {
             if(args.Length < 2)
             {
@@ -809,7 +809,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     m_log.Info("[YEngine]: yeng ls [-help ...]");
                     m_log.Info("[YEngine]: yeng cvv - show compiler version value");
                     //m_log.Info("[YEngine]: yeng mvv [<newvalue>] - show migration version value");
-                    //m_log.Info("[YEngine]: yeng mvv - show migration version value");
+                    m_log.Info("[YEngine]: yeng mvv - show migration version value");
                     m_log.Info("[YEngine]: yeng tracecalls [yes | no]");
                     m_log.Info("[YEngine]: yeng verbose [yes | no]");
                     //m_log.Info("[YEngine]: yeng pev [-help ...] - post event");
