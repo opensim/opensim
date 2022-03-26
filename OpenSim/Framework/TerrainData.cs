@@ -267,21 +267,27 @@ namespace OpenSim.Framework
             zmin = float.MaxValue;
 
             int stride = m_heightmap.GetLength(1);
+            int mstride = 16 * stride;
 
-            int startx = px * 16 * stride;
-            int endx = (px + 1) * 16 * stride;
-            int starty = py * 16;
+            int mpy = 16 * py;
             fixed (float* map = m_heightmap)
             {
-                for (int i = startx; i < endx; i += stride)
+                float* p = map + px * mstride;
+                float* pend = p + mstride;
+                while (p < pend)
                 {
-                    float* p = &map[i];
-                    for (int j = starty; j < starty + 16; j++)
+                    float* yt = p + mpy; 
+                    float* ytend = yt + 16;
+                    while(yt < ytend)
                     {
-                        float val = p[j];
-                        if (val > zmax) zmax = val;
-                        if (val < zmin) zmin = val;
+                        float val = *yt;
+                        if (val > zmax)
+                            zmax = val;
+                        else if (val < zmin)
+                            zmin = val;
+                        yt++;
                     }
+                    p += stride;
                 }
             }
         }
@@ -290,18 +296,23 @@ namespace OpenSim.Framework
         {
             int k = 0;
             int stride = m_heightmap.GetLength(1);
+            int mstride = 16 * stride;
 
-            int startX = px * 16 * stride;
-            int endX = (px + 1) * 16 * stride;
-            int startY = py * 16;
-            fixed(float* map = m_heightmap)
+            int startX = px * mstride;
+            int endX = startX + mstride;
+            int mpy = 16 * py;
+            fixed (float* map = m_heightmap)
             {
-                for (int y = startY; y < startY + 16; y++)
+                float* yp = map + mpy;
+                float* yend = yp + 16;
+
+                while (yp < yend)
                 {
                     for (int x = startX; x < endX; x += stride)
                     {
-                        block[k++] = (map[x + y] - sub) * premult;
+                        block[k++] = (yp[x] - sub) * premult;
                     }
+                    ++yp;
                 }
             }
         }
