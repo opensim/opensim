@@ -1269,10 +1269,8 @@ namespace OpenSim.Framework
 
         private static byte[] ComputeSHA1Hash(byte[] src)
         {
-            byte[] ret;
-            using (SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
-                ret = SHA1.ComputeHash(src);
-            return ret;
+             using (SHA1 sha = SHA1.Create())
+                return sha.ComputeHash(src);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -4098,15 +4096,12 @@ namespace OpenSim.Framework
 
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid)
         {
-            /*
             if (value.Length < 36)
             {
                 uuid = UUID.Zero;
                 return false;
             }
             return (value.Length == 36) ? UUID.TryParse(value, out uuid) : UUID.TryParse(value.Substring(0, 36), out uuid);
-            */
-            return UUID.TryParse(value, out uuid); // uuid now only looks to first 36bytes
         }
 
         public static unsafe string RemoveUniversalUserIdentifierSecret(string value)
