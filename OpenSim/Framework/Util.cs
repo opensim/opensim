@@ -4098,12 +4098,15 @@ namespace OpenSim.Framework
 
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid)
         {
+            /*
             if (value.Length < 36)
             {
                 uuid = UUID.Zero;
                 return false;
             }
             return (value.Length == 36) ? UUID.TryParse(value, out uuid) : UUID.TryParse(value.Substring(0, 36), out uuid);
+            */
+            return UUID.TryParse(value, out uuid); // uuid now only looks to first 36bytes
         }
 
         public static unsafe string RemoveUniversalUserIdentifierSecret(string value)
