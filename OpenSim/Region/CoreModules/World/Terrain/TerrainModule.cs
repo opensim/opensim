@@ -99,8 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         //    patch packet is queued to the client, the bit for that patch is set to 'false'.
         private class PatchUpdates
         {
-            private BitArray updated;    // for each patch, whether it needs to be sent to this client
-            private int updateCount;    // number of patches that need to be sent
+            private TerrainTaintsArray taints;    // for each patch, whether it needs to be sent to this client
             public ScenePresence Presence;   // a reference to the client to send to
             public bool sendAll;
             public int sendAllcurrentX;
@@ -112,8 +111,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 xsize = terrData.SizeX / Constants.TerrainPatchSize;
                 ysize = terrData.SizeY / Constants.TerrainPatchSize;
-                updated = new BitArray(xsize * ysize, true);
-                updateCount = xsize * ysize;
+                taints = new TerrainTaintsArray(xsize * ysize, true);
                 Presence = pPresence;
                 // Initially, send all patches to the client
                 sendAll = true;
@@ -125,8 +123,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             {
                 xsize = terrData.SizeX / Constants.TerrainPatchSize;
                 ysize = terrData.SizeY / Constants.TerrainPatchSize;
-                updated = new BitArray(xsize * ysize, true);
-                updateCount = defaultState ? xsize * ysize : 0;
+                taints = new TerrainTaintsArray(xsize * ysize, true);
                 Presence = pPresence;
                 sendAll = defaultState;
                 sendAllcurrentX = 0;
@@ -137,7 +134,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool HasUpdates()
             {
-                return (updateCount > 0);
+                return (taints.IsTaited());
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -149,99 +146,57 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatch(int patchX, int patchY)
             {
-                return updated[patchX + xsize * patchY];
+                return taints[patchX + xsize * patchY];
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatch(int indx)
             {
-                return updated[indx];
+                return taints[indx];
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public bool GetByPatchAndClear(int patchX, int patchY)
             {
-                int indx = patchX + xsize * patchY;
-                if(updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                    return true;
-                }
-                return false;
+                return (taints.GetAndClear(patchX + xsize * patchY));
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetByPatch(int patchX, int patchY, bool state)
             {
                 int indx = patchX + xsize * patchY;
-                bool prevState = updated[indx];
-                updated[indx] = state;
-                if (state)
-                {
-                    if (!prevState)
-                        ++updateCount;
-                }
-                else
-                {
-                    if (prevState)
-                        --updateCount;
-                }
+                taints.Set(indx, state);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetTrueByPatch(int patchX, int patchY)
             {
                 int indx = patchX + xsize * patchY;
-                if (!updated[indx])
-                {
-                    updated[indx] = true;
-                    ++updateCount;
-                }
+                taints.Set(indx, true);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetTrueByPatch(int indx)
             {
-                if (!updated[indx])
-                {
-                    updated[indx] = true;
-                    ++updateCount;
-                }
+                taints.Set(indx, true);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetFalseByPatch(int patchX, int patchY)
             {
                 int indx = patchX + xsize * patchY;
-                if (updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                }
+                taints.Set(indx, false);
             }
 
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetFalseByPatch(int indx)
             {
-                if (updated[indx])
-                {
-                    updated[indx] = false;
-                    --updateCount;
-                }
+                taints.Set(indx, true);
             }
 
             public void SetAll(bool state)
             {
-                updated.SetAll(state);
-
-                if (state)
-                {
-                    sendAll = true;
-                    updateCount = xsize * ysize;
-                }
-                else updateCount = 0;
-
+                taints.SetAll(state);
                 sendAllcurrentX = 0;
                 sendAllcurrentY = 0;
             }
@@ -249,21 +204,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             // Logically OR's the terrain data's patch taint map into this client's update map.
             public void SetAll(TerrainData terrData)
             {
-                if (xsize != (terrData.SizeX / Constants.TerrainPatchSize)
-                    || ysize != (terrData.SizeY / Constants.TerrainPatchSize))
-                {
-                    throw new Exception(
-                        String.Format("{0} PatchUpdates.SetAll: patch array not same size as terrain. arr=<{1},{2}>, terr=<{3},{4}>",
-                                LogHeader, xsize, ysize,
-                                terrData.SizeX / Constants.TerrainPatchSize, terrData.SizeY / Constants.TerrainPatchSize)
-                    );
-                }
-
-                for (int indx = 0; indx < updated.Length; ++indx)
-                {
-                    if (terrData.IsTaintedAtPatch(indx))
-                        SetTrueByPatch(indx);
-                }
+                taints.Or(terrData.GetTaints());
             }
         }
 
@@ -940,8 +881,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// doing it async, since currently this is 2 heavy for heartbeat
         private void EventManager_TerrainCheckUpdates()
         {
-            Util.FireAndForget(
-                EventManager_TerrainCheckUpdatesAsync);
+            Util.FireAndForget(EventManager_TerrainCheckUpdatesAsync);
         }
 
         object TerrainCheckUpdatesLock = new object();
@@ -954,17 +894,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 TerrainData terrData = m_channel.GetTerrainData();
                 bool shouldTaint = false;
 
-                int sx = terrData.SizeX / Constants.TerrainPatchSize;
-                for (int y = 0, py = 0; y < terrData.SizeY / Constants.TerrainPatchSize; y++, py += sx)
+                if(terrData.IsTainted())
                 {
-                    for (int x = 0; x < sx; x++)
+                    int nextChanged = 0;
+                    while((nextChanged = terrData.GetAndClearNextTaint(nextChanged)) >= 0)
                     {
-                        if (terrData.IsTaintedAtPatchWithClear(x + py))
-                        {
-                            // Found a patch that was modified. Push this flag into the clients.
-                            SendToClients(terrData, x, y);
-                            shouldTaint = true;
-                        }
+                        SendToClients(terrData, nextChanged);
+                        ++nextChanged;
+                        shouldTaint = true;
                     }
                 }
 
@@ -1145,7 +1082,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         /// <param name="serialised">A copy of the terrain as a 1D float array of size w*h</param>
         /// <param name="px">x patch coords</param>
         /// <param name="py">y patch coords</param>
-        private void SendToClients(TerrainData terrData, int px, int py)
+        private void SendToClients(TerrainData terrData, int patchIndex)
         {
             if (m_sendTerrainUpdatesByViewDistance)
             {
@@ -1160,7 +1097,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                 thisClientUpdates = new PatchUpdates(terrData, presence, false);
                                 m_perClientPatchUpdates.Add(presence.UUID, thisClientUpdates);
                             }
-                            thisClientUpdates.SetTrueByPatch(px, py);
+                            thisClientUpdates.SetTrueByPatch(patchIndex);
                         }
                     );
                 }
@@ -1170,6 +1107,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 // Legacy update sending where the update is sent out as soon as noticed
                 // We know the actual terrain data that is passed is ignored so this passes a dummy heightmap.
                 //float[] heightMap = terrData.GetFloatsSerialized();
+                int sx = terrData.SizeX / Constants.TerrainPatchSize;
+                int py = patchIndex / sx;
+                int px = patchIndex - py * sx;
                 int[] map = new int[]{px, py};
                 m_scene.ForEachClient(
                     delegate (IClientAPI controller)
