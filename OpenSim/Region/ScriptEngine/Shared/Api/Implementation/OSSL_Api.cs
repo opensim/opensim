@@ -637,8 +637,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return World.Heightmap[x, y];
         }
 
+        double m_lastosTerrainFlush = 0;
         public void osTerrainFlush()
         {
+            double now = Util.GetTimeStamp();
+            if(now - m_lastosTerrainFlush < 60)
+                return;
+            m_lastosTerrainFlush = now;
+
             CheckThreatLevel(ThreatLevel.VeryLow, "osTerrainFlush");
 
             ITerrainModule terrainModule = World.RequestModuleInterface<ITerrainModule>();
