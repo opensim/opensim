@@ -3,7 +3,7 @@
   <Solution activeConfig="Debug" name="OpenSim" path="./" version="0.5.0-$Rev$">
     <Configuration name="Debug" >
       <Options>
-        <CompilerDefines>TRACE;DEBUG;NET48</CompilerDefines>
+        <CompilerDefines>TRACE;DEBUG</CompilerDefines>
         <OptimizeCode>false</OptimizeCode>
         <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
         <AllowUnsafe>true</AllowUnsafe>
@@ -19,7 +19,7 @@
     </Configuration>
     <Configuration name="Release">
       <Options>
-        <CompilerDefines>TRACE;NET48</CompilerDefines>
+        <CompilerDefines>TRACE</CompilerDefines>
         <OptimizeCode>true</OptimizeCode>
         <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
         <AllowUnsafe>true</AllowUnsafe>

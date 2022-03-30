@@ -75,7 +75,7 @@ namespace Prebuild.Core.Nodes
     /// The version of the .NET framework to use (Required for VS2008)
     /// <remarks>We don't need .NET 1.1 in here, it'll default when using vs2003.</remarks>
     /// </summary>
-    public enum FrameworkVersion
+    public enum FrameworkVersion: byte
     {
         /// <summary>
         /// .NET 2.0
@@ -117,8 +117,10 @@ namespace Prebuild.Core.Nodes
         v4_8,
         netstandard2_0,
         net5_0,
-        net6_0
+        net6_0,
+        net7_0
     }
+
     /// <summary>
     /// The Node object representing /Prebuild/Solution/Project elements
     /// </summary>
@@ -155,6 +157,27 @@ namespace Prebuild.Core.Nodes
         private readonly List<AuthorNode> m_Authors = new List<AuthorNode>();
         private FilesNode m_Files;
 
+        private readonly Dictionary<FrameworkVersion, string> m_frameworkVersionToCondionalVersion = new Dictionary<FrameworkVersion, string>()
+        {
+           {FrameworkVersion.v2_0, "NET20" },
+           {FrameworkVersion.v3_0, "NET30" },
+           {FrameworkVersion.v3_5, "NET35" },
+           {FrameworkVersion.v4_0, "NET40" },
+           {FrameworkVersion.v4_5, "NET45" },
+           {FrameworkVersion.v4_5_1, "NET451" },
+           {FrameworkVersion.v4_5_2, "NET452" },
+           {FrameworkVersion.v4_6, "NET46" },
+           {FrameworkVersion.v4_6_1, "NET461" },
+           {FrameworkVersion.v4_6_2, "NET462" },
+           {FrameworkVersion.v4_7, "NET47" },
+           {FrameworkVersion.v4_7_1, "NET471" },
+           {FrameworkVersion.v4_7_2, "NET472" },
+           {FrameworkVersion.v4_8, "NET48" },
+           {FrameworkVersion.netstandard2_0, "NETSTANDARD2_0" },
+           {FrameworkVersion.net5_0, "NET5_0" },
+           {FrameworkVersion.net6_0, "NET6_0" },
+           {FrameworkVersion.net7_0, "NET7_0" }
+        };
         #endregion
 
         #region Properties
@@ -185,6 +208,17 @@ namespace Prebuild.Core.Nodes
                 m_useFramework = false;
             }
         }
+
+        public string FrameworkVersionForConditional
+        {
+            get
+            {
+                if (m_frameworkVersionToCondionalVersion.TryGetValue(m_Framework, out string ret))
+                    return ret;
+                return string.Empty;
+            }
+        }
+
         /// <summary>
         /// Gets the path.
         /// </summary>

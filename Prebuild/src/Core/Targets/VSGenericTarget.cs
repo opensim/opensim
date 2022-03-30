@@ -168,7 +168,7 @@ namespace Prebuild.Core.Targets
             Helper.SetCurrentDir(Path.GetDirectoryName(projectFile));
 
             FrameworkVersion fv = project.FrameworkVersion;
-            if (fv == FrameworkVersion.net5_0 || fv == FrameworkVersion.net6_0 || fv == FrameworkVersion.netstandard2_0)
+            if (fv > FrameworkVersion.v4_8)
             {
                 // Write the newer .csproj file format
                 WriteProjectDotNet(solution, project, ps);
@@ -251,8 +251,17 @@ namespace Prebuild.Core.Targets
                     ps.WriteLine("	  <CheckForOverflowUnderflow>{0}</CheckForOverflowUnderflow>", conf.Options["CheckUnderflowOverflow"]);
                     ps.WriteLine("	  <ConfigurationOverrideFile>");
                     ps.WriteLine("	  </ConfigurationOverrideFile>");
-                    ps.WriteLine("	  <DefineConstants>{0}</DefineConstants>",
-                        conf.Options["CompilerDefines"].ToString() == "" ? this.kernel.ForcedConditionals : conf.Options["CompilerDefines"] + ";" + kernel.ForcedConditionals);
+                    string defConstants = (conf.Options["CompilerDefines"].ToString() == "") ? this.kernel.ForcedConditionals : (conf.Options["CompilerDefines"] + ";" + kernel.ForcedConditionals);
+                    if(!string.IsNullOrEmpty(project.FrameworkVersionForConditional))
+                    {
+                        if(string.IsNullOrEmpty(defConstants))
+                            defConstants = project.FrameworkVersionForConditional + ";";
+                        else if(defConstants.IndexOf(project.FrameworkVersionForConditional) < 0)
+                            defConstants += project.FrameworkVersionForConditional + ";";
+                    }
+                    if (!string.IsNullOrEmpty(defConstants))
+                        ps.WriteLine("	  <DefineConstants>{0}</DefineConstants>", defConstants);
+                        
                     ps.WriteLine("	  <DocumentationFile>{0}</DocumentationFile>", Helper.NormalizePath(conf.Options["XmlDocFile"].ToString()));
                     ps.WriteLine("	  <DebugSymbols>{0}</DebugSymbols>", conf.Options["DebugInformation"]);
                     ps.WriteLine("	  <FileAlignment>{0}</FileAlignment>", conf.Options["FileAlignment"]);
