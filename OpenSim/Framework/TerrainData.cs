@@ -518,8 +518,8 @@ namespace OpenSim.Framework
                         for (int yy = 0; yy < SizeY; yy++)
                             for (int xx = 0; xx < SizeX; xx++)
                             {
-                                // reduce to 1cm resolution
-                                float val = (float)Math.Round(m_heightmap[xx, yy],2,MidpointRounding.ToEven);
+                                // reduce to 1mm resolution
+                                float val = (float)Math.Round(m_heightmap[xx, yy],3,MidpointRounding.AwayFromZero);
                                 bw.Write(val);
                             }
                     }
