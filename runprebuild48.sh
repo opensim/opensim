@@ -19,7 +19,7 @@ case "$1" in
 
   *)
 
-    mono bin/Prebuild.exe /target vs2019 /file prebuild48.xml
+    mono bin/Prebuild.exe /target vs2019 /targetframework v4_8
 
   ;;
 

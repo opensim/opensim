@@ -50,6 +50,8 @@ namespace Prebuild.Core.Nodes
         private string m_FullPath = "";
         private string m_ActiveConfig;
         private string m_Version = "1.0.0";
+        public FrameworkVersion DefaultFramework = FrameworkVersion.none;
+        public FrameworkVersion ForceFramework = FrameworkVersion.none;
 
         private OptionsNode m_Options;
         private FilesNode m_Files;
@@ -302,6 +304,22 @@ namespace Prebuild.Core.Nodes
             m_ActiveConfig = Helper.AttributeValue(node, "activeConfig", m_ActiveConfig);
             m_Path = Helper.AttributeValue(node, "path", m_Path);
             m_Version = Helper.AttributeValue(node, "version", m_Version);
+            string tmp = Helper.AttributeValue(node, "forceFrameworkVersion", "");
+            if (tmp.Length > 0)
+            {
+                if (!FrameworkVersion.TryParse(tmp, true, out ForceFramework))
+                    ForceFramework = FrameworkVersion.none;
+            }
+
+            if(ForceFramework == FrameworkVersion.none)
+            {
+                tmp = Helper.AttributeValue(node, "frameworkVersion", "");
+                if (tmp.Length > 0)
+                {
+                    if (!FrameworkVersion.TryParse(tmp, true, out DefaultFramework))
+                        DefaultFramework = FrameworkVersion.none;
+                }
+            }
 
             m_FullPath = m_Path;
             try

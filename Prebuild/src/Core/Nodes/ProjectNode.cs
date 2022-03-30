@@ -77,6 +77,7 @@ namespace Prebuild.Core.Nodes
     /// </summary>
     public enum FrameworkVersion: byte
     {
+        none = 0,
         /// <summary>
         /// .NET 2.0
         /// </summary>
@@ -140,7 +141,7 @@ namespace Prebuild.Core.Nodes
         private string m_Language = "C#";
         private ProjectType m_Type = ProjectType.Exe;
         private ClrRuntime m_Runtime = ClrRuntime.Microsoft;
-        private FrameworkVersion m_Framework = FrameworkVersion.v2_0;
+        private FrameworkVersion m_Framework = FrameworkVersion.none;
         private bool m_useFramework = true;
         private string m_StartupObject = "";
         private string m_RootNamespace;
@@ -528,6 +529,18 @@ namespace Prebuild.Core.Nodes
                     foreach (ConfigurationNode conf in parent.Configurations)
                     {
                         m_Configurations[conf.NameAndPlatform] = (ConfigurationNode)conf.Clone();
+                    }
+                    if(m_useFramework)
+                    {
+                        if(parent.ForceFramework != FrameworkVersion.none)
+                        {
+                            m_Framework = parent.ForceFramework;
+                            m_useFramework = false;
+                        }
+                        else if(m_Framework == FrameworkVersion.none)
+                        {
+                            m_Framework = parent.DefaultFramework != FrameworkVersion.none ? parent.DefaultFramework : FrameworkVersion.v2_0;
+                        }
                     }
                 }
             }

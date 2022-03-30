@@ -1,6 +1,6 @@
 @echo OFF
 
-bin\Prebuild.exe /target vs2019 /file prebuild48.xml
+bin\Prebuild.exe /target vs2019 /targetframework v4_8
 
 setlocal ENABLEEXTENSIONS
 set VALUE_NAME=MSBuildToolsPath
