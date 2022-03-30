@@ -595,15 +595,26 @@ namespace OpenSim.Framework
                     CompressionFactor = hmCompressionFactor;
 
                     // In case database info doesn't match real terrain size, initialize the whole terrain.
-                    ClearLand();
+                    bool needClear = false;
+                    if (hmSizeX > SizeX)
+                        hmSizeX = SizeX;
+                    else if (hmSizeX < SizeX)
+                        needClear = true;
+
+                    if (hmSizeY > SizeY)
+                        hmSizeY = SizeY;
+                    else if (hmSizeY < SizeY)
+                        needClear = true;
+
+                    if (needClear)
+                        ClearLand();
 
                     for (int yy = 0; yy < hmSizeY; yy++)
                     {
                         for (int xx = 0; xx < hmSizeX; xx++)
                         {
                             float val = FromCompressedHeight(br.ReadInt16());
-                            if (xx < SizeX && yy < SizeY)
-                                m_heightmap[xx, yy] = val;
+                            m_heightmap[xx, yy] = val;
                         }
                     }
                 }
@@ -631,16 +642,26 @@ namespace OpenSim.Framework
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();
 
-                        // In case database info doesn't match real terrain size, initialize the whole terrain.
-                        ClearLand();
+                        bool needClear = false;
+                        if (hmSizeX > SizeX)
+                            hmSizeX = SizeX;
+                        else if (hmSizeX < SizeX)
+                            needClear = true;
+
+                        if (hmSizeY > SizeY)
+                            hmSizeY = SizeY;
+                        else if (hmSizeY < SizeY)
+                            needClear = true;
+
+                        if (needClear)
+                            ClearLand();
 
                         for (int yy = 0; yy < hmSizeY; yy++)
                         {
                             for (int xx = 0; xx < hmSizeX; xx++)
                             {
                                 float val = br.ReadSingle();
-                                if (xx < SizeX && yy < SizeY)
-                                    m_heightmap[xx, yy] = val;
+                                m_heightmap[xx, yy] = val;
                             }
                         }
                     }
@@ -665,8 +686,7 @@ namespace OpenSim.Framework
         {
             m_log.InfoFormat("{0} VD2Gzip {1} bytes input",
                             LogHeader, pBlob.Length);
-
-            Int32 hmSizeX, hmSizeY;
+            int hmSizeX, hmSizeY;
 
             try
             {
@@ -688,16 +708,26 @@ namespace OpenSim.Framework
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();
 
-                        // In case database info doesn't match real terrain size, initialize the whole terrain.
-                        ClearLand();
+                        bool needClear = false;
+                        if(hmSizeX > SizeX) 
+                            hmSizeX = SizeX;
+                        else if (hmSizeX < SizeX)
+                            needClear = true;
+
+                        if (hmSizeY > SizeY)
+                            hmSizeY = SizeY;
+                        else if (hmSizeY < SizeY)
+                            needClear = true;
+
+                        if (needClear)
+                            ClearLand();
 
                         for (int yy = 0; yy < hmSizeY; yy++)
                         {
                             for (int xx = 0; xx < hmSizeX; xx++)
                             {
                                 float val = br.ReadSingle();
-                                if (xx < SizeX && yy < SizeY)
-                                    m_heightmap[xx, yy] = val;
+                                m_heightmap[xx, yy] = val;
                             }
                         }
                     }

@@ -137,8 +137,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             float sub = 0.5f * header.Range + header.DCOffset;
 
             int wordsize = (prequant - 2) & 0x0f;
-            header.QuantWBits = wordsize;
-            header.QuantWBits |= wordsize << 4;
+            header.QuantWBits = wordsize | (wordsize << 4);
 
             int k = 0;
             for (int j = 0; j < 256 ; j += 16)
@@ -293,21 +292,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                                int prequant, out int wbits, int* iout)
         {
             float* block = stackalloc float[256];
-
-            float oozrange = 1.0f / header.Range;
-            float invprequat = (1 << prequant);
-            float premult = oozrange * invprequat;
-
-            float sub = 0.5f * header.Range + header.DCOffset;
-
-            int wordsize = (prequant - 2) & 0x0f;
-            header.QuantWBits = wordsize;
-            header.QuantWBits |= wordsize << 4;
-
+            float sub = header.Range;
+            float premult = (1 << prequant) / sub;
+            sub = 0.5f * sub + header.DCOffset;
             terrData.GetPatchBlock(block, patchX, patchY, sub, premult);
 
-            wbits = (prequant >> 1);
+            int wordsize = (prequant - 2) & 0x0f;
+            header.QuantWBits = wordsize | (wordsize << 4);
 
+            wbits = (prequant >> 1);
             dct16x16(block, iout, ref wbits);
         }
 

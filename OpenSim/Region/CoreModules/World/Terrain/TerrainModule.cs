@@ -1091,6 +1091,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 {
                     m_scene.ForEachScenePresence(presence =>
                         {
+                            if(presence.IsNPC)
+                                return;
                             if (!m_perClientPatchUpdates.TryGetValue(presence.UUID, out PatchUpdates thisClientUpdates))
                             {
                                 // There is a ScenePresence without a send patch map. Create one. should not happen
