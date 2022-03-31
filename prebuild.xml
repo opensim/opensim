@@ -20,7 +20,7 @@
     </Configuration>
     <Configuration name="Release">
       <Options>
-        <CompilerDefines>TRACE</CompilerDefines>
+        <!--<CompilerDefines>TRACE</CompilerDefines> -->
         <OptimizeCode>true</OptimizeCode>
         <CheckUnderflowOverflow>false</CheckUnderflowOverflow>
         <AllowUnsafe>true</AllowUnsafe>
