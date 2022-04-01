@@ -191,12 +191,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
             public void SetFalseByPatch(int indx)
             {
-                taints.Set(indx, true);
+                taints.Set(indx, false);
             }
 
             public void SetAll(bool state)
             {
                 taints.SetAll(state);
+                if(state)
+                    sendAll = true;
                 sendAllcurrentX = 0;
                 sendAllcurrentY = 0;
             }
@@ -1329,7 +1331,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                         distxsq *= distxsq;
                         if (distxsq < distlimitsq)
                         {
-                            pups.SetFalseByPatch(x + py);
+                            pups.SetFalseByPatch(indx);
                             ret.Add(new PatchesToSend(x, y, distxsq + distysq));
                             if (npatchs++ > 1024)
                             {
