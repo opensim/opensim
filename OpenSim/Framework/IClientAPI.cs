@@ -1087,7 +1087,6 @@ namespace OpenSim.Framework
         void SendLayerData(int[] map);
 
         void SendWindData(int version, Vector2[] windSpeeds);
-        void SendCloudData(int version, float[] cloudCover);
 
         /// <summary>
         /// Sent when an agent completes its movement into a region.
