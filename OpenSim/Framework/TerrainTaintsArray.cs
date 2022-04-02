@@ -261,16 +261,29 @@ namespace OpenSim.Framework
         {
             if (startBitIndex < 0 || startBitIndex >= m_nbits)
                 return -1;
+
             int indexh = startBitIndex >> VectorNumberBitsLog2;
-            for (; indexh < m_data.Length; ++indexh)
+            int j = startBitIndex & (VectorNumberBits - 1);
+
+            int cur = m_data[indexh];
+            if (cur != 0)
             {
-                int cur = m_data[indexh];
-                if (cur == 0)
-                    continue;
-                for (int j = 0; j < VectorNumberBits; ++j)
+                for (; j < VectorNumberBits; ++j)
                 {
                     if ((cur & (1 << j)) != 0)
                         return (indexh << VectorNumberBitsLog2) | j;
+                }
+            }
+            while (++indexh < m_data.Length)
+            {
+                cur = m_data[indexh];
+                if (cur != 0)
+                {
+                    for (j = 0; j < VectorNumberBits; ++j)
+                    {
+                        if ((cur & (1 << j)) != 0)
+                            return (indexh << VectorNumberBitsLog2) | j;
+                    }
                 }
             }
             return -1;
@@ -280,15 +293,15 @@ namespace OpenSim.Framework
         {
             if (m_ntainted <= 0 || startBitIndex < 0 || startBitIndex >= m_nbits)
                 return -1;
+
             int indexh = startBitIndex >> VectorNumberBitsLog2;
+            int j = startBitIndex & (VectorNumberBits - 1);
             lock (m_mainlock)
             {
-                for (; indexh < m_data.Length; ++indexh)
+                int cur = m_data[indexh];
+                if (cur != 0)
                 {
-                    int cur = m_data[indexh];
-                    if (cur == 0)
-                        continue;
-                    for (int j = 0; j < VectorNumberBits; ++j)
+                    for (; j < VectorNumberBits; ++j)
                     {
                         int mask = (1 << j);
                         if ((cur & mask) != 0)
@@ -296,6 +309,24 @@ namespace OpenSim.Framework
                             m_data[indexh] ^= mask;
                             --m_ntainted;
                             return (indexh << VectorNumberBitsLog2) | j;
+                        }
+                    }
+                }
+
+                while (++indexh < m_data.Length)
+                {
+                    cur = m_data[indexh];
+                    if (cur != 0)
+                    {
+                        for (j = 0; j < VectorNumberBits; ++j)
+                        {
+                            int mask = (1 << j);
+                            if ((cur & mask) != 0)
+                            {
+                                m_data[indexh] ^= mask;
+                                --m_ntainted;
+                                return (indexh << VectorNumberBitsLog2) | j;
+                            }
                         }
                     }
                 }
