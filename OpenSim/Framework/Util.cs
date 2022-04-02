@@ -3693,7 +3693,7 @@ namespace OpenSim.Framework
         {
             secret = string.Empty;
 
-            if (value.Length == 36)
+            if (value == null || value.Length == 36)
             {
                 url = string.Empty;
                 firstname = string.Empty;
@@ -3776,7 +3776,7 @@ namespace OpenSim.Framework
         {
             secret = string.Empty;
 
-            if (value.Length < 38)
+            if (value == null || value.Length < 38)
             {
                 url = string.Empty;
                 firstname = string.Empty;
@@ -3849,7 +3849,7 @@ namespace OpenSim.Framework
 
         public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname)
         {
-            if (value.Length == 36)
+            if (value == null || value.Length == 36)
             {
                 url = string.Empty;
                 firstname = string.Empty;
@@ -3923,7 +3923,7 @@ namespace OpenSim.Framework
 
         public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname)
         {
-            if (value.Length < 38)
+            if (value == null || value.Length < 38)
             {
                 url = string.Empty;
                 firstname = string.Empty;
@@ -3989,7 +3989,7 @@ namespace OpenSim.Framework
 
         public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid, out string url)
         {
-            if (value.Length < 38)
+            if (value == null || value.Length < 38)
             {
                 url = string.Empty;
                 uuid = UUID.Zero;
@@ -4029,7 +4029,7 @@ namespace OpenSim.Framework
 
         public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url)
         {
-            if (value.Length < 38)
+            if (value == null || value.Length < 38)
             {
                 url = string.Empty;
                 uuid = UUID.Zero;
@@ -4066,7 +4066,7 @@ namespace OpenSim.Framework
 
         public static unsafe bool ParseFullUniversalUserIdentifier(string value, out UUID uuid)
         {
-            if (value.Length < 38)
+            if (value == null || value.Length < 38)
             {
                 uuid = UUID.Zero;
                 return false;
@@ -4096,7 +4096,7 @@ namespace OpenSim.Framework
 
         public static bool ParseUniversalUserIdentifier(string value, out UUID uuid)
         {
-            if (value.Length < 36)
+            if (value == null || value.Length < 36)
             {
                 uuid = UUID.Zero;
                 return false;
