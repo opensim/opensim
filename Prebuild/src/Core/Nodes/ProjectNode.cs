@@ -616,6 +616,7 @@ namespace Prebuild.Core.Nodes
             if (m_useFramework)
                 m_Framework = (FrameworkVersion)Helper.EnumAttributeValue(node, "frameworkVersion", typeof(FrameworkVersion), m_Framework);
 
+            m_Framework = (FrameworkVersion)Helper.EnumAttributeValue(node, "forceFrameworkVersion", typeof(FrameworkVersion), m_Framework);
             m_StartupObject = Helper.AttributeValue(node, "startupObject", m_StartupObject);
             m_RootNamespace = Helper.AttributeValue(node, "rootNamespace", m_RootNamespace);
 
