@@ -156,7 +156,7 @@ namespace Prebuild.Core.Nodes
         private readonly List<PackageReferenceNode> m_PackageReferences = new List<PackageReferenceNode>();
         private readonly List<ReferenceNode> m_References = new List<ReferenceNode>();
         private readonly List<AuthorNode> m_Authors = new List<AuthorNode>();
-        private FilesNode m_Files;
+        private FilesNode m_Files = new FilesNode();
 
         private readonly Dictionary<FrameworkVersion, string> m_frameworkVersionToCondionalVersion = new Dictionary<FrameworkVersion, string>()
         {
