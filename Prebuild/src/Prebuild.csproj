@@ -1,9 +1,9 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>16.7.3</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7F415321-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{1B4B958F-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <ApplicationIcon>App.ico</ApplicationIcon>
     <AssemblyKeyContainerName>
@@ -15,7 +15,7 @@
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
@@ -25,6 +25,7 @@
     </StartArguments>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
@@ -32,13 +33,13 @@
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
-    <DefineConstants>DEBUG;TRACE;ISWIN;NET_4_5</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NET46;</DefineConstants>
     <DocumentationFile>
     </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin/Debug/</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -54,13 +55,13 @@
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
-    <DefineConstants>TRACE;ISWIN;NET_4_5</DefineConstants>
+    <DefineConstants>TRACE;NET46;</DefineConstants>
     <DocumentationFile>
     </DocumentationFile>
     <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin/Release/</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
@@ -85,16 +86,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="App.ico">
     </EmbeddedResource>
     <EmbeddedResource Include="data\prebuild-1.10.xsd">
     </EmbeddedResource>
     <EmbeddedResource Include="data\autotools.xml">
     </EmbeddedResource>
-    <Compile Include="Core\Nodes\PackageReferenceNode.cs" />
-    <Compile Include="Core\Nodes\ProjectReferenceNode.cs" />
     <Compile Include="Prebuild.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -167,10 +164,16 @@
     <Compile Include="Core\Nodes\OptionsNode.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Nodes\PackageReferenceNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\Nodes\ProcessNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ProjectNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Nodes\ProjectReferenceNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ReferenceNode.cs">
@@ -263,6 +266,9 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
