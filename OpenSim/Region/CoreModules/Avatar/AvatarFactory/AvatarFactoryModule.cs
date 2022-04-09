@@ -375,7 +375,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 wearableCache = WearableCacheItem.GetDefaultCacheItem();
             else
             {
-                hadSkirt = wearableCache[19].TextureID.IsNotZero();
+                hadSkirt = wearableCache[19].CacheId.IsNotZero(); // .TextureID.IsNotZero();
             }
 
             HashSet<uint> updatedFaces = new HashSet<uint>();
@@ -451,7 +451,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 wcacheidx.TextureID = UUID.Zero;
                 wcacheidx.TextureAsset = null;
             }
-
+ 
             sp.Appearance.WearableCacheItems = wearableCache;
 
             if (missing.Count > 0)
@@ -625,9 +625,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             if (j < AvatarAppearance.TEXTURE_COUNT && bacachei.TextureAsset != null)
                             {
                                 var wcachej = wearableCache[j];
-                                wcachej.TextureID = bakedModuleCache[i].TextureID;
-                                wcachej.CacheId = bakedModuleCache[i].CacheId;
-                                wcachej.TextureAsset = bakedModuleCache[i].TextureAsset;
+                                wcachej.TextureID = bacachei.TextureID;
+                                wcachej.CacheId = bacachei.CacheId;
+                                wcachej.TextureAsset = bacachei.TextureAsset;
                                 bacachei.TextureAsset.Temporary = true;
                                 bacachei.TextureAsset.Local = true;
                                 //bakedModuleCache[i].TextureAsset.Flags = AssetFlags.AvatarBake;
@@ -667,8 +667,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // debug
-//            m_log.DebugFormat("[ValidateBakedCache]: Completed texture check for {0} {1} with {2} hits", sp.Name, sp.UUID, hits);
-/*
+            // m_log.DebugFormat("[ValidateBakedCache]: Completed texture check for {0} {1} with {2} hits", sp.Name, sp.UUID, hits);
+            /*
             for (int iter = 0; iter < AvatarAppearance.BAKE_INDICES.Length; iter++)
             {
                 int j = AvatarAppearance.BAKE_INDICES[iter];
@@ -677,7 +677,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                     sp.Appearance.WearableCacheItems[j].CacheId + ", t-" +
                                     sp.Appearance.WearableCacheItems[j].TextureID);
             }
-*/
+            */
             return (hits >= AvatarAppearance.BAKE_INDICES.Length); // skirt is optional
         }
 
@@ -752,9 +752,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (bakeType == BakeType.Unknown)
                     continue;
 
-                //                m_log.DebugFormat(
-                //                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
-                //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+                //m_log.DebugFormat(
+                //    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
+                //     acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 
                 int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
                 Primitive.TextureEntryFace texture = faceTextures[ftIndex];    // this will be null if there's no such baked texture
@@ -894,184 +894,184 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
             }
 
-//            IInventoryService invService = m_scene.InventoryService;
-//            bool resetwearable = false;
-//            if (invService.GetRootFolder(userID) != null)
-//            {
-//                for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
-//                {
-//                    for (int j = 0; j < appearance.Wearables[i].Count; j++)
-//                    {
-//                        // Check if the default wearables are not set
-//                        if (appearance.Wearables[i][j].ItemID == UUID.Zero)
-//                        {
-//                            switch ((WearableType) i)
-//                            {
-//                                case WearableType.Eyes:
-//                                case WearableType.Hair:
-//                                case WearableType.Shape:
-//                                case WearableType.Skin:
-//                                //case WearableType.Underpants:
-//                                    TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
-//                                    resetwearable = true;
-//                                    m_log.Warn("[AVFACTORY]: UUID.Zero Wearables, passing fake values.");
-//                                    resetwearable = true;
-//                                    break;
-//
-//                            }
-//                            continue;
-//                        }
-//
-//                        // Ignore ruth's assets except for the body parts! missing body parts fail avatar appearance on V1
-//                        if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
-//                        {
-//                            switch ((WearableType)i)
-//                            {
-//                                case WearableType.Eyes:
-//                                case WearableType.Hair:
-//                                case WearableType.Shape:
-//                                case WearableType.Skin:
-//                                //case WearableType.Underpants:
-//                                    TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
-//
-//                                    m_log.WarnFormat("[AVFACTORY]: {0} Default Wearables, passing existing values.", (WearableType)i);
-//                                    resetwearable = true;
-//                                    break;
-//
-//                            }
-//                            continue;
-//                        }
-//
-//                        InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
-//                        baseItem = invService.GetItem(baseItem);
-//
-//                        if (baseItem != null)
-//                        {
-//                            appearance.Wearables[i].Add(appearance.Wearables[i][j].ItemID, baseItem.AssetID);
-//                            int unmodifiedWearableIndexForClosure = i;
-//                            m_scene.AssetService.Get(baseItem.AssetID.ToString(), this,
-//                                                                      delegate(string x, object y, AssetBase z)
-//                                                                      {
-//                                                                          if (z == null)
-//                                                                          {
-//                                                                              TryAndRepairBrokenWearable(
-//                                                                                  (WearableType)unmodifiedWearableIndexForClosure, invService,
-//                                                                                  userID, appearance);
-//                                                                          }
-//                                                                      });
-//                        }
-//                        else
-//                        {
-//                            m_log.ErrorFormat(
-//                                "[AVFACTORY]: Can't find inventory item {0} for {1}, setting to default",
-//                                appearance.Wearables[i][j].ItemID, (WearableType)i);
-//
-//                            TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
-//                            resetwearable = true;
-//
-//                        }
-//                    }
-//                }
-//
-//                // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
-//                if (appearance.Wearables[(int) WearableType.Eyes] == null)
-//                {
-//                    m_log.WarnFormat("[AVFACTORY]: {0} Eyes are Null, passing existing values.", (WearableType.Eyes));
-//
-//                    TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
-//                    resetwearable = true;
-//                }
-//                else
-//                {
-//                    if (appearance.Wearables[(int) WearableType.Eyes][0].ItemID == UUID.Zero)
-//                    {
-//                        m_log.WarnFormat("[AVFACTORY]: Eyes are UUID.Zero are broken, {0} {1}",
-//                                         appearance.Wearables[(int) WearableType.Eyes][0].ItemID,
-//                                         appearance.Wearables[(int) WearableType.Eyes][0].AssetID);
-//                        TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
-//                        resetwearable = true;
-//
-//                    }
-//
-//                }
-//                // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
-//                if (appearance.Wearables[(int)WearableType.Shape] == null)
-//                {
-//                    m_log.WarnFormat("[AVFACTORY]: {0} shape is Null, passing existing values.", (WearableType.Shape));
-//
-//                    TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
-//                    resetwearable = true;
-//                }
-//                else
-//                {
-//                    if (appearance.Wearables[(int)WearableType.Shape][0].ItemID == UUID.Zero)
-//                    {
-//                        m_log.WarnFormat("[AVFACTORY]: Shape is UUID.Zero and broken, {0} {1}",
-//                                         appearance.Wearables[(int)WearableType.Shape][0].ItemID,
-//                                         appearance.Wearables[(int)WearableType.Shape][0].AssetID);
-//                        TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
-//                        resetwearable = true;
-//
-//                    }
-//
-//                }
-//                // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
-//                if (appearance.Wearables[(int)WearableType.Hair] == null)
-//                {
-//                    m_log.WarnFormat("[AVFACTORY]: {0} Hair is Null, passing existing values.", (WearableType.Hair));
-//
-//                    TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
-//                    resetwearable = true;
-//                }
-//                else
-//                {
-//                    if (appearance.Wearables[(int)WearableType.Hair][0].ItemID == UUID.Zero)
-//                    {
-//                        m_log.WarnFormat("[AVFACTORY]: Hair is UUID.Zero and broken, {0} {1}",
-//                                         appearance.Wearables[(int)WearableType.Hair][0].ItemID,
-//                                         appearance.Wearables[(int)WearableType.Hair][0].AssetID);
-//                        TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
-//                        resetwearable = true;
-//
-//                    }
-//
-//                }
-//                // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
-//                if (appearance.Wearables[(int)WearableType.Skin] == null)
-//                {
-//                    m_log.WarnFormat("[AVFACTORY]: {0} Skin is Null, passing existing values.", (WearableType.Skin));
-//
-//                    TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
-//                    resetwearable = true;
-//                }
-//                else
-//                {
-//                    if (appearance.Wearables[(int)WearableType.Skin][0].ItemID == UUID.Zero)
-//                    {
-//                        m_log.WarnFormat("[AVFACTORY]: Skin is UUID.Zero and broken, {0} {1}",
-//                                         appearance.Wearables[(int)WearableType.Skin][0].ItemID,
-//                                         appearance.Wearables[(int)WearableType.Skin][0].AssetID);
-//                        TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
-//                        resetwearable = true;
-//
-//                    }
-//
-//                }
-//                if (resetwearable)
-//                {
-//                    ScenePresence presence = null;
-//                    if (m_scene.TryGetScenePresence(userID, out presence))
-//                    {
-//                        presence.ControllingClient.SendWearables(presence.Appearance.Wearables,
-//                                                                 presence.Appearance.Serial++);
-//                    }
-//                }
-//
-//            }
-//            else
-//            {
-//                m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
-//            }
+            //IInventoryService invService = m_scene.InventoryService;
+            //bool resetwearable = false;
+            //if (invService.GetRootFolder(userID) != null)
+            //{
+            //    for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
+            //    {
+            //        for (int j = 0; j < appearance.Wearables[i].Count; j++)
+            //        {
+            //            // Check if the default wearables are not set
+            //            if (appearance.Wearables[i][j].ItemID.IsZero())
+            //            {
+            //                switch ((WearableType) i)
+            //                {
+            //                    case WearableType.Eyes:
+            //                    case WearableType.Hair:
+            //                    case WearableType.Shape:
+            //                    case WearableType.Skin:
+            //                    //case WearableType.Underpants:
+            //                        TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
+            //                        resetwearable = true;
+            //                        m_log.Warn("[AVFACTORY]: UUID.Zero Wearables, passing fake values.");
+            //                        resetwearable = true;
+            //                        break;
+            //
+            //                }
+            //                continue;
+            //            }
+            //
+            //            // Ignore ruth's assets except for the body parts! missing body parts fail avatar appearance on V1
+            //            if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
+            //            {
+            //                switch ((WearableType)i)
+            //                {
+            //                    case WearableType.Eyes:
+            //                    case WearableType.Hair:
+            //                    case WearableType.Shape:
+            //                    case WearableType.Skin:
+            //                    //case WearableType.Underpants:
+            //                        TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
+            //
+            //                        m_log.WarnFormat("[AVFACTORY]: {0} Default Wearables, passing existing values.", (WearableType)i);
+            //                        resetwearable = true;
+            //                        break;
+            //
+            //                }
+            //                continue;
+            //            }
+            //
+            //            InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
+            //            baseItem = invService.GetItem(baseItem);
+            //
+            //            if (baseItem != null)
+            //            {
+            //                appearance.Wearables[i].Add(appearance.Wearables[i][j].ItemID, baseItem.AssetID);
+            //                int unmodifiedWearableIndexForClosure = i;
+            //                m_scene.AssetService.Get(baseItem.AssetID.ToString(), this,
+            //                                                          delegate(string x, object y, AssetBase z)
+            //                                                          {
+            //                                                              if (z == null)
+            //                                                              {
+            //                                                                  TryAndRepairBrokenWearable(
+            //                                                                      (WearableType)unmodifiedWearableIndexForClosure, invService,
+            //                                                                      userID, appearance);
+            //                                                              }
+            //                                                          });
+            //            }
+            //            else
+            //            {
+            //                m_log.ErrorFormat(
+            //                    "[AVFACTORY]: Can't find inventory item {0} for {1}, setting to default",
+            //                    appearance.Wearables[i][j].ItemID, (WearableType)i);
+            //
+            //                TryAndRepairBrokenWearable((WearableType)i, invService, userID, appearance);
+            //                resetwearable = true;
+            //
+            //            }
+            //        }
+            //    }
+            //
+            //    // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
+            //    if (appearance.Wearables[(int) WearableType.Eyes] == null)
+            //    {
+            //        m_log.WarnFormat("[AVFACTORY]: {0} Eyes are Null, passing existing values.", (WearableType.Eyes));
+            //
+            //        TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
+            //        resetwearable = true;
+            //    }
+            //    else
+            //    {
+            //        if (appearance.Wearables[(int) WearableType.Eyes][0].ItemID == UUID.Zero)
+            //        {
+            //            m_log.WarnFormat("[AVFACTORY]: Eyes are UUID.Zero are broken, {0} {1}",
+            //                             appearance.Wearables[(int) WearableType.Eyes][0].ItemID,
+            //                             appearance.Wearables[(int) WearableType.Eyes][0].AssetID);
+            //            TryAndRepairBrokenWearable(WearableType.Eyes, invService, userID, appearance);
+            //            resetwearable = true;
+            //
+            //        }
+            //
+            //    }
+            //    // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
+            //    if (appearance.Wearables[(int)WearableType.Shape] == null)
+            //    {
+            //        m_log.WarnFormat("[AVFACTORY]: {0} shape is Null, passing existing values.", (WearableType.Shape));
+            //
+            //        TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
+            //        resetwearable = true;
+            //    }
+            //    else
+            //    {
+            //        if (appearance.Wearables[(int)WearableType.Shape][0].ItemID == UUID.Zero)
+            //        {
+            //            m_log.WarnFormat("[AVFACTORY]: Shape is UUID.Zero and broken, {0} {1}",
+            //                             appearance.Wearables[(int)WearableType.Shape][0].ItemID,
+            //                             appearance.Wearables[(int)WearableType.Shape][0].AssetID);
+            //            TryAndRepairBrokenWearable(WearableType.Shape, invService, userID, appearance);
+            //            resetwearable = true;
+            //
+            //        }
+            //
+            //    }
+            //    // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
+            //    if (appearance.Wearables[(int)WearableType.Hair] == null)
+            //    {
+            //        m_log.WarnFormat("[AVFACTORY]: {0} Hair is Null, passing existing values.", (WearableType.Hair));
+            //
+            //        TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
+            //        resetwearable = true;
+            //    }
+            //    else
+            //    {
+            //        if (appearance.Wearables[(int)WearableType.Hair][0].ItemID == UUID.Zero)
+            //        {
+            //            m_log.WarnFormat("[AVFACTORY]: Hair is UUID.Zero and broken, {0} {1}",
+            //                             appearance.Wearables[(int)WearableType.Hair][0].ItemID,
+            //                             appearance.Wearables[(int)WearableType.Hair][0].AssetID);
+            //            TryAndRepairBrokenWearable(WearableType.Hair, invService, userID, appearance);
+            //            resetwearable = true;
+            //
+            //        }
+            //
+            //    }
+            //    // I don't know why we have to test for this again...  but the above switches do not capture these scenarios for some reason....
+            //    if (appearance.Wearables[(int)WearableType.Skin] == null)
+            //    {
+            //        m_log.WarnFormat("[AVFACTORY]: {0} Skin is Null, passing existing values.", (WearableType.Skin));
+            //
+            //        TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
+            //        resetwearable = true;
+            //    }
+            //    else
+            //    {
+            //        if (appearance.Wearables[(int)WearableType.Skin][0].ItemID == UUID.Zero)
+            //        {
+            //            m_log.WarnFormat("[AVFACTORY]: Skin is UUID.Zero and broken, {0} {1}",
+            //                             appearance.Wearables[(int)WearableType.Skin][0].ItemID,
+            //                             appearance.Wearables[(int)WearableType.Skin][0].AssetID);
+            //            TryAndRepairBrokenWearable(WearableType.Skin, invService, userID, appearance);
+            //            resetwearable = true;
+            //
+            //        }
+            //
+            //    }
+            //    if (resetwearable)
+            //    {
+            //        ScenePresence presence = null;
+            //        if (m_scene.TryGetScenePresence(userID, out presence))
+            //        {
+            //            presence.ControllingClient.SendWearables(presence.Appearance.Wearables,
+            //                                                     presence.Appearance.Serial++);
+            //        }
+            //    }
+            //
+            //}
+            //else
+            //{
+            //    m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
+            //}
         }
 
         private void TryAndRepairBrokenWearable(WearableType type, IInventoryService invService, UUID userID,AvatarAppearance appearance)
@@ -1174,7 +1174,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 // m_log.DebugFormat("[AVFACTORY]: Client_OnRequestWearables called for {0} ({1})", client.Name, client.AgentId);
                 ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
                 if (sp != null)
-                    client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
+                    client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial);
                 else
                     m_log.WarnFormat("[AVFACTORY]: Client_OnRequestWearables unable to find presence for {0}", client.AgentId);
             }, null, "AvatarFactoryModule.OnClientRequestWearables");
