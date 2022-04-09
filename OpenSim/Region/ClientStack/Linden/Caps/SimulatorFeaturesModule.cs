@@ -259,7 +259,7 @@ namespace OpenSim.Region.ClientStack.Linden
             // This isn't the cheapest way of doing this but the rate
             // of occurrence is low (on sim entry only) and it's a sure
             // way to get a true deep copy.
-            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlString(m_features));
+            OSD copy = OSDParser.DeserializeLLSDXml(OSDParser.SerializeLLSDXmlToBytes(m_features));
 
             return (OSDMap)copy;
         }
