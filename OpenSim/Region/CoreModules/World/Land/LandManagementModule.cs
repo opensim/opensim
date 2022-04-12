@@ -30,7 +30,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -49,6 +51,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 
+using Extension = Mono.Addins.ExtensionAttribute;
 namespace OpenSim.Region.CoreModules.World.Land
 {
     // used for caching
@@ -1003,11 +1006,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // Public entry.
         // Throws exception if land object is not found
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int x, int y)
         {
             return GetLandObject(x, y, false /* returnNullIfLandObjectNotFound */);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int x, int y, bool returnNullIfLandObjectOutsideBounds)
         {
             if (x >= m_regionSizeX || y >= m_regionSizeY || x < 0 || y < 0)
@@ -1027,15 +1032,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                        return m_landList[m_landIDList[x / Constants.LandUnit, y / Constants.LandUnit]];
+                    return m_landList[m_landIDList[x / Constants.LandUnit, y / Constants.LandUnit]];
                 }
                 catch (IndexOutOfRangeException)
                 {
-                        return null;
+                    return null;
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectinLandUnits(int x, int y)
         {
             if (m_landList.Count == 0 || m_landIDList == null)
@@ -1054,6 +1060,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectinLandUnitsInt(int x, int y)
         {
             lock (m_landIDList)
@@ -1069,6 +1076,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetLandObjectIDinLandUnits(int x, int y)
         {
             lock (m_landIDList)

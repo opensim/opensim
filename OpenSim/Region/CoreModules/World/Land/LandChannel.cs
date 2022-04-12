@@ -26,6 +26,8 @@
  */
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -100,97 +102,115 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         #region ILandChannel Members
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(float x_float, float y_float)
         {
             return m_landManagementModule != null ? m_landManagementModule.GetLandObject(x_float, y_float) : null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int localID)
         {
             return m_landManagementModule != null ? m_landManagementModule.GetLandObject(localID) : null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(UUID GlobalID)
         {
                 return m_landManagementModule != null ? m_landManagementModule.GetLandObject(GlobalID) : null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(Vector3 position)
         {
             return GetLandObject(position.X, position.Y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int x, int y)
         {
             return m_landManagementModule != null ? m_landManagementModule.GetLandObject(x, y) : null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectClippedXY(float x, float y)
         {
             return m_landManagementModule != null ? m_landManagementModule.GetLandObjectClippedXY(x, y) : null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> AllParcels()
         {
             return m_landManagementModule != null ? m_landManagementModule.AllParcels() : new List<ILandObject>();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear(bool setupDefaultParcel)
         {
              m_landManagementModule?.Clear(setupDefaultParcel);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             return m_landManagementModule != null ? m_landManagementModule.ParcelsNearPoint(position) : new List<ILandObject>();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsForcefulBansAllowed()
         {
             return m_landManagementModule != null ? m_landManagementModule.AllowedForcefulBans : false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateLandObject(int localID, LandData data)
         {
             m_landManagementModule?.UpdateLandObject(localID, data);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SendParcelsOverlay(IClientAPI client)
         {
             m_landManagementModule?.SendParcelOverlay(client);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             m_landManagementModule?.Join(start_x, start_y, end_x, end_y, attempting_user_id);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             m_landManagementModule?.Subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             m_landManagementModule?.ReturnObjectsInParcel(localID, returnType, agentIDs, taskIDs, remoteClient);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
         {
             m_landManagementModule?.setParcelObjectMaxOverride(overrideDel);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
         {
             m_landManagementModule?.setSimulatorObjectMaxOverride(overrideDel);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
         {
             m_landManagementModule?.SetParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay)
         {
             m_landManagementModule?.sendClientInitialLandInfo(remoteClient, overlay);
