@@ -715,17 +715,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool HasGroupAccess(UUID avatar)
         {
-            if (!LandData.GroupID.IsZero() && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            if (LandData.GroupID.IsNotZero() && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) != 0)
             {
-                if (m_groupMemberCache.TryGetValue(avatar, out bool isMember))
+                if (m_groupMemberCache.TryGetValue(avatar, GROUPMEMBERCACHETIMEOUT, out bool isMember))
+                    return isMember;
+
+                if (m_scene.TryGetScenePresence(avatar, out ScenePresence sp))
                 {
+                    isMember = sp.ControllingClient.IsGroupMember(LandData.GroupID);
                     m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
                     return isMember;
                 }
-
-                if (!m_scene.TryGetScenePresence(avatar, out ScenePresence sp))
+                else
                 {
-
                     IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
                     if (groupsModule == null)
                         return false;
@@ -747,12 +749,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                     m_groupMemberCache.Add(avatar, false, GROUPMEMBERCACHETIMEOUT);
                     return false;
-                }
-                else
-                {
-                    isMember = sp.ControllingClient.IsGroupMember(LandData.GroupID);
-                    m_groupMemberCache.Add(avatar, isMember, GROUPMEMBERCACHETIMEOUT);
-                    return isMember;
                 }
             }
             return false;
@@ -900,31 +896,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (avatar.IsNPC)
                     return;
 
-                ILandObject over = null;
-                try
+                if(ContainsPoint((int)Math.Round(avatar.AbsolutePosition.X), (int)Math.Round(avatar.AbsolutePosition.Y)))
                 {
-                    over =
-                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.X), 0, ((int)m_scene.RegionInfo.RegionSizeX - 1)),
-                                                          Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.Y), 0, ((int)m_scene.RegionInfo.RegionSizeY - 1)));
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " +
-                               Math.Round(avatar.AbsolutePosition.Y));
-                }
+                    if(m_scene.RegionInfo.RegionSettings.AllowDamage)
+                        avatar.Invulnerable = false;
+                    else
+                        avatar.Invulnerable = (LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
 
-                if (over != null)
-                {
-                    if (over.LandData.LocalID == LandData.LocalID)
-                    {
-                        if(m_scene.RegionInfo.RegionSettings.AllowDamage)
-                            avatar.Invulnerable = false;
-                        else
-                            avatar.Invulnerable = (over.LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
-
-                        SendLandUpdateToClient(snap_selection, avatar.ControllingClient);
-                        avatar.currentParcelUUID = LandData.GlobalID;
-                    }
+                    SendLandUpdateToClient(snap_selection, avatar.ControllingClient);
+                    avatar.currentParcelUUID = LandData.GlobalID;
                 }
             });
         }
@@ -941,32 +921,16 @@ namespace OpenSim.Region.CoreModules.World.Land
                     SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
                     return;
                 }
-                ILandObject over = null;
-                try
+                if (ContainsPoint((int)Math.Round(avatar.AbsolutePosition.X), (int)Math.Round(avatar.AbsolutePosition.Y)))
                 {
-                    over =
-                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.X), 0, ((int)m_scene.RegionInfo.RegionSizeX - 1)),
-                                                        Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.Y), 0, ((int)m_scene.RegionInfo.RegionSizeY - 1)));
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " +
-                            Math.Round(avatar.AbsolutePosition.Y));
-                }
-
-                if (over != null)
-                {
-                    if (over.LandData.LocalID == LandData.LocalID)
-                    {
-                        if (m_scene.RegionInfo.RegionSettings.AllowDamage)
+                    if (m_scene.RegionInfo.RegionSettings.AllowDamage)
                             avatar.Invulnerable = false;
-                        else
-                            avatar.Invulnerable = (over.LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
+                    else
+                        avatar.Invulnerable = (LandData.Flags & (uint)ParcelFlags.AllowDamage) == 0;
 
-                        avatar.currentParcelUUID = LandData.GlobalID;
-                        SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
-                        return;
-                    }
+                    avatar.currentParcelUUID = LandData.GlobalID;
+                    SendLandProperties(0, true, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
+                    return;
                 }
                 SendLandProperties(-10000, false, LandChannel.LAND_RESULT_SINGLE, avatar.ControllingClient);
             });
