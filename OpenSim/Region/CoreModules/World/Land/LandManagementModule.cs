@@ -38,14 +38,11 @@ using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
 using Mono.Addins;
 using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.PhysicsModules.SharedBase;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -71,8 +68,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <summary>
         /// Minimum land unit size in region co-ordinates.
         /// </summary>
-
-        public const int LandUnit = 4;
 
         private Scene m_scene;
         //private LandChannel m_landChannel;
@@ -166,7 +161,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_regionHandler = m_scene.RegionInfo.RegionHandle;
             m_regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
             m_regionSizeY = (int)m_scene.RegionInfo.RegionSizeY;
-            m_landIDList = new int[m_regionSizeX / LandUnit, m_regionSizeY / LandUnit];
+            m_landIDList = new int[m_regionSizeX / Constants.LandUnit, m_regionSizeY / Constants.LandUnit];
 
             m_scene.LandChannel = this;
 
@@ -309,7 +304,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landFakeIDs.Clear();
                 m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
-                m_landIDList = new int[m_regionSizeX / LandUnit, m_regionSizeY / LandUnit];
+                m_landIDList = new int[m_regionSizeX / Constants.LandUnit, m_regionSizeY / Constants.LandUnit];
             }
         }
 
@@ -997,7 +992,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                    return m_landList[m_landIDList[avx / LandUnit, avy / LandUnit]];
+                    return m_landList[m_landIDList[avx / Constants.LandUnit, avy / Constants.LandUnit]];
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -1032,7 +1027,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                        return m_landList[m_landIDList[x / LandUnit, y / LandUnit]];
+                        return m_landList[m_landIDList[x / Constants.LandUnit, y / Constants.LandUnit]];
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -1404,12 +1399,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             int byteArrayCount = 0;
             int sequenceID = 0;
 
-            int sx = m_regionSizeX / LandUnit;
+            int sx = m_regionSizeX / Constants.LandUnit;
             byte curByte;
             byte tmpByte;
 
             // Layer data is in LandUnit (4m) chunks
-            for (int y = 0; y < m_regionSizeY / LandUnit; ++y)
+            for (int y = 0; y < m_regionSizeY / Constants.LandUnit; ++y)
             {
                 for (int x = 0; x < sx;)
                 {
@@ -1546,8 +1541,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (start_x >= m_regionSizeX || start_y >= m_regionSizeX || end_x > m_regionSizeX || end_y > m_regionSizeY)
                 return;
 
-            if (end_x - start_x <= LandUnit &&
-                end_y - start_y <= LandUnit)
+            if (end_x - start_x <= Constants.LandUnit &&
+                end_y - start_y <= Constants.LandUnit)
             {
                 ILandObject parcel = GetLandObject(start_x, start_y);
                 if(parcel != null)
@@ -1555,10 +1550,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return;
             }
 
-            start_x /= LandUnit;
-            start_y /= LandUnit;
-            end_x /= LandUnit;
-            end_y /= LandUnit;
+            start_x /= Constants.LandUnit;
+            start_y /= Constants.LandUnit;
+            end_x /= Constants.LandUnit;
+            end_y /= Constants.LandUnit;
 
             //Get the land objects within the bounds
             Dictionary<int, ILandObject> temp = new Dictionary<int, ILandObject>();
@@ -1840,9 +1835,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     IncomingLandObjectFromStorage(data[i]);
 
                 // Layer data is in LandUnit (4m) chunks
-                for (int y = 0; y < m_regionSizeY / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); y++)
+                for (int y = 0; y < m_regionSizeY / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / Constants.LandUnit); y++)
                 {
-                    for (int x = 0; x < m_regionSizeX / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / LandUnit); x++)
+                    for (int x = 0; x < m_regionSizeX / Constants.TerrainPatchSize * (Constants.TerrainPatchSize / Constants.LandUnit); x++)
                     {
                         if (m_landIDList[x, y] == 0)
                         {

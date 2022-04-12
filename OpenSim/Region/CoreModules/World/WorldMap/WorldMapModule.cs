@@ -1709,7 +1709,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private Byte[] GenerateOverlay()
         {
-            int landTileSize = LandManagementModule.LandUnit;
+            const  int landTileSize = Constants.LandUnit;
 
             // These need to be ints for bitmap generation
             int regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;
