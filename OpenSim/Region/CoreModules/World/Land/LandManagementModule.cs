@@ -1230,6 +1230,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             //Loop through the points
+            int area = 0;
             try
             {
                 for (int y = start_y; y < end_y; y++)
@@ -1241,11 +1242,19 @@ namespace OpenSim.Region.CoreModules.World.Land
                             return;
                         if (tempLandObject != startLandObject)
                             return;
+                        area++;
                     }
                 }
             }
             catch (Exception)
             {
+                return;
+            }
+
+            LandData startLandData = startLandObject.LandData;
+            if (area >= startLandData.Area)
+            {
+                // split is a replace, keep as is
                 return;
             }
 
@@ -1269,7 +1278,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             lock (m_landList)
             {
                 m_landList[startLandObjectIndex].SetLandBitmap(newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
-                m_landList[startLandObjectIndex].ForceUpdateLandInfo();
+                //m_landList[startLandObjectIndex].ForceUpdateLandInfo();
             }
 
             UpdateLandObject(startLandObject.LandData.LocalID, startLandObject.LandData);

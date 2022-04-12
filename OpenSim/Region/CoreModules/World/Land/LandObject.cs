@@ -1153,6 +1153,26 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
 
+            if(tempArea == 0)
+            {
+                m_centerPoint = Vector2.Zero;
+                m_endPoint = Vector2.Zero;
+                m_AABBmin = Vector2.Zero;
+                m_AABBmax = Vector2.Zero;
+
+                LandData.AABBMin = Vector3.Zero;
+                LandData.AABBMax = Vector3.Zero;
+                LandData.Area = 0;
+
+                if (m_scene != null)
+                {
+                    RegionInfo ri = m_scene.RegionInfo;
+                    //create a fake ID
+                    LandData.FakeID = Util.BuildFakeParcelID(ri.RegionHandle, 0, 0);
+                }
+                return;
+            }
+
             int halfunit = landUnit/2;
 
             m_centerPoint.X = avgx * landUnit + halfunit;
