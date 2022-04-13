@@ -51,7 +51,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <summary>
         /// Scene that created this object.
         /// </summary>
-        private ODEScene m_scene;
+        private readonly ODEScene m_scene;
 
         IntPtr ray; // the ray. we only need one for our lifetime
         IntPtr Sphere;
@@ -65,9 +65,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// <summary>
         /// ODE near callback delegate
         /// </summary>
-        private SafeNativeMethods.NearCallback nearCallback;
+        private readonly SafeNativeMethods.NearCallback nearCallback;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private List<ContactResult> m_contactResults = new List<ContactResult>();
+        private readonly List<ContactResult> m_contactResults = new List<ContactResult>();
         private RayFilterFlags CurrentRayFilter;
         private int CurrentMaxCount;
 
@@ -127,9 +127,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (m_scene.haveActor(req.actor))
                         {
                             if (req.actor is OdePrim)
-                                geom = ((OdePrim)req.actor).prim_geom;
+                                geom = ((OdePrim)req.actor).m_prim_geom;
                             else if (req.actor is OdeCharacter)
-                                geom = ((OdePrim)req.actor).prim_geom;
+                                geom = ((OdePrim)req.actor).m_prim_geom;
                         }
                         if (geom == IntPtr.Zero)
                         {
@@ -649,7 +649,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// </summary>
         internal void Dispose()
         {
-            m_scene = null;
             if (ray != IntPtr.Zero)
             {
                 SafeNativeMethods.GeomDestroy(ray);

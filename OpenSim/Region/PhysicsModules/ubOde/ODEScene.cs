@@ -227,21 +227,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private SafeNativeMethods.NearCallback nearCallback;
 
-        private Dictionary<uint,OdePrim> _prims = new Dictionary<uint,OdePrim>();
-        private HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
-        private HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
-        private HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
+        private readonly Dictionary<uint,OdePrim> _prims = new Dictionary<uint,OdePrim>();
+        private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
+        private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
 
-        public ConcurrentQueue<ODEchangeitem> ChangesQueue = new ConcurrentQueue<ODEchangeitem>();
+        public readonly ConcurrentQueue<ODEchangeitem> ChangesQueue = new ConcurrentQueue<ODEchangeitem>();
 
         /// <summary>
         /// A list of actors that should receive collision events.
         /// </summary>
-        private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
-        private List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
+        private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly List<PhysicsActor> _collisionEventPrimRemove = new List<PhysicsActor>();
 
-        private HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
-        public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
+        private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
+        public readonly Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
 
         private float contactsurfacelayer = 0.002f;
 
@@ -255,7 +255,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private IntPtr contactgroup;
 
-        public ContactData[] m_materialContactsData = new ContactData[8];
+        public readonly ContactData[] m_materialContactsData = new ContactData[8];
 
         private IntPtr m_terrainGeom;
         private float[] m_terrainHeights;
@@ -283,8 +283,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr StaticSpace; // space for the static things around
         public IntPtr GroundSpace; // space for ground
 
-        public object OdeLock = new object();
-        public static object SimulationLock = new object();
+        public readonly object OdeLock = new object();
+        public static readonly object SimulationLock = new object();
 
         public IMesher mesher;
 
@@ -1054,10 +1054,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     foreach (OdePrim aprim in _activegroups)
                     {
                         if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body) &&
-                                aprim.collide_geom != IntPtr.Zero)
+                                aprim.m_collide_geom != IntPtr.Zero)
                         {
-                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
-                            SafeNativeMethods.SpaceCollide2(GroundSpace, aprim.collide_geom, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(GroundSpace, aprim.m_collide_geom, IntPtr.Zero, nearCallback);
                         }
                     }
                 }
@@ -2289,9 +2289,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             IntPtr geom;
             if (actor is OdePrim)
-                geom = ((OdePrim)actor).prim_geom;
+                geom = ((OdePrim)actor).m_prim_geom;
             else if (actor is OdeCharacter)
-                geom = ((OdePrim)actor).prim_geom;
+                geom = ((OdePrim)actor).m_prim_geom;
             else
                 return new List<ContactResult>();
 
@@ -2405,9 +2405,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (actor != null)
             {
                 if (actor is OdePrim)
-                    geom = ((OdePrim)actor).prim_geom;
+                    geom = ((OdePrim)actor).m_prim_geom;
                 else if (actor is OdeCharacter)
-                    geom = ((OdePrim)actor).prim_geom;
+                    geom = ((OdePrim)actor).m_prim_geom;
             }
 
             List<ContactResult> ourResults = null;
