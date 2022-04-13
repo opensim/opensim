@@ -1142,7 +1142,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     _characters.Add(chr);
                     if (chr.bad)
-                        m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
+                        m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.LocalID);
                 }
             }
         }
