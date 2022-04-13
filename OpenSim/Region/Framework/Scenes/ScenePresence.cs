@@ -162,8 +162,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         private readonly object m_completeMovementLock = new object();
 
-//        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
-        private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
 
         /// <summary>
@@ -175,7 +173,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// issue #1716
         /// </summary>
         public static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.4f);
-        public bool  LegacySitOffsets = true;
+        public readonly bool  LegacySitOffsets = true;
 
         /// <summary>
         /// Movement updates for agents in neighboring regions are sent directly to clients.
@@ -183,11 +181,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// for things such as distance-based update prioritization
         /// this are the square of real distances
         /// </summary>
-        public static readonly float MOVEMENT = .25f;
-        public static readonly float SIGNIFICANT_MOVEMENT = 16.0f;
-        public static readonly float CHILDUPDATES_MOVEMENT = 100.0f;
-        public static readonly float CHILDAGENTSCHECK_MOVEMENT = 1024f; // 32m
-        public static readonly float CHILDUPDATES_TIME = 2000f; // min time between child updates (ms)
+        public const float MOVEMENT = .25f;
+        public const float SIGNIFICANT_MOVEMENT = 16.0f;
+        public const float CHILDUPDATES_MOVEMENT = 100.0f;
+        public const float CHILDAGENTSCHECK_MOVEMENT = 1024f; // 32m
+        public const float CHILDUPDATES_TIME = 2000f; // min time between child updates (ms)
 
         private UUID m_previusParcelUUID = UUID.Zero;
         private UUID m_currentParcelUUID = UUID.Zero;
@@ -388,7 +386,44 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_healRate = 1f;
         private float m_healRatePerFrame = 0.05f;
 
-        private readonly Vector3[] Dir_Vectors = new Vector3[12];
+        private static readonly Vector3[] Dir_Vectors = new Vector3[6] {
+                new Vector3(1.0f, 0, 0), //FORWARD
+                new Vector3(-1.0f,0,0), //BACK
+                new Vector3(0, 1.0f,0), //LEFT
+                new Vector3(0,-1.0f,0), //RIGHT
+                new Vector3(0,0, 1.0f), //UP
+                new Vector3(0,0,-1.0f) //DOWN
+        };
+
+        private enum Dir_ControlFlags : uint
+        {
+            DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
+            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
+            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+            DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
+            DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS,
+            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+        }
+
+        const uint CONTROL_FLAG_NORM_MASK = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_UP_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG);
+
+        const uint CONTROL_FLAG_NUDGE_MASK = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS |
+                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
 
         protected int  m_reprioritizationLastTime;
         protected bool m_reprioritizationBusy;
@@ -458,25 +493,6 @@ namespace OpenSim.Region.Framework.Scenes
             private set { m_InTransitScriptStates = value; }
         }
         private List<string> m_InTransitScriptStates = new List<string>();
-
-        /// <summary>
-        /// Implemented Control Flags
-        /// </summary>
-        private enum Dir_ControlFlags:uint
-        {
-            DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
-            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
-            DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
-            DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS,
-            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
-        }
 
         /// <summary>
         /// Position at which a significant movement was made
@@ -1050,15 +1066,9 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsInLocalTransit {get; set; }
 
 
-        /// <summary>
-        /// Modifier for agent movement if we get an AGENT_CONTROL_STOP whilst walking or running
-        /// </summary>
-        /// <remarks>
-        /// AGENT_CONTRL_STOP comes about if user holds down space key on viewers.
-        /// </remarks>
-        private const float AgentControlStopSlowVel = 0.2f;
         // velocities
-        public const float AgentControlNudgeVel = 1.0f; // setting this diferent from normal as no effect currently
+        private const float AgentControlStopSlowVel = 0.2f;
+        public const float AgentControlNudgeVel = 0.5f;
         public const float AgentControlNormalVel = 1.0f;
 
         // old normal speed was tuned to match sl normal plus Fast modifiers
@@ -1154,7 +1164,6 @@ namespace OpenSim.Region.Framework.Scenes
             AdjustKnownSeeds();
 
             RegisterToClientEvents();
-            SetDirectionVectors();
 
             Appearance = appearance;
 
@@ -1305,22 +1314,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // ControllingClient.OnAgentFOV += HandleAgentFOV;
         }
-
-        private void SetDirectionVectors()
-        {
-            Dir_Vectors[0] = new Vector3(AgentControlNormalVel,0,0); //FORWARD
-            Dir_Vectors[1] = new Vector3(-AgentControlNormalVel,0,0);; //BACK
-            Dir_Vectors[2] = new Vector3(0,AgentControlNormalVel,0); //LEFT
-            Dir_Vectors[3] = new Vector3(0,-AgentControlNormalVel,0); //RIGHT
-            Dir_Vectors[4] = new Vector3(0,0,AgentControlNormalVel); //UP
-            Dir_Vectors[5] = new Vector3(0,0,-AgentControlNormalVel); //DOWN
-            Dir_Vectors[6] = new Vector3(AgentControlNudgeVel, 0f, 0f); //FORWARD_NUDGE
-            Dir_Vectors[7] = new Vector3(-AgentControlNudgeVel, 0f, 0f);  //BACK_NUDGE
-            Dir_Vectors[8] = new Vector3(0f, AgentControlNudgeVel, 0f);  //LEFT_NUDGE
-            Dir_Vectors[9] = new Vector3(0f, -AgentControlNudgeVel, 0f);  //RIGHT_NUDGE
-            Dir_Vectors[10] = new Vector3(0f, 0f, AgentControlNudgeVel); //UP_Nudge
-            Dir_Vectors[11] = new Vector3(0f, 0f, -AgentControlNudgeVel); //DOWN_Nudge
-        }
+ 
         #endregion
 
         #region Status Methods
@@ -2231,7 +2225,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat(
                         "[SCENE PRESENCE]: Aborting CompleteMovement call for {0} in {1} as they are already root",
                         Name, Scene.Name);
-
                     return;
                 }
 
@@ -2733,6 +2726,7 @@ namespace OpenSim.Region.Framework.Scenes
                 int i = 0;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
+                float agent_velocity = AgentControlNormalVel;
 
                 bool newFlying = false;
 
@@ -2756,63 +2750,35 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ParentID == 0)
                 {
                     bool bAllowUpdateMoveToPosition = false;
+                    uint currflags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                    uint oldflags = MovementFlag & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                    MovementFlag &= ~(CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
 
-                    Vector3[] dirVectors;
-
-                    // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
-                    // this prevents 'jumping' in inappropriate situations.
-//                    if (!Flying && (m_mouseLook || m_leftButtonDown))
-//                        dirVectors = GetWalkDirectionVectors();
-//                    else
-                        dirVectors = Dir_Vectors;
-
-                    // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
-                    foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
+                    if (currflags != 0)
                     {
-                        if (((uint)flags & (uint)DCF) != 0)
-                        {
-                            DCFlagKeyPressed = true;
+                        DCFlagKeyPressed = true;
+                        update_movementflag = (currflags ^ oldflags) != 0;
+                        MovementFlag |= currflags;
 
-                            try
-                            {
+                        if((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
+                        {
+                            currflags >>= 19;
+                            agent_velocity = AgentControlNudgeVel;
+                        }
+
+                        uint mask = 1;
+                        for (i= 0; i < 6; ++i, mask <<= 1)
+                        {
+                            if((currflags & mask) != 0)
                                 agent_control_v3 += Dir_Vectors[i];
-                                //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
-                            }
-                            catch (IndexOutOfRangeException)
-                            {
-                                // Why did I get this?
-                            }
-
-                            if (((MovementFlag & (uint)DCF) == 0))
-                            {
-                                //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with {1}", Name, DCF);
-                                MovementFlag |= (uint)DCF;
-                                update_movementflag = true;
-                            }
                         }
+                    }
+                    else
+                    {
+                        if(oldflags == 0)
+                            bAllowUpdateMoveToPosition = true;
                         else
-                        {
-                            if ((MovementFlag & (uint)DCF) != 0)
-                            {
-                                //m_log.DebugFormat("[SCENE PRESENCE]: Updating MovementFlag for {0} with lack of {1}", Name, DCF);
-                                MovementFlag &= (uint)~DCF;
-                                update_movementflag = true;
-
-                                /*
-                                    if ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
-                                    && ((MovementFlag & (byte)nudgehack) == nudgehack))
-                                    {
-                                        m_log.Debug("Removed Hack flag");
-                                    }
-                                */
-                            }
-                            else
-                            {
-                                bAllowUpdateMoveToPosition = true;
-                            }
-                        }
-
-                        i++;
+                            update_movementflag = true;
                     }
 
                     // Detect AGENT_CONTROL_STOP state changes
@@ -2848,29 +2814,28 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Flying && !ForceFly)
                 {
                     // Need to stop in mid air if user holds down AGENT_CONTROL_STOP
-                    //                    if (AgentControlStopActive)
-                    //                    {
-                    //                        agent_control_v3 = Vector3.Zero;
-                    //                    }
-                    //                    else
+                    //if (AgentControlStopActive)
+                    //{
+                    //    agent_control_v3 = Vector3.Zero;
+                    //}
+                    //else
                     {
                         // Landing detection code
-
                         // Are the landing controls requirements filled?
-                        bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                            ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                        //bool controlland = (flags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0;
 
                         //m_log.Debug("[CONTROL]: " +flags);
                         // Applies a satisfying roll effect to the avatar when flying.
-                        if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0 && (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                        const AgentManager.ControlFlags flagsLeft = AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT | AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS;
+                        const AgentManager.ControlFlags flagsRight = AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT | AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG;
+                        if ((flags & flagsLeft) == flagsLeft)
                         {
                             ApplyFlyingRoll(
                                 FLY_ROLL_RADIANS_PER_UPDATE,
                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0,
                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
                         }
-                        else if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0 &&
-                                 (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                        else if ((flags & flagsRight) == flagsRight)
                         {
                             ApplyFlyingRoll(
                                 -FLY_ROLL_RADIANS_PER_UPDATE,
@@ -2884,14 +2849,14 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                         /*
-                                                if (Flying && IsColliding && controlland)
-                                                {
-                                                    // nesting this check because LengthSquared() is expensive and we don't
-                                                    // want to do it every step when flying.
-                                                    if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                                                        StopFlying();
-                                                }
-                         */
+                        if (Flying && IsColliding && controlland)
+                        {
+                            // nesting this check because LengthSquared() is expensive and we don't
+                            // want to do it every step when flying.
+                            if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
+                                StopFlying();
+                        }
+                        */
                     }
                 }
                 else if (IsColliding && agent_control_v3.Z < 0f)
@@ -2927,13 +2892,13 @@ namespace OpenSim.Region.Framework.Scenes
                                  (Animator.currentControlState != ScenePresenceAnimator.motionControlStates.flying &&
                                     Animator.currentControlState != ScenePresenceAnimator.motionControlStates.onsurface)
                                  )
-                            AddNewMovement(agent_control_v3);
+                            AddNewMovement(agent_control_v3, agent_velocity);
                         else
                         {
                             if (MovementFlag != 0)
-                                AddNewMovement(agent_control_v3);
+                                AddNewMovement(agent_control_v3, agent_velocity);
                             else
-                                m_delayedStop = Util.GetTimeStampMS() + 200.0;
+                                m_delayedStop = Util.GetTimeStampMS() + 100.0;
                         }
                     }
                 }
@@ -3103,53 +3068,33 @@ namespace OpenSim.Region.Framework.Scenes
                 // based on the above avatar coordinate system, classify the movement into
                 // one of left/right/back/forward.
 
-                const uint noMovFlagsMask = (uint)(~(Dir_ControlFlags.DIR_CONTROL_FLAG_BACK |
-                    Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD | Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT |
-                    Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT | Dir_ControlFlags.DIR_CONTROL_FLAG_UP |
-                    Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN));
-
-                MovementFlag &= noMovFlagsMask;
-                uint tmpAgentControlFlags = (uint)m_AgentControlFlags;
-                tmpAgentControlFlags &= noMovFlagsMask;
-
+                uint tmpAgentControlFlags = 0;
                 if (LocalVectorToTarget3D.X < 0) //MoveBack
-                {
-                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                    updated = true;
-                }
+                    tmpAgentControlFlags = (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                 else if (LocalVectorToTarget3D.X > 0) //Move Forward
-                {
-                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                    tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                    updated = true;
-                }
+                    tmpAgentControlFlags = (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
 
                 if (LocalVectorToTarget3D.Y > 0) //MoveLeft
-                {
-                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                     tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                    updated = true;
-                }
                 else if (LocalVectorToTarget3D.Y < 0) //MoveRight
-                {
-                    MovementFlag |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                     tmpAgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                    updated = true;
-                }
                
-                if (LocalVectorToTarget3D.Z > 0) //Up
-                     updated = true;
- 
-                else if (LocalVectorToTarget3D.Z < 0) //Down
-                     updated = true;
- 
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
-//                            LocalVectorToTarget3D, agent_control_v3, Name);
+                updated = LocalVectorToTarget3D.Z != 0;
+                updated |= tmpAgentControlFlags != 0;
 
-                m_AgentControlFlags = (AgentManager.ControlFlags) tmpAgentControlFlags;
-                if(updated)
+                //m_log.DebugFormat(
+                //    "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
+                //        LocalVectorToTarget3D, agent_control_v3, Name);
+
+                const uint noMovFlagsMask = (uint)(~CONTROL_FLAG_NORM_MASK);
+
+                MovementFlag &= noMovFlagsMask;
+                MovementFlag |= tmpAgentControlFlags;
+
+                m_AgentControlFlags &= unchecked((AgentManager.ControlFlags)noMovFlagsMask);
+                m_AgentControlFlags |= (AgentManager.ControlFlags)tmpAgentControlFlags;
+
+                if (updated)
                     agent_control_v3 += LocalVectorToTarget3D;
             }
             catch (Exception e)
