@@ -1336,8 +1336,7 @@ namespace OpenSim.Framework
             }
             else if (WebUtil.DebugLevel >= 4)
             {
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms",
-                    reqnum, tickdiff);
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms", reqnum, tickdiff);
             }
             return deserial;
         }
@@ -1347,7 +1346,7 @@ namespace OpenSim.Framework
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq GET {2}", reqnum, requestUrl);
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq GET {1}", reqnum, requestUrl);
             int tickstart = Util.EnvironmentTickCount();
 
             TResponse deserial = default(TResponse);

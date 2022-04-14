@@ -287,14 +287,12 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         /// <param name="retMethod">Method to call when the raycast is complete</param>
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
         {
-            if (retMethod != null)
-                retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
+            retMethod?.Invoke(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
         }
 
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
         {
-            if (retMethod != null)
-                retMethod(new List<ContactResult>());
+            retMethod?.Invoke(new List<ContactResult>());
         }
 
         public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
