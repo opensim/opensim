@@ -17505,8 +17505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return String.Empty;
             }
 
-            UUID animID = presence.GetAnimationOverride(state);
-            if (animID.IsZero())
+            if (!presence.TryGetAnimationOverride(state, out UUID animID) || animID.IsZero())
                 return animState;
 
             foreach (KeyValuePair<string, UUID> kvp in DefaultAvatarAnimations.AnimsUUIDbyName)

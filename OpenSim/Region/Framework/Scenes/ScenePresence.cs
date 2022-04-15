@@ -4425,6 +4425,24 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        public void SendAnimPackToOthers(UUID[] animations, int[] seqs, UUID[] objectIDs)
+        {
+            if (IsChildAgent)
+                return;
+
+            m_scene.ForEachScenePresence(delegate (ScenePresence p)
+            {
+                if (p.IsNPC)
+                    return;
+                if (p.LocalId == LocalId)
+                    return;
+
+                if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
+                    return;
+                p.ControllingClient.SendAnimations(animations, seqs, ControllingClient.AgentId, objectIDs);
+            });
+        }
+
         #endregion
 
         #region Significant Movement Method
@@ -7014,6 +7032,11 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID GetAnimationOverride(string animState)
         {
             return Overrides.GetOverriddenAnimation(animState);
+        }
+
+        public bool TryGetAnimationOverride(string animState, out UUID animID)
+        {
+            return Overrides.TryGetOverriddenAnimation(animState, out animID);
         }
 
     }

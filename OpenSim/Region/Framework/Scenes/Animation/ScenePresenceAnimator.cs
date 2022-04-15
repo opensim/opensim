@@ -194,64 +194,59 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public bool TrySetMovementAnimation(string anim)
         {
-            bool ret = false;
-            if (!m_scenePresence.IsChildAgent)
-            {
-//                m_log.DebugFormat(
-//                    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
-//                    anim, m_scenePresence.Name);
-
-                if (!aoSitGndAnim.IsZero())
-                {
-                    avnChangeAnim(aoSitGndAnim, false, true);
-                    aoSitGndAnim = UUID.Zero;
-                }
-
-                UUID overridenAnim = m_scenePresence.Overrides.GetOverriddenAnimation(anim);
-                if (!overridenAnim.IsZero())
-                {
-                    if (anim == "SITGROUND")
-                    {
-                        UUID defsit = DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"];
-                        if (defsit.IsZero())
-                            return false;
-                        m_animations.SetDefaultAnimation(defsit, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
-                        aoSitGndAnim = overridenAnim;
-                        avnChangeAnim(overridenAnim, true, false);
-                    }
-                    else
-                    {
-                        m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
-                    }
-                    m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
-                    SendAnimPack();
-                    ret = true;
-                }
-                else
-                {
-                    // translate sit and sitground state animations
-                    if (anim == "SIT" || anim == "SITGROUND")
-                        anim = m_scenePresence.sitAnimation;
-
-                    if (m_animations.TrySetDefaultAnimation(anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
-                    {
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
-//                        anim, m_scenePresence.Name);
-
-                        m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
-                        SendAnimPack();
-                        ret = true;
-                    }
-                }
-            }
-            else
+            if (m_scenePresence.IsChildAgent)
             {
                 m_log.WarnFormat(
                     "[SCENE PRESENCE ANIMATOR]: Tried to set movement animation {0} on child presence {1}",
                     anim, m_scenePresence.Name);
+                return false;
             }
-            return ret;
+
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE ANIMATOR]: Setting movement animation {0} for {1}",
+            //        anim, m_scenePresence.Name);
+
+            if (!aoSitGndAnim.IsZero())
+            {
+                avnChangeAnim(aoSitGndAnim, false, true);
+                aoSitGndAnim = UUID.Zero;
+            }
+
+            if (m_scenePresence.Overrides.TryGetOverriddenAnimation(anim, out UUID overridenAnim))
+            {
+                if (anim.Equals("SITGROUND"))
+                {
+                    UUID defsit = DefaultAvatarAnimations.AnimsUUIDbyName["SIT_GROUND_CONSTRAINED"];
+                    if (defsit.IsZero())
+                        return false;
+                    m_animations.SetDefaultAnimation(defsit, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                    aoSitGndAnim = overridenAnim;
+                    avnChangeAnim(overridenAnim, true, false);
+                }
+                else
+                {
+                    m_animations.SetDefaultAnimation(overridenAnim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID);
+                }
+                m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
+                SendAnimPack();
+                return true;
+            }
+
+            // translate sit and sitground state animations
+            if (anim.Equals("SIT") || anim.Equals("SITGROUND"))
+                anim = m_scenePresence.sitAnimation;
+
+            if (m_animations.TrySetDefaultAnimation(anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
+            {
+                //m_log.DebugFormat(
+                //    "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
+                //       anim, m_scenePresence.Name);
+
+                m_scenePresence.SendScriptChangedEventToAttachments(Changed.ANIMATION);
+                SendAnimPack();
+                return true;
+            }
+            return false;
         }
 
         public enum motionControlStates : byte
@@ -490,7 +485,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     return "LAND";
             }
 
-
             if (currentControlState == motionControlStates.landing)
             {
                 Falling = false;
@@ -558,9 +552,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <returns>'true' if the animation was changed</returns>
         public bool UpdateMovementAnimations()
         {
-            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Updating movement animations for {0}", m_scenePresence.Name);
-
-            bool ret = false;
+            // m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Updating movement animations for {0}", m_scenePresence.Name);
             lock (m_animations)
             {
                 string newMovementAnimation = DetermineMovementAnimation();
@@ -574,10 +566,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
                     // Only set it if it's actually changed, give a script
                     // a chance to stop a default animation
-                    ret = TrySetMovementAnimation(CurrentMovementAnimation);
+                    return TrySetMovementAnimation(CurrentMovementAnimation);
                 }
             }
-            return ret;
+            return false;
         }
 
         public bool ForceUpdateMovementAnimations()
@@ -837,7 +829,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// Send animation information about this avatar to all clients.
         /// </summary>
-        public void SendAnimPack()
+        public void SendAnimPack(bool selfIncluded = true)
         {
             //m_log.Debug("Sending animation pack to all");
 
@@ -851,7 +843,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
             //            SendAnimPack(animIDs, sequenceNums, objectIDs);
-            m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
+            if(selfIncluded)
+                m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
+            else
+                m_scenePresence.SendAnimPackToOthers(animIDs, sequenceNums, objectIDs);         
         }
 
         public string GetAnimName(UUID animId)

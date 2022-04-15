@@ -167,6 +167,8 @@ namespace OSHttpServer.Parser
             {
                 if (!m_curHeaderValue.TryParseInt(out m_bodyBytesLeft))
                     throw new BadRequestException("Content length is not a number.");
+                if(m_bodyBytesLeft > 64 * 1024 * 1204)
+                    throw new BadRequestException("Content length too large.");
             }
 
             if (HeaderReceived != null)
