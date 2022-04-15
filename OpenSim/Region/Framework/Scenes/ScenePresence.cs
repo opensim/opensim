@@ -42,6 +42,8 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Services.Interfaces;
 using TeleportFlags = OpenSim.Framework.Constants.TeleportFlags;
 
+using ACFlags = OpenMetaverse.AgentManager.ControlFlags;
+
 namespace OpenSim.Region.Framework.Scenes
 {
     [Flags]
