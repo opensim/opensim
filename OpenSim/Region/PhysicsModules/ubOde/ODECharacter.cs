@@ -364,8 +364,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (value)
                 {
                     m_colliderfilter += 3;
-                    if (m_colliderfilter > 3)
-                        m_colliderfilter = 3;
+                    if (m_colliderfilter > 9)
+                        m_colliderfilter = 9;
                 }
                 else
                 {
@@ -374,7 +374,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         m_colliderfilter = 0;
                 }
 
-                if (m_colliderfilter == 0)
+                if (m_colliderfilter < 6)
                     m_iscolliding = false;
                 else
                 {
@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (!m_iscolliding)
                 m_collideNormal.Z = 0;
 
-            bool tviszero = (ctz.X == 0.0f && ctz.Y == 0.0f && ctz.Z == 0.0f);
+            bool tviszero = ctz.IsZero();
 
             if (!tviszero)
             {
@@ -1396,7 +1396,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         ctz.Z *= 2;
 
                 }
-
             }
 
             if (!m_freemove)
@@ -1780,7 +1779,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (ncolisions == 0)
                     {
                         SentEmptyCollisionsEvent = true;
-                        //                  _parent_scene.RemoveCollisionEventReporting(this);
+                        //_parent_scene.RemoveCollisionEventReporting(this);
                     }
                     else
                     {
