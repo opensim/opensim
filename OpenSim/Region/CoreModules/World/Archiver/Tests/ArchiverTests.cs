@@ -646,7 +646,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.SunPosition = 12.0;
             rs.ObjectBonus = 1.4;
             rs.RestrictPushing = true;
-            rs.TerrainLowerLimit = 0.4;
+            rs.TerrainLowerLimit = -17.9;
             rs.TerrainRaiseLimit = 17.9;
             rs.TerrainTexture1 = UUID.Parse("00000000-0000-0000-0000-000000000020");
             rs.TerrainTexture2 = UUID.Parse("00000000-0000-0000-0000-000000000040");
