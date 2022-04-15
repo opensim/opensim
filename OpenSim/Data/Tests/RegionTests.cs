@@ -869,8 +869,8 @@ namespace OpenSim.Data.Tests
             double elev1sw = 352;
             double elev2sw = 774;
             double waterh = 125;
-            double terrainraise = -74;
-            double terrainlower = 79;
+            double terrainraise = 74;
+            double terrainlower = -79;
             Vector3 sunvector = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
             UUID terimgid = UUID.Random();
             UUID cov = UUID.Random();
