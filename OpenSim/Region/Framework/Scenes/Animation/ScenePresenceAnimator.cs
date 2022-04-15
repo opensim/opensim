@@ -584,9 +584,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     return false;
 
                 CurrentMovementAnimation = newMovementAnimation;
-                m_log.DebugFormat(
-                    "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} {2} {3} in UpdateMovementAnimations()",
-                    CurrentMovementAnimation, m_scenePresence.Name, isJumping, Falling);
+                //m_log.DebugFormat(
+                //    "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} {2} {3} in UpdateMovementAnimations()",
+                //    CurrentMovementAnimation, m_scenePresence.Name, isJumping, Falling);
 
                 // Only set it if it's actually changed, give a script
                 // a chance to stop a default animation
