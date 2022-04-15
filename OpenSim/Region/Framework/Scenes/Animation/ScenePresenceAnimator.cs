@@ -61,9 +61,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         private int m_animTickLand;
         private int m_animTickJump;
 
-        public bool m_jumping = false;
+        public bool isJumping;
 
-        //        private int m_landing = 0;
+        // private int m_landing = 0;
 
         /// <summary>
         /// Is the avatar falling?
@@ -154,7 +154,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     m_animations.Remove(animID, false);
             }
             if (sendPack)
-                SendAnimPack();
+                SendAnimPack(false);
         }
 
         // Called from scripts
@@ -189,9 +189,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         /// <returns>'true' if the animation was updated</returns>
         ///
-
-
-
         public bool TrySetMovementAnimation(string anim)
         {
             if (m_scenePresence.IsChildAgent)
@@ -254,6 +251,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             sitted = 0,
             flying,
             falling,
+            prejumping,
             jumping,
             landing,
             onsurface
@@ -267,8 +265,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         private string DetermineMovementAnimation()
         {
             const int FALL_DELAY = 800;
-            const int PREJUMP_DELAY = 200;
-            const int JUMP_PERIOD = 800;
+            const int PREJUMP_DELAY = 450;
+            const int JUMP_PERIOD = 1050;
             #region Inputs
 
             if (m_scenePresence.IsInTransit)
@@ -277,16 +275,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.SitGround)
             {
                 currentControlState = motionControlStates.sitted;
+                isJumping = false;
+                Falling = false;
                 return "SITGROUND";
             }
             if (m_scenePresence.ParentID != 0 || !m_scenePresence.ParentUUID.IsZero())
             {
                 currentControlState = motionControlStates.sitted;
+                isJumping = false;
+                Falling = false;
                 return "SIT";
             }
 
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
-            PhysicsActor actor = m_scenePresence.PhysicsActor;
 
             const AgentManager.ControlFlags ANYXYMASK = (
                 AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS |
@@ -294,37 +295,44 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS |
                 AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG
                 );
+            const AgentManager.ControlFlags ANYXYZMASK = (ANYXYMASK |
+                AgentManager.ControlFlags.AGENT_CONTROL_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS |
+                AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+                );
 
-            // Check control flags
-            /* not in use
-                        bool heldForward = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0);
-                        bool heldBack = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0);
-                        bool heldLeft = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0);
-                        bool heldRight = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0);
-            */
-            bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
-            bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
-            //            bool heldUp = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS)) != 0);
-            // excluded nudge up so it doesn't trigger jump state
+             // excluded nudge up so it doesn't trigger jump state
             bool heldUp = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_POS)) != 0);
             bool heldDown = ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0);
             //bool flying = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) == AgentManager.ControlFlags.AGENT_CONTROL_FLY;
             //bool mouselook = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) == AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK;
 
             bool heldOnXY = ((controlFlags & ANYXYMASK) != 0);
-            if (heldOnXY || heldUp || heldDown)
+            bool heldTurnLeft;
+            bool heldTurnRight;
+            if ((controlFlags & ANYXYZMASK) != 0)
             {
                 heldTurnLeft = false;
                 heldTurnRight = false;
             }
+            else
+            {
+                heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) != 0;
+                heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) != 0;
+                //heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0;
+                //heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0;
+            }
+
 
             #endregion Inputs
 
+            PhysicsActor actor = m_scenePresence.PhysicsActor;
             // no physics actor case
             if (actor == null)
             {
-                // well what to do?
+                isJumping = false;
+                Falling = false;
 
+                // well what to do?
                 currentControlState = motionControlStates.onsurface;
                 if (heldOnXY)
                     return "WALK";
@@ -332,15 +340,14 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 return "STAND";
             }
 
-            #region Flying
-
             bool isColliding = actor.IsColliding;
 
+            #region Flying
             if (actor.Flying)
             {
                 m_animTickFall = 0;
                 m_animTickJump = 0;
-                m_jumping = false;
+                isJumping = false;
                 Falling = false;
 
                 currentControlState = motionControlStates.flying;
@@ -387,7 +394,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (!isColliding && currentControlState != motionControlStates.jumping)
             {
                 float fallVelocity = actor.Velocity.Z;
-
                 // if stable on Hover assume falling
                 if(actor.PIDHoverActive && fallVelocity < 0.05f)
                 {
@@ -429,14 +435,38 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             #region Jumping     // section added for jumping...
 
-            if (isColliding && heldUp && currentControlState != motionControlStates.jumping && !actor.PIDHoverActive)
+            if (isColliding && heldUp && !isJumping && !actor.PIDHoverActive)
             {
-                // Start jumping, prejump
-                currentControlState = motionControlStates.jumping;
-                m_jumping = true;
+                isJumping = true;
                 Falling = false;
-                m_animTickJump = Environment.TickCount;
-                return "PREJUMP";
+                if ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM)) == 0)
+                {
+                    currentControlState = motionControlStates.prejumping;
+                    m_animTickJump = Environment.TickCount;
+                    // Start jumping, prejump
+                    return "PREJUMP";
+                }
+
+                m_animTickJump = Environment.TickCount - PREJUMP_DELAY - 1;
+                currentControlState = motionControlStates.jumping;
+                m_scenePresence.Jump(18f);
+                return "JUMP";
+            }
+
+            if (currentControlState == motionControlStates.prejumping)
+            {
+                if((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM)) == 0)
+                {
+                    int jumptime = Environment.TickCount - m_animTickJump;
+                    if (jumptime < PREJUMP_DELAY)
+                        return CurrentMovementAnimation;
+                }
+
+                // jump up
+                isJumping = true;
+                currentControlState = motionControlStates.jumping;
+                m_scenePresence.Jump(18f);
+                return "JUMP";
             }
 
             if (currentControlState == motionControlStates.jumping)
@@ -445,7 +475,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if ((jumptime > (JUMP_PERIOD * 1.5f)) && actor.IsColliding)
                 {
                     // end jumping
-                    m_jumping = false;
+                    isJumping = false;
                     Falling = false;
                     actor.Selected = false;      // borrowed for jumping flag
                     m_animTickLand = Environment.TickCount;
@@ -455,12 +485,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else if (jumptime > JUMP_PERIOD)
                 {
                     // jump down
-                    return "JUMP";
-                }
-                else if (jumptime > PREJUMP_DELAY)
-                {
-                    // jump up
-                    m_jumping = true;
                     return "JUMP";
                 }
                 return CurrentMovementAnimation;
@@ -556,20 +580,18 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             lock (m_animations)
             {
                 string newMovementAnimation = DetermineMovementAnimation();
-                if (CurrentMovementAnimation != newMovementAnimation)
-                {
-                    CurrentMovementAnimation = newMovementAnimation;
+                if (CurrentMovementAnimation.Equals(newMovementAnimation))
+                    return false;
 
-//                    m_log.DebugFormat(
-//                        "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} in UpdateMovementAnimations()",
-//                        CurrentMovementAnimation, m_scenePresence.Name);
+                CurrentMovementAnimation = newMovementAnimation;
+                m_log.DebugFormat(
+                    "[SCENE PRESENCE ANIMATOR]: Determined animation {0} for {1} {2} {3} in UpdateMovementAnimations()",
+                    CurrentMovementAnimation, m_scenePresence.Name, isJumping, Falling);
 
-                    // Only set it if it's actually changed, give a script
-                    // a chance to stop a default animation
-                    return TrySetMovementAnimation(CurrentMovementAnimation);
-                }
+                // Only set it if it's actually changed, give a script
+                // a chance to stop a default animation
+                return TrySetMovementAnimation(CurrentMovementAnimation);
             }
-            return false;
         }
 
         public bool ForceUpdateMovementAnimations()

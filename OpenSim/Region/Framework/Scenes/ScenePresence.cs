@@ -397,33 +397,33 @@ namespace OpenSim.Region.Framework.Scenes
 
         private enum Dir_ControlFlags : uint
         {
-            DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
-            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
-            DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
-            DIR_CONTROL_FLAG_BACKWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS,
-            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+            DIR_CONTROL_FLAG_FORWARD = ACFlags.AGENT_CONTROL_AT_POS,
+            DIR_CONTROL_FLAG_BACK = ACFlags.AGENT_CONTROL_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT = ACFlags.AGENT_CONTROL_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT = ACFlags.AGENT_CONTROL_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP = ACFlags.AGENT_CONTROL_UP_POS,
+            DIR_CONTROL_FLAG_DOWN = ACFlags.AGENT_CONTROL_UP_NEG,
+            DIR_CONTROL_FLAG_FORWARD_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_AT_POS,
+            DIR_CONTROL_FLAG_BACKWARD_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_UP_POS,
+            DIR_CONTROL_FLAG_DOWN_NUDGE = ACFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
 
-        const uint CONTROL_FLAG_NORM_MASK = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_UP_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG);
+        const uint CONTROL_FLAG_NORM_MASK = (uint)(ACFlags.AGENT_CONTROL_AT_POS |
+                                                ACFlags.AGENT_CONTROL_AT_NEG |
+                                                ACFlags.AGENT_CONTROL_LEFT_POS |
+                                                ACFlags.AGENT_CONTROL_LEFT_NEG |
+                                                ACFlags.AGENT_CONTROL_UP_POS |
+                                                ACFlags.AGENT_CONTROL_UP_NEG);
 
-        const uint CONTROL_FLAG_NUDGE_MASK = (uint)(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS |
-                                                AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
+        const uint CONTROL_FLAG_NUDGE_MASK = (uint)(ACFlags.AGENT_CONTROL_NUDGE_AT_POS |
+                                                ACFlags.AGENT_CONTROL_NUDGE_AT_NEG |
+                                                ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS |
+                                                ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG |
+                                                ACFlags.AGENT_CONTROL_NUDGE_UP_POS |
+                                                ACFlags.AGENT_CONTROL_NUDGE_UP_NEG);
 
         protected int  m_reprioritizationLastTime;
         protected bool m_reprioritizationBusy;
@@ -703,12 +703,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public byte State { get; set; }
 
-        private AgentManager.ControlFlags m_AgentControlFlags;
+        private ACFlags m_AgentControlFlags;
 
         public uint AgentControlFlags
         {
             get { return (uint)m_AgentControlFlags; }
-            set { m_AgentControlFlags = (AgentManager.ControlFlags)value; }
+            set { m_AgentControlFlags = (ACFlags)value; }
         }
 
         public IClientAPI ControllingClient { get; set; }
@@ -1053,9 +1053,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if(value)
                 {
                     if (Flying)
-                        m_AgentControlFlags |= AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                        m_AgentControlFlags |= ACFlags.AGENT_CONTROL_FLY;
                     else
-                        m_AgentControlFlags &= ~AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                        m_AgentControlFlags &= ~ACFlags.AGENT_CONTROL_FLY;
                 }
                 m_inTransit = value;
             }
@@ -1067,9 +1067,9 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         // velocities
-        private const float AgentControlStopSlowVel = 0.2f;
-        public const float AgentControlNudgeVel = 0.5f;
-        public const float AgentControlNormalVel = 1.0f;
+        private const float AgentControlStopSlowVel = 0.2f * 4.096f;
+        public const float AgentControlNudgeVel = 0.4f * 4.096f;
+        public const float AgentControlNormalVel = 1.0f * 4.096f;
 
         // old normal speed was tuned to match sl normal plus Fast modifiers
         // so we need to rescale it
@@ -1715,20 +1715,12 @@ namespace OpenSim.Region.Framework.Scenes
             PhysicsActor pa = Interlocked.Exchange(ref m_physActor, null);
             if (pa != null)
             {
-//                PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-
+                //PhysicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
                 pa.OnOutOfBounds -= OutOfBoundsCall;
                 pa.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 pa.UnSubscribeEvents();
                 m_scene.PhysicsScene.RemoveAvatar(pa);
-                pa = null;
             }
-//            else
-//            {
-//                m_log.ErrorFormat(
-//                    "[SCENE PRESENCE]: Attempt to remove physics actor for {0} on {1} but this scene presence has no physics actor",
-//                    Name, Scene.RegionInfo.RegionName);
-//            }
         }
 
         public void Teleport(Vector3 pos)
@@ -2202,7 +2194,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.DebugFormat("[CompleteMovement] WaitForUpdateAgent: {0}ms", Util.EnvironmentTickCountSubtract(ts));
 
-                bool flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                bool flying = ((m_AgentControlFlags & ACFlags.AGENT_CONTROL_FLY) != 0);
 
                 Vector3 look = Lookat;
                 look.Z = 0f;
@@ -2595,13 +2587,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
-//                Scene.Name, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+            //m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
+            //    Scene.Name, remoteClient.Name, (ACFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
             {
-//                m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
+                //m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
                 return;
             }
 
@@ -2639,7 +2631,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Inputs
 
-            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
+            ACFlags flags = (ACFlags)agentData.ControlFlags;
 
             // The Agent's Draw distance setting
             // When we get to the point of re-computing neighbors everytime this
@@ -2648,27 +2640,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             DrawDistance = agentData.Far;
 
-            m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            m_mouseLook = (flags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
 
             // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look
             // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not
             // received (e.g. on holding LMB down on the avatar in a viewer).
-            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+            m_leftButtonDown = (flags & ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
-//            // Make anims work for client side autopilot
-//            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0)
-//                m_updateCount = UPDATE_COUNT;
-//
-//            // Make turning in place work
-//            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0 ||
-//                (flags & AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
-//                m_updateCount = UPDATE_COUNT;
+            // Make anims work for client side autopilot
+            //if ((flags & ACFlags.AGENT_CONTROL_AT_POS) != 0)
+            //    m_updateCount = UPDATE_COUNT;
+
+            // Make turning in place work
+            //if ((flags & ACFlags.AGENT_CONTROL_YAW_POS) != 0 ||
+            //    (flags & ACFlags.AGENT_CONTROL_YAW_NEG) != 0)
+            //    m_updateCount = UPDATE_COUNT;
 
 
-            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            if ((flags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
             }
@@ -2681,7 +2673,7 @@ namespace OpenSim.Region.Framework.Scenes
             uint flagsForScripts = (uint)flags;
             flags = RemoveIgnoredControls(flags, IgnoredControls);
 
-            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
+            if ((flags & ACFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
                 HandleAgentSitOnGround();
 
             // In the future, these values might need to go global.
@@ -2737,7 +2729,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else if(mvToTarget)
                     newFlying = actor.Flying;
                 else
-                    newFlying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    newFlying = ((flags & ACFlags.AGENT_CONTROL_FLY) != 0);
 
                 if (actor.Flying != newFlying)
                 {
@@ -2757,13 +2749,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (currflags != 0)
                     {
                         DCFlagKeyPressed = true;
-                        update_movementflag = (currflags ^ oldflags) != 0;
+                        //update_movementflag = (currflags ^ oldflags) != 0;
+                        update_movementflag = currflags != 0;
                         MovementFlag |= currflags;
 
                         if((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
                         {
                             currflags >>= 19;
-                            agent_velocity = AgentControlNudgeVel;
+                            if(m_delayedStop < 0)
+                                agent_velocity = AgentControlNudgeVel;
                         }
 
                         uint mask = 1;
@@ -2782,7 +2776,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     // Detect AGENT_CONTROL_STOP state changes
-                    if (AgentControlStopActive != ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STOP) != 0))
+                    if (AgentControlStopActive != ((flags & ACFlags.AGENT_CONTROL_STOP) != 0))
                     {
                         AgentControlStopActive = !AgentControlStopActive;
                         update_movementflag = true;
@@ -2822,25 +2816,25 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // Landing detection code
                         // Are the landing controls requirements filled?
-                        //bool controlland = (flags & (AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0;
+                        //bool controlland = (flags & (ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0;
 
                         //m_log.Debug("[CONTROL]: " +flags);
                         // Applies a satisfying roll effect to the avatar when flying.
-                        const AgentManager.ControlFlags flagsLeft = AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT | AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS;
-                        const AgentManager.ControlFlags flagsRight = AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT | AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG;
+                        const ACFlags flagsLeft = ACFlags.AGENT_CONTROL_TURN_LEFT | ACFlags.AGENT_CONTROL_YAW_POS;
+                        const ACFlags flagsRight = ACFlags.AGENT_CONTROL_TURN_RIGHT | ACFlags.AGENT_CONTROL_YAW_NEG;
                         if ((flags & flagsLeft) == flagsLeft)
                         {
                             ApplyFlyingRoll(
                                 FLY_ROLL_RADIANS_PER_UPDATE,
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0,
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
+                                (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
+                                (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
                         }
                         else if ((flags & flagsRight) == flagsRight)
                         {
                             ApplyFlyingRoll(
                                 -FLY_ROLL_RADIANS_PER_UPDATE,
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0,
-                                (flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0);
+                                (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
+                                (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
                         }
                         else
                         {
@@ -2875,7 +2869,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (update_movementflag
                     || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
                 {
-
                     if (AgentControlStopActive)
                     {
                         //                        if (MovementFlag == 0 && Animator.Falling)
@@ -2898,17 +2891,19 @@ namespace OpenSim.Region.Framework.Scenes
                             if (MovementFlag != 0)
                                 AddNewMovement(agent_control_v3, agent_velocity);
                             else
-                                m_delayedStop = Util.GetTimeStampMS() + 100.0;
+                                m_delayedStop = Util.GetTimeStampMS() + 200.0;
                         }
                     }
                 }
-/*
+                else if((flags & ACFlags.AGENT_CONTROL_FINISH_ANIM) != 0)
+                    Animator.UpdateMovementAnimations();
+                /*
                 if (update_movementflag && ParentID == 0 && m_delayedStop < 0)
                 {
-//                    m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
+                    //m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
                     Animator.UpdateMovementAnimations();
                 }
-*/
+                */
                 SendControlsToScripts(flagsForScripts);
             }
 
@@ -2931,7 +2926,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.DebugFormat(
             //    "[SCENE PRESENCE]: In {0} received agent camera update from {1}, flags {2}",
-            //    Scene.RegionInfo.RegionName, remoteClient.Name, (AgentManager.ControlFlags)agentData.ControlFlags);
+            //    Scene.RegionInfo.RegionName, remoteClient.Name, (ACFlags)agentData.ControlFlags);
 
             if (IsChildAgent)
                 return;
@@ -2939,7 +2934,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(IsInTransit)
                 return;
 
-//            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
+//            ACFlags flags = (ACFlags)agentData.ControlFlags;
 
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
@@ -3091,8 +3086,8 @@ namespace OpenSim.Region.Framework.Scenes
                 MovementFlag &= noMovFlagsMask;
                 MovementFlag |= tmpAgentControlFlags;
 
-                m_AgentControlFlags &= unchecked((AgentManager.ControlFlags)noMovFlagsMask);
-                m_AgentControlFlags |= (AgentManager.ControlFlags)tmpAgentControlFlags;
+                m_AgentControlFlags &= unchecked((ACFlags)noMovFlagsMask);
+                m_AgentControlFlags |= (ACFlags)tmpAgentControlFlags;
 
                 if (updated)
                     agent_control_v3 += LocalVectorToTarget3D;
@@ -3201,7 +3196,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 control = Vector3.Zero;
             if(HandleMoveToTargetUpdate(0.5f, ref control))
-                AddNewMovement(control);
+                AddNewMovement(control, AgentControlNormalVel);
         }
 
         /// <summary>
@@ -3221,7 +3216,7 @@ namespace OpenSim.Region.Framework.Scenes
             // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
             // However, the line is here rather than in the NPC module since it also appears necessary to stop a
             // viewer that uses "go here" from juddering on all subsequent avatar movements.
-            AgentControlFlags = (uint)AgentManager.ControlFlags.NONE;
+            AgentControlFlags = (uint)ACFlags.NONE;
             if(IsNPC)
                 Animator.UpdateMovementAnimations();
         }
@@ -3799,11 +3794,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         /// <param name="thisAddSpeedModifier">
         /// Optional additional speed modifier for this particular add.  Default is 1</param>
-        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier = 1, bool breaking = false)
+        public void AddNewMovement(Vector3 vec, float thisAddSpeedModifier, bool breaking = false)
         {
-            //            m_log.DebugFormat(
-            //                "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}",
-            //                vec, Rotation, thisAddSpeedModifier, Name);
+            // m_log.DebugFormat(
+            //    "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}",
+            //        vec, Rotation, thisAddSpeedModifier, Name);
             m_delayedStop = -1;
             // rotate from avatar coord space to world
             Quaternion rot = Rotation;
@@ -3824,19 +3819,19 @@ namespace OpenSim.Region.Framework.Scenes
             bool notmvtrgt = !m_movingToTarget || m_moveToSpeed <= 0;
             // odd rescalings
             if(notmvtrgt)
-                direc *= 4.096f * SpeedModifier * thisAddSpeedModifier;
+                direc *=  SpeedModifier * thisAddSpeedModifier;
             else
                 direc *= m_moveToSpeed;
 
-            //            m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
+            //m_log.DebugFormat("[SCENE PRESENCE]: Force to apply before modification was {0} for {1}", direc, Name);
 
             if (Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling
                     && (PhysicsActor == null || !PhysicsActor.PIDHoverActive))
             {
                 if (breaking)
                     direc.Z = -9999f; //hack to tell physics to stop on Z
-                else
-                    direc = Vector3.Zero;
+                //else
+                    //direc = Vector3.Zero;
             }
             else if (Flying)
             {
@@ -3849,9 +3844,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else if (IsColliding)
             {
-                if (direc.Z > 2.0f && notmvtrgt) // reinforce jumps
+                if (((AgentControlFlags & (uint)ACFlags.AGENT_CONTROL_UP_POS) != 0) && notmvtrgt) // reinforce jumps
                 {
-                    direc.Z *= 2.6f;
+                    direc.Z = 0;
                 }
                 else if (direc.Z < 0) // on a surface moving down (pg down) only changes animation
                     direc.Z = 0;
@@ -3892,14 +3887,14 @@ namespace OpenSim.Region.Framework.Scenes
                 m_delayedStop = -1;
                 Vector3 control = Vector3.Zero;
                 if(HandleMoveToTargetUpdate(0.5f, ref control))
-                    AddNewMovement(control);
+                    AddNewMovement(control, AgentControlNormalVel);
             }
             else if(m_delayedStop > 0)
             {
                 if(IsSatOnObject)
                     m_delayedStop = -1;  
                 else if(Util.GetTimeStampMS() > m_delayedStop)
-                    AddNewMovement(Vector3.Zero);
+                    AddNewMovement(Vector3.Zero, 0);
             }
 
             if (Appearance.AvatarSize != m_lastSize)
@@ -4415,9 +4410,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsChildAgent)
                 return;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence p)
+            m_scene.ForEachScenePresence(delegate (ScenePresence p)
             {
-                if(p.IsNPC)
+                if (p.IsNPC)
                     return;
                 if (ParcelHideThisAvatar && currentParcelUUID != p.currentParcelUUID && !p.IsViewerUIGod)
                     return;
@@ -5050,13 +5045,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_headrotation = cAgent.HeadRotation;
             Rotation = cAgent.BodyRotation;
-            m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags;
+            m_AgentControlFlags = (ACFlags)cAgent.ControlFlags;
 
             SetAlwaysRun = cAgent.AlwaysRun;
 
             Appearance = new AvatarAppearance(cAgent.Appearance, true, true);
 /*
-            bool isFlying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            bool isFlying = ((m_AgentControlFlags & ACFlags.AGENT_CONTROL_FLY) != 0);
 
             if (PhysicsActor != null)
             {
@@ -6019,56 +6014,56 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScriptControlled allflags;
                 // convert mouse from edge to level
-                if ((flags & ((uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | unchecked((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_UP))) != 0)
+                if ((flags & ((uint)ACFlags.AGENT_CONTROL_LBUTTON_UP | unchecked((uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_UP))) != 0)
                 {
                     allflags = ScriptControlled.CONTROL_ZERO;
                 }
                 else // recover last state of mouse
                     allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
+                if ((flags & (uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
                     allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
+                if ((flags & (uint)ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
                     allflags |= ScriptControlled.CONTROL_LBUTTON;
 
                 // find all activated controls, whether the scripts are interested in them or not
-                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0)
+                if ((flags & (uint)(ACFlags.AGENT_CONTROL_AT_POS | ACFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_FWD;
                 }
 
-                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0)
+                if ((flags & (uint)(ACFlags.AGENT_CONTROL_AT_NEG | ACFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_BACK;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
+                if ((flags & (uint)ACFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)ACFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_UP;
                 }
 
-                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0)
+                if ((flags & (uint)(ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_DOWN;
                 }
 
-                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0)
+                if ((flags & (uint)(ACFlags.AGENT_CONTROL_LEFT_POS | ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_LEFT;
                 }
 
-                if ((flags & (uint)(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0)
+                if ((flags & (uint)(ACFlags.AGENT_CONTROL_LEFT_NEG | ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_RIGHT;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_NEG) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
                 }
 
-                if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+                if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_POS) != 0)
                 {
                     allflags |= ScriptControlled.CONTROL_ROT_LEFT;
                 }
@@ -6096,39 +6091,31 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        internal static AgentManager.ControlFlags RemoveIgnoredControls(AgentManager.ControlFlags flags, ScriptControlled ignored)
+        internal static ACFlags RemoveIgnoredControls(ACFlags flags, ScriptControlled ignored)
         {
             if (ignored == ScriptControlled.CONTROL_ZERO)
                 return flags;
 
             if ((ignored & ScriptControlled.CONTROL_BACK) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG);
+                flags &= ~(ACFlags.AGENT_CONTROL_AT_NEG | ACFlags.AGENT_CONTROL_NUDGE_AT_NEG);
             if ((ignored & ScriptControlled.CONTROL_FWD) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_AT_POS);
+                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_AT_POS | ACFlags.AGENT_CONTROL_AT_POS);
             if ((ignored & ScriptControlled.CONTROL_DOWN) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
+                flags &= ~(ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG);
             if ((ignored & ScriptControlled.CONTROL_UP) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_UP_POS);
+                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_UP_POS | ACFlags.AGENT_CONTROL_UP_POS);
             if ((ignored & ScriptControlled.CONTROL_LEFT) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
+                flags &= ~(ACFlags.AGENT_CONTROL_LEFT_POS | ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
             if ((ignored & ScriptControlled.CONTROL_RIGHT) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG);
+                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | ACFlags.AGENT_CONTROL_LEFT_NEG);
             if ((ignored & ScriptControlled.CONTROL_ROT_LEFT) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG);
+                flags &= ~(ACFlags.AGENT_CONTROL_YAW_NEG);
             if ((ignored & ScriptControlled.CONTROL_ROT_RIGHT) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS);
+                flags &= ~(ACFlags.AGENT_CONTROL_YAW_POS);
             if ((ignored & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN);
+                flags &= ~(ACFlags.AGENT_CONTROL_ML_LBUTTON_DOWN);
             if ((ignored & ScriptControlled.CONTROL_LBUTTON) != 0)
-                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN);
-
-            //DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
-            //DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
-            //DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
-            //DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-            //DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-            //DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
-            //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+                flags &= ~(ACFlags.AGENT_CONTROL_LBUTTON_UP | ACFlags.AGENT_CONTROL_LBUTTON_DOWN);
 
             return flags;
         }
@@ -7011,15 +6998,16 @@ namespace OpenSim.Region.Framework.Scenes
             p.ControllingClient.SendKillObject(ids);
         }
 
-/*
-// kill with hack
+        /*
+        // kill with hack
         public void SendKillTo(ScenePresence p)
         {
             foreach (SceneObjectGroup sog in m_attachments)
                 p.ControllingClient.SendPartFullUpdate(sog.RootPart, LocalId + 1);
             p.ControllingClient.SendKillObject(new List<uint> { LocalId });
         }
-*/
+        */
+
         public void SendViewTo(ScenePresence p)
         {
             SendAvatarDataToAgentNF(p);
