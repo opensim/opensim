@@ -692,7 +692,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.Elevation2SW, Is.EqualTo(2.1));
             Assert.That(loadedRs.ObjectBonus, Is.EqualTo(1.4));
             Assert.That(loadedRs.RestrictPushing, Is.True);
-            Assert.That(loadedRs.TerrainLowerLimit, Is.EqualTo(0.4));
+            Assert.That(loadedRs.TerrainLowerLimit, Is.EqualTo(-17.9));
             Assert.That(loadedRs.TerrainRaiseLimit, Is.EqualTo(17.9));
             Assert.That(loadedRs.TerrainTexture1, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000020")));
             Assert.That(loadedRs.TerrainTexture2, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000040")));
