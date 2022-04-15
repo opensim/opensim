@@ -2593,6 +2593,8 @@ Console.WriteLine(" JointCreateFixed");
             set { _acceleration = value; }
         }
 
+        public override void AvatarJump(float forceZ) { }
+
         public override void AddForce(Vector3 force, bool pushforce)
         {
             if (force.IsFinite())

@@ -1202,6 +1202,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
         }
 
+        public override void AvatarJump(float forceZ) { }
+
         public override void AddForce(OMV.Vector3 force, bool pushforce) {
             // Per documentation, max force is limited.
             OMV.Vector3 addForce = Util.ClampV(force, BSParam.MaxAddForceMagnitude);

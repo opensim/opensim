@@ -448,6 +448,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract float APIDDamping { set;}
 
         public abstract void AddForce(Vector3 force, bool pushforce);
+        public abstract void AvatarJump(float forceZ);
         public abstract void AddAngularForce(Vector3 force, bool pushforce);
         public abstract void SetMomentum(Vector3 momentum);
         public abstract void SubscribeEvents(int ms);
@@ -663,6 +664,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override void link(PhysicsActor obj) { }
         public override void delink() { }
         public override void LockAngularMotion(byte axislocks) { }
+        public override void AvatarJump(float forceZ) { }
         public override void AddForce(Vector3 force, bool pushforce) { }
         public override void AddAngularForce(Vector3 force, bool pushforce) { }
 
