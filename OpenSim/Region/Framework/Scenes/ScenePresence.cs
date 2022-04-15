@@ -5809,18 +5809,25 @@ namespace OpenSim.Region.Framework.Scenes
         public float GetMass()
         {
             PhysicsActor pa = PhysicsActor;
-
             if (pa != null)
                 return pa.Mass;
             else
                 return 0;
         }
 
+        internal void Jump(float impulseZ)
+        {
+            if (PhysicsActor != null)
+            {
+                PhysicsActor.AvatarJump(impulseZ);
+            }
+        }
+
         internal void PushForce(Vector3 impulse)
         {
             if (PhysicsActor != null)
             {
-                PhysicsActor.AddForce(impulse,true);
+                PhysicsActor.AddForce(impulse, true);
             }
         }
 

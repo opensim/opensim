@@ -261,7 +261,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         private uint m_regionWidth = Constants.RegionSize;
         private uint m_regionHeight = Constants.RegionSize;
 
-        private float ODE_STEPSIZE = 0.0178f;
+        public float ODE_STEPSIZE = 0.0178f;
         private float metersInSpace = 29.9f;
         private float m_timeDilation = 1.0f;
 
