@@ -14407,6 +14407,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case "64":
                         ret.Add(new LSL_Integer(land.Dwell));
                         break;
+                    case "65":
+                        ret.Add(new LSL_Integer(land.ClaimDate));
+                        break;
                     default:
                         ret.Add(new LSL_Integer(0));
                         break;
