@@ -806,9 +806,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             //m_lastUpdateSent = false;
         }
 
-        public override void AvatarJump(float forceZ)
+        public override void AvatarJump(float impulseZ)
         {
-            AddChange(changes.Force, new Vector3(0, 0, forceZ * m_sceneInverseTimeStep));
+            AddChange(changes.Force, new Vector3(0, 0, impulseZ * m_sceneInverseTimeStep));
         }
 
         public override void AddAngularForce(Vector3 force, bool pushforce)

@@ -2751,8 +2751,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         DCFlagKeyPressed = true;
                         MovementFlag |= currflags;
-                        update_movementflag |= (currflags ^ oldflags) != 0;
-                        //update_movementflag |= currflags != 0;
+                        //update_movementflag |= (currflags ^ oldflags) != 0;
+                        update_movementflag = true;
 
                         if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
                         {
