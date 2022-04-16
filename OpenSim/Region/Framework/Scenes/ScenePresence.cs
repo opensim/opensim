@@ -3789,6 +3789,12 @@ namespace OpenSim.Region.Framework.Scenes
             Animator.avnChangeAnim(animID, addRemove, sendPack);
         }
 
+        // old api hook, to remove
+        public void AddNewMovement(Vector3 vec)
+        {
+            AddNewMovement(vec, AgentControlNormalVel);
+        }
+
         /// <summary>
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
