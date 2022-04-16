@@ -449,7 +449,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
                 m_animTickJump = Environment.TickCount - PREJUMP_DELAY - 1;
                 currentControlState = motionControlStates.jumping;
-                m_scenePresence.Jump(18f);
+                m_scenePresence.Jump(9.4f);
                 return "JUMP";
             }
 
@@ -465,7 +465,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 // jump up
                 isJumping = true;
                 currentControlState = motionControlStates.jumping;
-                m_scenePresence.Jump(18f);
+                m_scenePresence.Jump(9.4f);
                 return "JUMP";
             }
 

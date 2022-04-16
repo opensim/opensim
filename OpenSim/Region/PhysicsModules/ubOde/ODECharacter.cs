@@ -808,7 +808,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public override void AvatarJump(float impulseZ)
         {
-            AddChange(changes.Force, new Vector3(0, 0, impulseZ * m_sceneInverseTimeStep));
+            // convert back to force and remove mass effect
+            AddChange(changes.Force, new Vector3(0, 0, impulseZ * m_sceneInverseTimeStep * m_mass));
         }
 
         public override void AddAngularForce(Vector3 force, bool pushforce)

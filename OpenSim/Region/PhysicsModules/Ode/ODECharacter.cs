@@ -745,7 +745,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
         public override void AvatarJump(float forceZ)
         {
              m_pidControllerActive = false;
-             m_taintForce += new Vector3(0, 0, forceZ / _parent_scene.ODE_STEPSIZE);
+             m_taintForce += new Vector3(0, 0, m_mass * forceZ / _parent_scene.ODE_STEPSIZE);
              _parent_scene.AddPhysicsActorTaint(this);
         }
 
