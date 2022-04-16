@@ -688,8 +688,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public override void AvatarJump(float forceZ)
         {
-            OMV.Vector3 addForce = new OMV.Vector3(0, 0, forceZ / PhysScene.m_fixedTimeStep);
-            AddForce(false, addForce);
+            AddForce(false, new OMV.Vector3(0, 0, 0.22f * forceZ / PhysScene.m_fixedTimeStep));
         }
 
         public override void AddForce(OMV.Vector3 force, bool pushforce)
