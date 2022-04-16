@@ -2633,7 +2633,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Inputs
 
-            ACFlags flags = (ACFlags)agentData.ControlFlags;
+            ACFlags allFlags = (ACFlags)agentData.ControlFlags;
 
             // The Agent's Draw distance setting
             // When we get to the point of re-computing neighbors everytime this
@@ -2642,13 +2642,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             DrawDistance = agentData.Far;
 
-            m_mouseLook = (flags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            m_mouseLook = (allFlags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
 
             // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look
             // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not
             // received (e.g. on holding LMB down on the avatar in a viewer).
-            m_leftButtonDown = (flags & ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+            m_leftButtonDown = (allFlags & ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             #endregion Inputs
 
@@ -2662,7 +2662,7 @@ namespace OpenSim.Region.Framework.Scenes
             //    m_updateCount = UPDATE_COUNT;
 
 
-            if ((flags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
+            if ((allFlags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
             }
@@ -2672,8 +2672,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(agentData.NeedsCameraCollision) // condition parentID may be wrong
                 checkCameraCollision();
 
-            uint flagsForScripts = (uint)flags;
-            flags = RemoveIgnoredControls(flags, IgnoredControls);
+            ACFlags flags = RemoveIgnoredControls(allFlags, IgnoredControls);
 
             if ((flags & ACFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
                 HandleAgentSitOnGround();
@@ -2694,7 +2693,7 @@ namespace OpenSim.Region.Framework.Scenes
             // This will be the case if the agent is sitting on the groudn or on an object.
             if (actor == null)
             {
-                SendControlsToScripts(flagsForScripts);
+                SendControlsToScripts((uint)allFlags);
                 return;
             }
 
@@ -2751,11 +2750,11 @@ namespace OpenSim.Region.Framework.Scenes
                     if (currflags != 0)
                     {
                         DCFlagKeyPressed = true;
-                        //update_movementflag = (currflags ^ oldflags) != 0;
-                        update_movementflag = currflags != 0;
                         MovementFlag |= currflags;
+                        update_movementflag |= (currflags ^ oldflags) != 0;
+                        //update_movementflag |= currflags != 0;
 
-                        if((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
+                        if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
                         {
                             currflags >>= 19;
                             if(m_delayedStop < 0)
@@ -2906,7 +2905,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Animator.UpdateMovementAnimations();
                 }
                 */
-                SendControlsToScripts(flagsForScripts);
+                SendControlsToScripts((uint)allFlags);
             }
 
             // We need to send this back to the client in order to see the edit beams
@@ -6015,60 +6014,36 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 ScriptControlled allflags;
-                // convert mouse from edge to level
-                if ((flags & ((uint)ACFlags.AGENT_CONTROL_LBUTTON_UP | unchecked((uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_UP))) != 0)
+                if (flags != 0)
                 {
-                    allflags = ScriptControlled.CONTROL_ZERO;
+                    if ((flags & ((uint)ACFlags.AGENT_CONTROL_LBUTTON_UP | unchecked((uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_UP))) != 0)
+                    {
+                        allflags = ScriptControlled.CONTROL_ZERO;
+                    }
+                    else // recover last state of mouse
+                        allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
+
+                    allflags |= (ScriptControlled)((flags & CONTROL_FLAG_NUDGE_MASK) >> 19);
+                    allflags |= (ScriptControlled)(flags & CONTROL_FLAG_NORM_MASK);
+
+                    if ((flags & (uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
+                        allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
+
+                    if ((flags & (uint)ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
+                        allflags |= ScriptControlled.CONTROL_LBUTTON;
+
+                    if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_NEG) != 0)
+                    {
+                        allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
+                    }
+
+                    if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_POS) != 0)
+                    {
+                        allflags |= ScriptControlled.CONTROL_ROT_LEFT;
+                    }
                 }
                 else // recover last state of mouse
                     allflags = LastCommands & (ScriptControlled.CONTROL_ML_LBUTTON | ScriptControlled.CONTROL_LBUTTON);
-
-                if ((flags & (uint)ACFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
-                    allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
-
-                if ((flags & (uint)ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
-                    allflags |= ScriptControlled.CONTROL_LBUTTON;
-
-                // find all activated controls, whether the scripts are interested in them or not
-                if ((flags & (uint)(ACFlags.AGENT_CONTROL_AT_POS | ACFlags.AGENT_CONTROL_NUDGE_AT_POS)) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_FWD;
-                }
-
-                if ((flags & (uint)(ACFlags.AGENT_CONTROL_AT_NEG | ACFlags.AGENT_CONTROL_NUDGE_AT_NEG)) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_BACK;
-                }
-
-                if ((flags & (uint)ACFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)ACFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_UP;
-                }
-
-                if ((flags & (uint)(ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_DOWN;
-                }
-
-                if ((flags & (uint)(ACFlags.AGENT_CONTROL_LEFT_POS | ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS)) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_LEFT;
-                }
-
-                if ((flags & (uint)(ACFlags.AGENT_CONTROL_LEFT_NEG | ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG)) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_RIGHT;
-                }
-
-                if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_NEG) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
-                }
-
-                if ((flags & (uint)ACFlags.AGENT_CONTROL_YAW_POS) != 0)
-                {
-                    allflags |= ScriptControlled.CONTROL_ROT_LEFT;
-                }
 
                 // optimization; we have to check per script, but if nothing is pressed and nothing changed, we can skip that
                 if (allflags != ScriptControlled.CONTROL_ZERO || allflags != LastCommands)
@@ -6095,21 +6070,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         internal static ACFlags RemoveIgnoredControls(ACFlags flags, ScriptControlled ignored)
         {
+            if(flags == ACFlags.NONE)
+                return flags;
             if (ignored == ScriptControlled.CONTROL_ZERO)
                 return flags;
 
-            if ((ignored & ScriptControlled.CONTROL_BACK) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_AT_NEG | ACFlags.AGENT_CONTROL_NUDGE_AT_NEG);
-            if ((ignored & ScriptControlled.CONTROL_FWD) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_AT_POS | ACFlags.AGENT_CONTROL_AT_POS);
-            if ((ignored & ScriptControlled.CONTROL_DOWN) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG);
-            if ((ignored & ScriptControlled.CONTROL_UP) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_UP_POS | ACFlags.AGENT_CONTROL_UP_POS);
-            if ((ignored & ScriptControlled.CONTROL_LEFT) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_LEFT_POS | ACFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
-            if ((ignored & ScriptControlled.CONTROL_RIGHT) != 0)
-                flags &= ~(ACFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | ACFlags.AGENT_CONTROL_LEFT_NEG);
+            ignored &= (ScriptControlled)CONTROL_FLAG_NORM_MASK;
+            ignored |= (ScriptControlled)((uint)ignored << 19);
+            
+            flags &= ~(ACFlags)ignored;
+             
             if ((ignored & ScriptControlled.CONTROL_ROT_LEFT) != 0)
                 flags &= ~(ACFlags.AGENT_CONTROL_YAW_NEG);
             if ((ignored & ScriptControlled.CONTROL_ROT_RIGHT) != 0)

@@ -498,36 +498,36 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 Falling = false;
                 currentControlState = motionControlStates.landing;
-                m_animTickLand = Environment.TickCount;
+                
                 // TODO: SOFT_LAND support
                 float fallVsq = m_lastFallVelocity * m_lastFallVelocity;
                 if (fallVsq > 300f) // aprox 20*h
+                {
+                    m_animTickLand = Environment.TickCount + 3000;
                     return "STANDUP";
-                else if (fallVsq > 160f)
+                }
+                if (fallVsq > 160f)
+                {
+                    m_animTickLand = Environment.TickCount + 1500;
                     return "SOFT_LAND";
-                else
-                    return "LAND";
+                }
+                m_animTickLand = Environment.TickCount + 600;
+                return "LAND";
             }
 
             if (currentControlState == motionControlStates.landing)
             {
                 Falling = false;
-                int landElapsed = Environment.TickCount - m_animTickLand;
-                int limit = 1000;
-                if (CurrentMovementAnimation == "LAND")
-                    limit = 350;
-                // NB if the above is set too long a weird anim reset from some place prevents STAND from being sent to client
 
-                if ((m_animTickLand != 0) && (landElapsed <= limit))
+                if ((controlFlags & (AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM)) == 0)
                 {
-                    return CurrentMovementAnimation;
+                    if ((m_animTickLand != 0) && (m_animTickLand > Environment.TickCount))
+                        return CurrentMovementAnimation;
                 }
-                else
-                {
-                    currentControlState = motionControlStates.onsurface;
-                    m_animTickLand = 0;
-                    return "STAND";
-                }
+
+                currentControlState = motionControlStates.onsurface;
+                m_animTickLand = 0;
+                return "STAND";
             }
 
             // next section moved outside paren. and realigned for jumping
