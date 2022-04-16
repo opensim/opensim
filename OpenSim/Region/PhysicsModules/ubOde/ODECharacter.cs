@@ -83,6 +83,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Quaternion m_orientation;
         private Quaternion m_orientation2D;
         private float m_mass = 80f;
+        private float m_massInvTimeScaled = 1600f; 
         public readonly float m_density = 60f;
         private bool m_pidControllerActive = true;
 
@@ -94,7 +95,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float PID_P;
 
         private readonly ODEScene m_parent_scene;
-        private readonly float m_scenegravityZ;
+        private readonly float m_sceneGravityZ;
+        private float m_scenegravityForceZ;
 
         private readonly float m_sceneTimeStep;
         private readonly float m_sceneInverseTimeStep;
@@ -166,7 +168,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_localID = localID;
             m_parent_scene = parent_scene;
 
-            m_scenegravityZ = parent_scene.gravityz;
+            m_sceneGravityZ = parent_scene.gravityz;
             m_sceneTimeStep = parent_scene.ODE_STEPSIZE;
             m_sceneInverseTimeStep = 1.0f / m_sceneTimeStep;
 
@@ -206,10 +208,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_runMultiplier = 1.0f / rundivisor;
 
             m_mass = m_density * m_size.X * m_size.Y * m_size.Z;
-            ; // sure we have a default
+            m_massInvTimeScaled = m_mass * m_sceneInverseTimeStep;
+            // sure we have a default
 
-            PID_D = basePID_D * m_mass * m_sceneInverseTimeStep;
-            PID_P = basePID_P * m_mass * m_sceneInverseTimeStep;
+            PID_D = basePID_D * m_massInvTimeScaled;
+            PID_P = basePID_P * m_massInvTimeScaled;
+
+            m_scenegravityForceZ = m_sceneGravityZ * m_mass;
 
             m_isPhysical = false; // current status: no ODE information exists
 
@@ -792,7 +797,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (pushforce)
                 {
-                    AddChange(changes.Force, force * m_density / (m_sceneTimeStep * 28f));
+                    AddChange(changes.Force, force * m_density * m_sceneInverseTimeStep / 28f);
                 }
                 else
                 {
@@ -809,7 +814,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override void AvatarJump(float impulseZ)
         {
             // convert back to force and remove mass effect
-            AddChange(changes.Force, new Vector3(0, 0, impulseZ * m_sceneInverseTimeStep * m_mass));
+            AddChange(changes.Force, new Vector3(0, 0, impulseZ * m_massInvTimeScaled));
         }
 
         public override void AddAngularForce(Vector3 force, bool pushforce)
@@ -858,11 +863,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             capsule = SafeNativeMethods.CreateCapsule(collider, r, l);
 
-            m_mass = m_density * sx * sy * sz;  // update mass
+            // update mass
+            m_mass = m_density * sx * sy * sz;
             SafeNativeMethods.MassSetBoxTotal(out ShellMass, m_mass, sx, sy, sz);
-
-            PID_D = basePID_D * m_mass * m_sceneInverseTimeStep;
-            PID_P = basePID_P * m_mass * m_sceneInverseTimeStep;
+            m_massInvTimeScaled = m_mass * m_sceneInverseTimeStep;
+            PID_D = basePID_D * m_massInvTimeScaled;
+            PID_P = basePID_P * m_massInvTimeScaled;
+            m_scenegravityForceZ = m_sceneGravityZ * m_mass;
 
             Body = SafeNativeMethods.BodyCreate(m_parent_scene.world);
 
@@ -1437,7 +1444,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         vec.Y += (ctz.Y - vel.Y) * pidd0833;
                         // hack for  breaking on fall
                         if (ctz.Z == -9999f)
-                            vec.Z += -vel.Z * PID_D - m_scenegravityZ * m_mass;
+                            vec.Z += -vel.Z * PID_D - m_scenegravityForceZ;
+                        ;
                     }
                 }
                 else
@@ -1515,7 +1523,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             vec.Y += (ctz.Y - vel.Y) * pidd0833;
                             // hack for  breaking on fall
                             if (ctz.Z == -9999f)
-                                vec.Z += -vel.Z * PID_D - m_scenegravityZ * m_mass;
+                                vec.Z += -vel.Z * PID_D - m_scenegravityForceZ;
                         }
                     }
                 }
@@ -1541,7 +1549,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (m_flying || hoverPIDActive)
             {
-                vec.Z -= m_scenegravityZ * m_mass;
+                vec.Z -= m_sceneGravityZ * m_mass;
 
                 if (!hoverPIDActive)
                 {
@@ -1557,7 +1565,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             else if (m_buoyancy != 0.0)
             {
-                vec.Z -= m_scenegravityZ * m_buoyancy * m_mass;
+                vec.Z -= m_scenegravityForceZ * m_buoyancy;
             }
 
             if (vec.IsFinite())
@@ -1880,10 +1888,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.GeomCapsuleSetParams(capsule, r, l);
 
                     m_mass = m_density * sx * sy * sz;  // update mass
-                    PID_D = basePID_D * m_mass * m_sceneInverseTimeStep;
-                    PID_P = basePID_P * m_mass * m_sceneInverseTimeStep;
+                    m_massInvTimeScaled = m_mass * m_sceneInverseTimeStep;
+                    PID_D = basePID_D * m_massInvTimeScaled;
+                    PID_P = basePID_P * m_massInvTimeScaled;
                     SafeNativeMethods.MassSetBoxTotal(out ShellMass, m_mass, sx, sy, sz);
                     SafeNativeMethods.BodySetMass(Body, ref ShellMass);
+
+                    m_scenegravityForceZ = m_sceneGravityZ * m_mass;
 
                     _position.Z += (sz - oldsz) * 0.5f;
                     SafeNativeMethods.BodySetPosition(Body, _position.X, _position.Y, _position.Z);

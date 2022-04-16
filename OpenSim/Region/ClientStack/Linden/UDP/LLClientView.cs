@@ -369,7 +369,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// This does mean that agent updates must be processed synchronously, at least for each client, and called methods
         /// cannot retain a reference to it outside of that method.
         /// </remarks>
-        private AgentUpdateArgs m_thisAgentUpdateArgs = new AgentUpdateArgs();
+        private readonly AgentUpdateArgs m_thisAgentUpdateArgs = new AgentUpdateArgs();
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers

@@ -2593,14 +2593,11 @@ namespace OpenSim.Region.Framework.Scenes
             //    "[SCENE PRESENCE]: In {0} received agent update from {1}, flags {2}",
             //    Scene.Name, remoteClient.Name, (ACFlags)agentData.ControlFlags);
 
-            if (IsChildAgent)
+            if (IsChildAgent || IsInTransit)
             {
                 //m_log.DebugFormat("DEBUG: HandleAgentUpdate: child agent in {0}", Scene.Name);
                 return;
             }
-
-            if (IsInTransit)
-                return;
 
             #region Sanity Checking
 
@@ -2633,62 +2630,48 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Inputs
 
-            ACFlags allFlags = (ACFlags)agentData.ControlFlags;
-
             // The Agent's Draw distance setting
             // When we get to the point of re-computing neighbors everytime this
             // changes, then start using the agent's drawdistance rather than the
             // region's draw distance.
-
             DrawDistance = agentData.Far;
 
-            m_mouseLook = (allFlags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            ACFlags allFlags = (ACFlags)agentData.ControlFlags;
 
             // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look
             // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not
             // received (e.g. on holding LMB down on the avatar in a viewer).
             m_leftButtonDown = (allFlags & ACFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+            m_mouseLook = (allFlags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            m_headrotation = agentData.HeadRotation;
+
+            bool hadState = State != 0;
+            State = agentData.State;
 
             #endregion Inputs
 
-            // Make anims work for client side autopilot
-            //if ((flags & ACFlags.AGENT_CONTROL_AT_POS) != 0)
-            //    m_updateCount = UPDATE_COUNT;
-
-            // Make turning in place work
-            //if ((flags & ACFlags.AGENT_CONTROL_YAW_POS) != 0 ||
-            //    (flags & ACFlags.AGENT_CONTROL_YAW_NEG) != 0)
-            //    m_updateCount = UPDATE_COUNT;
-
+            if (hadState || State != 0)
+                SendAgentTerseUpdate(this);
 
             if ((allFlags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
-            {
                 StandUp();
-            }
+
+            if ((allFlags & ACFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
+                HandleAgentSitOnGround();
+
+            ACFlags flags = RemoveIgnoredControls(allFlags, IgnoredControls);
+            m_AgentControlFlags = flags;
+
+            if (AllowMovement)
+                Rotation = agentData.BodyRotation;
 
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
-            if(agentData.NeedsCameraCollision) // condition parentID may be wrong
+            if (agentData.NeedsCameraCollision)
                 checkCameraCollision();
 
-            ACFlags flags = RemoveIgnoredControls(allFlags, IgnoredControls);
-
-            if ((flags & ACFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
-                HandleAgentSitOnGround();
-
-            // In the future, these values might need to go global.
-            // Here's where you get them.
-            m_AgentControlFlags = flags;
-            m_headrotation = agentData.HeadRotation;
-            byte oldState = State;
-            State = agentData.State;
-
-            // We need to send this back to the client in order to stop the edit beams
-            if ((oldState & (uint)AgentState.Editing) != 0 && State == (uint)AgentState.None)
-                SendAgentTerseUpdate(this);
-
-            PhysicsActor actor = PhysicsActor;
+            PhysicsActor actor = m_physActor;
 
             // This will be the case if the agent is sitting on the groudn or on an object.
             if (actor == null)
@@ -2697,17 +2680,12 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            if (AllowMovement && !SitGround)
+            if (AllowMovement)
             {
-//                m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
-                bool update_rotation = false;
-                if (!IsSatOnObject && agentData.BodyRotation != Rotation)
-                {
-                    Rotation = agentData.BodyRotation;
-                    update_rotation = true;
-                }
-
+                //m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
                 bool update_movementflag = false;
+                bool DCFlagKeyPressed = false;
+
                 bool mvToTarget = m_movingToTarget;
                 if (agentData.UseClientAgentPosition)
                 {
@@ -2716,149 +2694,116 @@ namespace OpenSim.Region.Framework.Scenes
                     m_moveToSpeed = -1f;
                 }
 
-                int i = 0;
-                bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
                 float agent_velocity = AgentControlNormalVel;
 
-                bool newFlying = false;
+                bool bAllowUpdateMoveToPosition = false;
+                uint currflags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                uint oldflags = MovementFlag & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                MovementFlag &= ~(CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
 
+                if (currflags != 0)
+                {
+                    DCFlagKeyPressed = true;
+                    mvToTarget = false;
+
+                    MovementFlag |= currflags;
+                    //update_movementflag |= (currflags ^ oldflags) != 0;
+                    update_movementflag = true;
+
+                    if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
+                    {
+                        currflags >>= 19;
+                        if(m_delayedStop < 0)
+                            agent_velocity = AgentControlNudgeVel;
+                    }
+
+                    for (int i = 0, mask = 1; i < 6; ++i, mask <<= 1)
+                    {
+                        if((currflags & mask) != 0)
+                            agent_control_v3 += Dir_Vectors[i];
+                    }
+                }
+                else
+                {
+                    if(oldflags == 0)
+                        bAllowUpdateMoveToPosition = true;
+                    else
+                        update_movementflag = true;
+                }
+
+                bool newFlying;
                 if (ForceFly)
                     newFlying = true;
                 else if (FlyDisabled)
                     newFlying = false;
-                else if(mvToTarget)
+                else if (mvToTarget)
                     newFlying = actor.Flying;
                 else
                     newFlying = ((flags & ACFlags.AGENT_CONTROL_FLY) != 0);
 
                 if (actor.Flying != newFlying)
                 {
-                    // Note: ScenePresence.Flying is actually fetched from the physical actor
-                    //     so setting PhysActor.Flying here also sets the ScenePresence's value.
                     actor.Flying = newFlying;
                     update_movementflag = true;
                 }
 
-                if (ParentID == 0)
+                // Detect AGENT_CONTROL_STOP state changes
+                if (AgentControlStopActive != ((flags & ACFlags.AGENT_CONTROL_STOP) != 0))
                 {
-                    bool bAllowUpdateMoveToPosition = false;
-                    uint currflags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
-                    uint oldflags = MovementFlag & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
-                    MovementFlag &= ~(CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
-
-                    if (currflags != 0)
-                    {
-                        DCFlagKeyPressed = true;
-                        MovementFlag |= currflags;
-                        //update_movementflag |= (currflags ^ oldflags) != 0;
-                        update_movementflag = true;
-
-                        if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
-                        {
-                            currflags >>= 19;
-                            if(m_delayedStop < 0)
-                                agent_velocity = AgentControlNudgeVel;
-                        }
-
-                        uint mask = 1;
-                        for (i= 0; i < 6; ++i, mask <<= 1)
-                        {
-                            if((currflags & mask) != 0)
-                                agent_control_v3 += Dir_Vectors[i];
-                        }
-                    }
-                    else
-                    {
-                        if(oldflags == 0)
-                            bAllowUpdateMoveToPosition = true;
-                        else
-                            update_movementflag = true;
-                    }
-
-                    // Detect AGENT_CONTROL_STOP state changes
-                    if (AgentControlStopActive != ((flags & ACFlags.AGENT_CONTROL_STOP) != 0))
-                    {
-                        AgentControlStopActive = !AgentControlStopActive;
-                        update_movementflag = true;
-                    }
-
-                    if (m_movingToTarget)
-                    {
-                        // If the user has pressed a key then we want to cancel any move to target.
-                        if (DCFlagKeyPressed)
-                        {
-                            ResetMoveToTarget();
-                            update_movementflag = true;
-                        }
-                        else if (bAllowUpdateMoveToPosition)
-                        {
-                            // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
-                            // certain position.  It's only check for tolerance on returning to that position is 0.2
-                            // rather than 1, at which point it removes its force target.
-                            if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2f : 0.5f, ref agent_control_v3))
-                                update_movementflag = true;
-                        }
-                    }
+                    AgentControlStopActive = !AgentControlStopActive;
+                    update_movementflag = true;
                 }
 
-                // Cause the avatar to stop flying if it's colliding
-                // with something with the down arrow pressed.
+                if (m_movingToTarget)
+                {
+                    // If the user has pressed a key then we want to cancel any move to target.
+                    if (DCFlagKeyPressed)
+                    {
+                        ResetMoveToTarget();
+                        update_movementflag = true;
+                    }
+                    else if (bAllowUpdateMoveToPosition)
+                    {
+                        // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
+                        // certain position.  It's only check for tolerance on returning to that position is 0.2
+                        // rather than 1, at which point it removes its force target.
+                        if (HandleMoveToTargetUpdate(agentData.UseClientAgentPosition ? 0.2f : 0.5f, ref agent_control_v3))
+                            update_movementflag = true;
+                    }
+                }
 
                 // Only do this if we're flying
                 if (Flying && !ForceFly)
                 {
-                    // Need to stop in mid air if user holds down AGENT_CONTROL_STOP
-                    //if (AgentControlStopActive)
-                    //{
-                    //    agent_control_v3 = Vector3.Zero;
-                    //}
-                    //else
+                     //m_log.Debug("[CONTROL]: " +flags);
+                    // Applies a satisfying roll effect to the avatar when flying.
+                    const ACFlags flagsLeft = ACFlags.AGENT_CONTROL_TURN_LEFT | ACFlags.AGENT_CONTROL_YAW_POS;
+                    const ACFlags flagsRight = ACFlags.AGENT_CONTROL_TURN_RIGHT | ACFlags.AGENT_CONTROL_YAW_NEG;
+                    if ((flags & flagsLeft) == flagsLeft)
                     {
-                        // Landing detection code
-                        // Are the landing controls requirements filled?
-                        //bool controlland = (flags & (ACFlags.AGENT_CONTROL_UP_NEG | ACFlags.AGENT_CONTROL_NUDGE_UP_NEG)) != 0;
-
-                        //m_log.Debug("[CONTROL]: " +flags);
-                        // Applies a satisfying roll effect to the avatar when flying.
-                        const ACFlags flagsLeft = ACFlags.AGENT_CONTROL_TURN_LEFT | ACFlags.AGENT_CONTROL_YAW_POS;
-                        const ACFlags flagsRight = ACFlags.AGENT_CONTROL_TURN_RIGHT | ACFlags.AGENT_CONTROL_YAW_NEG;
-                        if ((flags & flagsLeft) == flagsLeft)
-                        {
-                            ApplyFlyingRoll(
-                                FLY_ROLL_RADIANS_PER_UPDATE,
-                                (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
-                                (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
-                        }
-                        else if ((flags & flagsRight) == flagsRight)
-                        {
-                            ApplyFlyingRoll(
-                                -FLY_ROLL_RADIANS_PER_UPDATE,
-                                (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
-                                (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
-                        }
-                        else
-                        {
-                            if (m_AngularVelocity.Z != 0)
-                                m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);
-                        }
-
-                        /*
-                        if (Flying && IsColliding && controlland)
-                        {
-                            // nesting this check because LengthSquared() is expensive and we don't
-                            // want to do it every step when flying.
-                            if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                                StopFlying();
-                        }
-                        */
+                        ApplyFlyingRoll(
+                            FLY_ROLL_RADIANS_PER_UPDATE,
+                            (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
+                            (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
+                    }
+                    else if ((flags & flagsRight) == flagsRight)
+                    {
+                        ApplyFlyingRoll(
+                            -FLY_ROLL_RADIANS_PER_UPDATE,
+                            (flags & ACFlags.AGENT_CONTROL_UP_POS) != 0,
+                            (flags & ACFlags.AGENT_CONTROL_UP_NEG) != 0);
+                    }
+                    else
+                    {
+                        if (m_AngularVelocity.Z != 0)
+                            m_AngularVelocity.Z += CalculateFlyingRollResetToZero(FLY_ROLL_RESET_RADIANS_PER_UPDATE);
                     }
                 }
                 else if (IsColliding && agent_control_v3.Z < 0f)
                     agent_control_v3.Z = 0;
-//                else if(AgentControlStopActive %% Velocity.Z <0.01f)
 
-//                m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
+                //m_log.DebugFormat("[SCENE PRESENCE]: MovementFlag {0} for {1}", MovementFlag, Name);
 
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
                 // which occurs later in the main scene loop
@@ -2867,12 +2812,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // if the user rotated whilst holding down AGENT_CONTROL_STOP when already still (which locks the
                 // avatar location in place).
 
-                if (update_movementflag
-                    || (update_rotation && DCFlagKeyPressed && (!AgentControlStopActive || MovementFlag != 0)))
+                if (update_movementflag)
                 {
                     if (AgentControlStopActive)
                     {
-                        //                        if (MovementFlag == 0 && Animator.Falling)
+                        //if (MovementFlag == 0 && Animator.Falling)
                         if (MovementFlag == 0 && Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
                         {
                             AddNewMovement(agent_control_v3, AgentControlStopSlowVel, true);
@@ -2896,23 +2840,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-                else if((flags & ACFlags.AGENT_CONTROL_FINISH_ANIM) != 0)
+                else
                     Animator.UpdateMovementAnimations();
-                /*
-                if (update_movementflag && ParentID == 0 && m_delayedStop < 0)
-                {
-                    //m_log.DebugFormat("[SCENE PRESENCE]: Updating movement animations for {0}", Name);
-                    Animator.UpdateMovementAnimations();
-                }
-                */
                 SendControlsToScripts((uint)allFlags);
             }
-
-            // We need to send this back to the client in order to see the edit beams
-            if ((State & (uint)AgentState.Editing) != 0)
-                SendAgentTerseUpdate(this);
-
-//            m_scene.EventManager.TriggerOnClientMovement(this);
         }
 
         private void HandleAgentFOV(IClientAPI remoteClient, float _fov)
