@@ -2528,7 +2528,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void UpdateCameraCollisionPlane(Vector4 plane)
         {
-            if (m_lastCameraCollisionPlane != plane)
+            if (m_lastCameraCollisionPlane.NotEqual(plane))
             {
                 m_lastCameraCollisionPlane = plane;
                 ControllingClient.SendCameraConstraint(plane);
@@ -2552,9 +2552,8 @@ namespace OpenSim.Region.Framework.Scenes
                         collisionPoint.X = (float) Math.Round(collisionPoint.X, 1);
                         collisionPoint.Y = (float) Math.Round(collisionPoint.Y, 1);
                         collisionPoint.Z = (float) Math.Round(collisionPoint.Z, 1);
-
-                        Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z,
-                                                    Vector3.Dot(collisionPoint, pNormal));
+                        
+                        Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z, collisionPoint.Dot(pNormal));
                         UpdateCameraCollisionPlane(plane);
                     }
                 }
@@ -2569,8 +2568,7 @@ namespace OpenSim.Region.Framework.Scenes
                     collisionPoint.Y = (float) Math.Round(collisionPoint.Y, 1);
                     collisionPoint.Z = (float) Math.Round(collisionPoint.Z, 1);
 
-                    Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z,
-                                                Vector3.Dot(collisionPoint, pNormal));
+                    Vector4 plane = new Vector4(pNormal.X, pNormal.Y, pNormal.Z, collisionPoint.Dot(pNormal));
                     UpdateCameraCollisionPlane(plane);
                 }
             }

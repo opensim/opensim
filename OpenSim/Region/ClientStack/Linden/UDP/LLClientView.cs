@@ -8224,7 +8224,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if(
                 (x.ControlFlags != m_thisAgentUpdateArgs.ControlFlags)   // significant if control flags changed
-                || x.ControlFlags != (byte)AgentManager.ControlFlags.NONE// actually all movement controls need to pass
+                || (x.ControlFlags & ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM) != (uint)AgentManager.ControlFlags.NONE
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
                 || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
