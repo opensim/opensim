@@ -82,6 +82,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 m_lastFallVel;
         private Quaternion m_orientation;
         private Quaternion m_orientation2D;
+        private SafeNativeMethods.Quaternion m_NativeOrientation2D;
         private float m_mass = 80f;
         private float m_massInvTimeScaled = 1600f; 
         public readonly float m_density = 60f;
@@ -1144,15 +1145,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // the Amotor still lets avatar rotation to drift during colisions
             // so force it back to identity
-
-            SafeNativeMethods.Quaternion qtmp = new SafeNativeMethods.Quaternion
-            {
-                W = m_orientation2D.W,
-                X = m_orientation2D.X,
-                Y = m_orientation2D.Y,
-                Z = m_orientation2D.Z
-            };
-            SafeNativeMethods.BodySetQuaternion(Body, ref qtmp);
+            SafeNativeMethods.BodySetQuaternion(Body, ref m_NativeOrientation2D);
 
             SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetPosition(Body);
             Vector3 localpos = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
@@ -1216,7 +1209,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             Vector3 vec = Vector3.Zero;
             dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
-            float velLengthSquared = vel.LengthSquared();
 
             Vector3 ctz = _target_velocity;
 
@@ -1527,7 +1519,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         }
                     }
                 }
-
+                float velLengthSquared = vel.LengthSquared();
                 if (velLengthSquared > 2500.0f) // 50m/s apply breaks
                 {
                     breakfactor = 0.16f * m_mass;
@@ -1952,16 +1944,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_orientation2D.Y = 0f;
                 m_orientation2D.X = 0f;
 
+                m_NativeOrientation2D.X = m_orientation2D.X;
+                m_NativeOrientation2D.Y = m_orientation2D.Y;
+                m_NativeOrientation2D.Z = m_orientation2D.Z;
+                m_NativeOrientation2D.W = m_orientation2D.W;
+
                 if (Body != IntPtr.Zero)
                 {
-                    SafeNativeMethods.Quaternion myrot = new SafeNativeMethods.Quaternion()
-                    {
-                        X = m_orientation2D.X,
-                        Y = m_orientation2D.Y,
-                        Z = m_orientation2D.Z,
-                        W = m_orientation2D.W
-                    };
-                    SafeNativeMethods.BodySetQuaternion(Body, ref myrot);
+                    SafeNativeMethods.BodySetQuaternion(Body, ref m_NativeOrientation2D);
                     SafeNativeMethods.BodyEnable(Body);
                 }
             }
