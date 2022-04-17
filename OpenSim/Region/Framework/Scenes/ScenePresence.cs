@@ -2696,30 +2696,26 @@ namespace OpenSim.Region.Framework.Scenes
                 float agent_velocity = AgentControlNormalVel;
 
                 bool bAllowUpdateMoveToPosition = false;
-                uint currflags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
-                uint oldflags = MovementFlag & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
-                MovementFlag &= ~(CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                uint oldflags = MovementFlags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
+                MovementFlags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
 
-                if (currflags != 0)
+                if (MovementFlags != 0)
                 {
                     DCFlagKeyPressed = true;
                     mvToTarget = false;
 
-                    MovementFlag |= currflags;
-                    //update_movementflag |= (currflags ^ oldflags) != 0;
+                    //update_movementflag |= (MovementFlags ^ oldflags) != 0;
                     update_movementflag = true;
 
                     if (m_delayedStop < 0 && (flags & (ACFlags.AGENT_CONTROL_FAST_AT | ACFlags.AGENT_CONTROL_FAST_UP)) == 0)
                         agent_velocity = AgentControlMidVel;
 
-                    if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
-                    {
-                        currflags |= (currflags >>= 19);
-                    }
+                    if ((MovementFlags & CONTROL_FLAG_NUDGE_MASK) != 0)
+                        MovementFlags |= (MovementFlags >> 19);
 
                     for (int i = 0, mask = 1; i < 6; ++i, mask <<= 1)
                     {
-                        if((currflags & mask) != 0)
+                        if((MovementFlags & mask) != 0)
                             agent_control_v3 += Dir_Vectors[i];
                     }
                 }
@@ -2816,7 +2812,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (AgentControlStopActive)
                     {
                         //if (MovementFlag == 0 && Animator.Falling)
-                        if (MovementFlag == 0 && Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
+                        if (MovementFlags == 0 && Animator.currentControlState == ScenePresenceAnimator.motionControlStates.falling)
                         {
                             AddNewMovement(agent_control_v3, AgentControlStopSlowVel, true);
                         }
@@ -2832,10 +2828,10 @@ namespace OpenSim.Region.Framework.Scenes
                             AddNewMovement(agent_control_v3, agent_velocity);
                         else
                         {
-                            if (MovementFlag != 0)
+                            if (MovementFlags != 0)
                                 AddNewMovement(agent_control_v3, agent_velocity);
                             else
-                                m_delayedStop = Util.GetTimeStampMS() + 200.0;
+                                m_delayedStop = Util.GetTimeStampMS() + 250.0;
                         }
                     }
                 }
@@ -3004,8 +3000,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 const uint noMovFlagsMask = (uint)(~CONTROL_FLAG_NORM_MASK);
 
-                MovementFlag &= noMovFlagsMask;
-                MovementFlag |= tmpAgentControlFlags;
+                MovementFlags &= noMovFlagsMask;
+                MovementFlags |= tmpAgentControlFlags;
 
                 m_AgentControlFlags &= unchecked((ACFlags)noMovFlagsMask);
                 m_AgentControlFlags |= (ACFlags)tmpAgentControlFlags;
@@ -3726,7 +3722,7 @@ namespace OpenSim.Region.Framework.Scenes
             // m_log.DebugFormat(
             //    "[SCENE PRESENCE]: Adding new movement {0} with rotation {1}, thisAddSpeedModifier {2} for {3}",
             //        vec, Rotation, thisAddSpeedModifier, Name);
-            m_delayedStop = -1;
+            //m_delayedStop = -1;
             // rotate from avatar coord space to world
             Quaternion rot = Rotation;
             if (!Flying && !IsNPC)

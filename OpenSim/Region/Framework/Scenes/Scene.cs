@@ -5007,6 +5007,9 @@ Label_GroupsDone:
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
+            if(!AllowAvatarCrossing)
+                return false;
+
             if (EntityTransferModule != null)
             {
                 return EntityTransferModule.Cross(agent, isFlying);
