@@ -573,7 +573,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Record user movement inputs.
         /// </summary>
-        public uint MovementFlag { get; private set; }
+        public uint MovementFlags { get; private set; }
 
         /// <summary>
         /// Is the agent stop control flag currently active?
@@ -1070,7 +1070,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // velocities
         private const float AgentControlStopSlowVel = 0.2f * 4.096f;
-        public const float AgentControlMidVel = 0.4f * 4.096f;
+        public const float AgentControlMidVel = 0.6f * 4.096f;
         public const float AgentControlNormalVel = 1.0f * 4.096f;
 
         // old normal speed was tuned to match sl normal plus Fast modifiers
@@ -1552,7 +1552,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
             // stall on the border crossing since the existing child agent will still have the last movement
             // recorded, which stops the input from being processed.
-            MovementFlag = 0;
+            MovementFlags = 0;
 
             m_scene.AuthenticateHandler.UpdateAgentChildStatus(ControllingClient.CircuitCode, false);
 
@@ -1663,7 +1663,7 @@ namespace OpenSim.Region.Framework.Scenes
             // as teleporting back
             TeleportFlags = TeleportFlags.Default;
 
-            MovementFlag = 0;
+            MovementFlags = 0;
 
             // It looks like Animator is set to null somewhere, and MakeChild
             // is called after that. Probably in aborted teleports.
