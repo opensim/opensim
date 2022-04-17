@@ -81,7 +81,7 @@ namespace OpenSim.Region.Framework.Scenes
         //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
         //        }
 
-
+        public bool GotAttachmentsData = false;
         public int EnvironmentVersion = -1;
         private ViewerEnvironment m_environment = null;
         public ViewerEnvironment Environment
@@ -3990,6 +3990,16 @@ namespace OpenSim.Region.Framework.Scenes
             // give some extra time to make sure viewers did process seeds
             if (++NeedInitialData < 6) // needs fix if update rate changes on heartbeat
                return;
+
+            /*
+            if(!GotAttachmentsData)
+            {
+                if(++NeedInitialData == 300) // 30s in current heartbeat
+                    m_log.WarnFormat("[ScenePresence({0}] slow attachment assets transfer for {1}", Scene.Name, Name);
+            }
+            else if((m_teleportFlags & TeleportFlags.ViaHGLogin) != 0)
+                m_log.WarnFormat("[ScenePresence({0}] got hg attachment assets transfer for {1}, cntr = {2}", Scene.Name, Name, NeedInitialData);
+            */
 
             NeedInitialData = -1;
 

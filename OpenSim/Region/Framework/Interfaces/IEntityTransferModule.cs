@@ -107,6 +107,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool CrossAgentCreateFarChild(ScenePresence agent, GridRegion neighbourRegion, Vector3 pos, EntityTransferContext ctx);
 
         bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
+        bool HandleIncomingAttachments(ScenePresence sp, List<SceneObjectGroup> attachments);
     }
 
     public interface IUserAgentVerificationModule

@@ -2737,45 +2737,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return successYN;
         }
 
-        /// <summary>
-        /// Cross the attachments for an avatar into the destination region.
-        /// </summary>
-        /// <remarks>
-        /// This is only invoked for simulators released prior to April 2011.  Versions of OpenSimulator since then
-        /// transfer attachments in one go as part of the ChildAgentDataUpdate data passed in the update agent call.
-        /// </remarks>
-        /// <param name='destination'></param>
-        /// <param name='sp'></param>
-        /// <param name='silent'></param>
-        protected void CrossAttachmentsIntoNewRegion(GridRegion destination, ScenePresence sp, bool silent)
-        {
-            List<SceneObjectGroup> attachments = sp.GetAttachments();
-
-//            m_log.DebugFormat(
-//                "[ENTITY TRANSFER MODULE]: Crossing {0} attachments into {1} for {2}",
-//                m_attachments.Count, destination.RegionName, sp.Name);
-
-            foreach (SceneObjectGroup gobj in attachments)
-            {
-                // If the prim group is null then something must have happened to it!
-                if (gobj != null && !gobj.IsDeleted)
-                {
-                    SceneObjectGroup clone = (SceneObjectGroup)gobj.CloneForNewScene();
-                    clone.RootPart.GroupPosition = gobj.RootPart.AttachedPos;
-                    clone.IsAttachment = false;
-
-                    //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                    m_log.DebugFormat(
-                        "[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}",
-                        clone.UUID, destination.RegionName);
-
-                    CrossPrimGroupIntoNewRegion(destination, Vector3.Zero, clone, silent,true);
-                }
-            }
-
-            sp.ClearAttachments();
-        }
-
         #endregion
 
         #region Misc
@@ -2797,7 +2758,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     if (i < sp.InTransitScriptStates.Count)
                     {
                         sog.SetState(sp.InTransitScriptStates[i++], sp.Scene);
-                        sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, 0);
+                        sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, -1);
                         sog.ResumeScripts();
                     }
                     else
@@ -2863,6 +2824,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 //    so.RootPart.KeyframeMotion.UpdateSceneObject(so);
             }
 
+            return true;
+        }
+
+        public virtual bool HandleIncomingAttachments(ScenePresence sp, List<SceneObjectGroup> attachments)
+        {
+            if (sp.IsDeleted)
+                return false;
+
+            if (m_sceneRegionInfo.EstateSettings.IsBanned(sp.UUID))
+            {
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Denied Attachments for banned avatar {0}", sp.Name);
+                return false;
+            }
+
+            foreach(SceneObjectGroup so in attachments)
+            {
+                if (!m_scene.AddSceneObject(so))
+                {
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: Problem adding attachment {0} {1} into {2} ",
+                        so.Name, so.UUID, m_sceneName);
+                    continue;
+                }
+            }
+
+            sp.GotAttachmentsData = true;
             return true;
         }
 
