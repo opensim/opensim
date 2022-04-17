@@ -1070,7 +1070,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // velocities
         private const float AgentControlStopSlowVel = 0.2f * 4.096f;
-        public const float AgentControlNudgeVel = 0.4f * 4.096f;
+        public const float AgentControlMidVel = 0.4f * 4.096f;
         public const float AgentControlNormalVel = 1.0f * 4.096f;
 
         // old normal speed was tuned to match sl normal plus Fast modifiers
@@ -2709,11 +2709,12 @@ namespace OpenSim.Region.Framework.Scenes
                     //update_movementflag |= (currflags ^ oldflags) != 0;
                     update_movementflag = true;
 
+                    if (m_delayedStop < 0 && (flags & (ACFlags.AGENT_CONTROL_FAST_AT | ACFlags.AGENT_CONTROL_FAST_UP)) == 0)
+                        agent_velocity = AgentControlMidVel;
+
                     if ((currflags & CONTROL_FLAG_NUDGE_MASK) != 0)
                     {
-                        currflags >>= 19;
-                        if(m_delayedStop < 0)
-                            agent_velocity = AgentControlNudgeVel;
+                        currflags |= (currflags >>= 19);
                     }
 
                     for (int i = 0, mask = 1; i < 6; ++i, mask <<= 1)
@@ -2838,7 +2839,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-                else
+                else if((flags & ACFlags.AGENT_CONTROL_FINISH_ANIM) != 0)
                     Animator.UpdateMovementAnimations();
                 SendControlsToScripts((uint)allFlags);
             }
