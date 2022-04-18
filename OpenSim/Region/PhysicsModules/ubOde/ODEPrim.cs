@@ -3703,11 +3703,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             break;
 
                         case PIDHoverType.GroundAndWater:
-                            float waterHeight = m_parentScene.GetWaterLevel();
-                            if (groundHeight > waterHeight)
+                            if (groundHeight > m_parentScene.WaterLevel)
                                 m_targetHoverHeight = groundHeight + m_PIDHoverHeight;
                             else
-                                m_targetHoverHeight = waterHeight + m_PIDHoverHeight;
+                                m_targetHoverHeight = m_parentScene.WaterLevel + m_PIDHoverHeight;
                             break;
                     }     // end switch (m_PIDHoverType)
 
@@ -4108,12 +4107,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     changevelocity((Vector3)arg);
                     break;
 
-                case changes.TargetVelocity:
-                    break;
+                //case changes.TargetVelocity:
+                //    break;
 
-//                case changes.Acceleration:
-//                    changeacceleration((Vector3)arg);
-//                    break;
+                //case changes.Acceleration:
+                //    changeacceleration((Vector3)arg);
+                //    break;
 
                 case changes.AngVelocity:
                     changeangvelocity((Vector3)arg);

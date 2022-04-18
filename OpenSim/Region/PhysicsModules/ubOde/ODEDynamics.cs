@@ -869,7 +869,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                     {
-                        perr += _pParentScene.GetWaterLevel();
+                        perr += _pParentScene.WaterLevel;
                     }
                     else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                     {
@@ -877,11 +877,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else
                     {
-                        float w = _pParentScene.GetWaterLevel();
-                        if (t > w)
+                        if (t > _pParentScene.WaterLevel)
                             perr += t;
                         else
-                            perr += w;
+                            perr += _pParentScene.WaterLevel;
                     }
                 }
                 else if (t > m_VhoverHeight)

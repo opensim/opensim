@@ -169,17 +169,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public Scene m_frameWorkScene = null;
 
-//        private int threadid = 0;
+        //private int threadid = 0;
 
-//        const d.ContactFlags comumContactFlags = d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM |d.ContactFlags.Approx1 | d.ContactFlags.Bounce;
-
-//        const d.ContactFlags comumContactFlags = d.ContactFlags.Bounce | d.ContactFlags.Approx1 | d.ContactFlags.Slip1 | d.ContactFlags.Slip2;
         const SafeNativeMethods.ContactFlags comumContactFlags = SafeNativeMethods.ContactFlags.Bounce | SafeNativeMethods.ContactFlags.Approx1;
         const float comumContactERP = 0.75f;
         const float comumContactCFM = 0.0001f;
         const float comumContactSLIP = 0f;
-
-//        float frictionMovementMult = 0.2f;
 
         float TerrainBounce = 0.001f;
         float TerrainFriction = 0.3f;
@@ -207,7 +202,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public float gravityy = 0f;
         public float gravityz = -9.8f;
 
-        private float waterlevel = 0f;
+        public float WaterLevel = 0f;
         private int framecount = 0;
 
         private float avDensity = 80f;
@@ -266,7 +261,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private int m_physicsiterations = 15;
         private const float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
-//        private PhysicsActor PANull = new NullPhysicsActor();
+        //private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
 
         public IntPtr world;
@@ -1480,27 +1475,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (step_time < HalfOdeStep)
                 return 0;
 
-            if (framecount < 0)
-                framecount = 0;
+            if (framecount <= 0)
+                framecount = 1;
+            else
+                framecount++;
 
-            framecount++;
-
-//            checkThread();
+            //checkThread();
             int nodeframes = 0;
             float fps = 0;
 
             lock (OdeLock)
             {
 
-//                d.WorldSetQuickStepNumIterations(world, curphysiteractions);
+                //d.WorldSetQuickStepNumIterations(world, curphysiteractions);
 
                 double loopstartMS = Util.GetTimeStampMS();
-                double looptimeMS = 0;
-                double changestimeMS = 0;
-                double maxChangestime = (int)(reqTimeStep * 500f); // half the time
-                double maxLoopTime = (int)(reqTimeStep * 1200f); // 1.2 the time
+                double maxChangestime = (int)(reqTimeStep * 500f) + loopstartMS; // half the time
+                double maxLoopTime = (int)(reqTimeStep * 1200f) + loopstartMS; // 1.2 the time
 
-/*
+                /*
                 double collisionTime = 0;
                 double qstepTIme = 0;
                 double tmpTime = 0;
@@ -1509,37 +1502,29 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double updatesTime = 0;
                 double moveTime = 0;
                 double rayTime = 0;
-*/
+                */
+
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                if (!ChangesQueue.IsEmpty)
+                while (ChangesQueue.TryDequeue(out ODEchangeitem item))
                 {
-                    ODEchangeitem item;
-
-                    while (ChangesQueue.TryDequeue(out item))
+                    try
                     {
-                        if (item.actor != null)
+                        lock (SimulationLock)
                         {
-                            try
-                            {
-                                lock (SimulationLock)
-                                {
-                                    if (item.actor is OdeCharacter)
-                                        ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
-                                    else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
-                                        RemovePrimThreadLocked((OdePrim)item.actor);
-                                }
-                            }
-                            catch
-                            {
-                                m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
-                                    item.actor.Name, item.what.ToString());
-                            }
+                            if (item.actor is OdeCharacter)
+                                ((OdeCharacter)item.actor).DoAChange(item.what, item.arg);
+                            else if (((OdePrim)item.actor).DoAChange(item.what, item.arg))
+                                RemovePrimThreadLocked((OdePrim)item.actor);
                         }
-                        changestimeMS = Util.GetTimeStampMS() - loopstartMS;
-                        if (changestimeMS > maxChangestime)
-                            break;
                     }
+                    catch
+                    {
+                        m_log.WarnFormat("[PHYSICS]: doChange failed for a actor {0} {1}",
+                            item.actor.Name, item.what.ToString());
+                    }
+                    if (maxChangestime < Util.GetTimeStampMS())
+                        break;
                 }
 
                 // do simulation taking at most 150ms total time including changes
@@ -1550,7 +1535,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         // clear pointer/counter to contacts to pass into joints
                         m_global_contactcount = 0;
 
-                        //                        tmpTime =  Util.GetTimeStampMS();
+                        //tmpTime =  Util.GetTimeStampMS();
 
                         // Move characters
                         lock (_characters)
@@ -1637,21 +1622,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         // update managed ideia of physical data and do updates to core
                         /*
-                                        lock (_characters)
-                                        {
-                                            foreach (OdeCharacter actor in _characters)
-                                            {
-                                                if (actor != null)
-                                                {
-                                                    if (actor.bad)
-                                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                        lock (_characters)
+                        {
+                            foreach (OdeCharacter actor in _characters)
+                            {
+                                if (actor != null)
+                                {
+                                    if (actor.bad)
+                                        m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
 
-                                                    actor.UpdatePositionAndVelocity();
-                                                }
-                                            }
-                                        }
+                                    actor.UpdatePositionAndVelocity();
+                                }
+                            }
+                        }
                         */
-                        //                        tmpTime =  Util.GetTimeStampMS();
+                        //tmpTime =  Util.GetTimeStampMS();
                         //lock (SimulationLock)
                         {
                             lock (_activegroups)
@@ -1669,20 +1654,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             }
                         }
 
-//                        updatesTime += Util.GetTimeStampMS() - tmpTime;
+                    //updatesTime += Util.GetTimeStampMS() - tmpTime;
                     }
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[PHYSICS]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
-//                        ode.dunlock(world);
+                        //ode.dunlock(world);
                     }
 
                     step_time -= ODE_STEPSIZE;
                     nodeframes++;
 
-                    looptimeMS = Util.GetTimeStampMS() - loopstartMS;
-
-                    if (looptimeMS > maxLoopTime)
+                     if (Util.GetTimeStampMS() > maxLoopTime)
                         break;
                 }
 
@@ -1697,8 +1680,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _badCharacter.Clear();
                     }
                 }
-/*
-// information block for in debug breakpoint only
+
+                /*
+                // information block for in debug breakpoint only
 
                 int ntopactivegeoms = d.SpaceGetNumGeoms(ActiveSpace);
                 int ntopstaticgeoms = d.SpaceGetNumGeoms(StaticSpace);
@@ -1740,9 +1724,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int totgeoms = nstaticgeoms + nactivegeoms + ngroundgeoms + 1; // one ray
                 int nbodies = d.NTotalBodies;
                 int ngeoms = d.NTotalGeoms;
-*/
+                */
 
-/*
+                /*
                 looptimeMS /= nodeframes;
                 collisionTime /= nodeframes;
                 qstepTIme /= nodeframes;
@@ -1757,7 +1741,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 
                 }
-*/
+                */
                 fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
 
                 if(step_time < HalfOdeStep)
@@ -2077,14 +2061,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
         }
 
-        public float GetWaterLevel()
-        {
-            return waterlevel;
-        }
-
         public override void SetWaterLevel(float baseheight)
         {
-            waterlevel = baseheight;
+            WaterLevel = baseheight;
         }
 
         public override void Dispose()
@@ -2134,8 +2113,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_terrainHeightsHandler.Free();
 
                 m_terrainHeights = null;
-                m_lastRegionWidth = 0;
-                m_lastRegionHeight = 0;
 
                 if (ContactgeomsArray != IntPtr.Zero)
                 {

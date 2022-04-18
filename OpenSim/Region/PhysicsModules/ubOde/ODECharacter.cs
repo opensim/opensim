@@ -74,7 +74,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private Vector3 _position;
         private Vector3 _zeroPosition;
         private Vector3 _velocity;
-        private Vector3 _target_velocity;
         private Vector3 _acceleration;
         private Vector3 m_rotationalVelocity;
         private Vector3 m_size;
@@ -604,11 +603,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             get
             {
-                return _target_velocity;
+                return m_targetVelocity;
             }
             set
             {
-                return;
             }
         }
 
@@ -1210,7 +1208,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
             Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
 
-            Vector3 ctz = _target_velocity;
+            Vector3 ctz = m_targetVelocity;
 
             if (m_alwaysRun)
             {
@@ -1340,11 +1338,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         break;
 
                     case PIDHoverType.GroundAndWater:
-                        float waterHeight = m_parent_scene.GetWaterLevel();
-                        if (terrainheight > waterHeight)
+                        if (terrainheight > m_parent_scene.WaterLevel)
                             m_targetHoverHeight = terrainheight + m_PIDHoverHeight;
                         else
-                            m_targetHoverHeight = waterHeight + m_PIDHoverHeight;
+                            m_targetHoverHeight = m_parent_scene.WaterLevel + m_PIDHoverHeight;
                         break;
                 }     // end switch (m_PIDHoverType)
 
@@ -1973,7 +1970,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             //m_pidControllerActive = true;
             //m_freemove = false;
-            _target_velocity = newVel;
+            m_targetVelocity = newVel;
             if (Body != IntPtr.Zero)
                 SafeNativeMethods.BodyEnable(Body);
         }
@@ -2018,7 +2015,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             m_pidControllerActive = true;
             _zeroFlag = false;
-            _target_velocity = Vector3.Zero;
+            m_targetVelocity = Vector3.Zero;
             m_freemove = true;
             m_colliderfilter = -1;
             m_colliderObjectfilter = -1;
