@@ -1967,6 +1967,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_terrainHeightsHandler = GCHandle.Alloc(m_terrainHeights, GCHandleType.Pinned);
 
                 m_lastRegionWidth = m_regionWidth;
+                m_lastRegionHeight = m_regionHeight;
 
                 HeightmapData = SafeNativeMethods.GeomOSTerrainDataCreate();
                 SafeNativeMethods.GeomOSTerrainDataBuild(HeightmapData, m_terrainHeightsHandler.AddrOfPinnedObject(), 0, 1.0f,
