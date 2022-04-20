@@ -580,7 +580,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         //                    if(childPrim)  we only know about physical linksets
                         return Ptot;
-/*
+                    /*
                         float tmass = _mass;
                         Ptot *= tmass;
 
@@ -600,7 +600,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         Ptot *= tmass;
                         return Ptot;
-*/
+                    */
                     }
                     else
                         return m_position;
@@ -612,7 +612,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             set
             {
-//                AddChange(changes.Shape, value);
+                //AddChange(changes.Shape, value);
                 m_parentScene.m_meshWorker.ChangeActorPhysRep(this, value, m_size, m_fakeShapetype);
             }
         }
@@ -955,10 +955,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (force.IsFinite())
             {
-//                if(pushforce)  for now applyrotationimpulse seems more happy applied as a force
+                //if(pushforce)  for now applyrotationimpulse seems more happy applied as a force
                     AddChange(changes.AddAngForce, force);
-//                else // a impulse
-//                    AddChange(changes.AddAngForce, force * m_invTimeStep);
+                //else // a impulse
+                    //AddChange(changes.AddAngForce, force * m_invTimeStep);
             }
             else
             {
@@ -1051,10 +1051,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             set
             {
-                float old = m_density;
+                //float old = m_density;
                 m_density = value / 100f;
- //               if(m_density != old)
- //                   UpdatePrimBodyData();
+                //if(m_density != old)
+                //    UpdatePrimBodyData();
             }
         }
         public override float GravModifier
@@ -1221,7 +1221,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (ncolisions == 0)
                 {
                     SentEmptyCollisionsEvent = true;
-//                    _parent_scene.RemoveCollisionEventReporting(this);
+                    //_parent_scene.RemoveCollisionEventReporting(this);
                 }
                 else if(Body == IntPtr.Zero || (SafeNativeMethods.BodyIsEnabled(Body) && m_bodydisablecontrol >= 0 ))
                 {
@@ -1600,8 +1600,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 UpdatePrimBodyData();
                 m_parentScene.actor_name_map[m_prim_geom] = this;
 
-/*
-// debug
+                /*
+                // debug
                 d.AABB aabb;
                 d.GeomGetAABB(prim_geom, out aabb);
                 float x = aabb.MaxX - aabb.MinX;
@@ -1613,7 +1613,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 else if (x < 0.001f || y < 0.001f || z < 0.001f)
                     m_log.WarnFormat("[PHYSICS]: small prim geo {0},size {1}, AABBsize <{2},{3},{4}, mesh {5} at {6}",
                         Name, _size.ToString(), x, y, z, _pbs.SculptEntry ? _pbs.SculptTexture.ToString() : "primMesh", _position.ToString());
-*/
+                */
 
             }
             else
@@ -2525,13 +2525,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_orientation.Y = qtmp.Y;
                 m_orientation.Z = qtmp.Z;
                 m_orientation.W = qtmp.W;
-/*
-// Debug
+
+                /*
+                // Debug
                 float qlen = _orientation.Length();
                 if (qlen > 1.01f || qlen < 0.99)
                     m_log.WarnFormat("[PHYSICS]: Got nonnorm quaternion from geom in Object {0} norm {1}", Name, qlen);
-//
-*/
+
+                */
+
                 m_orientation.Normalize();
 
                 SafeNativeMethods.Vector3 lpos = SafeNativeMethods.GeomGetPosition(m_prim_geom);
@@ -2581,7 +2583,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     childrenPrim.Remove(odePrim);
                     odePrim.childPrim = false;
                     odePrim._parent = null;
-                    //                    odePrim.UpdateDataFromGeom();
+                    //odePrim.UpdateDataFromGeom();
                     if (remakebodies)
                         odePrim.MakeBody();
                 }
@@ -2703,10 +2705,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (!childPrim)
             {
-//                m_force = Vector3.Zero;
+                //m_force = Vector3.Zero;
                 m_forceacc = Vector3.Zero;
                 m_angularForceacc = Vector3.Zero;
-//                m_torque = Vector3.Zero;
+                //m_torque = Vector3.Zero;
                 _velocity = Vector3.Zero;
                 m_acceleration = Vector3.Zero;
                 m_rotationalVelocity = Vector3.Zero;
@@ -2735,31 +2737,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             ApplyCollisionCatFlags();
         }
 
-/* not in use
-        internal void ChildSelectedChange(bool childSelect)
-        {
-            if(childPrim)
-                return;
-
-            if (childSelect == m_isSelected)
-                return;
-
-            if (childSelect)
-            {
-                DoSelectedStatus(true);
-            }
-
-            else
-            {
-                foreach (OdePrim prm in childrenPrim)
-                {
-                    if (prm.m_isSelected)
-                        return;
-                }
-                DoSelectedStatus(false);
-            }
-        }
-*/
         private void changeSelectedStatus(bool newval)
         {
             if (m_lastdoneSelected == newval)
@@ -2816,10 +2793,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             prm.m_delaySelect = false;
                         }
                     }
-//                    else if (_parent != null)
-//                        ((OdePrim)_parent).ChildSelectedChange(true);
-
-
+ 
                     if (m_prim_geom != IntPtr.Zero)
                     {
                         if (m_NoColide)
@@ -2862,8 +2836,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         SafeNativeMethods.BodyEnable(Body);
                     }
                 }
-//                else if (_parent != null)
-//                    ((OdePrim)_parent).ChildSelectedChange(false);
 
                 UpdateCollisionCatFlags();
                 ApplyCollisionCatFlags();
@@ -2928,7 +2900,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_givefakepos--;
             if (m_givefakepos < 0)
                 m_givefakepos = 0;
-//            changeSelectedStatus();
+            //changeSelectedStatus();
             resetCollisionAccounting();
         }
 
@@ -2943,14 +2915,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         m_orientation = newOri;
                     }
-/*
+                    /*
                     else if (m_forcePosOrRotation && _orientation != newOri && Body != IntPtr.Zero)
                     {
                         FixInertia(_position, newOri);
                         if (!d.BodyIsEnabled(Body))
                             d.BodyEnable(Body);
                     }
-*/
+                    */
                 }
                 else
                 {

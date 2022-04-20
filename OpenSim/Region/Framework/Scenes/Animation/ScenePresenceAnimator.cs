@@ -866,11 +866,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
-            //            SendAnimPack(animIDs, sequenceNums, objectIDs);
-            if(selfIncluded)
+            //SendAnimPack(animIDs, sequenceNums, objectIDs);
+            //if(selfIncluded)
                 m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
-            else
-                m_scenePresence.SendAnimPackToOthers(animIDs, sequenceNums, objectIDs);         
+            //else
+            //    m_scenePresence.SendAnimPackToOthers(animIDs, sequenceNums, objectIDs);         
         }
 
         public string GetAnimName(UUID animId)

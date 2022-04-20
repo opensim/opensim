@@ -347,15 +347,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
 
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
         internal struct Vector3
         {
             internal Vector3(dReal x, dReal y, dReal z)
             {
-                X = x;  Y = y;  Z = z;  _w = 0.0f;
+                X = x;  Y = y;  Z = z;  //_w = 0.0f;
             }
             internal dReal X, Y, Z;
-            private dReal _w;
+            //private readonly dReal _w;
         }
 
 
