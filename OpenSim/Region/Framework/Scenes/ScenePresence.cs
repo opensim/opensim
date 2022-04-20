@@ -2644,13 +2644,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_mouseLook = (allFlags & ACFlags.AGENT_CONTROL_MOUSELOOK) != 0;
             m_headrotation = agentData.HeadRotation;
 
-            byte oldState = State;
+            //byte oldState = State;
             State = agentData.State;
 
             #endregion Inputs
 
-            if (oldState != State)
-                SendAgentTerseUpdate(this);
+            //if (oldState != State)
+            //    SendAgentTerseUpdate(this);
 
             if ((allFlags & ACFlags.AGENT_CONTROL_STAND_UP) != 0)
                 StandUp();
@@ -3783,8 +3783,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
-       const float ROTATION_TOLERANCE = 0.01f;
-       const float VELOCITY_TOLERANCE = 0.1f;
+       const float ROTATION_TOLERANCE = 0.005f;
+       const float VELOCITY_TOLERANCE = 0.005f;
        const float LOWVELOCITYSQ = 0.1f;
        const float POSITION_LARGETOLERANCE = 5f;
        const float POSITION_SMALLTOLERANCE = 0.05f;
@@ -3827,19 +3827,28 @@ namespace OpenSim.Region.Framework.Scenes
             // has changed significantly from last sent update
             if (!IsSatOnObject)
             {
-                if (State != m_lastState || !m_bodyRot.ApproxEquals(m_lastRotation) ||
-                    !Velocity.ApproxEquals(m_lastVelocity) || (Velocity.IsZero() && !m_lastVelocity.IsZero() ||
-                    !CollisionPlane.ApproxEquals(m_lastCollisionPlane, POSITION_SMALLTOLERANCE)))
+                if (State != m_lastState ||
+                    !m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !CollisionPlane.ApproxEquals(m_lastCollisionPlane, POSITION_SMALLTOLERANCE))
                 {
                     SendTerseUpdateToAllClients();
                 }
                 else
                 {
-                    Vector3 dpos = m_pos - m_lastPosition;
-                    if(!dpos.ApproxZero(POSITION_LARGETOLERANCE) ||
-                        ((!dpos.ApproxZero(POSITION_SMALLTOLERANCE)) && Velocity.LengthSquared() < LOWVELOCITYSQ))
+                    Vector3 vel = Velocity;
+                    if(!vel.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                        (vel.IsZero() && !m_lastVelocity.IsZero()))
                     {
                         SendTerseUpdateToAllClients();
+                    }
+                    else
+                    {
+                        Vector3 dpos = m_pos - m_lastPosition;
+                        if(!dpos.ApproxZero(POSITION_LARGETOLERANCE) ||
+                            ((!dpos.ApproxZero(POSITION_SMALLTOLERANCE)) && vel.LengthSquared() < LOWVELOCITYSQ))
+                        {
+                            SendTerseUpdateToAllClients();
+                        }
                     }
                 }
             }
@@ -5186,30 +5195,33 @@ namespace OpenSim.Region.Framework.Scenes
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
-            if (coldata.Count != 0)
+            if (coldata.Count == 0)
+                CollisionPlane = Vector4.UnitW;
+            else
             {
                 ContactPoint lowest;
                 lowest.SurfaceNormal = Vector3.Zero;
                 lowest.Position = Vector3.Zero;
-                lowest.Position.Z = float.MaxValue;
+                float maxZ= float.MaxValue;
 
                 foreach (ContactPoint contact in coldata.Values)
                 {
-                    if (contact.CharacterFeet && contact.Position.Z < lowest.Position.Z)
+                    if (contact.CharacterFeet && contact.Position.Z < maxZ)
+                    {
                         lowest = contact;
+                        maxZ = lowest.Position.Z;
+                    }
                 }
 
-                if (lowest.Position.Z != float.MaxValue)
+                if (maxZ != float.MaxValue)
                 {
                     lowest.SurfaceNormal = -lowest.SurfaceNormal;
-                    CollisionPlane = new Vector4(lowest.SurfaceNormal, Vector3.Dot(lowest.Position, lowest.SurfaceNormal));
+                    CollisionPlane = new Vector4(lowest.SurfaceNormal, lowest.Position.Dot(lowest.SurfaceNormal));
                 }
                 else
                    CollisionPlane = Vector4.UnitW;
             }
-            else
-                CollisionPlane = Vector4.UnitW;
-
+ 
             RaiseCollisionScriptEvents(coldata);
 
             // Gods do not take damage and Invulnerable is set depending on parcel/region flags
