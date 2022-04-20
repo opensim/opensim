@@ -179,6 +179,27 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             return false;
         }
 
+        public void GetAnimationIDsArray(out UUID[] animIDs)
+        {
+            lock (m_animations)
+            {
+                int j = m_defaultAnimation.AnimID.IsZero() ? 0 : 1;
+
+                int defaultSize = m_animations.Count + j;
+                animIDs = new UUID[defaultSize];
+
+                if (j > 0)
+                {
+                    animIDs[0] = m_defaultAnimation.AnimID;
+                }
+
+                for (int i = 0; i < m_animations.Count; ++i, ++j)
+                {
+                    animIDs[j] = m_animations[i].AnimID;
+                }
+            }
+        }
+
         public void GetArrays(out UUID[] animIDs, out int[] sequenceNums, out UUID[] objectIDs)
         {
             lock (m_animations)
@@ -190,7 +211,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 sequenceNums = new int[defaultSize];
                 objectIDs = new UUID[defaultSize];
 
-                if (m_defaultAnimation.AnimID.IsNotZero())
+                if (j > 0)
                 {
                     animIDs[0] = m_defaultAnimation.AnimID;
                     sequenceNums[0] = m_defaultAnimation.SequenceNum;

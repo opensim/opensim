@@ -80,7 +80,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public ScenePresenceAnimator(ScenePresence sp)
         {
             m_scenePresence = sp;
-            CurrentMovementAnimation = "CROUCH";
+            CurrentMovementAnimation = "STAND";
         }
 
         public void AddAnimation(UUID animID, UUID objectID)
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
+            // m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
             if (m_scenePresence.Scene.DebugAnimations)
                 m_log.DebugFormat(
                     "[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}",
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (animID.IsZero())
                 return;
 
-            //            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}", animID, name, m_scenePresence.Name);
+            // m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}", animID, name, m_scenePresence.Name);
 
             AddAnimation(animID, objectID);
         }
@@ -154,7 +154,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     m_animations.Remove(animID, false);
             }
             if (sendPack)
-                SendAnimPack(false);
+                SendAnimPack();
         }
 
         // Called from scripts
@@ -616,11 +616,13 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public UUID[] GetAnimationArray()
         {
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
+            m_animations.GetAnimationIDsArray(out UUID[] animIDs);
             return animIDs;
+        }
+
+        public bool HasAnimation(UUID animID)
+        {
+            return m_animations.HasAnimation(animID);
         }
 
         public BinBVHAnimation GenerateRandomAnimation()
@@ -853,7 +855,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// Send animation information about this avatar to all clients.
         /// </summary>
-        public void SendAnimPack(bool selfIncluded = true)
+        public void SendAnimPack()
         {
             //m_log.Debug("Sending animation pack to all");
 
@@ -866,11 +868,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
-            //SendAnimPack(animIDs, sequenceNums, objectIDs);
-            //if(selfIncluded)
-                m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
-            //else
-            //    m_scenePresence.SendAnimPackToOthers(animIDs, sequenceNums, objectIDs);         
+            m_scenePresence.SendAnimPack(animIDs, sequenceNums, objectIDs);
         }
 
         public string GetAnimName(UUID animId)

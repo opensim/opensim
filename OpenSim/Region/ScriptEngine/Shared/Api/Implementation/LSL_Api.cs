@@ -6476,6 +6476,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// AGENT_BUSY
         /// Remove as they are done
         /// </summary>
+        static readonly UUID busyAnimation = new UUID("efcf670c-2d18-8128-973a-034ebc806b67");
+        
         public LSL_Integer llGetAgentInfo(LSL_Key id)
         {
 
@@ -6522,9 +6524,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flags |= ScriptBaseClass.AGENT_AWAY;
                 }
 
-                UUID busy = new UUID("efcf670c-2d18-8128-973a-034ebc806b67");
-                UUID[] anims = agent.Animator.GetAnimationArray();
-                if (Array.Exists<UUID>(anims, a => { return a == busy; }))
+                if(agent.Animator.HasAnimation(busyAnimation))
                 {
                     flags |= ScriptBaseClass.AGENT_BUSY;
                 }
@@ -8071,15 +8071,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_Integer llScriptDanger(LSL_Vector pos)
         {
-            bool result = World.LSLScriptDanger(m_host, pos);
-            if (result)
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
+            return World.LSLScriptDanger(m_host, pos) ? 1 : 0;
         }
 
         public void llDialog(LSL_Key avatar, LSL_String message, LSL_List buttons, int chat_channel)
@@ -10917,8 +10909,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (av == null || av.IsChildAgent) // only if in the region
                 return new LSL_List();
 
-            UUID[] anims;
-            anims = av.Animator.GetAnimationArray();
+            UUID[] anims = av.Animator.GetAnimationArray();
             LSL_List l = new LSL_List();
             foreach (UUID foo in anims)
                 l.Add(new LSL_Key(foo.ToString()));
