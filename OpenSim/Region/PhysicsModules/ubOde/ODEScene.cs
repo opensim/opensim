@@ -1676,7 +1676,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                 }
 
-                
                 // information block for in debug breakpoint only
                 /*
                 int ntopactivegeoms = SafeNativeMethods.SpaceGetNumGeoms(ActiveSpace);
