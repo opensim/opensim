@@ -2,8 +2,8 @@
   <Section Name="Settings Library">
     <Key Name="folderID" Value="00000112-000f-0000-0000-000100bba025"/>
     <Key Name="parentFolderID" Value="00000112-000f-0000-0000-000100bba000"/>
-    <Key Name="name" Value="Settings"/>
-    <Key Name="type" Value="56"/>
+    <Key Name="name" Value="Settings Library"/>
+    <Key Name="type" Value="-1"/>
   </Section>
   <Section Name="Water">
     <Key Name="folderID" Value="25000112-000f-0000-0000-000100bba025"/>
