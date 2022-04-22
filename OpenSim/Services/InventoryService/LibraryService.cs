@@ -148,7 +148,7 @@ namespace OpenSim.Services.InventoryService
         protected void ReadLibraryFromConfig(IConfig config, string path)
         {
             string basePath = Path.GetDirectoryName(path);
-            m_LibraryRootFolder.Version = (ushort)config.GetInt("RootVersion", 1);
+            m_LibraryRootFolder.Version = (ushort)config.GetInt("RootVersion", m_LibraryRootFolder.Version);
             string foldersPath
                 = Path.Combine(
                     basePath, config.GetString("foldersFile", String.Empty));
