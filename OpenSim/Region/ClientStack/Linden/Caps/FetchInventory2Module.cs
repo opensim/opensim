@@ -72,9 +72,9 @@ namespace OpenSim.Region.ClientStack.Linden
             m_fetchInventory2Url = config.GetString("Cap_FetchInventory2", string.Empty);
             m_fetchLib2Url = config.GetString("Cap_FetchLib2", "localhost");
 
-            if (m_fetchInventory2Url != string.Empty)
+            if (m_fetchInventory2Url.Length > 0)
                 Enabled = true;
-            if (m_fetchInventory2Url != string.Empty)
+            if (m_fetchLib2Url.Length > 0)
                 m_enabledLib = true;
         }
 

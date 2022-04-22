@@ -105,7 +105,7 @@ namespace OpenSim.Capabilities.Handlers
                         item.ToLLSDxml(lsl);
                 }
                 LLSDxmlEncode2.AddEndArray(lsl);
-            }            
+            }
 
             LLSDxmlEncode2.AddEndMap(lsl);
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(lsl);
