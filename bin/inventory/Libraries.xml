@@ -1,8 +1,6 @@
 <Nini>
   <Section Name="OpenSim Standard Library">
-    <Key Name="foldersFile" Value="OpenSimLibrary/OpenSimLibraryFolders.xml"/>
-    <Key Name="itemsFile" Value="OpenSimLibrary/OpenSimLibrary.xml"/>
-    <Key Name = "RootVersion" Value="427"/>
+    <Key Name = "RootVersion" Value="428"/>
   </Section>
   
 <!-- Additional libraries can be added as shown below.  These folders and items can appear underneath
