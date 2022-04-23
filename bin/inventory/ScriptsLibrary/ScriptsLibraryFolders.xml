@@ -21,12 +21,12 @@
     <Key Name="folderID" Value="30000112-001f-0000-0000-000100bba000"/>
     <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
     <Key Name="name" Value="Examples"/>
-    <Key Name="type" Value="10"/>
+    <Key Name="type" Value="-1"/>
   </Section>
   <Section Name="OpenSim Specific">
     <Key Name="folderID" Value="30000112-001f-0000-0000-000100bba001"/>
     <Key Name="parentFolderID" Value="30000112-001f-0000-0000-000100bba000"/>
     <Key Name="name" Value="OpenSim Specific"/>
-    <Key Name="type" Value="10"/>
+    <Key Name="type" Value="-1"/>
   </Section>
 </Nini>
