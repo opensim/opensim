@@ -142,7 +142,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_badRequests = new ExpiringKey<UUID>(30000);
 
             if (ProcessQueuedRequestsAsync && m_workerpool == null)
-                m_workerpool = new ObjectJobEngine(DoInventoryRequests, "InventoryWorker", 2000, 2);
+                m_workerpool = new ObjectJobEngine(DoInventoryRequests, "LibInventoryWorker", 2000, 2);
         }
 
         public void PostInitialise()
@@ -167,7 +167,7 @@ namespace OpenSim.Region.ClientStack.Linden
             //m_queue.Dispose();
         }
 
-        public string Name { get { return "WebFetchInvDescModule"; } }
+        public string Name { get { return "FetchLibDescModule"; } }
 
         public Type ReplaceableInterface
         {
@@ -263,7 +263,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
 
                 OSHttpResponse osresponse = new OSHttpResponse(requestinfo.request);
-                m_FetchHandler.FetchRequest(requestinfo.request, osresponse, m_module.m_badRequests);
+                m_FetchHandler.FetchRequest(requestinfo.request, osresponse, m_module.m_badRequests, requestinfo.thepoll.Id);
                 requestinfo.request.InputStream.Dispose();
 
                 lock (responses)

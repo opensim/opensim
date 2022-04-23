@@ -58,7 +58,7 @@ namespace OpenSim.Capabilities.Handlers
             m_Scene = s;
         }
 
-        public void FetchRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, ExpiringKey<UUID> BadRequests)
+        public void FetchRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, ExpiringKey<UUID> BadRequests, UUID agentID)
         {
             //m_log.DebugFormat("[XXX]: FetchLibDescendentsRequest in {0}, {1}", (m_Scene == null) ? "none" : m_Scene.Name, request);
             if (m_LibraryService == null || m_LibraryService.LibraryRootFolder == null)
@@ -191,7 +191,7 @@ namespace OpenSim.Capabilities.Handlers
 
                     LLSDxmlEncode2.AddMap(lastresponse);
                     LLSDxmlEncode2.AddElem_folder_id(thiscoll.FolderID, lastresponse);
-                    LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
+                    LLSDxmlEncode2.AddElem_agent_id(agentID, lastresponse);
                     LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
                     LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
                     LLSDxmlEncode2.AddElem_version(thiscoll.Version, lastresponse);
