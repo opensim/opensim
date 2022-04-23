@@ -350,7 +350,7 @@ namespace OpenSim.Framework
         public double TerrainLowerLimit
         {
             get { return m_TerrainLowerLimit; }
-            set { m_TerrainLowerLimit = Utils.Clamp(value, -200f, 0); ; }
+            set { m_TerrainLowerLimit = Utils.Clamp(value, -200f, 0);}
         }
 
         private bool m_UseEstateSun = true;
