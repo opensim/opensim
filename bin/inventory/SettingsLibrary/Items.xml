@@ -143,5 +143,14 @@
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
   </Section>
+  <Section Name="Default Sun">
+    <Key Name="inventoryID" Value="c2d885cd-d477-4afb-ba51-08c6a13df7f8" />
+    <Key Name="assetID" Value="32bfbcea-24b1-fb9d-1ef9-48a28a63730f" />
+    <Key Name="folderID" Value="bb567e1a-12cf-4ffc-9bcd-cd55c72d27e7"/>
+    <Key Name="description" Value="" />
+    <Key Name="name" Value="Default Sun" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="inventoryType" Value="0" />
+  </Section>
 
 </Nini>
