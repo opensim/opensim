@@ -197,6 +197,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_feetOffset = pfeetOffset;
             m_orientation = Quaternion.Identity;
             m_orientation2D = Quaternion.Identity;
+            m_NativeOrientation2D.X = 0;
+            m_NativeOrientation2D.Y = 0;
+            m_NativeOrientation2D.Z = 0;
+            m_NativeOrientation2D.W = 1;
+
             m_density = density;
 
             // force lower density for testing
