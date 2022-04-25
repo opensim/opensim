@@ -3828,8 +3828,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsSatOnObject)
             {
                 if (State != m_lastState ||
-                    !m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !CollisionPlane.ApproxEquals(m_lastCollisionPlane, POSITION_SMALLTOLERANCE))
+                    Math.Abs(m_bodyRot.X - m_lastRotation.X) > ROTATION_TOLERANCE ||
+                    Math.Abs(m_bodyRot.Y - m_lastRotation.Y) > ROTATION_TOLERANCE ||
+                    Math.Abs(m_bodyRot.Z - m_lastRotation.Z) > ROTATION_TOLERANCE ||
+                    Math.Abs(CollisionPlane.X - m_lastCollisionPlane.X) > POSITION_SMALLTOLERANCE ||
+                    Math.Abs(CollisionPlane.Y - m_lastCollisionPlane.Y) > POSITION_SMALLTOLERANCE ||
+                    Math.Abs(CollisionPlane.W - m_lastCollisionPlane.W) > POSITION_SMALLTOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
                 }
