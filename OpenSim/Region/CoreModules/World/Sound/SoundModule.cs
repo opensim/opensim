@@ -301,7 +301,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
             if (!m_scene.TryGetSceneObjectPart(objectID, out part))
                 return;
 
-            volume = Util.Clip((float)volume, 0, 1);
+            volume = Utils.Clamp(volume, 0, 1);
 
             UUID parentID = part.ParentGroup.UUID;
 

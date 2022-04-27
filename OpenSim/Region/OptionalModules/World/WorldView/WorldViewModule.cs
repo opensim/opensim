@@ -113,7 +113,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 int width, int height, bool usetex)
         {
             if (!m_Enabled)
-                return new Byte[0];
+                return Array.Empty<byte>();
 
             using (Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width, height, usetex))
             {

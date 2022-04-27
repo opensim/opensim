@@ -1,22 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
   <PropertyGroup>
     <ProjectType>Local</ProjectType>
-    <ProductVersion>8.0.30703</ProductVersion>
+    <ProductVersion>16.7.3</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7F415321-0000-0000-0000-000000000000}</ProjectGuid>
+    <ProjectGuid>{1B4B958F-0000-0000-0000-000000000000}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <ApplicationIcon>App.ico</ApplicationIcon>
     <AssemblyKeyContainerName>
     </AssemblyKeyContainerName>
-    <AssemblyName>Prebuild</AssemblyName>
+    <AssemblyName>prebuild</AssemblyName>
     <AssemblyOriginatorKeyFile>Prebuild.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <DefaultClientScript>JScript</DefaultClientScript>
     <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
     <DefaultTargetSchema>IE50</DefaultTargetSchema>
     <DelaySign>false</DelaySign>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>
     </AppDesignerFolder>
@@ -26,50 +25,65 @@
     </StartArguments>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ReleaseVersion>2.0.8</ReleaseVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;NET46;</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
     <DebugSymbols>True</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>False</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin/Debug/</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>False</NoStdLib>
     <NoWarn>1595</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>False</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <BaseAddress>285212672</BaseAddress>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <ConfigurationOverrideFile>
     </ConfigurationOverrideFile>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NET46;</DefineConstants>
+    <DocumentationFile>
+    </DocumentationFile>
+    <DebugSymbols>False</DebugSymbols>
     <FileAlignment>4096</FileAlignment>
     <Optimize>True</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin/Release/</OutputPath>
     <RegisterForComInterop>False</RegisterForComInterop>
     <RemoveIntegerChecks>False</RemoveIntegerChecks>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
+    <NoStdLib>False</NoStdLib>
     <NoWarn>1595</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>False</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System">
       <Name>System</Name>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.EnterpriseServices">
       <Name>System.EnterpriseServices</Name>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml">
       <Name>System.Xml</Name>
+      <Private>False</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="App.ico">
@@ -78,7 +92,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="data\autotools.xml">
     </EmbeddedResource>
-    <Compile Include="Core\Targets\VS2019Target.cs" />
     <Compile Include="Prebuild.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -151,10 +164,16 @@
     <Compile Include="Core\Nodes\OptionsNode.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Nodes\PackageReferenceNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\Nodes\ProcessNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ProjectNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Nodes\ProjectReferenceNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Nodes\ReferenceNode.cs">
@@ -217,6 +236,12 @@
     <Compile Include="Core\Targets\VS2013Target.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Targets\VS2015Target.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Targets\VS2019Target.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\Targets\VSGenericTarget.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -241,9 +266,11 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Targets\VS2015Target.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>

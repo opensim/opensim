@@ -49,7 +49,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 //#if dDOUBLE
 // don't see much use in double precision with time steps of 20ms and 10 iterations used on opensim
 // at least we save same memory and memory access time, FPU performance on intel usually is similar
-//	using dReal = System.Double;
+//  using dReal = System.Double;
 //#else
     using dReal = System.Single;
 //#endif
@@ -347,15 +347,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
 
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
         internal struct Vector3
         {
             internal Vector3(dReal x, dReal y, dReal z)
             {
-                X = x;  Y = y;  Z = z;  _w = 0.0f;
+                X = x;  Y = y;  Z = z;  //_w = 0.0f;
             }
             internal dReal X, Y, Z;
-            private dReal _w;
+            //private readonly dReal _w;
         }
 
 
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldDataBuildByte"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomHeightfieldDataBuildByte(IntPtr d, IntPtr pHeightData, int bCopyHeightData,
                 dReal width, dReal depth, int widthSamples, int depthSamples,
-                dReal scale, dReal offset, dReal thickness,	int bWrap);
+                dReal scale, dReal offset, dReal thickness, int bWrap);
 
         [DllImport("ode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomHeightfieldDataBuildCallback"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomHeightfieldDataBuildCallback(IntPtr d, IntPtr pUserData, HeightfieldGetHeight pCallback,

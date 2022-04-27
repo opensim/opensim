@@ -32,56 +32,56 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Author")]
-	public class AuthorNode : DataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Author")]
+    public class AuthorNode : DataNode
+    {
+        #region Fields
 
-		private string m_Signature;
+        private string m_Signature;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the signature.
-		/// </summary>
-		/// <value>The signature.</value>
-		public string Signature
-		{
-			get
-			{
-				return m_Signature;
-			}
-		}
+        /// <summary>
+        /// Gets the signature.
+        /// </summary>
+        /// <value>The signature.</value>
+        public string Signature
+        {
+            get
+            {
+                return m_Signature;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
 
-			m_Signature = Helper.InterpolateForEnvironmentVariables(node.InnerText);
-			if(m_Signature == null)
-			{
-				m_Signature = "";
-			}
+            m_Signature = Helper.InterpolateForEnvironmentVariables(node.InnerText);
+            if (m_Signature == null)
+            {
+                m_Signature = "";
+            }
 
-			m_Signature = m_Signature.Trim();
-		}
+            m_Signature = m_Signature.Trim();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

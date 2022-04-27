@@ -742,6 +742,13 @@ namespace OpenSim.Region.PhysicsModule.ODE
             set { _acceleration = value; }
         }
 
+        public override void AvatarJump(float forceZ)
+        {
+             m_pidControllerActive = false;
+             m_taintForce += new Vector3(0, 0, m_mass * forceZ / _parent_scene.ODE_STEPSIZE);
+             _parent_scene.AddPhysicsActorTaint(this);
+        }
+
         /// <summary>
         /// Adds the force supplied to the Target Velocity
         /// The PID controller takes this target velocity and tries to make it a reality

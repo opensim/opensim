@@ -137,9 +137,9 @@ namespace Prebuild.Core.Targets
         /// <summary>
         /// Initializes a new instance of the <see cref="VS2005Target"/> class.
         /// </summary>
-        public VS2005Target() 
+        public VS2005Target()
             : base()
-        {          
+        {
         }
 
         #endregion

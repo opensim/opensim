@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
         public GridInstantMessage()
         {
-            binaryBucket = new byte[0];
+            binaryBucket = Array.Empty<byte>(); ;
         }
 
         public GridInstantMessage(GridInstantMessage im, bool addTimestamp)
@@ -108,7 +108,7 @@ namespace OpenSim.Framework
                 string _message, bool _offline,
                 Vector3 _position) : this(scene, _fromAgentID, _fromAgentName,
                 _toAgentID, _dialog, false, _message,
-                _fromAgentID ^ _toAgentID, _offline, _position, new byte[0], true)
+                _fromAgentID ^ _toAgentID, _offline, _position, Array.Empty<byte>(), true)
         {
         }
     }

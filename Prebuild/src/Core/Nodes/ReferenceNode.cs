@@ -32,104 +32,104 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Reference")]
-	public class ReferenceNode : DataNode, IComparable
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Reference")]
+    public class ReferenceNode : DataNode, IComparable
+    {
+        #region Fields
 
-		private string m_Name = "unknown";
-		private string m_Path;
-		private string m_LocalCopy;
-		private string m_Version;
+        private string m_Name = "unknown";
+        private string m_Path;
+        private string m_LocalCopy;
+        private string m_Version;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name
-		{
-			get
-			{
-				return m_Name;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+        }
 
-		/// <summary>
-		/// Gets the path.
-		/// </summary>
-		/// <value>The path.</value>
-		public string Path
-		{
-			get
-			{
-				return m_Path;
-			}
-		}
+        /// <summary>
+        /// Gets the path.
+        /// </summary>
+        /// <value>The path.</value>
+        public string Path
+        {
+            get
+            {
+                return m_Path;
+            }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether [local copy specified].
-		/// </summary>
-		/// <value><c>true</c> if [local copy specified]; otherwise, <c>false</c>.</value>
-		public bool LocalCopySpecified 
-		{
-			get 
-			{
-				return ( m_LocalCopy != null && m_LocalCopy.Length == 0);
-			}
-		}
+        /// <summary>
+        /// Gets a value indicating whether [local copy specified].
+        /// </summary>
+        /// <value><c>true</c> if [local copy specified]; otherwise, <c>false</c>.</value>
+        public bool LocalCopySpecified
+        {
+            get
+            {
+                return (m_LocalCopy != null && m_LocalCopy.Length == 0);
+            }
+        }
 
-		/// <summary>
-		/// Gets a value indicating whether [local copy].
-		/// </summary>
-		/// <value><c>true</c> if [local copy]; otherwise, <c>false</c>.</value>
-		public bool LocalCopy
-		{
-			get
-			{
-				if( m_LocalCopy == null)
-				{
-					return false;
-				}
-				return bool.Parse(m_LocalCopy);
-			}
-		}
+        /// <summary>
+        /// Gets a value indicating whether [local copy].
+        /// </summary>
+        /// <value><c>true</c> if [local copy]; otherwise, <c>false</c>.</value>
+        public bool LocalCopy
+        {
+            get
+            {
+                if (m_LocalCopy == null)
+                {
+                    return false;
+                }
+                return bool.Parse(m_LocalCopy);
+            }
+        }
 
-		/// <summary>
-		/// Gets the version.
-		/// </summary>
-		/// <value>The version.</value>
-		public string Version
-		{
-			get
-			{
-				return m_Version;
-			}
-		}
+        /// <summary>
+        /// Gets the version.
+        /// </summary>
+        /// <value>The version.</value>
+        public string Version
+        {
+            get
+            {
+                return m_Version;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			m_Name = Helper.AttributeValue(node, "name", m_Name);
-			m_Path = Helper.AttributeValue(node, "path", m_Path);
-			m_LocalCopy = Helper.AttributeValue(node, "localCopy", m_LocalCopy);
-			m_Version = Helper.AttributeValue(node, "version", m_Version);
-		}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            m_Name = Helper.AttributeValue(node, "name", m_Name);
+            m_Path = Helper.AttributeValue(node, "path", m_Path);
+            m_LocalCopy = Helper.AttributeValue(node, "localCopy", m_LocalCopy);
+            m_Version = Helper.AttributeValue(node, "version", m_Version);
+        }
 
-		#endregion
+        #endregion
 
         #region IComparable Members
 
@@ -140,5 +140,5 @@ namespace Prebuild.Core.Nodes
         }
 
         #endregion
-	}
+    }
 }

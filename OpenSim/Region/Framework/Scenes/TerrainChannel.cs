@@ -153,10 +153,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                if (Double.IsNaN(value) || Double.IsInfinity(value))
+                if (float.IsNaN(value) || float.IsInfinity(value))
                     return;
-
-                m_terrainData[x, y] = (float)value;
+                m_terrainData[x, y] = value;
             }
         }
 

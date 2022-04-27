@@ -454,7 +454,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         msg.ParentEstateID = 0;
                         msg.Position = Vector3.Zero;
                         msg.RegionID = UUID.Zero.Guid;
-                        msg.binaryBucket = new byte[0];
+                        msg.binaryBucket = Array.Empty<byte>();
 
                         OutgoingInstantMessage(msg, inviteInfo.AgentID);
 
@@ -1222,7 +1222,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
                 msg.fromAgentName = string.Empty;
                 msg.message = string.Empty;
-                msg.binaryBucket = new byte[0];
+                msg.binaryBucket = Array.Empty<byte>();
             }
 
             return msg;
@@ -1365,7 +1365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
+            msg.binaryBucket = Array.Empty<byte>();
             OutgoingInstantMessage(msg, ejecteeID);
 
             // Message to ejector
@@ -1386,7 +1386,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
+            msg.binaryBucket = Array.Empty<byte>();
             OutgoingInstantMessage(msg, agentID);
         }
 

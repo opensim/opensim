@@ -55,7 +55,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         //throw new Exception("Invalid physics meshing option");
                     }
 
-
                     if (Util.IsWindows())
                         Util.LoadArchSpecificWindowsDll("ode.dll");
 

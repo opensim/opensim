@@ -29,59 +29,59 @@ using Prebuild.Core.Attributes;
 
 namespace Prebuild.Core.Targets
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[Target("vs2002")]
-	public class VS2002Target : VS2003Target
-	{
-		#region Private Methods
+    /// <summary>
+    /// 
+    /// </summary>
+    [Target("vs2002")]
+    public class VS2002Target : VS2003Target
+    {
+        #region Private Methods
 
-		private void SetVS2002()
-		{
-			this.SolutionVersion = "7.00";
-			this.ProductVersion = "7.0.9254";
-			this.SchemaVersion = "1.0";
-			this.VersionName = "2002";
-			this.Version = VSVersion.VS70;
-		}
+        private void SetVS2002()
+        {
+            this.SolutionVersion = "7.00";
+            this.ProductVersion = "7.0.9254";
+            this.SchemaVersion = "1.0";
+            this.VersionName = "2002";
+            this.Version = VSVersion.VS70;
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Writes the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Write(Kernel kern)
-		{
-			SetVS2002();
-			base.Write(kern);
-		}
+        /// <summary>
+        /// Writes the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public override void Write(Kernel kern)
+        {
+            SetVS2002();
+            base.Write(kern);
+        }
 
-		/// <summary>
-		/// Cleans the specified kern.
-		/// </summary>
-		/// <param name="kern">The kern.</param>
-		public override void Clean(Kernel kern)
-		{
-			SetVS2002();
-			base.Clean(kern);
-		}
+        /// <summary>
+        /// Cleans the specified kern.
+        /// </summary>
+        /// <param name="kern">The kern.</param>
+        public override void Clean(Kernel kern)
+        {
+            SetVS2002();
+            base.Clean(kern);
+        }
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public override string Name
-		{
-			get
-			{
-				return "vs2002";
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public override string Name
+        {
+            get
+            {
+                return "vs2002";
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

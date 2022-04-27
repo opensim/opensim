@@ -1,4 +1,4 @@
-﻿#region BSD License
+#region BSD License
 /*
 Copyright (c) 2004-2005 Matthew Holmes (matthew@wildfiregames.com), Dan Moorehead (dan05a@gmail.com)
 
@@ -27,45 +27,45 @@ using System.Collections.Generic;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// Implements a specialized list of configuration nodes which allows for lookup via
-	/// configuration name and platform.
-	/// </summary>
-	public class ConfigurationNodeCollection : List<ConfigurationNode>
-	{
-		#region Properties
+    /// <summary>
+    /// Implements a specialized list of configuration nodes which allows for lookup via
+    /// configuration name and platform.
+    /// </summary>
+    public class ConfigurationNodeCollection : List<ConfigurationNode>
+    {
+        #region Properties
 
-		public ConfigurationNode this[string nameAndPlatform]
-		{
-			get
-			{
-				foreach (ConfigurationNode configurationNode in this)
-				{
-					if (configurationNode.NameAndPlatform == nameAndPlatform)
-					{
-						return configurationNode;
-					}
-				}
+        public ConfigurationNode this[string nameAndPlatform]
+        {
+            get
+            {
+                foreach (ConfigurationNode configurationNode in this)
+                {
+                    if (configurationNode.NameAndPlatform == nameAndPlatform)
+                    {
+                        return configurationNode;
+                    }
+                }
 
-				return null;
-			}
+                return null;
+            }
 
-			set
-			{
-				// See if the node 
-				ConfigurationNode configurationNode = this[nameAndPlatform];
+            set
+            {
+                // See if the node 
+                ConfigurationNode configurationNode = this[nameAndPlatform];
 
-				if (configurationNode != null)
-				{
-					this[IndexOf(configurationNode)] = value;
-				}
-				else
-				{
-					Add(value);
-				}
-			}
-		}
+                if (configurationNode != null)
+                {
+                    this[IndexOf(configurationNode)] = value;
+                }
+                else
+                {
+                    Add(value);
+                }
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

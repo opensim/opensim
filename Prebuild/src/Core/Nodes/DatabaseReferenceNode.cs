@@ -43,18 +43,18 @@ namespace Prebuild.Core.Nodes
                         providerId = new Guid("7F041D59-D76A-44ed-9AA2-FBF6B0548B80"); break;
                     case "System.Data.OracleClient":
                         providerId = new Guid("8F5C5018-AE09-42cf-B2CC-2CCCC7CFC2BB"); break;
-                    case "System.Data.SqlClient": 
+                    case "System.Data.SqlClient":
                         providerId = new Guid("91510608-8809-4020-8897-FBA057E22D54"); break;
                     case "System.Data.Odbc":
                         providerId = new Guid("C3D4F4CE-2C48-4381-B4D6-34FA50C51C86"); break;
-                    
+
                     default:
                         throw new ArgumentOutOfRangeException("providerName", providerName, "Could not provider name to an id.");
                 }
             }
             else
                 providerId = new Guid(Helper.AttributeValue(node, "providerId", Guid.Empty.ToString("B")));
-            
+
             connectionString = Helper.AttributeValue(node, "connectionString", connectionString);
 
             base.Parse(node);

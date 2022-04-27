@@ -35,10 +35,10 @@ namespace OpenSim.Framework
     [Serializable]
     public class WearableCacheItem
     {
-        public uint TextureIndex { get; set; }
-        public UUID CacheId { get; set; }
-        public UUID TextureID { get; set; }
-        public AssetBase TextureAsset { get; set; }
+        public uint TextureIndex;
+        public UUID CacheId;
+        public UUID TextureID;
+        public AssetBase TextureAsset;
 
 
         public static WearableCacheItem[] GetDefaultCacheItem()
@@ -186,7 +186,7 @@ namespace OpenSim.Framework
         {
             for (int i = 0; i < pcacheItems.Length; i++)
             {
-                if (pcacheItems[i].CacheId == pCacheId)
+                if (pcacheItems[i].CacheId.Equals(pCacheId))
                     return pcacheItems[i];
             }
             return null;
@@ -195,7 +195,7 @@ namespace OpenSim.Framework
         {
             for (int i = 0; i < pcacheItems.Length; i++)
             {
-                if (pcacheItems[i].TextureID == pTextureId)
+                if (pcacheItems[i].TextureID.Equals(pTextureId))
                     return pcacheItems[i];
             }
             return null;

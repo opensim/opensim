@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 //                "[ASSET XFER UPLOADER]: Requesting Xfer of asset {0}, type {1}, transfer id {2} from {3}",
 //                m_asset.FullID, m_asset.Type, XferID, ourClient.Name);
 
-            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
+            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, Array.Empty<byte>());
         }
 
         protected void SendCompleteMessage()

@@ -691,7 +691,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     if (m_data == null)
                         return 0;
 
-                    int size = 0;
+                    int size = IntPtr.Size * m_data.Length;
 
                     foreach (object o in m_data)
                     {
@@ -700,7 +700,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         else if (o is LSL_Types.LSLFloat)
                             size += 8;
                         else if (o is LSL_Types.LSLString)
-                            size += ((LSL_Types.LSLString)o).m_string == null ? 0 : ((LSL_Types.LSLString)o).m_string.Length;
+                            size += ((LSL_Types.LSLString)o).m_string == null ? 0 : ((LSL_Types.LSLString)o).m_string.Length * sizeof(char);
                         else if (o is LSL_Types.key)
                             size += ((LSL_Types.key)o).value.Length;
                         else if (o is LSL_Types.Vector3)
@@ -712,7 +712,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                         else if (o is uint)
                             size += 4;
                         else if (o is string)
-                            size += ((string)o).Length;
+                            size += ((string)o).Length * sizeof(char);
                         else if (o is float)
                             size += 8;
                         else if (o is double)

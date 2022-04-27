@@ -498,9 +498,9 @@ namespace Prebuild.Core.Targets
 
             foreach (ProjectNode project in solution.ProjectsTableOrder)
             {
-              m_Kernel.Log.Write(String.Format("Writing project: {0}",
-                                               project.Name));
-              WriteProject(solution, project);
+                m_Kernel.Log.Write(String.Format("Writing project: {0}",
+                                                 project.Name));
+                WriteProject(solution, project);
             }
         }
 
@@ -509,12 +509,13 @@ namespace Prebuild.Core.Targets
         {
             foreach (ReferencePathNode refPath in project.ReferencePaths)
             {
-              string fullPath =
-                Helper.MakeFilePath(refPath.Path, refName, "dll");
+                string fullPath =
+                  Helper.MakeFilePath(refPath.Path, refName, "dll");
 
-              if (File.Exists(fullPath)) {
-                return fullPath;
-              }
+                if (File.Exists(fullPath))
+                {
+                    return fullPath;
+                }
             }
 
             return null;
@@ -650,21 +651,24 @@ namespace Prebuild.Core.Targets
                     string tempAssemblyFile = Path.Combine(Path.GetTempPath(), project.Name + "-temp.dll");
                     System.CodeDom.Compiler.CompilerParameters cparam =
                         new System.CodeDom.Compiler.CompilerParameters(args, tempAssemblyFile);
-                    
+
                     System.CodeDom.Compiler.CompilerResults cr =
                         cscp.CompileAssemblyFromFile(cparam, sources);
 
                     foreach (System.CodeDom.Compiler.CompilerError error in cr.Errors)
                         Console.WriteLine("Error! '{0}'", error.ErrorText);
 
-                    try {
-                      string projectFullName = cr.CompiledAssembly.FullName;
-                      Regex verRegex = new Regex("Version=([\\d\\.]+)");
-                      Match verMatch = verRegex.Match(projectFullName);
-                      if (verMatch.Success)
-                        projectVersion = verMatch.Groups[1].Value;
-                    }catch{
-                      Console.WriteLine("Couldn't compile AssemblyInfo.cs");
+                    try
+                    {
+                        string projectFullName = cr.CompiledAssembly.FullName;
+                        Regex verRegex = new Regex("Version=([\\d\\.]+)");
+                        Match verMatch = verRegex.Match(projectFullName);
+                        if (verMatch.Success)
+                            projectVersion = verMatch.Groups[1].Value;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Couldn't compile AssemblyInfo.cs");
                     }
 
                     // Clean up the temp file
@@ -673,11 +677,11 @@ namespace Prebuild.Core.Targets
                         if (File.Exists(tempAssemblyFile))
                             File.Delete(tempAssemblyFile);
                     }
-                    catch 
+                    catch
                     {
                         Console.WriteLine("Error! '{0}'", e);
                     }
-                   
+
                 }
 
                 // Tell the user if there's a problem copying the file
@@ -719,7 +723,7 @@ namespace Prebuild.Core.Targets
 
                 if (packagesHash.ContainsKey(refr.Name))
                 {
-                  package = packagesHash[refr.Name];
+                    package = packagesHash[refr.Name];
 
                 }
                 else
@@ -794,32 +798,33 @@ namespace Prebuild.Core.Targets
                     }
                     catch (System.IO.IOException)
                     {
-                      if (solution.ProjectsTable.ContainsKey(refr.Name)){
+                        if (solution.ProjectsTable.ContainsKey(refr.Name))
+                        {
 
-                        /* If an assembly is referenced, marked for
-                         * local copy, in the list of projects for
-                         * this solution, but does not exist, put a
-                         * target into the Makefile.am to build the
-                         * assembly and copy it to this project's
-                         * directory
-                         */
+                            /* If an assembly is referenced, marked for
+                             * local copy, in the list of projects for
+                             * this solution, but does not exist, put a
+                             * target into the Makefile.am to build the
+                             * assembly and copy it to this project's
+                             * directory
+                             */
 
-                        ProjectNode sourcePrj =
-                          ((solution.ProjectsTable[refr.Name]));
+                            ProjectNode sourcePrj =
+                              ((solution.ProjectsTable[refr.Name]));
 
-                        string target =
-                          String.Format("{0}:\n" +
-                                        "\t$(MAKE) -C ../{1}\n" +
-                                        "\tln ../{2}/$@ $@\n",
-                                        filename,
-                                        sourcePrj.Name,
-                                        sourcePrj.Name );
+                            string target =
+                              String.Format("{0}:\n" +
+                                            "\t$(MAKE) -C ../{1}\n" +
+                                            "\tln ../{2}/$@ $@\n",
+                                            filename,
+                                            sourcePrj.Name,
+                                            sourcePrj.Name);
 
-                        localCopyTargets.Add(target);
-                      }
+                            localCopyTargets.Add(target);
+                        }
                     }
                 }
-                else if( !pkgLibs.Contains(refr.Name) )
+                else if (!pkgLibs.Contains(refr.Name))
                 {
                     // Else, let's assume it's in the GAC or the lib path
                     string assemName = string.Empty;
@@ -975,27 +980,29 @@ namespace Prebuild.Core.Targets
             Stream autotoolsStream = Assembly.GetExecutingAssembly()
                 .GetManifestResourceStream(fqStreamName);
 
-            if(autotoolsStream == null) {
+            if (autotoolsStream == null)
+            {
 
-              /* 
-               * try without the default namespace prepended, in
-               * case prebuild.exe assembly was compiled with
-               * something other than Visual Studio .NET
-               */
+                /* 
+                 * try without the default namespace prepended, in
+                 * case prebuild.exe assembly was compiled with
+                 * something other than Visual Studio .NET
+                 */
 
-              autotoolsStream = Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream(streamName);
-              if(autotoolsStream == null){
-                string errStr =
-                  String.Format("Could not find embedded resource file:\n" +
-                                "'{0}' or '{1}'",
-                                streamName, fqStreamName
-                                );
+                autotoolsStream = Assembly.GetExecutingAssembly()
+                  .GetManifestResourceStream(streamName);
+                if (autotoolsStream == null)
+                {
+                    string errStr =
+                      String.Format("Could not find embedded resource file:\n" +
+                                    "'{0}' or '{1}'",
+                                    streamName, fqStreamName
+                                    );
 
-                m_Kernel.Log.Write(errStr);
+                    m_Kernel.Log.Write(errStr);
 
-                throw new System.Reflection.TargetException(errStr);
-              }
+                    throw new System.Reflection.TargetException(errStr);
+                }
             }
 
             // Create an XML URL Resolver with default credentials
@@ -1028,9 +1035,9 @@ namespace Prebuild.Core.Targets
 
             foreach (SolutionNode solution in kern.Solutions)
             {
-              m_Kernel.Log.Write(String.Format("Writing solution: {0}",
-                                        solution.Name));
-              WriteCombine(solution);
+                m_Kernel.Log.Write(String.Format("Writing solution: {0}",
+                                          solution.Name));
+                WriteCombine(solution);
             }
             m_Kernel = null;
         }

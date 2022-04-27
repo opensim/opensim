@@ -55,12 +55,11 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         Absolute
     }
 
-    public struct CameraData
+    public class CameraData
     {
         public Quaternion CameraRotation;
         public Vector3 CameraAtAxis;
         public bool MouseLook;
-        public bool Valid;
     }
 
     public struct ContactPoint
@@ -129,26 +128,23 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public void AddCollider(uint localID, ContactPoint contact)
         {
-            if (!m_objCollisionList.ContainsKey(localID))
+            if (m_objCollisionList.TryGetValue(localID, out ContactPoint oldcp))
             {
-                m_objCollisionList.Add(localID, contact);
-            }
-            else
-            {
-                float lastVel = m_objCollisionList[localID].RelativeSpeed;
-                if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
+                float lastVel = oldcp.RelativeSpeed;
+                if (oldcp.PenetrationDepth < contact.PenetrationDepth)
                 {
-                    if(Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
+                    if (Math.Abs(lastVel) > Math.Abs(contact.RelativeSpeed))
                         contact.RelativeSpeed = lastVel;
                     m_objCollisionList[localID] = contact;
                 }
-                else if(Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
+                else if (Math.Abs(lastVel) < Math.Abs(contact.RelativeSpeed))
                 {
-                    ContactPoint tmp = m_objCollisionList[localID];
-                    tmp.RelativeSpeed = contact.RelativeSpeed;
-                    m_objCollisionList[localID] = tmp;
+                    oldcp.RelativeSpeed = contact.RelativeSpeed;
+                    m_objCollisionList[localID] = oldcp;
                 }
             }
+            else
+                m_objCollisionList.Add(localID, contact);
         }
 
         /// <summary>
@@ -189,12 +185,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public CameraData TryGetCameraData()
         {
             GetCameraData handler = OnPhysicsRequestingCameraData;
-            if (handler != null)
-            {
-                return handler();
-            }
-
-            return new CameraData { Valid = false };
+            return (handler == null) ? null : handler();
         }
 
         public static PhysicsActor Null
@@ -456,6 +447,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public abstract float APIDDamping { set;}
 
         public abstract void AddForce(Vector3 force, bool pushforce);
+        public abstract void AvatarJump(float forceZ);
         public abstract void AddAngularForce(Vector3 force, bool pushforce);
         public abstract void SetMomentum(Vector3 momentum);
         public abstract void SubscribeEvents(int ms);
@@ -671,6 +663,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public override void link(PhysicsActor obj) { }
         public override void delink() { }
         public override void LockAngularMotion(byte axislocks) { }
+        public override void AvatarJump(float forceZ) { }
         public override void AddForce(Vector3 force, bool pushforce) { }
         public override void AddAngularForce(Vector3 force, bool pushforce) { }
 

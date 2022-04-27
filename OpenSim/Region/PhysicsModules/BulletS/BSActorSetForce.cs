@@ -36,103 +36,103 @@ using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
-public class BSActorSetForce : BSActor
-{
-    BSFMotor m_forceMotor;
-
-    public BSActorSetForce(BSScene physicsScene, BSPhysObject pObj, string actorName)
-        : base(physicsScene, pObj, actorName)
+    public class BSActorSetForce : BSActor
     {
-        m_forceMotor = null;
-        m_physicsScene.DetailLog("{0},BSActorSetForce,constructor", m_controllingPrim.LocalID);
-    }
+        BSFMotor m_forceMotor;
 
-    // BSActor.isActive
-    public override bool isActive
-    {
-        get { return Enabled && m_controllingPrim.IsPhysicallyActive; }
-    }
-
-    // Release any connections and resources used by the actor.
-    // BSActor.Dispose()
-    public override void Dispose()
-    {
-        Enabled = false;
-        DeactivateSetForce();
-    }
-
-    // Called when physical parameters (properties set in Bullet) need to be re-applied.
-    // Called at taint-time.
-    // BSActor.Refresh()
-    public override void Refresh()
-    {
-        m_physicsScene.DetailLog("{0},BSActorSetForce,refresh", m_controllingPrim.LocalID);
-
-        // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
-        if (m_controllingPrim.RawForce == OMV.Vector3.Zero)
+        public BSActorSetForce(BSScene physicsScene, BSPhysObject pObj, string actorName)
+            : base(physicsScene, pObj, actorName)
         {
-            m_physicsScene.DetailLog("{0},BSActorSetForce,refresh,notSetForce,removing={1}", m_controllingPrim.LocalID, ActorName);
+            m_forceMotor = null;
+            m_physicsScene.DetailLog("{0},BSActorSetForce,constructor", m_controllingPrim.LocalID);
+        }
+
+        // BSActor.isActive
+        public override bool isActive
+        {
+            get { return Enabled && m_controllingPrim.IsPhysicallyActive; }
+        }
+
+        // Release any connections and resources used by the actor.
+        // BSActor.Dispose()
+        public override void Dispose()
+        {
             Enabled = false;
-            return;
-        }
-
-        // If the object is physically active, add the hoverer prestep action
-        if (isActive)
-        {
-            ActivateSetForce();
-        }
-        else
-        {
             DeactivateSetForce();
         }
-    }
 
-    // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
-    //     Register a prestep action to restore physical requirements before the next simulation step.
-    // Called at taint-time.
-    // BSActor.RemoveDependencies()
-    public override void RemoveDependencies()
-    {
-        // Nothing to do for the hoverer since it is all software at pre-step action time.
-    }
-
-    // If a hover motor has not been created, create one and start the hovering.
-    private void ActivateSetForce()
-    {
-        if (m_forceMotor == null)
+        // Called when physical parameters (properties set in Bullet) need to be re-applied.
+        // Called at taint-time.
+        // BSActor.Refresh()
+        public override void Refresh()
         {
-            // A fake motor that might be used someday
-            m_forceMotor = new BSFMotor("setForce", 1f, 1f, 1f);
+            m_physicsScene.DetailLog("{0},BSActorSetForce,refresh", m_controllingPrim.LocalID);
 
-            m_physicsScene.BeforeStep += Mover;
-        }
-    }
+            // If not active any more, get rid of me (shouldn't ever happen, but just to be safe)
+            if (m_controllingPrim.RawForce == OMV.Vector3.Zero)
+            {
+                m_physicsScene.DetailLog("{0},BSActorSetForce,refresh,notSetForce,removing={1}", m_controllingPrim.LocalID, ActorName);
+                Enabled = false;
+                return;
+            }
 
-    private void DeactivateSetForce()
-    {
-        if (m_forceMotor != null)
-        {
-            m_physicsScene.BeforeStep -= Mover;
-            m_forceMotor = null;
-        }
-    }
-
-    // Called just before the simulation step. Update the vertical position for hoverness.
-    private void Mover(float timeStep)
-    {
-        // Don't do force while the object is selected.
-        if (!isActive)
-            return;
-
-        m_physicsScene.DetailLog("{0},BSActorSetForce,preStep,force={1}", m_controllingPrim.LocalID, m_controllingPrim.RawForce);
-        if (m_controllingPrim.PhysBody.HasPhysicalBody)
-        {
-            m_physicsScene.PE.ApplyCentralForce(m_controllingPrim.PhysBody, m_controllingPrim.RawForce);
-            m_controllingPrim.ActivateIfPhysical(false);
+            // If the object is physically active, add the hoverer prestep action
+            if (isActive)
+            {
+                ActivateSetForce();
+            }
+            else
+            {
+                DeactivateSetForce();
+            }
         }
 
-        // TODO:
+        // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
+        //     Register a prestep action to restore physical requirements before the next simulation step.
+        // Called at taint-time.
+        // BSActor.RemoveDependencies()
+        public override void RemoveDependencies()
+        {
+            // Nothing to do for the hoverer since it is all software at pre-step action time.
+        }
+
+        // If a hover motor has not been created, create one and start the hovering.
+        private void ActivateSetForce()
+        {
+            if (m_forceMotor == null)
+            {
+                // A fake motor that might be used someday
+                m_forceMotor = new BSFMotor("setForce", 1f, 1f, 1f);
+
+                m_physicsScene.BeforeStep += Mover;
+            }
+        }
+
+        private void DeactivateSetForce()
+        {
+            if (m_forceMotor != null)
+            {
+                m_physicsScene.BeforeStep -= Mover;
+                m_forceMotor = null;
+            }
+        }
+
+        // Called just before the simulation step. Update the vertical position for hoverness.
+        private void Mover(float timeStep)
+        {
+            // Don't do force while the object is selected.
+            if (!isActive)
+                return;
+
+            m_physicsScene.DetailLog("{0},BSActorSetForce,preStep,force={1}", m_controllingPrim.LocalID, m_controllingPrim.RawForce);
+            if (m_controllingPrim.PhysBody.HasPhysicalBody)
+            {
+                m_physicsScene.PE.ApplyCentralForce(m_controllingPrim.PhysBody, m_controllingPrim.RawForce);
+                m_controllingPrim.ActivateIfPhysical(false);
+            }
+
+            // TODO:
+        }
     }
-}
 }
 

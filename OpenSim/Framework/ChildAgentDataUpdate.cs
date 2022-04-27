@@ -541,10 +541,10 @@ namespace OpenSim.Framework
                 args["controllers"] = controls;
             }
 
-            if ((CallbackURI != null) && (!CallbackURI.Equals("")))
+            if (!string.IsNullOrEmpty(CallbackURI))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
 
-            if ((NewCallbackURI != null) && (!NewCallbackURI.Equals("")))
+            if (!string.IsNullOrEmpty(NewCallbackURI))
                 args["cb_uri"] = OSD.FromString(NewCallbackURI);
 
             // Attachment objects for fatpack messages
@@ -775,7 +775,7 @@ namespace OpenSim.Framework
             // packed_appearence should contain all appearance information
             if (args.TryGetValue("packed_appearance", out tmp) && tmp is OSDMap)
             {
-                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
+                //m_log.WarnFormat("[CHILDAGENTDATAUPDATE] got packed appearance");
                 Appearance = new AvatarAppearance((OSDMap)tmp);
             }
             else

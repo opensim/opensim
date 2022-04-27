@@ -40,7 +40,9 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IEmailModule
     {
-        void SendEmail(UUID objectID, string address, string subject, string body);
+        void SendEmail(UUID objectID, UUID ownerID, string address, string subject, string body);
         Email GetNextEmail(UUID objectID, string sender, string subject);
+        void AddPartMailBox(UUID objectID);
+        void RemovePartMailBox(UUID objectID);
     }
 }

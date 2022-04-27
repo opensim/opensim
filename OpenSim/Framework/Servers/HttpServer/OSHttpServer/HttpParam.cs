@@ -17,7 +17,7 @@ namespace OSHttpServer
 
         private List<HttpInputItem> _items = new List<HttpInputItem>();
 
-        /// <summary>Initialises the class to hold a value either from a post request or a querystring request</summary>		
+        /// <summary>Initialises the class to hold a value either from a post request or a querystring request</summary>
         public HttpParam(IHttpInput form, IHttpInput query)
         {
             m_form = form;

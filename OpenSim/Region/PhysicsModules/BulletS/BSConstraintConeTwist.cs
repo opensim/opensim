@@ -31,24 +31,22 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
-
-public sealed class BSConstraintConeTwist : BSConstraint
-{
-    public override ConstraintType Type { get { return ConstraintType.CONETWIST_CONSTRAINT_TYPE; } }
-
-    public BSConstraintConeTwist(BulletWorld world, BulletBody obj1, BulletBody obj2,
-                    Vector3 frameInAloc, Quaternion frameInArot,
-                    Vector3 frameInBloc, Quaternion frameInBrot,
-                    bool disableCollisionsBetweenLinkedBodies)
-        : base(world)
+    public sealed class BSConstraintConeTwist : BSConstraint
     {
-        m_body1 = obj1;
-        m_body2 = obj2;
-        m_constraint = PhysicsScene.PE.CreateConeTwistConstraint(world, obj1, obj2,
-                                frameInAloc, frameInArot, frameInBloc, frameInBrot,
-                                disableCollisionsBetweenLinkedBodies);
-        m_enabled = true;
-    }
-}
+        public override ConstraintType Type { get { return ConstraintType.CONETWIST_CONSTRAINT_TYPE; } }
 
+        public BSConstraintConeTwist(BulletWorld world, BulletBody obj1, BulletBody obj2,
+                        Vector3 frameInAloc, Quaternion frameInArot,
+                        Vector3 frameInBloc, Quaternion frameInBrot,
+                        bool disableCollisionsBetweenLinkedBodies)
+            : base(world)
+        {
+            m_body1 = obj1;
+            m_body2 = obj2;
+            m_constraint = PhysicsScene.PE.CreateConeTwistConstraint(world, obj1, obj2,
+                                    frameInAloc, frameInArot, frameInBloc, frameInBrot,
+                                    disableCollisionsBetweenLinkedBodies);
+            m_enabled = true;
+        }
+    }
 }
