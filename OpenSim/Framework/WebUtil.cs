@@ -114,12 +114,12 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToServiceCompressed(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, true, false);
+            return ServiceOSDRequest(url, data, "PUT", timeout, true, false);
         }
 
         public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout, false, false);
+            return ServiceOSDRequest(url, data, "PUT", timeout, false, false);
         }
 
         public static OSDMap PostToService(string url, OSDMap data, int timeout, bool rpc)
@@ -1336,8 +1336,7 @@ namespace OpenSim.Framework
             }
             else if (WebUtil.DebugLevel >= 4)
             {
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms",
-                    reqnum, tickdiff);
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} took {1}ms", reqnum, tickdiff);
             }
             return deserial;
         }
@@ -1347,7 +1346,7 @@ namespace OpenSim.Framework
             int reqnum = WebUtil.RequestNumber++;
 
             if (WebUtil.DebugLevel >= 3)
-                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq GET {2}", reqnum, requestUrl);
+                m_log.DebugFormat("[LOGHTTP]: HTTP OUT {0} SRestObjReq GET {1}", reqnum, requestUrl);
             int tickstart = Util.EnvironmentTickCount();
 
             TResponse deserial = default(TResponse);

@@ -13,6 +13,8 @@
 *.dll
 *.log
 .idea
+*.bak
+*.lnk
 
 launchSettings.json
 
@@ -53,6 +55,7 @@ bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
 bin/ScriptEngines/*/*.state
+bin/ScriptEngines/Yengine/*
 bin/*.maddin
 bin/*.exe
 bin/*.ini
@@ -64,6 +67,7 @@ bin/UserAssets
 bin/assetcache
 bin/maptiles
 bin/bakes
+bin/MeshCache
 bin/estate_settings.xml
 bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini

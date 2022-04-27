@@ -47,10 +47,14 @@ namespace OpenSim.Framework
         public const int MinRegionSize = 256;
         public const int TerrainPatchSize = 16;
 
+        public const int LandUnit = 4; // parcels only have sizes multiple of this
+
         public const float MinSimulationHeight = -100f;
         public const float MaxSimulationHeight = 50000f;
         public const float MinTerrainHeightmap = -100f;
         public const float MaxTerrainHeightmap = 4000f;
+        public const float MinWaterHeight = 0;
+        public const float MaxWaterHeight = 8000f;
 
         public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
 

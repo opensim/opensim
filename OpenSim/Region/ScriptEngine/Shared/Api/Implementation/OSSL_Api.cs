@@ -487,7 +487,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((functionControl & AllowedControlFlags.PARCEL_OWNER) != 0)
             {
                 ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition);
-                if (land.LandData.OwnerID == ownerID)
+                if (land.LandData.OwnerID.Equals(ownerID))
                 {
                     return String.Empty;
                 }
@@ -507,7 +507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((functionControl & AllowedControlFlags.ESTATE_MANAGER) != 0)
             {
                 //Only Estate Managers may use the function
-                if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner != ownerID)
+                if (World.RegionInfo.EstateSettings.IsEstateManagerOrOwner(ownerID) && World.RegionInfo.EstateSettings.EstateOwner.NotEqual(ownerID))
                 {
                     return String.Empty;
                 }
@@ -516,7 +516,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //Only regionowners may use the function
             if ((functionControl & AllowedControlFlags.ESTATE_OWNER) != 0)
             {
-                if (World.RegionInfo.EstateSettings.EstateOwner == ownerID)
+                if (World.RegionInfo.EstateSettings.EstateOwner.Equals(ownerID))
                 {
                     return String.Empty;
                 }
@@ -559,7 +559,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                     function));
 
-            if (m_item.CreatorID != ownerID)
+            if (m_item.CreatorID.NotEqual(ownerID))
             {
                 if ((m_item.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
                     return String.Format("{0} permission denied. Script creator is not prim owner.", function);
@@ -637,8 +637,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return World.Heightmap[x, y];
         }
 
+        double m_lastosTerrainFlush = 0;
         public void osTerrainFlush()
         {
+            double now = Util.GetTimeStamp();
+            if(now - m_lastosTerrainFlush < 60)
+                return;
+            m_lastosTerrainFlush = now;
+
             CheckThreatLevel(ThreatLevel.VeryLow, "osTerrainFlush");
 
             ITerrainModule terrainModule = World.RequestModuleInterface<ITerrainModule>();
@@ -956,10 +962,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID hostOwner = m_host.OwnerID;
 
-            if(hostOwner == agentId)
+            if(hostOwner.Equals(agentId))
                 return true;
 
-            if (m_item.PermsGranter == agentId)
+            if (m_item.PermsGranter.Equals(agentId))
             {
                 if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_TELEPORT) != 0)
                     return true;
@@ -973,7 +979,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(landdata == null)
                 return true;
 
-            if(landdata.OwnerID == hostOwner)
+            if(landdata.OwnerID.Equals(hostOwner))
                 return true;
 
             EstateSettings es = World.RegionInfo.EstateSettings;
@@ -987,7 +993,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(landGroup.IsZero())
                 return false;
 
-            if(landGroup == m_host.GroupID)
+            if(landGroup.Equals(m_host.GroupID))
                 return true;
 
             return false;
@@ -1868,7 +1874,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case ScriptBaseClass.PARCEL_DETAILS_GROUP:
-                        if(m_host.OwnerID == newLand.OwnerID || es == null || es.IsEstateManagerOrOwner(m_host.OwnerID))
+                        if(m_host.OwnerID.Equals(newLand.OwnerID) || es == null || es.IsEstateManagerOrOwner(m_host.OwnerID))
                         {
                             if (UUID.TryParse(arg, out uuid))
                             {
@@ -1962,7 +1968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (avatar == null || avatar.IsDeleted || avatar.IsInTransit)
                             return;
 
-                        if(changedSeeAvs && avatar.currentParcelUUID == parcelID )
+                        if(changedSeeAvs && avatar.currentParcelUUID.Equals(parcelID))
                             avatar.currentParcelUUID = parcelID; // force parcel flags review
 
                         if(avatar.ControllingClient == null)
@@ -2199,14 +2205,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // harakiri check
-            if(sceneOG.UUID == m_host.ParentGroup.UUID)
+            if(sceneOG.UUID.Equals(m_host.ParentGroup.UUID))
             {
                 m_LSL_Api.llDie();
                 return;
             }
 
             // restrict to objects rezzed by host
-            if(sceneOG.RezzerID == m_host.ParentGroup.UUID)
+            if(sceneOG.RezzerID.Equals(m_host.ParentGroup.UUID))
                 World.DeleteSceneObject(sceneOG, false);
         }
 
@@ -2544,9 +2550,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (uInfo != null)
                     {
-                        if (Util.ParseUniversalUserIdentifier(uInfo.UserID, out UUID userUUID, 
-                                out string gridURL, out string firstName,
-                                out string lastName, out string tmp))
+                        if (Util.ParseFullUniversalUserIdentifier(uInfo.UserID, out UUID userUUID, 
+                                out string gridURL, out string firstName, out string lastName))
                         {
                             string grid = new Uri(gridURL).Authority;
                             return firstName + "." + lastName + " @" + grid;
@@ -4949,7 +4954,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return true;
 
             UUID hostOwner = m_host.OwnerID;
-            if(landdata.OwnerID == hostOwner)
+            if(landdata.OwnerID.Equals(hostOwner))
                 return true;
 
             EstateSettings es = World.RegionInfo.EstateSettings;
@@ -4963,7 +4968,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(landGroup.IsZero())
                 return false;
 
-            if(landGroup == m_host.GroupID)
+            if(landGroup.Equals(m_host.GroupID))
                 return true;
 
             return false;
@@ -4999,7 +5004,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(sog== null || sog.IsDeleted || sog.inTransit)
                 return -1;
 
-            if(sog.OwnerID != m_host.OwnerID)
+            if(sog.OwnerID.NotEqual(m_host.OwnerID))
             {
                 Vector3 pos = sog.AbsolutePosition;
                 if(!checkAllowObjectTPbyLandOwner(pos))
@@ -5675,7 +5680,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             foreach(TaskInventoryItem script in scripts)
             {
-                if(script.ItemID == me)
+                if(script.ItemID.Equals(me))
                     continue;
                 m_ScriptEngine.ResetScript(script.ItemID);
             }

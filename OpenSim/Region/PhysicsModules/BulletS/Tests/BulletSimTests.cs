@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,32 +25,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using NUnit.Framework;
-using log4net;
 
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 {
-[TestFixture]
-public class BulletSimTests : OpenSimTestCase
-{
-    // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
-    // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
-
-    [TestFixtureSetUp]
-    public void Init()
+    [TestFixture]
+    public class BulletSimTests : OpenSimTestCase
     {
-    }
+        // Documentation on attributes: http://www.nunit.org/index.php?p=attributes&r=2.6.1
+        // Documentation on assertions: http://www.nunit.org/index.php?p=assertions&r=2.6.1
 
-    [TestFixtureTearDown]
-    public void TearDown()
-    {
+        [TestFixtureSetUp]
+        public void Init()
+        {
+        }
+
+        [TestFixtureTearDown]
+        public void TearDown()
+        {
+        }
     }
-}
 }

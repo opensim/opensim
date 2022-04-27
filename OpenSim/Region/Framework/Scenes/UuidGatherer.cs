@@ -777,8 +777,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ids[i].IsZero())
                     continue;
-                if (!UncertainAssetsUUIDs.Contains(ids[i]))
-                    UncertainAssetsUUIDs.Add(ids[i]);
+                UncertainAssetsUUIDs.Add(ids[i]);
                 AddForInspection(ids[i]);
             }
         }
@@ -791,10 +790,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             for(int i = 0; i < ids.Count; ++i)
             {
-                if (ids[i] == UUID.Zero)
+                if (ids[i].IsZero())
                     continue;
-                if (!UncertainAssetsUUIDs.Contains(ids[i]))
-                    UncertainAssetsUUIDs.Add(ids[i]);
+                UncertainAssetsUUIDs.Add(ids[i]);
                 AddForInspection(ids[i]);
             }
         }

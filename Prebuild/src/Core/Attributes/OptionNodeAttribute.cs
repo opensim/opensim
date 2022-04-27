@@ -27,45 +27,45 @@ using System;
 
 namespace Prebuild.Core.Attributes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class OptionNodeAttribute : Attribute
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class OptionNodeAttribute : Attribute
+    {
+        #region Fields
 
-		private string m_NodeName;
+        private string m_NodeName;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="OptionNodeAttribute"/> class.
-		/// </summary>
-		/// <param name="nodeName">Name of the node.</param>
-		public OptionNodeAttribute(string nodeName)
-		{
-			m_NodeName = nodeName;
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OptionNodeAttribute"/> class.
+        /// </summary>
+        /// <param name="nodeName">Name of the node.</param>
+        public OptionNodeAttribute(string nodeName)
+        {
+            m_NodeName = nodeName;
+        }
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name of the node.
-		/// </summary>
-		/// <value>The name of the node.</value>
-		public string NodeName
-		{
-			get
-			{
-				return m_NodeName;
-			}
-		}
+        /// <summary>
+        /// Gets the name of the node.
+        /// </summary>
+        /// <value>The name of the node.</value>
+        public string NodeName
+        {
+            get
+            {
+                return m_NodeName;
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

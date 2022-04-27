@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private bool Call(GridRegion region, Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
-            // m_log.DebugFormat("[XESTATE CONNECTOR]: queryString = {0}", reqString);
+            // m_log.DebugFormat("[ESTATE CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 //string url = "";
@@ -207,11 +207,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         return indx > 0;
                 }
                 else
-                    m_log.DebugFormat("[XESTATE CONNECTOR]: received empty reply");
+                    m_log.DebugFormat("[ESTATE CONNECTOR]: received empty reply");
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XESTATE CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
+                m_log.DebugFormat("[ESTATE CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
             }
 
             return false;

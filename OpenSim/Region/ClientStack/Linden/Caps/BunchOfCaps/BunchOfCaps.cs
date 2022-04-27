@@ -1320,14 +1320,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 m_Scene.TryGetClient(agentID, out client);
 
-                if (objectID != UUID.Zero)
+                if (!objectID.IsZero())
                 {
                     SceneObjectPart part = m_Scene.GetSceneObjectPart(objectID);
                     if(part == null)
                         throw new Exception("failed to find object with notecard item" + notecardID.ToString());
 
                     TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(notecardID);
-                    if (taskItem == null || taskItem.AssetID == UUID.Zero)
+                    if (taskItem == null || taskItem.AssetID.IsZero())
                         throw new Exception("Failed to find notecard item" + notecardID.ToString());
 
                     if (!m_Scene.Permissions.CanCopyObjectInventory(notecardID, objectID, agentID))
@@ -1352,10 +1352,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         return;
                     }
 
-                    if (notecardID != UUID.Zero)
+                    if (!notecardID.IsZero())
                     {
                         InventoryItemBase noteItem = m_Scene.InventoryService.GetItem(agentID, notecardID);
-                        if (noteItem == null || noteItem.AssetID == UUID.Zero)
+                        if (noteItem == null || noteItem.AssetID.IsZero())
                             throw new Exception("Failed to find notecard item" + notecardID.ToString());
                         noteAssetID = noteItem.AssetID;
                     }
@@ -1385,7 +1385,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 // find where to put it
                 InventoryFolderBase folder = null;
-                if (folderID != UUID.Zero)
+                if (!folderID.IsZero())
                     folder = m_Scene.InventoryService.GetFolder(agentID, folderID);
 
                 if (folder == null && Enum.IsDefined(typeof(FolderType), (sbyte)item.AssetType))
@@ -2288,49 +2288,46 @@ namespace OpenSim.Region.ClientStack.Linden
             NameValueCollection query = httpRequest.QueryString;
             string[] ids = query.GetValues("ids");
 
-            Dictionary<UUID,string> names = m_UserManager.GetKnownUserNames(ids, m_scopeID);
-            osUTF8 lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
-            LLSDxmlEncode2.AddMap(lsl);
-            int ct = 0;
-            if(names.Count == 0)
+            osUTF8 lsl;
+            if(ids.Length == 0)
+            {
+                lsl = LLSDxmlEncode2.Start();
+                LLSDxmlEncode2.AddMap(lsl);
                 LLSDxmlEncode2.AddEmptyArray("agents", lsl);
+            }
             else
             {
-                LLSDxmlEncode2.AddArray("agents", lsl);
+                List<UserData> names = m_UserManager.GetKnownUsers(ids, m_scopeID);
+                lsl = LLSDxmlEncode2.Start(names.Count * 256 + 256);
 
-                foreach (KeyValuePair<UUID,string> kvp in names)
+                LLSDxmlEncode2.AddMap(lsl);
+                if (names.Count == 0)
+                    LLSDxmlEncode2.AddEmptyArray("agents", lsl);
+                else
                 {
-                    string[] parts = kvp.Value.Split(new char[] {' '});
-                    string fullname = kvp.Value;
+                    LLSDxmlEncode2.AddArray("agents", lsl);
 
-                    if (string.IsNullOrEmpty(kvp.Value))
+                    foreach (UserData ud in names)
                     {
-                        parts = new string[] {"(hippos)", ""};
-                        fullname = "(hippos)";
+                        // dont tell about unknown users, we can't send them back on Bad either
+                        if (string.IsNullOrEmpty(ud.FirstName) || ud.FirstName.Equals("Unkown"))
+                            continue;
+
+                        string fullname = ud.FirstName + " " + ud.LastName;
+                        LLSDxmlEncode2.AddMap(lsl);
+                        LLSDxmlEncode2.AddElem("username", fullname, lsl);
+                        LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
+                        LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
+                        LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
+                        LLSDxmlEncode2.AddElem("legacy_first_name", ud.FirstName, lsl);
+                        LLSDxmlEncode2.AddElem("legacy_last_name", ud.LastName, lsl);
+                        LLSDxmlEncode2.AddElem("id", ud.Id, lsl);
+                        LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
+                        LLSDxmlEncode2.AddEndMap(lsl);
                     }
-
-                    if(kvp.Key.IsZero())
-                        continue;
-
-                // dont tell about unknown users, we can't send them back on Bad either
-                    if(parts[0] == "Unknown")
-                         continue;
-
-                    LLSDxmlEncode2.AddMap(lsl);
-                    LLSDxmlEncode2.AddElem("display_name_next_update", DateTime.UtcNow.AddDays(8), lsl);
-                    LLSDxmlEncode2.AddElem("display_name_expires", DateTime.UtcNow.AddMonths(1), lsl);
-                    LLSDxmlEncode2.AddElem("display_name", fullname, lsl);
-                    LLSDxmlEncode2.AddElem("legacy_first_name", parts[0], lsl);
-                    LLSDxmlEncode2.AddElem("legacy_last_name", parts[1], lsl);
-                    LLSDxmlEncode2.AddElem("username", fullname, lsl);
-                    LLSDxmlEncode2.AddElem("id", kvp.Key, lsl);
-                    LLSDxmlEncode2.AddElem("is_display_name_default", true, lsl);
-                    LLSDxmlEncode2.AddEndMap(lsl);
-                    ct++;
+                    LLSDxmlEncode2.AddEndArray(lsl);
                 }
-                LLSDxmlEncode2.AddEndArray(lsl);
             }
-        
             LLSDxmlEncode2.AddEndMap(lsl);
 
             httpResponse.RawBuffer = LLSDxmlEncode2.EndToNBBytes(lsl);

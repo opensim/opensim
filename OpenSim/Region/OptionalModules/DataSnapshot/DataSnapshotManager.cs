@@ -53,7 +53,7 @@ namespace OpenSim.Region.DataSnapshot
         //Information from config
         private bool m_enabled = false;
         private bool m_configLoaded = false;
-        private List<string> m_disabledModules = new List<string>();
+
         private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
         private string m_snapsDir = "DataSnapshot";
         private string m_exposure_level = "minimum";
@@ -145,11 +145,6 @@ namespace OpenSim.Region.DataSnapshot
                         // New way of spec'ing data services, one per line
                         AddDataServicesVars(config.Configs["DataSnapshot"]);
 
-                        String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "").Split(".".ToCharArray());
-                        foreach (String bloody_wanker in annoying_string_array)
-                        {
-                            m_disabledModules.Add(bloody_wanker);
-                        }
                         m_lastUpdate = Environment.TickCount;
                     }
                     catch (Exception)

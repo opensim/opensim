@@ -32,57 +32,57 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("ReferencePath")]
-	public class ReferencePathNode : DataNode, IComparable
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("ReferencePath")]
+    public class ReferencePathNode : DataNode, IComparable
+    {
+        #region Fields
 
-		private string m_Path;
+        private string m_Path;
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the path.
-		/// </summary>
-		/// <value>The path.</value>
-		public string Path
-		{
-			get
-			{
-				return m_Path;
-			}
-		}
+        /// <summary>
+        /// Gets the path.
+        /// </summary>
+        /// <value>The path.</value>
+        public string Path
+        {
+            get
+            {
+                return m_Path;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
 
-			m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
-			if(m_Path == null)
-			{
-				m_Path = "";
-			}
+            m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
+            if (m_Path == null)
+            {
+                m_Path = "";
+            }
 
-			m_Path = m_Path.Trim();
-		}
+            m_Path = m_Path.Trim();
+        }
 
-		#endregion
+        #endregion
 
         #region IComparable Members
 
@@ -93,5 +93,5 @@ namespace Prebuild.Core.Nodes
         }
 
         #endregion
-	}
+    }
 }

@@ -32,86 +32,86 @@ using System.IO;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public abstract class DataNode : IDataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    public abstract class DataNode : IDataNode
+    {
+        #region Fields
 
-		private IDataNode parent;
-		string[] m_WebTypes = new string[] { "aspx", "ascx", "master", "ashx", "asmx" };
+        private IDataNode parent;
+        string[] m_WebTypes = new string[] { "aspx", "ascx", "master", "ashx", "asmx" };
 
-		#endregion
+        #endregion
 
-		#region IDataNode Members
+        #region IDataNode Members
 
-		/// <summary>
-		/// Gets or sets the parent.
-		/// </summary>
-		/// <value>The parent.</value>
-		public virtual IDataNode Parent
-		{
-			get
-			{
-				return parent;
-			}
-			set
-			{
-				parent = value;
-			}
-		}
-		public string[] WebTypes
-		{
-			get { return m_WebTypes; }
-		}
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public virtual void Parse(XmlNode node)
-		{
-		}
-		public BuildAction GetBuildActionByFileName(string fileName)
-		{
-			string extension = Path.GetExtension(fileName).ToLower();
-			foreach (string type in WebTypes)
-			{
-				if (extension == type)
-					return BuildAction.Content;
-			}
-			return BuildAction.Compile;
-		}
-		/// <summary>
-		/// Parses the file type to figure out what type it is
-		/// </summary>
-		/// <returns></returns>
-		public SubType GetSubTypeByFileName(string fileName)
-		{
-			string extension = System.IO.Path.GetExtension(fileName).ToLower();
-			string designer = String.Format(".designer{0}", extension);
-			string path = fileName.ToLower();
-			if (extension == ".resx")
-			{
-				return SubType.Designer;
-			}
-			else if (path.EndsWith(".settings"))
-			{
-				return SubType.Settings;
-			}
-			else
-			{
-				
-				foreach (string type in WebTypes)
-				{
+        /// <summary>
+        /// Gets or sets the parent.
+        /// </summary>
+        /// <value>The parent.</value>
+        public virtual IDataNode Parent
+        {
+            get
+            {
+                return parent;
+            }
+            set
+            {
+                parent = value;
+            }
+        }
+        public string[] WebTypes
+        {
+            get { return m_WebTypes; }
+        }
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public virtual void Parse(XmlNode node)
+        {
+        }
+        public BuildAction GetBuildActionByFileName(string fileName)
+        {
+            string extension = Path.GetExtension(fileName).ToLower();
+            foreach (string type in WebTypes)
+            {
+                if (extension == type)
+                    return BuildAction.Content;
+            }
+            return BuildAction.Compile;
+        }
+        /// <summary>
+        /// Parses the file type to figure out what type it is
+        /// </summary>
+        /// <returns></returns>
+        public SubType GetSubTypeByFileName(string fileName)
+        {
+            string extension = System.IO.Path.GetExtension(fileName).ToLower();
+            string designer = String.Format(".designer{0}", extension);
+            string path = fileName.ToLower();
+            if (extension == ".resx")
+            {
+                return SubType.Designer;
+            }
+            else if (path.EndsWith(".settings"))
+            {
+                return SubType.Settings;
+            }
+            else
+            {
+
+                foreach (string type in WebTypes)
+                {
                     if (path.EndsWith(type))
-					{
-						return SubType.CodeBehind;
-					}
-				}
-			}
-			return SubType.Code;
-		}
-		#endregion
-	}
+                    {
+                        return SubType.CodeBehind;
+                    }
+                }
+            }
+            return SubType.Code;
+        }
+        #endregion
+    }
 }

@@ -17,18 +17,18 @@ namespace OSHttpServer
     /// </remarks>
     public class HttpInputItem : IHttpInput
     {
-		/// <summary> Representation of a non-initialized <see cref="HttpInputItem"/>.</summary>
+        /// <summary> Representation of a non-initialized <see cref="HttpInputItem"/>.</summary>
         public static readonly HttpInputItem Empty = new HttpInputItem(string.Empty, true);
         private readonly IDictionary<string, HttpInputItem> _items = new Dictionary<string, HttpInputItem>();
         private readonly List<string> _values = new List<string>();
         private string _name;
         private readonly bool _ignoreChanges;
-
-		/// <summary>
-		/// Initializes an input item setting its name/identifier and value
-		/// </summary>
-		/// <param name="name">Parameter name/id</param>
-		/// <param name="value">Parameter value</param>
+        
+        /// <summary>
+        /// Initializes an input item setting its name/identifier and value
+        /// </summary>
+        /// <param name="name">Parameter name/id</param>
+        /// <param name="value">Parameter value</param>
         public HttpInputItem(string name, string value)
         {
             Name = name;
@@ -41,20 +41,20 @@ namespace OSHttpServer
             _ignoreChanges = ignore;
         }
 
-		/// <summary>Creates a deep copy of the item specified</summary>
-		/// <param name="item">The item to copy</param>
-		/// <remarks>The function makes a deep copy of quite a lot which can be slow</remarks>
-		public HttpInputItem(HttpInputItem item)
-		{
-			foreach (KeyValuePair<string, HttpInputItem> pair in item._items)
-				_items.Add(pair.Key, pair.Value);
-
-			foreach (string value in item._values)
-				_values.Add(value);
-
-			_ignoreChanges = item._ignoreChanges;
-			_name = item.Name;
-		}
+        /// <summary>Creates a deep copy of the item specified</summary>
+        /// <param name="item">The item to copy</param>
+        /// <remarks>The function makes a deep copy of quite a lot which can be slow</remarks>
+        public HttpInputItem(HttpInputItem item)
+        {
+            foreach (KeyValuePair<string, HttpInputItem> pair in item._items)
+                _items.Add(pair.Key, pair.Value);
+            
+            foreach (string value in item._values)
+                _values.Add(value);
+            
+            _ignoreChanges = item._ignoreChanges;
+            _name = item.Name;
+        }
 
         /// <summary>
         /// Number of values
@@ -147,16 +147,16 @@ namespace OSHttpServer
             return _items.ContainsKey(name) && _items[name].Value != null;
         }
 
-		/// <summary> Returns a formatted representation of the instance with the values of all contained parameters </summary>
+        /// <summary> Returns a formatted representation of the instance with the values of all contained parameters </summary>
         public override string ToString()
         {
             return ToString(string.Empty);
         }
 
-		/// <summary>
-		/// Outputs the string in a formatted manner
-		/// </summary>
-		/// <param name="prefix">A prefix to append, used internally</param>
+        /// <summary>
+        /// Outputs the string in a formatted manner
+        /// </summary>
+        /// <param name="prefix">A prefix to append, used internally</param>
         /// <param name="asQuerySting">produce a query string</param>
         public string ToString(string prefix, bool asQuerySting)
         {

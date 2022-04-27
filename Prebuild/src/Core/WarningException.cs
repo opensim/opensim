@@ -28,57 +28,57 @@ using System.Runtime.Serialization;
 
 namespace Prebuild.Core
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[Serializable]
-	public class WarningException : Exception
-	{
-		#region Constructors
+    /// <summary>
+    /// 
+    /// </summary>
+    [Serializable]
+    public class WarningException : Exception
+    {
+        #region Constructors
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public WarningException()
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public WarningException()
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="format"></param>
-		/// <param name="args"></param>
-		public WarningException(string format, params object[] args)
-			: base(String.Format(format, args))
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public WarningException(string format, params object[] args)
+            : base(String.Format(format, args))
+        {
+        }
 
-		/// <summary>
-		/// Exception with specified string
-		/// </summary>
-		/// <param name="message">Exception message</param>
-		public WarningException(string message): base(message)
-		{
-		}
+        /// <summary>
+        /// Exception with specified string
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        public WarningException(string message) : base(message)
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="message"></param>
-		/// <param name="exception"></param>
-		public WarningException(string message, Exception exception) : base(message, exception)
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public WarningException(string message, Exception exception) : base(message, exception)
+        {
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="info"></param>
-		/// <param name="context"></param>
-		protected WarningException(SerializationInfo info, StreamingContext context) : base( info, context )
-		{
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
+        protected WarningException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

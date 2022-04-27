@@ -34,190 +34,190 @@ using Prebuild.Core.Targets;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	public enum BuildAction
-	{
-		/// <summary>
-		/// 
-		/// </summary>
-		None,
-		/// <summary>
-		/// 
-		/// </summary>
-		Compile,
-		/// <summary>
-		/// 
-		/// </summary>
-		Content,
-		/// <summary>
-		/// 
-		/// </summary>
-		EmbeddedResource,
-		/// <summary>
-		/// 
-		/// </summary>
-		ApplicationDefinition,
-		/// <summary>
-		/// 
-		/// </summary>
-		Page,
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum BuildAction
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        None,
+        /// <summary>
+        /// 
+        /// </summary>
+        Compile,
+        /// <summary>
+        /// 
+        /// </summary>
+        Content,
+        /// <summary>
+        /// 
+        /// </summary>
+        EmbeddedResource,
+        /// <summary>
+        /// 
+        /// </summary>
+        ApplicationDefinition,
+        /// <summary>
+        /// 
+        /// </summary>
+        Page,
         /// <summary>
         /// 
         /// </summary>
         Copy
-	}
+    }
 
-	/// <summary>
-	/// 
-	/// </summary>
-	public enum SubType
-	{
-		/// <summary>
-		/// 
-		/// </summary>
-		Code,
-		/// <summary>
-		/// 
-		/// </summary>
-		Component,
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum SubType
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        Code,
+        /// <summary>
+        /// 
+        /// </summary>
+        Component,
         /// <summary>
         /// 
         /// </summary>
         Designer,
-		/// <summary>
-		/// 
-		/// </summary>
-		Form,
-		/// <summary>
-		/// 
-		/// </summary>
-		Settings,
-		/// <summary>
-		/// 
-		/// </summary>
-		UserControl,
-		/// <summary>
-		/// 
-		/// </summary>
-		CodeBehind,
-	}
+        /// <summary>
+        /// 
+        /// </summary>
+        Form,
+        /// <summary>
+        /// 
+        /// </summary>
+        Settings,
+        /// <summary>
+        /// 
+        /// </summary>
+        UserControl,
+        /// <summary>
+        /// 
+        /// </summary>
+        CodeBehind,
+    }
 
-	public enum CopyToOutput
-	{
-		Never,
-		Always,
-		PreserveNewest
-	}
+    public enum CopyToOutput
+    {
+        Never,
+        Always,
+        PreserveNewest
+    }
 
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("File")]
-	public class FileNode : DataNode
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("File")]
+    public class FileNode : DataNode
+    {
+        #region Fields
 
-		private string m_Path;
-		private string m_ResourceName = "";
-		private BuildAction? m_BuildAction;
-		private bool m_Valid;
-		private SubType? m_SubType;
-		private CopyToOutput m_CopyToOutput = CopyToOutput.Never;
-		private bool m_Link = false;
-		private string m_LinkPath = string.Empty;
+        private string m_Path;
+        private string m_ResourceName = "";
+        private BuildAction? m_BuildAction;
+        private bool m_Valid;
+        private SubType? m_SubType;
+        private CopyToOutput m_CopyToOutput = CopyToOutput.Never;
+        private bool m_Link = false;
+        private string m_LinkPath = string.Empty;
         private bool m_PreservePath = false;
 
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string Path
-		{
-			get
-			{
-				return m_Path;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Path
+        {
+            get
+            {
+                return m_Path;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public string ResourceName
-		{
-			get
-			{
-				return m_ResourceName;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public string ResourceName
+        {
+            get
+            {
+                return m_ResourceName;
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public BuildAction BuildAction
-		{
-			get
-			{
-				if (m_BuildAction != null)
-					return m_BuildAction.Value;
-				else
-					return GetBuildActionByFileName(this.Path);
+        /// <summary>
+        /// 
+        /// </summary>
+        public BuildAction BuildAction
+        {
+            get
+            {
+                if (m_BuildAction != null)
+                    return m_BuildAction.Value;
+                else
+                    return GetBuildActionByFileName(this.Path);
 
-			}
-		}
+            }
+        }
 
-		public CopyToOutput CopyToOutput
-		{
-			get
-			{
-				return this.m_CopyToOutput;
-			}
-		}
+        public CopyToOutput CopyToOutput
+        {
+            get
+            {
+                return this.m_CopyToOutput;
+            }
+        }
 
-		public bool IsLink
-		{
-			get
-			{
-				return this.m_Link;
-			}
-		}
+        public bool IsLink
+        {
+            get
+            {
+                return this.m_Link;
+            }
+        }
 
-		public string LinkPath
-		{
-			get
-			{
-				return this.m_LinkPath;
-			}
-		}
-		/// <summary>
-		/// 
-		/// </summary>
-		public SubType SubType
-		{
-			get
-			{
-				if (m_SubType != null)
-					return m_SubType.Value;
-				else
-					return GetSubTypeByFileName(this.Path);
-			}
-		}
+        public string LinkPath
+        {
+            get
+            {
+                return this.m_LinkPath;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public SubType SubType
+        {
+            get
+            {
+                if (m_SubType != null)
+                    return m_SubType.Value;
+                else
+                    return GetSubTypeByFileName(this.Path);
+            }
+        }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public bool IsValid
-		{
-			get
-			{
-				return m_Valid;
-			}
-		}
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                return m_Valid;
+            }
+        }
 
         /// <summary>
         /// 
@@ -232,61 +232,61 @@ namespace Prebuild.Core.Nodes
             }
         }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="node"></param>
-		public override void Parse(XmlNode node)
-		{
-			string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
-			if (buildAction != string.Empty)
-				m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
-			string subType = Helper.AttributeValue(node, "subType", string.Empty);
-			if (subType != String.Empty)
-				m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        public override void Parse(XmlNode node)
+        {
+            string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
+            if (buildAction != string.Empty)
+                m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
+            string subType = Helper.AttributeValue(node, "subType", string.Empty);
+            if (subType != String.Empty)
+                m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
 
             Console.WriteLine("[FileNode]:BuildAction is {0}", buildAction);
 
 
-			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
-			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
-			if ( this.m_Link == true )
-			{
-				this.m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
-			}
-			this.m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
-            this.m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
+            m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
+            this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
+            if (this.m_Link == true)
+            {
+                this.m_LinkPath = Helper.AttributeValue(node, "linkPath", string.Empty);
+            }
+            this.m_CopyToOutput = (CopyToOutput)Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
+            this.m_PreservePath = bool.Parse(Helper.AttributeValue(node, "preservePath", bool.FalseString));
 
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
 
-			m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
-			if(m_Path == null)
-			{
-				m_Path = "";
-			}
+            m_Path = Helper.InterpolateForEnvironmentVariables(node.InnerText);
+            if (m_Path == null)
+            {
+                m_Path = "";
+            }
 
-			m_Path = m_Path.Trim();
-			m_Valid = true;
-			if(!File.Exists(m_Path))
-			{
-				m_Valid = false;
-				Kernel.Instance.Log.Write(LogType.Warning, "File does not exist: {0}", m_Path);
-			}
+            m_Path = m_Path.Trim();
+            m_Valid = true;
+            if (!File.Exists(m_Path))
+            {
+                m_Valid = false;
+                Kernel.Instance.Log.Write(LogType.Warning, "File does not exist: {0}", m_Path);
+            }
 
             if (System.IO.Path.GetExtension(m_Path) == ".settings")
             {
                 m_SubType = SubType.Settings;
                 m_BuildAction = BuildAction.None;
             }
-		}
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

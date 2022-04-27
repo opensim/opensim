@@ -228,6 +228,8 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
         {
         }
 
+        public override void AvatarJump(float forceZ) { }
+
         public override void AddForce(Vector3 force, bool pushforce)
         {
         }

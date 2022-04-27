@@ -541,6 +541,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //m_RunOnePhase = "resetting...";
                 ResetLocked("HandleScriptResetException");
             }
+            else if (e is OutOfHeapException)
+            {
+                // Some general script error.
+                SendScriptErrorMessage(e, curevent);
+            }
             else if (e is ScriptException)
             {
                 // Some general script error.
@@ -558,15 +563,18 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             StringBuilder msg = new StringBuilder();
             bool toowner = false;
             msg.Append("YEngine: ");
-            if (e.Message != null)
+            string evMessage = null;
+            if (e != null && !string.IsNullOrEmpty(e.Message))
             {
-                string text = e.Message;
-                if (text.StartsWith("(OWNER)"))
+                evMessage = e.Message;
+                if (evMessage.StartsWith("(OWNER)"))
                 {
-                    text = text.Substring(7);
+                    evMessage = evMessage.Substring(7);
                     toowner = true;
                 }
-                msg.Append(text);
+                if (e is OutOfHeapException)
+                    evMessage = "OutOfHeap: " + evMessage;
+                msg.Append(evMessage);
             }
 
             msg.Append(" (script: ");
@@ -602,7 +610,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                                            m_Part.Name, m_Part.UUID, false);
             m_log.Debug(string.Format(
                 "[SCRIPT ERROR]: {0} (at event {1}, part {2} {3} at {4} in {5}",
-                (e.Message == null)? "" : e.Message,
+                (string.IsNullOrEmpty(evMessage) ? "" : evMessage),
                 ev.ToString(),
                 m_Part.Name,
                 m_Part.UUID,
@@ -877,7 +885,6 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             m_ResetCount++;                        // has been reset once more
 
             m_localsHeapUsed = 0;
-            m_arraysHeapUsed = 0;
             glblVars.Clear();
 
              // Tell next call to 'default state_entry()' to reset all global

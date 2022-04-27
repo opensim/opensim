@@ -27,45 +27,45 @@ using System;
 
 namespace Prebuild.Core.Attributes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-	public sealed class TargetAttribute : Attribute
-	{
-		#region Fields
+    /// <summary>
+    /// 
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    public sealed class TargetAttribute : Attribute
+    {
+        #region Fields
 
-		private string m_Name;
+        private string m_Name;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TargetAttribute"/> class.
-		/// </summary>
-		/// <param name="name">The name.</param>
-		public TargetAttribute(string name)
-		{
-			m_Name = name;
-		}
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TargetAttribute"/> class.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        public TargetAttribute(string name)
+        {
+            m_Name = name;
+        }
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name
-		{
-			get
-			{
-				return m_Name;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

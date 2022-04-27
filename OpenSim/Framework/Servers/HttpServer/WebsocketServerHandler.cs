@@ -580,7 +580,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _receiveDone.Set();
                 _initialMsgTimeout = 0;
             }
-            WebSocketFrame pingFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = new byte[0] };
+            WebSocketFrame pingFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = Array.Empty<byte>()
+        };
             pingFrame.Header.Opcode = WebSocketReader.OpCode.Ping;
             pingFrame.Header.IsEnd = true;
             _pingtime = Util.EnvironmentTickCount();
@@ -651,7 +652,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         pingD(this, new PingEventArgs());
                     }
 
-                    WebSocketFrame pongFrame = new WebSocketFrame(){Header = WebsocketFrameHeader.HeaderDefault(),WebSocketPayload = new byte[0]};
+                    WebSocketFrame pongFrame = new WebSocketFrame(){Header = WebsocketFrameHeader.HeaderDefault(),WebSocketPayload = Array.Empty<byte>()};
                     pongFrame.Header.Opcode = WebSocketReader.OpCode.Pong;
                     pongFrame.Header.IsEnd = true;
                     SendSocket(pongFrame.ToBytes());
@@ -960,7 +961,7 @@ dec   0                   1                   2                   3
          *   When reading these, the frames are possibly fragmented and interleaved with control frames
          *   the fragmented frames are not interleaved with data frames.  Just control frames
          */
-        public static readonly WebSocketFrame DefaultFrame = new WebSocketFrame(){Header = new WebsocketFrameHeader(),WebSocketPayload = new byte[0]};
+        public static readonly WebSocketFrame DefaultFrame = new WebSocketFrame(){Header = new WebsocketFrameHeader(),WebSocketPayload = Array.Empty<byte>()};
         public WebsocketFrameHeader Header;
         public byte[] WebSocketPayload;
 

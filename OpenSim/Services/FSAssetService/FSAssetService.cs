@@ -138,10 +138,10 @@ namespace OpenSim.Services.FSAssetService
             }
 
             // No databse connection found in either config
-            if (dllName.Equals(String.Empty))
+            if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
-            if (connectionString.Equals(String.Empty))
+            if (string.IsNullOrEmpty(connectionString))
                 throw new Exception("Missing database connection string");
 
             // Create Storage Provider
@@ -596,7 +596,7 @@ namespace OpenSim.Services.FSAssetService
                 }
                 catch (Exception)
                 {
-                    return new Byte[0];
+                    return Array.Empty<byte>();
                 }
             }
             else if (File.Exists(diskFile))
@@ -611,7 +611,7 @@ namespace OpenSim.Services.FSAssetService
                 {
                 }
             }
-            return new Byte[0];
+            return Array.Empty<byte>();
 
         }
 

@@ -35,40 +35,40 @@ namespace Prebuild.Core.Nodes
     [DataNode("Cleanup")]
     public class CleanupNode : DataNode
     {
-		#region Fields
+        #region Fields
 
-		private List<CleanFilesNode> m_CleanFiles = new List<CleanFilesNode>();
+        private List<CleanFilesNode> m_CleanFiles = new List<CleanFilesNode>();
 
-		#endregion
+        #endregion
 
-		#region Properties
+        #region Properties
 
-		/// <summary>
-		/// Gets the signature.
-		/// </summary>
-		/// <value>The signature.</value>
+        /// <summary>
+        /// Gets the signature.
+        /// </summary>
+        /// <value>The signature.</value>
         public List<CleanFilesNode> CleanFiles
-		{
-			get
-			{
-				return m_CleanFiles;
-			}
-		}
+        {
+            get
+            {
+                return m_CleanFiles;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			if( node == null )
-			{
-				throw new ArgumentNullException("node");
-			}
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException("node");
+            }
 
             foreach (XmlNode child in node.ChildNodes)
             {
@@ -78,8 +78,8 @@ namespace Prebuild.Core.Nodes
                     m_CleanFiles.Add((CleanFilesNode)dataNode);
                 }
             }
-		}
+        }
 
-		#endregion
+        #endregion
     }
 }

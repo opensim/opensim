@@ -393,7 +393,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 else
                     caps.RegisterPollHandler("ViewerAsset", new PollServiceAssetEventArgs(capUrl, agentID, m_scene, hgassets));
             }
-            else if (string.IsNullOrEmpty(m_GetAssetURL))
+            else if (!string.IsNullOrEmpty(m_GetAssetURL))
                 caps.RegisterHandler("ViewerAsset", m_GetAssetURL);
         }
     }

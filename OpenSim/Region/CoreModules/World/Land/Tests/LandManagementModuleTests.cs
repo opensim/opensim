@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
                 lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             lo = lmm.AddLandObject(lo);
 
-            lmm.Subdivide(0, 0, LandManagementModule.LandUnit, LandManagementModule.LandUnit, userId);
+            lmm.Subdivide(0, 0, Constants.LandUnit, Constants.LandUnit, userId);
 
             {
                 ILandObject loAtCoord = lmm.GetLandObject(0, 0);
@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             }
 
             {
-                ILandObject loAtCoord = lmm.GetLandObject(LandManagementModule.LandUnit, LandManagementModule.LandUnit);
+                ILandObject loAtCoord = lmm.GetLandObject(Constants.LandUnit, Constants.LandUnit);
                 Assert.That(loAtCoord.LandData.LocalID, Is.EqualTo(lo.LandData.LocalID));
                 Assert.That(loAtCoord.LandData.GlobalID, Is.EqualTo(lo.LandData.GlobalID));
             }

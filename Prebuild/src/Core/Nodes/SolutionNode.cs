@@ -34,35 +34,37 @@ using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core.Nodes
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	[DataNode("Solution")]
+    /// <summary>
+    /// 
+    /// </summary>
+    [DataNode("Solution")]
     [DataNode("EmbeddedSolution")]
     [DebuggerDisplay("{Name}")]
-	public class SolutionNode : DataNode
-	{
-		#region Fields
+    public class SolutionNode : DataNode
+    {
+        #region Fields
 
         private Guid m_Guid = Guid.NewGuid();
-		private string m_Name = "unknown";
-		private string m_Path = "";
-		private string m_FullPath = "";
-		private string m_ActiveConfig;
+        private string m_Name = "unknown";
+        private string m_Path = "";
+        private string m_FullPath = "";
+        private string m_ActiveConfig;
         private string m_Version = "1.0.0";
-        
-		private OptionsNode m_Options;
-		private FilesNode m_Files;
+        public FrameworkVersion DefaultFramework = FrameworkVersion.none;
+        public FrameworkVersion ForceFramework = FrameworkVersion.none;
+
+        private OptionsNode m_Options;
+        private FilesNode m_Files;
         private readonly ConfigurationNodeCollection m_Configurations = new ConfigurationNodeCollection();
         private readonly Dictionary<string, ProjectNode> m_Projects = new Dictionary<string, ProjectNode>();
         private readonly Dictionary<string, DatabaseProjectNode> m_DatabaseProjects = new Dictionary<string, DatabaseProjectNode>();
         private readonly List<ProjectNode> m_ProjectsOrder = new List<ProjectNode>();
         private readonly Dictionary<string, SolutionNode> m_Solutions = new Dictionary<string, SolutionNode>();
-	    private CleanupNode m_Cleanup;
+        private CleanupNode m_Cleanup;
 
-	    #endregion
+        #endregion
 
-		#region Properties
+        #region Properties
         public override IDataNode Parent
         {
             get
@@ -76,7 +78,7 @@ namespace Prebuild.Core.Nodes
                     SolutionNode solution = (SolutionNode)value;
                     foreach (ConfigurationNode conf in solution.Configurations)
                     {
-                        m_Configurations[conf.Name] = (ConfigurationNode) conf.Clone();
+                        m_Configurations[conf.Name] = (ConfigurationNode)conf.Clone();
                     }
                 }
 
@@ -84,142 +86,142 @@ namespace Prebuild.Core.Nodes
             }
         }
 
-	    public CleanupNode Cleanup
-	    {
-	        get
-	        {
-	            return m_Cleanup;
-	        }
+        public CleanupNode Cleanup
+        {
+            get
+            {
+                return m_Cleanup;
+            }
             set
             {
                 m_Cleanup = value;
             }
-	    }
+        }
 
         public Guid Guid
         {
-            get 
-            { 
-                return m_Guid; 
+            get
+            {
+                return m_Guid;
             }
             set
             {
-                m_Guid = value; 
+                m_Guid = value;
             }
         }
-		/// <summary>
-		/// Gets or sets the active config.
-		/// </summary>
-		/// <value>The active config.</value>
-		public string ActiveConfig 
-		{ 
-			get 
-			{ 
-				return m_ActiveConfig; 
-			} 
-			set 
-			{ 
-				m_ActiveConfig = value; 
-			} 
-		}
+        /// <summary>
+        /// Gets or sets the active config.
+        /// </summary>
+        /// <value>The active config.</value>
+        public string ActiveConfig
+        {
+            get
+            {
+                return m_ActiveConfig;
+            }
+            set
+            {
+                m_ActiveConfig = value;
+            }
+        }
 
-		/// <summary>
-		/// Gets the name.
-		/// </summary>
-		/// <value>The name.</value>
-		public string Name 
-		{
-			get 
-			{
-				return m_Name;
-			}
-		}
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name
+        {
+            get
+            {
+                return m_Name;
+            }
+        }
 
-		/// <summary>
-		/// Gets the path.
-		/// </summary>
-		/// <value>The path.</value>
-		public string Path 
-		{
-			get 
-			{
-				return m_Path;
-			}
-		}
+        /// <summary>
+        /// Gets the path.
+        /// </summary>
+        /// <value>The path.</value>
+        public string Path
+        {
+            get
+            {
+                return m_Path;
+            }
+        }
 
-		/// <summary>
-		/// Gets the full path.
-		/// </summary>
-		/// <value>The full path.</value>
-		public string FullPath
-		{
-			get
-			{
-				return m_FullPath;
-			}
-		}
+        /// <summary>
+        /// Gets the full path.
+        /// </summary>
+        /// <value>The full path.</value>
+        public string FullPath
+        {
+            get
+            {
+                return m_FullPath;
+            }
+        }
 
-		/// <summary>
-		/// Gets the version.
-		/// </summary>
-		/// <value>The version.</value>
-		public string Version 
-		{
-			get 
-			{
-				return m_Version;
-			}
-		}
+        /// <summary>
+        /// Gets the version.
+        /// </summary>
+        /// <value>The version.</value>
+        public string Version
+        {
+            get
+            {
+                return m_Version;
+            }
+        }
 
-		/// <summary>
-		/// Gets the options.
-		/// </summary>
-		/// <value>The options.</value>
-		public OptionsNode Options
-		{
-			get
-			{
-				return m_Options;
-			}
-		}
+        /// <summary>
+        /// Gets the options.
+        /// </summary>
+        /// <value>The options.</value>
+        public OptionsNode Options
+        {
+            get
+            {
+                return m_Options;
+            }
+        }
 
-		/// <summary>
-		/// Gets the files.
-		/// </summary>
-		/// <value>The files.</value>
-		public FilesNode Files
-		{
-			get
-			{
-				return m_Files;
-			}
-		}
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        /// <value>The files.</value>
+        public FilesNode Files
+        {
+            get
+            {
+                return m_Files;
+            }
+        }
 
-		/// <summary>
-		/// Gets the configurations.
-		/// </summary>
-		/// <value>The configurations.</value>
-		public ConfigurationNodeCollection Configurations
-		{
-			get
-			{
-				ConfigurationNodeCollection tmp = new ConfigurationNodeCollection();
-				tmp.AddRange(ConfigurationsTable);
-				return tmp;
-			}
-		}
+        /// <summary>
+        /// Gets the configurations.
+        /// </summary>
+        /// <value>The configurations.</value>
+        public ConfigurationNodeCollection Configurations
+        {
+            get
+            {
+                ConfigurationNodeCollection tmp = new ConfigurationNodeCollection();
+                tmp.AddRange(ConfigurationsTable);
+                return tmp;
+            }
+        }
 
-		/// <summary>
-		/// Gets the configurations table.
-		/// </summary>
-		/// <value>The configurations table.</value>
-		public ConfigurationNodeCollection ConfigurationsTable
-		{
-			get
-			{
-				return m_Configurations;
-			}
-		}
+        /// <summary>
+        /// Gets the configurations table.
+        /// </summary>
+        /// <value>The configurations table.</value>
+        public ConfigurationNodeCollection ConfigurationsTable
+        {
+            get
+            {
+                return m_Configurations;
+            }
+        }
         /// <summary>
         /// Gets the database projects.
         /// </summary>
@@ -250,109 +252,125 @@ namespace Prebuild.Core.Nodes
                 return m_Solutions;
             }
         }
-		/// <summary>
-		/// Gets the projects.
-		/// </summary>
-		/// <value>The projects.</value>
-		public ICollection<ProjectNode> Projects
-		{
-			get
-			{
+        /// <summary>
+        /// Gets the projects.
+        /// </summary>
+        /// <value>The projects.</value>
+        public ICollection<ProjectNode> Projects
+        {
+            get
+            {
                 List<ProjectNode> tmp = new List<ProjectNode>(m_Projects.Values);
                 tmp.Sort();
                 return tmp;
-			}
-		}
+            }
+        }
 
-		/// <summary>
-		/// Gets the projects table.
-		/// </summary>
-		/// <value>The projects table.</value>
-		public Dictionary<string, ProjectNode> ProjectsTable
-		{
-			get
-			{
-				return m_Projects;
-			}
-		}
+        /// <summary>
+        /// Gets the projects table.
+        /// </summary>
+        /// <value>The projects table.</value>
+        public Dictionary<string, ProjectNode> ProjectsTable
+        {
+            get
+            {
+                return m_Projects;
+            }
+        }
 
-		/// <summary>
-		/// Gets the projects table.
-		/// </summary>
-		/// <value>The projects table.</value>
-		public List<ProjectNode> ProjectsTableOrder
-		{
-			get
-			{
-				return m_ProjectsOrder;
-			}
-		}
+        /// <summary>
+        /// Gets the projects table.
+        /// </summary>
+        /// <value>The projects table.</value>
+        public List<ProjectNode> ProjectsTableOrder
+        {
+            get
+            {
+                return m_ProjectsOrder;
+            }
+        }
 
-		#endregion
+        #endregion
 
-		#region Public Methods
+        #region Public Methods
 
-		/// <summary>
-		/// Parses the specified node.
-		/// </summary>
-		/// <param name="node">The node.</param>
-		public override void Parse(XmlNode node)
-		{
-			m_Name = Helper.AttributeValue(node, "name", m_Name);
-			m_ActiveConfig = Helper.AttributeValue(node, "activeConfig", m_ActiveConfig);
-			m_Path = Helper.AttributeValue(node, "path", m_Path);
-			m_Version = Helper.AttributeValue(node, "version", m_Version);
+        /// <summary>
+        /// Parses the specified node.
+        /// </summary>
+        /// <param name="node">The node.</param>
+        public override void Parse(XmlNode node)
+        {
+            m_Name = Helper.AttributeValue(node, "name", m_Name);
+            m_ActiveConfig = Helper.AttributeValue(node, "activeConfig", m_ActiveConfig);
+            m_Path = Helper.AttributeValue(node, "path", m_Path);
+            m_Version = Helper.AttributeValue(node, "version", m_Version);
+            string tmp = Helper.AttributeValue(node, "forceFrameworkVersion", "");
+            if (tmp.Length > 0)
+            {
+                if (!FrameworkVersion.TryParse(tmp, true, out ForceFramework))
+                    ForceFramework = FrameworkVersion.none;
+            }
 
-			m_FullPath = m_Path;
-			try
-			{
-				m_FullPath = Helper.ResolvePath(m_FullPath);
-			}
-			catch
-			{
-				throw new WarningException("Could not resolve solution path: {0}", m_Path);
-			}
+            if(ForceFramework == FrameworkVersion.none)
+            {
+                tmp = Helper.AttributeValue(node, "frameworkVersion", "");
+                if (tmp.Length > 0)
+                {
+                    if (!FrameworkVersion.TryParse(tmp, true, out DefaultFramework))
+                        DefaultFramework = FrameworkVersion.none;
+                }
+            }
 
-			Kernel.Instance.CurrentWorkingDirectory.Push();
-			try
-			{
-				Helper.SetCurrentDir(m_FullPath);
+            m_FullPath = m_Path;
+            try
+            {
+                m_FullPath = Helper.ResolvePath(m_FullPath);
+            }
+            catch
+            {
+                throw new WarningException("Could not resolve solution path: {0}", m_Path);
+            }
 
-				if( node == null )
-				{
-					throw new ArgumentNullException("node");
-				}
+            Kernel.Instance.CurrentWorkingDirectory.Push();
+            try
+            {
+                Helper.SetCurrentDir(m_FullPath);
 
-				foreach(XmlNode child in node.ChildNodes)
-				{
-					IDataNode dataNode = Kernel.Instance.ParseNode(child, this);
-					if(dataNode is OptionsNode)
-					{
-						m_Options = (OptionsNode)dataNode;
-					}
-					else if(dataNode is FilesNode)
-					{
-						m_Files = (FilesNode)dataNode;
-					}
-					else if(dataNode is ConfigurationNode)
-					{
-						ConfigurationNode configurationNode = (ConfigurationNode) dataNode;
-						m_Configurations[configurationNode.NameAndPlatform] = configurationNode;
+                if (node == null)
+                {
+                    throw new ArgumentNullException("node");
+                }
 
-						// If the active configuration is null, then we populate it.
-						if (ActiveConfig == null)
-						{
-							ActiveConfig = configurationNode.Name;
-						}
-					}
-					else if(dataNode is ProjectNode)
-					{
-						m_Projects[((ProjectNode)dataNode).Name] = (ProjectNode) dataNode;
-						m_ProjectsOrder.Add((ProjectNode)dataNode);
-					}
-                    else if(dataNode is SolutionNode)
+                foreach (XmlNode child in node.ChildNodes)
+                {
+                    IDataNode dataNode = Kernel.Instance.ParseNode(child, this);
+                    if (dataNode is OptionsNode)
                     {
-                        m_Solutions[((SolutionNode)dataNode).Name] = (SolutionNode) dataNode;
+                        m_Options = (OptionsNode)dataNode;
+                    }
+                    else if (dataNode is FilesNode)
+                    {
+                        m_Files = (FilesNode)dataNode;
+                    }
+                    else if (dataNode is ConfigurationNode)
+                    {
+                        ConfigurationNode configurationNode = (ConfigurationNode)dataNode;
+                        m_Configurations[configurationNode.NameAndPlatform] = configurationNode;
+
+                        // If the active configuration is null, then we populate it.
+                        if (ActiveConfig == null)
+                        {
+                            ActiveConfig = configurationNode.Name;
+                        }
+                    }
+                    else if (dataNode is ProjectNode)
+                    {
+                        m_Projects[((ProjectNode)dataNode).Name] = (ProjectNode)dataNode;
+                        m_ProjectsOrder.Add((ProjectNode)dataNode);
+                    }
+                    else if (dataNode is SolutionNode)
+                    {
+                        m_Solutions[((SolutionNode)dataNode).Name] = (SolutionNode)dataNode;
                     }
                     else if (dataNode is ProcessNode)
                     {
@@ -361,22 +379,22 @@ namespace Prebuild.Core.Nodes
                     }
                     else if (dataNode is DatabaseProjectNode)
                     {
-                        m_DatabaseProjects[((DatabaseProjectNode)dataNode).Name] = (DatabaseProjectNode) dataNode;
+                        m_DatabaseProjects[((DatabaseProjectNode)dataNode).Name] = (DatabaseProjectNode)dataNode;
                     }
-                    else if(dataNode is CleanupNode)
+                    else if (dataNode is CleanupNode)
                     {
-                        if(m_Cleanup != null)
+                        if (m_Cleanup != null)
                             throw new WarningException("There can only be one Cleanup node.");
                         m_Cleanup = (CleanupNode)dataNode;
                     }
-				}
-			}
-			finally
-			{
-				Kernel.Instance.CurrentWorkingDirectory.Pop();
-			}
-		}
+                }
+            }
+            finally
+            {
+                Kernel.Instance.CurrentWorkingDirectory.Pop();
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

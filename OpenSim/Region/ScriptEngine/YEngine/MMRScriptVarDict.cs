@@ -232,14 +232,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return (found.Count > 0) ? found.ToArray() : null;
         }
 
+        public bool HasAnyExact(string name)
+        {
+            return master.TryGetValue(name, out Dictionary<ArgTypes, TDVEntry> typedic);
+        }
+
         /**
-         * @brief Find exact matching function/variable
-         * @param name = name of function to look for
-         * @param argTypes = argument types the function was declared with
-         *                   null to look for a variable
-         * @returns null: no matching function/variable found
-         *          else: the matching function/variable
-         */
+        * @brief Find exact matching function/variable
+        * @param name = name of function to look for
+        * @param argTypes = argument types the function was declared with
+        *                   null to look for a variable
+        * @returns null: no matching function/variable found
+        *          else: the matching function/variable
+        */
+
         public TokenDeclVar FindExact(string name, TokenType[] argTypes)
         {
              // Look for list of stuff that matches the given name.

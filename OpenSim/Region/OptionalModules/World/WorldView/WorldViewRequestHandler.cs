@@ -82,7 +82,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 m_log.Debug("[WORLDVIEW]: Exception: " + e.ToString());
             }
 
-            return new Byte[0];
+            return Array.Empty<byte>();
         }
 
         public Byte[] SendWorldView(Dictionary<string, object> request)
@@ -99,25 +99,25 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             bool usetex;
 
             if (!request.ContainsKey("posX"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("posY"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("posZ"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("rotX"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("rotY"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("rotZ"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("fov"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("width"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("height"))
-                return new Byte[0];
+                return Array.Empty<byte>();
             if (!request.ContainsKey("usetex"))
-                return new Byte[0];
+                return Array.Empty<byte>();
 
             try
             {
@@ -134,7 +134,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             }
             catch
             {
-                return new Byte[0];
+                return Array.Empty<byte>();
             }
 
             Vector3 pos = new Vector3(posX, posY, posZ);

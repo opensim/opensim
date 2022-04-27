@@ -1592,7 +1592,7 @@ namespace OpenSim.Data.MySQL
             if (prim.KeyframeMotion != null)
                 cmd.Parameters.AddWithValue("KeyframeMotion", prim.KeyframeMotion.Serialize());
             else
-                cmd.Parameters.AddWithValue("KeyframeMotion", new Byte[0]);
+                cmd.Parameters.AddWithValue("KeyframeMotion", Array.Empty<byte>());
 
             if (prim.PhysicsInertia != null)
                 cmd.Parameters.AddWithValue("PhysInertia", prim.PhysicsInertia.ToXml2());

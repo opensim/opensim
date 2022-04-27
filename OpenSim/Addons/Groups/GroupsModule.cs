@@ -401,7 +401,7 @@ namespace OpenSim.Groups
                             msg.ParentEstateID = 0;
                             msg.Position = Vector3.Zero;
                             msg.RegionID = UUID.Zero.Guid;
-                            msg.binaryBucket = new byte[0];
+                            msg.binaryBucket = Array.Empty<byte>();
 
                             OutgoingInstantMessage(msg, invitee);
                             IClientAPI inviteeClient = GetActiveRootClient(invitee);
@@ -1117,7 +1117,7 @@ namespace OpenSim.Groups
                 msg.timestamp = (uint)Util.UnixTimeSinceEpoch(); ;
                 msg.fromAgentName = string.Empty;
                 msg.message = string.Empty;
-                msg.binaryBucket = new byte[0];
+                msg.binaryBucket = Array.Empty<byte>(); ;
             }
 
             return msg;
@@ -1276,7 +1276,7 @@ namespace OpenSim.Groups
                 msg.ParentEstateID = 0;
                 msg.Position = Vector3.Zero;
                 msg.RegionID = regionInfo.RegionID.Guid;
-                msg.binaryBucket = new byte[0];
+                msg.binaryBucket = Array.Empty<byte>(); ;
                 OutgoingInstantMessage(msg, ejecteeID);
             }
 
@@ -1294,7 +1294,7 @@ namespace OpenSim.Groups
             msg.ParentEstateID = 0;
             msg.Position = Vector3.Zero;
             msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = new byte[0];
+            msg.binaryBucket = Array.Empty<byte>(); ;
             OutgoingInstantMessage(msg, agentID);
         }
 

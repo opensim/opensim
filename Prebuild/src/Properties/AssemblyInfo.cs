@@ -48,7 +48,6 @@ using System.Resources;
 
 // FxCop recommended attributes
 [assembly: ComVisible(false)]
-[assembly: FileIOPermission(SecurityAction.RequestMinimum, Unrestricted=true)]
 [assembly: CLSCompliant(true)]
 
 //

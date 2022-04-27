@@ -125,7 +125,10 @@ namespace OpenSim.Region.OptionalModules.Materials
             m_cache = scene.RequestModuleInterface<IAssetCache>();
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
             if (featuresModule != null)
-                featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
+            {
+                featuresModule.AddOpenSimExtraFeature("MaxMaterialsPerTransaction", m_maxMaterialsPerTransaction);
+                featuresModule.AddOpenSimExtraFeature("RenderMaterialsCapability", 3.0f);
+            }
         }
 
         private void EventManager_OnBackup(ISimulationDataService datastore, bool forcedBackup)
@@ -254,12 +257,6 @@ namespace OpenSim.Region.OptionalModules.Materials
                     return;
             }
             response.StatusCode = (int)HttpStatusCode.OK;
-        }
-
-        private void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
-        {
-            features["MaxMaterialsPerTransaction"] = m_maxMaterialsPerTransaction;
-            features["RenderMaterialsCapability"] = OSD.FromReal(3);
         }
 
         /// <summary>

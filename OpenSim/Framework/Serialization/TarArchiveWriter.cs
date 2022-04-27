@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Serialization
             if (!dirName.EndsWith("/"))
                 dirName += "/";
 
-            WriteFile(dirName, new byte[0]);
+            WriteFile(dirName, Array.Empty<byte>());
         }
 
         /// <summary>
