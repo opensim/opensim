@@ -1025,19 +1025,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
-        public void SendCloudData(int version, float[] cloudCover)
-        {
-
-        }
-
         public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
-
         }
 
         public void InformClientOfNeighbour(ulong neighbourHandle, IPEndPoint neighbourExternalEndPoint)
         {
-
         }
 
         public AgentCircuitData RequestClientInfo()
@@ -1474,7 +1467,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return new byte[0];
+            return Array.Empty<byte>();
         }
 
 #pragma warning disable 0067

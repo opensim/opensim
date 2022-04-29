@@ -235,7 +235,7 @@ namespace OpenSim.Data.Tests
             foreach (string store in stores)
             {
                 string s = "'" + store + "'";
-                if (lst == "")
+                if (lst.Length == 0)
                     lst = s;
                 else
                     lst += ", " + s;

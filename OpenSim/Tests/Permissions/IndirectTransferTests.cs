@@ -81,7 +81,7 @@ namespace OpenSim.Tests.Permissions
             for (int i = 0; i < 6; i++)
                 TakeOneBox(Common.TheScene.GetSceneObjectGroups(), names[i], perms[i]);
             // Ad-hoc. Enough time to let the take work.
-            Thread.Sleep(5000);
+            Thread.Sleep(6000);
 
             List<InventoryItemBase> items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[1].UUID, objsFolder.ID);
             Assert.That(items.Count, Is.EqualTo(0));
@@ -94,7 +94,7 @@ namespace OpenSim.Tests.Permissions
             for (int i = 0; i < 6; i++)
                 TakeOneBox(Common.TheScene.GetSceneObjectGroups(), names[i], perms[i]);
             // Ad-hoc. Enough time to let the take work.
-            Thread.Sleep(5000);
+            Thread.Sleep(6000);
 
             items = Common.TheScene.InventoryService.GetFolderItems(Common.TheAvatars[1].UUID, objsFolder.ID);
             Assert.That(items.Count, Is.EqualTo(6));

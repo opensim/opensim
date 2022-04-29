@@ -86,7 +86,7 @@ namespace OpenSim.Tests.Common
             uint port = 0;
             AgentCircuitManager acm = scene.AuthenticateHandler;
 
-            TestLLUDPServer udpServer = new TestLLUDPServer(IPAddress.Any, ref port, 0, configSource, acm);
+            TestLLUDPServer udpServer = new TestLLUDPServer(IPAddress.Any, port, 0, configSource, acm);
             udpServer.AddScene(scene);
 
             return udpServer;

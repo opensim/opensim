@@ -190,8 +190,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         //m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);
                         if (recipientUUI.Length > 0)
                         {
-                            if (Util.ParseUniversalUserIdentifier(recipientUUI, out UUID id, out string tourl,
-                                    out string first, out string last, out string secret))
+                            if (Util.ParseFullUniversalUserIdentifier(recipientUUI, out UUID id, out string tourl,
+                                    out string first, out string last) && !string.IsNullOrEmpty(tourl))
                             {
                                 success = m_IMService.OutgoingInstantMessage(im, tourl, true);
                                 if (success)

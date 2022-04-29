@@ -36,8 +36,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
     /// </summary>
     public class ODESitAvatar
     {
-        private ODEScene m_scene;
-        private ODERayCastRequestManager m_raymanager;
+        private readonly ODEScene m_scene;
+        private readonly ODERayCastRequestManager m_raymanager;
 
         public ODESitAvatar(ODEScene pScene, ODERayCastRequestManager raymanager)
         {
@@ -45,7 +45,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_raymanager = raymanager;
         }
 
-        private static Vector3 SitAjust = new Vector3(0, 0, 0.4f);
+        private static readonly Vector3 SitAjust = new Vector3(0, 0, 0.4f);
         private const RayFilterFlags RaySitFlags = RayFilterFlags.AllPrims | RayFilterFlags.ClosestHit;
 
         private void RotAroundZ(float x, float y, ref Quaternion ori)
@@ -64,22 +64,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public void Sit(PhysicsActor actor, Vector3 avPos, Vector3 avCameraPosition, Vector3 offset, Vector3 avOffset, SitAvatarCallback PhysicsSitResponse)
         {
-            if (!m_scene.haveActor(actor) || !(actor is OdePrim) || ((OdePrim)actor).prim_geom == IntPtr.Zero)
+            if (!m_scene.haveActor(actor) || !(actor is OdePrim) || ((OdePrim)actor).m_prim_geom == IntPtr.Zero)
             {
                 PhysicsSitResponse(-1, actor.LocalID, offset, Quaternion.Identity);
                 return;
             }
 
-            IntPtr geom = ((OdePrim)actor).prim_geom;
+            IntPtr geom = ((OdePrim)actor).m_prim_geom;
 
             Vector3 geopos = SafeNativeMethods.GeomGetPositionOMV(geom);
             Quaternion geomOri = SafeNativeMethods.GeomGetQuaternionOMV(geom);
 
-//            Vector3 geopos = actor.Position;
-//            Quaternion geomOri = actor.Orientation;
+            //Vector3 geopos = actor.Position;
+            //Quaternion geomOri = actor.Orientation;
 
             Quaternion geomInvOri = Quaternion.Conjugate(geomOri);
-
             Quaternion ori = Quaternion.Identity;
 
             Vector3 rayDir = geopos + offset - avCameraPosition;
@@ -90,25 +89,25 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 PhysicsSitResponse(-1, actor.LocalID, offset, Quaternion.Identity);
                 return;
             }
+
             float t = 1 / raylen;
             rayDir.X *= t;
             rayDir.Y *= t;
             rayDir.Z *= t;
 
             raylen += 30f; // focal point may be far
-            List<ContactResult> rayResults;
 
-            rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir, raylen, 1, RaySitFlags);
+            List<ContactResult> rayResults = m_scene.RaycastActor(actor, avCameraPosition, rayDir, raylen, 1, RaySitFlags);
             if (rayResults.Count == 0)
             {
-/* if this fundamental ray failed, then just fail so user can try another spot and not be sitted far on a big prim
+                /* if this fundamental ray failed, then just fail so user can try another spot and not be sitted far on a big prim
                 d.AABB aabb;
                 d.GeomGetAABB(geom, out aabb);
                 offset = new Vector3(avOffset.X, 0, aabb.MaxZ + avOffset.Z - geopos.Z);
                 ori = geomInvOri;
                 offset *= geomInvOri;
                 PhysicsSitResponse(1, actor.LocalID, offset, ori);
-*/
+                */
                 PhysicsSitResponse(0, actor.LocalID, offset, ori);
                 return;
             }

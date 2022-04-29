@@ -84,8 +84,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             string method = string.Empty;
             try
             {
-                Dictionary<string, object> request =
-                        ServerUtils.ParseQueryString(body);
+                Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
                 if (!request.ContainsKey("METHOD"))
                     return FailureResult();
@@ -128,32 +127,31 @@ namespace OpenSim.Server.Handlers.UserAccounts
             UUID scopeID = UUID.Zero;
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            object otmp;
+            if (request.TryGetValue("ScopeID", out otmp) && !UUID.TryParse(otmp.ToString(), out scopeID))
             {
                 result["result"] = "null";
                 return ResultToBytes(result);
             }
 
-            if (request.ContainsKey("UserID") && request["UserID"] != null)
+            if (request.TryGetValue("UserID", out otmp) && otmp != null)
             {
-                UUID userID;
-                if (UUID.TryParse(request["UserID"].ToString(), out userID))
+                if (UUID.TryParse(otmp.ToString(), out UUID userID))
                     account = m_UserAccountService.GetUserAccount(scopeID, userID);
             }
-            else if (request.ContainsKey("PrincipalID") && request["PrincipalID"] != null)
+            else if (request.TryGetValue("PrincipalID", out otmp) && otmp != null)
             {
-                UUID userID;
-                if (UUID.TryParse(request["PrincipalID"].ToString(), out userID))
+                if (UUID.TryParse(otmp.ToString(), out UUID userID))
                     account = m_UserAccountService.GetUserAccount(scopeID, userID);
             }
-            else if (request.ContainsKey("Email") && request["Email"] != null)
+            else if (request.TryGetValue("Email", out otmp) && otmp != null)
             {
-                account = m_UserAccountService.GetUserAccount(scopeID, request["Email"].ToString());
+                account = m_UserAccountService.GetUserAccount(scopeID, otmp.ToString());
             }
-            else if (request.ContainsKey("FirstName") && request.ContainsKey("LastName") &&
-                request["FirstName"] != null && request["LastName"] != null)
+            else if (request.TryGetValue("FirstName", out object ofn) && ofn != null &&
+                request.TryGetValue("LastName", out object oln) && oln != null)
             {
-                account = m_UserAccountService.GetUserAccount(scopeID, request["FirstName"].ToString(), request["LastName"].ToString());
+                account = m_UserAccountService.GetUserAccount(scopeID, ofn.ToString(), oln.ToString());
             }
 
             if (account == null)
@@ -170,19 +168,20 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] GetAccounts(Dictionary<string, object> request)
         {
-            if (!request.ContainsKey("query"))
+            if (!request.TryGetValue("query", out object oquery) || oquery == null)
                 return FailureResult();
 
             UUID scopeID = UUID.Zero;
-            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.TryGetValue("ScopeID", out object oscope) && !UUID.TryParse(oscope.ToString(), out scopeID))
                 return FailureResult();
 
-            string query = request["query"].ToString();
-
-            List<UserAccount> accounts = m_UserAccountService.GetUserAccounts(scopeID, query);
+            List<UserAccount> accounts = null;
+            string query = oquery.ToString().Trim();
+            if(!string.IsNullOrEmpty(query))
+                accounts = m_UserAccountService.GetUserAccounts(scopeID, query);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            if ((accounts == null) || ((accounts != null) && (accounts.Count == 0)))
+            if ((accounts == null) || accounts.Count == 0)
             {
                 result["result"] = "null";
             }
@@ -206,27 +205,35 @@ namespace OpenSim.Server.Handlers.UserAccounts
         byte[] GetMultiAccounts(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.TryGetValue("ScopeID", out object oscope) && !UUID.TryParse(oscope.ToString(), out scopeID))
                 return FailureResult();
 
-            if (!request.ContainsKey("IDS"))
+            if (!request.TryGetValue("IDS", out object oids))
             {
                 m_log.DebugFormat("[USER SERVICE HANDLER]: GetMultiAccounts called without required uuids argument");
                 return FailureResult();
             }
 
-            if (!(request["IDS"] is List<string>))
+            List<string> lids = oids as List<string>;
+            if (lids == null)
             {
-                m_log.DebugFormat("[USER SERVICE HANDLER]: GetMultiAccounts input argument was of unexpected type {0}", request["IDS"].GetType().ToString());
+                m_log.DebugFormat("[USER SERVICE HANDLER]: GetMultiAccounts input argument was of unexpected type {0} or null", oids.GetType().ToString());
                 return FailureResult();
             }
 
-            List<string> userIDs = (List<string>)request["IDS"];
+            List<string> userIDs = new List<string>(lids.Count);
+            foreach (string s in lids)
+            {
+                if(UUID.TryParse(s, out UUID tmpid))
+                    userIDs.Add(s);
+            }
 
-            List<UserAccount> accounts = m_UserAccountService.GetUserAccounts(scopeID, userIDs);
+            List<UserAccount> accounts = null;
+            if (userIDs.Count > 0)
+                accounts = m_UserAccountService.GetUserAccounts(scopeID, userIDs);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            if ((accounts == null) || ((accounts != null) && (accounts.Count == 0)))
+            if ((accounts == null) || accounts.Count == 0)
             {
                 result["result"] = "null";
             }
@@ -251,43 +258,45 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] StoreAccount(Dictionary<string, object> request)
         {
+            object otmp;
             UUID principalID = UUID.Zero;
-            if (request.ContainsKey("PrincipalID") && !UUID.TryParse(request["PrincipalID"].ToString(), out principalID))
+            if (request.TryGetValue("PrincipalID", out otmp) && !UUID.TryParse(otmp.ToString(), out principalID) )
+                return FailureResult();
+
+            if(principalID.IsZero())
                 return FailureResult();
 
             UUID scopeID = UUID.Zero;
-            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.TryGetValue("ScopeID", out otmp) && !UUID.TryParse(otmp.ToString(), out scopeID))
                 return FailureResult();
 
             UserAccount existingAccount = m_UserAccountService.GetUserAccount(scopeID, principalID);
             if (existingAccount == null)
                 return FailureResult();
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (request.TryGetValue("FirstName", out otmp))
+                existingAccount.FirstName = otmp.ToString();
 
-            if (request.ContainsKey("FirstName"))
-                existingAccount.FirstName = request["FirstName"].ToString();
+            if (request.TryGetValue("LastName", out otmp))
+                existingAccount.LastName = otmp.ToString();
 
-            if (request.ContainsKey("LastName"))
-                existingAccount.LastName = request["LastName"].ToString();
-
-            if (request.ContainsKey("Email"))
-                existingAccount.Email = request["Email"].ToString();
+            if (request.TryGetValue("Email", out otmp))
+                existingAccount.Email = otmp.ToString();
 
             int created = 0;
-            if (request.ContainsKey("Created") && int.TryParse(request["Created"].ToString(), out created))
+            if (request.TryGetValue("Created", out otmp) && int.TryParse(otmp.ToString(), out created))
                 existingAccount.Created = created;
 
             int userLevel = 0;
-            if (request.ContainsKey("UserLevel") && int.TryParse(request["UserLevel"].ToString(), out userLevel))
+            if (request.TryGetValue("UserLevel", out otmp) && int.TryParse(otmp.ToString(), out userLevel))
                 existingAccount.UserLevel = userLevel;
 
             int userFlags = 0;
-            if (request.ContainsKey("UserFlags") && int.TryParse(request["UserFlags"].ToString(), out userFlags))
+            if (request.TryGetValue("UserFlags", out otmp) && int.TryParse(otmp.ToString(), out userFlags))
                 existingAccount.UserFlags = userFlags;
 
-            if (request.ContainsKey("UserTitle"))
-                existingAccount.UserTitle = request["UserTitle"].ToString();
+            if (request.TryGetValue("UserTitle", out otmp))
+                existingAccount.UserTitle = otmp.ToString();
 
             if (!m_UserAccountService.StoreUserAccount(existingAccount))
             {
@@ -298,67 +307,65 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 return FailureResult();
             }
 
+            Dictionary<string, object> result = new Dictionary<string, object>();
             result["result"] = existingAccount.ToKeyValuePairs();
-
             return ResultToBytes(result);
         }
 
         byte[] CreateUser(Dictionary<string, object> request)
         {
-            if (! request.ContainsKey("FirstName")
-                    && request.ContainsKey("LastName")
-                    && request.ContainsKey("Password"))
+            if (!(m_UserAccountService is UserAccountService))
                 return FailureResult();
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            object otmp;
+            if (!request.TryGetValue("FirstName", out otmp) || otmp == null)
+                return FailureResult();
+            string firstName = otmp.ToString();
+
+            if(!request.TryGetValue("LastName", out otmp) || otmp == null)
+                return FailureResult();
+            string lastName = otmp.ToString();
+
+            if(!request.TryGetValue("Password", out otmp) || otmp == null)
+                return FailureResult();
+            string password = otmp.ToString();
 
             UUID scopeID = UUID.Zero;
-            if (request.ContainsKey("ScopeID") && !UUID.TryParse(request["ScopeID"].ToString(), out scopeID))
+            if (request.TryGetValue("ScopeID", out otmp) && !UUID.TryParse(otmp.ToString(), out scopeID))
                 return FailureResult();
 
             UUID principalID = UUID.Random();
-            if (request.ContainsKey("PrincipalID") && !UUID.TryParse(request["PrincipalID"].ToString(), out principalID))
+            if (request.TryGetValue("PrincipalID", out otmp) && !UUID.TryParse(otmp.ToString(), out principalID))
                 return FailureResult();
 
-            string firstName = request["FirstName"].ToString();
-            string lastName = request["LastName"].ToString();
-            string password = request["Password"].ToString();
-
             string email = "";
-            if (request.ContainsKey("Email"))
-                email = request["Email"].ToString();
+            if (request.TryGetValue("Email", out otmp))
+                email = otmp.ToString();
 
             string model = "";
-            if (request.ContainsKey("Model"))
-                model = request["Model"].ToString();
+            if (request.TryGetValue("Model", out otmp))
+                model = otmp.ToString();
 
-            UserAccount createdUserAccount = null;
-
-            if (m_UserAccountService is UserAccountService)
-                createdUserAccount
-                    = ((UserAccountService)m_UserAccountService).CreateUser(
+            UserAccount createdUserAccount = ((UserAccountService)m_UserAccountService).CreateUser(
                         scopeID, principalID, firstName, lastName, password, email, model);
 
             if (createdUserAccount == null)
                 return FailureResult();
 
+            Dictionary<string, object> result = new Dictionary<string, object>();
             result["result"] = createdUserAccount.ToKeyValuePairs();
-
             return ResultToBytes(result);
         }
 
+        /*
         private byte[] SuccessResult()
         {
             XmlDocument doc = new XmlDocument();
 
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse", "");
             doc.AppendChild(rootElement);
 
             XmlElement result = doc.CreateElement("", "result", "");
@@ -368,18 +375,20 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             return Util.DocToBytes(doc);
         }
+        */
+
+        private static byte[] ResultFailureBytes = osUTF8.GetASCIIBytes("<?xml version =\"1.0\"?><ServerResponse><result>Failure</result></ServerResponse>");
 
         private byte[] FailureResult()
         {
+            /*
             XmlDocument doc = new XmlDocument();
 
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse", "");
 
             doc.AppendChild(rootElement);
 
@@ -389,6 +398,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
             rootElement.AppendChild(result);
 
             return Util.DocToBytes(doc);
+            */
+            return ResultFailureBytes;
         }
 
         private byte[] ResultToBytes(Dictionary<string, object> result)

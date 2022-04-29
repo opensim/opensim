@@ -112,10 +112,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 return;
 
             ISimulatorFeaturesModule featuresModule = scene.RequestModuleInterface<ISimulatorFeaturesModule>();
-
             if (featuresModule != null)
-                featuresModule.OnSimulatorFeaturesRequest += OnSimulatorFeaturesRequest;
-
+            {
+                featuresModule.AddOpenSimExtraFeature("say-range", new OSDInteger(m_saydistance));
+                featuresModule.AddOpenSimExtraFeature("whisper-range", new OSDInteger(m_whisperdistance));
+                featuresModule.AddOpenSimExtraFeature("shout-range", new OSDInteger(m_shoutdistance));
+            }
         }
 
         public virtual void RemoveRegion(Scene scene)
@@ -491,30 +493,5 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             Timers.Remove(target);
             Timer.Dispose();
         }
-        #region SimulatorFeaturesRequest
-
-        protected static OSDInteger m_SayRange, m_WhisperRange, m_ShoutRange;
-
-        protected virtual void OnSimulatorFeaturesRequest(UUID agentID, ref OSDMap features)
-        {
-            OSD extras;
-            if (!features.TryGetValue("OpenSimExtras", out extras))
-                extras = new OSDMap();
-
-            if (m_SayRange == null)
-            {
-                // Do this only once
-                m_SayRange = new OSDInteger(m_saydistance);
-                m_WhisperRange = new OSDInteger(m_whisperdistance);
-                m_ShoutRange = new OSDInteger(m_shoutdistance);
-            }
-
-            ((OSDMap)extras)["say-range"] = m_SayRange;
-            ((OSDMap)extras)["whisper-range"] = m_WhisperRange;
-            ((OSDMap)extras)["shout-range"] = m_ShoutRange;
-
-        }
-
-        #endregion
     }
 }

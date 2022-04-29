@@ -72,7 +72,7 @@ namespace OpenSim.Services.PresenceService
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName.Equals(String.Empty))
+            if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IPresenceData>(dllName, new Object[] { connString, realm });

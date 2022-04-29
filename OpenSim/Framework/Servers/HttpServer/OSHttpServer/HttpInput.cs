@@ -33,7 +33,7 @@ namespace OSHttpServer
         /// <param name="name">form name.</param>
         /// <param name="ignoreChanges">if set to <c>true</c> all changes will be ignored. </param>
         /// <remarks>this constructor should only be used by Empty</remarks>
-		protected HttpInput(string name, bool ignoreChanges)
+        protected HttpInput(string name, bool ignoreChanges)
         {
             _name = name;
             _ignoreChanges = ignoreChanges;

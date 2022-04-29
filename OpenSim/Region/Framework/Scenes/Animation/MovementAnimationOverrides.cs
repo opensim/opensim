@@ -81,6 +81,12 @@ namespace OpenSim.Region.Framework.Scenes
             return UUID.Zero;
         }
 
+        public bool TryGetOverriddenAnimation(string state, out UUID animID)
+        {
+            lock (MAOLock)
+                return m_overrides.TryGetValue(state, out animID);
+        }
+
         public Dictionary<string, UUID> CloneAOPairs()
         {
             lock (MAOLock)

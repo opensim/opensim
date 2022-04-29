@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenMetaverse;
 
 namespace OSHttpServer.Parser
 {
@@ -7,16 +8,8 @@ namespace OSHttpServer.Parser
     /// </summary>
     public class HeaderEventArgs : EventArgs
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HeaderEventArgs"/> class.
-        /// </summary>
-        /// <param name="name">Name of header.</param>
-        /// <param name="value">Header value.</param>
-        public HeaderEventArgs(string name, string value)
-        {
-            Name = name;
-            Value = value;
-        }
+        public osUTF8Slice Name;
+        public string Value;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HeaderEventArgs"/> class.
@@ -26,13 +19,14 @@ namespace OSHttpServer.Parser
         }
 
         /// <summary>
-        /// Gets or sets header name.
+        /// Initializes a new instance of the <see cref="HeaderEventArgs"/> class.
         /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets header value.
-        /// </summary>
-        public string Value { get; set; }
+        /// <param name="name">Name of header.</param>
+        /// <param name="value">Header value.</param>
+        public HeaderEventArgs(osUTF8Slice name, string value)
+        {
+            Name = name;
+            Value = value;
+        }
     }
 }
