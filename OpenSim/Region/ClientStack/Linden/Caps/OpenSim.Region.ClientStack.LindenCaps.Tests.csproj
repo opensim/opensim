@@ -44,6 +44,7 @@
     <Compile Remove="EstateAccess.cs" />
     <Compile Remove="EstateChangeInfo.cs" />
     <Compile Remove="FetchInventory2Module.cs" />
+	<Compile Remove="FetchLibDescModule.cs" />
     <Compile Remove="GetAssetsModule.cs" />
     <Compile Remove="MeshUploadFlagModule.cs" />
     <Compile Remove="RegionConsoleModule.cs" />
