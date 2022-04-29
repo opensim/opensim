@@ -65,9 +65,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module.
     ///     if false module is disable and all rest is ignored
     /// AutoBackupInterval: Double, non-negative value. Default: 720 (12 hours).
-    /// 	The number of minutes between each backup attempt.
+    ///     The number of minutes between each backup attempt.
     /// AutoBackupDir: String. Default: "." (the current directory).
-    /// 	A directory (absolute or relative) where backups should be saved.
+    ///     A directory (absolute or relative) where backups should be saved.
     /// AutoBackupKeepFilesForDays remove files older than this number of days. 0  disables
     /// 
     /// Next can be set on OpenSim.ini, as default, and or per region in Regions.ini
@@ -81,14 +81,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// AutoBackupKeepFilesForDays
     ///     Backup files older than this value (in days) are deleted during the current backup process, 0 will disable this and keep all backup files indefinitely
     /// AutoBackupScript: String. Default: not specified (disabled).
-    /// 	File path to an executable script or binary to run when an automatic backup is taken.
+    ///     File path to an executable script or binary to run when an automatic backup is taken.
     ///  The file should really be (Windows) an .exe or .bat, or (Linux/Mac) a shell script or binary.
     ///  Trying to "run" directories, or things with weird file associations on Win32, might cause unexpected results!
-    /// 	argv[1] of the executed file/script will be the file name of the generated OAR.
-    /// 	If the process can't be spawned for some reason (file not found, no execute permission, etc), write a warning to the console.
+    ///     argv[1] of the executed file/script will be the file name of the generated OAR.
+    ///     If the process can't be spawned for some reason (file not found, no execute permission, etc), write a warning to the console.
     /// AutoBackupNaming: string. Default: Time.
-    /// 	One of three strings (case insensitive):
-    /// 	"Time": Current timestamp is appended to file name. An existing file will never be overwritten.
+    ///     One of three strings (case insensitive):
+    ///     "Time": Current timestamp is appended to file name. An existing file will never be overwritten.
     ///     "Sequential": A number is appended to the file name. So if RegionName_x.oar exists, we'll save to RegionName_{x+1}.oar next. An existing file will never be overwritten.
     ///     "Overwrite": Always save to file named "${AutoBackupDir}/RegionName.oar", even if we have to overwrite an existing file.
     /// </remarks>

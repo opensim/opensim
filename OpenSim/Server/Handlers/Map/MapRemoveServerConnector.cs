@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Net;
-using System.Xml;
 
 using Nini.Config;
 using log4net;
@@ -39,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.ServiceAuth;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 
@@ -61,17 +61,16 @@ namespace OpenSim.Server.Handlers.MapImage
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string mapService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string mapService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
-            if (mapService == String.Empty)
+            if (string.IsNullOrWhiteSpace(mapService))
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(mapService, args);
 
             string gridService = serverConfig.GetString("GridService", String.Empty);
-            if (gridService != string.Empty)
+            if (!string.IsNullOrWhiteSpace(gridService))
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
 
             if (m_GridService != null)
@@ -79,44 +78,45 @@ namespace OpenSim.Server.Handlers.MapImage
             else
                 m_log.InfoFormat("[MAP IMAGE HANDLER]: GridService check is OFF");
 
-            bool proxy = serverConfig.GetBoolean("HasProxy", false);
-            server.AddStreamHandler(new MapServerRemoveHandler(m_MapService, m_GridService, proxy));
-
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+            server.AddSimpleStreamHandler(new MapServerRemoveHandler(m_MapService, m_GridService, auth));
         }
     }
 
-    class MapServerRemoveHandler : BaseStreamHandler
+    class MapServerRemoveHandler : SimpleStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private IMapImageService m_MapService;
-        private IGridService m_GridService;
-        bool m_Proxy;
+        private readonly IMapImageService m_MapService;
+        private readonly IGridService m_GridService;
 
-        public MapServerRemoveHandler(IMapImageService service, IGridService grid, bool proxy) :
-            base("POST", "/removemap")
+        public MapServerRemoveHandler(IMapImageService service, IGridService grid, IServiceAuth auth) :
+            base("/removemap", auth)
         {
             m_MapService = service;
             m_GridService = grid;
-            m_Proxy = proxy;
         }
 
-        public override byte[] Handle(string path, Stream requestData, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
+        protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-//            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
-            string body;
-            using(StreamReader sr = new StreamReader(requestData))
-                body = sr.ReadToEnd();
-            body = body.Trim();
-
+            //m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
             try
             {
+                string body;
+                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                    body = sr.ReadToEnd();
+                body = body.Trim();
+
+                httpRequest.InputStream.Dispose();
                 Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
                 if (!request.ContainsKey("X") || !request.ContainsKey("Y"))
                 {
                     httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                    return FailureResult("Bad request.");
+                    httpResponse.RawBuffer = Util.ResultFailureMessage("Bad request.");
+                    return;
                 }
+
+                httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 int x = 0, y = 0;
                 Int32.TryParse(request["X"].ToString(), out x);
                 Int32.TryParse(request["Y"].ToString(), out y);
@@ -129,22 +129,23 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 if (m_GridService != null)
                 {
-                    System.Net.IPAddress ipAddr = GetCallerIP(httpRequest);
+                    System.Net.IPAddress ipAddr = httpRequest.RemoteIPEndPoint.Address;
                     GridRegion r = m_GridService.GetRegionByPosition(UUID.Zero, (int)Util.RegionToWorldLoc((uint)x), (int)Util.RegionToWorldLoc((uint)y));
                     if (r != null)
                     {
                         if (r.ExternalEndPoint.Address.ToString() != ipAddr.ToString())
                         {
                             m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be trying to impersonate region in IP {1}", ipAddr, r.ExternalEndPoint.Address);
-                            return FailureResult("IP address of caller does not match IP address of registered region");
+                            httpResponse.RawBuffer = Util.ResultFailureMessage("IP address of caller does not match IP address of registered region");
+                            return;
                         }
-
                     }
                     else
                     {
                         m_log.WarnFormat("[MAP IMAGE HANDLER]: IP address {0} may be rogue. Region not found at coordinates {1}-{2}",
                             ipAddr, x, y);
-                        return FailureResult("Region not found at given coordinates");
+                        httpResponse.RawBuffer = Util.ResultFailureMessage("Region not found at given coordinates");
+                        return;
                     }
                 }
 
@@ -152,106 +153,17 @@ namespace OpenSim.Server.Handlers.MapImage
                 bool result = m_MapService.RemoveMapTile(x, y, scopeID, out reason);
 
                 if (result)
-                    return SuccessResult();
+                    httpResponse.RawBuffer = Util.sucessResultSuccess;
                 else
-                    return FailureResult(reason);
-
+                    httpResponse.RawBuffer = Util.ResultFailureMessage(reason);
+                return;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[MAP SERVICE IMAGE HANDLER]: Exception {0} {1}", e.Message, e.StackTrace);
             }
 
-            return FailureResult("Unexpected server error");
+            httpResponse.RawBuffer = Util.ResultFailureMessage("Unexpected server error");
         }
-
-        private byte[] SuccessResult()
-        {
-            XmlDocument doc = new XmlDocument();
-
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "Result", "");
-            result.AppendChild(doc.CreateTextNode("Success"));
-
-            rootElement.AppendChild(result);
-
-            return DocToBytes(doc);
-        }
-
-        private byte[] FailureResult(string msg)
-        {
-            XmlDocument doc = new XmlDocument();
-
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "Result", "");
-            result.AppendChild(doc.CreateTextNode("Failure"));
-
-            rootElement.AppendChild(result);
-
-            XmlElement message = doc.CreateElement("", "Message", "");
-            message.AppendChild(doc.CreateTextNode(msg));
-
-            rootElement.AppendChild(message);
-
-            return DocToBytes(doc);
-        }
-
-        private byte[] DocToBytes(XmlDocument doc)
-        {
-            using(MemoryStream ms = new MemoryStream())
-            {
-                using(XmlTextWriter xw = new XmlTextWriter(ms,null))
-                {
-                    xw.Formatting = Formatting.Indented;
-                    doc.WriteTo(xw);
-                    xw.Flush();
-                }
-            return ms.ToArray();
-            }
-        }
-
-        private System.Net.IPAddress GetCallerIP(IOSHttpRequest request)
-        {
-//            if (!m_Proxy)
-//                return request.RemoteIPEndPoint.Address;
-
-            // We're behind a proxy
-            string xff = "X-Forwarded-For";
-            string xffValue = request.Headers[xff.ToLower()];
-            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
-                xffValue = request.Headers[xff];
-
-            if (xffValue == null || (xffValue != null && xffValue == string.Empty))
-            {
-//                m_log.WarnFormat("[MAP IMAGE HANDLER]: No XFF header");
-                return request.RemoteIPEndPoint.Address;
-            }
-
-            System.Net.IPEndPoint ep = Util.GetClientIPFromXFF(xffValue);
-            if (ep != null)
-                return ep.Address;
-
-            // Oops
-            return request.RemoteIPEndPoint.Address;
-        }
-
     }
 }

@@ -356,7 +356,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     client.SendAlertMessage(e.Message + " ");
                 }
 
-                client.SendMoneyBalance(TransactionID, true, new byte[0], returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
+                client.SendMoneyBalance(TransactionID, true, Array.Empty<byte>(), returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
             }
             else
             {

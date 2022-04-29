@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using System.Net;
 using OpenSim.Framework.ServiceAuth;
@@ -65,7 +66,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     httpResponse.StatusCode = (int)statusCode;
                     httpResponse.ContentType = "text/plain";
-                    return new byte[0];
+                    return Array.Empty<byte>();
                 }
             }
 

@@ -166,7 +166,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             foreach (TimerInfo ts in tvals)
             {
-                if (ts.itemID == itemID)
+                if (ts.itemID.Equals(itemID))
                 {
                     data.Add(ts.interval);
                     data.Add(ts.next-DateTime.Now.Ticks);

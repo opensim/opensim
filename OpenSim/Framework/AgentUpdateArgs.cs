@@ -36,11 +36,6 @@ namespace OpenSim.Framework
     public class AgentUpdateArgs : EventArgs
     {
         /// <summary>
-        /// Agent's unique ID
-        /// </summary>
-        public UUID AgentID;
-
-        /// <summary>
         /// Rotation of the avatar's body
         /// </summary>
         public Quaternion BodyRotation;
@@ -76,7 +71,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// Session Id
         /// </summary>
-        public UUID SessionID;
         public byte State;
 
         public Vector3 ClientAgentPosition;

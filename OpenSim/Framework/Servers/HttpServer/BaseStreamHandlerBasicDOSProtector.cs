@@ -24,7 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using OpenSim.Framework;
+
+using System;
 using System.IO;
 
 namespace OpenSim.Framework.Servers.HttpServer
@@ -78,7 +79,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected virtual byte[] ThrottledRequest(
             string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            return new byte[0];
+            return Array.Empty<byte>();
         }
 
 

@@ -176,7 +176,7 @@
 
     ; * The following are for the remote console
     ; * They have no effect for the local or basic console types
-    ; * Leave commented to diable logins to the console
+    ; * Leave commented to disable logins to the console
     ;ConsoleUser = Test
     ;ConsolePass = secret
     ;ConsolePort = 0

@@ -194,7 +194,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         {
             m_oarFileLoading = true;
 
-            if (message==String.Empty)
+            if (message.Length == 0)
             {
                 m_lastOarLoadedOk = true;
             }

@@ -55,7 +55,10 @@ namespace OpenSim.Region.ClientStack.Linden
         private IInventoryService m_inventoryService = null;
         private ILibraryService m_LibraryService = null;
         private string m_fetchInventory2Url;
+
         private ExpiringKey<UUID> m_badRequests;
+
+        private string m_fetchLib2Url;
 
         #region ISharedRegionModule Members
 
@@ -66,8 +69,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_fetchInventory2Url = config.GetString("Cap_FetchInventory2", string.Empty);
+            m_fetchLib2Url = config.GetString("Cap_FetchLib2", "localhost");
 
-            if (m_fetchInventory2Url != string.Empty)
+            if (m_fetchInventory2Url.Length > 0)
                 Enabled = true;
         }
 
@@ -127,6 +131,14 @@ namespace OpenSim.Region.ClientStack.Linden
         private void RegisterCaps(UUID agentID, Caps caps)
         {
             if (m_fetchInventory2Url == "localhost")
+                RegisterFetchCap(agentID, caps, m_fetchInventory2Url);
+            if (m_fetchLib2Url == "localhost")
+                RegisterFetchLibCap(agentID, caps, "FetchLib2", m_fetchLib2Url);
+        }
+
+        private void RegisterFetchCap(UUID agentID, Caps caps, string url)
+        {
+            if (url == "localhost")
             {
                 FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
                 caps.RegisterSimpleHandler("FetchInventory2",
@@ -138,12 +150,33 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
-                caps.RegisterHandler("FetchInventory2", m_fetchInventory2Url);
+                caps.RegisterHandler("FetchInventory2", url);
             }
 
-//            m_log.DebugFormat(
-//                "[FETCH INVENTORY2 MODULE]: Registered capability {0} at {1} in region {2} for {3}",
-//                capName, capUrl, m_scene.RegionInfo.RegionName, agentID);
+            //m_log.DebugFormat(
+            //    "[FETCH INVENTORY2 MODULE]: Registered capability FetchInventory2 at {0} in region {1} for {2}",
+            //    capUrl, m_scene.RegionInfo.RegionName, agentID);
+        }
+
+        private void RegisterFetchLibCap(UUID agentID, Caps caps, string capName, string url)
+        {
+            if (url == "localhost")
+            {
+                FetchLib2Handler fetchHandler = new FetchLib2Handler(m_inventoryService, m_LibraryService, agentID);
+                caps.RegisterSimpleHandler("FetchLib2",
+                    new SimpleOSDMapHandler("POST", "/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
+                    {
+                        fetchHandler.FetchLibSimpleRequest(httpRequest, httpResponse, map, m_badRequests);
+                    }
+                 ));
+            }
+            else
+            {
+                caps.RegisterHandler("FetchLib2", url);
+            }
+            //m_log.DebugFormat(
+            //    "[FETCH INVENTORY2 MODULE]: Registered capability FetchLib2 at {0} in region {1} for {2}",
+            //    capUrl, m_scene.RegionInfo.RegionName, agentID);
         }
     }
 }

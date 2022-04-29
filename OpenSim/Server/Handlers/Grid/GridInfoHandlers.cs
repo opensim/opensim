@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using System.Security;
@@ -44,8 +45,9 @@ namespace OpenSim.Server.Handlers.Grid
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IConfigSource m_Config;
-        private Hashtable _info = new Hashtable();
-
+        private Dictionary<string, string> _info = new Dictionary<string, string>();
+        private byte[] cachedJsonAnswer = null;
+        private byte[] cachedRestAnswer = null;
         /// <summary>
         /// Instantiate a GridInfoService object.
         /// </summary>
@@ -69,26 +71,56 @@ namespace OpenSim.Server.Handlers.Grid
             try
             {
                 IConfig gridCfg = configSource.Configs["GridInfoService"];
-                IConfig netCfg = configSource.Configs["Network"];
-
-                if (null != gridCfg)
+                if (gridCfg != null)
                 {
                     foreach (string k in gridCfg.GetKeys())
-                    {
                         _info[k] = gridCfg.GetString(k);
-                    }
                 }
-                else if (null != netCfg)
+                else 
                 {
-                    _info["login"] = string.Format("http://127.0.0.1:{0}/",
+                    IConfig netCfg = configSource.Configs["Network"];
+                    if (netCfg != null)
+                    {
+                        _info["login"] = string.Format("http://127.0.0.1:{0}/",
                             netCfg.GetString("http_listener_port", ConfigSettings.DefaultRegionHttpPort.ToString()));
+                    }
+                    else
+                    {
+                        _info["login"] = "http://127.0.0.1:9000/";
+                    }
                     IssueWarning();
                 }
-                else
+
+                _info.TryGetValue("home", out string tmp);
+
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
+                    new string[] { "Startup", "Hypergrid" }, tmp);
+
+                if (string.IsNullOrEmpty(tmp))
                 {
-                    _info["login"] = "http://127.0.0.1:9000/";
-                    IssueWarning();
+                    IConfig logincfg = m_Config.Configs["LoginService"];
+                    if (logincfg != null)
+                        tmp = logincfg.GetString("SRV_HomeURI", tmp);
                 }
+                if (!string.IsNullOrEmpty(tmp))
+                    _info["home"] = OSD.FromString(tmp);
+
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "HomeURIAlias",
+                    new string[] { "Startup", "Hypergrid" }, string.Empty);
+                if (!string.IsNullOrEmpty(tmp))
+                    _info["homealias"] = OSD.FromString(tmp);
+
+                _info.TryGetValue("gatekeeper", out tmp);
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURI",
+                    new string[] { "Startup", "Hypergrid" }, tmp);
+                if (!string.IsNullOrEmpty(tmp))
+                    _info["gatekeeper"] = OSD.FromString(tmp);
+
+                tmp = Util.GetConfigVarFromSections<string>(m_Config, "GatekeeperURIAlias",
+                    new string[] { "Startup", "Hypergrid" }, string.Empty);
+                if (!string.IsNullOrEmpty(tmp))
+                    _info["gatekeeperalias"] = OSD.FromString(tmp);
+
             }
             catch (Exception)
             {
@@ -100,7 +132,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         private void IssueWarning()
         {
-            _log.Warn("[GRID INFO SERVICE]: found no [GridInfo] section in your configuration files");
+            _log.Warn("[GRID INFO SERVICE]: found no [GridInfoService] section in your configuration files");
             _log.Warn("[GRID INFO SERVICE]: trying to guess sensible defaults, you might want to provide better ones:");
 
             foreach (string k in _info.Keys)
@@ -116,9 +148,9 @@ namespace OpenSim.Server.Handlers.Grid
 
             _log.Debug("[GRID INFO SERVICE]: Request for grid info");
 
-            foreach (string k in _info.Keys)
+            foreach (KeyValuePair<string, string>  k in _info)
             {
-                responseData[k] = _info[k];
+                responseData[k.Key] = k.Value;
             }
             response.Value = responseData;
 
@@ -134,25 +166,30 @@ namespace OpenSim.Server.Handlers.Grid
                 return;
             }
 
-            osUTF8 osb = OSUTF8Cached.Acquire();
-            osb.AppendASCII("<gridinfo>");
-            foreach (string k in _info.Keys)
+            if(cachedRestAnswer == null)
             {
-                osb.AppendASCII('<');
-                osb.AppendASCII(k);
-                osb.AppendASCII('>');
-                osb.AppendASCII(SecurityElement.Escape(_info[k].ToString()));
-                osb.AppendASCII("</");
-                osb.AppendASCII(k);
-                osb.AppendASCII('>');
+                osUTF8 osb = OSUTF8Cached.Acquire();
+                osb.AppendASCII("<gridinfo>");
+                foreach (KeyValuePair<string, string> k in _info)
+                {
+                    osb.AppendASCII('<');
+                    osb.AppendASCII(k.Key);
+                    osb.AppendASCII('>');
+                    osb.AppendASCII(SecurityElement.Escape(k.Value.ToString()));
+                    osb.AppendASCII("</");
+                    osb.AppendASCII(k.Key);
+                    osb.AppendASCII('>');
+                }
+                osb.AppendASCII("</gridinfo>");
+                cachedRestAnswer = OSUTF8Cached.GetArrayAndRelease(osb);
             }
-            osb.AppendASCII("</gridinfo>");
-            httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(osb);
+            httpResponse.ContentType = "application/xml";
+            httpResponse.RawBuffer = cachedRestAnswer;
         }
 
         /// <summary>
         /// Get GridInfo in json format: Used by the OSSL osGetGrid*
-        /// Adding the SRV_HomeIRI to the kvp returned for use in scripts
+        /// Adding the SRV_HomeURI to the kvp returned for use in scripts
         /// </summary>
         /// <returns>
         /// json string
@@ -174,30 +211,18 @@ namespace OpenSim.Server.Handlers.Grid
                 return;
             }
 
-            OSDMap map = new OSDMap();
-
-            foreach (string k in _info.Keys)
+            if (cachedJsonAnswer == null)
             {
-                map[k] = OSD.FromString(_info[k].ToString());
+                OSDMap map = new OSDMap();
+                foreach (KeyValuePair<string, string> k in _info)
+                {
+                    map[k.Key] = OSD.FromString(k.Value.ToString());
+                }
+                cachedJsonAnswer = OSDParser.SerializeJsonToBytes(map);
             }
 
-            string HomeURI = Util.GetConfigVarFromSections<string>(m_Config, "HomeURI",
-                new string[] { "Startup", "Hypergrid" }, String.Empty);
-
-            if (!string.IsNullOrEmpty(HomeURI))
-                map["home"] = OSD.FromString(HomeURI);
-            else // Legacy. Remove soon!
-            {
-                IConfig cfg = m_Config.Configs["LoginService"];
-
-                if (null != cfg)
-                    HomeURI = cfg.GetString("SRV_HomeURI", HomeURI);
-
-                if (!string.IsNullOrEmpty(HomeURI))
-                    map["home"] = OSD.FromString(HomeURI);
-            }
-
-            httpResponse.RawBuffer =  OSDParser.SerializeJsonToBytes(map);
+            httpResponse.ContentType = "application/json";
+            httpResponse.RawBuffer = cachedJsonAnswer;
         }
     }
 }
