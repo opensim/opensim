@@ -100,6 +100,7 @@ namespace Prebuild.Core
         bool m_PauseAfterFinish;
         string[] m_ProjectGroups;
 
+        public HashSet<string> excludeFolders = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         #endregion
 
         #region Constructors
@@ -673,7 +674,7 @@ namespace Prebuild.Core
             }
             m_Clean = m_CommandLine["clean"];
             string removeDirs = m_CommandLine["removedir"];
-            if (removeDirs != null && removeDirs.Length == 0)
+            if (!string.IsNullOrEmpty(removeDirs))
             {
                 m_RemoveDirectories = removeDirs.Split('|');
             }
@@ -685,6 +686,20 @@ namespace Prebuild.Core
             }
             m_PauseAfterFinish = m_CommandLine.WasPassed("pause");
 
+            string excludeDirstr = m_CommandLine["excludedir"];
+            if (!string.IsNullOrEmpty(excludeDirstr))
+            {
+                string[] ex = excludeDirstr.Split(new char[] {'|'}, StringSplitOptions.RemoveEmptyEntries);
+                if(ex.Length > 0)
+                {
+                    foreach(string s in ex)
+                    {
+                        string st = s.Trim();
+                        if(st.Length > 0)
+                            excludeFolders.Add(st);
+                    }
+                }
+            }
             //LoadSchema();
         }
 

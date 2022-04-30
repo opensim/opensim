@@ -1,6 +1,6 @@
 @echo OFF
 
-bin\Prebuild.exe /target vs2019 /targetframework v4_8
+bin\Prebuild.exe /target vs2019 /targetframework v4_8 /excludedir = "obj | bin"
 
 setlocal ENABLEEXTENSIONS
 set VALUE_NAME=MSBuildToolsPath
