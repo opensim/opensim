@@ -177,40 +177,40 @@ namespace OpenSim.Services.UserAccountService
             GridUserInfo info = new GridUserInfo();
             info.UserID = d.UserID;
             Dictionary<string, string> kvp = d.Data;
-            string tmpstr;
 
+            string tmpstr;
             if (kvp.TryGetValue("HomeRegionID", out tmpstr))
-                info.HomeRegionID = new UUID(tmpstr);
+                UUID.TryParse(tmpstr, out info.HomeRegionID);
             else
                 info.HomeRegionID = UUID.Zero;
 
             if (kvp.TryGetValue("HomePosition", out tmpstr))
-                info.HomePosition = Vector3.Parse(tmpstr);
+                Vector3.TryParse(tmpstr, out info.HomePosition);
             else
                 info.HomePosition = Vector3.Zero;
 
             if (kvp.TryGetValue("HomeLookAt", out tmpstr))
-                info.HomeLookAt = Vector3.Parse(tmpstr);
+                Vector3.TryParse(tmpstr, out info.HomeLookAt);
             else
                 info.HomeLookAt = Vector3.Zero;
 
             if (kvp.TryGetValue("LastRegionID", out tmpstr))
-                info.LastRegionID = new UUID(tmpstr);
+                UUID.TryParse(tmpstr, out info.LastRegionID);
             else
                 info.LastRegionID = UUID.Zero;
 
             if (kvp.TryGetValue("LastPosition", out tmpstr))
-                info.LastPosition = Vector3.Parse(tmpstr);
+                Vector3.TryParse(tmpstr, out info.LastPosition);
             else
                 info.LastPosition = Vector3.Zero;
 
             if (kvp.TryGetValue("LastLookAt", out tmpstr))
-                info.LastLookAt = Vector3.Parse(tmpstr);
+                Vector3.TryParse(tmpstr, out info.LastLookAt);
             else
                 info.LastLookAt = Vector3.Zero;
 
             if (kvp.TryGetValue("Online", out tmpstr))
-                info.Online = bool.Parse(tmpstr);
+                info.Online = bool.TryParse(tmpstr, out info.Online);
             else
                 info.Online = false;
 
@@ -287,10 +287,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["LastPosition"] = lastPosition.ToString();
             d.Data["LastLookAt"] = lastLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
 
         public bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt)
@@ -307,10 +310,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["HomePosition"] = homePosition.ToString();
             d.Data["HomeLookAt"] = homeLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
 
         public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
@@ -329,10 +335,13 @@ namespace OpenSim.Services.UserAccountService
             d.Data["LastPosition"] = lastPosition.ToString();
             d.Data["LastLookAt"] = lastLookAt.ToString();
 
-            bool ret = m_Database.Store(d);
-            if (ret && userID.Length >= 36)
-                cache.Add(userID.Substring(0, 36), d, 300000);
-            return ret;
+            if(m_Database.Store(d))
+            {
+                if (userID.Length >= 36)
+                    cache.Add(userID.Substring(0, 36), d, 300000);
+                return true;
+            }
+            return false;
         }
     }
 }
