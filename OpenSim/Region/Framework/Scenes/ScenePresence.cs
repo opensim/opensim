@@ -2661,17 +2661,13 @@ namespace OpenSim.Region.Framework.Scenes
             ACFlags flags = RemoveIgnoredControls(allFlags, IgnoredControls);
             m_AgentControlFlags = flags;
 
-            if (AllowMovement)
-                Rotation = agentData.BodyRotation;
-
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
             if (agentData.NeedsCameraCollision)
                 checkCameraCollision();
 
-            PhysicsActor actor = m_physActor;
-
             // This will be the case if the agent is sitting on the groudn or on an object.
+            PhysicsActor actor = m_physActor;
             if (actor == null)
             {
                 SendControlsToScripts((uint)allFlags);
@@ -2680,6 +2676,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AllowMovement)
             {
+                Rotation = agentData.BodyRotation;
+
                 //m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
                 bool update_movementflag = false;
                 bool DCFlagKeyPressed = false;
