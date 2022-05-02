@@ -174,53 +174,39 @@ namespace OpenSim.Services.UserAccountService
 
         private GridUserInfo ToInfo(GridUserData d)
         {
-            GridUserInfo info = new GridUserInfo();
-            info.UserID = d.UserID;
-            Dictionary<string, string> kvp = d.Data;
+            GridUserInfo info = new GridUserInfo() { UserID = d.UserID };
 
             string tmpstr;
+            Dictionary<string, string> kvp = d.Data;
+
             if (kvp.TryGetValue("HomeRegionID", out tmpstr))
                 UUID.TryParse(tmpstr, out info.HomeRegionID);
-            else
-                info.HomeRegionID = UUID.Zero;
 
             if (kvp.TryGetValue("HomePosition", out tmpstr))
                 Vector3.TryParse(tmpstr, out info.HomePosition);
-            else
-                info.HomePosition = Vector3.Zero;
 
             if (kvp.TryGetValue("HomeLookAt", out tmpstr))
                 Vector3.TryParse(tmpstr, out info.HomeLookAt);
-            else
-                info.HomeLookAt = Vector3.Zero;
 
             if (kvp.TryGetValue("LastRegionID", out tmpstr))
                 UUID.TryParse(tmpstr, out info.LastRegionID);
-            else
-                info.LastRegionID = UUID.Zero;
 
             if (kvp.TryGetValue("LastPosition", out tmpstr))
                 Vector3.TryParse(tmpstr, out info.LastPosition);
-            else
-                info.LastPosition = Vector3.Zero;
 
             if (kvp.TryGetValue("LastLookAt", out tmpstr))
                 Vector3.TryParse(tmpstr, out info.LastLookAt);
-            else
-                info.LastLookAt = Vector3.Zero;
-
+                
             if (kvp.TryGetValue("Online", out tmpstr))
-                info.Online = bool.TryParse(tmpstr, out info.Online);
-            else
-                info.Online = false;
+                bool.TryParse(tmpstr, out info.Online);
 
-            if (kvp.TryGetValue("Login", out tmpstr))
-                info.Login = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            if (kvp.TryGetValue("Login", out tmpstr) && Int32.TryParse(tmpstr, out int login))
+                info.Login = Util.ToDateTime(login);
             else
                 info.Login = Util.UnixEpoch;
 
-            if (kvp.TryGetValue("Logout", out tmpstr))
-                info.Logout = Util.ToDateTime(Convert.ToInt32(tmpstr));
+            if (kvp.TryGetValue("Logout", out tmpstr) && Int32.TryParse(tmpstr, out int logout))
+                info.Logout = Util.ToDateTime(logout);
             else
                 info.Logout = Util.UnixEpoch;
 
