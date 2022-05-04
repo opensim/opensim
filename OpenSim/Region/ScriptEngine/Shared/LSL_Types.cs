@@ -928,18 +928,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 if (b is null)
                     return (a is null);
-                if (a is null)
-                    return (b is null);
-                return a.Length == b.Length;
+                return (a is null) ? false : a.Length == b.Length;
             }
 
             public static bool operator !=(list a, list b)
             {
                 if (b is null)
                     return !(a is null);
-                if (a is null)
-                    return !(b is null);
-                return a.Length != b.Length;
+                return (a is null) ? true : a.Length != b.Length;
             }
 
             public void Add(object o)
