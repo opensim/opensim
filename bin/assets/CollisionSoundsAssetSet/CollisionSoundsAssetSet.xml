@@ -343,4 +343,5 @@
     <Key Name="name" Value="snd_SandStep" />
     <Key Name="assetType" Value="1" />
     <Key Name="fileName" Value="snd_SandStep.ogg" />
-  </Section></Nini>
+  </Section>
+</Nini>
