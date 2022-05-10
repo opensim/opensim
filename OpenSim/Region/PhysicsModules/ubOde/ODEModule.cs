@@ -56,7 +56,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
 
                     if (Util.IsWindows())
-                        Util.LoadArchSpecificWindowsDll("ode.dll");
+                        Util.LoadArchSpecificWindowsDll("ubode.dll");
 
                     SafeNativeMethods.InitODE();
 

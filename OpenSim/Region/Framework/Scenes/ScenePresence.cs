@@ -70,16 +70,24 @@ namespace OpenSim.Region.Framework.Scenes
         public ScriptControlled eventControls;
     }
 
+    enum AgentUpdateFlags: byte
+    {
+        None =           0,
+        HideTitle =      0x01,
+        CliAutoPilot =   0x02,
+        MuteCollisions = 0x80
+    }
+
     public delegate void SendCoarseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
     public class ScenePresence : EntityBase, IScenePresence, IDisposable
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        //        ~ScenePresence()
-        //        {
-        //            m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
-        //        }
+        //~ScenePresence()
+        //{
+        //    m_log.DebugFormat("[SCENE PRESENCE]: Destructor called on {0}", Name);
+        //}
 
         public bool GotAttachmentsData = false;
         public int EnvironmentVersion = -1;
@@ -134,6 +142,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IsNPC = (m_presenceType == PresenceType.Npc);
             }
         }
+
+        public bool HideTitle;
+        public bool MuteCollisions;
 
         private ScenePresenceStateMachine m_stateMachine;
 
@@ -2636,6 +2647,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             ACFlags allFlags = (ACFlags)agentData.ControlFlags;
 
+            bool newHideTitle = (agentData.Flags & (byte)AgentUpdateFlags.HideTitle) != 0;
+            if(HideTitle != newHideTitle)
+            {
+                HideTitle = newHideTitle;
+                SendAvatarDataToAllAgents();
+            }
+
+            MuteCollisions = (agentData.Flags & (byte)AgentUpdateFlags.MuteCollisions) != 0;
+
             // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look
             // for an AGENT_CONTROL_LBUTTON_UP event and make sure to handle cases where an initial DOWN is not
@@ -2661,17 +2681,13 @@ namespace OpenSim.Region.Framework.Scenes
             ACFlags flags = RemoveIgnoredControls(allFlags, IgnoredControls);
             m_AgentControlFlags = flags;
 
-            if (AllowMovement)
-                Rotation = agentData.BodyRotation;
-
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             // this exclude checks may not be complete
             if (agentData.NeedsCameraCollision)
                 checkCameraCollision();
 
-            PhysicsActor actor = m_physActor;
-
             // This will be the case if the agent is sitting on the groudn or on an object.
+            PhysicsActor actor = m_physActor;
             if (actor == null)
             {
                 SendControlsToScripts((uint)allFlags);
@@ -2680,6 +2696,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (AllowMovement)
             {
+                Rotation = agentData.BodyRotation;
+
                 //m_log.DebugFormat("[SCENE PRESENCE]: Initial body rotation {0} for {1}", agentData.BodyRotation, Name);
                 bool update_movementflag = false;
                 bool DCFlagKeyPressed = false;

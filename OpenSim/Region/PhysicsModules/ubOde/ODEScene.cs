@@ -1003,27 +1003,31 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (chr == null)
                             continue;
 
-                        chr.IsColliding = false;
-                        // chr.CollidingGround = false; not done here
-                        chr.CollidingObj = false;
+                        if (chr.Colliderfilter < -1)
+                            chr.Colliderfilter = -1;
+                        else
+                        {
+                            chr.IsColliding = false;
+                            // chr.CollidingGround = false; not done here
+                            chr.CollidingObj = false;
 
-                        if(chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
-                            continue;
+                            if(chr.Body == IntPtr.Zero || chr.collider == IntPtr.Zero )
+                                continue;
 
-                        // do colisions with static space
-                        SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
-
+                            // do colisions with static space
+                            SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(chr.collider, CharsSpace, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, nearCallback);
+                        }
                         // no coll with gnd
                     }
                     // chars with chars
-                    SafeNativeMethods.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
-
+                    //SafeNativeMethods.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
                 }
                 catch (AccessViolationException)
                 {
                     m_log.Warn("[PHYSICS]: Unable to collide Character to static space");
                 }
-
             }
 
             lock (_activeprims)
@@ -1067,6 +1071,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_log.Warn("[PHYSICS]: Unable to collide in Active: " + e.Message);
             }
 
+            /*
             // and with chars
             try
             {
@@ -1076,6 +1081,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                     m_log.Warn("[PHYSICS]: Unable to collide Active to Character: " + e.Message);
             }
+            */
         }
 
         #endregion

@@ -261,6 +261,9 @@ namespace Prebuild.Core.Nodes
                             // a significant performance hit when running on a network drive.
                             if (str.EndsWith(".svn"))
                                 continue;
+                            string dname = Path.GetFileName(str);
+                            if(Kernel.Instance.excludeFolders.Contains(dname))
+                                continue;
 
                             RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
                         }
@@ -344,7 +347,6 @@ namespace Prebuild.Core.Nodes
             {
                 throw new WarningException("Could not compile regex pattern: {0}", ex.Message);
             }
-
 
             foreach (XmlNode child in node.ChildNodes)
             {

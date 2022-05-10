@@ -19,7 +19,7 @@ case "$1" in
 
   *)
 
-    mono bin/Prebuild.exe /target vs2019 /targetframework v4_8
+    mono bin/Prebuild.exe /target vs2019 /targetframework v4_8 /excludedir = "obj | bin"
 
   ;;
 
