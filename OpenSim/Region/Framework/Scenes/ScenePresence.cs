@@ -72,9 +72,10 @@ namespace OpenSim.Region.Framework.Scenes
 
     enum AgentUpdateFlags: byte
     {
-        None = 0,
-        HideTitle = 1,
-        CliAutoPilot = 2
+        None =           0,
+        HideTitle =      0x01,
+        CliAutoPilot =   0x02,
+        MuteCollisions = 0x80
     }
 
     public delegate void SendCoarseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
@@ -142,7 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool HideTitle = false;
+        public bool HideTitle;
+        public bool MuteCollisions;
 
         private ScenePresenceStateMachine m_stateMachine;
 
@@ -2651,6 +2653,8 @@ namespace OpenSim.Region.Framework.Scenes
                 HideTitle = newHideTitle;
                 SendAvatarDataToAllAgents();
             }
+
+            MuteCollisions = (agentData.Flags & (byte)AgentUpdateFlags.MuteCollisions) != 0;
 
             // FIXME: This does not work as intended because the viewer only sends the lbutton down when the button
             // is first pressed, not whilst it is held down.  If this is required in the future then need to look

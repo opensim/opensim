@@ -2916,18 +2916,18 @@ namespace OpenSim.Region.Framework.Scenes
             if (soundID.IsZero())
                 return;
 
+            int now = Util.EnvironmentTickCount();
+            if (Util.EnvironmentTickCountSubtract(now, LastColSoundSentTime) < 200)
+                return;
+
             ISoundModule soundModule = ParentGroup.Scene.RequestModuleInterface<ISoundModule>();
             if (soundModule == null)
                 return;
 
             if (volume > 1)
                 volume = 1;
-            if (volume < 0)
+            else if (volume < 0)
                 volume = 0;
-
-            int now = Util.EnvironmentTickCount();
-            if(Util.EnvironmentTickCountSubtract(now, LastColSoundSentTime) < 200)
-                return;
 
             LastColSoundSentTime = now;
 
@@ -2936,7 +2936,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID parentID = ParentGroup.UUID;
             ulong regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
 
-            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle);
+            soundModule.TriggerCollisionSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle);
         }
 
         public void PhysicsOutOfBounds(Vector3 pos)

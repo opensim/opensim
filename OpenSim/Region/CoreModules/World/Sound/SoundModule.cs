@@ -215,6 +215,58 @@ namespace OpenSim.Region.CoreModules.World.Sound
             });
         }
 
+        public virtual void TriggerCollisionSound(
+            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
+        {
+            float radius;
+            SceneObjectPart part;
+            ScenePresence ssp = null;
+            if (!m_scene.TryGetSceneObjectPart(objectID, out part))
+            {
+                if (!m_scene.TryGetScenePresence(ownerID, out ssp))
+                    return;
+                if (!ssp.ParcelAllowThisAvatarSounds)
+                    return;
+
+                radius = MaxDistance;
+            }
+            else
+            {
+                SceneObjectGroup grp = part.ParentGroup;
+
+                if (grp.IsAttachment)
+                {
+                    if (!m_scene.TryGetScenePresence(grp.AttachedAvatar, out ssp))
+                        return;
+
+                    if (!ssp.ParcelAllowThisAvatarSounds)
+                        return;
+
+                }
+
+                radius = (float)part.SoundRadius;
+                if (radius == 0)
+                {
+                    radius = MaxDistance;
+                    part.SoundRadius = MaxDistance;
+                }
+            }
+
+            radius *= radius;
+            m_scene.ForEachRootScenePresence(delegate (ScenePresence sp)
+            {
+                if(sp.MuteCollisions)
+                    return;
+
+                if (Vector3.DistanceSquared(sp.AbsolutePosition, position) > radius) // Max audio distance
+                    return;
+
+                sp.ControllingClient.SendTriggeredSound(soundId, ownerID,
+                        objectID, parentID, handle, position,
+                        (float)gain);
+            });
+        }
+
         public virtual void StopSound(UUID objectID)
         {
             SceneObjectPart m_host;
