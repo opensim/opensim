@@ -126,7 +126,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         // private string m_name = String.Empty;
         // other filter control
-        int m_colliderfilter = 0;
+        public int Colliderfilter = 0;
         int m_colliderGroundfilter = 0;
         int m_colliderObjectfilter = 0;
 
@@ -373,18 +373,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (value)
                 {
-                    m_colliderfilter += 3;
-                    if (m_colliderfilter > 9)
-                        m_colliderfilter = 9;
+                    Colliderfilter += 3;
+                    if (Colliderfilter > 9)
+                        Colliderfilter = 9;
                 }
                 else
                 {
-                    m_colliderfilter--;
-                    if (m_colliderfilter < 0)
-                        m_colliderfilter = 0;
+                    Colliderfilter--;
+                    if (Colliderfilter < 0)
+                        Colliderfilter = 0;
                 }
 
-                if (m_colliderfilter < 6)
+                if (Colliderfilter < 6)
                     m_iscolliding = false;
                 else
                 {
@@ -440,7 +440,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
             set
             {
-                // Ubit filter this also
                 if (value)
                 {
                     m_colliderObjectfilter += 2;
@@ -1282,7 +1281,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if (m_colliderGroundfilter > 2)
                     {
                         m_iscolliding = true;
-                        m_colliderfilter = 2;
+                        Colliderfilter = 2;
 
                         if (m_colliderGroundfilter > 10)
                         {
@@ -2022,7 +2021,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             _zeroFlag = false;
             m_targetVelocity = Vector3.Zero;
             m_freemove = true;
-            m_colliderfilter = -1;
+            Colliderfilter = int.MinValue;
             m_colliderObjectfilter = -1;
             m_colliderGroundfilter = -1;
 
