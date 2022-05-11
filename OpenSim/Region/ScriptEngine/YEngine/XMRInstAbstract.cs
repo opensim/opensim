@@ -237,7 +237,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (liss != null)
             {
                 foreach (LSL_List lis in liss)
-                    newheapuse += HeapTrackerList.Size(lis);
+                {
+                    if(!(lis is null))
+                        newheapuse += lis.Size;
+                }
                 iarLists = liss;
             }
             else
@@ -322,7 +325,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(iarLists != null)
             {
                 foreach(LSL_List lis in iarLists)
-                    newheapuse -= HeapTrackerList.Size(lis);
+                {
+                    if (!(lis is null))
+                        newheapuse += lis.Size;
+                }
                 iarLists = null;
             }
             if(iarObjects != null)

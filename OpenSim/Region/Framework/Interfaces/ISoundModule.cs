@@ -67,6 +67,9 @@ namespace OpenSim.Region.Framework.Interfaces
                 UUID soundId, UUID ownerID, UUID objectID, UUID parentID,
                 double gain, Vector3 position, UInt64 handle);
 
+        void TriggerCollisionSound(
+                        UUID soundId, UUID ownerID, UUID objectID, UUID parentID,
+                        double gain, Vector3 position, UInt64 handle);
         /// <summary>
         /// Stop sounds eminating from an object.
         /// </summary>

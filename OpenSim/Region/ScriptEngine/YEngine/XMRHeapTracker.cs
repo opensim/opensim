@@ -105,33 +105,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void Save(LSL_List lis)
         {
-            if (lis == null)
-                usage = instance.UpdateLocalsHeapUse(usage, 0);
-            else
-                usage = instance.UpdateLocalsHeapUse(usage, Size(lis));
+            usage = (lis == null) ? instance.UpdateLocalsHeapUse(usage, 0) : instance.UpdateLocalsHeapUse(usage, lis.Size);
             value = lis;
         }
 
         public void Restore(LSL_List lis)
         {
             value = lis;
-            if (lis != null)
-                usage = Size(lis);
-            else
-                usage = 0;
+            usage = (lis is null) ? 0 : lis.Size;
         }
 
-        //private static int counter = 5;
         public static int Size(LSL_List lis)
         {
-            try
-            {
-                return lis.Size;
-            }
-            catch
-            {
-                return 0;
-            }
+            return lis is null ? 0 : lis.Size; 
         }
     }
 
