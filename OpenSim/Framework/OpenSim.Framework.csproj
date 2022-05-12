@@ -7,6 +7,7 @@
         <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
+	<Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
     <PropertyGroup>
 		<TransformOnBuild>true</TransformOnBuild>
 		<OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
@@ -209,12 +210,7 @@
   <ItemGroup>
     <None Update="VersionInfo.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>VersionInfo.txt</LastGenOutput>
-    </None>
-    <None Update="VersionInfo.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>VersionInfo.tt</DependentUpon>
+      <LastGenOutput>VersionInfo.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
