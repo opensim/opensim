@@ -161,11 +161,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 m_features["MaxAgentGroupsPremium"] = OSD.FromInteger(Constants.MaxAgentGroups);
 
                 // Extra information for viewers that want to use it
-                // TODO: Take these out of here into their respective modules, like map-server-url
                 OSDMap extrasMap;
-                if(m_features.ContainsKey("OpenSimExtras"))
+                if(m_features.TryGetValue("OpenSimExtras", out OSD oe))
                 {
-                    extrasMap = (OSDMap)m_features["OpenSimExtras"];
+                    extrasMap = oe as OSDMap;
                 }
                 else
                     extrasMap = new OSDMap();
@@ -180,8 +179,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 if (m_ExportSupported)
                     extrasMap["ExportSupported"] = true;
-                if (extrasMap.Count > 0)
-                    m_features["OpenSimExtras"] = extrasMap;
+                m_features["OpenSimExtras"] = extrasMap;
             }
         }
 
@@ -373,20 +371,20 @@ namespace OpenSim.Region.ClientStack.Linden
                         case "destination-guide-url":
                             ginfo.DestinationGuideURL = val;
                             break;
-                        /* keep this local to avoid issues with diferent modules
                         case "currency-base-uri":
-                            ginfo.EconomyURL = val;
+                            // keep this local to avoid issues with diferent modules
+                            // ginfo.EconomyURL = val;
                             break;
-                        */
                         default:
-                            extrasMap[key] = val;
                             if (key == "ExportSupported")
                             {
                                 bool.TryParse(val, out m_ExportSupported);
+                                extrasMap[key] = m_ExportSupported;
                             }
+                            else
+                                extrasMap[key] = val;
                             break;
                     }
-
                 }
                 m_features["OpenSimExtras"] = extrasMap;
             }
