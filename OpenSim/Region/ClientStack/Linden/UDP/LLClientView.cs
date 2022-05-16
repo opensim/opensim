@@ -6950,8 +6950,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Array.Clear(dest, pos, pbszeros); pos += pbszeros;
 
             //NameValue
-            byte[] nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
-                data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
+            byte[] nv;
+            if (data.HideTitle)
+                nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
+                    data.Lastname + "\nTitle STRING RW SV ");
+            else
+                nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
+                    data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             int len = nv.Length;
             dest[pos++] = (byte)len;
             dest[pos++] = (byte)(len >> 8);
@@ -7010,8 +7015,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddZeros(pbszeros);
 
             //NameValue
-            byte[] nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
-                data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
+            byte[] nv;
+            if (data.HideTitle)
+                nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
+                    data.Lastname + "\nTitle STRING RW SV ");
+            else
+                nv = Utils.StringToBytes("FirstName STRING RW SV " + data.Firstname + "\nLastName STRING RW SV " +
+                    data.Lastname + "\nTitle STRING RW SV " + data.Grouptitle);
             int len = nv.Length;
             zc.AddByte((byte)len);
             zc.AddByte((byte)(len >> 8));
