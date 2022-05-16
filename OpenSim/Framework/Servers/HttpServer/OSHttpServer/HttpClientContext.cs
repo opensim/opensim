@@ -519,16 +519,23 @@ namespace OSHttpServer
 
         public bool TrySendResponse(int bytesLimit)
         {
-            if(m_currentResponse == null)
+            if (m_currentResponse == null)
                 return false;
-            if (m_currentResponse.Sent)
-                return false;
+            try
+            {
+                if (m_currentResponse.Sent)
+                    return false;
 
-            if(!CanSend())
-                return false;
+                if(!CanSend())
+                    return false;
 
-            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
-            return m_currentResponse.SendNextAsync(bytesLimit);
+                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+                return m_currentResponse.SendNextAsync(bytesLimit);
+            }
+            catch 
+            {
+                return false;
+            }
         }
 
         public void ContinueSendResponse()

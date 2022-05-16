@@ -204,7 +204,7 @@ namespace OpenSim.Services.GridService
             if (!string.IsNullOrEmpty(configVal))
                 m_ExtraFeatures["GridStatusRSS"] = configVal;
 
-            m_ExtraFeatures["ExportSupported"] = gridConfig.GetBoolean("ExportSupported", true);
+            m_ExtraFeatures["ExportSupported"] = gridConfig.GetString("ExportSupported", "true");
 
             string[] sections = new string[] { "Const, Startup", "Hypergrid", "GatekeeperService" };
             string gatekeeperURIAlias = Util.GetConfigVarFromSections<string>(config, "GatekeeperURIAlias", sections, string.Empty);
