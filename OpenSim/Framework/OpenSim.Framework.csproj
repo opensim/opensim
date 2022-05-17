@@ -7,12 +7,6 @@
         <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
-	<!--<Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />-->
-    <PropertyGroup>
-		<TransformOnBuild>true</TransformOnBuild>
-		<OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
-		<TransformOutOfDateOnly>false</TransformOutOfDateOnly>
-    </PropertyGroup>
 	<ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\bin\log4net.dll</HintPath>
@@ -215,5 +209,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="VersionInfo.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VersionInfo.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
