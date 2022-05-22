@@ -10561,15 +10561,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            bool projection = !stexID.IsZero();
-                            part.Shape.ProjectionEntry = projection;
-                            part.Shape.ProjectionTextureUUID = stexID;
-                            part.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
-                            part.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
-                            part.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
+                            if(!stexID.IsZero())
+                            {
+                                part.Shape.ProjectionEntry = true;
+                                part.Shape.ProjectionTextureUUID = stexID;
+                                part.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
+                                part.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
+                                part.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
 
-                            part.ParentGroup.HasGroupChanged = true;
-                            part.ScheduleFullUpdate();
+                                part.ParentGroup.HasGroupChanged = true;
+                                part.ScheduleFullUpdate();
+                            }
+                            else if(part.Shape.ProjectionEntry)
+                            {
+                                part.Shape.ProjectionEntry = false;
+                                part.Shape.ProjectionTextureUUID = UUID.Zero;
+                                part.Shape.ProjectionFOV = 0f;
+                                part.Shape.ProjectionFocus = 0f;
+                                part.Shape.ProjectionAmbiance = 0f;
+
+                                part.ParentGroup.HasGroupChanged = true;
+                                part.ScheduleFullUpdate();
+                            }
                             break;
 
                         default:
