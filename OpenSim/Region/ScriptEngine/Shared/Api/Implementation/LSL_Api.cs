@@ -15177,8 +15177,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if (!UUID.TryParse(prim, out UUID id))
                 return;
+
             SceneObjectPart obj = World.GetSceneObjectPart(id);
-            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID) || (obj.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+            if (obj == null)
+                return;
+
+            SceneObjectGroup sog = obj.ParentGroup;
+            if (sog == null || sog.IsDeleted)
+                return;
+
+            SceneObjectPart objRoot = sog.RootPart;
+            if (objRoot == null || objRoot.OwnerID.NotEqual(m_host.OwnerID) || (objRoot.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return;
 
             uint rulesParsed = 0;
@@ -15220,7 +15229,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return result;
 
             SceneObjectPart obj = World.GetSceneObjectPart(id);
-            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID) || (obj.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+            if (obj == null)
+                return result;
+
+            SceneObjectGroup sog = obj.ParentGroup;
+            if (sog == null || sog.IsDeleted)
+                return result;
+
+            SceneObjectPart objRoot = sog.RootPart;
+            if (objRoot == null || objRoot.OwnerID.NotEqual(m_host.OwnerID) || (objRoot.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return result;
 
             LSL_List remaining = GetPrimParams(obj, rules, ref result);
