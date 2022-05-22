@@ -11278,51 +11278,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 switch (code)
                 {
-                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                    case ScriptBaseClass.PRIM_MATERIAL:
                         res.Add(new LSL_Integer(part.Material));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                    case ScriptBaseClass.PRIM_PHYSICS:
                         if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                    case ScriptBaseClass.PRIM_TEMP_ON_REZ:
                         if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                    case ScriptBaseClass.PRIM_PHANTOM:
                         if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POSITION:
+                    case ScriptBaseClass.PRIM_POSITION:
                         LSL_Vector v = new LSL_Vector(part.AbsolutePosition.X,
                                                       part.AbsolutePosition.Y,
                                                       part.AbsolutePosition.Z);
                         res.Add(v);
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_SIZE:
+                    case ScriptBaseClass.PRIM_SIZE:
                         res.Add(new LSL_Vector(part.Scale));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                    case ScriptBaseClass.PRIM_ROTATION:
                         res.Add(GetPartRot(part));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                    case ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
                         res.Add(new LSL_Integer((int)part.PhysicsShapeType));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TYPE:
+                    case ScriptBaseClass.PRIM_TYPE:
                         // implementing box
                         PrimitiveBaseShape Shape = part.Shape;
                         int primType = (int)part.GetPrimType();
@@ -11407,7 +11407,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                    case ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -11448,7 +11448,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_COLOR:
+                    case ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -11477,7 +11477,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                    case ScriptBaseClass.PRIM_BUMP_SHINY:
                     {
                         if (remain < 1)
                             return new LSL_List();
@@ -11534,7 +11534,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
                     }
-                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                    case ScriptBaseClass.PRIM_FULLBRIGHT:
                     {
                         if (remain < 1)
                             return new LSL_List();
@@ -11592,7 +11592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                shape.FlexiForceZ));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                    case ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
                             return new LSL_List();
@@ -11627,7 +11627,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                    case ScriptBaseClass.PRIM_POINT_LIGHT:
                         shape = part.Shape;
 
                         if (shape.LightEntry)
@@ -11642,7 +11642,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(shape.LightFalloff));   // falloff
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_GLOW:
+                    case ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -11665,7 +11665,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXT:
+                    case ScriptBaseClass.PRIM_TEXT:
                         Color4 textColor = part.GetTextColor();
                         res.Add(new LSL_String(part.Text));
                         res.Add(new LSL_Vector(textColor.R,
@@ -11674,21 +11674,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(textColor.A));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_NAME:
+                    case ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(part.Name));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_DESC:
+                    case ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(part.Description));
                         break;
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                    case ScriptBaseClass.PRIM_ROT_LOCAL:
                         res.Add(new LSL_Rotation(part.RotationOffset));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                    case ScriptBaseClass.PRIM_POS_LOCAL:
                         res.Add(new LSL_Vector(GetPartLocalPos(part)));
                         break;
-                    case (int)ScriptBaseClass.PRIM_SLICE:
+                    case ScriptBaseClass.PRIM_SLICE:
                         PrimType prim_type = part.GetPrimType();
                         bool useProfileBeginEnd = (prim_type == PrimType.SPHERE || prim_type == PrimType.TORUS || prim_type == PrimType.TUBE || prim_type == PrimType.RING);
                         res.Add(new LSL_Vector(
@@ -11698,7 +11698,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_OMEGA:
+                    case ScriptBaseClass.PRIM_OMEGA:
                         // this may return values diferent from SL since we don't handle set the same way
                         float gain = 1.0f; // we don't use gain and don't store it
                         Vector3 axis = part.AngularVelocity;
@@ -11721,7 +11721,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(gain));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_SIT_TARGET:
+                    case ScriptBaseClass.PRIM_SIT_TARGET:
                         if(part.IsSitTargetSet)
                         {
                             res.Add(new LSL_Integer(1));
@@ -11736,9 +11736,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_NORMAL:
-                    case (int)ScriptBaseClass.PRIM_SPECULAR:
-                    case (int)ScriptBaseClass.PRIM_ALPHA_MODE:
+                    case ScriptBaseClass.PRIM_NORMAL:
+                    case ScriptBaseClass.PRIM_SPECULAR:
+                    case ScriptBaseClass.PRIM_ALPHA_MODE:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -11762,7 +11762,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                    case ScriptBaseClass.PRIM_LINK_TARGET:
 
                         // TODO: Should be issuing a runtime script warning in this case.
                         if (remain < 2)
@@ -11770,12 +11770,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         return rules.GetSublist(idx, -1);
 
-                    case (int)ScriptBaseClass.PRIM_PROJECTOR:
-                    
-                        res.Add(new LSL_String(part.Shape.ProjectionTextureUUID.ToString()));
-                        res.Add(new LSL_Float(part.Shape.ProjectionFOV));
-                        res.Add(new LSL_Float(part.Shape.ProjectionFocus));
-                        res.Add(new LSL_Float(part.Shape.ProjectionAmbiance));
+                    case ScriptBaseClass.PRIM_PROJECTOR:
+                        if(part.Shape.ProjectionEntry)
+                        {
+                            res.Add(new LSL_String(part.Shape.ProjectionTextureUUID.ToString()));
+                            res.Add(new LSL_Float(part.Shape.ProjectionFOV));
+                            res.Add(new LSL_Float(part.Shape.ProjectionFocus));
+                            res.Add(new LSL_Float(part.Shape.ProjectionAmbiance));
+                        }
+                        else
+                        {
+                            res.Add(new LSL_String(ScriptBaseClass.NULL_KEY));
+                            res.Add(new LSL_Float(0));
+                            res.Add(new LSL_Float(0));
+                            res.Add(new LSL_Float(0));
+                        }
+
                         break;
                 }
             }
