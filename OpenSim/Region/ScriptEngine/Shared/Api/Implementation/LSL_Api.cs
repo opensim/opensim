@@ -15178,7 +15178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(prim, out UUID id))
                 return;
             SceneObjectPart obj = World.GetSceneObjectPart(id);
-            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID))
+            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID) || (obj.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return;
 
             uint rulesParsed = 0;
