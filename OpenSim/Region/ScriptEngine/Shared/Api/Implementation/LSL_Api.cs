@@ -11769,6 +11769,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return new LSL_List();
 
                         return rules.GetSublist(idx, -1);
+
+                    case (int)ScriptBaseClass.PRIM_PROJECTOR:
+                    
+                        res.Add(new LSL_String(part.Shape.ProjectionTextureUUID.ToString()));
+                        res.Add(new LSL_Float(part.Shape.ProjectionFOV));
+                        res.Add(new LSL_Float(part.Shape.ProjectionFocus));
+                        res.Add(new LSL_Float(part.Shape.ProjectionAmbiance));
+                        break;
                 }
             }
 
