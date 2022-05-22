@@ -10509,6 +10509,69 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             return rules.GetSublist(idx, -1);
 
+                        case ScriptBaseClass.PRIM_PROJECTOR:
+                            if (remain < 4)
+                                return new LSL_List();
+
+                            string stexname = rules.Data[idx++].ToString();
+                            UUID stexID = UUID.Zero;
+                            if(!string.IsNullOrEmpty(stexname))
+                            {
+                                stexID = ScriptUtils.GetAssetIdFromItemName(m_host, stexname, (int)AssetType.Texture);
+                                if (stexID.IsZero())
+                                {
+                                    if (!UUID.TryParse(stexname, out stexID))
+                                    {
+                                        Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PROJECTOR: arg #{1} - must be a UUID or a texture name on object inventory", rulesParsed, idx - idxStart - 1));
+                                        return new LSL_List();
+                                    }
+                                }
+                            }
+
+                            LSL_Float fov;
+                            try
+                            {
+                                fov = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PROJECTOR: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float focus;
+                            try
+                            {
+                                focus = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PROJECTOR: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            LSL_Float amb;
+                            try
+                            {
+                                amb = rules.GetLSLFloatItem(idx++);
+                            }
+                            catch(InvalidCastException)
+                            {
+                                Error(originFunc, string.Format("Error running rule #{0} -> PRIM_PROJECTOR: arg #{1} - must be float", rulesParsed, idx - idxStart - 1));
+                                return new LSL_List();
+                            }
+
+                            bool projection = !stexID.IsZero();
+                            part.Shape.ProjectionEntry = projection;
+                            part.Shape.ProjectionTextureUUID = stexID;
+                            part.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
+                            part.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
+                            part.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
+
+                            part.ParentGroup.HasGroupChanged = true;
+                            part.ScheduleFullUpdate();
+                            break;
+
                         default:
                             Error(originFunc, string.Format("Error running rule #{0}: arg #{1} - unsupported parameter", rulesParsed, idx - idxStart));
                             return new LSL_List();
