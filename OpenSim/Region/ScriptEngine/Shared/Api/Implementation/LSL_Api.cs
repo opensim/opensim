@@ -8270,12 +8270,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return shapeBlock;
 
-            if (holeshape != (int)ScriptBaseClass.PRIM_HOLE_DEFAULT &&
-                holeshape != (int)ScriptBaseClass.PRIM_HOLE_CIRCLE &&
-                holeshape != (int)ScriptBaseClass.PRIM_HOLE_SQUARE &&
-                holeshape != (int)ScriptBaseClass.PRIM_HOLE_TRIANGLE)
+            if (holeshape != ScriptBaseClass.PRIM_HOLE_DEFAULT &&
+                holeshape != ScriptBaseClass.PRIM_HOLE_CIRCLE &&
+                holeshape != ScriptBaseClass.PRIM_HOLE_SQUARE &&
+                holeshape != ScriptBaseClass.PRIM_HOLE_TRIANGLE)
             {
-                holeshape = (int)ScriptBaseClass.PRIM_HOLE_DEFAULT;
+                holeshape = ScriptBaseClass.PRIM_HOLE_DEFAULT;
             }
             shapeBlock.PathCurve = pathcurve;
             shapeBlock.ProfileCurve = (byte)holeshape;          // Set the hole shape.
@@ -8317,7 +8317,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // we need to do it here also so llGetPrimitiveParams can have access
             // to the correct value.
             if (profileshape != (byte)ProfileCurve.Square &&
-                holeshape == (int)ScriptBaseClass.PRIM_HOLE_SQUARE)
+                holeshape == ScriptBaseClass.PRIM_HOLE_SQUARE)
             {
                 if (hollow > 0.70f)
                 {
@@ -8684,7 +8684,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 type != (ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS | flag))
             {
                 // default
-                type = type | (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
+                type = type | ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
             }
 
             part.Shape.SetSculptProperties((byte)type, sculptId);
@@ -8926,13 +8926,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 GravitationModifier = part.GravityModifier
             };
 
-            if ((material_bits & (int)ScriptBaseClass.DENSITY) != 0)
+            if ((material_bits & ScriptBaseClass.DENSITY) != 0)
                 physdata.Density = material_density;
-            if ((material_bits & (int)ScriptBaseClass.FRICTION) != 0)
+            if ((material_bits & ScriptBaseClass.FRICTION) != 0)
                 physdata.Friction = material_friction;
-            if ((material_bits & (int)ScriptBaseClass.RESTITUTION) != 0)
+            if ((material_bits & ScriptBaseClass.RESTITUTION) != 0)
                 physdata.Bounce = material_restitution;
-            if ((material_bits & (int)ScriptBaseClass.GRAVITY_MULTIPLIER) != 0)
+            if ((material_bits & ScriptBaseClass.GRAVITY_MULTIPLIER) != 0)
                 physdata.GravitationModifier = material_gravity_modifier;
 
             part.UpdateExtraPhysics(physdata);
@@ -10042,7 +10042,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                        case ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
                             if (remain < 5)
                                 return new LSL_List();
 
@@ -10056,7 +10056,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        case ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             if (remain < 1)
                                 return new LSL_List();
                             string temp = rules.Data[idx++].ToString();
@@ -11851,21 +11851,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // material not found
-            if(code == (int)ScriptBaseClass.PRIM_NORMAL || code == (int)ScriptBaseClass.PRIM_SPECULAR)
+            if(code == ScriptBaseClass.PRIM_NORMAL || code == ScriptBaseClass.PRIM_SPECULAR)
             {
                 res.Add(new LSL_String(ScriptBaseClass.NULL_KEY));
                 res.Add(new LSL_Vector(1.0, 1.0, 0));
                 res.Add(new LSL_Vector(0, 0, 0));
                 res.Add(new LSL_Float(0));
 
-                if(code == (int)ScriptBaseClass.PRIM_SPECULAR)
+                if(code == ScriptBaseClass.PRIM_SPECULAR)
                 {
                     res.Add(new LSL_Vector(1.0, 1.0, 1.0));
                     res.Add(new LSL_Integer(51));
                     res.Add(new LSL_Integer(0));
                 }
             }
-            else if(code == (int)ScriptBaseClass.PRIM_ALPHA_MODE)
+            else if(code == ScriptBaseClass.PRIM_ALPHA_MODE)
             {
                 res.Add(new LSL_Integer(1));
                 res.Add(new LSL_Integer(0));
@@ -14501,9 +14501,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llStringTrim(LSL_String src, LSL_Integer type)
         {
-            if (type == (int)ScriptBaseClass.STRING_TRIM_HEAD) { return ((string)src).TrimStart(); }
-            if (type == (int)ScriptBaseClass.STRING_TRIM_TAIL) { return ((string)src).TrimEnd(); }
-            if (type == (int)ScriptBaseClass.STRING_TRIM) { return ((string)src).Trim(); }
+            if (type == ScriptBaseClass.STRING_TRIM_HEAD) { return ((string)src).TrimStart(); }
+            if (type == ScriptBaseClass.STRING_TRIM_TAIL) { return ((string)src).TrimEnd(); }
+            if (type == ScriptBaseClass.STRING_TRIM) { return ((string)src).Trim(); }
             return src;
         }
 
@@ -17077,8 +17077,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     switch (code)
                     {
-                        case (int)ScriptBaseClass.PRIM_POSITION:
-                        case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                        case ScriptBaseClass.PRIM_POSITION:
+                        case ScriptBaseClass.PRIM_POS_LOCAL:
                             {
                                 if (remain < 1)
                                     return new LSL_List();
@@ -17098,7 +17098,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_ROTATION:
+                        case ScriptBaseClass.PRIM_ROTATION:
                             {
                                 if (remain < 1)
                                     return new LSL_List();
@@ -17111,7 +17111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        case ScriptBaseClass.PRIM_ROT_LOCAL:
                             {
                                 if (remain < 1)
                                     return new LSL_List();
@@ -17125,57 +17125,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
 
                         // parse rest doing nothing but number of parameters error check
-                        case (int)ScriptBaseClass.PRIM_SIZE:
-                        case (int)ScriptBaseClass.PRIM_MATERIAL:
-                        case (int)ScriptBaseClass.PRIM_PHANTOM:
-                        case (int)ScriptBaseClass.PRIM_PHYSICS:
-                        case (int)ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
-                        case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
-                        case (int)ScriptBaseClass.PRIM_NAME:
-                        case (int)ScriptBaseClass.PRIM_DESC:
+                        case ScriptBaseClass.PRIM_SIZE:
+                        case ScriptBaseClass.PRIM_MATERIAL:
+                        case ScriptBaseClass.PRIM_PHANTOM:
+                        case ScriptBaseClass.PRIM_PHYSICS:
+                        case ScriptBaseClass.PRIM_PHYSICS_SHAPE_TYPE:
+                        case ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                        case ScriptBaseClass.PRIM_NAME:
+                        case ScriptBaseClass.PRIM_DESC:
                             if (remain < 1)
                                 return new LSL_List();
                             idx++;
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_GLOW:
-                        case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
-                        case (int)ScriptBaseClass.PRIM_TEXGEN:
+                        case ScriptBaseClass.PRIM_GLOW:
+                        case ScriptBaseClass.PRIM_FULLBRIGHT:
+                        case ScriptBaseClass.PRIM_TEXGEN:
                             if (remain < 2)
                                 return new LSL_List();
                             idx += 2;
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TYPE:
+                        case ScriptBaseClass.PRIM_TYPE:
                             if (remain < 3)
                                 return new LSL_List();
                             code = (int)rules.GetLSLIntegerItem(idx++);
                             remain = rules.Length - idx;
                             switch (code)
                             {
-                                case (int)ScriptBaseClass.PRIM_TYPE_BOX:
-                                case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
-                                case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
+                                case ScriptBaseClass.PRIM_TYPE_BOX:
+                                case ScriptBaseClass.PRIM_TYPE_CYLINDER:
+                                case ScriptBaseClass.PRIM_TYPE_PRISM:
                                     if (remain < 6)
                                         return new LSL_List();
                                     idx += 6;
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
+                                case ScriptBaseClass.PRIM_TYPE_SPHERE:
                                     if (remain < 5)
                                         return new LSL_List();
                                     idx += 5;
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
-                                case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
-                                case (int)ScriptBaseClass.PRIM_TYPE_RING:
+                                case ScriptBaseClass.PRIM_TYPE_TORUS:
+                                case ScriptBaseClass.PRIM_TYPE_TUBE:
+                                case ScriptBaseClass.PRIM_TYPE_RING:
                                     if (remain < 11)
                                         return new LSL_List();
                                     idx += 11;
                                     break;
 
-                                case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
+                                case ScriptBaseClass.PRIM_TYPE_SCULPT:
                                     if (remain < 2)
                                         return new LSL_List();
                                     idx += 2;
@@ -17183,32 +17183,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_COLOR:
-                        case (int)ScriptBaseClass.PRIM_TEXT:
-                        case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
-                        case (int)ScriptBaseClass.PRIM_OMEGA:
-                        case (int)ScriptBaseClass.PRIM_SIT_TARGET:
+                        case ScriptBaseClass.PRIM_COLOR:
+                        case ScriptBaseClass.PRIM_TEXT:
+                        case ScriptBaseClass.PRIM_BUMP_SHINY:
+                        case ScriptBaseClass.PRIM_OMEGA:
+                        case ScriptBaseClass.PRIM_SIT_TARGET:
                             if (remain < 3)
                                 return new LSL_List();
                             idx += 3;
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_TEXTURE:
-                        case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
-                        case (int)ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
+                        case ScriptBaseClass.PRIM_TEXTURE:
+                        case ScriptBaseClass.PRIM_POINT_LIGHT:
+                        case ScriptBaseClass.PRIM_PHYSICS_MATERIAL:
                             if (remain < 5)
                                 return new LSL_List();
                             idx += 5;
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                        case ScriptBaseClass.PRIM_FLEXIBLE:
                             if (remain < 7)
                                 return new LSL_List();
 
                             idx += 7;
                             break;
 
-                        case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                        case ScriptBaseClass.PRIM_LINK_TARGET:
                             if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                                 return new LSL_List();
 
@@ -17246,23 +17246,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 switch (code)
                 {
-                    case (int)ScriptBaseClass.PRIM_MATERIAL:
+                    case ScriptBaseClass.PRIM_MATERIAL:
                         res.Add(new LSL_Integer((int)SOPMaterialData.SopMaterial.Flesh));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_PHYSICS:
+                    case ScriptBaseClass.PRIM_PHYSICS:
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
+                    case ScriptBaseClass.PRIM_TEMP_ON_REZ:
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_PHANTOM:
+                    case ScriptBaseClass.PRIM_PHANTOM:
                             res.Add(new LSL_Integer(0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POSITION:
+                    case ScriptBaseClass.PRIM_POSITION:
                         Vector3 pos;
 
                         if (sitPart.ParentGroup.RootPart != null)
@@ -17284,17 +17284,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(pos.X,pos.Y,pos.Z));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_SIZE:
+                    case ScriptBaseClass.PRIM_SIZE:
                         Vector3 s = avatar.Appearance.AvatarSize;
                         res.Add(new LSL_Vector(s.X, s.Y, s.Z));
 
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                    case ScriptBaseClass.PRIM_ROTATION:
                         res.Add(new LSL_Rotation(avatar.GetWorldRotation()));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TYPE:
+                    case ScriptBaseClass.PRIM_TYPE:
                         res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TYPE_BOX));
                         res.Add(new LSL_Integer(ScriptBaseClass.PRIM_HOLE_DEFAULT));
                         res.Add(new LSL_Vector(0f,1.0f,0f));
@@ -17304,7 +17304,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(0, 0, 0));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXTURE:
+                    case ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -17331,7 +17331,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_COLOR:
+                    case ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
                             return new LSL_List();
 
@@ -17352,7 +17352,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
+                    case ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 1)
                             return new LSL_List();
                         face = (int)rules.GetLSLIntegerItem(idx++);
@@ -17372,7 +17372,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
+                    case ScriptBaseClass.PRIM_FULLBRIGHT:
                         if (remain < 1)
                             return new LSL_List();
                         face = (int)rules.GetLSLIntegerItem(idx++);
@@ -17390,7 +17390,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
+                    case ScriptBaseClass.PRIM_FLEXIBLE:
                         res.Add(new LSL_Integer(0));
                         res.Add(new LSL_Integer(0));// softness
                         res.Add(new LSL_Float(0.0f));   // gravity
@@ -17400,7 +17400,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(0f,0f,0f));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXGEN:
+                    case ScriptBaseClass.PRIM_TEXGEN:
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
                             return new LSL_List();
@@ -17419,7 +17419,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
+                    case ScriptBaseClass.PRIM_POINT_LIGHT:
                         res.Add(new LSL_Integer(0));
                         res.Add(new LSL_Vector(0f,0f,0f));
                         res.Add(new LSL_Float(0f)); // intensity
@@ -17427,7 +17427,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Float(0f));   // falloff
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_GLOW:
+                    case ScriptBaseClass.PRIM_GLOW:
                         if (remain < 1)
                             return new LSL_List();
                         face = (int)rules.GetLSLIntegerItem(idx++);
@@ -17441,30 +17441,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                                res.Add(new LSL_Float(0f));
+                            res.Add(new LSL_Float(0f));
                         }
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_TEXT:
+                    case ScriptBaseClass.PRIM_TEXT:
                         res.Add(new LSL_String(""));
                         res.Add(new LSL_Vector(0f,0f,0f));
                         res.Add(new LSL_Float(1.0f));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_NAME:
+                    case ScriptBaseClass.PRIM_NAME:
                         res.Add(new LSL_String(avatar.Name));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_DESC:
+                    case ScriptBaseClass.PRIM_DESC:
                         res.Add(new LSL_String(""));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                    case ScriptBaseClass.PRIM_ROT_LOCAL:
                         Quaternion lrot = avatar.Rotation;
                         res.Add(new LSL_Rotation(lrot.X, lrot.Y, lrot.Z, lrot.W));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_POS_LOCAL:
+                    case ScriptBaseClass.PRIM_POS_LOCAL:
                         Vector3 lpos = avatar.OffsetPosition;
 
                         if(!avatar.LegacySitOffsets)
@@ -17476,7 +17476,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Vector(lpos.X,lpos.Y,lpos.Z));
                         break;
 
-                    case (int)ScriptBaseClass.PRIM_LINK_TARGET:
+                    case ScriptBaseClass.PRIM_LINK_TARGET:
                         if (remain < 3) // setting to 3 on the basis that parsing any usage of PRIM_LINK_TARGET that has nothing following it is pointless.
                             return new LSL_List();
 
