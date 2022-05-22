@@ -11771,7 +11771,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return rules.GetSublist(idx, -1);
 
                     case ScriptBaseClass.PRIM_PROJECTOR:
-                        if(part.Shape.ProjectionEntry)
+                        if (part.Shape.ProjectionEntry)
                         {
                             res.Add(new LSL_String(part.Shape.ProjectionTextureUUID.ToString()));
                             res.Add(new LSL_Float(part.Shape.ProjectionFOV));
@@ -15220,7 +15220,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return result;
 
             SceneObjectPart obj = World.GetSceneObjectPart(id);
-            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID))
+            if (obj == null || obj.OwnerID.NotEqual(m_host.OwnerID) || (obj.ParentGroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return result;
 
             LSL_List remaining = GetPrimParams(obj, rules, ref result);
