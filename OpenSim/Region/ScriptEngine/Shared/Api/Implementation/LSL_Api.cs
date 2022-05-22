@@ -10561,7 +10561,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 return new LSL_List();
                             }
 
-                            if(!stexID.IsZero())
+                            if(stexID.IsNotZero())
                             {
                                 part.Shape.ProjectionEntry = true;
                                 part.Shape.ProjectionTextureUUID = stexID;
@@ -10575,10 +10575,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             else if(part.Shape.ProjectionEntry)
                             {
                                 part.Shape.ProjectionEntry = false;
-                                part.Shape.ProjectionTextureUUID = UUID.Zero;
-                                part.Shape.ProjectionFOV = 0f;
-                                part.Shape.ProjectionFocus = 0f;
-                                part.Shape.ProjectionAmbiance = 0f;
 
                                 part.ParentGroup.HasGroupChanged = true;
                                 part.ScheduleFullUpdate();
