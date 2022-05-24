@@ -15748,18 +15748,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<ContactResult> results = new List<ContactResult>();
 
-            bool checkTerrain = !((rejectTypes & ScriptBaseClass.RC_REJECT_LAND) == ScriptBaseClass.RC_REJECT_LAND);
-            bool checkAgents = !((rejectTypes & ScriptBaseClass.RC_REJECT_AGENTS) == ScriptBaseClass.RC_REJECT_AGENTS);
-            bool checkNonPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) == ScriptBaseClass.RC_REJECT_NONPHYSICAL);
-            bool checkPhysical = !((rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == ScriptBaseClass.RC_REJECT_PHYSICAL);
-            bool rejectHost = ((rejectTypes & ScriptBaseClass.RC_REJECT_HOST) != 0);
-            bool rejectHostGroup = ((rejectTypes & ScriptBaseClass.RC_REJECT_HOSTGROUP) != 0);
+            bool checkTerrain = (rejectTypes & ScriptBaseClass.RC_REJECT_LAND) == 0;
+            bool checkAgents = (rejectTypes & ScriptBaseClass.RC_REJECT_AGENTS) == 0;
+            bool checkNonPhysical = (rejectTypes & ScriptBaseClass.RC_REJECT_NONPHYSICAL) == 0;
+            bool checkPhysical = (rejectTypes & ScriptBaseClass.RC_REJECT_PHYSICAL) == 0;
+            bool rejectHost = (rejectTypes & ScriptBaseClass.RC_REJECT_HOST) != 0;
+            bool rejectHostGroup = (rejectTypes & ScriptBaseClass.RC_REJECT_HOSTGROUP) != 0;
 
             if (World.SupportsRayCastFiltered())
             {
-                RayFilterFlags rayfilter = RayFilterFlags.BackFaceCull;
+                RayFilterFlags rayfilter = 0;
                 if (checkTerrain)
-                    rayfilter |= RayFilterFlags.land;
+                    rayfilter = RayFilterFlags.land;
                 if (checkAgents)
                     rayfilter |= RayFilterFlags.agent;
                 if (checkPhysical)
@@ -15775,24 +15775,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return list;
                 }
 
+                rayfilter |= RayFilterFlags.BackFaceCull;
+
+                dist = (float)Math.Sqrt(dist);
+                Vector3 direction = dir * (1.0f / dist);
+
                 // get some more contacts to sort ???
-                int physcount = 4 * count;
-                if (physcount > 20)
-                    physcount = 20;
+                object physresults = World.RayCastFiltered(rayStart, direction, dist, 2 * count, rayfilter);
 
-                Vector3 direction = dir * (1 / dist);
-
-                object physresults;
-                physresults = World.RayCastFiltered(rayStart, direction, dist, physcount, rayfilter);
-
-                if (physresults == null)
+                if (physresults != null)
                 {
-//                    list.Add(new LSL_Integer(-3)); // timeout error
-//                    return list;
-                    results = new List<ContactResult>();
-                }
-                else
                     results = (List<ContactResult>)physresults;
+                }
 
                 // for now physics doesn't detect sitted avatars so do it outside physics
                 if (checkAgents)
