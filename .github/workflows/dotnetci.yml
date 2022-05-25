@@ -19,5 +19,5 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Run Tests
-      run: dotnet test --logger "trx;LogFileName=<TestResults.trx>"
+#    - name: Run Tests
+#      run: dotnet test --logger "trx;LogFileName=<TestResults.trx>"
