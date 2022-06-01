@@ -59,6 +59,7 @@
     <Compile Remove="MySQL\MySQLRegionData.cs" />
     <Compile Remove="MySQL\MySQLSimulationData.cs" />
     <Compile Remove="MySQL\MySQLUserAccountData.cs" />
+	<Compile Remove="MySQL\MySQLUserAliasData.cs" />
     <Compile Remove="MySQL\MySQLUserProfilesData.cs" />
     <Compile Remove="MySQL\MySQLXAssetData.cs" />
     <Compile Remove="MySQL\MySQLXInventoryData.cs" />
