@@ -118,6 +118,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </value>
         protected bool m_skipAssets;
 
+        /// <summary>
+        /// Should we look up and resolve aliases (uuids) for foreign
+        /// users to a local user id when present?
+        /// </summary>
+        protected bool m_lookupAliases;
+
         /// <value>
         /// Displacement added to each object as it is added to the world
         /// </value>
@@ -156,6 +162,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
+
+        /// <summary>
+        /// Used to cache aliased Id Lookups, aliasID -> local userID
+        /// </summary>
+        private IDictionary<UUID, UUID> m_aliasedUserUuids = new Dictionary<UUID, UUID>();
 
         private IUserManagement m_UserMan;
         private IUserManagement UserManager
@@ -216,6 +227,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_mergeParcels = options.ContainsKey("merge-parcels");
             m_noObjects = options.ContainsKey("no-objects");
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_lookupAliases = options.ContainsKey("lookupAliases");
             m_requestId = requestId;
             m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
             m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
@@ -1036,6 +1048,21 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 return m_validGroupUuids[uuid];
             }
+        }
+
+        /// <summary>
+        /// Resolve a userid to an on local grid alias user.  Look up the uuid and if
+        /// there is an alias to a local user return the local id in aliasID.
+        /// </summary>
+        /// <param name="scene">The scene being loaded, provides context</param>
+        /// <param name="uuid">The UUID presumed to be an alias for a local user</param>
+        /// <param name="aliasID">The local id that uuid is aliased to.</param>
+        /// <returns>True if an Alias Exists, False otherwize</returns>
+        private bool ResolveUserAlias(Scene scene, UUID uuid, out UUID aliasID)
+        {
+            aliasID = UUID.Zero;
+
+            return false;
         }
 
         private bool TryUploadAsset(UUID assetID, sbyte assetType, byte[] data)
