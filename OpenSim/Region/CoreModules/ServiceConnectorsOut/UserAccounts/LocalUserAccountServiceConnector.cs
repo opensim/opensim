@@ -248,6 +248,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             m_Cache.Invalidate(userID);
         }
 
+        public UserAccount GetUserForAlias(UUID scopeID, UUID aliasID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<UUID> GetUserAliases(UUID scopeID, UUID userID)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<UUID> GetUserAliases(UUID scopeID, UserAccount user)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
