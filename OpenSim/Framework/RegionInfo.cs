@@ -803,13 +803,13 @@ namespace OpenSim.Framework
             config.Set("ExternalHostName", m_externalHostName);
 
             if (m_nonphysPrimMin > 0)
-                config.Set("NonphysicalPrimMax", m_nonphysPrimMin);
+                config.Set("NonphysicalPrimMin", m_nonphysPrimMin);
 
             if (m_nonphysPrimMax > 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
 
             if (m_physPrimMin > 0)
-                config.Set("PhysicalPrimMax", m_physPrimMin);
+                config.Set("PhysicalPrimMin", m_physPrimMin);
 
             if (m_physPrimMax > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMax);
