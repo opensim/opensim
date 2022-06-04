@@ -250,17 +250,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public UserAccount GetUserForAlias(UUID scopeID, UUID aliasID)
         {
-            throw new NotImplementedException();
+            var account = UserAccountService.GetUserForAlias(scopeID, aliasID);
+            return account;
         }
 
         public List<UUID> GetUserAliases(UUID scopeID, UUID userID)
         {
-            throw new NotImplementedException();
+            var aliases = UserAccountService.GetUserAliases(scopeID, userID);
+            return aliases;
         }
 
         public List<UUID> GetUserAliases(UUID scopeID, UserAccount user)
         {
-            throw new NotImplementedException();
+            if (user != null)
+                return GetUserAliases(scopeID, user.PrincipalID);
+            else
+                return null;
         }
 
         #endregion

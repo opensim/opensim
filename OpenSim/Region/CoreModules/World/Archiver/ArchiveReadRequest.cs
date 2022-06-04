@@ -168,6 +168,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         private IDictionary<UUID, UUID> m_aliasedUserUuids = new Dictionary<UUID, UUID>();
 
+        /// <summary>
+        /// Used to cache lookups for aliased uuids. Have we seen this before?
+        /// </summary>
+        private IDictionary<UUID, bool> m_aliasedUser = new Dictionary<UUID, bool>();
+
         private IUserManagement m_UserMan;
         private IUserManagement UserManager
         {
@@ -785,19 +790,57 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (string.IsNullOrEmpty(part.CreatorData))
                 {
                     if (!ResolveUserUuid(scene, part.CreatorID))
+                    {
                         part.CreatorID = m_defaultUser;
+
+                        if (m_lookupAliases == true)
+                        {
+                            UUID userID = UUID.Zero;
+                            if (ResolveUserAlias(scene, part.CreatorID, out userID))
+                            {
+                                part.CreatorID = userID;
+                            }
+                        }
+                    }
                 }
+
                 if (UserManager != null)
+                {
                     UserManager.AddCreatorUser(part.CreatorID, part.CreatorData);
+                }
 
                 if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
+                {
                     part.OwnerID = m_defaultUser;
 
+                    if (m_lookupAliases == true)
+                    {
+                        UUID userID = UUID.Zero;
+                        if (ResolveUserAlias(scene, part.OwnerID, out userID))
+                        {
+                            part.OwnerID = userID;
+                        }
+                    }
+                }
+
                 if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
+                {
                     part.LastOwnerID = m_defaultUser;
 
+                    if (m_lookupAliases == true)
+                    {
+                        UUID userID = UUID.Zero;
+                        if (ResolveUserAlias(scene, part.LastOwnerID, out userID))
+                        {
+                            part.LastOwnerID = userID;
+                        }
+                    }
+                }
+
                 if (!ResolveGroupUuid(part.GroupID))
+                {
                     part.GroupID = UUID.Zero;
+                }
 
                 // And zap any troublesome sit target information
                 //                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
@@ -824,22 +867,46 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
                         {
                             kvp.Value.OwnerID = m_defaultUser;
+
+                            if (m_lookupAliases == true)
+                            {
+                                UUID userID = UUID.Zero;
+                                if (ResolveUserAlias(scene, kvp.Value.OwnerID, out userID))
+                                {
+                                    kvp.Value.OwnerID = userID;
+                                }
+                            }
                         }
 
                         if (string.IsNullOrEmpty(kvp.Value.CreatorData))
                         {
                             if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
+                            {
                                 kvp.Value.CreatorID = m_defaultUser;
+
+                                if (m_lookupAliases == true)
+                                {
+                                    UUID userID = UUID.Zero;
+                                    if (ResolveUserAlias(scene, kvp.Value.CreatorID, out userID))
+                                    {
+                                        kvp.Value.CreatorID = userID;
+                                    }
+                                }
+                            }
                         }
 
                         if (UserManager != null)
+                        {
                             UserManager.AddCreatorUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
+                        }
 
                         if (!ResolveGroupUuid(kvp.Value.GroupID))
+                        {
                             kvp.Value.GroupID = UUID.Zero;
+                        }
                     }
-                    part.TaskInventory.LockItemsForRead(false);
 
+                    part.TaskInventory.LockItemsForRead(false);
                 }
             }
         }
@@ -1022,6 +1089,46 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         }
 
         /// <summary>
+        /// Resolve a userid to an on local grid alias user.  Look up the uuid and if
+        /// there is an alias to a local user return the local id in aliasID.
+        /// </summary>
+        /// <param name="scene">The scene being loaded, provides context</param>
+        /// <param name="aliasID">The UUID presumed to be an alias for a local user</param>
+        /// <param name="userID">The local id that uuid is aliased to.</param>
+        /// <returns>True if an Alias Exists, False otherwize</returns>
+        private bool ResolveUserAlias(Scene scene, UUID aliasID, out UUID userID)
+        {
+            userID = UUID.Zero;
+
+            lock (m_aliasedUserUuids)
+            {
+                if (!m_aliasedUser.ContainsKey(aliasID))
+                {
+                    // Note: we call GetUserForAlias() inside the lock because this UserID is likely
+                    // to occur many times, and we only want to query the users service once.
+                    var account = scene.UserAccountService.GetUserForAlias(scene.RegionInfo.ScopeID, aliasID);
+                    m_aliasedUser.Add(aliasID, account != null);
+
+                    if (account != null)
+                    {
+                        m_aliasedUserUuids.Add(aliasID, account.PrincipalID);
+                    }
+                }
+
+                if (m_aliasedUser[aliasID] == true)
+                {
+                    userID = m_aliasedUserUuids[aliasID];
+                    return true;
+                }
+                else
+                {
+                    userID = UUID.Zero;
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Look up the given group id to check whether it's one that is valid for this grid.
         /// </summary>
         /// <param name="uuid"></param>
@@ -1048,21 +1155,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 return m_validGroupUuids[uuid];
             }
-        }
-
-        /// <summary>
-        /// Resolve a userid to an on local grid alias user.  Look up the uuid and if
-        /// there is an alias to a local user return the local id in aliasID.
-        /// </summary>
-        /// <param name="scene">The scene being loaded, provides context</param>
-        /// <param name="uuid">The UUID presumed to be an alias for a local user</param>
-        /// <param name="aliasID">The local id that uuid is aliased to.</param>
-        /// <returns>True if an Alias Exists, False otherwize</returns>
-        private bool ResolveUserAlias(Scene scene, UUID uuid, out UUID aliasID)
-        {
-            aliasID = UUID.Zero;
-
-            return false;
         }
 
         private bool TryUploadAsset(UUID assetID, sbyte assetType, byte[] data)
