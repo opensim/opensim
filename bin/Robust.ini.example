@@ -211,6 +211,10 @@
     ;BaseDirectory = "./fsassets/data"
     ;SpoolDirectory = "./fsassets/tmp"
 
+	;; FSAssets only: if running several instances, only one can run some services, so others need to be set as secondary
+	;; for secondary instances uncoment this line
+	;SecondaryInstance = true
+	
     ;; Original service can be checked if FSAssets can not find an asset
     ;FallbackService = "OpenSim.Services.AssetService.dll:AssetService";
 
