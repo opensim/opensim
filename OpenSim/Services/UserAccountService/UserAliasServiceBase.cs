@@ -26,54 +26,48 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenSim.Framework;
+using System.Reflection;
+using Nini.Config;
 using OpenSim.Data;
+using OpenSim.Services.Interfaces;
+using OpenSim.Services.Base;
 
-using MySql.Data.MySqlClient;
-using System.Collections.Generic;
-
-namespace OpenSim.Data.MySQL
+namespace OpenSim.Services.UserAccountService
 {
-    /// <summary>
-    /// A MySQL Interface for the User Server - User Aliases
-    /// </summary>
-    public class MySQLUserAliasData : MySQLGenericTableHandler<UserAliasData>,
-        IUserAliasData
+    public class UserAliasServiceBase: ServiceBase
     {
-        public MySQLUserAliasData(string connectionString, string realm) :
-                base(connectionString, realm, "UserAlias")
+        protected IUserAliasData m_Database = null;
+
+        public UserAliasServiceBase(IConfigSource config) : base(config)
         {
-        }
+            string dllName = String.Empty;
+            string connString = String.Empty;
+            string realm = "UserAlias";
 
-        public UserAliasData Get(int Id)
-        {
-            UserAliasData[] ret = Get("Id", Id.ToString());
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
 
-            if (ret.Length == 0)
-                return null;
+            IConfig userConfig = config.Configs["UserAccountService"];
+            if (userConfig == null)
+                throw new Exception("No UserAccountService configuration");
 
-            return ret[0];
-        }
+            dllName = userConfig.GetString("StorageProvider", dllName);
 
-        public UserAliasData GetUserForAlias(UUID aliasID)
-        {
-            UserAliasData[] ret = Get("AliasID", aliasID.ToString());
+            if (dllName.Length == 0)
+                throw new Exception("No StorageProvider configured");
 
-            if (ret.Length == 0)
-                return null;
+            connString = userConfig.GetString("ConnectionString", connString);
 
-            return ret[0];
-        }
+            realm = userConfig.GetString("Realm", realm);
 
-        public List<UserAliasData> GetUserAliases(UUID userID)
-        {
-            var aliases = Get("UserID", userID.ToString());
+            m_Database = LoadPlugin<IUserAliasData>(dllName, new Object[] {connString, realm});
 
-            if (aliases.Length == 0)
-                return null;
-
-            return new List<UserAliasData>(aliases);
+            if (m_Database == null)
+                throw new Exception("Could not find a storage interface in the given module");
         }
     }
 }

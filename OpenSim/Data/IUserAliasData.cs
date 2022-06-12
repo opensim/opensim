@@ -32,7 +32,7 @@ using OpenSim.Framework;
 namespace OpenSim.Data
 {
     // This MUST be a ref type!
-    public class UserAlias
+    public class UserAliasData
     {
         public int Id = 0;
         public UUID AliasID;
@@ -45,13 +45,27 @@ namespace OpenSim.Data
     /// </summary>
     public interface IUserAliasData
     {
-        bool Store(UserAlias data);
+        bool Store(UserAliasData data);
         
-        UserAlias Get(int Id);
-        
-        UserAlias Get(UUID aliasID);
+        UserAliasData Get(int Id);
 
-        UserAlias[] GetAliasesForUser(UUID userID);
+        /// <summary>
+        /// Lookup and return a local user based on an Alias entry if a local 
+        /// user exists for this aliasID
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="aliasID"></param>
+        /// <returns>UserAccount or NULL</returns>
+        UserAliasData GetUserForAlias(UUID aliasID);
+
+        /// <summary>
+        /// Giver a userid/user on the local grid. lookup and return a
+        /// list of all the known Aliases IDs for the user.
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        List<UserAliasData> GetUserAliases(UUID userID);
 
         bool Delete(string field, string val);
     }

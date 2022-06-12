@@ -26,54 +26,72 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Data;
-
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
+using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Data.MySQL
+namespace OpenSim.Services.UserAccountService
 {
-    /// <summary>
-    /// A MySQL Interface for the User Server - User Aliases
-    /// </summary>
-    public class MySQLUserAliasData : MySQLGenericTableHandler<UserAliasData>,
-        IUserAliasData
+    public class UserAliasService : UserAliasServiceBase, IUserAliasService
     {
-        public MySQLUserAliasData(string connectionString, string realm) :
-                base(connectionString, realm, "UserAlias")
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public UserAliasService(IConfigSource config)
+            : base(config)
         {
+
         }
 
-        public UserAliasData Get(int Id)
+        /// <summary>
+        /// Given a userID, return a list of any aliases (UUIDs) defined for this user
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>List<UserAlias>() - A list of aliases or null if none are defined</UUID></returns>
+        public List<UserAlias> GetUserAliases(UUID userID)
         {
-            UserAliasData[] ret = Get("Id", Id.ToString());
+            var aliases = m_Database.GetUserAliases(userID);
 
-            if (ret.Length == 0)
+            if ((aliases == null) || (aliases.Count == 0))
                 return null;
+            
+            var userAliases = new List<UserAlias>();
+            foreach (var alias in aliases)
+            {
+                var userAlias = new UserAlias
+                {
+                    AliasID = alias.AliasID,
+                    UserID = alias.UserID,
+                    Description = alias.Description
+                };
 
-            return ret[0];
+                userAliases.Add(userAlias);
+            }
+
+            return userAliases;
         }
 
-        public UserAliasData GetUserForAlias(UUID aliasID)
+        public UserAlias GetUserForAlias(UUID aliasID)
         {
-            UserAliasData[] ret = Get("AliasID", aliasID.ToString());
+            var alias = m_Database.GetUserForAlias(aliasID);
 
-            if (ret.Length == 0)
+            if (alias == null)
+            {
                 return null;
+            }
+            else
+            {
+                var userAlias = new UserAlias
+                {
+                    AliasID = alias.AliasID,
+                    UserID = alias.UserID,
+                    Description = alias.Description
+                };
 
-            return ret[0];
-        }
-
-        public List<UserAliasData> GetUserAliases(UUID userID)
-        {
-            var aliases = Get("UserID", userID.ToString());
-
-            if (aliases.Length == 0)
-                return null;
-
-            return new List<UserAliasData>(aliases);
+                return userAlias;
+            }
         }
     }
 }

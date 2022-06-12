@@ -26,54 +26,56 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Data;
-
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using OpenMetaverse;
 
-namespace OpenSim.Data.MySQL
+using OpenSim.Framework;
+
+namespace OpenSim.Services.Interfaces
 {
-    /// <summary>
-    /// A MySQL Interface for the User Server - User Aliases
-    /// </summary>
-    public class MySQLUserAliasData : MySQLGenericTableHandler<UserAliasData>,
-        IUserAliasData
+    public class UserAlias
     {
-        public MySQLUserAliasData(string connectionString, string realm) :
-                base(connectionString, realm, "UserAlias")
+        public UUID AliasID;
+        public UUID UserID = UUID.Zero;
+        public string Description;
+        public UserAlias()
         {
         }
 
-        public UserAliasData Get(int Id)
+        public UserAlias(UUID AliasID, UUID UserID, string Description)
         {
-            UserAliasData[] ret = Get("Id", Id.ToString());
-
-            if (ret.Length == 0)
-                return null;
-
-            return ret[0];
+            this.AliasID = AliasID;
+            this.UserID = UserID;
+            this.Description = Description;
         }
 
-        public UserAliasData GetUserForAlias(UUID aliasID)
+        public UserAlias(Dictionary<string, object> kvp)
         {
-            UserAliasData[] ret = Get("AliasID", aliasID.ToString());
-
-            if (ret.Length == 0)
-                return null;
-
-            return ret[0];
+            if (kvp.ContainsKey("AliasID"))
+                UUID.TryParse(kvp["AliasID"].ToString(), out AliasID);
+            if (kvp.ContainsKey("UserID"))
+                UUID.TryParse(kvp["UserID"].ToString(), out UserID);
+            if (kvp.ContainsKey("Description"))
+                Description = kvp["Description"].ToString();
         }
+    }
 
-        public List<UserAliasData> GetUserAliases(UUID userID)
-        {
-            var aliases = Get("UserID", userID.ToString());
+    public interface IUserAliasService
+    {
+        /// <summary>
+        /// Lookup and return a local user based on an Alias entry if a local 
+        /// user exists for this aliasID
+        /// </summary>
+        /// <param name="aliasID"></param>
+        /// <returns>UserAccount or NULL</returns>
+        UserAlias GetUserForAlias(UUID aliasID);
 
-            if (aliases.Length == 0)
-                return null;
-
-            return new List<UserAliasData>(aliases);
-        }
+        /// <summary>
+        /// Given a userid/user on the local grid. lookup and return a
+        /// list of all the known Aliases IDs for the user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        List<UserAlias> GetUserAliases(UUID userID);
     }
 }

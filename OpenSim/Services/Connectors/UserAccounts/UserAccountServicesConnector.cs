@@ -427,20 +427,5 @@ namespace OpenSim.Services.Connectors
 
             return false;
         }
-
-        public UserAccount GetUserForAlias(UUID scopeID, UUID aliasID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<UUID> GetUserAliases(UUID scopeID, UUID userID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<UUID> GetUserAliases(UUID scopeID, UserAccount user)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
