@@ -248,26 +248,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             m_Cache.Invalidate(userID);
         }
 
-        public UserAccount GetUserForAlias(UUID scopeID, UUID aliasID)
-        {
-            var account = UserAccountService.GetUserForAlias(scopeID, aliasID);
-            return account;
-        }
-
-        public List<UUID> GetUserAliases(UUID scopeID, UUID userID)
-        {
-            var aliases = UserAccountService.GetUserAliases(scopeID, userID);
-            return aliases;
-        }
-
-        public List<UUID> GetUserAliases(UUID scopeID, UserAccount user)
-        {
-            if (user != null)
-                return GetUserAliases(scopeID, user.PrincipalID);
-            else
-                return null;
-        }
-
         #endregion
     }
 }

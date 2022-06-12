@@ -1104,15 +1104,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (!m_aliasedUser.ContainsKey(aliasID))
                 {
-                    // Note: we call GetUserForAlias() inside the lock because this UserID is likely
-                    // to occur many times, and we only want to query the users service once.
-                    var account = scene.UserAccountService.GetUserForAlias(scene.RegionInfo.ScopeID, aliasID);
-                    m_aliasedUser.Add(aliasID, account != null);
+                    var alias = scene.UserAliasService.GetUserForAlias(aliasID);
+                    m_aliasedUser.Add(aliasID, alias != null);
 
-                    if (account != null)
-                    {
-                        m_aliasedUserUuids.Add(aliasID, account.PrincipalID);
-                    }
+                    if (alias != null)
+                        m_aliasedUserUuids.Add(aliasID, alias.UserID);
                 }
 
                 if (m_aliasedUser[aliasID] == true)

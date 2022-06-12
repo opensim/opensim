@@ -323,6 +323,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IAuthenticationService m_AuthenticationService;
         protected IPresenceService m_PresenceService;
         protected IUserAccountService m_UserAccountService;
+        protected IUserAliasService m_UserAliasService;
         protected IAvatarService m_AvatarService;
         protected IGridUserService m_GridUserService;
         protected IAgentPreferencesService m_AgentPreferencesService;
@@ -709,6 +710,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public IUserAliasService UserAliasService
+        {
+            get
+            {
+                if (m_UserAliasService == null)
+                    m_UserAliasService = RequestModuleInterface<IUserAliasService>();
+                return m_UserAliasService;
+            }
+        }
         public IAvatarService AvatarService
         {
             get

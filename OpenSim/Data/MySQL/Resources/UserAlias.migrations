@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS `UserAlias` (
   `Id` int NOT NULL AUTO_INCREMENT,
-  `AliasID` char(36) NOT NULL,
+  `AliasID` char(36) NOT NULL UNIQUE,
   `UserID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000',
   `Description` varchar(80),
   UNIQUE KEY `Id` (`Id`),

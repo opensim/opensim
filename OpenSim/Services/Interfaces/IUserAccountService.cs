@@ -135,7 +135,7 @@ namespace OpenSim.Services.Interfaces
                 if (str != string.Empty)
                 {
                     string[] parts = str.Split(new char[] { ';' });
-//                    Dictionary<string, object> dic = new Dictionary<string, object>();
+                    //                    Dictionary<string, object> dic = new Dictionary<string, object>();
                     foreach (string s in parts)
                     {
                         string[] parts2 = s.Split(new char[] { '*' });
@@ -188,25 +188,6 @@ namespace OpenSim.Services.Interfaces
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
         List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where);
         List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs);
-
-        /// <summary>
-        /// Lookup and return a local user based on an Alias entry if a local 
-        /// user exists for this aliasID
-        /// </summary>
-        /// <param name="scopeID"></param>
-        /// <param name="aliasID"></param>
-        /// <returns>UserAccount or NULL</returns>
-        UserAccount GetUserForAlias(UUID scopeID, UUID aliasID);
-        
-        /// <summary>
-        /// Giver a userid/user on the local grid. lookup and return a
-        /// list of all the known Aliases IDs for the user.
-        /// </summary>
-        /// <param name="scopeID"></param>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        List<UUID> GetUserAliases(UUID scopeID, UUID userID);
-        List<UUID> GetUserAliases(UUID scopeID, UserAccount user);
 
         /// <summary>
         /// Store the data given, wich replaces the stored data, therefore must be complete.
