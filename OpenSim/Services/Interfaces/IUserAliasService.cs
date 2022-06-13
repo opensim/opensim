@@ -58,6 +58,16 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Description"))
                 Description = kvp["Description"].ToString();
         }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["AliasID"] = AliasID;
+            result["UserID"] = UserID;
+            result["Description"] = Description;
+
+            return result;
+        }
     }
 
     public interface IUserAliasService
