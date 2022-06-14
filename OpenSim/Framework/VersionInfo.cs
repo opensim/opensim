@@ -31,7 +31,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string BuildNumber = "8198";
+        public const string BuildNumber = "8199";
         public const string VersionNumber = "0.9.2."+BuildNumber;
         public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
 
