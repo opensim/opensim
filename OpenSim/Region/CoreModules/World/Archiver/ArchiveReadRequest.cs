@@ -289,6 +289,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_loadPath = null;
             m_loadStream = loadStream;
             m_skipAssets = options.ContainsKey("skipAssets");
+            m_lookupAliases = options.ContainsKey("lookupAliases");
             m_merge = options.ContainsKey("merge");
             m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
             m_requestId = requestId;
@@ -1107,6 +1108,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     var alias = scene.UserAliasService.GetUserForAlias(aliasID);
                     m_aliasedUser.Add(aliasID, alias != null);
 
+                    m_log.DebugFormat("[ARCHIVER]: GetUserForAlias {0} returned {1}", 
+                        aliasID.ToString(), alias == null ? "null" : alias.UserID.ToString());
+                    
                     if (alias != null)
                         m_aliasedUserUuids.Add(aliasID, alias.UserID);
                 }
