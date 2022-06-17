@@ -51,9 +51,9 @@ namespace OpenSim.Services.UserAccountService
                 connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
-            IConfig userConfig = config.Configs["UserAccountService"];
+            IConfig userConfig = config.Configs["UserAliasService"];
             if (userConfig == null)
-                throw new Exception("No UserAccountService configuration");
+                throw new Exception("No UserAliasService configuration");
 
             dllName = userConfig.GetString("StorageProvider", dllName);
 
