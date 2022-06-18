@@ -108,6 +108,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="id">key of sender (object or avatar)</param>
         /// <param name="msg">msg to sent</param>
         void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg);
+        void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg, Vector3 sourcePosition);
 
         /// <summary>
         /// Delivers the message to a specified object in the region.
