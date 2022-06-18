@@ -62,25 +62,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             if (m_commsPlugin != null)
             {
-                while (m_commsPlugin.HasMessages())
+                ListenerInfo lInfo;
+                while ((lInfo = (ListenerInfo)m_commsPlugin.GetNextMessage()) != null)
                 {
-                    ListenerInfo lInfo = (ListenerInfo)m_commsPlugin.GetNextMessage();
-
                     //Deliver data to prim's listen handler
                     object[] resobj = new object[]
                     {
-                        new LSL_Types.LSLInteger(lInfo.GetChannel()),
-                        new LSL_Types.LSLString(lInfo.GetName()),
-                        new LSL_Types.LSLString(lInfo.GetID().ToString()),
-                        new LSL_Types.LSLString(lInfo.GetMessage())
+                        new LSL_Types.LSLInteger(lInfo.Channel),
+                        new LSL_Types.LSLString(lInfo.Name),
+                        new LSL_Types.LSLString(lInfo.ID.ToString()),
+                        new LSL_Types.LSLString(lInfo.Message)
                     };
 
                     foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
-                        e.PostScriptEvent(
-                                lInfo.GetItemID(), new EventParams(
-                                "listen", resobj,
-                                new DetectParams[0]));
+                        e.PostScriptEvent(lInfo.ItemID, new EventParams("listen", resobj, new DetectParams[0]));
                     }
                 }
             }
@@ -94,11 +90,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 return new Object[]{};
         }
 
-        public void CreateFromData(uint localID, UUID itemID, UUID hostID,
-                Object[] data)
+        public void CreateFromData( UUID itemID, UUID hostID, Object[] data)
         {
             if (m_commsPlugin != null)
-                m_commsPlugin.CreateFromData(localID, itemID, hostID, data);
+                m_commsPlugin.CreateFromData(itemID, hostID, data);
         }
     }
 }

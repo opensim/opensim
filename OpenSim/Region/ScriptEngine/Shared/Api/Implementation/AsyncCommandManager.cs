@@ -454,16 +454,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     switch (type)
                     {
                         case "listener":
-                            m_Listener[engine].CreateFromData(localID, itemID,
-                                                        hostID, item);
+                            m_Listener[engine].CreateFromData(itemID, hostID, item);
                             break;
                         case "timer":
-                            m_ScriptTimer[engine].CreateFromData(localID, itemID,
-                                                        hostID, item);
+                            m_ScriptTimer[engine].CreateFromData(localID, itemID, hostID, item);
                             break;
                         case "sensor":
-                            m_SensorRepeat[engine].CreateFromData(localID,
-                                                        itemID, hostID, item);
+                            m_SensorRepeat[engine].CreateFromData(localID, itemID, hostID, item);
                             break;
                         }
                     }

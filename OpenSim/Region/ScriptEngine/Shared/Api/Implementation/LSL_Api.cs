@@ -1340,7 +1340,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return -1;
 
             UUID.TryParse(ID, out UUID keyID);
-            return wComm.Listen(m_host.LocalId, m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
+            return wComm.Listen(m_item.ItemID, m_host.UUID, channelID, name, keyID, msg);
         }
 
         public void llListenControl(int number, int active)

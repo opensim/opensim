@@ -3998,7 +3998,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if(UUID.TryParse(prim, out UUID pID) && pID.IsNotZero())
             {
                 SceneObjectPart obj = World.GetSceneObjectPart(pID);
-                SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+                if(obj != null)
+                {
+                    if(obj.OwnerID.Equals(m_host.OwnerID))
+                        SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+                }
             }
             else
                 SetProjectionParams(m_host, llprojection, texture, fov, focus, amb);
@@ -4598,9 +4602,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
         {
             CheckThreatLevel(ThreatLevel.Low, "osListenRegex");
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if(wComm == null)
+                return -1;
 
             UUID.TryParse(ID, out UUID keyID);
-
             // if we want the name to be used as a regular expression, ensure it is valid first.
             if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_NAME) == ScriptBaseClass.OS_LISTEN_REGEX_NAME)
             {
@@ -4608,7 +4614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Regex.IsMatch("", name);
                 }
-                catch (Exception)
+                catch
                 {
                     OSSLShoutError("Name regex is invalid.");
                     return -1;
@@ -4622,24 +4628,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Regex.IsMatch("", msg);
                 }
-                catch (Exception)
+                catch
                 {
                     OSSLShoutError("Message regex is invalid.");
                     return -1;
                 }
             }
 
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return (wComm == null) ? -1 : wComm.Listen(
-                m_host.LocalId,
-                m_item.ItemID,
-                m_host.UUID,
-                channelID,
-                name,
-                keyID,
-                msg,
-                regexBitfield
-            );
+            return wComm.Listen(m_item.ItemID, m_host.UUID,
+                        channelID, name, keyID, msg, regexBitfield);
         }
 
         public LSL_Integer osRegexIsMatch(string input, string pattern)
