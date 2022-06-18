@@ -112,6 +112,8 @@
     <Compile Remove="Handlers\Simulation\Utils.cs" />
     <Compile Remove="Handlers\UserAccounts\UserAccountServerConnector.cs" />
     <Compile Remove="Handlers\UserAccounts\UserAccountServerPostHandler.cs" />
+    <Compile Remove="Handlers\UserAlias\UserAliasServerPostHandler.cs" />
+    <Compile Remove="Handlers\UserAlias\UserAliasServiceConnector.cs" />
     <Compile Remove="Base\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
     <Compile Remove="Handlers\Asset\Tests\AssetServerPostHandlerTests.cs" />
     <Compile Remove="Handlers\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
