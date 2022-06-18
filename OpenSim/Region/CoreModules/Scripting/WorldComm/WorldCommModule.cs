@@ -957,6 +957,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 UUID hostID, int channel, string name, UUID id,
                 string message, int regexBitfield)
         {
+            IsActive = true;
             Handle = handle;
             ItemID = _ItemID;
             HostID = hostID;
