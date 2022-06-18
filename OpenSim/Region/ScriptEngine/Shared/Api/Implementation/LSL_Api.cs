@@ -7904,6 +7904,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
 
                     entry.Expires = expires;
+                    World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
                     return;
                 }
 
@@ -7915,7 +7916,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 };
 
                 land.LandData.ParcelAccessList.Add(entry);
-
                 World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
             }
             ScriptSleep(m_sleepMsOnAddToLandPassList);
@@ -13522,6 +13522,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
 
                     entry.Expires = expires;
+                    World.EventManager.TriggerLandObjectUpdated((uint)land.LandData.LocalID, land);
                     return;
                 }
 
