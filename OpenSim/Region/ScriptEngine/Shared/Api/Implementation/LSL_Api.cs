@@ -5022,30 +5022,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llTeleportAgentHome(string agent)
         {
-            UUID agentId = new UUID();
-            if (UUID.TryParse(agent, out agentId))
+            if (UUID.TryParse(agent, out UUID agentId) && agentId.IsNotZero())
             {
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence == null || presence.IsDeleted || presence.IsChildAgent || presence.IsNPC || presence.IsInTransit)
                     return;
 
                 // agent must not be a god
-                if (presence.GodController.UserLevel >= 200) return;
+                if (presence.GodController.UserLevel >= 200)
+                    return;
 
                 // agent must be over the owners land
-                if (m_host.OwnerID == World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID)
+                if (m_host.OwnerID.Equals(World.LandChannel.GetLandObject(presence.AbsolutePosition).LandData.OwnerID))
                 {
-                    if (!World.TeleportClientHome(agentId, presence.ControllingClient))
-                    {
-                        // They can't be teleported home for some reason
-                        GridRegion regionInfo = World.GridService.GetRegionByUUID(UUID.Zero, new UUID("2b02daac-e298-42fa-9a75-f488d37896e6"));
-                        if (regionInfo != null)
-                        {
-                            World.RequestTeleportLocation(
-                                presence.ControllingClient, regionInfo.RegionHandle, new Vector3(128, 128, 23), Vector3.Zero,
-                                (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
-                        }
-                    }
+                    World.TeleportClientHome(agentId, presence.ControllingClient);
                 }
             }
 
@@ -6499,7 +6489,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     flags |= ScriptBaseClass.AGENT_MOUSELOOK;
                 }
 
-                if ((agent.State & (byte)AgentState.Typing) != (byte)0)
+                if ((agent.State & (byte)AgentState.Typing) != 0)
                 {
                     flags |= ScriptBaseClass.AGENT_TYPING;
                 }
@@ -6510,8 +6500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     flags |= ScriptBaseClass.AGENT_CROUCHING;
                 }
-
-                if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")
+                else if (agentMovementAnimation == "WALK" || agentMovementAnimation == "CROUCHWALK")
                 {
                     flags |= ScriptBaseClass.AGENT_WALKING;
                 }
