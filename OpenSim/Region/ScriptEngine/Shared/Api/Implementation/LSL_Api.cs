@@ -4431,10 +4431,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCreateLink(LSL_Key target, LSL_Integer parent)
         {
-
-            if (!UUID.TryParse(target, out UUID targetID) || targetID.IsZero())
-                return;
-
             if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
                 && !m_automaticLinkPermission)
             {
@@ -4442,7 +4438,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            CreateLink(targetID, parent);
+            CreateLink(target, parent);
         }
 
         public void CreateLink(string target, int parent)
@@ -4450,11 +4446,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!UUID.TryParse(target, out UUID targetID) || targetID.IsZero())
                 return;
 
-            CreateLink(targetID, parent);
-        }
-
-        public void CreateLink(UUID targetID, int parent)
-        {
             SceneObjectPart targetPart = World.GetSceneObjectPart(targetID);
             if (targetPart == null)
                 return;
