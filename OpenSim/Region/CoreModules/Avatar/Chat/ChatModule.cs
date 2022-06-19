@@ -300,7 +300,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             scene.ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
-                    if (!destination.IsZero() && presence.UUID.NotEqual(destination))
+                    if (destination.IsNotZero() && presence.UUID.NotEqual(destination))
                         return;
 
                     if(presence.IsChildAgent)
@@ -309,7 +309,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             return;
                         if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                     ownerID, fromNamePrefix + fromName, c.Type,
-                                    message, sourceType, !destination.IsZero()))
+                                    message, sourceType, destination.IsNotZero()))
                             receiverIDs.Add(presence.UUID);
                         return;
                     }
@@ -326,7 +326,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         {
                             if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                         ownerID, fromNamePrefix + fromName, c.Type,
-                                        message, sourceType, !destination.IsZero()))
+                                        message, sourceType, destination.IsNotZero()))
                                 receiverIDs.Add(presence.UUID);
                         }
                     }
