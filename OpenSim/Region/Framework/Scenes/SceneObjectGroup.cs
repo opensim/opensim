@@ -5539,6 +5539,32 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public bool GetOwnerName(out string FirstName, out string LastName)
+        {
+            if (RootPart != null)
+            {
+                if(RootPart.OwnerID.Equals(RootPart.GroupID))
+                {
+                    IGroupsModule groups = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (groups != null)
+                    {
+                        GroupRecord grprec = groups.GetGroupRecord(RootPart.OwnerID);
+                        if (grprec != null)
+                        {
+                            FirstName = string.Empty;
+                            LastName = grprec.GroupName;
+                            return true;
+                        }
+                    }
+                }
+                else
+                    return m_scene.UserManagementModule.GetUserName(RootPart.OwnerID, out FirstName, out LastName);
+            }
+
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            return false;
+        }
         #endregion
     }
 
