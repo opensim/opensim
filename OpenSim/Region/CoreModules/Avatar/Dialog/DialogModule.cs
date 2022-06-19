@@ -87,38 +87,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
 
         public void SendAlertToUser(IClientAPI client, string message)
         {
-            SendAlertToUser(client, message, false);
+            client?.SendAgentAlertMessage(message, false);
         }
 
-        public void SendAlertToUser(IClientAPI client, string message,
-                bool modal)
+        public void SendAlertToUser(IClientAPI client, string message, bool modal)
         {
-            client.SendAgentAlertMessage(message, modal);
+            client?.SendAgentAlertMessage(message, modal);
         }
 
         public void SendAlertToUser(UUID agentID, string message)
         {
-            SendAlertToUser(agentID, message, false);
+            ScenePresence sp = m_scene.GetScenePresence(agentID);
+            sp?.ControllingClient.SendAgentAlertMessage(message, false);
         }
 
         public void SendAlertToUser(UUID agentID, string message, bool modal)
         {
             ScenePresence sp = m_scene.GetScenePresence(agentID);
-
-            if (sp != null)
-                sp.ControllingClient.SendAgentAlertMessage(message, modal);
+            sp?.ControllingClient.SendAgentAlertMessage(message, modal);
         }
 
-        public void SendAlertToUser(string firstName, string lastName,
-                string message, bool modal)
+        public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
-            ScenePresence presence = m_scene.GetScenePresence(firstName,
-                    lastName);
-            if (presence != null)
-            {
-                presence.ControllingClient.SendAgentAlertMessage(message,
-                        modal);
-            }
+            ScenePresence sp= m_scene.GetScenePresence(firstName, lastName);
+            sp?.ControllingClient.SendAgentAlertMessage(message, modal);
         }
 
         public void SendGeneralAlert(string message)
@@ -129,28 +121,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             });
         }
 
-        private void GetOwnerName(UUID ownerID, out string ownerFirstName, out string ownerLastName)
+        private bool GetOwnerName(UUID partID, out string ownerFirstName, out string ownerLastName)
         {
-            if(!m_scene.UserManagementModule.GetUserName(ownerID, out ownerFirstName, out ownerLastName))
-            {
-                IGroupsModule groups = m_scene.RequestModuleInterface<IGroupsModule>();
-                if (groups != null)
-                {
-                    GroupRecord grprec = groups.GetGroupRecord(ownerID);
-                    if (grprec != null && !string.IsNullOrEmpty(grprec.GroupName))
-                    {
-                        ownerLastName = grprec.GroupName;
-                        return;
-                    }
-                }
-            }
-            if(string.IsNullOrEmpty(ownerFirstName))
-            {
-                ownerFirstName = "(unknown)";
-                ownerLastName = string.Empty;
-            }
+            SceneObjectPart sop = m_scene.GetSceneObjectPart(partID);
+            if(sop != null)
+                return sop.GetOwnerName(out ownerFirstName, out ownerLastName);
+
+            ownerFirstName = string.Empty;
+            ownerLastName = string.Empty;
+            return false;
         }
 
+        // legacy
         public void SendDialogToUser(UUID avatarID, string objectName,
                 UUID objectID, UUID ownerID, string message, UUID textureID,
                 int ch, string[] buttonlabels)
@@ -158,12 +140,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
             if (sp != null)
             {
-                GetOwnerName(ownerID, out string ownerFirstName, out string ownerLastName);
-
-                sp.ControllingClient.SendDialog(objectName, objectID, ownerID,
-                        ownerFirstName, ownerLastName, message, textureID, ch,
-                        buttonlabels);
+                if(GetOwnerName(objectID, out string ownerFirstName, out string ownerLastName))
+                {
+                    sp.ControllingClient.SendDialog(objectName, objectID, ownerID,
+                        ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
+                }
             }
+        }
+
+        public void SendDialogToUser(UUID avatarID, string objectName,
+                UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName,string message, UUID textureID,
+                int ch, string[] buttonlabels)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(avatarID);
+            sp?.ControllingClient.SendDialog(objectName, objectID, ownerID,
+                        ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
         }
 
         public void SendUrlToUser(UUID avatarID, string objectName,
@@ -171,34 +162,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 string url)
         {
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
-            if (sp != null)
-            {
-                sp.ControllingClient.SendLoadURL(objectName, objectID,
+            sp?.ControllingClient.SendLoadURL(objectName, objectID,
                         ownerID, groupOwned, message, url);
-            }
         }
 
+        // legacy
         public void SendTextBoxToUser(UUID avatarid, string message,
                 int chatChannel, string name, UUID objectid, UUID ownerID)
         {
             ScenePresence sp = m_scene.GetScenePresence(avatarid);
             if (sp != null)
             {
-                GetOwnerName(ownerID, out string ownerFirstName, out string ownerLastName);
-
-                sp.ControllingClient.SendTextBoxRequest(message, chatChannel,
-                        name, ownerID, ownerFirstName, ownerLastName,
-                        objectid);
+                if (GetOwnerName(objectid, out string ownerFirstName, out string ownerLastName))
+                {
+                    sp.ControllingClient.SendTextBoxRequest(message, chatChannel,
+                        name, ownerID, ownerFirstName, ownerLastName, objectid);
+                }
             }
         }
 
-        public void SendNotificationToUsersInRegion(UUID fromAvatarID,
-                string fromAvatarName, string message)
+        public void SendTextBoxToUser(UUID avatarid, string message,
+                int chatChannel, string name, UUID objectid, string ownerFirstName, string ownerLastName, UUID ownerID)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(avatarid);
+            sp?.ControllingClient.SendTextBoxRequest(message, chatChannel,
+                        name, ownerID, ownerFirstName, ownerLastName,
+                        objectid);
+        }
+
+        public void SendNotificationToUsersInRegion(UUID fromAvatarID, string fromAvatarName, string message)
         {
             m_scene.ForEachRootClient(delegate(IClientAPI client)
             {
-                client.SendAgentAlertMessage(
-                        message, false);
+                client.SendAgentAlertMessage(message, false);
             });
         }
 
@@ -207,11 +203,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         /// </summary>
         /// <param name="module"></param>
         /// <param name="cmdparams"></param>
-        public void HandleAlertConsoleCommand(string module,
-                string[] cmdparams)
+        public void HandleAlertConsoleCommand(string module, string[] cmdparams)
         {
-            if (m_scene.ConsoleScene() != null &&
-                    m_scene.ConsoleScene() != m_scene)
+            if (m_scene.ConsoleScene() != null && m_scene.ConsoleScene() != m_scene)
             {
                 return;
             }
