@@ -476,7 +476,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             get
             {
                 lock (mainLock)
-                    return m_listenersByChannel.Count;
+                {
+                    int count = 0;
+                    foreach(List<ListenerInfo> l in m_listenersByChannel.Values)
+                        count += l.Count;
+                    return count;
+                }
             }
         }
 
