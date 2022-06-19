@@ -62,21 +62,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
             if (m_commsPlugin != null)
             {
-                ListenerInfo lInfo;
-                while ((lInfo = (ListenerInfo)m_commsPlugin.GetNextMessage()) != null)
+                ListenerMessage msg;
+                while ((msg = (ListenerMessage)m_commsPlugin.GetNextMessage()) != null)
                 {
                     //Deliver data to prim's listen handler
                     object[] resobj = new object[]
                     {
-                        new LSL_Types.LSLInteger(lInfo.Channel),
-                        new LSL_Types.LSLString(lInfo.Name),
-                        new LSL_Types.LSLString(lInfo.ID.ToString()),
-                        new LSL_Types.LSLString(lInfo.Message)
+                        new LSL_Types.LSLInteger(msg.Channel),
+                        new LSL_Types.LSLString(msg.Name),
+                        new LSL_Types.LSLString(msg.ID.ToString()),
+                        new LSL_Types.LSLString(msg.Message)
                     };
 
                     foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
                     {
-                        e.PostScriptEvent(lInfo.ItemID, new EventParams("listen", resobj, new DetectParams[0]));
+                        e.PostScriptEvent(msg.ItemID, new EventParams("listen", resobj, new DetectParams[0]));
                     }
                 }
             }

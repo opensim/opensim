@@ -31,6 +31,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public interface IWorldCommListenerMessage { }
     public interface IWorldCommListenerInfo
     {
         bool IsActive { get; }
@@ -138,7 +139,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Pop the first availlable listen event from the queue
         /// </summary>
         /// <returns>ListenerInfo with filter filled in</returns>
-        IWorldCommListenerInfo GetNextMessage();
+        IWorldCommListenerMessage GetNextMessage();
 
         void ListenControl(UUID itemID, int handle, int active);
         void ListenRemove(UUID itemID, int handle);
