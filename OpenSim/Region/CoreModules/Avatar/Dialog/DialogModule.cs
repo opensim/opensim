@@ -131,24 +131,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
 
         private void GetOwnerName(UUID ownerID, out string ownerFirstName, out string ownerLastName)
         {
-            ownerFirstName = string.Empty;
-            ownerLastName = string.Empty;
-            string username = m_scene.UserManagementModule.GetUserName(ownerID);
-            if (!string.IsNullOrEmpty(username) && !username.StartsWith("UnknownUMM2", StringComparison.InvariantCulture))
-            {
-                string[] parts = username.Split(' ');
-                ownerFirstName = parts[0];
-                if (parts.Length > 1)
-                    ownerLastName = parts[1];
-            }
-            else
+            if(!m_scene.UserManagementModule.GetUserName(ownerID, out ownerFirstName, out ownerLastName))
             {
                 IGroupsModule groups = m_scene.RequestModuleInterface<IGroupsModule>();
                 if (groups != null)
                 {
                     GroupRecord grprec = groups.GetGroupRecord(ownerID);
                     if (grprec != null && !string.IsNullOrEmpty(grprec.GroupName))
-                        ownerFirstName = grprec.GroupName;
+                    {
+                        ownerLastName = grprec.GroupName;
+                        return;
+                    }
                 }
             }
             if(string.IsNullOrEmpty(ownerFirstName))
@@ -162,13 +155,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 UUID objectID, UUID ownerID, string message, UUID textureID,
                 int ch, string[] buttonlabels)
         {
-
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
             if (sp != null)
             {
-                string ownerFirstName;
-                string ownerLastName;
-                GetOwnerName(ownerID, out ownerFirstName, out ownerLastName);
+                GetOwnerName(ownerID, out string ownerFirstName, out string ownerLastName);
 
                 sp.ControllingClient.SendDialog(objectName, objectID, ownerID,
                         ownerFirstName, ownerLastName, message, textureID, ch,
@@ -194,9 +184,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             ScenePresence sp = m_scene.GetScenePresence(avatarid);
             if (sp != null)
             {
-                string ownerFirstName;
-                string ownerLastName;
-                GetOwnerName(ownerID, out ownerFirstName, out ownerLastName);
+                GetOwnerName(ownerID, out string ownerFirstName, out string ownerLastName);
 
                 sp.ControllingClient.SendTextBoxRequest(message, chatChannel,
                         name, ownerID, ownerFirstName, ownerLastName,
