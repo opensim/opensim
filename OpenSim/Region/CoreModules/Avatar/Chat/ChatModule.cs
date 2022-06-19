@@ -162,20 +162,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             client.OnChatFromClient += OnChatFromClient;
         }
 
-        protected virtual OSChatMessage FixPositionOfChatMessage(OSChatMessage c)
-        {
-            ScenePresence avatar;
-            Scene scene = (Scene)c.Scene;
-            if ((avatar = scene.GetScenePresence(c.Sender.AgentId)) != null)
-                c.Position = avatar.AbsolutePosition;
-
-            return c;
-        }
-
         public virtual void OnChatFromClient(Object sender, OSChatMessage c)
         {
-            c = FixPositionOfChatMessage(c);
-
             // redistribute to interested subscribers
             Scene scene = (Scene)c.Scene;
             scene.EventManager.TriggerOnChatFromClient(sender, c);

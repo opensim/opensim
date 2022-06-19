@@ -8557,25 +8557,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (inchatpack.AgentData.SessionID.NotEqual(m_sessionId) || inchatpack.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-            string fromName = String.Empty; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
-            byte[] message = inchatpack.ChatData.Message;
-            byte type = inchatpack.ChatData.Type;
-            Vector3 fromPos = new Vector3(); // ClientAvatar.Pos;
-            // UUID fromAgentID = AgentId;
+            ChatFromViewerPacket.ChatDataBlock packdata = inchatpack.ChatData;
+            OSChatMessage args = new OSChatMessage()
+            {
+                Channel = packdata.Channel,
+                Message = Utils.BytesToString(packdata.Message),
+                Type = (ChatTypeEnum)packdata.Type,
+                Position = SceneAgent.AbsolutePosition,
 
-            int channel = inchatpack.ChatData.Channel;
-
-            OSChatMessage args = new OSChatMessage();
-            args.Channel = channel;
-            args.From = fromName;
-            args.Message = Utils.BytesToString(message);
-            args.Type = (ChatTypeEnum)type;
-            args.Position = fromPos;
-
-            args.Scene = Scene;
-            args.Sender = this;
-            args.SenderUUID = m_agentId;
-
+                Scene = Scene,
+                SenderUUID = m_agentId,
+                Sender = this
+            };
             OnChatFromClient?.Invoke(this, args);
         }
 
@@ -8614,18 +8607,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (rdialog.AgentData.SessionID.NotEqual(m_sessionId) || rdialog.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-            int ch = rdialog.Data.ChatChannel;
-            byte[] msg = rdialog.Data.ButtonLabel;
-
-            OSChatMessage args = new OSChatMessage();
-            args.Channel = ch;
-            args.From = String.Empty;
-            args.Message = Utils.BytesToString(msg);
-            args.Type = ChatTypeEnum.Region; //Behaviour in SL is that the response can be heard from any distance
-            args.Position = new Vector3();
-            args.Scene = Scene;
-            args.Sender = this;
-
+            ScriptDialogReplyPacket.DataBlock rdialogData = rdialog.Data;
+            OSChatMessage args = new OSChatMessage()
+            {
+                Channel = rdialogData.ChatChannel,
+                Message = Utils.BytesToString(rdialogData.ButtonLabel),
+                Type = ChatTypeEnum.Region, //Behaviour in SL is that the response can be heard from any distance
+                Scene = Scene,
+                Sender = this
+            };
             OnChatFromClient?.Invoke(this, args);
         }
 

@@ -305,11 +305,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         {
             // m_log.DebugFormat("[WorldComm] got[2] type {0}, channel {1}, name {2}, id {3}, msg {4}",
             //                   type, channel, name, id, msg);
-            if (type == ChatTypeEnum.Region)
-            {
-                m_listenerManager.TryEnqueueMessage(channel, name, id, msg);
-                return;
-            }
 
             // validate type and set range
             float maxDistanceSQ;
@@ -326,6 +321,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 case ChatTypeEnum.Shout:
                     maxDistanceSQ = m_shoutdistance;
                     break;
+
+                case ChatTypeEnum.Region:
+                    m_listenerManager.TryEnqueueMessage(channel, name, id, msg);
+                    return;
 
                 default:
                     return;
@@ -430,19 +429,39 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
          * Listener Stuff
          *
          * *****************************************************************/
-
         private void DeliverClientMessage(Object sender, OSChatMessage e)
         {
-            if (null != e.Sender)
+            // validate type and set range
+            float maxDistanceSQ;
+            switch (e.Type)
             {
-                DeliverMessage(e.Type, e.Channel, e.Sender.Name,
-                        e.Sender.AgentId, e.Message, e.Position);
+                case ChatTypeEnum.Whisper:
+                    maxDistanceSQ = m_whisperdistance;
+                    break;
+
+                case ChatTypeEnum.Say:
+                    maxDistanceSQ = m_saydistance;
+                    break;
+
+                case ChatTypeEnum.Shout:
+                    maxDistanceSQ = m_shoutdistance;
+                    break;
+
+                case ChatTypeEnum.Region:
+                    if (e.Sender == null)
+                        m_listenerManager.TryEnqueueMessage(e.Channel, e.From, UUID.Zero, e.Message);
+                    else
+                        m_listenerManager.TryEnqueueMessage(e.Channel, e.Sender.Name, e.Sender.AgentId, e.Message);
+                    return;
+
+                default:
+                    return;
             }
+
+            if (e.Sender == null)
+                m_listenerManager.TryEnqueueMessage(e.Channel, e.Position, maxDistanceSQ, e.From, UUID.Zero, e.Message);
             else
-            {
-                DeliverMessage(e.Type, e.Channel, e.From, UUID.Zero,
-                        e.Message, e.Position);
-            }
+                m_listenerManager.TryEnqueueMessage(e.Channel, e.Position, maxDistanceSQ, e.Sender.Name, e.Sender.AgentId, e.Message);
         }
 
         public Object[] GetSerializationData(UUID itemID)

@@ -238,8 +238,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 // replacing ChatModule: need to redistribute
                 // ChatFromClient to interested subscribers
-                c = FixPositionOfChatMessage(c);
-
                 Scene scene = (Scene)c.Scene;
                 scene.EventManager.TriggerOnChatFromClient(sender, c);
 
