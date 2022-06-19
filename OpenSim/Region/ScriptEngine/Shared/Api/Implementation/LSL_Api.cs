@@ -12723,10 +12723,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llOwnerSay(string msg)
         {
+            if(m_host.OwnerID.Equals(m_host.GroupID))
+                return;
             World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0,
                                    m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
-//            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-//            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
         public LSL_Key llRequestSecureURL()
