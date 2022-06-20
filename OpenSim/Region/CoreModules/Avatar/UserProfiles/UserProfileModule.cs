@@ -1463,7 +1463,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     uce.props = null;
                 }
             }
-
+            RequestAvatarProperties(remoteClient, remoteClient.AgentId);
         }
 
         public void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
@@ -1672,46 +1672,33 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='newProfile'>
         /// New profile.
         /// </param>
-        public void AvatarPropertiesUpdate(IClientAPI remoteClient, UserProfileData newProfile)
+        public void AvatarPropertiesUpdate(IClientAPI remoteClient, UserProfileProperties newProfile)
         {
-            if (remoteClient.AgentId == newProfile.ID)
+            GetUserProfileServerURI(remoteClient.AgentId, out string serverURI);
+            if (string.IsNullOrWhiteSpace(serverURI))
+                return;
+
+            if (!m_allowUserProfileWebURLs)
+                newProfile.WebUrl = string.Empty;
+
+            object Prop = newProfile;
+            if(!rpc.JsonRpcRequest(ref Prop, "avatar_properties_update", serverURI, UUID.Random().ToString()))
             {
-                UserProfileProperties prop = new UserProfileProperties();
-
-                prop.UserId = remoteClient.AgentId;
-                prop.WebUrl = newProfile.ProfileUrl;
-                prop.ImageId = newProfile.Image;
-                prop.AboutText = newProfile.AboutText;
-                prop.FirstLifeImageId = newProfile.FirstLifeImage;
-                prop.FirstLifeText = newProfile.FirstLifeAboutText;
-
-                if(!m_allowUserProfileWebURLs)
-                    prop.WebUrl ="";
-
-                string serverURI = string.Empty;
-                GetUserProfileServerURI(remoteClient.AgentId, out serverURI);
-
-                object Prop = prop;
-
-                if(!rpc.JsonRpcRequest(ref Prop, "avatar_properties_update", serverURI, UUID.Random().ToString()))
-                {
-                    remoteClient.SendAgentAlertMessage(
-                            "Error updating properties", false);
-                    return;
-                }
-
-                // flush cache
-                UserProfileCacheEntry uce = null;
-                lock(m_profilesCache)
-                {
-                    if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
-                    {
-                        uce.props = null;
-                    }
-                }
-
-                RequestAvatarProperties(remoteClient, newProfile.ID);
+                remoteClient.SendAgentAlertMessage("Error updating properties", false);
+                return;
             }
+
+            // flush cache
+            UserProfileCacheEntry uce = null;
+            lock(m_profilesCache)
+            {
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                {
+                    uce.props = null;
+                }
+            }
+
+            RequestAvatarProperties(remoteClient, remoteClient.AgentId);
         }
 
         /// <summary>

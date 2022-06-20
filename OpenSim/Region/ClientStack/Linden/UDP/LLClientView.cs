@@ -8582,17 +8582,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                return;
 
             AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = avatarProps.PropertiesData;
-            UserProfileData UserProfile = new UserProfileData();
-            UserProfile.ID = m_agentId;
-            UserProfile.AboutText = Utils.BytesToString(Properties.AboutText);
-            UserProfile.FirstLifeAboutText = Utils.BytesToString(Properties.FLAboutText);
-            UserProfile.FirstLifeImage = Properties.FLImageID;
-            UserProfile.Image = Properties.ImageID;
-            UserProfile.ProfileUrl = Utils.BytesToString(Properties.ProfileURL);
-            UserProfile.UserFlags &= ~3;
-            UserProfile.UserFlags |= Properties.AllowPublish ? 1 : 0;
-            UserProfile.UserFlags |= Properties.MaturePublish ? 2 : 0;
-
+            UserProfileProperties UserProfile = new UserProfileProperties
+            {
+                UserId = AgentId,
+                WebUrl = Utils.BytesToString(Properties.ProfileURL),
+                ImageId = Properties.ImageID,
+                FirstLifeImageId = Properties.FLImageID,
+                AboutText = Utils.BytesToString(Properties.AboutText),
+                FirstLifeText = Utils.BytesToString(Properties.FLAboutText),
+                PublishProfile = Properties.AllowPublish,
+                PublishMature = Properties.MaturePublish
+            };
             OnUpdateAvatarProperties?.Invoke(this, UserProfile);
         }
 
