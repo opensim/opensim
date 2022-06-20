@@ -521,10 +521,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
 
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(targetID, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(targetID, out UserProfileCacheEntry uce) && uce != null)
                 {
                     if(uce.classifiedsLists != null)
                     {
@@ -593,9 +592,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
             }
 
-             lock(m_profilesCache)
+            lock(m_profilesCache)
             {
-                if(!m_profilesCache.TryGetValue(targetID, out uce) || uce == null)
+                if(!m_profilesCache.TryGetValue(targetID, out UserProfileCacheEntry uce) || uce == null)
                     uce = new UserProfileCacheEntry();
                 uce.classifiedsLists = classifieds;
 
@@ -1455,12 +1454,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             // flush cache
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out UserProfileCacheEntry uce) && uce != null)
                 {
                     uce.props = null;
+                    uce.ClientsWaitingProps = null;
                 }
             }
             RequestAvatarProperties(remoteClient, remoteClient.AgentId);
@@ -1495,10 +1494,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 return;
             }
             UserProfileProperties props;
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(avatarID, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(avatarID, out UserProfileCacheEntry uce) && uce != null)
                 {
                     if(uce.props != null)
                     {
@@ -1695,6 +1693,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
                 {
                     uce.props = null;
+                    uce.ClientsWaitingProps = null;
                 }
             }
 
