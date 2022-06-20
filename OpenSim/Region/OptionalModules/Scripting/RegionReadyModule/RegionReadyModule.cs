@@ -177,8 +177,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                     c.Position = new Vector3((m_scene.RegionInfo.RegionSizeX * 0.5f), (m_scene.RegionInfo.RegionSizeY * 0.5f), 30);
                 else
                     c.Position = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 30);
-                c.Sender = null;
-                c.SenderUUID = UUID.Zero;
                 c.Scene = m_scene;
 
                 m_log.DebugFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",

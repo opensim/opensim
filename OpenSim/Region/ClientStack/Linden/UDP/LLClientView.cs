@@ -8566,7 +8566,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Position = SceneAgent.AbsolutePosition,
 
                 Scene = Scene,
-                SenderUUID = m_agentId,
                 Sender = this
             };
             OnChatFromClient?.Invoke(this, args);

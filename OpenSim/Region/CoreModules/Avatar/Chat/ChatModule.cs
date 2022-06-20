@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             switch (sourceType)
             {
                 case ChatSourceType.Agent:
-                    ScenePresence avatar = (scene as Scene).GetScenePresence(c.Sender.AgentId);
+                    ScenePresence avatar = scene.GetScenePresence(c.Sender.AgentId);
                     if(avatar == null)
                         return;
                     fromPos = avatar.AbsolutePosition;
@@ -355,7 +355,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 ownerID = c.Sender.AgentId;
                 sourceType = ChatSourceType.Agent;
             }
-            else if (!c.SenderUUID.IsZero())
+            else if (c.SenderUUID.IsNotZero())
             {
                 if(c.SenderObject == null)
                     return;
@@ -444,7 +444,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
             }
 
-            // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
             presence.ControllingClient.SendChatMessage(
                 message, (byte) type, fromPos, fromName,
                 fromAgentID, ownerID, (byte)src, (byte)ChatAudibleLevel.Fully);
