@@ -12729,7 +12729,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             if(m_host.OwnerID.Equals(m_host.GroupID))
                 return;
-            World.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0,
+            World.SimChatBroadcast(msg, ChatTypeEnum.Owner, 0,
                                    m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
         }
 
