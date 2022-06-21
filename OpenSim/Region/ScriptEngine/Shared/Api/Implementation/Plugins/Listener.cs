@@ -55,33 +55,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_commsPlugin = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
         }
 
-        public void CheckListeners()
-        {
-            if (m_CmdManager.m_ScriptEngine.World == null)
-                return;
-
-            if (m_commsPlugin != null)
-            {
-                ListenerMessage msg;
-                while ((msg = (ListenerMessage)m_commsPlugin.GetNextMessage()) != null)
-                {
-                    //Deliver data to prim's listen handler
-                    object[] resobj = new object[]
-                    {
-                        new LSL_Types.LSLInteger(msg.Channel),
-                        new LSL_Types.LSLString(msg.Name),
-                        new LSL_Types.LSLString(msg.ID.ToString()),
-                        new LSL_Types.LSLString(msg.Message)
-                    };
-
-                    foreach (IScriptEngine e in m_CmdManager.ScriptEngines)
-                    {
-                        e.PostScriptEvent(msg.ItemID, new EventParams("listen", resobj, new DetectParams[0]));
-                    }
-                }
-            }
-        }
-
         public Object[] GetSerializationData(UUID itemID)
         {
             if (m_commsPlugin != null)

@@ -254,9 +254,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // Check HttpRequests
                     try { m_HttpRequest[s].CheckHttpRequests(); } catch { }
 
-                    // Check Listeners
-                    try { m_Listener[s].CheckListeners(); } catch {}
-
                     // Check ScriptTimers
                     try { m_ScriptTimer[s].CheckTimerEvents(); } catch {}
 
