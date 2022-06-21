@@ -3282,25 +3282,33 @@ namespace OpenSim.Region.Framework.Scenes
             OnThrottleUpdate?.Invoke(scenePresence);
         }
 
-//        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)
-//        {
-//            GatherUuids handler = OnGatherUuids;
-//
-//            if (handler != null)
-//            {
-//                foreach (GatherUuids d in handler.GetInvocationList())
-//                {
-//                    try
-//                    {
-//                        d(sop, assetUuids);
-//                    }
-//                    catch (Exception e)
-//                    {
-//                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TriggerUuidGather failed - continuing {0} - {1}",
-//                            e.Message, e.StackTrace);
-//                    }
-//                }
-//            }
-//        }
+        //        public void TriggerGatherUuids(SceneObjectPart sop, IDictionary<UUID, AssetType> assetUuids)
+        //        {
+        //            GatherUuids handler = OnGatherUuids;
+        //
+        //            if (handler != null)
+        //            {
+        //                foreach (GatherUuids d in handler.GetInvocationList())
+        //                {
+        //                    try
+        //                    {
+        //                        d(sop, assetUuids);
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for TriggerUuidGather failed - continuing {0} - {1}",
+        //                            e.Message, e.StackTrace);
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        public delegate void ScriptListen(UUID scriptID, int channel, string name, UUID id, string message);
+        public event ScriptListen OnScriptListenEvent;
+
+        public void TriggerScriptListen(UUID scriptID, int channel, string name, UUID id, string message)
+        {
+            OnScriptListenEvent?.Invoke(scriptID, channel, name, id, message);
+        }
     }
 }

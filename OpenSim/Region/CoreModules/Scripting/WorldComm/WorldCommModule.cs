@@ -100,8 +100,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private const int DEBUG_CHANNEL = 0x7fffffff;
 
         private ListenerManager m_listenerManager;
-        private ConcurrentQueue<ListenerMessage> m_pending;
         private Scene m_scene;
+
         private int m_whisperdistance = 10;
         private int m_saydistance = 20;
         private int m_shoutdistance = 100;
@@ -146,9 +146,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public void AddRegion(Scene scene)
         {
-            m_pending = new ConcurrentQueue<ListenerMessage>();
             m_scene = scene;
-            m_listenerManager = new ListenerManager(m_maxlisteners, m_maxhandles, scene, m_pending);
+            m_listenerManager = new ListenerManager(m_maxlisteners, m_maxhandles, scene);
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_scene.EventManager.OnChatFromClient += DeliverClientMessage;
             m_scene.EventManager.OnChatBroadcast += DeliverClientMessage;
@@ -367,7 +366,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 if (channel == 0)
                 {
                    // Channel 0 goes to viewer ONLY
-                    m_scene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Direct, 0, pos, name, id, target, false, false);
+                    m_scene.SimChat(msg, ChatTypeEnum.Direct, 0, pos, name, id, target, false, false);
                     return;
                 }
 
@@ -401,25 +400,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 return; // No error
 
             m_listenerManager.TryEnqueueMessage(channel, target, name, id, msg);
-        }
-
-        /// <summary>
-        /// Are there any listen events ready to be dispatched?
-        /// </summary>
-        /// <returns>boolean indication</returns>
-        public bool HasMessages()
-        {
-            return (m_pending.Count > 0);
-        }
-
-        /// <summary>
-        /// Pop the first availlable listen event from the queue
-        /// </summary>
-        /// <returns>ListenerInfo with filter filled in</returns>
-        public IWorldCommListenerMessage GetNextMessage()
-        {
-            m_pending.TryDequeue(out ListenerMessage li);
-            return li;
         }
 
         #endregion
@@ -485,7 +465,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private int m_curlisteners;
 
         private Scene m_scene;
-        private ConcurrentQueue<ListenerMessage> m_messagesQueue;
 
         /// <summary>
         /// Total number of listeners
@@ -504,13 +483,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             }
         }
 
-        public ListenerManager(int maxlisteners, int maxhandles, Scene scene, ConcurrentQueue<ListenerMessage> messagesQueue)
+        public ListenerManager(int maxlisteners, int maxhandles, Scene scene)
         {
             m_maxlisteners = maxlisteners;
             m_maxhandles = maxhandles;
             m_curlisteners = 0;
             m_scene = scene;
-            m_messagesQueue = messagesQueue;
         }
 
         public int AddListener(UUID itemID, UUID hostID, int channel, string name, UUID id, string msg)
@@ -697,6 +675,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #endregion
 
+        public bool HasListeners(int channel)
+        {
+            lock (mainLock)
+                return m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners) && listeners.Count > 0;
+        }
+
         /// <summary>
         /// Get listeners matching the input parameters.
         /// </summary>
@@ -818,14 +802,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
                     if (maxDistanceSQ > Vector3.DistanceSquared(sPart.AbsolutePosition, position))
                     {
-                        m_messagesQueue.Enqueue(new ListenerMessage
-                        {
-                            ItemID = li.ItemID,
-                            ID = id,
-                            Channel = channel,
-                            Name = name,
-                            Message = msg
-                        });
+                        m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
                     }
                 }
             }
@@ -876,14 +853,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                                 continue;
                         }
                     }
-                    m_messagesQueue.Enqueue(new ListenerMessage
-                    {
-                        ItemID = li.ItemID,
-                        ID = id,
-                        Channel = channel,
-                        Name = name,
-                        Message = msg
-                    });
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
                 }
             }
         }
@@ -936,14 +906,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                                 continue;
                         }
                     }
-                    m_messagesQueue.Enqueue(new ListenerMessage
-                    {
-                        ItemID = li.ItemID,
-                        ID = id,
-                        Channel = channel,
-                        Name = name,
-                        Message = msg
-                    });
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
                 }
             }
         }
@@ -996,14 +959,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                                 continue;
                         }
                     }
-                    m_messagesQueue.Enqueue(new ListenerMessage
-                    {
-                        ItemID = li.ItemID,
-                        ID = id,
-                        Channel = channel,
-                        Name = name,
-                        Message = msg
-                    });
+                    m_scene.EventManager.TriggerScriptListen(li.ItemID, channel, name, id, msg);
                 }
             }
         }
@@ -1052,14 +1008,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 idx += dataItemLength;
             }
         }
-    }
-    public class ListenerMessage: IWorldCommListenerMessage
-    {
-        public UUID ItemID;
-        public int Channel;
-        public UUID ID;
-        public string Name;
-        public string Message;
     }
 
     public class ListenerInfo : IWorldCommListenerInfo

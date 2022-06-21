@@ -31,7 +31,6 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IWorldCommListenerMessage { }
     public interface IWorldCommListenerInfo
     {
         bool IsActive { get; }
@@ -128,18 +127,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Message.
         /// </param>
         void DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg);
-
-        /// <summary>
-        /// Are there any listen events ready to be dispatched?
-        /// </summary>
-        /// <returns>boolean indication</returns>
-        bool HasMessages();
-
-        /// <summary>
-        /// Pop the first availlable listen event from the queue
-        /// </summary>
-        /// <returns>ListenerInfo with filter filled in</returns>
-        IWorldCommListenerMessage GetNextMessage();
 
         void ListenControl(UUID itemID, int handle, int active);
         void ListenRemove(UUID itemID, int handle);
