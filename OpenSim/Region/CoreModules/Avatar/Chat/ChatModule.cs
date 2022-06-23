@@ -268,8 +268,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 //                "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}",
 //                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
 
-            HashSet<UUID> receiverIDs = new HashSet<UUID>();
-
             if (checkParcelHide)
             {
                 checkParcelHide = false;
@@ -298,7 +296,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                     ownerID, fromNamePrefix + fromName, c.Type,
                                     message, sourceType, destination.IsNotZero()))
-                            receiverIDs.Add(presence.UUID);
                         return;
                     }
 
@@ -314,14 +311,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         {
                             if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                         ownerID, fromNamePrefix + fromName, c.Type,
-                                        message, sourceType, destination.IsNotZero()))
-                                receiverIDs.Add(presence.UUID);
+                                        message, sourceType, destination.IsNotZero()));
                         }
                     }
                 });
-
-            scene.EventManager.TriggerOnChatToClients(
-                fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);
         }
 
         static protected Vector3 CenterOfRegion = new Vector3(128, 128, 30);
@@ -330,12 +323,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         {
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
 
-            ChatTypeEnum cType = c.Type;
+            ChatTypeEnum cType;
             if (c.Channel == DEBUG_CHANNEL)
                 cType = ChatTypeEnum.DebugChannel;
-
-            if (cType == ChatTypeEnum.Region)
+            else if (c.Type == ChatTypeEnum.Region)
                 cType = ChatTypeEnum.Say;
+            else
+                cType = c.Type;
 
             if (c.Message.Length > 1100)
                 c.Message = c.Message.Substring(0, 1000);
@@ -344,15 +338,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             // message to each avatar in the scene.
             string fromName = c.From;
 
-            UUID fromID = UUID.Zero;
-            UUID ownerID = UUID.Zero;
+            UUID fromID;
+            UUID ownerID;
             ChatSourceType sourceType = ChatSourceType.Object;
             if (null != c.Sender)
             {
                 ScenePresence avatar = (c.Scene as Scene).GetScenePresence(c.Sender.AgentId);
                 fromID = c.Sender.AgentId;
                 fromName = avatar.Name;
-                ownerID = c.Sender.AgentId;
+                ownerID = UUID.Zero;
                 sourceType = ChatSourceType.Agent;
             }
             else if (c.SenderUUID.IsNotZero())
@@ -361,14 +355,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     return;
                 fromID = c.SenderUUID;
                 ownerID = ((SceneObjectPart)c.SenderObject).OwnerID;
+                sourceType = ChatSourceType.Object;
+            }
+            else
+            {
+                sourceType = ChatSourceType.Object;
+                fromID = UUID.Zero;
+                ownerID = UUID.Zero;
             }
 
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
-            HashSet<UUID> receiverIDs = new HashSet<UUID>();
-
-            if (c.Scene != null)
+            Scene scene = c.Scene as Scene;
+            if (scene != null)
             {
-                ((Scene)c.Scene).ForEachRootClient
+                scene.ForEachRootClient
                 (
                     delegate(IClientAPI client)
                     {
@@ -379,13 +379,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             (((SceneObjectPart)c.SenderObject).OwnerID.NotEqual(client.AgentId)))
                             return;
 
-                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, fromID,
+                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, ownerID,
                                                (byte)sourceType, (byte)ChatAudibleLevel.Fully);
-                        receiverIDs.Add(client.AgentId);
                     }
                 );
-                (c.Scene as Scene).EventManager.TriggerOnChatToClients(
-                    fromID, receiverIDs, c.Message, cType, CenterOfRegion, fromName, sourceType, ChatAudibleLevel.Fully);
              }
         }
 
