@@ -260,13 +260,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     break;
             }
 
-            // TODO: iterate over message
-            if (message.Length >= 1000) // libomv limit
+            if (message.Length > 1100)
                 message = message.Substring(0, 1000);
 
-//            m_log.DebugFormat(
-//                "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}",
-//                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
+            //m_log.DebugFormat(
+            //    "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}",
+            //    fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
 
             if (checkParcelHide)
             {
@@ -291,11 +290,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
                     if(presence.IsChildAgent)
                     {
-                        if(checkParcelHide)
-                            return;
-                        if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                        if(!checkParcelHide)
+                        {
+                            TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                     ownerID, fromNamePrefix + fromName, c.Type,
-                                    message, sourceType, destination.IsNotZero()))
+                                    message, sourceType, destination.IsNotZero());
+                        }
                         return;
                     }
 
@@ -307,11 +307,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                             if (sourceParcelID.NotEqual(Presencecheck.LandData.GlobalID) && !presence.IsViewerUIGod)
                                 return;
                         }
-                        if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
+                        if (c.Sender == null || !Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId))
                         {
-                            if (TrySendChatMessage(presence, fromPos, regionPos, fromID,
+                            TrySendChatMessage(presence, fromPos, regionPos, fromID,
                                         ownerID, fromNamePrefix + fromName, c.Type,
-                                        message, sourceType, destination.IsNotZero()));
+                                        message, sourceType, destination.IsNotZero());
                         }
                     }
                 });
