@@ -455,6 +455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         //ApiDesc not supported
         public const int PRIM_SCRIPTED_SIT_ONLY = 40; // experiences related. unsupported
         public const int PRIM_SIT_TARGET = 41;
+        public const int PRIM_PROJECTOR = 42;
 
 
         // parameters

@@ -261,19 +261,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if(OnChatFromClient == null)
                 return;
 
-            if (channel == 0)
-            {
-                message = message.Trim();
-                if (string.IsNullOrEmpty(message))
-                    return;
-            }
+            message = message.Trim();
+            if (channel == 0 && message.Length == 0)
+                return;
 
             OSChatMessage chatFromClient = new OSChatMessage()
             {
                 Channel = channel,
                 From = Name,
                 Message = message,
-                Position = StartPos,
+                //Position = StartPos,
+                Position = this.Position,
                 Scene = m_scene,
                 Sender = this,
                 SenderUUID = AgentId,

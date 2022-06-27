@@ -3995,31 +3995,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         public void osSetProjectionParams(LSL_Key prim, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            SceneObjectPart obj = null;
-            if (prim == ScriptBaseClass.NULL_KEY)
+            if(UUID.TryParse(prim, out UUID pID) && pID.IsNotZero())
             {
-                obj = m_host;
+                SceneObjectPart obj = World.GetSceneObjectPart(pID);
+                if(obj != null)
+                {
+                    if(obj.OwnerID.Equals(m_host.OwnerID))
+                        SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+                }
             }
             else
-            {
-                obj = World.GetSceneObjectPart(new UUID(prim));
-                if (obj == null)
-                    return;
-            }
-            SetProjectionParams(obj, llprojection, texture, fov, focus, amb);
+                SetProjectionParams(m_host, llprojection, texture, fov, focus, amb);
         }
 
         private void SetProjectionParams(SceneObjectPart obj, LSL_Integer llprojection, LSL_Key texture, LSL_Float fov, LSL_Float focus, LSL_Float amb)
         {
-            bool projection = llprojection != 0;
-            obj.Shape.ProjectionEntry = projection;
-            obj.Shape.ProjectionTextureUUID = new UUID(texture);
-            obj.Shape.ProjectionFOV = (float)fov;
-            obj.Shape.ProjectionFocus = (float)focus;
-            obj.Shape.ProjectionAmbiance = (float)amb;
+            if(obj == null || obj.IsDeleted || obj.Shape == null)
+                return;
 
-            obj.ParentGroup.HasGroupChanged = true;
-            obj.ScheduleFullUpdate();
+            if(llprojection != 0)
+            {
+                if (!UUID.TryParse(texture, out UUID texID))
+                    return;
+
+                obj.Shape.ProjectionEntry = true;
+                obj.Shape.ProjectionTextureUUID = texID;
+                obj.Shape.ProjectionFOV = Util.Clamp((float)fov, 0, 3.0f);
+                obj.Shape.ProjectionFocus = Util.Clamp((float)focus, 0, 20.0f);
+                obj.Shape.ProjectionAmbiance = Util.Clamp((float)amb, 0, 1.0f);
+
+                obj.ParentGroup.HasGroupChanged = true;
+                obj.ScheduleFullUpdate();
+                return;
+            }
+
+            if(obj.Shape.ProjectionEntry)
+            {
+                obj.Shape.ProjectionEntry = false;
+
+                obj.ParentGroup.HasGroupChanged = true;
+                obj.ScheduleFullUpdate();
+            }
         }
 
         /// <summary>
@@ -4586,9 +4602,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer osListenRegex(int channelID, string name, string ID, string msg, int regexBitfield)
         {
             CheckThreatLevel(ThreatLevel.Low, "osListenRegex");
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if(wComm == null)
+                return -1;
 
             UUID.TryParse(ID, out UUID keyID);
-
             // if we want the name to be used as a regular expression, ensure it is valid first.
             if ((regexBitfield & ScriptBaseClass.OS_LISTEN_REGEX_NAME) == ScriptBaseClass.OS_LISTEN_REGEX_NAME)
             {
@@ -4596,7 +4614,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Regex.IsMatch("", name);
                 }
-                catch (Exception)
+                catch
                 {
                     OSSLShoutError("Name regex is invalid.");
                     return -1;
@@ -4610,24 +4628,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     Regex.IsMatch("", msg);
                 }
-                catch (Exception)
+                catch
                 {
                     OSSLShoutError("Message regex is invalid.");
                     return -1;
                 }
             }
 
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return (wComm == null) ? -1 : wComm.Listen(
-                m_host.LocalId,
-                m_item.ItemID,
-                m_host.UUID,
-                channelID,
-                name,
-                keyID,
-                msg,
-                regexBitfield
-            );
+            return wComm.Listen(m_item.ItemID, m_host.UUID,
+                        channelID, name, keyID, msg, regexBitfield);
         }
 
         public LSL_Integer osRegexIsMatch(string input, string pattern)
