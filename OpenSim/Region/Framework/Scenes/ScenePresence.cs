@@ -2713,7 +2713,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 agent_control_v3 = Vector3.Zero;
                 float agent_velocity = AgentControlNormalVel;
 
-                bool bAllowUpdateMoveToPosition = false;
                 uint oldflags = MovementFlags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
                 MovementFlags = (uint)flags & (CONTROL_FLAG_NUDGE_MASK | CONTROL_FLAG_NORM_MASK);
 
@@ -2739,9 +2738,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if(oldflags == 0)
-                        bAllowUpdateMoveToPosition = true;
-                    else
+                    if (oldflags != 0)
                         update_movementflag = true;
                 }
 
@@ -2776,7 +2773,7 @@ namespace OpenSim.Region.Framework.Scenes
                         ResetMoveToTarget();
                         update_movementflag = true;
                     }
-                    else if (bAllowUpdateMoveToPosition)
+                    else
                     {
                         // The UseClientAgentPosition is set if parcel ban is forcing the avatar to move to a
                         // certain position.  It's only check for tolerance on returning to that position is 0.2
@@ -2918,9 +2915,9 @@ namespace OpenSim.Region.Framework.Scenes
             //    allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
             float distanceToTarget;
-            if(Flying && !LandAtTarget)
-                distanceToTarget = LocalVectorToTarget3D.LengthSquared();
-            else
+            //if(Flying && !LandAtTarget)
+            //    distanceToTarget = LocalVectorToTarget3D.LengthSquared();
+            //else
                 distanceToTarget = (LocalVectorToTarget3D.X * LocalVectorToTarget3D.X) + (LocalVectorToTarget3D.Y * LocalVectorToTarget3D.Y);
 
             // m_log.DebugFormat(
@@ -2955,6 +2952,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ResetMoveToTarget();
                 return false;
             }
+
+            if(Flying && !LandAtTarget)
+                distanceToTarget = LocalVectorToTarget3D.LengthSquared();
 
             if (m_moveToSpeed > 0 &&
                     distanceToTarget <= m_moveToSpeed * m_moveToSpeed * Scene.FrameTime * Scene.FrameTime)
@@ -3025,7 +3025,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_AgentControlFlags |= (ACFlags)tmpAgentControlFlags;
 
                 if (updated)
-                    agent_control_v3 += LocalVectorToTarget3D;
+                    agent_control_v3 = LocalVectorToTarget3D;
             }
             catch (Exception e)
             {
@@ -3108,8 +3108,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // m_log.DebugFormat("[SCENE PRESENCE]: Local vector to target is {0},[1}", localVectorToTarget3D.X,localVectorToTarget3D.Y);
 
-            m_movingToTarget = true;
-            m_moveToPositionTarget = pos;
             if(tau > 0)
             {
                 if(tau < Scene.FrameTime)
@@ -3124,10 +3122,12 @@ namespace OpenSim.Region.Framework.Scenes
                     m_moveToSpeed = 50f;
             }
             else
-                m_moveToSpeed = 4.096f * m_speedModifier;
+                m_moveToSpeed = AgentControlNormalVel * m_speedModifier;
 
             SetAlwaysRun = running;
             Flying = shouldfly;
+            m_moveToPositionTarget = pos;
+            m_movingToTarget = true;
 
             Vector3 control = Vector3.Zero;
             if(HandleMoveToTargetUpdate(0.5f, ref control))
@@ -3776,12 +3776,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else if (Flying)
             {
-                if (IsColliding && direc.Z < 0)
-                    // landing situation, prevent avatar moving or it may fail to land
-                    // animator will handle this condition and do the land
-                    direc = Vector3.Zero;
-                else if(notmvtrgt)
-                    direc *= 4.0f;
+                if (notmvtrgt)
+                {
+                    if (IsColliding && direc.Z < 0)
+                        // landing situation, prevent avatar moving or it may fail to land
+                        // animator will handle this condition and do the land
+                        direc = Vector3.Zero;
+                    else
+                        direc *= 4.0f;
+                }
             }
             else if (IsColliding)
             {
