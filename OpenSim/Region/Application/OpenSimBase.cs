@@ -916,7 +916,6 @@ namespace OpenSim
                 httpResponse.KeepAlive = false;
                 httpResponse.RawBuffer = binmsg;
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                return;
             }
         }
 

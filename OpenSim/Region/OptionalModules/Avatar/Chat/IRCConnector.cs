@@ -502,17 +502,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                         // Any chat ???
                         if (data != null)
                         {
-                            OSChatMessage c = new OSChatMessage();
-                            c.Message = data["msg"];
-                            c.Type = ChatTypeEnum.Region;
-                            c.Position = CenterOfRegion;
-                            c.From =  data["nick"] + "@IRC";
-                            c.Sender = null;
-                            c.SenderUUID = UUID.Zero;
+                            OSChatMessage c = new OSChatMessage
+                            {
+                                Message = data["msg"],
+                                Type = ChatTypeEnum.Region,
+                                From =  data["nick"] + "@IRC"
+                            };
 
                             // Is message "\001ACTION foo bar\001"?
                             // Then change to: "/me foo bar"
-
                             if ((1 == c.Message[0]) && c.Message.Substring(1).StartsWith("ACTION"))
                                 c.Message = String.Format("/me {0}", c.Message.Substring(8, c.Message.Length - 9));
 
@@ -578,14 +576,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         {
             try
             {
-                OSChatMessage c = new OSChatMessage();
-                c.From = sender;
-                c.Message = String.Format(format, args);
-                c.Type = ChatTypeEnum.Region; // ChatTypeEnum.Say;
-                c.Position = CenterOfRegion;
-                c.Sender = null;
-                c.SenderUUID = UUID.Zero;
-
+                OSChatMessage c = new OSChatMessage
+                {
+                    From = sender,
+                    Message = String.Format(format, args),
+                    Type = ChatTypeEnum.Region
+                };
                 ChannelState.OSChat(this, c, true);
 
             }
