@@ -93,7 +93,7 @@ namespace OpenSim.Framework
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, UUID avatarID);
 
-    public delegate void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData ProfileData);
+    public delegate void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileProperties ProfileData);
 
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 

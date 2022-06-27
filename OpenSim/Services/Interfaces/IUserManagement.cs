@@ -40,6 +40,7 @@ namespace OpenSim.Framework
     {
         UserData GetUserData(UUID id);
         string GetUserName(UUID uuid);
+        bool GetUserName(UUID uuid, out string FirstName, out string LastName);
         string GetUserHomeURL(UUID uuid);
         string GetUserHomeURL(UUID uuid, out bool failedWeb);
         string GetUserUUI(UUID uuid);

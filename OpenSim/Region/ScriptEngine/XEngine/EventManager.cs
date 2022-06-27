@@ -71,6 +71,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptLandColliderStart += land_collision_start;
             myScriptEngine.World.EventManager.OnScriptLandColliding += land_collision;
             myScriptEngine.World.EventManager.OnScriptLandColliderEnd += land_collision_end;
+            myScriptEngine.World.EventManager.OnScriptListenEvent += script_listen;
             IMoneyModule money = myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
@@ -234,6 +235,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new DetectParams[] { det }));
                 return;
             }
+        }
+
+        public void script_listen(UUID scriptID, int channel, string name, UUID id, string message)
+        {
+            object[] resobj = new object[]
+            {
+                new LSL_Types.LSLInteger(channel),
+                new LSL_Types.LSLString(name),
+                new LSL_Types.LSLString(id.ToString()),
+                new LSL_Types.LSLString(message)
+            };
+            myScriptEngine.PostScriptEvent(scriptID, new EventParams("listen", resobj, new DetectParams[0]));
         }
 
         // state_entry: not processed here
