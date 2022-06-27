@@ -33,18 +33,14 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IWorldCommListenerInfo
     {
-        Object[] GetSerializationData();
-        UUID GetItemID();
-        UUID GetHostID();
-        int GetChannel();
-        uint GetLocalID();
-        int GetHandle();
-        string GetMessage();
-        string GetName();
-        bool IsActive();
-        void Deactivate();
-        void Activate();
-        UUID GetID();
+        bool IsActive { get; }
+        int Handle { get; }
+        UUID ItemID { get; }
+        UUID HostID { get; }
+        int Channel { get; }
+        string Message { get; }
+        string Name { get; }
+        UUID ID { get; }
 
         /// <summary>
         /// Bitfield indicating which strings should be processed as regex.
@@ -52,6 +48,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 2 corresponds to IWorldCommListenerInfo::GetMessage()
         /// </summary>
         int RegexBitfield { get; }
+        Object[] GetSerializationData();
+
+        void Deactivate();
+        void Activate();
     }
 
     public interface IWorldComm
@@ -67,7 +67,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the script during 'peek' time. Parameter hostID is needed to
         /// determine the position of the script.
         /// </summary>
-        /// <param name="LocalID">localID of the script engine</param>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
@@ -75,7 +74,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="id">key to filter on (user given, could be totally faked)</param>
         /// <param name="msg">msg to filter on</param>
         /// <returns>number of the scripts handle</returns>
-        int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg);
+        int Listen(UUID itemID, UUID hostID, int channel, string name, UUID id, string msg);
 
          /// <summary>
         /// Create a listen event callback with the specified filters.
@@ -83,7 +82,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the script during 'peek' time. Parameter hostID is needed to
         /// determine the position of the script.
         /// </summary>
-        /// <param name="LocalID">localID of the script engine</param>
         /// <param name="itemID">UUID of the script engine</param>
         /// <param name="hostID">UUID of the SceneObjectPart</param>
         /// <param name="channel">channel to listen on</param>
@@ -92,7 +90,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="msg">msg to filter on</param>
         /// <param name="regexBitfield">Bitfield indicating which strings should be processed as regex.</param>
         /// <returns>number of the scripts handle</returns>
-        int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg, int regexBitfield);
+        int Listen(UUID itemID, UUID hostID, int channel, string name, UUID id, string msg, int regexBitfield);
 
         /// <summary>
         /// This method scans over the objects which registered an interest in listen callbacks.
@@ -108,6 +106,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="id">key of sender (object or avatar)</param>
         /// <param name="msg">msg to sent</param>
         void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg);
+        void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg, Vector3 sourcePosition);
 
         /// <summary>
         /// Delivers the message to a specified object in the region.
@@ -129,23 +128,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         void DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg);
 
-        /// <summary>
-        /// Are there any listen events ready to be dispatched?
-        /// </summary>
-        /// <returns>boolean indication</returns>
-        bool HasMessages();
-
-        /// <summary>
-        /// Pop the first availlable listen event from the queue
-        /// </summary>
-        /// <returns>ListenerInfo with filter filled in</returns>
-        IWorldCommListenerInfo GetNextMessage();
-
         void ListenControl(UUID itemID, int handle, int active);
         void ListenRemove(UUID itemID, int handle);
         void DeleteListener(UUID itemID);
         Object[] GetSerializationData(UUID itemID);
-        void CreateFromData(uint localID, UUID itemID, UUID hostID,
-                            Object[] data);
+        void CreateFromData(UUID itemID, UUID hostID, Object[] data);
     }
 }

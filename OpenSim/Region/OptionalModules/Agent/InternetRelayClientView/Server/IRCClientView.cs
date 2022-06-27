@@ -360,16 +360,16 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             {
                 if (OnChatFromClient != null)
                 {
-                    OSChatMessage msg = new OSChatMessage();
-                    msg.Sender = this;
-                    msg.Channel = 0;
-                    msg.From = this.Name;
-                    msg.Message = privmsgArgs[1].Replace(":", "");
-                    msg.Position = Vector3.Zero;
-                    msg.Scene = m_scene;
-                    msg.SenderObject = null;
-                    msg.SenderUUID = this.AgentId;
-                    msg.Type = ChatTypeEnum.Say;
+                    OSChatMessage msg = new OSChatMessage
+                    {
+                        Sender = this,
+                        Channel = 0,
+                        From = Name,
+                        Message = privmsgArgs[1].Replace(":", ""),
+                        Scene = m_scene,
+                        SenderUUID = this.AgentId,
+                        Type = ChatTypeEnum.Say
+                    };
 
                     OnChatFromClient(this, msg);
                 }

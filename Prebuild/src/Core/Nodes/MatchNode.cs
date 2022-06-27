@@ -204,7 +204,6 @@ namespace Prebuild.Core.Nodes
                             {
                                 m_Files.Add(fileTemp);
                             }
-
                         }
                     }
 
@@ -259,12 +258,14 @@ namespace Prebuild.Core.Nodes
                         {
                             // hack to skip subversion folders.  Not having this can cause
                             // a significant performance hit when running on a network drive.
-                            if (str.EndsWith(".svn"))
+                            if (str.EndsWith(".svn") || str.EndsWith(".git"))
                                 continue;
                             string dname = Path.GetFileName(str);
-                            if(Kernel.Instance.excludeFolders.Contains(dname))
-                                continue;
+                            if (dname[0]== '.' && (dname[1] == '/' || dname[1] == '\\'))
+                                dname = dname.Substring(2);
 
+                            if (Kernel.Instance.excludeFolders.Contains(dname))
+                                continue;
                             RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
                         }
                     }
@@ -302,7 +303,6 @@ namespace Prebuild.Core.Nodes
             string buildAction = Helper.AttributeValue(node, "buildAction", String.Empty);
             if (buildAction != string.Empty)
                 m_BuildAction = (BuildAction)Enum.Parse(typeof(BuildAction), buildAction);
-
 
             //TODO: Figure out where the subtype node is being assigned
             //string subType = Helper.AttributeValue(node, "subType", string.Empty);
