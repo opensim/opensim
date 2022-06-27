@@ -407,6 +407,20 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return "UnknownUMM2 " + uuid.ToString();
         }
 
+        public bool GetUserName(UUID uuid, out string FirstName, out string LastName)
+        {
+            if (GetUser(uuid, out UserData user))
+            {
+                FirstName = user.FirstName;
+                LastName = user.LastName;
+                return true;
+            }
+
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            return false;
+        }
+
         public virtual Dictionary<UUID,string> GetUsersNames(string[] ids, UUID scopeID)
         {
             var ret = new Dictionary<UUID,string>();
@@ -1105,7 +1119,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             {
                 if (!oldUser.IsUnknownUser)
                 {
-                    if (homeURL != oldUser.HomeURL && m_DisplayChangingHomeURI)
+                    if (!homeURL.Equals(oldUser.HomeURL) && m_DisplayChangingHomeURI)
                     {
                         m_log.DebugFormat("[USER MANAGEMENT MODULE]: Different HomeURI for {0} {1} ({2}): {3} and {4}",
                             first, last, uuid.ToString(), homeURL, oldUser.HomeURL);

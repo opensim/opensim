@@ -5503,7 +5503,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (ParentGroup.m_sittingAvatars)
             {
-                if (SitTargetAvatar == sp.UUID)
+                if (SitTargetAvatar.Equals(sp.UUID))
                     SitTargetAvatar = UUID.Zero;
 
                 if (m_sittingAvatars == null)
@@ -5808,6 +5808,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animations = null;
             AnimationsNames = null;
+        }
+
+        public bool GetOwnerName(out string FirstName, out string LastName)
+        {
+            if(ParentGroup != null)
+                return ParentGroup.GetOwnerName(out FirstName, out LastName);
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            return false;
         }
     }
 }
