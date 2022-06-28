@@ -167,8 +167,8 @@
     <Compile Remove="ServiceConnectorsOut\UserAccounts\LocalUserAccountServiceConnector.cs" />
     <Compile Remove="ServiceConnectorsOut\UserAccounts\RemoteUserAccountServiceConnector.cs" />
     <Compile Remove="ServiceConnectorsOut\UserAccounts\UserAccountCache.cs" />
-	<Compile Remove="ServiceConnectorsOut\UserAliases\LocalUserAliasServicesConnector.cs" />
-	<Compile Remove="ServiceConnectorsOut\UserAliases\RemoteUserAliasServicesConnector.cs" />
+	  <Compile Remove="ServiceConnectorsOut\UserAliases\LocalUserAliasServicesConnector.cs" />
+	  <Compile Remove="ServiceConnectorsOut\UserAliases\RemoteUserAliasServicesConnector.cs" />
     <Compile Remove="World\Access\AccessModule.cs" />
     <Compile Remove="World\Archiver\ArchiveHelpers.cs" />
     <Compile Remove="World\Archiver\ArchiveReadRequest.cs" />

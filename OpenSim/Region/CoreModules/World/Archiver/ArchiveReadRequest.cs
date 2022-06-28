@@ -796,8 +796,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                         if (m_lookupAliases == true)
                         {
-                            UUID userID = UUID.Zero;
-                            if (ResolveUserAlias(scene, part.CreatorID, out userID))
+                            if (ResolveUserAlias(scene, part.CreatorID, out UUID userID))
                             {
                                 part.CreatorID = userID;
                             }
@@ -816,8 +815,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if (m_lookupAliases == true)
                     {
-                        UUID userID = UUID.Zero;
-                        if (ResolveUserAlias(scene, part.OwnerID, out userID))
+                        if (ResolveUserAlias(scene, part.OwnerID, out UUID userID))
                         {
                             part.OwnerID = userID;
                         }
@@ -830,8 +828,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if (m_lookupAliases == true)
                     {
-                        UUID userID = UUID.Zero;
-                        if (ResolveUserAlias(scene, part.LastOwnerID, out userID))
+                        if (ResolveUserAlias(scene, part.LastOwnerID, out UUID userID))
                         {
                             part.LastOwnerID = userID;
                         }
@@ -871,8 +868,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                             if (m_lookupAliases == true)
                             {
-                                UUID userID = UUID.Zero;
-                                if (ResolveUserAlias(scene, kvp.Value.OwnerID, out userID))
+                                if (ResolveUserAlias(scene, kvp.Value.OwnerID, out UUID userID))
                                 {
                                     kvp.Value.OwnerID = userID;
                                 }
@@ -887,8 +883,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                                 if (m_lookupAliases == true)
                                 {
-                                    UUID userID = UUID.Zero;
-                                    if (ResolveUserAlias(scene, kvp.Value.CreatorID, out userID))
+                                    if (ResolveUserAlias(scene, kvp.Value.CreatorID, out UUID userID))
                                     {
                                         kvp.Value.CreatorID = userID;
                                     }
