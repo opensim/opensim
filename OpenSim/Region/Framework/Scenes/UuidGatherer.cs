@@ -401,10 +401,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
 
-                    if (!part.Shape.SculptTexture.IsZero())
+                    if (part.Shape.SculptTexture.IsNotZero())
                         GatheredUuids[part.Shape.SculptTexture] = (sbyte)AssetType.Texture;
 
-                    if (!part.Shape.ProjectionTextureUUID.IsZero())
+                    if (part.Shape.ProjectionTextureUUID.IsNotZero())
                         GatheredUuids[part.Shape.ProjectionTextureUUID] = (sbyte)AssetType.Texture;
 
                     UUID collisionSound = part.CollisionSound;
@@ -420,7 +420,7 @@ namespace OpenSim.Region.Framework.Scenes
                         try
                         {
                             Primitive.ParticleSystem ps = new Primitive.ParticleSystem(part.ParticleSystem, 0);
-                            if (!ps.Texture.IsZero())
+                            if (ps.Texture.IsNotZero())
                                 GatheredUuids[ps.Texture] = (sbyte)AssetType.Texture;
                         }
                         catch (Exception)
@@ -443,9 +443,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         foreach(UUID id in part.Animations.Keys)
                         {
-                            if(!id.IsZero() &&
-                                !ToSkip.Contains(id) &&
-                                !FailedUUIDs.Contains(id))
+                            if(id.IsNotZero() && !ToSkip.Contains(id) && !FailedUUIDs.Contains(id))
                             {
                                 GatheredUuids[id] = (sbyte)AssetType.Animation;
                             }
