@@ -16,14 +16,6 @@
       <HintPath>..\..\bin\LukeSkywalker.IPNetwork.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Addins.Setup">
-      <HintPath>..\..\bin\Mono.Addins.Setup.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -199,6 +191,8 @@
     <Compile Remove="Servers\Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Mono.Addins" Version="1.3.14" />
+	<PackageReference Include="Mono.Addins.Setup" Version="1.3.14" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
   <ItemGroup>
