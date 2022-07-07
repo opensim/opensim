@@ -659,8 +659,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
             int sceneObjectsLoadedCount = 0;
             Vector3 boundingExtent = new Vector3(m_boundingOrigin.X + m_boundingSize.X, m_boundingOrigin.Y + m_boundingSize.Y, m_boundingOrigin.Z + m_boundingSize.Z);
-
             int mergeskip = 0;
+            
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
                 SceneObjectGroup sceneObject = serialiser.DeserializeGroupFromXml2(serialisedSceneObject);

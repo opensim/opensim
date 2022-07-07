@@ -15,10 +15,6 @@
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Nini">
       <HintPath>..\..\..\bin\Nini.dll</HintPath>
       <Private>False</Private>
@@ -54,5 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Asset\Tests\AssetServerPostHandlerTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Addins" Version="1.3.14" />
   </ItemGroup>
 </Project>
