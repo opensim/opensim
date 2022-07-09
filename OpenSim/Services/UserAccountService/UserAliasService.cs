@@ -92,11 +92,17 @@ namespace OpenSim.Services.UserAccountService
                     "Create a new user alias", HandleCreateAlias);
 
                 MainConsole.Instance.Commands.AddCommand("Aliases", false,
-                        "show alias",
-                        "show alias <userId>",
-                        "Show Aliases user ids defined for the specified user account", HandleShowAliases);
+                    "show alias",
+                    "show alias <userId>",
+                    "Show Aliases user ids defined for the specified user account", HandleShowAliases);
+
+                MainConsole.Instance.Commands.AddCommand("Aliases", false,
+                        "delete alias",
+                        "delete alias [<aliasid>]",
+                        "delete an existing user alias by aliasId", HandleDeleteAlias);
             }
         }
+
 
         #region Console commands
 
@@ -116,18 +122,12 @@ namespace OpenSim.Services.UserAccountService
             if (UUID.TryParse(rawAliasId, out UUID AliasID) == false)
                 throw new Exception(string.Format("ID {0} is not a valid UUID", rawAliasId));
 
-            var aliasData = new UserAliasData
-            {
-                AliasID = AliasID,
-                UserID = UserID,
-                Description = description
-            };
-
-            if (m_Database.Store(aliasData) == true)
-            {
+            var alias = CreateAlias(AliasID, UserID, description);
+            if (alias != null)
+            { 
                 MainConsole.Instance.Output(
                     "Alias Created - UserID: {0}, AliasID: {1}, Description: {2}",
-                    aliasData.UserID, aliasData.AliasID, aliasData.Description);
+                    alias.UserID, alias.AliasID, alias.Description);
             }
         }
 
@@ -154,6 +154,23 @@ namespace OpenSim.Services.UserAccountService
             }
         }
 
+        private void HandleDeleteAlias(string module, string[] cmdparams)
+        {
+            string rawAliasId = (cmdparams.Length < 3 ? MainConsole.Instance.Prompt("AliasID", "") : cmdparams[2]);
+
+            if (UUID.TryParse(rawAliasId, out UUID AliasID) == false)
+                throw new Exception(string.Format("ID {0} is not a valid UUID", rawAliasId));
+
+            if (DeleteAlias(AliasID) == true)
+            {
+                MainConsole.Instance.Output("Alias for ID {0} deleted", rawAliasId);
+            }
+            else
+            {
+                MainConsole.Instance.Output("No alias with ID {0} found", rawAliasId);
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -163,7 +180,7 @@ namespace OpenSim.Services.UserAccountService
         /// <returns>List<UserAlias>() - A list of aliases or null if none are defined</UUID></returns>
         public List<UserAlias> GetUserAliases(UUID userID)
         {
-            m_log.DebugFormat("[USER ALIAS SERVICE] Retrieving aliases for user by userid {0}", userID);
+ //           m_log.DebugFormat("[USER ALIAS SERVICE] Retrieving aliases for user by userid {0}", userID);
 
             var aliases = m_Database.GetUserAliases(userID);
 
@@ -188,7 +205,7 @@ namespace OpenSim.Services.UserAccountService
 
         public UserAlias GetUserForAlias(UUID aliasID)
         {
-            m_log.DebugFormat("[USER ALIAS SERVICE]: Retrieving userID for alias by aliasId ", aliasID);
+//            m_log.DebugFormat("[USER ALIAS SERVICE]: Retrieving userID for alias by aliasId ", aliasID);
 
             var alias = m_Database.GetUserForAlias(aliasID);
 
@@ -207,6 +224,29 @@ namespace OpenSim.Services.UserAccountService
 
                 return userAlias;
             }
+        }
+
+        public UserAlias CreateAlias(UUID AliasID, UUID UserID, string Description)
+        {
+            var aliasData = new UserAliasData
+            {
+                AliasID = AliasID,
+                UserID = UserID,
+                Description = Description
+            };
+
+            if (m_Database.Store(aliasData) == true)
+            {
+                return new UserAlias(AliasID, UserID, Description); 
+            }
+
+            return null;
+        }
+
+        public bool DeleteAlias(UUID aliasID)
+        {
+            return m_Database.Delete("AliasID", aliasID.ToString());
+            throw new NotImplementedException();
         }
     }
 }
