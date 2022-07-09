@@ -31,19 +31,130 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Data;
+using OpenSim.Framework;
+using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.UserAccountService
 {
-    public class UserAliasService : UserAliasServiceBase, IUserAliasService
+    public class UserAliasService : ServiceBase, IUserAliasService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public UserAliasService(IConfigSource config)
+        protected IUserAliasData m_Database = null;
+
+        public UserAliasService(IConfigSource config) 
             : base(config)
         {
+            string dllName = String.Empty;
+            string connString = String.Empty;
+            string realm = "UserAlias";
 
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
+            IConfig userConfig = config.Configs["UserAliasService"];
+            if (userConfig == null)
+            {
+                throw new Exception("No UserAliasService configuration");
+            }
+
+            dllName = userConfig.GetString("StorageProvider", dllName);
+            if (dllName.Length == 0)
+            {
+                throw new Exception("No StorageProvider configured");
+            }
+
+            connString = userConfig.GetString("ConnectionString", connString);
+            realm = userConfig.GetString("Realm", realm);
+
+            m_Database = LoadPlugin<IUserAliasData>(dllName, new Object[] { connString, realm });
+
+            if (m_Database == null)
+            {
+                throw new Exception("Could not find a storage interface in the given module");
+            }
+
+            // Console commands
+
+            // In case there are several instances of this class in the same process,
+            // the console commands are only registered for the root instance
+            if (MainConsole.Instance != null)
+            {
+                MainConsole.Instance.Commands.AddCommand("Aliases", false,
+                    "create alias",
+                    "create alias [<userId> [<aliasid> [<description>]]]",
+                    "Create a new user alias", HandleCreateAlias);
+
+                MainConsole.Instance.Commands.AddCommand("Aliases", false,
+                        "show alias",
+                        "show alias <userId>",
+                        "Show Aliases user ids defined for the specified user account", HandleShowAliases);
+            }
         }
+
+        #region Console commands
+
+        /// <summary>
+        /// Handle the create user command from the console.
+        /// </summary>
+        /// <param name="cmdparams">string array with parameters: userid, aliasid, description </param>
+        protected void HandleCreateAlias(string module, string[] cmdparams)
+        {
+            string rawUserId = (cmdparams.Length < 3 ? MainConsole.Instance.Prompt("UserID", "") : cmdparams[2]);
+            string rawAliasId = (cmdparams.Length < 4 ? MainConsole.Instance.Prompt("AliasID", "") : cmdparams[3]);
+            string description = (cmdparams.Length < 5 ? MainConsole.Instance.Prompt("Description", "") : cmdparams[4]);
+
+            if (UUID.TryParse(rawUserId, out UUID UserID) == false)
+                throw new Exception(string.Format("ID {0} is not a valid UUID", rawUserId));
+
+            if (UUID.TryParse(rawAliasId, out UUID AliasID) == false)
+                throw new Exception(string.Format("ID {0} is not a valid UUID", rawAliasId));
+
+            var aliasData = new UserAliasData
+            {
+                AliasID = AliasID,
+                UserID = UserID,
+                Description = description
+            };
+
+            if (m_Database.Store(aliasData) == true)
+            {
+                MainConsole.Instance.Output(
+                    "Alias Created - UserID: {0}, AliasID: {1}, Description: {2}",
+                    aliasData.UserID, aliasData.AliasID, aliasData.Description);
+            }
+        }
+
+        protected void HandleShowAliases(string module, string[] cmdparams)
+        {
+            string rawUserId = (cmdparams.Length < 3 ? MainConsole.Instance.Prompt("UserID", "") : cmdparams[2]);
+
+            if (UUID.TryParse(rawUserId, out UUID UserID) == false)
+                throw new Exception(string.Format("ID {0} is not a valid UUID", rawUserId));
+
+            var aliases = GetUserAliases(UserID);
+
+            if (aliases == null)
+            {
+                MainConsole.Instance.Output("No aliases for user {0}", rawUserId);
+                return;
+            }
+
+            foreach (var alias in aliases)
+            {
+                MainConsole.Instance.Output(
+                    "UserID: {0}, AliasID: {1}, Description: {2}", 
+                    alias.UserID, alias.AliasID, alias.Description);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Given a userID, return a list of any aliases (UUIDs) defined for this user
@@ -52,6 +163,8 @@ namespace OpenSim.Services.UserAccountService
         /// <returns>List<UserAlias>() - A list of aliases or null if none are defined</UUID></returns>
         public List<UserAlias> GetUserAliases(UUID userID)
         {
+            m_log.DebugFormat("[USER ALIAS SERVICE] Retrieving aliases for user by userid {0}", userID);
+
             var aliases = m_Database.GetUserAliases(userID);
 
             if ((aliases == null) || (aliases.Count == 0))
@@ -75,6 +188,8 @@ namespace OpenSim.Services.UserAccountService
 
         public UserAlias GetUserForAlias(UUID aliasID)
         {
+            m_log.DebugFormat("[USER ALIAS SERVICE]: Retrieving userID for alias by aliasId ", aliasID);
+
             var alias = m_Database.GetUserForAlias(aliasID);
 
             if (alias == null)
