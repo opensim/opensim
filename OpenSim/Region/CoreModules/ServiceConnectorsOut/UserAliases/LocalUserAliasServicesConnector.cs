@@ -153,6 +153,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAliases
             return userAliases;
         }
 
+        public UserAlias CreateAlias(UUID AliasID, UUID UserID, string Description)
+        {
+            var useralias = UserAliasService.CreateAlias(AliasID, UserID, Description); 
+            return useralias;
+        }
+
+        public bool DeleteAlias(UUID aliasID)
+        {
+            var result =  UserAliasService.DeleteAlias(aliasID);
+            return result;
+        }
+
         #endregion
     }
 }

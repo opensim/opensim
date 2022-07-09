@@ -73,6 +73,15 @@ namespace OpenSim.Services.Interfaces
     public interface IUserAliasService
     {
         /// <summary>
+        /// Create a user alias for a local user.  UserID must map to a local user account
+        /// </summary>
+        /// <param name="AliasID"></param>
+        /// <param name="UserID"></param>
+        /// <param name="Description"></param>
+        /// <returns>UserAlias or NULL</returns>
+        UserAlias CreateAlias(UUID AliasID, UUID UserID, string Description);
+
+        /// <summary>
         /// Lookup and return a local user based on an Alias entry if a local 
         /// user exists for this aliasID
         /// </summary>
@@ -87,5 +96,12 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <returns></returns>
         List<UserAlias> GetUserAliases(UUID userID);
+
+        /// <summary>
+        /// Delete an existing Alias
+        /// </summary>
+        /// <param name="aliasID"></param>
+        /// <returns>TRUE on success, False on Error</returns>
+        bool DeleteAlias(UUID aliasID);
     }
 }
