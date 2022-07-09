@@ -790,16 +790,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (string.IsNullOrEmpty(part.CreatorData))
                 {
-                    if (!ResolveUserUuid(scene, part.CreatorID))
+                    if (ResolveUserUuid(scene, part.CreatorID) == false)
                     {
-                        part.CreatorID = m_defaultUser;
-
                         if (m_lookupAliases == true)
                         {
                             if (ResolveUserAlias(scene, part.CreatorID, out UUID userID))
-                            {
                                 part.CreatorID = userID;
-                            }
+                            else
+                                part.CreatorID = m_defaultUser;
+                        }
+                        else
+                        {
+                            part.CreatorID = m_defaultUser;
                         }
                     }
                 }
@@ -811,27 +813,31 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 if (!(ResolveUserUuid(scene, part.OwnerID) || ResolveGroupUuid(part.OwnerID)))
                 {
-                    part.OwnerID = m_defaultUser;
-
                     if (m_lookupAliases == true)
                     {
                         if (ResolveUserAlias(scene, part.OwnerID, out UUID userID))
-                        {
                             part.OwnerID = userID;
-                        }
+                        else
+                            part.OwnerID = m_defaultUser;
+                    }
+                    else
+                    {
+                        part.OwnerID = m_defaultUser;
                     }
                 }
 
                 if (!(ResolveUserUuid(scene, part.LastOwnerID) || ResolveGroupUuid(part.LastOwnerID)))
                 {
-                    part.LastOwnerID = m_defaultUser;
-
                     if (m_lookupAliases == true)
                     {
                         if (ResolveUserAlias(scene, part.LastOwnerID, out UUID userID))
-                        {
                             part.LastOwnerID = userID;
-                        }
+                        else
+                            part.LastOwnerID = m_defaultUser;
+                    }
+                    else
+                    {
+                        part.LastOwnerID = m_defaultUser;
                     }
                 }
 
@@ -864,14 +870,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         if (!(ResolveUserUuid(scene, kvp.Value.OwnerID) || ResolveGroupUuid(kvp.Value.OwnerID)))
                         {
-                            kvp.Value.OwnerID = m_defaultUser;
-
                             if (m_lookupAliases == true)
                             {
                                 if (ResolveUserAlias(scene, kvp.Value.OwnerID, out UUID userID))
-                                {
                                     kvp.Value.OwnerID = userID;
-                                }
+                                else
+                                    kvp.Value.OwnerID = m_defaultUser;
+                            }
+                            else
+                            {
+                                kvp.Value.OwnerID = m_defaultUser;
                             }
                         }
 
@@ -879,14 +887,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         {
                             if (!ResolveUserUuid(scene, kvp.Value.CreatorID))
                             {
-                                kvp.Value.CreatorID = m_defaultUser;
-
                                 if (m_lookupAliases == true)
                                 {
                                     if (ResolveUserAlias(scene, kvp.Value.CreatorID, out UUID userID))
-                                    {
                                         kvp.Value.CreatorID = userID;
-                                    }
+                                    else
+                                        kvp.Value.CreatorID = m_defaultUser;
+                                }
+                                else
+                                {
+                                    kvp.Value.CreatorID = m_defaultUser;
                                 }
                             }
                         }
@@ -1105,9 +1115,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     m_log.DebugFormat("[ARCHIVER]: GetUserForAlias {0} returned {1}", 
                         aliasID.ToString(), alias == null ? "null" : alias.UserID.ToString());
-                    
+
                     if (alias != null)
+                    {
                         m_aliasedUserUuids.Add(aliasID, alias.UserID);
+                    }
                 }
 
                 if (m_aliasedUser[aliasID] == true)
