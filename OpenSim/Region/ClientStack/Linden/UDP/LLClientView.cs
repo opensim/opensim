@@ -7306,7 +7306,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 zc.AddBytes(ep, len);
             }
 
-            bool hassound = !part.Sound.IsZero() || part.SoundFlags != 0;
+            bool hassound = part.Sound.IsNotZero() || part.SoundFlags != 0;
             if (hassound)
                 zc.AddUUID(part.Sound);
             else
@@ -7729,7 +7729,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            if (!part.Sound.IsZero() || part.SoundFlags != 0)
+            if (part.Sound.IsNotZero() || part.SoundFlags != 0)
             {
                 BlockLengh += 25;
                 cflags |= CompressedFlags.HasSound;
