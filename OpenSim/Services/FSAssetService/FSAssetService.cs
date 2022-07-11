@@ -86,12 +86,16 @@ namespace OpenSim.Services.FSAssetService
 
         public FSAssetConnector(IConfigSource config, string configName) : base(config)
         {
-            lock(m_initLock)
+            IConfig assetConfig = config.Configs[configName];
+            if (assetConfig == null)
+                throw new Exception("No AssetService configuration");
+
+            lock (m_initLock)
             {
                 if (!m_mainInitialized)
                 {
                     m_mainInitialized = true;
-                    m_isMainInstance = true;
+                    m_isMainInstance = !assetConfig.GetBoolean("SecondaryInstance", false);
 
                     MainConsole.Instance.Commands.AddCommand("fs", false,
                             "show assets", "show assets", "Show asset stats",
@@ -117,16 +121,6 @@ namespace OpenSim.Services.FSAssetService
                     m_isMainInstance = false; // yes redundant...
                 }
             }
-
-            IConfig assetConfig = config.Configs[configName];
-
-            if (assetConfig == null)
-                throw new Exception("No AssetService configuration");
-
-            bool secondary = assetConfig.GetBoolean("SecondaryInstance", false);
-            lock (m_initLock)
-                m_isMainInstance = !secondary;
-
 
             // Get Database Connector from Asset Config (If present)
             string dllName = assetConfig.GetString("StorageProvider", string.Empty);
