@@ -152,41 +152,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         protected string parseFloat(String s, out float f)
         {
-            string result;
-            float d;
-            if (float.TryParse(s, out d))
-            {
-                try
-                {
-                    f = (float)d;
-                    result = String.Empty;
-                }
-                catch(InvalidCastException)
-                {
-                    result = String.Format("{0} is invalid", s);
-                    f = -1.0f;
-                }
-            }
-            else
-            {
-                f = -1.0f;
-                result = String.Format("{0} is invalid", s);
-            }
-            return result;
+            if (float.TryParse(s, out f))
+                return string.Empty;
+
+            f = -1.0f;
+            return string.Format("{0} is invalid", s);
         }
 
         protected string parseInt(String s, out int i)
         {
-            string result;
             if (Int32.TryParse(s, out i))
-            {
-                result = String.Empty;
-            }
-            else
-            {
-                result = String.Format("{0} is invalid", s);
-            }
-            return result;
+                return string.Empty;
+
+            return string.Format("{0} is invalid", s);
         }
 
         protected void applyModification(ITerrainChannel map, TerrainModifierData data)

@@ -153,7 +153,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public ODEDynamics(OdePrim rootp)
         {
             rootPrim = rootp;
-            _pParentScene = rootPrim._parent_scene;
+            _pParentScene = rootPrim.m_parentScene;
             m_timestep = _pParentScene.ODE_STEPSIZE;
             m_invtimestep = 1.0f / m_timestep;
             m_gravmod = rootPrim.GravModifier;
@@ -853,10 +853,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             // hover
-            if (m_VhoverTimescale < 300 && rootPrim.prim_geom != IntPtr.Zero)
+            if (m_VhoverTimescale < 300 && rootPrim.m_prim_geom != IntPtr.Zero)
             {
                 //                d.Vector3 pos = d.BodyGetPosition(Body);
-                SafeNativeMethods.Vector3 pos = SafeNativeMethods.GeomGetPosition(rootPrim.prim_geom);
+                SafeNativeMethods.Vector3 pos = SafeNativeMethods.GeomGetPosition(rootPrim.m_prim_geom);
                 pos.Z -= 0.21f; // minor offset that seems to be always there in sl
 
                 float t = _pParentScene.GetTerrainHeightAtXY(pos.X, pos.Y);
@@ -869,7 +869,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if ((m_flags & VehicleFlag.HOVER_WATER_ONLY) != 0)
                     {
-                        perr += _pParentScene.GetWaterLevel();
+                        perr += _pParentScene.WaterLevel;
                     }
                     else if ((m_flags & VehicleFlag.HOVER_TERRAIN_ONLY) != 0)
                     {
@@ -877,11 +877,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
                     else
                     {
-                        float w = _pParentScene.GetWaterLevel();
-                        if (t > w)
+                        if (t > _pParentScene.WaterLevel)
                             perr += t;
                         else
-                            perr += w;
+                            perr += _pParentScene.WaterLevel;
                     }
                 }
                 else if (t > m_VhoverHeight)
@@ -997,10 +996,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     float broll = effroll;
                     /*
-                                        if (broll > halfpi)
-                                            broll = pi - broll;
-                                        else if (broll < -halfpi)
-                                            broll = -pi - broll;
+                    if (broll > halfpi)
+                        broll = pi - broll;
+                    else if (broll < -halfpi)
+                        broll = -pi - broll;
                     */
                     broll *= m_bankingEfficiency;
                     if (m_bankingMix != 0)
@@ -1046,7 +1045,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(mousemode)
             {
                 CameraData cam = rootPrim.TryGetCameraData();
-                if(cam.Valid && cam.MouseLook)
+                if(cam != null && cam.MouseLook)
                 {
                     Vector3 dirv = cam.CameraAtAxis * irotq;
 

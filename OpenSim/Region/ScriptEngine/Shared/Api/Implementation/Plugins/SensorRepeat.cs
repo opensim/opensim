@@ -354,7 +354,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             float dz;
 
 //            Quaternion q = SensePoint.RotationOffset;
-            Quaternion q = SensePoint.GetWorldRotation();		// non-attached prim Sensor *always* uses World rotation!
+            Quaternion q = SensePoint.GetWorldRotation();  // non-attached prim Sensor *always* uses World rotation!
             if (SensePoint.ParentGroup.IsAttachment)
             {
                 // In attachments, rotate the sensor cone with the
@@ -429,7 +429,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     }
                     else
                     {
-                        if (ent.Velocity.Equals(ZeroVector))
+                        if (ent.Velocity.IsZero())
                         {
                             objtype |= PASSIVE; // Passive non-moving
                         }
@@ -560,7 +560,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
                 // if the object the script is in is attached and the avatar is the owner
                 // then this one is not wanted
-                if (attached && presence.UUID == SensePoint.OwnerID)
+                if (attached && presence.UUID.Equals(SensePoint.OwnerID))
                     return;
 
                 toRegionPos = presence.AbsolutePosition;

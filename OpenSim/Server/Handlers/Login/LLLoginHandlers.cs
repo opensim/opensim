@@ -198,26 +198,31 @@ namespace OpenSim.Server.Handlers.Login
             if (request.Type == OSDType.Map)
             {
                 OSDMap map = (OSDMap)request;
-
-                if (map.ContainsKey("first") && map.ContainsKey("last") && map.ContainsKey("passwd"))
+                if (map.TryGetValue("first", out OSD ofirst) &&
+                    map.TryGetValue("last", out OSD olast) &&
+                    map.TryGetValue("passwd", out OSD opass))
                 {
-                    string startLocation = string.Empty;
+                    string first = ofirst.AsString();
+                    string last = olast.AsString();
+                    string passwd = opass.AsString();
 
-                    if (map.ContainsKey("start"))
-                        startLocation = map["start"].AsString();
+                    string startLocation = string.Empty;
+                    OSD otmp;
+                    if (map.TryGetValue("start", out otmp))
+                        startLocation = otmp.AsString();
 
                     UUID scopeID = UUID.Zero;
 
-                    if (map.ContainsKey("scope_id"))
-                        scopeID = new UUID(map["scope_id"].AsString());
+                    if (map.TryGetValue("scope_id", out otmp))
+                        scopeID = new UUID(otmp.AsString());
 
-                    m_log.Info("[LOGIN]: LLSD Login Requested for: '" + map["first"].AsString() + "' '" + map["last"].AsString() + "' / " + startLocation);
+                    m_log.Info("[LOGIN]: LLSD Login Requested for: '" + first + "' '" + last + "' / " + startLocation);
 
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, scopeID,
-                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(), map["id0"].AsString(), remoteClient);
+                    reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID,
+                        map["version"].AsString(), map["channel"].AsString(), map["mac"].AsString(),
+                        map["id0"].AsString(), remoteClient);
                     return reply.ToOSDMap();
-
                 }
             }
 

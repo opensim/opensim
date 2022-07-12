@@ -834,13 +834,13 @@ namespace OpenSim.Framework
             config.Set("ExternalHostName", m_externalHostName);
 
             if (m_nonphysPrimMin > 0)
-                config.Set("NonphysicalPrimMax", m_nonphysPrimMin);
+                config.Set("NonphysicalPrimMin", m_nonphysPrimMin);
 
             if (m_nonphysPrimMax > 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
 
             if (m_physPrimMin > 0)
-                config.Set("PhysicalPrimMax", m_physPrimMin);
+                config.Set("PhysicalPrimMin", m_physPrimMin);
 
             if (m_physPrimMax > 0)
                 config.Set("PhysicalPrimMax", m_physPrimMax);
@@ -906,7 +906,7 @@ namespace OpenSim.Framework
         {
             OSDMap args = new OSDMap();
             args["region_id"] = OSD.FromUUID(RegionID);
-            if ((RegionName != null) && !RegionName.Equals(""))
+            if (!string.IsNullOrEmpty(RegionName))
                 args["region_name"] = OSD.FromString(RegionName);
             args["external_host_name"] = OSD.FromString(ExternalHostName);
             args["http_port"] = OSD.FromString(HttpPort.ToString());
@@ -920,10 +920,10 @@ namespace OpenSim.Framework
 
             args["internal_ep_address"] = OSD.FromString(InternalEndPoint.Address.ToString());
             args["internal_ep_port"] = OSD.FromString(InternalEndPoint.Port.ToString());
-            if ((RemotingAddress != null) && !RemotingAddress.Equals(""))
+            if (!string.IsNullOrEmpty(RemotingAddress))
                 args["remoting_address"] = OSD.FromString(RemotingAddress);
             args["remoting_port"] = OSD.FromString(RemotingPort.ToString());
-            if ((proxyUrl != null) && !proxyUrl.Equals(""))
+            if (!string.IsNullOrEmpty(proxyUrl))
                 args["proxy_url"] = OSD.FromString(proxyUrl);
             if (RegionType != String.Empty)
                 args["region_type"] = OSD.FromString(RegionType);

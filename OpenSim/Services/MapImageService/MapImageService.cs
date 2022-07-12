@@ -256,7 +256,7 @@ namespace OpenSim.Services.MapImageService
                 else
                 {
                     //m_log.DebugFormat("[MAP IMAGE SERVICE]: unable to get file {0}", fileName);
-                    return new byte[0];
+                    return Array.Empty<byte>();
                 }
             }
         }

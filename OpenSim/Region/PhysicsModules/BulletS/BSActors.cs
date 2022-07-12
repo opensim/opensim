@@ -30,125 +30,125 @@ using System.Text;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
-public class BSActorCollection
-{
-    private Dictionary<string, BSActor> m_actors;
+    public class BSActorCollection
+    {
+        private Dictionary<string, BSActor> m_actors;
 
-    public BSActorCollection()
-    {
-        m_actors = new Dictionary<string, BSActor>();
-    }
-    public void Add(string name, BSActor actor)
-    {
-        lock (m_actors)
+        public BSActorCollection()
         {
-            if (!m_actors.ContainsKey(name))
+            m_actors = new Dictionary<string, BSActor>();
+        }
+        public void Add(string name, BSActor actor)
+        {
+            lock (m_actors)
             {
-                m_actors[name] = actor;
+                if (!m_actors.ContainsKey(name))
+                {
+                    m_actors[name] = actor;
+                }
             }
         }
-    }
-    public bool RemoveAndRelease(string name)
-    {
-        bool ret = false;
-        lock (m_actors)
+        public bool RemoveAndRelease(string name)
         {
-            if (m_actors.ContainsKey(name))
+            bool ret = false;
+            lock (m_actors)
             {
-                BSActor beingRemoved = m_actors[name];
-                m_actors.Remove(name);
-                beingRemoved.Dispose();
-                ret = true;
+                if (m_actors.ContainsKey(name))
+                {
+                    BSActor beingRemoved = m_actors[name];
+                    m_actors.Remove(name);
+                    beingRemoved.Dispose();
+                    ret = true;
+                }
+            }
+            return ret;
+        }
+        public void Clear()
+        {
+            lock (m_actors)
+            {
+                ForEachActor(a => a.Dispose());
+                m_actors.Clear();
             }
         }
-        return ret;
-    }
-    public void Clear()
-    {
-        lock (m_actors)
+        public void Dispose()
         {
-            ForEachActor(a => a.Dispose());
-            m_actors.Clear();
+            Clear();
+        }
+        public bool HasActor(string name)
+        {
+            return m_actors.ContainsKey(name);
+        }
+        public bool TryGetActor(string actorName, out BSActor theActor)
+        {
+            return m_actors.TryGetValue(actorName, out theActor);
+        }
+        public void ForEachActor(Action<BSActor> act)
+        {
+            lock (m_actors)
+            {
+                foreach (KeyValuePair<string, BSActor> kvp in m_actors)
+                    act(kvp.Value);
+            }
+        }
+
+        public void Enable(bool enabl)
+        {
+            ForEachActor(a => a.SetEnabled(enabl));
+        }
+        public void Refresh()
+        {
+            ForEachActor(a => a.Refresh());
+        }
+        public void RemoveDependencies()
+        {
+            ForEachActor(a => a.RemoveDependencies());
         }
     }
-    public void Dispose()
+
+    // =============================================================================
+    /// <summary>
+    /// Each physical object can have 'actors' who are pushing the object around.
+    /// This can be used for hover, locking axis, making vehicles, etc.
+    /// Each physical object can have multiple actors acting on it.
+    ///
+    /// An actor usually registers itself with physics scene events (pre-step action)
+    /// and modifies the parameters on the host physical object.
+    /// </summary>
+    public abstract class BSActor
     {
-        Clear();
-    }
-    public bool HasActor(string name)
-    {
-        return m_actors.ContainsKey(name);
-    }
-    public bool TryGetActor(string actorName, out BSActor theActor)
-    {
-        return m_actors.TryGetValue(actorName, out theActor);
-    }
-    public void ForEachActor(Action<BSActor> act)
-    {
-        lock (m_actors)
+        protected BSScene m_physicsScene { get; private set; }
+        protected BSPhysObject m_controllingPrim { get; private set; }
+        public virtual bool Enabled { get; set; }
+        public string ActorName { get; private set; }
+
+        public BSActor(BSScene physicsScene, BSPhysObject pObj, string actorName)
         {
-            foreach (KeyValuePair<string, BSActor> kvp in m_actors)
-                act(kvp.Value);
+            m_physicsScene = physicsScene;
+            m_controllingPrim = pObj;
+            ActorName = actorName;
+            Enabled = true;
         }
-    }
 
-    public void Enable(bool enabl)
-    {
-        ForEachActor(a => a.SetEnabled(enabl));
-    }
-    public void Refresh()
-    {
-        ForEachActor(a => a.Refresh());
-    }
-    public void RemoveDependencies()
-    {
-        ForEachActor(a => a.RemoveDependencies());
-    }
-}
+        // Return 'true' if activily updating the prim
+        public virtual bool isActive
+        {
+            get { return Enabled; }
+        }
 
-// =============================================================================
-/// <summary>
-/// Each physical object can have 'actors' who are pushing the object around.
-/// This can be used for hover, locking axis, making vehicles, etc.
-/// Each physical object can have multiple actors acting on it.
-///
-/// An actor usually registers itself with physics scene events (pre-step action)
-/// and modifies the parameters on the host physical object.
-/// </summary>
-public abstract class BSActor
-{
-    protected BSScene m_physicsScene { get; private set; }
-    protected BSPhysObject m_controllingPrim { get; private set; }
-    public virtual bool Enabled { get; set; }
-    public string ActorName { get; private set; }
+        // Turn the actor on an off. Only used by ActorCollection to set all enabled/disabled.
+        // Anyone else should assign true/false to 'Enabled'.
+        public void SetEnabled(bool setEnabled)
+        {
+            Enabled = setEnabled;
+        }
+        // Release any connections and resources used by the actor.
+        public abstract void Dispose();
+        // Called when physical parameters (properties set in Bullet) need to be re-applied.
+        public abstract void Refresh();
+        // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
+        //     Register a prestep action to restore physical requirements before the next simulation step.
+        public abstract void RemoveDependencies();
 
-    public BSActor(BSScene physicsScene, BSPhysObject pObj, string actorName)
-    {
-        m_physicsScene = physicsScene;
-        m_controllingPrim = pObj;
-        ActorName = actorName;
-        Enabled = true;
     }
-
-    // Return 'true' if activily updating the prim
-    public virtual bool isActive
-    {
-        get { return Enabled; }
-    }
-
-    // Turn the actor on an off. Only used by ActorCollection to set all enabled/disabled.
-    // Anyone else should assign true/false to 'Enabled'.
-    public void SetEnabled(bool setEnabled)
-    {
-        Enabled = setEnabled;
-    }
-    // Release any connections and resources used by the actor.
-    public abstract void Dispose();
-    // Called when physical parameters (properties set in Bullet) need to be re-applied.
-    public abstract void Refresh();
-    // The object's physical representation is being rebuilt so pick up any physical dependencies (constraints, ...).
-    //     Register a prestep action to restore physical requirements before the next simulation step.
-    public abstract void RemoveDependencies();
-
-}
 }

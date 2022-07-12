@@ -253,10 +253,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void Initialise(IConfigSource configSource)
         {
-            if (configSource.Configs["XEngine"] == null)
+            m_ScriptConfig = configSource.Configs["XEngine"];
+            if (m_ScriptConfig == null)
                 return;
 
-            m_ScriptConfig = configSource.Configs["XEngine"];
+            if (!m_ScriptConfig.GetBoolean("Enabled", true))
+                return;
+
+            m_Enabled = true;
+
             m_ConfigSource = configSource;
 
             string rawScriptStopStrategy = m_ScriptConfig.GetString("ScriptStopStrategy", "co-op");
@@ -282,19 +287,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void AddRegion(Scene scene)
         {
-            if (m_ScriptConfig == null)
+            if (!m_Enabled)
                 return;
-
+ 
             m_ScriptFailCount = 0;
             m_ScriptErrorMessage = String.Empty;
 
-            m_Enabled = m_ScriptConfig.GetBoolean("Enabled", true);
-
-            if (!m_Enabled)
-                return;
-
-            AppDomain.CurrentDomain.AssemblyResolve +=
-                OnAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve +=  OnAssemblyResolve;
 
             m_Scene = scene;
             m_log.InfoFormat("[XEngine]: Initializing scripts in region {0}", m_Scene.RegionInfo.RegionName);

@@ -8,6 +8,7 @@ using OSHttpServer.Exceptions;
 using OSHttpServer.Parser;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using OpenMetaverse;
 
 namespace OSHttpServer
 {
@@ -165,6 +166,7 @@ namespace OSHttpServer
             m_currentRequest.AddToBody(e.Buffer, e.Offset, e.Count);
         }
 
+        private static readonly byte[] OSUTF8expect = osUTF8.GetASCIIBytes("expect");
         /// <summary>
         /// 
         /// </summary>
@@ -172,7 +174,7 @@ namespace OSHttpServer
         /// <param name="e"></param>
         protected virtual void OnHeaderReceived(object sender, HeaderEventArgs e)
         {
-            if (string.Compare(e.Name, "expect", true) == 0 && e.Value.Contains("100-continue"))
+            if (e.Name.ACSIILowerEquals(OSUTF8expect) && e.Value.Contains("100-continue"))
             {
                 lock (m_requestsLock)
                 {
@@ -180,7 +182,7 @@ namespace OSHttpServer
                         Respond("HTTP/1.1", HttpStatusCode.Continue, null);
                 }
             }
-            m_currentRequest.AddHeader(e.Name, e.Value);
+            m_currentRequest.AddHeader(e.Name.ToString(), e.Value);
         }
 
         private void OnRequestLine(object sender, RequestLineEventArgs e)
@@ -517,16 +519,23 @@ namespace OSHttpServer
 
         public bool TrySendResponse(int bytesLimit)
         {
-            if(m_currentResponse == null)
+            if (m_currentResponse == null)
                 return false;
-            if (m_currentResponse.Sent)
-                return false;
+            try
+            {
+                if (m_currentResponse.Sent)
+                    return false;
 
-            if(!CanSend())
-                return false;
+                if(!CanSend())
+                    return false;
 
-            LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
-            return m_currentResponse.SendNextAsync(bytesLimit);
+                LastActivityTimeMS = ContextTimeoutManager.EnvironmentTickCount();
+                return m_currentResponse.SendNextAsync(bytesLimit);
+            }
+            catch 
+            {
+                return false;
+            }
         }
 
         public void ContinueSendResponse()

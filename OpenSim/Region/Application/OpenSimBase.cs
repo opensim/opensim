@@ -916,7 +916,6 @@ namespace OpenSim
                 httpResponse.KeepAlive = false;
                 httpResponse.RawBuffer = binmsg;
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                return;
             }
         }
 
@@ -1030,7 +1029,7 @@ namespace OpenSim
                 regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, false);
 
             if (regInfo.EstateSettings.EstateID != 0)
-                return false;	// estate info in the database did not change
+                return false;    // estate info in the database did not change
 
             m_log.WarnFormat("[ESTATE] Region {0} is not part of an estate.", regInfo.RegionName);
 
@@ -1161,10 +1160,10 @@ namespace OpenSim
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
                     }
                 }
-    	    }
+            }
 
-    	    return true;	// need to update the database
-    	}
+            return true;    // need to update the database
+        }
     }
 
     public class OpenSimConfigSource

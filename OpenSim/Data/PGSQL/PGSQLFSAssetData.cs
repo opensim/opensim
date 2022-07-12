@@ -183,7 +183,7 @@ namespace OpenSim.Data.PGSQL
             catch(Exception e)
             {
                 m_log.Error("[PGSQL FSASSETS] Failed to store asset with ID " + meta.ID);
-		        m_log.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
         }

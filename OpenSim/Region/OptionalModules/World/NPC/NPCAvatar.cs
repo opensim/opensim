@@ -208,7 +208,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             OnInstantMessage(this, new GridInstantMessage(m_scene,
                     m_uuid, m_firstname + " " + m_lastname,
                     target, 0, false, message,
-                    UUID.Zero, false, Position, new byte[0], true));
+                    UUID.Zero, false, Position, Array.Empty<byte>(), true));
         }
 
         public void SendAgentOffline(UUID[] agentIDs)
@@ -261,19 +261,17 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if(OnChatFromClient == null)
                 return;
 
-            if (channel == 0)
-            {
-                message = message.Trim();
-                if (string.IsNullOrEmpty(message))
-                    return;
-            }
+            message = message.Trim();
+            if (channel == 0 && message.Length == 0)
+                return;
 
             OSChatMessage chatFromClient = new OSChatMessage()
             {
                 Channel = channel,
                 From = Name,
                 Message = message,
-                Position = StartPos,
+                //Position = StartPos,
+                Position = this.Position,
                 Scene = m_scene,
                 Sender = this,
                 SenderUUID = AgentId,
@@ -705,7 +703,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return new byte[0];
+            return Array.Empty<byte>();
         }
 
 
@@ -750,7 +748,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public virtual void SendWindData(int version, Vector2[] windSpeeds) { }
 
-        public virtual void SendCloudData(int version, float[] cloudCover) { }
 
         public virtual void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {

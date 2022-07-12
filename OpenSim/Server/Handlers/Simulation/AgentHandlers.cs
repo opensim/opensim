@@ -146,11 +146,9 @@ namespace OpenSim.Server.Handlers.Simulation
                     source.RawServerURI = null;
             }
 
-            OSDMap resp = new OSDMap(2);
-            string reason = string.Empty;
+            bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, ctx, out string reason);
 
-            bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, ctx, out reason);
-
+            OSDMap resp = new OSDMap(3);
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
             // Let's also send out the IP address of the caller back to the caller (HG 1.5)

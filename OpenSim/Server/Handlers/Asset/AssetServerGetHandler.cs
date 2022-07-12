@@ -68,7 +68,7 @@ namespace OpenSim.Server.Handlers.Asset
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
+            byte[] result = Array.Empty<byte>();
 
             string[] p = SplitParams(path);
 
@@ -88,7 +88,7 @@ namespace OpenSim.Server.Handlers.Asset
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                         httpResponse.ContentType = "text/plain";
-                        result = new byte[0];
+                        result = Array.Empty<byte>();
                     }
                     else
                     {
@@ -112,7 +112,7 @@ namespace OpenSim.Server.Handlers.Asset
                     {
                         httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                         httpResponse.ContentType = "text/plain";
-                        result = new byte[0];
+                        result = Array.Empty<byte>();
                     }
                 }
                 else
@@ -120,7 +120,7 @@ namespace OpenSim.Server.Handlers.Asset
                     // Unknown request
                     httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                     httpResponse.ContentType = "text/plain";
-                    result = new byte[0];
+                    result = Array.Empty<byte>();
                 }
             }
             else if (p.Length == 1)
@@ -142,7 +142,7 @@ namespace OpenSim.Server.Handlers.Asset
                 {
                     httpResponse.StatusCode = (int)HttpStatusCode.NotFound;
                     httpResponse.ContentType = "text/plain";
-                    result = new byte[0];
+                    result = Array.Empty<byte>();
                 }
             }
             else
@@ -150,7 +150,7 @@ namespace OpenSim.Server.Handlers.Asset
                 // Unknown request
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 httpResponse.ContentType = "text/plain";
-                result = new byte[0];
+                result = Array.Empty<byte>();
             }
 
             if (httpResponse.StatusCode == (int)HttpStatusCode.NotFound && !string.IsNullOrEmpty(m_RedirectURL) && !string.IsNullOrEmpty(id))

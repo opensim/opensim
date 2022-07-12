@@ -1615,7 +1615,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return null;
             }
 
-            byte[] buffer = new byte[0];
+            byte[] buffer = Array.Empty<byte>();
             if (llsdResponse.ToString() == "shutdown404!")
             {
                 response.ContentType = "text/plain";
@@ -2434,7 +2434,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             if (httpRequest.QueryFlags.Contains("about"))
             {
-                httpResponse.Redirect("http://opensimulator.org/wiki/0.9.2.1_Release");
+                httpResponse.Redirect("http://opensimulator.org/wiki/0.9.2.2_Release");
                 return;
             }
             if (!httpRequest.QueryAsDictionary.TryGetValue("method", out string methods) || string.IsNullOrWhiteSpace(methods))

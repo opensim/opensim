@@ -49,23 +49,21 @@ namespace OpenSim.Data
 
             Type idtype = id.GetType();
 
+            if (idtype == typeof(string))
+            {
+                UUID.TryParse((string)id, out UUID result);
+                return result;
+            }
+
             if (idtype == typeof(Guid))
                 return new UUID((Guid)id);
 
-            if (id.GetType() == typeof(string))
-            {
-                Guid gg; 
-                if (Guid.TryParse((string)id, out gg))
-                    return new UUID(gg);
-                return UUID.Zero;
-            }
-
             if (idtype == typeof(byte[]))
             {
-                if (((byte[])id).Length < 16)
-                    return UUID.Zero;
-                return new UUID((byte[])id, 0);
+                byte[] idb = (byte[])id;
+                return idb.Length < 16 ? UUID.Zero : new UUID(idb, 0);
             }
+
             throw new Exception("Failed to convert db value to UUID: " + id.ToString());
         }
     }

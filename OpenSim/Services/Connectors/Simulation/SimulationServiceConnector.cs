@@ -144,7 +144,7 @@ namespace OpenSim.Services.Connectors.Simulation
                         success = data["success"].AsBoolean();
 
                         m_log.WarnFormat(
-                            "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
+                            "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating that simulator.", destination.RegionName);
                         return success;
                     }
                 }
@@ -233,7 +233,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 EntityTransferContext ctx = new EntityTransferContext(); // Dummy, not needed for position
                 success = UpdateAgent(destination, (IAgentData)pos, ctx, 10000);
             }
-            // we get here iff success == false
+            // we get here if success == false
             // blacklist sim for 2 minutes
             lock (m_updateAgentQueue)
             {

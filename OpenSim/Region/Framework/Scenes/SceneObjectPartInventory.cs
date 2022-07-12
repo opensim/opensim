@@ -47,8 +47,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private byte[] m_inventoryFileData = new byte[0];
-        private byte[] m_inventoryFileNameBytes = new byte[0];
+        private byte[] m_inventoryFileData = Array.Empty<byte>();
+        private byte[] m_inventoryFileNameBytes = Array.Empty<byte>();
         private string m_inventoryFileName = "";
         private uint m_inventoryFileNameSerial = 0;
         private bool m_inventoryPrivileged = false;
@@ -1350,14 +1350,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_inventorySerial == 0) // No inventory
                 {
                     m_items.LockItemsForRead(false);
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
                     return;
                 }
 
                 if (m_items.Count == 0) // No inventory
                 {
                     m_items.LockItemsForRead(false);
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
                     return;
                 }
 
@@ -1466,7 +1466,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                client.SendTaskInventory(m_part.UUID, 0, Array.Empty<byte>());
             }
         }
 

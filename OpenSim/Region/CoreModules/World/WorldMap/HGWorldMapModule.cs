@@ -176,9 +176,11 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             if (m_UserManagement != null && !string.IsNullOrEmpty(m_MapImageServerURL) && !m_UserManagement.IsLocalGridUser(agentID))
             {
-                OSD extras;
-                if (!features.TryGetValue("OpenSimExtras", out extras))
+                if (!features.TryGetValue("OpenSimExtras", out OSD extras))
+                {
                     extras = new OSDMap();
+                    features["OpenSimExtras"] = extras;
+                }
 
                 ((OSDMap)extras)["map-server-url"] = m_MapImageServerURL;
 
