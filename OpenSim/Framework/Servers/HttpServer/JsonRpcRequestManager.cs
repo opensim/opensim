@@ -182,9 +182,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             data = response;
-
             return true;
         }
-
     }
 }

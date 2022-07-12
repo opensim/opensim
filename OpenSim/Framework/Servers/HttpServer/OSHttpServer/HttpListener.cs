@@ -15,7 +15,11 @@ namespace OSHttpServer
         private readonly IHttpContextFactory m_contextFactory;
         private readonly int m_port;
         private readonly ManualResetEvent m_shutdownEvent = new ManualResetEvent(false);
-        private readonly SslProtocols m_sslProtocol = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
+#if NET48
+        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
+#else
+        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
+#endif
         private TcpListener m_listener;
         private ILogWriter m_logWriter = NullLogWriter.Instance;
         private int m_pendingAccepts;
@@ -62,13 +66,13 @@ namespace OSHttpServer
         /// <param name="port">TCP Port to listen on, default HTTPS port is 443</param>
         /// <param name="factory">Factory used to create <see cref="IHttpClientContext"/>es.</param>
         /// <param name="certificate">Certificate to use</param>
-        /// <param name="protocol">which HTTPS protocol to use, default is TLS.</param>
+        /// <param name="protocols">which HTTPS protocol to use, default is TLS.</param>
         protected OSHttpListener(IPAddress address, int port, X509Certificate certificate,
-                                   SslProtocols protocol)
+                                   SslProtocols protocols)
             : this(address, port)
         {
             m_certificate = certificate;
-            m_sslProtocol = protocol;
+            m_sslProtocols = protocols;
         }
 
         public static OSHttpListener Create(IPAddress address, int port)
@@ -81,9 +85,9 @@ namespace OSHttpServer
             return new OSHttpListener(address, port, certificate);
         }
 
-        public static OSHttpListener Create(IPAddress address, int port, X509Certificate certificate, SslProtocols protocol)
+        public static OSHttpListener Create(IPAddress address, int port, X509Certificate certificate, SslProtocols protocols)
         {
-            return new OSHttpListener(address, port, certificate, protocol);
+            return new OSHttpListener(address, port, certificate, protocols);
         }
 
         private void OnRequestReceived(object sender, RequestEventArgs e)
@@ -110,7 +114,7 @@ namespace OSHttpServer
                 m_logWriter = value ?? NullLogWriter.Instance;
                 if (m_certificate != null)
                     m_logWriter.Write(this, LogPrio.Info,
-                                     "HTTPS(" + m_sslProtocol + ") listening on " + m_address + ":" + m_port);
+                                     "HTTPS(" + m_sslProtocols + ") listening on " + m_address + ":" + m_port);
                 else
                     m_logWriter.Write(this, LogPrio.Info, "HTTP listening on " + m_address + ":" + m_port);
             }
@@ -159,7 +163,7 @@ namespace OSHttpServer
                      m_logWriter.Write(this, LogPrio.Debug, "Accepted connection from: " + socket.RemoteEndPoint);
 
                     if (m_certificate != null)
-                        m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocol, m_clientCertValCallback);
+                        m_contextFactory.CreateSecureContext(socket, m_certificate, m_sslProtocols, m_clientCertValCallback);
                     else
                         m_contextFactory.CreateContext(socket);
                 }

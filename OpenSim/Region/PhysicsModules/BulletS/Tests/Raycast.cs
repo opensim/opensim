@@ -51,7 +51,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
         BSScene _physicsScene { get; set; }
         BSPrim _targetSphere { get; set; }
         Vector3 _targetSpherePosition { get; set; }
-//        float _simulationTimeStep = 0.089f;
+        //        float _simulationTimeStep = 0.089f;
 
         uint _targetLocalID = 123;
 
@@ -97,7 +97,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
         [TestCase(100f, 100f, 100f, 100f, 100f, 20f, true, "Pass through sphere from above")]
         [TestCase(20f, 20f, 50f, 80f, 80f, 50f, false, "Not reach sphere")]
         [TestCase(50f, 50f, 65f, 150f, 150f, 65f, false, "Passed over sphere")]
-        public void RaycastAroundObject(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, bool expected, string msg) {
+        public void RaycastAroundObject(float fromX, float fromY, float fromZ, float toX, float toY, float toZ, bool expected, string msg)
+        {
             Vector3 fromPos = new Vector3(fromX, fromY, fromZ);
             Vector3 toPos = new Vector3(toX, toY, toZ);
             Vector3 direction = toPos - fromPos;
@@ -105,7 +106,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS.Tests
 
             List<ContactResult> results = _physicsScene.RaycastWorld(fromPos, direction, len, 1);
 
-            if (expected) {
+            if (expected)
+            {
                 // The  test coordinates should generate a hit
                 Assert.True(results.Count != 0, msg + ": Did not return a hit but expected to.");
                 Assert.True(results.Count == 1, msg + ": Raycast returned not just one hit result.");

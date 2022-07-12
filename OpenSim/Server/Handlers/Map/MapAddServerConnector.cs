@@ -102,32 +102,44 @@ namespace OpenSim.Server.Handlers.MapImage
         protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             //m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: Received {0}", path);
-            string body;
-            using(StreamReader sr = new StreamReader(httpRequest.InputStream))
-                body = sr.ReadToEnd();
-            body = body.Trim();
 
-            httpRequest.InputStream.Dispose();
+            int x = 0, y = 0;
+            UUID scopeID = UUID.Zero;
+            byte[] data = null;
+
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             try
             {
+                string body;
+                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                    body = sr.ReadToEnd();
+                body = body.Trim();
+
                 Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
-                if (!request.ContainsKey("X") || !request.ContainsKey("Y") || !request.ContainsKey("DATA"))
+                x = Int32.Parse(request["X"].ToString());
+                y = Int32.Parse(request["Y"].ToString());
+                if (request.TryGetValue("SCOPE", out object o))
+                    UUID.TryParse(o.ToString(), out scopeID);
+                if(request.TryGetValue("DATA", out object od))
                 {
-                    httpResponse.RawBuffer = Util.ResultFailureMessage("Bad request.");
-                    return;
+                    data = Convert.FromBase64String(od.ToString());
+                    if (data.Length < 10)
+                    {
+                        httpResponse.RawBuffer = Util.ResultFailureMessage("Bad request.");
+                        return;
+                    }
                 }
+            }
+            catch
+            {
+                httpResponse.RawBuffer = Util.ResultFailureMessage("Bad request.");
+                return;
+            }
 
-                int x = 0, y = 0;
-                //UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
-                UUID scopeID = UUID.Zero;
-                Int32.TryParse(request["X"].ToString(), out x);
-                Int32.TryParse(request["Y"].ToString(), out y);
-                if (request.ContainsKey("SCOPE"))
-                    UUID.TryParse(request["SCOPE"].ToString(), out scopeID);
-
+            try
+            {
                 m_log.DebugFormat("[MAP ADD SERVER CONNECTOR]: Received map data for region at {0}-{1}", x, y);
 
                 //string type = "image/jpeg";
@@ -156,13 +168,13 @@ namespace OpenSim.Server.Handlers.MapImage
                     }
                 }
 
-                byte[] data = Convert.FromBase64String(request["DATA"].ToString());
-
-                bool result = m_MapService.AddMapTile(x, y, data, scopeID, out string reason);
-                if (result)
-                    httpResponse.RawBuffer = Util.sucessResultSuccess;
+                bool result;
+                string reason;
+                if (data == null)
+                    result = m_MapService.RemoveMapTile(x, y, scopeID, out reason);
                 else
-                    httpResponse.RawBuffer = Util.ResultFailureMessage(reason);
+                    result = m_MapService.AddMapTile(x, y, data, scopeID, out reason);
+                httpResponse.RawBuffer = result ? Util.sucessResultSuccess : Util.ResultFailureMessage(reason);
                 return;
             }
             catch (Exception e)

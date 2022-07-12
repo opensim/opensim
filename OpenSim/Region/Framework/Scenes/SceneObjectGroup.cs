@@ -1079,7 +1079,7 @@ namespace OpenSim.Region.Framework.Scenes
             if(setrot)
                 rotation = Quaternion.Conjugate(currentRot) * rotation;
 
-            bool dorot = setrot | (Math.Abs(rotation.W) < 0.99999);
+            bool dorot = setrot || (Math.Abs(rotation.W) < 0.99999);
 
             Vector3 vel = Vector3.Zero;
             Vector3 avel = Vector3.Zero;
@@ -2480,7 +2480,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 }
 
-                if (m_scene.UseBackup && HasGroupChanged)
+                if (HasGroupChanged && m_scene.UseBackup)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if (isTimeToPersist() || forcedBackup)
@@ -5539,6 +5539,32 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public bool GetOwnerName(out string FirstName, out string LastName)
+        {
+            if (RootPart != null)
+            {
+                if(RootPart.OwnerID.Equals(RootPart.GroupID))
+                {
+                    IGroupsModule groups = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (groups != null)
+                    {
+                        GroupRecord grprec = groups.GetGroupRecord(RootPart.OwnerID);
+                        if (grprec != null)
+                        {
+                            FirstName = string.Empty;
+                            LastName = grprec.GroupName;
+                            return true;
+                        }
+                    }
+                }
+                else
+                    return m_scene.UserManagementModule.GetUserName(RootPart.OwnerID, out FirstName, out LastName);
+            }
+
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            return false;
+        }
         #endregion
     }
 

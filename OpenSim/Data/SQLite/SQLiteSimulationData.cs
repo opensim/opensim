@@ -2170,7 +2170,7 @@ namespace OpenSim.Data.SQLite
             if (prim.KeyframeMotion != null)
                 row["KeyframeMotion"] = prim.KeyframeMotion.Serialize();
             else
-                row["KeyframeMotion"] = new Byte[0];
+                row["KeyframeMotion"] = Array.Empty<byte>(); ;
 
             row["PassTouches"] = prim.PassTouches;
             row["PassCollisions"] = prim.PassCollisions;

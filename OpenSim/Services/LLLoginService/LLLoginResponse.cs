@@ -778,21 +778,12 @@ namespace OpenSim.Services.LLLoginService
                 if (finfo.TheirFlags == -1)
                     continue;
                 LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(finfo.Friend);
-                // finfo.Friend may not be a simple uuid
-                UUID friendID = UUID.Zero;
-                if (UUID.TryParse(finfo.Friend, out friendID))
-                    buddyitem.BuddyID = finfo.Friend;
-                else
-                {
-                    string tmp;
-                    if (Util.ParseUniversalUserIdentifier(finfo.Friend, out friendID, out tmp, out tmp, out tmp, out tmp))
-                        buddyitem.BuddyID = friendID.ToString();
-                    else
-                        // junk entry
-                        continue;
-                }
-                buddyitem.BuddyRightsHave = (int)finfo.TheirFlags;
-                buddyitem.BuddyRightsGiven = (int)finfo.MyFlags;
+                 if (!Util.ParseUniversalUserIdentifier(finfo.Friend, out UUID friendID))
+                    continue; // junk entry
+
+                buddyitem.BuddyID = friendID.ToString();
+                buddyitem.BuddyRightsHave = finfo.TheirFlags;
+                buddyitem.BuddyRightsGiven = finfo.MyFlags;
                 buddylistreturn.AddNewBuddy(buddyitem);
             }
             return buddylistreturn;

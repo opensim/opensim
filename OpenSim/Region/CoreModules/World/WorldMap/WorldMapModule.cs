@@ -232,7 +232,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         // this has to be called with a lock on m_scene
         protected virtual void AddHandlers()
         {
-            myMapImageJPEG = new byte[0];
+            myMapImageJPEG = Array.Empty<byte>();
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
@@ -1576,7 +1576,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 m_scene.AssetService.Delete(lastID.ToString());
                 m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Zero;
-                myMapImageJPEG = new byte[0];
+                myMapImageJPEG = Array.Empty<byte>();
                 needRegionSave = true;
             }
 
@@ -1709,7 +1709,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private Byte[] GenerateOverlay()
         {
-            int landTileSize = LandManagementModule.LandUnit;
+            const  int landTileSize = Constants.LandUnit;
 
             // These need to be ints for bitmap generation
             int regionSizeX = (int)m_scene.RegionInfo.RegionSizeX;

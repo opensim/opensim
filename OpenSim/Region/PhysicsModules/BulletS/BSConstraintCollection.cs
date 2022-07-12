@@ -32,150 +32,149 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
-
-public sealed class BSConstraintCollection : IDisposable
-{
-    // private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-    // private static readonly string LogHeader = "[CONSTRAINT COLLECTION]";
-
-    delegate bool ConstraintAction(BSConstraint constrain);
-
-    private List<BSConstraint> m_constraints;
-    private BulletWorld m_world;
-
-    public BSConstraintCollection(BulletWorld world)
+    public sealed class BSConstraintCollection : IDisposable
     {
-        m_world = world;
-        m_constraints = new List<BSConstraint>();
-    }
+        // private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly string LogHeader = "[CONSTRAINT COLLECTION]";
 
-    public void Dispose()
-    {
-        this.Clear();
-    }
+        delegate bool ConstraintAction(BSConstraint constrain);
 
-    public void Clear()
-    {
-        lock (m_constraints)
+        private List<BSConstraint> m_constraints;
+        private BulletWorld m_world;
+
+        public BSConstraintCollection(BulletWorld world)
         {
-            foreach (BSConstraint cons in m_constraints)
-            {
-                cons.Dispose();
-            }
-            m_constraints.Clear();
-        }
-    }
-
-    public bool AddConstraint(BSConstraint cons)
-    {
-        lock (m_constraints)
-        {
-            // There is only one constraint between any bodies. Remove any old just to make sure.
-            RemoveAndDestroyConstraint(cons.Body1, cons.Body2);
-
-            m_constraints.Add(cons);
+            m_world = world;
+            m_constraints = new List<BSConstraint>();
         }
 
-        return true;
-    }
-
-    // Get the constraint between two bodies. There can be only one.
-    // Return 'true' if a constraint was found.
-    public bool TryGetConstraint(BulletBody body1, BulletBody body2, out BSConstraint returnConstraint)
-    {
-        bool found = false;
-        BSConstraint foundConstraint = null;
-
-        uint lookingID1 = body1.ID;
-        uint lookingID2 = body2.ID;
-        lock (m_constraints)
+        public void Dispose()
         {
-            foreach (BSConstraint constrain in m_constraints)
+            this.Clear();
+        }
+
+        public void Clear()
+        {
+            lock (m_constraints)
             {
-                if ((constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
-                    || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1))
+                foreach (BSConstraint cons in m_constraints)
                 {
-                    foundConstraint = constrain;
-                    found = true;
-                    break;
+                    cons.Dispose();
+                }
+                m_constraints.Clear();
+            }
+        }
+
+        public bool AddConstraint(BSConstraint cons)
+        {
+            lock (m_constraints)
+            {
+                // There is only one constraint between any bodies. Remove any old just to make sure.
+                RemoveAndDestroyConstraint(cons.Body1, cons.Body2);
+
+                m_constraints.Add(cons);
+            }
+
+            return true;
+        }
+
+        // Get the constraint between two bodies. There can be only one.
+        // Return 'true' if a constraint was found.
+        public bool TryGetConstraint(BulletBody body1, BulletBody body2, out BSConstraint returnConstraint)
+        {
+            bool found = false;
+            BSConstraint foundConstraint = null;
+
+            uint lookingID1 = body1.ID;
+            uint lookingID2 = body2.ID;
+            lock (m_constraints)
+            {
+                foreach (BSConstraint constrain in m_constraints)
+                {
+                    if ((constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
+                        || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1))
+                    {
+                        foundConstraint = constrain;
+                        found = true;
+                        break;
+                    }
                 }
             }
+            returnConstraint = foundConstraint;
+            return found;
         }
-        returnConstraint = foundConstraint;
-        return found;
-    }
 
-    // Remove any constraint between the passed bodies.
-    // Presumed there is only one such constraint possible.
-    // Return 'true' if a constraint was found and destroyed.
-    public bool RemoveAndDestroyConstraint(BulletBody body1, BulletBody body2)
-    {
-        bool ret = false;
-        lock (m_constraints)
+        // Remove any constraint between the passed bodies.
+        // Presumed there is only one such constraint possible.
+        // Return 'true' if a constraint was found and destroyed.
+        public bool RemoveAndDestroyConstraint(BulletBody body1, BulletBody body2)
         {
-            BSConstraint constrain;
-            if (this.TryGetConstraint(body1, body2, out constrain))
+            bool ret = false;
+            lock (m_constraints)
+            {
+                BSConstraint constrain;
+                if (this.TryGetConstraint(body1, body2, out constrain))
+                {
+                    // remove the constraint from our collection
+                    ret = RemoveAndDestroyConstraint(constrain);
+                }
+            }
+
+            return ret;
+        }
+
+        // The constraint MUST exist in the collection
+        // Could be called if the constraint was previously removed.
+        // Return 'true' if the constraint was actually removed and disposed.
+        public bool RemoveAndDestroyConstraint(BSConstraint constrain)
+        {
+            bool removed = false;
+            lock (m_constraints)
             {
                 // remove the constraint from our collection
-                ret = RemoveAndDestroyConstraint(constrain);
+                removed = m_constraints.Remove(constrain);
             }
+            // Dispose() is safe to call multiple times
+            constrain.Dispose();
+            return removed;
         }
 
-        return ret;
-    }
-
-    // The constraint MUST exist in the collection
-    // Could be called if the constraint was previously removed.
-    // Return 'true' if the constraint was actually removed and disposed.
-    public bool RemoveAndDestroyConstraint(BSConstraint constrain)
-    {
-        bool removed = false;
-        lock (m_constraints)
+        // Remove all constraints that reference the passed body.
+        // Return 'true' if any constraints were destroyed.
+        public bool RemoveAndDestroyConstraint(BulletBody body1)
         {
-            // remove the constraint from our collection
-            removed = m_constraints.Remove(constrain);
-        }
-        // Dispose() is safe to call multiple times
-        constrain.Dispose();
-        return removed;
-    }
-
-    // Remove all constraints that reference the passed body.
-    // Return 'true' if any constraints were destroyed.
-    public bool RemoveAndDestroyConstraint(BulletBody body1)
-    {
-        List<BSConstraint> toRemove = new List<BSConstraint>();
-        uint lookingID = body1.ID;
-        lock (m_constraints)
-        {
-            foreach (BSConstraint constrain in m_constraints)
+            List<BSConstraint> toRemove = new List<BSConstraint>();
+            uint lookingID = body1.ID;
+            lock (m_constraints)
             {
-                if (constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID)
+                foreach (BSConstraint constrain in m_constraints)
                 {
-                    toRemove.Add(constrain);
+                    if (constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID)
+                    {
+                        toRemove.Add(constrain);
+                    }
+                }
+                foreach (BSConstraint constrain in toRemove)
+                {
+                    m_constraints.Remove(constrain);
+                    constrain.Dispose();
                 }
             }
-            foreach (BSConstraint constrain in toRemove)
-            {
-                m_constraints.Remove(constrain);
-                constrain.Dispose();
-            }
+            return (toRemove.Count > 0);
         }
-        return (toRemove.Count > 0);
-    }
 
-    public bool RecalculateAllConstraints()
-    {
-        bool ret = false;
-        lock (m_constraints)
+        public bool RecalculateAllConstraints()
         {
-            foreach (BSConstraint constrain in m_constraints)
+            bool ret = false;
+            lock (m_constraints)
             {
-                constrain.CalculateTransforms();
-                ret = true;
+                foreach (BSConstraint constrain in m_constraints)
+                {
+                    constrain.CalculateTransforms();
+                    ret = true;
+                }
             }
+            return ret;
         }
-        return ret;
     }
-}
 }

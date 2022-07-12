@@ -292,7 +292,7 @@
     ;; Separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
 
-    ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {true false} false
+    ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {DefaultEmailModule} none
     ;; The email module requires some configuration. It needs an SMTP
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
@@ -492,21 +492,53 @@
     ;; The SMTP server enabled the email module to send email to external
     ;; destinations.
 
-    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} false
-    ;; Enable sending email via SMTP
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable module?} {true false} false
+    ;; Enable the email module
     ; enabled = false
 
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable send to objects to regions not on instance?} {true false} true
+    ;; Enable sending email to regions not on current opensimulator instance. Currently does not work
+    ; enableEmailToExternalObjects = true
+
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails from a object owner per hour} {} 500
+    ; MailsFromOwnerPerHour = 500
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails to a prim address per hour} {} 50
+    ; MailsToPrimAddressPerHour = 20
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails via smtp per day} {} 100
+    ; MailsToAddressPerHour = 500
+    ;SMTP_MailsPerDay = 100
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {maximum number of emails to a SMTP address per hour} {} 10
+    ; MailsToSMTPAddressPerHour = 10
+
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable send to the world?} {true false} true
+    ;; Enable sending email to the world.
+    ; enableEmailToSMTP = true
+	
     ;# {internal_object_host} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Host name to treat as internal (object to object) email?} {} lsl.opensim.local
     ; internal_object_host = lsl.opensim.local
 
     ;# {host_domain_header_from} {[Startup]emailmodule:DefaultEmailModule enabled:true} {From address to use in the sent email header?} {} 127.0.0.1
+    ; if the smtp service allows, the from address will be <objectUUID@host_domain_header_from>
+    ; if not set SMTP_SERVER_FROM below
     ; host_domain_header_from = "127.0.0.1"
+
+    ;# {SMTP_SERVER_FROM} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server from name?} {}
+    ; some smtp servers require a known From email address or will give Error 500 - Envelope from address is not authorised
+    ; set to a valid email address that smtp will accept (in some cases must be like SMTP_SERVER_LOGIN)
+    ; SMTP_SERVER_FROM = ""
 
     ;# {email_pause_time} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Period in seconds to delay after an email is sent.} {} 20
     ; email_pause_time = 20
 
     ;# {email_max_size} {[Startup]emailmodule:DefaultEmailModule enabled:true} {Maximum total size of email in bytes.} {} 4096
     ; email_max_size = 4096
+
+    ;# {SMTP_SERVER_TLS} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP use TLS?} {} false
+    ; SMTP_SERVER_TLS = false
 
     ;# {SMTP_SERVER_HOSTNAME} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server name?} {} 127.0.0.1
     ; SMTP_SERVER_HOSTNAME = "127.0.0.1"
@@ -519,6 +551,12 @@
 
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
+
+    ; using TLS and a smtp server with a self signed certificate you will need to set next two options false
+    ;# {SMTP_VerifyCertChain} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP Verify cert chain option} {} true
+    ; SMTP_VerifyCertChain = true
+    ;# {SMTP_VerifyCertNames} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP Verify cert chain option} {} true
+    ; SMTP_VerifyCertNames = true
 
 [Network]
     ;# {ConsoleUser} {} {User name for console account} {}

@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             RequestState state = (RequestState) result.AsyncState;
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;
-            byte[] imageJ2000 = new byte[0];
+            byte[] imageJ2000 = Array.Empty<byte>();
             Size newSize = new Size(0, 0);
             HttpWebResponse response = null;
 

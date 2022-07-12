@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,12 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+ // THIS CS FILE IS AUTO GENERATED FROM A T4 TEMPLATE. MODIFY THE TEMPLATE, NOT THE CS FILE!
+
 namespace OpenSim
 {
     public class VersionInfo
     {
-        public const string VersionNumber = "0.9.2.1";
-        public const string AssemblyVersionNumber = "0.9.2.1";
+        public const string BuildNumber = "8227";
+        public const string VersionNumber = "0.9.2."+BuildNumber;
+        public const string AssemblyVersionNumber = "0.9.2."+BuildNumber;
 
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 

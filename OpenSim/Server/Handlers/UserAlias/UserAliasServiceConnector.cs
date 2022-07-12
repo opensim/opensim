@@ -26,21 +26,38 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.PhysicsModules.SharedBase;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.ServiceAuth;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Region.PhysicsModule.ODE
+namespace OpenSim.Server.Handlers.UserAlias
 {
-    class OdePhysicsJoint : PhysicsJoint
+    public class UserAliasServiceConnector : ServiceConnector
     {
-        public override bool IsInPhysicsEngine
+        private IUserAliasService m_UserAliasService;
+        private string m_ConfigName = "UserAliasService";
+
+        public UserAliasServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            get
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string service = serverConfig.GetString("LocalServiceModule", String.Empty);
+            if (service.Length == 0)
             {
-                return (jointID != IntPtr.Zero);
+                throw new Exception("No LocalServiceModule in config file");
             }
+
+            Object[] args = new Object[] { config };
+            m_UserAliasService = ServerUtils.LoadPlugin<IUserAliasService>(service, args);
+
+            IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
+            server.AddStreamHandler(new UserAliasServerPostHandler(m_UserAliasService, serverConfig, auth));
         }
-        public IntPtr jointID;
     }
 }

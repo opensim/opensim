@@ -1,27 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>OpenSim.Framework</AssemblyTitle>
-    <Company>http://opensimulator.org</Company>
-    <Product>OpenSim.Framework</Product>
-    <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <AssemblyTitle>OpenSim.Framework</AssemblyTitle>
+        <Company>http://opensimulator.org</Company>
+        <Product>OpenSim.Framework</Product>
+        <Copyright>Copyright (c) OpenSimulator.org Developers 2007-2009</Copyright>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    </PropertyGroup>
+	<ItemGroup>
     <Reference Include="log4net">
       <HintPath>..\..\bin\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="LukeSkywalker.IPNetwork">
       <HintPath>..\..\bin\LukeSkywalker.IPNetwork.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Addins">
-      <HintPath>..\..\bin\Mono.Addins.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Mono.Addins.Setup">
-      <HintPath>..\..\bin\Mono.Addins.Setup.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Nini">
@@ -199,6 +191,24 @@
     <Compile Remove="Servers\Tests\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Mono.Addins" Version="1.3.14" />
+	<PackageReference Include="Mono.Addins.Setup" Version="1.3.14" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="VersionInfo.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>VersionInfo.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="VersionInfo.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VersionInfo.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

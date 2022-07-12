@@ -25,10 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using System.IO;
-using System.Text;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework.Capabilities
@@ -62,7 +61,7 @@ namespace OpenSim.Framework.Capabilities
 
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(request);
             if(hash == null)
-                return new byte[0];
+                return Array.Empty<byte>();
 
             TRequest llsdRequest = new TRequest();
             LLSDHelpers.DeserialiseOSDMap(hash, llsdRequest);

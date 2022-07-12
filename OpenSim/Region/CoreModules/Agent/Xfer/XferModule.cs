@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         public class XferDownLoad
         {
             public IClientAPI remoteClient;
-            public byte[] Data = new byte[0];
+            public byte[] Data = Array.Empty<byte>();
             public string FileName = String.Empty;
             public ulong XferID = 0;
             public bool isDeleted = false;

@@ -25,8 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using OpenSim.Services.Interfaces;
+using System.Collections.Generic;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using OpenMetaverse;
@@ -97,8 +96,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void EnableChildAgent(ScenePresence agent, GridRegion region);
 
-        GridRegion GetDestination(Scene scene, UUID agentID, Vector3 pos, EntityTransferContext ctx,
-                                        out Vector3 newpos, out string reason);
+        GridRegion GetDestination(UUID agentID, Vector3 pos, EntityTransferContext ctx, out Vector3 newpos, out string reason);
         GridRegion GetObjectDestination(SceneObjectGroup grp, Vector3 targetPosition, out Vector3 newpos);
         bool checkAgentAccessToRegion(ScenePresence agent, GridRegion destiny, Vector3 position, EntityTransferContext ctx, out string reason);
 
@@ -109,6 +107,7 @@ namespace OpenSim.Region.Framework.Interfaces
         bool CrossAgentCreateFarChild(ScenePresence agent, GridRegion neighbourRegion, Vector3 pos, EntityTransferContext ctx);
 
         bool HandleIncomingSceneObject(SceneObjectGroup so, Vector3 newPosition);
+        bool HandleIncomingAttachments(ScenePresence sp, List<SceneObjectGroup> attachments);
     }
 
     public interface IUserAgentVerificationModule

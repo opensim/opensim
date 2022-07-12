@@ -71,7 +71,7 @@ namespace OpenSim.Services.UserAccountService
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName.Equals(String.Empty))
+            if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IGridUserData>(dllName, new Object[] { connString, realm });

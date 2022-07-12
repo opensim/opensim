@@ -72,13 +72,8 @@ namespace OpenSim.Services.Friends
             {
                 FriendInfo i = new FriendInfo();
 
-                if (!UUID.TryParse(d.PrincipalID, out i.PrincipalID))
-                {
-                    string tmp = string.Empty;
-                    if (!Util.ParseUniversalUserIdentifier(d.PrincipalID, out i.PrincipalID, out tmp, out tmp, out tmp, out tmp))
-                        // bad record. ignore this entry
-                        continue;
-                }
+                if (!Util.ParseUniversalUserIdentifier(i.Friend, out UUID friendID))
+                    continue; // junk entry
                 i.Friend = d.Friend;
                 i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
                 i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
