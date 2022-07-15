@@ -196,7 +196,7 @@ namespace OpenSim.Services.FSAssetService
             if (m_isMainInstance)
             {
                 string loader = assetConfig.GetString("DefaultAssetLoader", string.Empty);
-                if (loader != string.Empty)
+                if (loader.Length > 0)
                 {
                     m_AssetLoader = LoadPlugin<IAssetLoader>(loader);
                     string loaderArgs = assetConfig.GetString("AssetLoaderArgs", string.Empty);
@@ -208,13 +208,13 @@ namespace OpenSim.Services.FSAssetService
                             });
                 }
 
-                if(m_WriterThread != null)
+                if(m_WriterThread == null)
                 {
                     m_WriterThread = new Thread(Writer);
                     m_WriterThread.Start();
                 }
 
-                if (m_showStats && m_StatsThread != null)
+                if (m_showStats && m_StatsThread == null)
                 {
                     m_StatsThread = new Thread(Stats);
                     m_StatsThread.Start();
@@ -249,7 +249,7 @@ namespace OpenSim.Services.FSAssetService
 
         private void Writer()
         {
-            m_log.Info("[ASSET]: Writer started");
+            m_log.InfoFormat("[FSASSETS]: Writer started with spooldir {0} and basedir {1}", m_SpoolDirectory, m_FSBase);
 
             while (true)
             {
@@ -322,7 +322,7 @@ namespace OpenSim.Services.FSAssetService
                                 }
                             }
                             // Could not resolve, skipping
-                            m_log.ErrorFormat("[ASSET]: Could not resolve path creation error for {0}", diskFile);
+                            m_log.ErrorFormat("[FSASSETS]: Could not resolve path creation error for {0}", diskFile);
                             break;
                         }
 
@@ -353,7 +353,7 @@ namespace OpenSim.Services.FSAssetService
                     int totalTicks = System.Environment.TickCount - tickCount;
                     if (totalTicks > 0) // Wrap?
                     {
-                        m_log.InfoFormat("[ASSET]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
+                        m_log.InfoFormat("[FSASSETS]: Write cycle complete, {0} files, {1} ticks, avg {2:F2}", files.Length, totalTicks, (double)totalTicks / (double)files.Length);
                     }
                 }
 
