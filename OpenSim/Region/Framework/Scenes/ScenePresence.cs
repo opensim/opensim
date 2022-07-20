@@ -4202,12 +4202,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE PRESENCE] SendAvatarDataToAllAgents: {0} ({1})", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
-            {
-                m_log.WarnFormat(
-                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
-                    Name, Scene.RegionInfo.RegionName);
                 return;
-            }
 
             m_lastSize = Appearance.AvatarSize;
             int count = 0;
@@ -4288,17 +4283,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            //            m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
-
+            //m_log.DebugFormat("[SCENE PRESENCE] SendAppearanceToAllOtherAgents: {0} {1}", Name, UUID);
             // only send update from root agents to other clients; children are only "listening posts"
             if (IsChildAgent)
-            {
-                m_log.WarnFormat(
-                    "[SCENE PRESENCE]: Attempt to send avatar data from a child agent for {0} in {1}",
-                    Name, Scene.RegionInfo.RegionName);
-
                 return;
-            }
 
             int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
