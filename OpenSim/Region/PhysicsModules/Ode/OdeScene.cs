@@ -2331,7 +2331,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             {
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                 while (step_time > HalfOdeStep)
+                while (step_time > HalfOdeStep)
                 {
                     try
                     {

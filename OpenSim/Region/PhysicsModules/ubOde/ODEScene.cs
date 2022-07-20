@@ -667,18 +667,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 return;
             }
 
-            ContactPoint maxDepthContact;
-
             // do volume detection case
             if ((p1.IsVolumeDtc || p2.IsVolumeDtc))
             {
-                maxDepthContact = new ContactPoint(
+                ContactPoint volDepthContact = new ContactPoint(
                     new Vector3(curContact.pos.X, curContact.pos.Y, curContact.pos.Z),
                     new Vector3(curContact.normal.X, curContact.normal.Y, curContact.normal.Z),
                     curContact.depth, false
                     );
 
-                collision_accounting_events(p1, p2, maxDepthContact);
+                collision_accounting_events(p1, p2, volDepthContact);
                 return;
             }
 
@@ -799,10 +797,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             int i = 0;
 
-            maxDepthContact = new ContactPoint();
-            maxDepthContact.PenetrationDepth = float.MinValue;
+            ContactPoint maxDepthContact = new ContactPoint();
             ContactPoint minDepthContact = new ContactPoint();
-            minDepthContact.PenetrationDepth = float.MaxValue;
+
+            float minDepth = float.MaxValue;
+            float maxDepth = float.MinValue;
 
             SharedTmpcontact.geom.depth = 0;
             SharedTmpcontact.surface.mu = mu;
@@ -867,18 +866,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     ncontacts++;
 
-                    if (curContact.depth > maxDepthContact.PenetrationDepth)
+                    if (curContact.depth > maxDepth)
                     {
+                        maxDepth = curContact.depth;
+                        maxDepthContact.PenetrationDepth = maxDepth;
                         maxDepthContact.Position.X = curContact.pos.X;
                         maxDepthContact.Position.Y = curContact.pos.Y;
                         maxDepthContact.Position.Z = curContact.pos.Z;
-                        maxDepthContact.PenetrationDepth = curContact.depth;
                         maxDepthContact.CharacterFeet = FeetCollision;
                     }
 
-                    if (curContact.depth < minDepthContact.PenetrationDepth)
+                    if (curContact.depth < minDepth)
                     {
-                        minDepthContact.PenetrationDepth = curContact.depth;
+                        minDepth = curContact.depth;
+                        minDepthContact.PenetrationDepth = minDepth;
                         minDepthContact.SurfaceNormal.X = curContact.normal.X;
                         minDepthContact.SurfaceNormal.Y = curContact.normal.Y;
                         minDepthContact.SurfaceNormal.Z = curContact.normal.Z;
@@ -1411,8 +1412,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (world == IntPtr.Zero)
                     return;
 
-                ODEchangeitem item;
-
                 int donechanges = 0;
                 if (!ChangesQueue.IsEmpty)
                 {
@@ -1421,7 +1420,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                    while (ChangesQueue.TryDequeue(out item))
+                    while (ChangesQueue.TryDequeue(out ODEchangeitem item))
                     {
                         if (item.actor != null)
                         {
@@ -2241,14 +2240,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = null;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = Count;
-            req.filter = filter;
+            ODERayRequest req = new ODERayRequest()
+            {
+                actor = null,
+                callbackMethod = retMethod,
+                length = length,
+                Normal = direction,
+                Origin = position,
+                Count = Count,
+                filter = filter
+            };
 
             lock (SyncObject)
             {
