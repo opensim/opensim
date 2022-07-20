@@ -31,7 +31,7 @@ namespace OpenSim
     {
         public const string VersionNumber = "0.9.2.2";
         public const string AssemblyVersionNumber = "0.9.2.2";
-        public const string Release = "20220510";
+        public const string Release = "20220720";
         
         public const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
