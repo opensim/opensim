@@ -1637,7 +1637,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (vertexCount == 0 || indexCount == 0)
             {
                 m_log.WarnFormat("[PHYSICS]: Invalid mesh data on OdePrim {0}, mesh {1} at {2}",
-                    Name, m_pbs.SculptEntry ? m_pbs.SculptTexture.ToString() : "primMesh",m_position.ToString());
+                    Name, m_pbs.SculptEntry ? m_pbs.SculptTexture.ToString() : "primMesh", m_position.ToString());
 
                 m_hasOBB = false;
                 m_OBBOffset = Vector3.Zero;
