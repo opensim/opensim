@@ -126,11 +126,14 @@ namespace OpenSim.OfflineIM
                 return false;
             }
 
-            string result = ret["RESULT"].ToString();
-            if (result == "NULL" || result.ToLower() == "false")
+            if (ret.ContainsKey("RESULT") == true)
             {
-                reason = ret.ContainsKey("REASON") ? ret["REASON"].ToString() : "Unknown error";
-                return false;
+                string result = ret["RESULT"].ToString();
+                if (result == "NULL" || result.ToLower() == "false")
+                {
+                    reason = ret.ContainsKey("REASON") ? ret["REASON"].ToString() : "Unknown error";
+                    return false;
+                }
             }
 
             return true;
