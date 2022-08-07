@@ -359,19 +359,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ActiveSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     CharsSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     GroundSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
-                    float sx = WorldExtents.X + 16;
-                    float sy = WorldExtents.Y + 16;
-                    SafeNativeMethods.Vector3 ex =new SafeNativeMethods.Vector3(sx, sy, 0);
-                    SafeNativeMethods.Vector3 px =new SafeNativeMethods.Vector3(sx * 0.5f, sx  * 0.5f, 0);
-                    if(sx < sy)
+                    float sx = m_regionWidth + 16;
+                    float sy = m_regionHeight + 16;
+                    SafeNativeMethods.Vector3 px = new SafeNativeMethods.Vector3(sx * 0.5f, sy  * 0.5f, 0);
+                    if (sx < sy)
                         sx = sy;
                     sx = (float)Math.Log(sx) * 1.442695f + 0.5f;
-                    int dp = (int)sx - 2;
+                    int dp = (int)sx - 1;
                     if(dp > 8)
                         dp = 8;
                     else if(dp < 4)
                         dp = 4;
-                    StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
+                    //StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
+                    StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref px, dp);
                 }
                 catch
                 {
@@ -379,7 +379,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     // i did!
                 }
 
-                // demote to second level
+                // move to second level
                 SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 1);
                 SafeNativeMethods.SpaceSetSublevel(CharsSpace, 1);
                 SafeNativeMethods.SpaceSetSublevel(StaticSpace, 1);
@@ -2158,15 +2158,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             if (retMethod != null)
             {
-                ODERayRequest req = new ODERayRequest();
-                req.actor = null;
-                req.callbackMethod = retMethod;
-                req.length = length;
-                req.Normal = direction;
-                req.Origin = position;
-                req.Count = 0;
-                req.filter = RayFilterFlags.AllPrims;
-
+                ODERayRequest req = new ODERayRequest()
+                {
+                    actor = null,
+                    callbackMethod = retMethod,
+                    length = length,
+                    Normal = direction,
+                    Origin = position,
+                    Count = 0,
+                    filter = RayFilterFlags.AllPrims
+                };
                 m_rayCastManager.QueueRequest(req);
             }
         }
@@ -2254,7 +2255,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             lock (SyncObject)
             {
                 m_rayCastManager.QueueRequest(req);
-                if (!Monitor.Wait(SyncObject, 500))
+                if (!Monitor.Wait(SyncObject, 10000))
                     return null;
                 else
                     return ourresults;

@@ -2021,7 +2021,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             else
             {
                 m_targetSpace = SafeNativeMethods.SimpleSpaceCreate(m_parentScene.ActiveSpace);
-                SafeNativeMethods.SpaceSetSublevel(m_targetSpace, 3);
+                SafeNativeMethods.SpaceSetSublevel(m_targetSpace, 0);
                 SafeNativeMethods.SpaceSetCleanup(m_targetSpace, false);
 
                 SafeNativeMethods.GeomSetCategoryBits(m_targetSpace, (uint)(CollisionCategories.Space |

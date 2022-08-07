@@ -140,7 +140,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                                         );
         // we do land collisions not ode                | CollisionCategories.Land);
         public IntPtr Body = IntPtr.Zero;
-        private IntPtr capsule = IntPtr.Zero;
+        //private IntPtr capsule = IntPtr.Zero;
         public IntPtr collider = IntPtr.Zero;
 
         public IntPtr Amotor = IntPtr.Zero;
@@ -852,11 +852,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
 
-            collider = SafeNativeMethods.SimpleSpaceCreate(m_parent_scene.CharsSpace);
-            SafeNativeMethods.SpaceSetSublevel(collider, 3);
-            SafeNativeMethods.SpaceSetCleanup(collider, false);
-            SafeNativeMethods.GeomSetCategoryBits(collider, (uint)m_collisionCategories);
-            SafeNativeMethods.GeomSetCollideBits(collider, (uint)m_collisionFlags);
+            //collider = SafeNativeMethods.SimpleSpaceCreate(m_parent_scene.CharsSpace);
+            //SafeNativeMethods.SpaceSetSublevel(collider, 0);
+            //SafeNativeMethods.SpaceSetCleanup(collider, false);
+            //SafeNativeMethods.GeomSetCategoryBits(collider, (uint)m_collisionCategories);
+            //SafeNativeMethods.GeomSetCollideBits(collider, (uint)m_collisionFlags);
 
             float r = sx;
             if (sy > r)
@@ -864,7 +864,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             float l = sz - r;
             r *= 0.5f;
 
-            capsule = SafeNativeMethods.CreateCapsule(collider, r, l);
+            //capsule = SafeNativeMethods.CreateCapsule(collider, r, l);
+            collider = SafeNativeMethods.CreateCapsule(m_parent_scene.CharsSpace, r, l);
+            SafeNativeMethods.GeomSetCategoryBits(collider, (uint)m_collisionCategories);
+            SafeNativeMethods.GeomSetCollideBits(collider, (uint)m_collisionFlags);
 
             // update mass
             m_mass = m_density * sx * sy * sz;
@@ -893,7 +896,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             _position.Z = npositionZ;
 
             SafeNativeMethods.BodySetMass(Body, ref ShellMass);
-            SafeNativeMethods.GeomSetBody(capsule, Body);
+            //SafeNativeMethods.GeomSetBody(capsule, Body);
+            SafeNativeMethods.GeomSetBody(collider, Body);
 
             // The purpose of the AMotor here is to keep the avatar's physical
             // surrogate from rotating while moving
@@ -954,6 +958,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             //kill the Geoms
+            /*
             if (capsule != IntPtr.Zero)
             {
                 m_parent_scene.actor_name_map.Remove(capsule);
@@ -965,6 +970,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (collider != IntPtr.Zero)
             {
                 SafeNativeMethods.SpaceDestroy(collider);
+                collider = IntPtr.Zero;
+            }
+            */
+            if (collider != IntPtr.Zero)
+            {
+                m_parent_scene.actor_name_map.Remove(collider);
+                SafeNativeMethods.GeomDestroy(collider);
                 collider = IntPtr.Zero;
             }
         }
@@ -1008,7 +1020,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             feetcollision = false;
             useAltcontact = false;
 
-            if (me == capsule)
+            //if (me == capsule)
+            if (me == collider)
             {
                 Vector3 offset;
 
@@ -1228,7 +1241,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             //******************************************
             // colide with land
 
-            SafeNativeMethods.GeomGetAABB(capsule, out SafeNativeMethods.AABB aabb);
+            //SafeNativeMethods.GeomGetAABB(capsule, out SafeNativeMethods.AABB aabb);
+            SafeNativeMethods.GeomGetAABB(collider, out SafeNativeMethods.AABB aabb);
             float chrminZ = aabb.MinZ; // move up a bit
             Vector3 posch = localpos;
 
@@ -1809,7 +1823,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z);
 
-                    m_parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
+                    //m_parent_scene.actor_name_map[capsule] = (PhysicsActor)this;
+                    m_parent_scene.actor_name_map[collider] = (PhysicsActor)this;
                     m_parent_scene.AddCharacter(this);
                 }
                 else
@@ -1878,7 +1893,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     float l = sz - r;
                     r *= 0.5f;
 
-                    SafeNativeMethods.GeomCapsuleSetParams(capsule, r, l);
+                    //SafeNativeMethods.GeomCapsuleSetParams(capsule, r, l);
+                    SafeNativeMethods.GeomCapsuleSetParams(collider, r, l);
 
                     m_mass = m_density * sx * sy * sz;  // update mass
                     m_massInvTimeScaled = m_mass * m_sceneInverseTimeStep;
