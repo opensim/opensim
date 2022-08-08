@@ -1014,8 +1014,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             y = tx * sin + y * cos;
         }
 
-        internal bool Collide(IntPtr me, IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeom contact,
-            ref SafeNativeMethods.ContactGeom altContact, ref bool useAltcontact, ref bool feetcollision)
+        internal bool Collide(IntPtr me, IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeomClass contact,
+            ref SafeNativeMethods.ContactGeomClass altContact, ref bool useAltcontact, ref bool feetcollision)
         {
             feetcollision = false;
             useAltcontact = false;
@@ -1094,7 +1094,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     IsColliding = true;
                 }
 
-                altContact = contact;
                 useAltcontact = true;
 
                 offset.Z -= 0.2f;
@@ -1114,6 +1113,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 if (tdp > 0.25f)
                     tdp = 0.25f;
+
+                altContact.pos = contact.pos;
+                //altContact.g1 = contact.g1;
+                //altContact.g2 = contact.g2;
+                //altContact.side1 = contact.side1;
+                //altContact.side2 = contact.side2;
 
                 altContact.depth = tdp;
 

@@ -192,14 +192,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int AABBTestFn(IntPtr o1, IntPtr o2, ref AABB aabb);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate int ColliderFn(IntPtr o1, IntPtr o2, int flags, out ContactGeom contact, int skip);
+        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        //internal delegate int ColliderFn(IntPtr o1, IntPtr o2, int flags, out ContactGeom contact, int skip);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void GetAABBFn(IntPtr geom, out AABB aabb);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate ColliderFn GetColliderFnFn(int num);
+        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        //internal delegate ColliderFn GetColliderFnFn(int num);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void GeomDtorFn(IntPtr o);
@@ -246,6 +246,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
 
         [StructLayout(LayoutKind.Sequential)]
+        //needed for Contact only, rest should use the class
         internal struct ContactGeom
         {
 
@@ -260,6 +261,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        internal class ContactGeomClass
+        {
+
+            internal Vector3 pos;
+            internal Vector3 normal;
+            internal dReal depth;
+            internal IntPtr g1;
+            internal IntPtr g2;
+            internal int side1;
+            internal int side2;
+            internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(ContactGeomClass));
+        }
+
+        /*
+        [StructLayout(LayoutKind.Sequential)]
         internal struct GeomClass
         {
             internal int bytes;
@@ -268,7 +284,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal AABBTestFn aabb_test;
             internal GeomDtorFn dtor;
         }
-
+        */
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct JointFeedback
@@ -745,8 +761,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal static extern void CloseODE();
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCollide"), SuppressUnmanagedCodeSecurity]
-        internal static extern int Collide(IntPtr o1, IntPtr o2, int flags, [In, Out] ContactGeom[] contact, int skip);
-        [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCollide"), SuppressUnmanagedCodeSecurity]
         internal static extern int CollidePtr(IntPtr o1, IntPtr o2, int flags, IntPtr contactgeomarray, int skip);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dConnectingJoint"), SuppressUnmanagedCodeSecurity]
@@ -808,8 +822,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return CreateiGeom(classnum);
         }
 
-        [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeomClass"), SuppressUnmanagedCodeSecurity]
-        internal static extern int CreateGeomClass(ref GeomClass classptr);
+        //[DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeomClass"), SuppressUnmanagedCodeSecurity]
+        //internal static extern int CreateGeomClass(ref GeomClass classptr);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateGeomTransform"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateGeomTransform(IntPtr space);

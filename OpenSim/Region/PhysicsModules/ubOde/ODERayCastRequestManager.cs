@@ -472,14 +472,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        private bool GetCurContactGeom(int index, ref SafeNativeMethods.ContactGeom newcontactgeom)
+        private bool GetCurContactGeom(int index, ref SafeNativeMethods.ContactGeomClass newcontactgeom)
         {
             IntPtr ContactgeomsArray = m_scene.ContactgeomsArray;
             if (ContactgeomsArray == IntPtr.Zero || index >= CollisionContactGeomsPerTest)
                 return false;
 
-            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * SafeNativeMethods.ContactGeom.unmanagedSizeOf));
-            newcontactgeom = (SafeNativeMethods.ContactGeom)Marshal.PtrToStructure(contactptr, typeof(SafeNativeMethods.ContactGeom));
+            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * SafeNativeMethods.ContactGeomClass.unmanagedSizeOf));
+            Marshal.PtrToStructure(contactptr, newcontactgeom);
             return true;
         }
 
@@ -508,7 +508,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int count = 0;
             try
             {
-                count = SafeNativeMethods.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
+                count = SafeNativeMethods.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeomClass.unmanagedSizeOf);
             }
             catch (Exception e)
             {
@@ -580,7 +580,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     break;
             }
 
-            SafeNativeMethods.ContactGeom curcontact = new SafeNativeMethods.ContactGeom();
+            SafeNativeMethods.ContactGeomClass curcontact = new SafeNativeMethods.ContactGeomClass();
 
             // closestHit for now only works for meshs, so must do it for others
             if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
