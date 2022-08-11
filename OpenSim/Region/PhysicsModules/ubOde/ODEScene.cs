@@ -378,10 +378,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
 
                 // move to high level
-                SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 256);
-                SafeNativeMethods.SpaceSetSublevel(CharsSpace, 256);
-                SafeNativeMethods.SpaceSetSublevel(StaticSpace, 256);
-                SafeNativeMethods.SpaceSetSublevel(GroundSpace, 256);
+                SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(CharsSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(StaticSpace, 1);
+                SafeNativeMethods.SpaceSetSublevel(GroundSpace, 1);
 
                 SafeNativeMethods.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
