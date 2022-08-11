@@ -322,7 +322,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
 
                 }
-                SafeNativeMethods.SpaceCollide2(ray, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+                SafeNativeMethods.SpaceCollide2(ray, m_scene.TerrainGeom, IntPtr.Zero, nearCallback);
             }
 
             if (req.callbackMethod is RaycastCallback)
@@ -377,7 +377,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                 SafeNativeMethods.SpaceCollide2(probe, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
             if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                SafeNativeMethods.SpaceCollide2(probe, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+                SafeNativeMethods.SpaceCollide2(probe, m_scene.TerrainGeom, IntPtr.Zero, nearCallback);
 
             List<ContactResult> cresult = new List<ContactResult>(m_contactResults.Count);
             lock (m_PendingRequests)
@@ -404,7 +404,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if ((CurrentRayFilter & FilterStaticSpace) != 0 && (m_contactResults.Count < CurrentMaxCount))
                     SafeNativeMethods.SpaceCollide2(Plane, m_scene.StaticSpace, IntPtr.Zero, nearCallback);
                 if ((CurrentRayFilter & RayFilterFlags.land) != 0 && (m_contactResults.Count < CurrentMaxCount))
-                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.GroundSpace, IntPtr.Zero, nearCallback);
+                    SafeNativeMethods.SpaceCollide2(Plane, m_scene.TerrainGeom, IntPtr.Zero, nearCallback);
             }
             else
             {

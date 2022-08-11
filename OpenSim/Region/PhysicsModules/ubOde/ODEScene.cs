@@ -252,7 +252,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public readonly ContactData[] m_materialContactsData = new ContactData[8];
 
-        private IntPtr m_terrainGeom;
+        public IntPtr TerrainGeom;
         private float[] m_terrainHeights;
         private GCHandle m_terrainHeightsHandler = new GCHandle();
         private IntPtr HeightmapData;
@@ -276,7 +276,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public IntPtr ActiveSpace; // space for active prims
         public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
-        public IntPtr GroundSpace; // space for ground
 
         public readonly object OdeLock = new object();
         public static readonly object SimulationLock = new object();
@@ -358,7 +357,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     TopSpace = SafeNativeMethods.SimpleSpaceCreate(IntPtr.Zero);
                     ActiveSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     CharsSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
-                    GroundSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     float sx = m_regionWidth + 16;
                     float sy = m_regionHeight + 16;
                     SafeNativeMethods.Vector3 px = new SafeNativeMethods.Vector3(sx * 0.5f, sy  * 0.5f, 0);
@@ -369,8 +367,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     if(dp > 8)
                         dp = 8;
                     else if(dp < 4)
-                        dp = 4;
-                    //StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref ex, dp);
+                        dp = 4;                  
                     StaticSpace = SafeNativeMethods.QuadTreeSpaceCreate(TopSpace, ref px, ref px, dp);
                 }
                 catch
@@ -381,7 +378,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 1);
                 SafeNativeMethods.SpaceSetSublevel(CharsSpace, 1);
                 SafeNativeMethods.SpaceSetSublevel(StaticSpace, 1);
-                SafeNativeMethods.SpaceSetSublevel(GroundSpace, 1);
 
                 SafeNativeMethods.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
@@ -411,9 +407,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                                         CollisionCategories.VolumeDtc
                                                         ));
                 SafeNativeMethods.GeomSetCollideBits(StaticSpace, 0);
-
-                SafeNativeMethods.GeomSetCategoryBits(GroundSpace, (uint)(CollisionCategories.Land));
-                SafeNativeMethods.GeomSetCollideBits(GroundSpace, 0);
 
                 contactgroup = SafeNativeMethods.JointGroupCreate(maxContactsbeforedeath + 1);
                 //contactgroup
@@ -1043,7 +1036,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 aprim.m_collide_geom != IntPtr.Zero)
                         {
                             SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, nearCallback);
-                            SafeNativeMethods.SpaceCollide2(GroundSpace, aprim.m_collide_geom, IntPtr.Zero, nearCallback);
+                            SafeNativeMethods.SpaceCollide2(TerrainGeom, aprim.m_collide_geom, IntPtr.Zero, nearCallback);
                         }
                     }
                 }
@@ -1762,7 +1755,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public unsafe float GetTerrainHeightAtXY(float x, float y)
         {
-            if (m_terrainGeom == IntPtr.Zero)
+            if (TerrainGeom == IntPtr.Zero)
                 return 0f;
 
             if (m_terrainHeights == null || m_terrainHeights.Length == 0)
@@ -1856,7 +1849,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             Vector3 norm = new Vector3(0, 0, 1);
 
-            if (m_terrainGeom == IntPtr.Zero)
+            if (TerrainGeom == IntPtr.Zero)
                 return norm;
 
             if (m_terrainHeights == null || m_terrainHeights.Length == 0)
@@ -1940,10 +1933,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
-                if (m_terrainGeom != IntPtr.Zero)
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    actor_name_map.Remove(m_terrainGeom);
-                    SafeNativeMethods.GeomDestroy(m_terrainGeom);
+                    actor_name_map.Remove(TerrainGeom);
+                    SafeNativeMethods.GeomDestroy(TerrainGeom);
                 }
 
                 if (m_terrainHeightsHandler.IsAllocated)
@@ -1964,20 +1957,20 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                                  m_heightmapWidthSamples, m_heightmapHeightSamples,
                                                  1, 0);
 
-                m_terrainGeom = SafeNativeMethods.CreateOSTerrain(GroundSpace, HeightmapData, 1);
-                if (m_terrainGeom != IntPtr.Zero)
+                TerrainGeom = SafeNativeMethods.CreateOSTerrain(TopSpace, HeightmapData, 1);
+                if (TerrainGeom != IntPtr.Zero)
                 {
-                    SafeNativeMethods.GeomSetCategoryBits(m_terrainGeom, (uint)(CollisionCategories.Land));
-                    SafeNativeMethods.GeomSetCollideBits(m_terrainGeom, 0);
+                    SafeNativeMethods.GeomSetCategoryBits(TerrainGeom, (uint)(CollisionCategories.Land));
+                    SafeNativeMethods.GeomSetCollideBits(TerrainGeom, 0);
 
                     PhysicsActor pa = new NullPhysicsActor();
                     pa.Name = "Terrain";
                     pa.PhysicsActorType = (int)ActorTypes.Ground;
-                    actor_name_map[m_terrainGeom] = pa;
+                    actor_name_map[TerrainGeom] = pa;
 
                     //geom_name_map[GroundGeom] = "Terrain";
 
-                    SafeNativeMethods.GeomSetPosition(m_terrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                    SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
                 }
                 else
                     m_terrainHeightsHandler.Free();
@@ -1992,7 +1985,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if(m_regionWidth != m_lastRegionWidth ||
                     m_regionHeight != m_lastRegionHeight ||
                     !m_terrainHeightsHandler.IsAllocated ||
-                    m_terrainGeom == IntPtr.Zero)
+                    TerrainGeom == IntPtr.Zero)
                 InitTerrain();
 
             int regionsizeX = m_regionWidth;
@@ -2044,7 +2037,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             lock (OdeLock)
             {
                 SafeNativeMethods.GeomOSTerrainDataSetBounds(HeightmapData, minH, maxH);
-                SafeNativeMethods.GeomSetPosition(m_terrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
+                SafeNativeMethods.GeomSetPosition(TerrainGeom, m_regionWidth * 0.5f, m_regionHeight * 0.5f, 0.0f);
             }
         }
 
@@ -2096,9 +2089,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 foreach (OdeCharacter ch in chtorem)
                     ch.DoAChange(changes.Remove, null);
 
-                if (m_terrainGeom != IntPtr.Zero)
-                        SafeNativeMethods.GeomDestroy(m_terrainGeom);
-                m_terrainGeom = IntPtr.Zero;
+                if (TerrainGeom != IntPtr.Zero)
+                {
+                    SafeNativeMethods.GeomDestroy(TerrainGeom);
+                    TerrainGeom = IntPtr.Zero;
+                }
 
                 if (m_terrainHeightsHandler.IsAllocated)
                     m_terrainHeightsHandler.Free();
