@@ -850,7 +850,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             AvaAvaSizeYsq = 0.5f * sy;
             AvaAvaSizeYsq *= AvaAvaSizeYsq;
 
-            m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
+            //m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
 
             //collider = SafeNativeMethods.SimpleSpaceCreate(m_parent_scene.CharsSpace);
             //SafeNativeMethods.SpaceSetSublevel(collider, 0);
@@ -962,7 +962,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (capsule != IntPtr.Zero)
             {
                 m_parent_scene.actor_name_map.Remove(capsule);
-                m_parent_scene.waitForSpaceUnlock(collider);
+                //m_parent_scene.waitForSpaceUnlock(collider);
                 SafeNativeMethods.GeomDestroy(capsule);
                 capsule = IntPtr.Zero;
             }
@@ -976,7 +976,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (collider != IntPtr.Zero)
             {
                 m_parent_scene.actor_name_map.Remove(collider);
-                m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
+                //m_parent_scene.waitForSpaceUnlock(m_parent_scene.CharsSpace);
                 SafeNativeMethods.GeomDestroy(collider);
                 collider = IntPtr.Zero;
             }
@@ -992,13 +992,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-        public void RotateXYonZ(ref float x, ref float y, ref float sin, ref float cos)
+        public void RotateXYonZ(ref float x, ref float y, float sin, float cos)
         {
             float tx = x;
             x = tx * cos - y * sin;
             y = tx * sin + y * cos;
         }
-        public void invRotateXYonZ(ref float x, ref float y, ref float sin, ref float cos)
+        public void invRotateXYonZ(ref float x, ref float y, float sin, float cos)
         {
             float tx = x;
             x = tx * cos + y * sin;

@@ -2008,7 +2008,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             if (m_targetSpace != IntPtr.Zero)
             {
-                m_parentScene.waitForSpaceUnlock(m_targetSpace);
+                //m_parentScene.waitForSpaceUnlock(m_targetSpace);
                 if (SafeNativeMethods.SpaceQuery(m_targetSpace, m_prim_geom))
                     SafeNativeMethods.SpaceRemove(m_targetSpace, m_prim_geom);
             }
@@ -2067,7 +2067,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         if (prmspace != IntPtr.Zero)
                         {
-                            m_parentScene.waitForSpaceUnlock(prmspace);
+                            //m_parentScene.waitForSpaceUnlock(prmspace);
                             if (SafeNativeMethods.SpaceQuery(prmspace, prmgeom))
                                 SafeNativeMethods.SpaceRemove(prmspace, prmgeom);
                         }

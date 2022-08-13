@@ -222,7 +222,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private SafeNativeMethods.NearCallback nearCallback;
 
-        private readonly Dictionary<uint,OdePrim> _prims = new Dictionary<uint,OdePrim>();
+        private readonly Dictionary<uint, OdePrim> _prims = new Dictionary<uint, OdePrim>();
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activegroups = new HashSet<OdePrim>();
@@ -290,17 +290,17 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public ODEMeshWorker m_meshWorker;
 
         /* maybe needed if ode uses tls
-                private void checkThread()
-                {
+        private void checkThread()
+        {
 
-                    int th = Thread.CurrentThread.ManagedThreadId;
-                    if(th != threadid)
-                    {
-                        threadid = th;
-                        d.AllocateODEDataForThread(~0U);
-                    }
-                }
-         */
+            int th = Thread.CurrentThread.ManagedThreadId;
+            if(th != threadid)
+            {
+                threadid = th;
+                d.AllocateODEDataForThread(~0U);
+            }
+        }
+        */
 
         IConfig physicsconfig = null;
 
@@ -528,16 +528,18 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 (float)m_frameWorkScene.RegionInfo.RegionSettings.WaterHeight);
         }
 
+        /*
         internal void waitForSpaceUnlock(IntPtr space)
         {
             //if (space != IntPtr.Zero)
                 //while (d.SpaceLockQuery(space)) { } // Wait and do nothing
         }
+        */
 
         #region Collision Detection
 
         // sets a global contact for a joint for contactgeom , and base contact description)
-        private IntPtr CreateContacJoint(ref SafeNativeMethods.ContactGeomClass contactGeom,bool smooth)
+        private IntPtr CreateContacJoint(ref SafeNativeMethods.ContactGeomClass contactGeom, bool smooth)
         {
             if (m_global_contactcount >= maxContactsbeforedeath)
                 return IntPtr.Zero;
@@ -1088,8 +1090,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock(_collisionEventPrimRemove)
             {
-               if (_collisionEventPrim.Contains(obj) && !_collisionEventPrimRemove.Contains(obj))
-                    _collisionEventPrimRemove.Add(obj);
+                _collisionEventPrimRemove.Add(obj);
             }
         }
 
@@ -1119,12 +1120,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_characters)
             {
-                if (!_characters.Contains(chr))
-                {
-                    _characters.Add(chr);
-                    if (chr.bad)
-                        m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.LocalID);
-                }
+                _characters.Add(chr);
+                if (chr.bad)
+                    m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.LocalID);
             }
         }
 
@@ -1132,10 +1130,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_characters)
             {
-                if (_characters.Contains(chr))
-                {
-                    _characters.Remove(chr);
-                }
+                _characters.Remove(chr);
             }
         }
 
@@ -1143,8 +1138,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_badCharacter)
             {
-                if (!_badCharacter.Contains(chr))
-                    _badCharacter.Add(chr);
+                _badCharacter.Add(chr);
             }
         }
 
@@ -1161,8 +1155,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // adds active prim..
             lock (_activeprims)
             {
-                if (!_activeprims.Contains(activatePrim))
-                    _activeprims.Add(activatePrim);
+                _activeprims.Add(activatePrim);
             }
         }
 
@@ -1170,8 +1163,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_activegroups)
             {
-                if (!_activegroups.Contains(activatePrim))
-                    _activegroups.Add(activatePrim);
+                _activegroups.Add(activatePrim);
             }
         }
 
@@ -1248,8 +1240,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_prims)
             {
-                if(_prims.ContainsKey(id))
-                    return _prims[id];
+                if(_prims.TryGetValue(id, out OdePrim p))
+                    return p;
                 else
                     return null;
             }
@@ -1265,8 +1257,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_prims)
             {
-                if(_prims.ContainsKey(oldID))
-                    _prims.Remove(oldID);
+                _prims.Remove(oldID);
                 _prims[prim.LocalID] = prim;
             }
         }
@@ -1315,7 +1306,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 if (SafeNativeMethods.GeomIsSpace(currentspace))
                 {
-                    waitForSpaceUnlock(currentspace);
+                    //waitForSpaceUnlock(currentspace);
                     SafeNativeMethods.SpaceRemove(currentspace, geom);
 
                     if (SafeNativeMethods.SpaceGetSublevel(currentspace) > 2 && SafeNativeMethods.SpaceGetNumGeoms(currentspace) == 0)
@@ -1336,7 +1327,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     if (SafeNativeMethods.GeomIsSpace(currentspace))
                     {
-                        waitForSpaceUnlock(currentspace);
+                        //waitForSpaceUnlock(currentspace);
                         SafeNativeMethods.SpaceRemove(currentspace, geom);
 
                         if (SafeNativeMethods.SpaceGetSublevel(currentspace) > 2 && SafeNativeMethods.SpaceGetNumGeoms(currentspace) == 0)
@@ -1348,7 +1339,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
 
             // put the geom in the newspace
-            waitForSpaceUnlock(StaticSpace);
+            //waitForSpaceUnlock(StaticSpace);
             if(SafeNativeMethods.SpaceQuery(StaticSpace, geom))
                 m_log.Info("[Physics]: 'MoveGeomToStaticSpace' geom already in static space:" + geom);
             else
@@ -2189,14 +2180,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = null;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = Count;
-            req.filter = RayFilterFlags.AllPrims;
+            ODERayRequest req = new ODERayRequest
+            {
+                actor = null,
+                callbackMethod = retMethod,
+                length = length,
+                Normal = direction,
+                Origin = position,
+                Count = Count,
+                filter = RayFilterFlags.AllPrims
+            };
 
             lock (SyncObject)
             {
@@ -2276,14 +2269,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = actor;
-            req.callbackMethod = retMethod;
-            req.length = length;
-            req.Normal = direction;
-            req.Origin = position;
-            req.Count = Count;
-            req.filter = flags;
+            ODERayRequest req = new ODERayRequest
+            {
+                actor = actor,
+                callbackMethod = retMethod,
+                length = length,
+                Normal = direction,
+                Origin = position,
+                Count = Count,
+                filter = flags
+            };
 
             lock (SyncObject)
             {
@@ -2311,14 +2306,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = null;
-            req.callbackMethod = retMethod;
-            req.Normal = size;
-            req.Origin = position;
-            req.orientation = orientation;
-            req.Count = Count;
-            req.filter = flags;
+            ODERayRequest req = new ODERayRequest
+            {
+                actor = null,
+                callbackMethod = retMethod,
+                Normal = size,
+                Origin = position,
+                orientation = orientation,
+                Count = Count,
+                filter = flags
+            };
 
             lock (SyncObject)
             {
@@ -2343,14 +2340,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 Monitor.PulseAll(SyncObject);
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = null;
-            req.callbackMethod = retMethod;
-            req.length = radius;
-            req.Origin = position;
-            req.Count = Count;
-            req.filter = flags;
-
+            ODERayRequest req = new ODERayRequest
+            {
+                actor = null,
+                callbackMethod = retMethod,
+                length = radius,
+                Origin = position,
+                Count = Count,
+                filter = flags
+            };
 
             lock (SyncObject)
             {
@@ -2385,15 +2383,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 Monitor.PulseAll(SyncObject);
             };
 
-            ODERayRequest req = new ODERayRequest();
-            req.actor = null;
-            req.callbackMethod = retMethod;
-            req.length = plane.W;
-            req.Normal.X = plane.X;
-            req.Normal.Y = plane.Y;
-            req.Normal.Z = plane.Z;
-            req.Count = Count;
-            req.filter = flags;
+            ODERayRequest req = new ODERayRequest
+            {
+                actor = null,
+                callbackMethod = retMethod,
+                length = plane.W,
+                Normal = new Vector3(plane.X, plane.Y, plane.Z),
+                Count = Count,
+                filter = flags
+            };
 
             lock (SyncObject)
             {
