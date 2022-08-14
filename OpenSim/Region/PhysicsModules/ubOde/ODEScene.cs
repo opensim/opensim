@@ -221,6 +221,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public int bodyFramesAutoDisable = 10;
 
+        private SafeNativeMethods.NearCallback NearCallback;
+
         private readonly Dictionary<uint, OdePrim> _prims = new Dictionary<uint, OdePrim>();
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
@@ -337,6 +339,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private void Initialization()
         {
             SafeNativeMethods.AllocateODEDataForThread(~0U);
+
+            NearCallback = DefaultNearCallback;
 
             _charactersList = new List<OdeCharacter>(m_frameWorkScene.RegionInfo.AgentCapacity);
 
@@ -593,7 +597,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // contact points in the space
                 try
                 {
-                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, DefaultNearCallback);
+                    SafeNativeMethods.SpaceCollide2(g1, g2, IntPtr.Zero, NearCallback);
                 }
                 catch (AccessViolationException)
                 {
@@ -1089,8 +1093,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                             if (chr.Body != IntPtr.Zero && chr.collider != IntPtr.Zero)
                             {
-                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, DefaultNearCallback);
-                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, DefaultNearCallback);
+                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
+                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
                             }
                         }
                     }
@@ -1108,8 +1112,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 chr.CollidingObj = false;
 
                                 // do colisions with static space
-                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, DefaultNearCallback);
-                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, DefaultNearCallback);
+                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
+                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
 
                                 float mx = chr._AABB2D.minx;
                                 float Mx = chr._AABB2D.maxx;
@@ -1177,8 +1181,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body) &&
                                 aprim.m_collide_geom != IntPtr.Zero)
                         {
-                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, DefaultNearCallback);
-                            SafeNativeMethods.SpaceCollide2(TerrainGeom, aprim.m_collide_geom, IntPtr.Zero, DefaultNearCallback);
+                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
+                            SafeNativeMethods.SpaceCollide2(TerrainGeom, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
                         }
                     }
                 }
@@ -1191,7 +1195,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // colide active amoung them
             try
             {
-                SafeNativeMethods.SpaceCollide(ActiveSpace, IntPtr.Zero, DefaultNearCallback);
+                SafeNativeMethods.SpaceCollide(ActiveSpace, IntPtr.Zero, NearCallback);
             }
             catch (Exception e)
             {
