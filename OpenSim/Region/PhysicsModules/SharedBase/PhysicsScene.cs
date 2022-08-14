@@ -88,12 +88,10 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
     public struct ContactResult
     {
         public Vector3 Pos;
+        public Vector3 Normal;
         public float Depth;
         public uint ConsumerID;
-        public Vector3 Normal;
     }
-
-
 
     public abstract class PhysicsScene
     {
