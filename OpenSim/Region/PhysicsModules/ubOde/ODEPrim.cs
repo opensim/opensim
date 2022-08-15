@@ -566,8 +566,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.Vector3 dtmp;
                     if (!childPrim && Body != IntPtr.Zero)
                     {
-                        dtmp = SafeNativeMethods.BodyGetPosition(Body);
-                        return new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
+                        return SafeNativeMethods.BodyGetPositionOMV(Body);
                     }
                     else if (m_prim_geom != IntPtr.Zero)
                     {
@@ -1507,12 +1506,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             // get current orientation to lock
 
-            SafeNativeMethods.Quaternion dcur = SafeNativeMethods.BodyGetQuaternion(Body);
-            Quaternion curr; // crap convertion between identical things
-            curr.X = dcur.X;
-            curr.Y = dcur.Y;
-            curr.Z = dcur.Z;
-            curr.W = dcur.W;
+            Quaternion curr= SafeNativeMethods.BodyGetQuaternionOMV(Body);
             Vector3 ax;
 
             int i = 0;

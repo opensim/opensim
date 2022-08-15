@@ -62,11 +62,12 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public bool MouseLook;
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 16)]
     public struct AABB2D
     {
         public float minx;
-        public float miny;
         public float maxx;
+        public float miny;
         public float maxy;
     }
 

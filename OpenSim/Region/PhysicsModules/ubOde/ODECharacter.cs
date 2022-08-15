@@ -237,7 +237,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
             Name = avName;
 
-            UpdateShortAABB();
+            UpdateAABB2D();
 
             AddChange(changes.Add, null);
         }
@@ -1222,71 +1222,65 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // so force it back to identity
             SafeNativeMethods.BodySetQuaternion(Body, ref m_NativeOrientation2D);
 
-            SafeNativeMethods.Vector3 dtmp = SafeNativeMethods.BodyGetPosition(Body);
-            Vector3 localpos = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
-
+            _position = SafeNativeMethods.BodyGetPositionOMV(Body);
             // check outbounds forcing to be in world
             bool fixbody = false;
-            float tmp = localpos.X;
-            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
+            if ((Single.IsNaN(_position.X) || Single.IsInfinity(_position.X)))
             {
                 fixbody = true;
-                localpos.X = 128f;
+                _position.X = 128f;
             }
-            else if (tmp < 0.0f)
+            else if (_position.X < 0.0f)
             {
                 fixbody = true;
-                localpos.X = 0.1f;
+                _position.X = 0.1f;
             }
-            else if (tmp > m_parent_scene.WorldExtents.X - 0.1f)
+            else if (_position.X > m_parent_scene.WorldExtents.X - 0.1f)
             {
                 fixbody = true;
-                localpos.X = m_parent_scene.WorldExtents.X - 0.1f;
-            }
-
-            tmp = localpos.Y;
-            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
-            {
-                fixbody = true;
-                localpos.X = 128f;
-            }
-            else if (tmp < 0.0f)
-            {
-                fixbody = true;
-                localpos.Y = 0.1f;
-            }
-            else if (tmp > m_parent_scene.WorldExtents.Y - 0.1)
-            {
-                fixbody = true;
-                localpos.Y = m_parent_scene.WorldExtents.Y - 0.1f;
+                _position.X = m_parent_scene.WorldExtents.X - 0.1f;
             }
 
-            tmp = localpos.Z;
-            if ((Single.IsNaN(tmp) || Single.IsInfinity(tmp)))
+            if ((Single.IsNaN(_position.Y) || Single.IsInfinity(_position.Y)))
             {
                 fixbody = true;
-                localpos.Z = 128f;
+                _position.Y = 128f;
+            }
+            else if (_position.Y < 0.0f)
+            {
+                fixbody = true;
+                _position.Y = 0.1f;
+            }
+            else if (_position.Y > m_parent_scene.WorldExtents.Y - 0.1f)
+            {
+                fixbody = true;
+                _position.Y = m_parent_scene.WorldExtents.Y - 0.1f;
             }
 
-            if (m_pidControllerActive == false)
+            if ((Single.IsNaN(_position.Z) || Single.IsInfinity(_position.Z)))
             {
-                _zeroPosition = localpos;
+                fixbody = true;
+                _position.Z = 128f;
             }
 
             if (fixbody)
             {
                 m_freemove = false;
-                SafeNativeMethods.BodySetPosition(Body, localpos.X, localpos.Y, localpos.Z);
+                SafeNativeMethods.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
             }
 
-            float breakfactor;
+            if (m_pidControllerActive == false)
+            {
+                _zeroPosition = _position;
+            }
 
-            Vector3 vec = Vector3.Zero;
-            dtmp = SafeNativeMethods.BodyGetLinearVel(Body);
-            Vector3 vel = new Vector3(dtmp.X, dtmp.Y, dtmp.Z);
+            //Update AABB
+            UpdateAABB2D();
+
+            float aabbminz = _position.Z - CapsuleSizeZ;
+            //float aabbmaxz = _position.Z + CapsuleSizeZ;
 
             Vector3 ctz = m_targetVelocity;
-
             if (m_alwaysRun)
             {
                 ctz.X *= m_runMultiplier;
@@ -1298,22 +1292,21 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 ctz.Y *= m_walkMultiplier;
             }
 
+            Vector3 vel = SafeNativeMethods.BodyGetLinearVelOMV(Body);
+
             //******************************************
             // colide with land
-
-            //SafeNativeMethods.GeomGetAABB(capsule, out SafeNativeMethods.AABB aabb);
-            SafeNativeMethods.GeomGetAABB(collider, out SafeNativeMethods.AABB aabb);
-            float chrminZ = aabb.MinZ; // move up a bit
-            Vector3 posch = localpos;
-
+            float tmpX = _position.X;
+            float tmpY = _position.Y;
             if (m_flying)
             {
-                posch.X += vel.X * m_sceneTimeStep;
-                posch.Y += vel.Y * m_sceneTimeStep;
+                tmpX += vel.X * m_sceneTimeStep;
+                tmpY += vel.Y * m_sceneTimeStep;
             }
 
-            float terrainheight = m_parent_scene.GetTerrainHeightAtXY(posch.X, posch.Y);
-            if (chrminZ < terrainheight)
+            Vector3 vec = Vector3.Zero;
+            float terrainheight = m_parent_scene.GetTerrainHeightAtXY(tmpX, tmpY);
+            if (aabbminz < terrainheight)
             {
                 if (ctz.Z < 0)
                     ctz.Z = 0;
@@ -1324,8 +1317,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_haveLastFallVel = true;
                 }
 
-                Vector3 n = m_parent_scene.GetTerrainNormalAtXY(posch.X, posch.Y);
-                float depth = terrainheight - chrminZ;
+                Vector3 n = m_parent_scene.GetTerrainNormalAtXY(tmpX, tmpY);
+                float depth = terrainheight - aabbminz;
 
                 vec.Z = depth * PID_P * 50;
 
@@ -1369,8 +1362,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                         ContactPoint contact = new ContactPoint();
                         contact.PenetrationDepth = depth;
-                        contact.Position.X = localpos.X;
-                        contact.Position.Y = localpos.Y;
+                        contact.Position.X = _position.X;
+                        contact.Position.Y = _position.Y;
                         contact.Position.Z = terrainheight;
                         contact.SurfaceNormal = -n;
                         contact.RelativeSpeed = Vector3.Dot(m_lastFallVel,n);
@@ -1424,9 +1417,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }     // end switch (m_PIDHoverType)
 
                 // don't go underground
-                if (m_targetHoverHeight > terrainheight + 0.5f * (aabb.MaxZ - aabb.MinZ))
+                if (m_targetHoverHeight > terrainheight + _position.Z)
                 {
-                    float fz = (m_targetHoverHeight - localpos.Z);
+                    float fz = (m_targetHoverHeight - _position.Z);
 
                     //  if error is zero, use position control; otherwise, velocity control
                     if (Math.Abs(fz) < 0.01f)
@@ -1438,7 +1431,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         _zeroFlag = false;
                         fz /= m_PIDHoverTau;
 
-                        tmp = Math.Abs(fz);
+                        float tmp = Math.Abs(fz);
                         if (tmp > 50)
                             fz = 50 * Math.Sign(fz);
                         else if (tmp < 0.1)
@@ -1473,6 +1466,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 }
             }
 
+            float breakfactor;
             if (!m_freemove)
             {
                 //  if velocity is zero, use position control; otherwise, velocity control
@@ -1484,7 +1478,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         if (!_zeroFlag)
                         {
                             _zeroFlag = true;
-                            _zeroPosition = localpos;
+                            _zeroPosition = _position;
                         }
                         if (m_pidControllerActive)
                         {
@@ -1495,12 +1489,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             float pidd2 = PID_D * 2f;
                             float pidp5 = PID_P * 5;
 
-                            vec.X = -vel.X * pidd2 + (_zeroPosition.X - localpos.X) * pidp5;
-                            vec.Y = -vel.Y * pidd2 + (_zeroPosition.Y - localpos.Y) * pidp5;
+                            vec.X = -vel.X * pidd2 + (_zeroPosition.X - _position.X) * pidp5;
+                            vec.Y = -vel.Y * pidd2 + (_zeroPosition.Y - _position.Y) * pidp5;
                             if (vel.Z > 0)
-                                vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P;
+                                vec.Z += -vel.Z * PID_D + (_zeroPosition.Z - _position.Z) * PID_P;
                             else
-                                vec.Z += (-vel.Z * PID_D + (_zeroPosition.Z - localpos.Z) * PID_P) * 0.2f;
+                                vec.Z += (-vel.Z * PID_D + (_zeroPosition.Z - _position.Z) * PID_P) * 0.2f;
                         }
                     }
                     else
@@ -1623,9 +1617,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     //Added for auto fly height. Kitto Flora
                     float target_altitude = terrainheight + MinimumGroundFlightOffset;
 
-                    if (localpos.Z < target_altitude)
+                    if (_position.Z < target_altitude)
                     {
-                        vec.Z += (target_altitude - localpos.Z) * PID_P * 5.0f;
+                        vec.Z += (target_altitude - _position.Z) * PID_P * 5.0f;
                     }
                     // end add Kitto Flora
                 }
@@ -1635,15 +1629,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 vec.Z -= m_scenegravityForceZ * m_buoyancy;
             }
 
-            if (vec.IsFinite())
-            {
-                if ((vec.X != 0 || vec.Y != 0 || vec.Z != 0))
-                    SafeNativeMethods.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
-            }
-
-            // update our local ideia of position velocity and aceleration
-            _position = localpos;
-            UpdateShortAABB();
+            if ((vec.Z != 0 || vec.X != 0 || vec.Y != 0))
+                SafeNativeMethods.BodyAddForce(Body, vec.X, vec.Y, vec.Z);
 
             if (_zeroFlag)
             {
@@ -1658,11 +1645,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 a = (_velocity - a) * m_sceneInverseTimeStep;
                 SetSmooth(ref _acceleration, ref a, 2);
 
-                dtmp = SafeNativeMethods.BodyGetAngularVel(Body);
-                m_rotationalVelocity.X = 0f;
-                m_rotationalVelocity.Y = 0f;
-                m_rotationalVelocity.Z = dtmp.Z;
-                Math.Round(m_rotationalVelocity.Z, 3);
+                m_rotationalVelocity = SafeNativeMethods.BodyGetAngularVelOMVforAvatar(Body);
             }
         }
 
@@ -1672,14 +1655,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             v.X = (float)Math.Round(v.X, digits);
             v.Y = (float)Math.Round(v.Y, digits);
             v.Z = (float)Math.Round(v.Z, digits);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetSmooth(ref Vector3 dst, ref Vector3 value)
-        {
-            dst.X = 0.1f * dst.X + 0.9f * value.X;
-            dst.Y = 0.1f * dst.Y + 0.9f * value.Y;
-            dst.Z = 0.1f * dst.Z + 0.9f * value.Z;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1695,7 +1670,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             dst.Z = (float)Math.Round(dst.Z, rounddigits);
         }
 
-
         /// <summary>
         /// Updates the reported position and velocity.
         /// Used to copy variables from unmanaged space at heartbeat rate and also trigger scene updates acording
@@ -1703,6 +1677,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// copy and outbounds now done in move(..) at ode rate
         ///
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdatePositionAndVelocity()
         {
         }
@@ -1989,7 +1964,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     _position.Z += (sz - oldsz) * 0.5f;
                     SafeNativeMethods.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
 
-                    UpdateShortAABB();
+                    UpdateAABB2D();
 
                     m_bodydisablecontrol = 0;
                     _zeroFlag = false;
@@ -2013,8 +1988,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 SafeNativeMethods.BodySetPosition(Body, newPos.X, newPos.Y, newPos.Z);
                 SafeNativeMethods.BodyEnable(Body);
             }
-            UpdateShortAABB();
             _position = newPos;
+            UpdateAABB2D();
+
             m_freemove = false;
             _zeroFlag = false;
             m_pidControllerActive = true;
@@ -2057,6 +2033,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.BodyEnable(Body);
                 }
             }
+            else if (Body != IntPtr.Zero)
+                SafeNativeMethods.BodyEnable(Body);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2198,12 +2176,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_useHoverPID = active;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void donullchange()
         {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void UpdateShortAABB()
+        public void UpdateAABB2D()
         {
             _AABB2D.minx = _position.X - CapsuleRadius;
             _AABB2D.maxx = _position.X + CapsuleRadius;

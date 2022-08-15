@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using OMV = OpenMetaverse;
@@ -516,9 +517,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyDisable"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodyDisable(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyEnable"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodyEnable(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetAutoDisableAngularThreshold"), SuppressUnmanagedCodeSecurity]
@@ -541,9 +544,29 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetAngularVel"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Vector3* BodyGetAngularVelUnsafe(IntPtr body);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3 BodyGetAngularVel(IntPtr body)
         {
             unsafe { return *(BodyGetAngularVelUnsafe(body)); }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OMV.Vector3 BodyGetAngularVelOMV(IntPtr body)
+        {
+            unsafe
+            {
+                Vector3* vtmp = BodyGetAngularVelUnsafe(body);
+                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OMV.Vector3 BodyGetAngularVelOMVforAvatar(IntPtr body)
+        {
+            unsafe
+            {
+                Vector3* vtmp = BodyGetAngularVelUnsafe(body);
+                return new OMV.Vector3(0, 0, (float)Math.Round(vtmp->Z, 3));
+            }
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetData"), SuppressUnmanagedCodeSecurity]
@@ -573,9 +596,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetLinearVel"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Vector3* BodyGetLinearVelUnsafe(IntPtr body);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3 BodyGetLinearVel(IntPtr body)
         {
             unsafe { return *(BodyGetLinearVelUnsafe(body)); }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OMV.Vector3 BodyGetLinearVelOMV(IntPtr body)
+        {
+            unsafe
+            {
+                Vector3* vtmp = BodyGetLinearVelUnsafe(body);
+                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+            }
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetMass"), SuppressUnmanagedCodeSecurity]
@@ -589,9 +622,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetPosition"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Vector3* BodyGetPositionUnsafe(IntPtr body);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3 BodyGetPosition(IntPtr body)
         {
             unsafe { return *(BodyGetPositionUnsafe(body)); }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OMV.Vector3 BodyGetPositionOMV(IntPtr body)
+        {
+            unsafe
+            {
+                Vector3* vtmp = BodyGetPositionUnsafe(body);
+                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+            }
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetPosRelPoint"), SuppressUnmanagedCodeSecurity]
@@ -599,9 +642,19 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetQuaternion"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Quaternion* BodyGetQuaternionUnsafe(IntPtr body);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Quaternion BodyGetQuaternion(IntPtr body)
         {
             unsafe { return *(BodyGetQuaternionUnsafe(body)); }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static OMV.Quaternion BodyGetQuaternionOMV(IntPtr body)
+        {
+            unsafe
+            {
+                Quaternion* q = BodyGetQuaternionUnsafe(body);
+                return new OMV.Quaternion(q->X, q->Y, q->Z, q->W);
+            }
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetRelPointPos"), SuppressUnmanagedCodeSecurity]
@@ -634,69 +687,91 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal static extern IntPtr dBodyGetNextGeom(IntPtr Geom);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyIsEnabled"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern bool BodyIsEnabled(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAngularVel"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAngularVel(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableAngularThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableAngularThreshold(IntPtr body, dReal angular_threshold);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableDefaults"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableDefaults(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableFlag"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableFlag(IntPtr body, bool do_auto_disable);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableLinearThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableLinearThreshold(IntPtr body, dReal linear_threshold);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableSteps"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableSteps(IntPtr body, int steps);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAutoDisableTime"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAutoDisableTime(IntPtr body, dReal time);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetData"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetData(IntPtr body, IntPtr data);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetFiniteRotationMode"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetFiniteRotationMode(IntPtr body, int mode);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetFiniteRotationAxis"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetFiniteRotationAxis(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetLinearDamping"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetLinearDamping(IntPtr body, dReal scale);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAngularDamping"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAngularDamping(IntPtr body, dReal scale);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetLinearDamping"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern dReal BodyGetLinearDamping(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetAngularDamping"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern dReal BodyGetAngularDamping(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAngularDamping"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetDamping(IntPtr body, dReal linear_scale, dReal angular_scale);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetAngularDampingThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetAngularDampingThreshold(IntPtr body, dReal threshold);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetLinearDampingThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetLinearDampingThreshold(IntPtr body, dReal threshold);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetLinearDampingThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern dReal BodyGetLinearDampingThreshold(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyGetAngularDampingThreshold"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern dReal BodyGetAngularDampingThreshold(IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetForce"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetForce(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetGravityMode"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetGravityMode(IntPtr body, bool mode);
 
         /// <summary>
@@ -708,33 +783,43 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal static extern void dBodySetGyroscopicMode(IntPtr body, int enabled);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetLinearVel"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetLinearVel(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetMass"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetMass(IntPtr body, ref Mass mass);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetPosition"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetPosition(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetQuaternion"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetQuaternion(IntPtr body, ref Quaternion q);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetQuaternion"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetQuaternion(IntPtr body, ref dReal w);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetRotation"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetRotation(IntPtr body, ref Matrix3 R);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetRotation"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetRotation(IntPtr body, ref dReal M00);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodySetTorque"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodySetTorque(IntPtr body, dReal x, dReal y, dReal z);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyVectorFromWorld"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodyVectorFromWorld(IntPtr body, dReal px, dReal py, dReal pz, out Vector3 result);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBodyVectorToWorld"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void BodyVectorToWorld(IntPtr body, dReal px, dReal py, dReal pz, out Vector3 result);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dBoxBox"), SuppressUnmanagedCodeSecurity]
@@ -761,6 +846,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal static extern void CloseODE();
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCollide"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern int CollidePtr(IntPtr o1, IntPtr o2, int flags, IntPtr contactgeomarray, int skip);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dConnectingJoint"), SuppressUnmanagedCodeSecurity]
@@ -768,6 +854,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateBox"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiBox(IntPtr space, dReal lx, dReal ly, dReal lz);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateBox(IntPtr space, dReal lx, dReal ly, dReal lz)
         {
             NTotalGeoms++;
@@ -776,6 +863,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateCapsule"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiCapsule(IntPtr space, dReal radius, dReal length);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateCapsule(IntPtr space, dReal radius, dReal length)
         {
             NTotalGeoms++;
@@ -808,6 +896,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateOSTerrain"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiOSTerrain(IntPtr space, IntPtr data, int bPlaceable);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateOSTerrain(IntPtr space, IntPtr data, int bPlaceable)
         {
             NTotalGeoms++;
@@ -830,6 +919,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreatePlane"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiPlane(IntPtr space, dReal a, dReal b, dReal c, dReal d);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreatePlane(IntPtr space, dReal a, dReal b, dReal c, dReal d)
         {
             NTotalGeoms++;
@@ -838,6 +928,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateRay"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiRay(IntPtr space, dReal length);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateRay(IntPtr space, dReal length)
         {
             NTotalGeoms++;
@@ -846,6 +937,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateSphere"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiSphere(IntPtr space, dReal radius);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateSphere(IntPtr space, dReal radius)
         {
             NTotalGeoms++;
@@ -855,6 +947,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dCreateTriMesh"), SuppressUnmanagedCodeSecurity]
         internal static extern IntPtr CreateiTriMesh(IntPtr space, IntPtr data,
             TriCallback callback, TriArrayCallback arrayCallback, TriRayCallback rayCallback);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static IntPtr CreateTriMesh(IntPtr space, IntPtr data,
             TriCallback callback, TriArrayCallback arrayCallback, TriRayCallback rayCallback)
         {
