@@ -1872,7 +1872,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 if (NewStatus)
                 {
                     AvatarGeomAndBodyDestroy();
-
                     AvatarGeomAndBodyCreate();
 
                     m_parent_scene.actor_name_map[collider] = this;
@@ -1882,7 +1881,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 {
                     m_parent_scene.RemoveCollisionEventReporting(this);
                     m_parent_scene.RemoveCharacter(this);
-
                     // destroy avatar capsule and related ODE data
                     AvatarGeomAndBodyDestroy();
                 }

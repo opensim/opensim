@@ -1286,7 +1286,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         int last = _charactersList.Count - 1;
                         if(chr._charsListIndex != last)
+                        {
                             _charactersList[chr._charsListIndex] = _charactersList[last];
+                            _charactersList[chr._charsListIndex]._charsListIndex = chr._charsListIndex;
+                        }
                         _charactersList.RemoveAt(last);
                         chr._charsListIndex = -1;
                     }
