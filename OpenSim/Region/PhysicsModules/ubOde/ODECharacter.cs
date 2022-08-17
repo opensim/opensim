@@ -921,7 +921,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             CapsuleRadius *= 0.5f;
             CapsuleSizeZ = 0.5f * sz;
 
-            collider = SafeNativeMethods.CreateCapsule(m_parent_scene.CharsSpace, CapsuleRadius, l);
+            collider = SafeNativeMethods.CreateCapsule(m_parent_scene.TopSpace, CapsuleRadius, l);
             SafeNativeMethods.GeomSetCategoryBits(collider, (uint)m_collisionCategories);
             SafeNativeMethods.GeomSetCollideBits(collider, (uint)m_collisionFlags);
 
