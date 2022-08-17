@@ -41,9 +41,6 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
     public delegate void RayCallback(List<ContactResult> list);
-    public delegate void ProbeBoxCallback(List<ContactResult> list);
-    public delegate void ProbeSphereCallback(List<ContactResult> list);
-    public delegate void ProbePlaneCallback(List<ContactResult> list);
     public delegate void SitAvatarCallback(int status, uint partID, Vector3 offset, Quaternion Orientation);
 
     public delegate void JointMoved(PhysicsJoint joint);
@@ -95,7 +92,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
     public abstract class PhysicsScene
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// A unique identifying string for this instance of the physics engine.

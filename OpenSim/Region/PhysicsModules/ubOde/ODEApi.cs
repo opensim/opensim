@@ -1026,6 +1026,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomDestroy"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomiDestroy(IntPtr geom);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void GeomDestroy(IntPtr geom)
         {
             NTotalGeoms--;
@@ -1062,6 +1063,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetOffsetPosition"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Vector3* GeomGetOffsetPositionUnsafe(IntPtr geom);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3 GeomGetOffsetPosition(IntPtr geom)
         {
             unsafe { return *(GeomGetOffsetPositionUnsafe(geom)); }
@@ -1069,6 +1071,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetOffsetRotation"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Matrix3* GeomGetOffsetRotationUnsafe(IntPtr geom);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Matrix3 GeomGetOffsetRotation(IntPtr geom)
         {
             unsafe { return *(GeomGetOffsetRotationUnsafe(geom)); }
@@ -1076,22 +1079,27 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetPosition"), SuppressUnmanagedCodeSecurity]
         internal extern unsafe static Vector3* GeomGetPositionUnsafe(IntPtr geom);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3 GeomGetPosition(IntPtr geom)
         {
             unsafe { return *(GeomGetPositionUnsafe(geom)); }
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static OMV.Vector3 GeomGetPositionOMV(IntPtr geom)
         {
-            Vector3 vtmp = GeomGetPosition(geom);
-            return new OMV.Vector3(vtmp.X, vtmp.Y, vtmp.Z);
+            unsafe
+            {
+                Vector3* vtmp = GeomGetPositionUnsafe(geom);
+                return new OMV.Vector3(vtmp->X, vtmp->Y, vtmp->Z);
+            }
         }
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomGetQuaternion"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomCopyQuaternion(IntPtr geom, out Quaternion q);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static OMV.Quaternion GeomGetQuaternionOMV(IntPtr geom)
         {
-            Quaternion qtmp;
-            GeomCopyQuaternion(geom, out qtmp);
+            GeomCopyQuaternion(geom, out Quaternion qtmp);
             return new OMV.Quaternion(qtmp.X, qtmp.Y, qtmp.Z, qtmp.W);
         }
 
@@ -1239,24 +1247,30 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         internal static extern dReal GeomRayGetParams(IntPtr g, out int firstContact, out int backfaceCull);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomRaySet"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomRaySet(IntPtr ray, dReal px, dReal py, dReal pz, dReal dx, dReal dy, dReal dz);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomRaySetClosestHit"), SuppressUnmanagedCodeSecurity]
         internal static extern void GeomRaySetClosestHit(IntPtr ray, int closestHit);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomRaySetLength"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomRaySetLength(IntPtr ray, dReal length);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomRaySetParams"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomRaySetParams(IntPtr ray, int firstContact, int backfaceCull);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetBody"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomSetBody(IntPtr geom, IntPtr body);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetCategoryBits"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomSetCategoryBits(IntPtr geom, uint bits);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetCollideBits"), SuppressUnmanagedCodeSecurity]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static extern void GeomSetCollideBits(IntPtr geom, uint bits);
 
         [DllImport("ubode", CallingConvention = CallingConvention.Cdecl, EntryPoint = "dGeomSetConvex"), SuppressUnmanagedCodeSecurity]
