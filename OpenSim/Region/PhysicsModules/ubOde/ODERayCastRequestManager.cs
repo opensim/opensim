@@ -285,7 +285,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     }
 
                 }
-                SafeNativeMethods.SpaceCollide2(ray, m_scene.TerrainGeom, IntPtr.Zero, nearCallback);
+                collideRayTerrain(m_scene.TerrainGeom);
             }
 
             if (req.callbackMethod is RaycastCallback)
@@ -461,14 +461,9 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ID = ((OdePrim)p2).LocalID;
                     break;
 
-                case (int)ActorTypes.Ground:
-
-                    if ((CurrentRayFilter & RayFilterFlags.land) == 0)
-                        return;
-                    break;
-
                 default:
-                    break;
+                    return;
+//                    break;
             }
 
             // closestHit for now only works for meshs, so must do it for others
@@ -543,7 +538,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 m_log.WarnFormat("[PHYSICS Ray]: Unable to collide test an object: {0}", e.Message);
                 return;
             }
-            
+
             // closestHit for now only works for meshs, so must do it for others
             if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
             {
@@ -571,6 +566,79 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             {
                 // keep only closest contact
                 SharedCollisionResult.ConsumerID = chr.LocalID;
+                SharedCollisionResult.Depth = float.MaxValue;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (!GetCurContactGeom(i, ref Sharedcontact))
+                        break;
+
+                    if (Sharedcontact.depth < SharedCollisionResult.Depth)
+                    {
+                        SharedCollisionResult.Pos.X = Sharedcontact.pos.X;
+                        SharedCollisionResult.Pos.Y = Sharedcontact.pos.Y;
+                        SharedCollisionResult.Pos.Z = Sharedcontact.pos.Z;
+                        SharedCollisionResult.Normal.X = Sharedcontact.normal.X;
+                        SharedCollisionResult.Normal.Y = Sharedcontact.normal.Y;
+                        SharedCollisionResult.Normal.Z = Sharedcontact.normal.Z;
+                        SharedCollisionResult.Depth = Sharedcontact.depth;
+                    }
+                }
+
+                if (SharedCollisionResult.Depth != float.MaxValue)
+                {
+                    lock (m_contactResults)
+                        m_contactResults.Add(SharedCollisionResult);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void collideRayTerrain(IntPtr terrain)
+        {
+            if (terrain == IntPtr.Zero)
+                return;
+
+            int count = 0;
+            try
+            {
+                count = SafeNativeMethods.CollidePtr(ray, terrain, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeomClass.unmanagedSizeOf);
+                if (count == 0)
+                    return;
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[PHYSICS Ray]: Unable to collide test an object: {0}", e.Message);
+                return;
+            }
+
+            // closestHit for now only works for meshs, so must do it for others
+            if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
+            {
+                // Loop all contacts, build results.
+                for (int i = 0; i < count; i++)
+                {
+                    if (!GetCurContactGeom(i, ref Sharedcontact))
+                        break;
+
+                    lock (m_contactResults)
+                    {
+                        m_contactResults.Add(new ContactResult
+                        {
+                            ConsumerID = 0,
+                            Pos = new Vector3(Sharedcontact.pos.X, Sharedcontact.pos.Y, Sharedcontact.pos.Z),
+                            Normal = new Vector3(Sharedcontact.normal.X, Sharedcontact.normal.Y, Sharedcontact.normal.Z),
+                            Depth = Sharedcontact.depth
+                        });
+                        if (m_contactResults.Count >= CurrentMaxCount)
+                            return;
+                    }
+                }
+            }
+            else
+            {
+                // keep only closest contact
+                SharedCollisionResult.ConsumerID = 0;
                 SharedCollisionResult.Depth = float.MaxValue;
 
                 for (int i = 0; i < count; i++)
