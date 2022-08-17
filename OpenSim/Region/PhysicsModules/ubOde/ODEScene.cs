@@ -276,7 +276,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public IntPtr TopSpace; // the global space
         public IntPtr ActiveSpace; // space for active prims
-        public IntPtr CharsSpace; // space for active prims
         public IntPtr StaticSpace; // space for the static things around
 
         public readonly object OdeLock = new object();
@@ -359,7 +358,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     world = SafeNativeMethods.WorldCreate();
                     TopSpace = SafeNativeMethods.SimpleSpaceCreate(IntPtr.Zero);
                     ActiveSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
-                    CharsSpace = SafeNativeMethods.SimpleSpaceCreate(TopSpace);
                     float sx = m_regionWidth + 16;
                     float sy = m_regionHeight + 16;
                     SafeNativeMethods.Vector3 px = new SafeNativeMethods.Vector3(sx * 0.5f, sy  * 0.5f, 0);
@@ -379,7 +377,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 // move to high level
                 SafeNativeMethods.SpaceSetSublevel(ActiveSpace, 1);
-                SafeNativeMethods.SpaceSetSublevel(CharsSpace, 1);
                 SafeNativeMethods.SpaceSetSublevel(StaticSpace, 1);
 
                 SafeNativeMethods.GeomSetCategoryBits(ActiveSpace, (uint)(CollisionCategories.Space |
@@ -394,13 +391,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                                         CollisionCategories.Phantom |
                                                         CollisionCategories.VolumeDtc
                                                         ));
-                SafeNativeMethods.GeomSetCategoryBits(CharsSpace, (uint)(CollisionCategories.Space |
-                                        CollisionCategories.Geom |
-                                        CollisionCategories.Character |
-                                        CollisionCategories.Phantom |
-                                        CollisionCategories.VolumeDtc
-                                        ));
-                SafeNativeMethods.GeomSetCollideBits(CharsSpace, 0);
 
                 SafeNativeMethods.GeomSetCategoryBits(StaticSpace, (uint)(CollisionCategories.Space |
                                                         CollisionCategories.Geom |
