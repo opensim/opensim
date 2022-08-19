@@ -5,4 +5,3 @@ default
         llSay( 0, "Script running");
     }
 }
-
