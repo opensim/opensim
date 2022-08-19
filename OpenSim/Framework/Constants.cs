@@ -56,7 +56,16 @@ namespace OpenSim.Framework
         public const float MinWaterHeight = 0;
         public const float MaxWaterHeight = 8000f;
 
-        public const string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f";
+        public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
+        public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
+
+        public static readonly string DefaultScript = "c5f02401-f08b-4519-952c-fdab017c10b7"; // simple llsay
+        public static readonly UUID DefaultScriptID = new UUID(DefaultScript);
+        public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+
+        public static readonly string EmptyNotecard = "4b6a777d-7bcd-4fc4-b06f-929b21e32925";
+        public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
+        public static readonly byte[] EmptyNotecardData = osUTF8.GetASCIIBytes("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length 0\n}\n\0");
 
         public static readonly string m_MrOpenSimIDString = "11111111-1111-0000-0000-000100bba000";
         public static readonly UUID m_MrOpenSimID = new UUID(m_MrOpenSimIDString);

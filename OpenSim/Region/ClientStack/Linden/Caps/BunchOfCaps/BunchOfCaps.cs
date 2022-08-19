@@ -332,6 +332,10 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsAgentInventory", oreq, true);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateSettingsTaskInventory", oreq, false); // a object inv
 
+                    oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateMaterialItemAsset);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateMaterialAgentInventory", oreq, true);
+                    m_HostCapsObj.RegisterSimpleHandler("UpdateMaterialTaskInventory", oreq, false); // a object inv
+
                     oreq = new SimpleOSDMapHandler("POST", GetNewCapPath(), UpdateGestureItemAsset);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateGestureAgentInventory", oreq, true);
                     m_HostCapsObj.RegisterSimpleHandler("UpdateGestureTaskInventory", oreq, false);

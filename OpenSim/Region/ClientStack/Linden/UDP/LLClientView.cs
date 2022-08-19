@@ -10324,29 +10324,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (updatetask.AgentData.SessionID.NotEqual(m_sessionId) || updatetask.AgentData.AgentID.NotEqual(m_agentId))
             return;
 
-            TaskInventoryItem newTaskItem = new TaskInventoryItem();
-            newTaskItem.ItemID = updatetask.InventoryData.ItemID;
-            newTaskItem.ParentID = updatetask.InventoryData.FolderID;
-            newTaskItem.CreatorID = updatetask.InventoryData.CreatorID;
-            newTaskItem.OwnerID = updatetask.InventoryData.OwnerID;
-            newTaskItem.GroupID = updatetask.InventoryData.GroupID;
-            newTaskItem.BasePermissions = updatetask.InventoryData.BaseMask;
-            newTaskItem.CurrentPermissions = updatetask.InventoryData.OwnerMask;
-            newTaskItem.GroupPermissions = updatetask.InventoryData.GroupMask;
-            newTaskItem.EveryonePermissions = updatetask.InventoryData.EveryoneMask;
-            newTaskItem.NextPermissions = updatetask.InventoryData.NextOwnerMask;
+            TaskInventoryItem newTaskItem = new TaskInventoryItem
+            {
+                ItemID = updatetask.InventoryData.ItemID,
+                ParentID = updatetask.InventoryData.FolderID,
+                CreatorID = updatetask.InventoryData.CreatorID,
+                OwnerID = updatetask.InventoryData.OwnerID,
+                GroupID = updatetask.InventoryData.GroupID,
+                BasePermissions = updatetask.InventoryData.BaseMask,
+                CurrentPermissions = updatetask.InventoryData.OwnerMask,
+                GroupPermissions = updatetask.InventoryData.GroupMask,
+                EveryonePermissions = updatetask.InventoryData.EveryoneMask,
+                NextPermissions = updatetask.InventoryData.NextOwnerMask,
 
-            // Unused?  Clicking share with group sets GroupPermissions instead, so perhaps this is something
-            // different
-            //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
-            newTaskItem.Type = updatetask.InventoryData.Type;
-            newTaskItem.InvType = updatetask.InventoryData.InvType;
-            newTaskItem.Flags = updatetask.InventoryData.Flags;
-            //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
-            //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;
-            newTaskItem.Name = Util.FieldToString(updatetask.InventoryData.Name);
-            newTaskItem.Description = Util.FieldToString(updatetask.InventoryData.Description);
-            newTaskItem.CreationDate = (uint)updatetask.InventoryData.CreationDate;
+                // Unused?  Clicking share with group sets GroupPermissions instead, so perhaps this is something
+                // different
+                //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned,
+                Type = updatetask.InventoryData.Type,
+                InvType = updatetask.InventoryData.InvType,
+                Flags = updatetask.InventoryData.Flags,
+                //newTaskItem.SaleType=updatetask.InventoryData.SaleType,
+                //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice,
+                Name = Util.FieldToString(updatetask.InventoryData.Name),
+                Description = Util.FieldToString(updatetask.InventoryData.Description),
+                CreationDate = (uint)updatetask.InventoryData.CreationDate
+            };
 
             OnUpdateTaskInventory?.Invoke(this, updatetask.InventoryData.TransactionID,
                                             newTaskItem, updatetask.UpdateData.LocalID);
@@ -10383,26 +10385,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (rezScriptx.AgentData.SessionID.NotEqual(m_sessionId) || rezScriptx.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-            InventoryItemBase item = new InventoryItemBase();
-            item.ID = rezScriptx.InventoryBlock.ItemID;
-            item.Folder = rezScriptx.InventoryBlock.FolderID;
-            item.CreatorId = rezScriptx.InventoryBlock.CreatorID.ToString();
-            item.Owner = rezScriptx.InventoryBlock.OwnerID;
-            item.BasePermissions = rezScriptx.InventoryBlock.BaseMask;
-            item.CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask;
-            item.EveryOnePermissions = rezScriptx.InventoryBlock.EveryoneMask;
-            item.NextPermissions = rezScriptx.InventoryBlock.NextOwnerMask;
-            item.GroupPermissions = rezScriptx.InventoryBlock.GroupMask;
-            item.GroupOwned = rezScriptx.InventoryBlock.GroupOwned;
-            item.GroupID = rezScriptx.InventoryBlock.GroupID;
-            item.AssetType = rezScriptx.InventoryBlock.Type;
-            item.InvType = rezScriptx.InventoryBlock.InvType;
-            item.Flags = rezScriptx.InventoryBlock.Flags;
-            item.SaleType = rezScriptx.InventoryBlock.SaleType;
-            item.SalePrice = rezScriptx.InventoryBlock.SalePrice;
-            item.Name = Util.FieldToString(rezScriptx.InventoryBlock.Name);
-            item.Description = Util.FieldToString(rezScriptx.InventoryBlock.Description);
-            item.CreationDate = rezScriptx.InventoryBlock.CreationDate;
+            InventoryItemBase item = new InventoryItemBase
+            {
+                ID = rezScriptx.InventoryBlock.ItemID,
+                Folder = rezScriptx.InventoryBlock.FolderID,
+                CreatorId = rezScriptx.InventoryBlock.CreatorID.ToString(),
+                Owner = rezScriptx.InventoryBlock.OwnerID,
+                BasePermissions = rezScriptx.InventoryBlock.BaseMask,
+                CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask,
+                EveryOnePermissions = rezScriptx.InventoryBlock.EveryoneMask,
+                NextPermissions = rezScriptx.InventoryBlock.NextOwnerMask,
+                GroupPermissions = rezScriptx.InventoryBlock.GroupMask,
+                GroupOwned = rezScriptx.InventoryBlock.GroupOwned,
+                GroupID = rezScriptx.InventoryBlock.GroupID,
+                AssetType = rezScriptx.InventoryBlock.Type,
+                InvType = rezScriptx.InventoryBlock.InvType,
+                Flags = rezScriptx.InventoryBlock.Flags,
+                SaleType = rezScriptx.InventoryBlock.SaleType,
+                SalePrice = rezScriptx.InventoryBlock.SalePrice,
+                Name = Util.FieldToString(rezScriptx.InventoryBlock.Name),
+                Description = Util.FieldToString(rezScriptx.InventoryBlock.Description),
+                CreationDate = rezScriptx.InventoryBlock.CreationDate
+            };
 
             OnRezScript?.Invoke(this, item, rezScriptx.InventoryBlock.TransactionID, rezScriptx.UpdateBlock.ObjectLocalID);
         }
@@ -13307,26 +13311,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="taskID"></param>
         protected void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
-            UUID requestID = UUID.Zero;
+            UUID requestID;
             int sourceType = transferRequest.TransferInfo.SourceType;
-
-            if (sourceType == (int)SourceType.Asset)
+            switch(sourceType)
             {
-                requestID = new UUID(transferRequest.TransferInfo.Params, 0);
+                case (int)SourceType.Asset:
+                    requestID = new UUID(transferRequest.TransferInfo.Params, 0);
+                    break;
+                case (int)SourceType.SimInventoryItem:
+                    requestID = new UUID(transferRequest.TransferInfo.Params, 80);
+                    break;
+                case (int)SourceType.SimEstate:
+                    requestID = taskID;
+                    break;
+                default:
+                    requestID = UUID.Zero;
+                    break;
             }
-            else if (sourceType == (int)SourceType.SimInventoryItem)
-            {
-                requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-            }
-            else if (sourceType == (int)SourceType.SimEstate)
-            {
-                requestID = taskID;
-            }
-
-//            m_log.DebugFormat(
-//                "[LLCLIENTVIEW]: Received transfer request for {0} in {1} type {2} by {3}",
-//                requestID, taskID, (SourceType)sourceType, Name);
-
+            //m_log.DebugFormat(
+            //    "[LLCLIENTVIEW]: Received transfer request for {0} in {1} type {2} by {3}",
+            //    requestID, taskID, (SourceType)sourceType, Name);
 
             //Note, the bool returned from the below function is useless since it is always false.
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
@@ -13390,7 +13394,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Scripts cannot be retrieved by direct request
-            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset && asset.Type == 10)
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset && asset.Type == (sbyte)AssetType.LSLText)
                 return;
 
             // The asset is known to exist and is in our cache, so add it to the AssetRequests list
