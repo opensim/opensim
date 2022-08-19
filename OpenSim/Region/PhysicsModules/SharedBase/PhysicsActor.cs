@@ -233,7 +233,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public abstract PrimitiveBaseShape Shape { set; }
 
-        uint m_baseLocalID;
+        public uint m_baseLocalID;
         public virtual uint LocalID
         {
             set { m_baseLocalID = value; }

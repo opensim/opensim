@@ -542,6 +542,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             // closestHit for now only works for meshs, so must do it for others
             if ((CurrentRayFilter & RayFilterFlags.ClosestHit) == 0)
             {
+                uint id = chr.LocalID;
                 // Loop all contacts, build results.
                 for (int i = 0; i < count; i++)
                 {
@@ -552,7 +553,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     {
                         m_contactResults.Add(new ContactResult
                         {
-                            ConsumerID = chr.LocalID,
+                            ConsumerID = id,
                             Pos = new Vector3(Sharedcontact.pos.X, Sharedcontact.pos.Y, Sharedcontact.pos.Z),
                             Normal = new Vector3(Sharedcontact.normal.X, Sharedcontact.normal.Y, Sharedcontact.normal.Z),
                             Depth = Sharedcontact.depth

@@ -116,8 +116,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public bool m_disabled;
 
-        private uint m_localID;
-
         private IMesh m_mesh;
         private readonly object m_meshlock = new object();
         private PrimitiveBaseShape m_pbs;
@@ -301,11 +299,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public override uint LocalID
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return m_localID; }
+            get { return m_baseLocalID; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                uint oldid = m_localID;
-                m_localID = value;
+                uint oldid = m_baseLocalID;
+                m_baseLocalID = value;
                 m_parentScene.changePrimID(this, oldid);
             }
         }
@@ -1207,7 +1206,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ContactPoint cp = kvp.Value;
                     cp.SurfaceNormal = - cp.SurfaceNormal;
                     cp.RelativeSpeed = -cp.RelativeSpeed;
-                    other.AddCollisionEvent(ParentActor.LocalID,cp);
+                    other.AddCollisionEvent(ParentActor.m_baseLocalID, cp);
                 }
             }
             if(CollisionVDTCEvents != null && CollisionVDTCEvents.m_objCollisionList.Count != 0)
@@ -1220,7 +1219,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     ContactPoint cp = kvp.Value;
                     cp.SurfaceNormal = - cp.SurfaceNormal;
                     cp.RelativeSpeed = -cp.RelativeSpeed;
-                    other.AddCollisionEvent(ParentActor.LocalID,cp);
+                    other.AddCollisionEvent(ParentActor.m_baseLocalID, cp);
                 }
             }
         }
@@ -1279,7 +1278,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             m_parentScene = parent_scene;
 
             Name = primName;
-            m_localID = plocalID;
+            m_baseLocalID = plocalID;
 
             m_vehicle = null;
 
@@ -2490,7 +2489,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         public void ParentPrim(OdePrim prim)
         {
             //Console.WriteLine("ParentPrim  " + m_primName);
-            if (this.m_localID != prim.m_localID)
+            if (m_baseLocalID != prim.m_baseLocalID)
             {
                 DestroyBody();  // for now we need to rebuil entire object on link change
 

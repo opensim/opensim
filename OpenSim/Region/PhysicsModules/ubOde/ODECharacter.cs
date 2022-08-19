@@ -171,7 +171,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         public OdeCharacter(uint localID, String avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
-            m_localID = localID;
+            m_baseLocalID = localID;
             m_parent_scene = parent_scene;
 
             m_sceneGravityZ = parent_scene.gravityz;
@@ -284,16 +284,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             set
             {
                 m_alwaysRun = value;
-            }
-        }
-
-        private readonly uint m_localID = 0;
-        public override uint LocalID
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                return m_localID;
             }
         }
 

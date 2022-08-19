@@ -1017,12 +1017,12 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             if (p2events)
                             {
                                 //AddCollisionEventReporting(p2);
-                                p2.AddCollisionEvent(p1.ParentActor.LocalID, contact);
+                                p2.AddCollisionEvent(p1.ParentActor.m_baseLocalID, contact);
                             }
                             else if(p1.IsVolumeDtc)
-                                p2.AddVDTCCollisionEvent(p1.ParentActor.LocalID, contact);
+                                p2.AddVDTCCollisionEvent(p1.ParentActor.m_baseLocalID, contact);
 
-                            obj2LocalID = p2.ParentActor.LocalID;
+                            obj2LocalID = p2.ParentActor.m_baseLocalID;
                             break;
 
                         case ActorTypes.Ground:
@@ -1069,31 +1069,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             lock (_characters)
             {
-                try
+                if (_charactersList.Count > 0)
                 {
-                    if (_charactersList.Count == 1)
+                    try
                     {
-                        OdeCharacter chr = _charactersList[0];
-                        if (chr.Colliderfilter < -1)
-                            chr.Colliderfilter = -1;
-                        else
+                        if (_charactersList.Count == 1)
                         {
-                            chr.IsColliding = false;
-                            chr.CollidingObj = false;
-
-                            if (chr.Body != IntPtr.Zero && chr.collider != IntPtr.Zero)
-                            {
-                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
-                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
-                            }
-                        }
-                    }
-                    else if (_charactersList.Count > 1)
-                    {
-                        for (int i = 0; i < _charactersList.Count; ++i)
-                        {
-                            OdeCharacter chr = _charactersList[i];
-
+                            OdeCharacter chr = _charactersList[0];
                             if (chr.Colliderfilter < -1)
                                 chr.Colliderfilter = -1;
                             else
@@ -1101,97 +1083,119 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                                 chr.IsColliding = false;
                                 chr.CollidingObj = false;
 
-                                // do colisions with static space
-                                SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
-                                SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
-
-                                float mx = chr._AABB2D.minx;
-                                float Mx = chr._AABB2D.maxx;
-                                float my = chr._AABB2D.miny;
-                                float My = chr._AABB2D.maxy;
-
-                                for (int j = i + 1; j < _charactersList.Count; ++j)
+                                if (chr.Body != IntPtr.Zero && chr.collider != IntPtr.Zero)
                                 {
-                                    OdeCharacter chr2 = _charactersList[j];
-                                    if (chr2.Colliderfilter < -1)
-                                        continue;
-                                    
-                                    if(Mx < chr2._AABB2D.minx ||
-                                       mx > chr2._AABB2D.maxx ||
-                                       My < chr2._AABB2D.miny ||
-                                       my > chr2._AABB2D.maxy)
-                                        continue;
-                                    /*
-                                    //avatar is always vertical
-                                    float r = chr.CapsuleRadius + chr2.CapsuleRadius;
-                                    float t = Math.Abs(chr2._position.X - chr._position.X);
-                                    if (t > r)
-                                        continue;
-                                    t = Math.Abs(chr2._position.Y - chr._position.Y);
-                                    if (t > r)
-                                        continue;
-
-                                    r = chr.CapsuleSizeZ + chr2.CapsuleSizeZ;
-                                    t = Math.Abs(chr2._position.Z - chr._position.Z);
-                                    if (t > r)
-                                        continue;
-                                    */
-                                    CollideCharChar(chr, chr2);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
                                 }
                             }
                         }
-                    }
-
-                    // chars with chars
-                    //SafeNativeMethods.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
-                }
-                catch (AccessViolationException)
-                {
-                    m_log.Warn("[PHYSICS]: Unable to collide Character to static space");
-                }
-            }
-
-            lock (_activeprims)
-            {
-                foreach (OdePrim aprim in _activeprims)
-                {
-                    aprim.CollisionScore = 0;
-                    aprim.IsColliding = false;
-                    if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body))
-                        aprim.clearSleeperCollisions();
-                }
-            }
-
-            lock (_activegroups)
-            {
-                try
-                {
-                    foreach (OdePrim aprim in _activegroups)
-                    {
-                        if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body) &&
-                                aprim.m_collide_geom != IntPtr.Zero)
+                        else
                         {
-                            SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
-                            SafeNativeMethods.SpaceCollide2(TerrainGeom, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
+                            for (int i = 0; i < _charactersList.Count; ++i)
+                            {
+                                OdeCharacter chr = _charactersList[i];
+
+                                if (chr.Colliderfilter < -1)
+                                    chr.Colliderfilter = -1;
+                                else
+                                {
+                                    chr.IsColliding = false;
+                                    chr.CollidingObj = false;
+
+                                    // do colisions with static space
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, StaticSpace, IntPtr.Zero, NearCallback);
+                                    SafeNativeMethods.SpaceCollide2(chr.collider, ActiveSpace, IntPtr.Zero, NearCallback);
+
+                                    float mx = chr._AABB2D.minx;
+                                    float Mx = chr._AABB2D.maxx;
+                                    float my = chr._AABB2D.miny;
+                                    float My = chr._AABB2D.maxy;
+
+                                    for (int j = i + 1; j < _charactersList.Count; ++j)
+                                    {
+                                        OdeCharacter chr2 = _charactersList[j];
+                                        if (chr2.Colliderfilter < -1)
+                                            continue;
+                                    
+                                        if(Mx < chr2._AABB2D.minx ||
+                                           mx > chr2._AABB2D.maxx ||
+                                           My < chr2._AABB2D.miny ||
+                                           my > chr2._AABB2D.maxy)
+                                            continue;
+                                        /*
+                                        //avatar is always vertical
+                                        float r = chr.CapsuleRadius + chr2.CapsuleRadius;
+                                        float t = Math.Abs(chr2._position.X - chr._position.X);
+                                        if (t > r)
+                                            continue;
+                                        t = Math.Abs(chr2._position.Y - chr._position.Y);
+                                        if (t > r)
+                                            continue;
+
+                                        r = chr.CapsuleSizeZ + chr2.CapsuleSizeZ;
+                                        t = Math.Abs(chr2._position.Z - chr._position.Z);
+                                        if (t > r)
+                                            continue;
+                                        */
+                                        CollideCharChar(chr, chr2);
+                                    }
+                                }
+                            }
+                        }
+
+                        // chars with chars
+                        //SafeNativeMethods.SpaceCollide(CharsSpace, IntPtr.Zero, nearCallback);
+                    }
+                    catch (AccessViolationException)
+                    {
+                        m_log.Warn("[PHYSICS]: Unable to collide Character to static space");
+                    }
+                }
+            }
+
+            if(_activeprims.Count > 0)
+            {
+                lock (_activeprims)
+                {
+                    foreach (OdePrim aprim in _activeprims)
+                    {
+                        aprim.CollisionScore = 0;
+                        aprim.IsColliding = false;
+                        if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body))
+                            aprim.clearSleeperCollisions();
+                    }
+                }
+
+                lock (_activegroups)
+                {
+                    try
+                    {
+                        foreach (OdePrim aprim in _activegroups)
+                        {
+                            if(!aprim.m_outbounds && SafeNativeMethods.BodyIsEnabled(aprim.Body) &&
+                                    aprim.m_collide_geom != IntPtr.Zero)
+                            {
+                                SafeNativeMethods.SpaceCollide2(StaticSpace, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
+                                SafeNativeMethods.SpaceCollide2(TerrainGeom, aprim.m_collide_geom, IntPtr.Zero, NearCallback);
+                            }
                         }
                     }
+                    catch (Exception e)
+                    {
+                        m_log.Warn("[PHYSICS]: Unable to collide Active to Static: " + e.Message);
+                    }
+                }
+                // colide active amoung them
+                try
+                {
+                    SafeNativeMethods.SpaceCollide(ActiveSpace, IntPtr.Zero, NearCallback);
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[PHYSICS]: Unable to collide Active to Static: " + e.Message);
+                        m_log.Warn("[PHYSICS]: Unable to collide in Active: " + e.Message);
                 }
             }
-
-            // colide active amoung them
-            try
-            {
-                SafeNativeMethods.SpaceCollide(ActiveSpace, IntPtr.Zero, NearCallback);
-            }
-            catch (Exception e)
-            {
-                    m_log.Warn("[PHYSICS]: Unable to collide in Active: " + e.Message);
-            }
-
             /*
             // and with chars
             try
@@ -1262,7 +1266,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 else
                     chr._charsListIndex = -1;
                 if (chr.bad)
-                    m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.LocalID);
+                    m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_baseLocalID);
             }
         }
 
@@ -1385,14 +1389,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         {
             //Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
             lock (_prims)
-                _prims.Remove(prim.LocalID);
+                _prims.Remove(prim.m_baseLocalID);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void addToPrims(OdePrim prim)
         {
             lock (_prims)
-                _prims[prim.LocalID] = prim;
+            {
+                _prims[prim.m_baseLocalID] = prim;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1408,10 +1414,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool havePrim(OdePrim prm)
+        public bool havePrim(OdePrim prim)
         {
             lock (_prims)
-                return _prims.ContainsKey(prm.LocalID);
+                return _prims.ContainsKey(prim.m_baseLocalID);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1420,7 +1426,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             lock (_prims)
             {
                 _prims.Remove(oldID);
-                _prims[prim.LocalID] = prim;
+                _prims[prim.m_baseLocalID] = prim;
             }
         }
 
@@ -1429,7 +1435,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             if (actor is OdePrim)
             {
                 lock (_prims)
-                    return _prims.ContainsKey(((OdePrim)actor).LocalID);
+                    return _prims.ContainsKey(((OdePrim)actor).m_baseLocalID);
             }
             else if (actor is OdeCharacter)
             {
@@ -1630,16 +1636,16 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 double maxChangestime = (int)(reqTimeStep * 500f) + loopstartMS; // half the time
                 double maxLoopTime = (int)(reqTimeStep * 1200f) + loopstartMS; // 1.2 the time
 
-                /*
-                double collisionTime = 0;
-                double qstepTIme = 0;
-                double tmpTime = 0;
-                double changestot = 0;
-                double collisonRepo = 0;
-                double updatesTime = 0;
-                double moveTime = 0;
-                double rayTime = 0;
-                */
+
+                //double collisionTime = 0;
+                //double qstepTIme = 0;
+                //double tmpTime = 0;
+                //double changestot = 0;
+                //double collisonRepo = 0;
+                //double updatesTime = 0;
+                //double moveTime = 0;
+                //double rayTime = 0;
+
 
                 SafeNativeMethods.AllocateODEDataForThread(~0U);
 
@@ -1708,7 +1714,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         //collisionTime += Util.GetTimeStampMS() - tmpTime;
                         //tmpTime =  Util.GetTimeStampMS();
 
-                        lock(_collisionEventPrimRemove)
+                        lock (_collisionEventPrimRemove)
                         {
                             foreach (PhysicsActor obj in _collisionEventPrimRemove)
                                 _collisionEventPrim.Remove(obj);
@@ -1746,10 +1752,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                         foreach(OdePrim prm in sleepers)
                             prm.SleeperAddCollisionEvents();
                         sleepers.Clear();
-                        // collisonRepo += Util.GetTimeStampMS() - tmpTime;
+
+                        //collisonRepo += Util.GetTimeStampMS() - tmpTime;
+                        //tmpTime = Util.GetTimeStampMS();
 
                         // do a ode simulation step
-                        // tmpTime =  Util.GetTimeStampMS();
                         lock (SimulationLock)
                         {
                             SafeNativeMethods.WorldQuickStep(world, ODE_STEPSIZE);
@@ -1791,7 +1798,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                             }
                         }
 
-                    //updatesTime += Util.GetTimeStampMS() - tmpTime;
+                        //updatesTime += Util.GetTimeStampMS() - tmpTime;
                     }
                     catch (Exception e)
                     {
@@ -1862,22 +1869,22 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 int ngeoms = SafeNativeMethods.NTotalGeoms;
                 */
 
-                /*
+
                 //looptimeMS /= nodeframes;
-                collisionTime /= nodeframes;
-                qstepTIme /= nodeframes;
-                changestot /= nodeframes; 
-                collisonRepo /= nodeframes;
-                updatesTime /= nodeframes;
-                moveTime /= nodeframes;
-                rayTime /= nodeframes;
+                //collisionTime /= nodeframes;
+                //qstepTIme /= nodeframes;
+                //changestot /= nodeframes; 
+                //collisonRepo /= nodeframes;
+                //updatesTime /= nodeframes;
+                //moveTime /= nodeframes;
+                //rayTime /= nodeframes;
 
                 //if(looptimeMS > .05)
                 {
 
 
                 }
-                */
+                
                 fps = (float)nodeframes * ODE_STEPSIZE / reqTimeStep;
 
                 if(step_time < HalfOdeStep)
@@ -2283,7 +2290,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 orderedPrims = new List<OdePrim>(_activeprims);
 
             orderedPrims.Sort(compareByCollisionsDesc);
-            topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
+            topColliders = orderedPrims.Take(25).ToDictionary(p => p.m_baseLocalID, p => p.CollisionScore);
 
             return topColliders;
         }
