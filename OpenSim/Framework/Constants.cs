@@ -59,7 +59,7 @@ namespace OpenSim.Framework
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
         public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
 
-        public static readonly string DefaultScript = "c5f02401-f08b-4519-952c-fdab017c10b7"; // simple llsay
+        public static readonly string DefaultScript = "2074003b-8d5f-40e5-8b20-581c1c50aedb"; // must be on default assets and cache
         public static readonly UUID DefaultScriptID = new UUID(DefaultScript);
         public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
 
