@@ -61,7 +61,8 @@ namespace OpenSim.Framework
 
         public static readonly string DefaultScript = "2074003b-8d5f-40e5-8b20-581c1c50aedb"; // must be on default assets and cache
         public static readonly UUID DefaultScriptID = new UUID(DefaultScript);
-        public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}");
+        public static readonly string DefaultScriptText = "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}";
+        public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes(DefaultScriptText);
 
         public static readonly string EmptyNotecard = "4b6a777d-7bcd-4fc4-b06f-929b21e32925";
         public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
