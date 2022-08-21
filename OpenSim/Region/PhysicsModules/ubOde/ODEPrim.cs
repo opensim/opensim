@@ -4246,7 +4246,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddChange(changes what, object arg)
         {
-            m_parentScene.AddChange((PhysicsActor) this, what, arg);
+            m_parentScene.AddChange(this, what, arg);
         }
 
         private struct strVehicleBoolParam

@@ -1059,8 +1059,8 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Collide(IntPtr me, IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeomClass contact,
-            ref SafeNativeMethods.ContactGeomClass altContact, ref bool useAltcontact, ref bool feetcollision)
+        internal bool Collide(IntPtr me, IntPtr other, bool reverse, ref SafeNativeMethods.ContactGeom contact,
+            ref SafeNativeMethods.ContactGeom altContact, ref bool useAltcontact, ref bool feetcollision)
         {
             feetcollision = false;
             useAltcontact = false;
@@ -2314,9 +2314,10 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddChange(changes what, object arg)
         {
-            m_parent_scene.AddChange((PhysicsActor)this, what, arg);
+            m_parent_scene.AddChange(this, what, arg);
         }
 
         private struct strAvatarSize

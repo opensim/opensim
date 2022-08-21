@@ -261,20 +261,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(ContactGeom));
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal class ContactGeomClass
-        {
-
-            internal Vector3 pos;
-            internal Vector3 normal;
-            internal dReal depth;
-            internal IntPtr g1;
-            internal IntPtr g2;
-            internal int side1;
-            internal int side2;
-            internal static readonly int unmanagedSizeOf = Marshal.SizeOf(typeof(ContactGeomClass));
-        }
-
         /*
         [StructLayout(LayoutKind.Sequential)]
         internal struct GeomClass

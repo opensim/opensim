@@ -53,6 +53,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         /// Scene that created this object.
         /// </summary>
         private readonly ODEScene m_scene;
+        private readonly SafeNativeMethods.ContactGeom[] m_contacts;
 
         IntPtr ray; // the ray. we only need one for our lifetime
 
@@ -69,11 +70,11 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private RayFilterFlags CurrentRayFilter;
         private int CurrentMaxCount;
         ContactResult SharedCollisionResult = new ContactResult();
-        SafeNativeMethods.ContactGeomClass Sharedcontact = new SafeNativeMethods.ContactGeomClass();
 
         public ODERayCastRequestManager(ODEScene pScene)
         {
             m_scene = pScene;
+            m_contacts = pScene.m_contacts;
             nearCallback = near;
             ray = SafeNativeMethods.CreateRay(IntPtr.Zero, 1.0f);
             SafeNativeMethods.GeomSetCategoryBits(ray, 0);
@@ -384,18 +385,6 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool GetCurContactGeom(int index, ref SafeNativeMethods.ContactGeomClass newcontactgeom)
-        {
-            IntPtr ContactgeomsArray = m_scene.ContactgeomsArray;
-            if (index >= CollisionContactGeomsPerTest)
-                return false;
-
-            IntPtr contactptr = new IntPtr(ContactgeomsArray.ToInt64() + (Int64)(index * SafeNativeMethods.ContactGeomClass.unmanagedSizeOf));
-            Marshal.PtrToStructure(contactptr, newcontactgeom);
-            return true;
-        }
-
         // This is the standard Near. g1 is the ray
         private void near(IntPtr dummy, IntPtr g1, IntPtr g2)
         {
@@ -421,7 +410,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int count = 0;
             try
             {
-                count = SafeNativeMethods.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeomClass.unmanagedSizeOf);
+                count = SafeNativeMethods.CollidePtr(g1, g2, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
             }
             catch (Exception e)
             {
@@ -472,17 +461,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // Loop all contacts, build results.
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
                     lock (m_contactResults)
                     {
                         m_contactResults.Add(new ContactResult
                         {
                             ConsumerID = ID,
-                            Pos = new Vector3(Sharedcontact.pos.X, Sharedcontact.pos.Y, Sharedcontact.pos.Z),
-                            Normal = new Vector3(Sharedcontact.normal.X, Sharedcontact.normal.Y, Sharedcontact.normal.Z),
-                            Depth = Sharedcontact.depth
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
                         });
                         if (m_contactResults.Count >= CurrentMaxCount)
                             return;
@@ -497,18 +483,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
-                    if (Sharedcontact.depth < SharedCollisionResult.Depth)
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
                     {
-                        SharedCollisionResult.Pos.X = Sharedcontact.pos.X;
-                        SharedCollisionResult.Pos.Y = Sharedcontact.pos.Y;
-                        SharedCollisionResult.Pos.Z = Sharedcontact.pos.Z;
-                        SharedCollisionResult.Normal.X = Sharedcontact.normal.X;
-                        SharedCollisionResult.Normal.Y = Sharedcontact.normal.Y;
-                        SharedCollisionResult.Normal.Z = Sharedcontact.normal.Z;
-                        SharedCollisionResult.Depth = Sharedcontact.depth;
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
                     }
                 }
 
@@ -529,7 +512,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int count = 0;
             try
             {
-                count = SafeNativeMethods.CollidePtr(ray, chr.collider, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeomClass.unmanagedSizeOf);
+                count = SafeNativeMethods.CollidePtr(ray, chr.collider, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
                 if (count == 0)
                     return;
             }
@@ -546,17 +529,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // Loop all contacts, build results.
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
                     lock (m_contactResults)
                     {
                         m_contactResults.Add(new ContactResult
                         {
                             ConsumerID = id,
-                            Pos = new Vector3(Sharedcontact.pos.X, Sharedcontact.pos.Y, Sharedcontact.pos.Z),
-                            Normal = new Vector3(Sharedcontact.normal.X, Sharedcontact.normal.Y, Sharedcontact.normal.Z),
-                            Depth = Sharedcontact.depth
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
                         });
                         if (m_contactResults.Count >= CurrentMaxCount)
                             return;
@@ -571,18 +551,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
-                    if (Sharedcontact.depth < SharedCollisionResult.Depth)
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
                     {
-                        SharedCollisionResult.Pos.X = Sharedcontact.pos.X;
-                        SharedCollisionResult.Pos.Y = Sharedcontact.pos.Y;
-                        SharedCollisionResult.Pos.Z = Sharedcontact.pos.Z;
-                        SharedCollisionResult.Normal.X = Sharedcontact.normal.X;
-                        SharedCollisionResult.Normal.Y = Sharedcontact.normal.Y;
-                        SharedCollisionResult.Normal.Z = Sharedcontact.normal.Z;
-                        SharedCollisionResult.Depth = Sharedcontact.depth;
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
                     }
                 }
 
@@ -603,7 +580,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             int count = 0;
             try
             {
-                count = SafeNativeMethods.CollidePtr(ray, terrain, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeomClass.unmanagedSizeOf);
+                count = SafeNativeMethods.CollidePtr(ray, terrain, CollisionContactGeomsPerTest, m_scene.ContactgeomsArray, SafeNativeMethods.ContactGeom.unmanagedSizeOf);
                 if (count == 0)
                     return;
             }
@@ -619,17 +596,14 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 // Loop all contacts, build results.
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
                     lock (m_contactResults)
                     {
                         m_contactResults.Add(new ContactResult
                         {
                             ConsumerID = 0,
-                            Pos = new Vector3(Sharedcontact.pos.X, Sharedcontact.pos.Y, Sharedcontact.pos.Z),
-                            Normal = new Vector3(Sharedcontact.normal.X, Sharedcontact.normal.Y, Sharedcontact.normal.Z),
-                            Depth = Sharedcontact.depth
+                            Pos = new Vector3(m_contacts[i].pos.X, m_contacts[i].pos.Y, m_contacts[i].pos.Z),
+                            Normal = new Vector3(m_contacts[i].normal.X, m_contacts[i].normal.Y, m_contacts[i].normal.Z),
+                            Depth = m_contacts[i].depth
                         });
                         if (m_contactResults.Count >= CurrentMaxCount)
                             return;
@@ -644,18 +618,15 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 for (int i = 0; i < count; i++)
                 {
-                    if (!GetCurContactGeom(i, ref Sharedcontact))
-                        break;
-
-                    if (Sharedcontact.depth < SharedCollisionResult.Depth)
+                    if (m_contacts[i].depth < SharedCollisionResult.Depth)
                     {
-                        SharedCollisionResult.Pos.X = Sharedcontact.pos.X;
-                        SharedCollisionResult.Pos.Y = Sharedcontact.pos.Y;
-                        SharedCollisionResult.Pos.Z = Sharedcontact.pos.Z;
-                        SharedCollisionResult.Normal.X = Sharedcontact.normal.X;
-                        SharedCollisionResult.Normal.Y = Sharedcontact.normal.Y;
-                        SharedCollisionResult.Normal.Z = Sharedcontact.normal.Z;
-                        SharedCollisionResult.Depth = Sharedcontact.depth;
+                        SharedCollisionResult.Pos.X = m_contacts[i].pos.X;
+                        SharedCollisionResult.Pos.Y = m_contacts[i].pos.Y;
+                        SharedCollisionResult.Pos.Z = m_contacts[i].pos.Z;
+                        SharedCollisionResult.Normal.X = m_contacts[i].normal.X;
+                        SharedCollisionResult.Normal.Y = m_contacts[i].normal.Y;
+                        SharedCollisionResult.Normal.Z = m_contacts[i].normal.Z;
+                        SharedCollisionResult.Depth = m_contacts[i].depth;
                     }
                 }
 
