@@ -14661,6 +14661,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ret.Add(new LSL_Integer(count));
                             break;
 
+                        case ScriptBaseClass.OBJECT_ACCOUNT_LEVEL:
+                            ret.Add(new LSL_Integer(1));
+                            break;
+                        case ScriptBaseClass.OBJECT_MATERIAL:
+                            ret.Add(new LSL_Integer((int)Material.Flesh));
+                            break;
+                        case ScriptBaseClass.OBJECT_MASS:
+                            ret.Add(new LSL_Float(av.GetMass()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT:
+                            ret.Add(new LSL_String(""));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZ_TIME:
+                            ret.Add(new LSL_String(""));
+                            break;
+                        case ScriptBaseClass.OBJECT_LINK_NUMBER:
+                            ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCALE:
+                            ret.Add(new LSL_Vector(av.Appearance.AvatarBoxSize));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_COLOR:
+                            ret.Add(new LSL_Vector(0f, 0f, 0f));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_ALPHA:
+                            ret.Add(new LSL_Float(1.0f));
+                            break;
                         default:
                             // Invalid or unhandled constant.
                             ret.Add(new LSL_Integer(ScriptBaseClass.OBJECT_UNKNOWN_DETAIL));
@@ -14885,6 +14912,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ScriptBaseClass.OBJECT_ANIMATED_SLOTS_AVAILABLE:
                             ret.Add(new LSL_Integer(0));
+                            break;
+                        case ScriptBaseClass.OBJECT_ACCOUNT_LEVEL:
+                            ret.Add(new LSL_Integer(1));
+                            break;
+                        case ScriptBaseClass.OBJECT_MATERIAL:
+                            ret.Add(new LSL_Integer(m_host.Material));
+                            break;
+                        case ScriptBaseClass.OBJECT_MASS:
+                            ret.Add(new LSL_Float(llGetMassMKS()));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT:
+                            ret.Add(new LSL_String(m_host.Text));
+                            break;
+                        case ScriptBaseClass.OBJECT_REZ_TIME:
+                            ret.Add(new LSL_String(m_host.Rezzed.ToString("yyyy-MM-ddTHH:mm:ss.ffffffZ", CultureInfo.InvariantCulture)));
+                            break;
+                        case ScriptBaseClass.OBJECT_LINK_NUMBER:
+                            ret.Add(new LSL_Integer(m_host.LinkNum));
+                            break;
+                        case ScriptBaseClass.OBJECT_SCALE:
+                            ret.Add(new LSL_Vector(m_host.Scale));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_COLOR:
+                            Color4 textColor = m_host.GetTextColor();
+                            ret.Add(new LSL_Vector(textColor.R,
+                                                   textColor.G,
+                                                   textColor.B));
+                            break;
+                        case ScriptBaseClass.OBJECT_TEXT_ALPHA:
+                            ret.Add(new LSL_Float(m_host.GetTextColor().A));
                             break;
                         default:
                             // Invalid or unhandled constant.

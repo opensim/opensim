@@ -365,8 +365,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     SafeNativeMethods.Vector3 px = new SafeNativeMethods.Vector3(sx * 0.5f, sy  * 0.5f, 0);
                     if (sx < sy)
                         sx = sy;
-                    sx = (float)Math.Log(sx) * 1.442695f + 0.5f;
-                    int dp = (int)sx - 1;
+                    int dp = Util.intLog2((uint)sx);
                     if(dp > 8)
                         dp = 8;
                     else if(dp < 4)

@@ -213,6 +213,40 @@ namespace OpenSim.Framework
             return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
+        // next should be replaced using .net5 system numerics bitoperations log2
+        // this is just log2 + 1
+        private static byte[] nBitsLookup =
+         {
+            01, 10, 02, 11, 14, 22, 03, 30, 12, 15, 17, 19, 23, 26, 04, 31,
+            09, 13, 21, 29, 16, 18, 25, 08, 20, 28, 24, 07, 27, 06, 05, 32
+        };
+
+        public static int NumberBits(uint n)
+        {
+            n |= (n >> 1);
+            n |= (n >> 2);
+            n |= (n >> 4);
+            n |= (n >> 8);
+            n |= (n >> 16);
+            return nBitsLookup[(n * 0x07C4ACDDu) >> 27];
+        }
+
+        private static byte[] intLog2Lookup =
+         {
+            00, 09, 01, 10, 13, 21, 02, 29, 11, 14, 16, 18, 22, 25, 03, 30,
+            08, 12, 20, 28, 15, 17, 24, 07, 19, 27, 23, 06, 26, 05, 04, 31
+        };
+
+        public static int intLog2(uint n)
+        {
+            n |= (n >> 1);
+            n |= (n >> 2);
+            n |= (n >> 4);
+            n |= (n >> 8);
+            n |= (n >> 16);
+            return intLog2Lookup[(n * 0x07C4ACDDu) >> 27];
+        }
+
         /// <summary>
         /// Linear interpolates B<->C using percent A
         /// </summary>
