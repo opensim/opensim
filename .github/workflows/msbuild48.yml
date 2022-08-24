@@ -23,9 +23,9 @@ jobs:
           name: OpenSimLastBuild
           draft: true
           files: |
-            bin/
-            ThirdPartyLicenses/
-            ThirdPartyLicenses
-            README.md
-            CONTRIBUTORS.txt
+            ./bin/
+            ./ThirdPartyLicenses/
+            ./ThirdPartyLicenses
+            ./README.md
+            ./CONTRIBUTORS.txt
                       
