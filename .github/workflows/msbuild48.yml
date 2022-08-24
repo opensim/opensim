@@ -18,10 +18,12 @@ jobs:
     - name: Build
       run: msbuild /p:Configuration=Release OpenSim.sln     
 
-    - uses: actions/upload-artifact@v3
+    - name: Release
+    - uses: softprops/action-gh-release@v1
       with:
           name: OpenSimLastBuild
-          path: |
+          draft: true
+          files: |
             bin/
             ThirdPartyLicenses/
             ThirdPartyLicenses
