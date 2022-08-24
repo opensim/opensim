@@ -22,9 +22,9 @@ jobs:
       with:
           name: OpenSimLastBuild
           path: |
-            path/output/bin/
-            ${GITHUB_WORKSPACE}/ThirdPartyLicenses/
-            ${GITHUB_WORKSPACE}/ThirdPartyLicenses
-            ${GITHUB_WORKSPACE}/README.md
-            ${GITHUB_WORKSPACE}/CONTRIBUTORS.txt
+            bin/
+            ThirdPartyLicenses/
+            ThirdPartyLicenses
+            README.md
+            CONTRIBUTORS.txt
                       
