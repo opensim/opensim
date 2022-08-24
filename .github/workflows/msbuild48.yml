@@ -12,13 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: checkout
     - uses: actions/checkout@v3
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild48.sh
     - name: Build
-      run: msbuild /p:Configuration=Release OpenSim.sln
-      
+      run: msbuild /p:Configuration=Release OpenSim.sln     
     - name: store
     - uses: actions/upload-artifact@v3
       with:
@@ -29,5 +27,4 @@ jobs:
             ${GITHUB_WORKSPACE}/ThirdPartyLicenses
             ${GITHUB_WORKSPACE}/README.md
             ${GITHUB_WORKSPACE}/CONTRIBUTORS.txt
-            
-            
+                      
