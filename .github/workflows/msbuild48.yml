@@ -16,5 +16,5 @@ jobs:
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild48.sh
     - name: Build
-      run: msbuild /p:Configuration=Release OpenMetaverse.sln
+      run: msbuild /p:Configuration=Release OpenSim.sln
       
