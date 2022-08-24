@@ -18,7 +18,6 @@ jobs:
     - name: Build
       run: msbuild /p:Configuration=Release OpenSim.sln     
 
-    - name: Release
     - uses: softprops/action-gh-release@v1
       with:
           name: OpenSimLastBuild
