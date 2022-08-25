@@ -21,7 +21,7 @@ jobs:
     - name: Build
       run: msbuild /p:Configuration=Release OpenSim.sln     
     - name: release
-      run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
+      run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt
   
     - uses: softprops/action-gh-release@v1
       with:
