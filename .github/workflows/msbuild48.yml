@@ -22,6 +22,7 @@ jobs:
       run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
     - uses: softprops/action-gh-release@v1
       with:
+          tag_name: ${{github.sha}}
           name: OpenSimLastBuild
           files: LastBuild.zip
                    
