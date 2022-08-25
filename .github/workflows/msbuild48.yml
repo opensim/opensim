@@ -21,7 +21,7 @@ jobs:
     - name: release
       run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
     - name: shortsha
-    - id: vars
+      id: vars
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - uses: softprops/action-gh-release@v1
       with:
