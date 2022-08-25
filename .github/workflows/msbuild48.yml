@@ -20,9 +20,11 @@ jobs:
 
     - name: release
       run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
+    - name: shortsha 
+      run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v1
       with:
-          tag_name: ${{github.sha}}
+          tag_name: ${SHORT_SHA}
           name: OpenSimLastBuild
           files: LastBuild.zip
                    
