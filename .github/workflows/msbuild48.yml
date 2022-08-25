@@ -13,16 +13,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: shortsha
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild48.sh
     - name: Build
       run: msbuild /p:Configuration=Release OpenSim.sln     
-
     - name: release
       run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
-    - name: shortsha
-      id: vars
-      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+  
     - uses: softprops/action-gh-release@v1
       with:
           tag_name:  ${{ steps.vars.outputs.sha_short }}
