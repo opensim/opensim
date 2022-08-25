@@ -4585,18 +4585,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
             //setup header and regioninfo block
-            Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
-            if (ent is ScenePresence)
-                Utils.UInt64ToBytesSafepos(((ScenePresence)ent).RegionHandle, buf.Data, 7);
-            else
-                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
 
+            Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
+            
             Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), buf.Data, 15);
             buf.Data[17] = 1;
-
             int pos = 18;
-            CreateImprovedTerseBlock(ent, buf.Data, ref pos, false);
 
+            if (ent is ScenePresence)
+            {
+                Utils.UInt64ToBytesSafepos(((ScenePresence)ent).RegionHandle, buf.Data, 7);
+                CreateAvatartImprovedTerseBlock((ScenePresence)ent, buf.Data, ref pos);
+            }
+            else
+            {
+                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
+                CreatePartImprovedTerseBlock((SceneObjectPart)ent, buf.Data, ref pos, false);
+            }
             buf.DataLength = pos;
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, true);
         }
@@ -5455,7 +5460,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     eu = terseUpdates[indx];
                     lastpos = pos;
-                    CreateImprovedTerseBlock(eu.Entity, buf.Data, ref pos,  (eu.Flags & PrimUpdateFlags.Textures) != 0);
+                    if(eu.Entity is ScenePresence)
+                        CreateAvatartImprovedTerseBlock((ScenePresence)eu.Entity, buf.Data, ref pos);
+                    else
+                        CreatePartImprovedTerseBlock((SceneObjectPart)eu.Entity, buf.Data, ref pos, (eu.Flags & PrimUpdateFlags.Textures) != 0);
                     if (pos < LLUDPServer.MAXPAYLOAD)
                     {
                         //tau.Add(eu);
@@ -6741,7 +6749,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region ScenePresence/SOP Handling
 
             bool avatar = (entity is ScenePresence);
-            uint localID = entity.LocalId;
             uint attachPoint;
             Vector4 collisionPlane;
             Vector3 position, velocity, acceleration, angularVelocity;
@@ -6766,8 +6773,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 rotation.Normalize();
                 angularVelocity = presence.AngularVelocity;
 
-                //                m_log.DebugFormat(
-                //                    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+                //m_log.DebugFormat(
+                //    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
 
                 attachPoint = presence.State;
                 collisionPlane = presence.CollisionPlane;
@@ -6780,9 +6787,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 attachPoint = part.ParentGroup.AttachmentPoint;
                 attachPoint = ((attachPoint % 16) * 16 + (attachPoint / 16));
-                //                m_log.DebugFormat(
-                //                    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
-                //                    attachPoint, part.Name, part.LocalId, Name);
+                //m_log.DebugFormat(
+                //    "[LLCLIENTVIEW]: Sending attachPoint {0} for {1} {2} to {3}",
+                //    attachPoint, part.Name, part.LocalId, Name);
 
                 collisionPlane = Vector4.Zero;
                 position = part.RelativePosition;
@@ -6792,7 +6799,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 rotation = part.RotationOffset;
 
                 datasize = 44;
-                if(includeTexture)
+                if (includeTexture)
                     te = part.Shape.TextureEntry;
             }
 
@@ -6801,7 +6808,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data[pos++] = datasize;
 
             // LocalID
-            Utils.UIntToBytes(localID, data, pos);
+            Utils.UIntToBytes(entity.LocalId, data, pos);
             pos += 4;
 
             data[pos++] = (byte)attachPoint;
@@ -6811,10 +6818,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 data[pos++] = 1;
 
-                if (collisionPlane == Vector4.Zero)
-                    collisionPlane = Vector4.UnitW;
                 //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
-                collisionPlane.ToBytes(data, pos);
+                if (collisionPlane == Vector4.Zero)
+                    Vector4.UnitW.ToBytes(data, pos);
+                else
+                    collisionPlane.ToBytes(data, pos);
                 pos += 16;
             }
             else
@@ -6851,7 +6859,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.FloatToUInt16Bytes(angularVelocity.Z, 64.0f, data, pos); pos += 2;
 
             // texture entry block size
-            if(te == null)
+            if (te == null)
             {
                 data[pos++] = 0;
                 data[pos++] = 0;
@@ -6871,22 +6879,165 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             // total size 63 or 47 + (texture size + 4)
         }
+        protected void CreatePartImprovedTerseBlock(SceneObjectPart part, byte[] data, ref int pos, bool includeTexture)
+        {
+            //object block size
+            data[pos++] = 44;
+
+            // LocalID
+            Utils.UIntToBytesSafepos(part.LocalId, data, pos);
+            pos += 4;
+
+            if(part.ParentGroup.AttachmentPoint == 0)
+                data[pos++] = 0;
+            else
+            {
+                uint attachPoint = 0xff & part.ParentGroup.AttachmentPoint;
+                data[pos++] = (byte)(attachPoint << 4 | attachPoint >> 4);
+            }
+
+            // no Avatar/CollisionPlane
+            data[pos++] = 0;
+
+            // Position
+            part.RelativePosition.ToBytes(data, pos);
+            pos += 12;
+
+
+            // Velocity
+            Vector3 vtmp = part.Velocity;
+            ClampVectorForUint(ref vtmp, 128f);
+            Utils.FloatToUInt16Bytes(vtmp.X, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Y, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Z, 128.0f, data, pos); pos += 2;
+
+            // Acceleration
+            vtmp = part.Acceleration;
+            ClampVectorForUint(ref vtmp, 64f);
+            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+
+            // Rotation
+            Quaternion rotation = part.RotationOffset;
+            Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+
+            // Angular Velocity
+            vtmp = part.AngularVelocity;
+            ClampVectorForUint(ref vtmp, 64f);
+            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+
+            // texture entry block size
+            if (includeTexture && part.Shape.TextureEntry != null)
+            {
+                byte[] te = part.Shape.TextureEntry;
+                int len = te.Length & 0x7fff;
+                int totlen = len + 4;
+                data[pos++] = (byte)totlen;
+                data[pos++] = (byte)(totlen >> 8);
+                data[pos++] = (byte)len; // wtf ???
+                data[pos++] = (byte)(len >> 8);
+                data[pos++] = 0;
+                data[pos++] = 0;
+                Buffer.BlockCopy(te, 0, data, pos, len);
+                pos += len;
+            }
+            else
+            {
+                data[pos++] = 0;
+                data[pos++] = 0;
+            }
+            // total size 47 + (texture size + 4)
+        }
+
+        protected void CreateAvatartImprovedTerseBlock(ScenePresence presence, byte[] data, ref int pos)
+        {
+            //m_log.DebugFormat(
+            //    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+
+            //object block size
+            data[pos++] = 60;
+
+            // LocalID
+            Utils.UIntToBytesSafepos(presence.LocalId, data, pos);
+            pos += 4;
+
+            data[pos++] = presence.State;
+
+            // Avatar/CollisionPlane
+            data[pos++] = 1;
+            Vector4 collisionPlane = presence.CollisionPlane;
+
+            //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
+            if (collisionPlane == Vector4.Zero)
+                Vector4.UnitW.ToBytes(data, pos);
+            else
+                collisionPlane.ToBytes(data, pos);
+            pos += 16;
+
+            // Position
+            presence.OffsetPosition.ToBytes(data, pos);
+            pos += 12;
+
+            // Velocity
+            Vector3 vtmp = presence.Velocity;
+            ClampVectorForUint(ref vtmp, 128f);
+            Utils.FloatToUInt16Bytes(vtmp.X, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Y, 128.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Z, 128.0f, data, pos); pos += 2;
+
+            // Acceleration is zero
+            Utils.UIntToBytesSafepos(0x7fff7fff, data, pos); pos += 4;
+            Utils.UInt16ToBytes(0x7fff, data, pos); pos += 2;
+
+            // Rotation
+            // tpvs can only see rotations around Z in some cases
+            Quaternion rotation = presence.Rotation;
+            if (!presence.Flying && !presence.IsSatOnObject)
+            {
+                Utils.UIntToBytesSafepos(0x7fff7fff, data, pos); pos += 4;
+                float rz = rotation.Z;
+                float rw = rotation.W;
+                float a = rz * rz + rw * rw;
+                if(a > -1e-6f && a < 1e-6f)
+                {
+                    Utils.UIntToBytesSafepos(0xffff7fff, data, pos); pos += 4;
+                }
+                else
+                {
+                    a = 1.0f / (float)Math.Sqrt(a);
+                    Utils.FloatToUInt16Bytes(rz * a, 1.0f, data, pos); pos += 2;
+                    Utils.FloatToUInt16Bytes(rw * a, 1.0f, data, pos); pos += 2;
+                }
+            }
+            else
+            {
+                Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
+                Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
+                Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
+                Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+            }
+
+            // Angular Velocity
+            vtmp = presence.AngularVelocity;
+            ClampVectorForUint(ref vtmp, 64f);
+            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
+            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+
+            //texture
+            data[pos++] = 0;
+            data[pos++] = 0;
+            // total size 63
+        }
 
         protected void CreateAvatarUpdateBlock(ScenePresence data, byte[] dest, ref int pos)
         {
-            Quaternion rotation = data.Rotation;
-            // tpvs can only see rotations around Z in some cases
-            if (!data.Flying && !data.IsSatOnObject)
-            {
-                rotation.X = 0f;
-                rotation.Y = 0f;
-            }
-            rotation.Normalize();
-
-            //Vector3 velocity = Vector3.Zero;
-            //Vector3 acceleration = Vector3.Zero;
-            //Vector3 angularvelocity = Vector3.Zero;
-
             Utils.UIntToBytesSafepos(data.LocalId, dest, pos); pos += 4;
             dest[pos++] = 0; // state
             data.UUID.ToBytes(dest, pos); pos += 16;
@@ -6905,6 +7056,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //acceleration.ToBytes(dest, pos); pos += 12;
             Array.Clear(dest, pos, 12); pos += 12;
 
+            Quaternion rotation = data.Rotation;
+            // tpvs can only see rotations around Z in some cases
+            if (!data.Flying && !data.IsSatOnObject)
+            {
+                rotation.X = 0f;
+                rotation.Y = 0f;
+            }
             rotation.ToBytes(dest, pos); pos += 12;
 
             //angularvelocity.ToBytes(dest, pos); pos += 12;
@@ -6918,8 +7076,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-//                Utils.UIntToBytesSafepos(0, dest, pos);
-//                pos += 4;
+                //Utils.UIntToBytesSafepos(0, dest, pos);
+                //pos += 4;
                 dest[pos++] = 0;
                 dest[pos++] = 0;
                 dest[pos++] = 0;
@@ -6978,7 +7136,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 rotation.X = 0f;
                 rotation.Y = 0f;
             }
-            rotation.Normalize();
 
             zc.AddUInt(data.LocalId);
             zc.AddByte(0);
@@ -7080,9 +7237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     zc.AddZeros(24);
-                    Quaternion rot = part.RotationOffset;
-                    rot.Normalize();
-                    zc.AddNormQuat(rot);
+                    zc.AddNormQuat(part.RotationOffset);
                     zc.AddZeros(12);
                 }
 
@@ -7193,9 +7348,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddVector3(part.RelativePosition);
             zc.AddVector3(part.Velocity);
             zc.AddVector3(part.Acceleration);
-            Quaternion rotation = part.RotationOffset;
-            rotation.Normalize();
-            zc.AddNormQuat(rotation);
+            zc.AddNormQuat(part.RotationOffset);
             zc.AddVector3(part.AngularVelocity);
 
             zc.AddUInt(part.ParentID);
@@ -7649,11 +7802,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (pcode == PCode.Grass)
                     zc.AddZeros(12);
                 else
-                {
-                    Quaternion rotation = part.RotationOffset;
-                    rotation.Normalize();
-                    zc.AddNormQuat(rotation);
-                }
+                    zc.AddNormQuat(part.RotationOffset);
 
                 zc.AddUInt((uint)CompressedFlags.Tree); // cflags
 
@@ -7818,11 +7967,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (pcode == PCode.Grass)
                 zc.AddZeros(12);
             else
-            {
-                Quaternion rotation = part.RotationOffset;
-                rotation.Normalize();
-                zc.AddNormQuat(rotation);
-            }
+                zc.AddNormQuat(part.RotationOffset);
 
             zc.AddUInt((uint)cflags);
 
@@ -13526,7 +13671,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), buf.Data, 15);
                 buf.Data[17] = 1;
                 int pos = 18;
-                CreateImprovedTerseBlock(p, buf.Data, ref pos, false);
+                CreateAvatartImprovedTerseBlock((ScenePresence)p, buf.Data, ref pos);
                 buf.DataLength = pos;
                 m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, true);
             }
