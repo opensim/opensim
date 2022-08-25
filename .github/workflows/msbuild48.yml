@@ -24,7 +24,7 @@ jobs:
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
     - uses: softprops/action-gh-release@v1
       with:
-          tag_name: ${SHORT_SHA}
+          tag_name: ${{SHORT_SHA}}
           name: OpenSimLastBuild
           files: LastBuild.zip
                    
