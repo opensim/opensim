@@ -20,11 +20,12 @@ jobs:
 
     - name: release
       run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt
-    - name: shortsha 
-      run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+    - name: shortsha
+    - id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - uses: softprops/action-gh-release@v1
       with:
-          tag_name: ${{SHORT_SHA}}
+          tag_name:  ${{ steps.vars.outputs.sha_short }}
           name: OpenSimLastBuild
           files: LastBuild.zip
                    
