@@ -210,7 +210,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out ScenePresence presence))
             {
-                byte[] data = null;
                 uint everyonemask = 0;
                 uint groupmask = 0;
                 uint flags = 0;
@@ -218,13 +217,23 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (invType == (sbyte)InventoryType.Landmark && presence != null)
                 {
                     string strdata = GenerateLandmark(presence, out string prefix, out string suffix);
-                    data = osUTF8.GetASCIIBytes(strdata);
+                    byte[] data = osUTF8.GetASCIIBytes(strdata);
                     name = prefix + name;
                     description += suffix;
                     groupmask = (uint)PermissionMask.AllAndExport;
-                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);                   
+                    everyonemask = (uint)(PermissionMask.AllAndExport & ~PermissionMask.Modify);
+
+                    AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
+                    m_Scene.AssetService.Store(asset);
+                    m_Scene.CreateNewInventoryItem(
+                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                        name, description, flags, callbackID, asset.FullID, asset.Type, invType,
+                        (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                        everyonemask, nextOwnerMask, groupmask,
+                        creationDate, false); // Data from viewer
+                    return;
                 }
-                switch(assetType)
+                switch (assetType)
                 {
                     case (sbyte)AssetType.Settings:
                     {
@@ -276,14 +285,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         break;
                 }
 
-                AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                m_Scene.AssetService.Store(asset);
                 m_Scene.CreateNewInventoryItem(
-                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
-                    name, description, flags, callbackID, asset.FullID, asset.Type, invType,
-                    (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
-                    everyonemask, nextOwnerMask, groupmask,
-                    creationDate, false); // Data from viewer
+                        remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID,
+                        name, description, flags, callbackID, UUID.Zero, assetType, invType,
+                        (uint)PermissionMask.AllAndExport, (uint)PermissionMask.AllAndExport,
+                        everyonemask, nextOwnerMask, groupmask,
+                        creationDate, false); // Data from viewer
             }
             else
             {
