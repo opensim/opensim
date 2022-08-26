@@ -3,14 +3,13 @@ name: .msbuild48
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    paths:
+      - '**cs'
 
 jobs:
   build:
-
+    if: github.repository == 'opensim/opensim'
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: shortsha
