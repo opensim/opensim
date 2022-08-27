@@ -18,14 +18,40 @@ jobs:
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"   
     - name: preBuild
       run: bash ${GITHUB_WORKSPACE}/runprebuild48.sh
+
     - name: Build
-      run: msbuild /p:Configuration=Release OpenSim.sln     
+      id: build
+      run: msbuild /p:Configuration=Release OpenSim.sln
+
     - name: release
-      run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt
-  
+      if: success()
+      run: zip -r LastBuild.zip bin ThirdPartyLicenses README.md CONTRIBUTORS.txt LICENSE.txt 
     - uses: softprops/action-gh-release@v1
+      if: success()
       with:
           tag_name: r${{ steps.vars.outputs.sha_short }}
           name: LastAutoBuild
           files: LastBuild.zip
-                   
+
+    - name: report push to irc
+      if: github.event_name == 'push'
+      uses: rectalogic/notify-irc@v1
+      with:
+        channel: "#opensim-dev"
+        server: "irc.libera.chat"
+        nickname: osgithub
+        message: |
+          ${{ github.actor }} pushed to ${{ github.repository }}
+          ${{ join(github.event.commits.*.message, '\n') }}
+          mono compile: ${{ steps.build.conclusion }}
+
+    - name: report manual irc
+      if: github.event_name == 'workflow_dispatch'
+      uses: rectalogic/notify-irc@v1
+      with:
+        channel: "#opensim-dev"
+        server: "irc.libera.chat"
+        nickname: osgithub
+        message: |
+          ${{ github.repository }}
+          mono compile: ${{ steps.build.conclusion }}
