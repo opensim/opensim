@@ -1190,7 +1190,7 @@ namespace OpenSim.Framework
 
                     Utils.FloatToBytes(ReflectionProbe.Ambiance, returnBytes); returnBytes += 4;
                     Utils.FloatToBytes(ReflectionProbe.ClipDistance, returnBytes); returnBytes += 4;
-                    *returnBytes = ReflectionProbe.Flags;
+                    *returnBytes++ = ReflectionProbe.Flags;
                 }
 
                 if (RenderMaterials != null && RenderMaterials.entries != null && RenderMaterials.entries.Length > 0)
