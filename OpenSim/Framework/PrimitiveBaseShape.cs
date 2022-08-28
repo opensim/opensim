@@ -1045,9 +1045,9 @@ namespace OpenSim.Framework
             return 33 * hash + (ulong)c.GetHashCode();
         }
 
-        public byte[] ExtraParamsToBytes()
+        public unsafe byte[] ExtraParamsToBytes()
         {
-//            m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");
+            //m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");
 
             const byte FlexiEP = 0x10;
             const byte LightEP = 0x20;
@@ -1108,126 +1108,111 @@ namespace OpenSim.Framework
                 }
             }
 
-            byte[] returnBytes = new byte[TotalBytesLength];
-            returnBytes[0] = (byte)ExtraParamsNum;
-
-            if(ExtraParamsNum == 0)
-                return returnBytes;
-
-            int i = 1;
-
-            if (_flexiEntry)
+            byte[] safeReturnBytes = new byte[TotalBytesLength];
+            if(TotalBytesLength == 1)
             {
-                returnBytes[i] = FlexiEP; // 2 bytes id code
-                i += 2;
-                returnBytes[i] = 16; // 4 bytes size
-                i += 4;
-
-                // Softness is packed in the upper bits of tension and drag
-                returnBytes[i] = (byte)((_flexiSoftness & 2) << 6);
-                returnBytes[i + 1] = (byte)((_flexiSoftness & 1) << 7);
-
-                returnBytes[i++] |= (byte)((byte)(_flexiTension * 10.01f) & 0x7F);
-                returnBytes[i++] |= (byte)((byte)(_flexiDrag * 10.01f) & 0x7F);
-                returnBytes[i++] = (byte)((_flexiGravity + 10.0f) * 10.01f);
-                returnBytes[i++] = (byte)(_flexiWind * 10.01f);
-                Utils.FloatToBytes(_flexiForceX, returnBytes, i);
-                Utils.FloatToBytes(_flexiForceY, returnBytes, i + 4);
-                Utils.FloatToBytes(_flexiForceZ, returnBytes, i + 8);
-                i += 12;
+                safeReturnBytes[0] = 0;
+                return safeReturnBytes;
             }
 
-            if (_lightEntry)
+            fixed(byte* breturnBytes = &safeReturnBytes[0])
             {
-                returnBytes[i] = LightEP;
-                i += 2;
-                returnBytes[i] = 16;
-                i += 4;
+                byte* returnBytes = breturnBytes;
 
-                // Alpha channel in color is intensity
-                Color4 tmpColor = new Color4(_lightColorR, _lightColorG, _lightColorB, _lightIntensity);
-                tmpColor.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_lightRadius, returnBytes, i + 4);
-                Utils.FloatToBytes(_lightCutoff, returnBytes, i + 8);
-                Utils.FloatToBytes(_lightFalloff, returnBytes, i + 12);
-                i += 16;
-            }
+                *returnBytes++ = (byte)ExtraParamsNum;
 
-            if (_sculptEntry)
-            {
-                //if(_sculptType == 5)
-                //    returnBytes[i] = MeshEP;
-                //else
-                    returnBytes[i] = SculptEP;
-                i += 2;
-                returnBytes[i] = 17;
-                i += 4;
-
-                _sculptTexture.ToBytes(returnBytes, i);
-                returnBytes[i+ 16] = _sculptType;
-                i += 17;
-            }
-
-            if (_projectionEntry)
-            {
-                returnBytes[i] = ProjectionEP;
-                i += 2;
-                returnBytes[i] = 28;
-                i += 4;
-
-                _projectionTextureID.GetBytes().CopyTo(returnBytes, i);
-                Utils.FloatToBytes(_projectionFOV, returnBytes, i + 16);
-                Utils.FloatToBytes(_projectionFocus, returnBytes, i + 20);
-                Utils.FloatToBytes(_projectionAmb, returnBytes, i + 24);
-                i += 28;
-            }
-
-            if (_meshFlagsEntry)
-            {
-                returnBytes[i] = MeshFlagsEP;
-                i += 2;
-                returnBytes[i] = 4;
-                i += 4;
-                Utils.UIntToBytes(_meshFlags, returnBytes, i);
-                i += 4;
-            }
-
-            if (ReflectionProbe != null)
-            {
-                returnBytes[i] = ReflectionProbeEP;
-                i += 2;
-                returnBytes[i] = 9;
-                i += 4;
-                Utils.FloatToBytes(ReflectionProbe.Ambiance, returnBytes, i);
-                Utils.FloatToBytes(ReflectionProbe.ClipDistance, returnBytes, i + 4);
-                returnBytes[i + 8] = ReflectionProbe.Flags;
-                i += 9;
-            }
-
-            if (RenderMaterials != null && RenderMaterials.entries != null && RenderMaterials.entries.Length > 0)
-            {
-                returnBytes[i] = MaterialsEP;
-                i += 2;
-
-                int len = 1 + 17 * RenderMaterials.entries.Length;
-                returnBytes[i] = (byte)len;
-                returnBytes[i + 1] = (byte)(len >> 8);
-                returnBytes[i + 2] = (byte)(len >> 16);
-                returnBytes[i + 3] = (byte)(len >> 24);
-                //i += 4;
-
-                returnBytes[i + 4] = (byte)RenderMaterials.entries.Length;
-                i += 5;
-
-                for (int j = 0; j < RenderMaterials.entries.Length; ++j)
+                if (_flexiEntry)
                 {
-                    returnBytes[i] = RenderMaterials.entries[j].te_index;
-                    RenderMaterials.entries[j].id.ToBytes(returnBytes, i + 1);
-                    i += 17;
+                    *returnBytes = FlexiEP; returnBytes += 2;// 2 bytes id code
+                    *returnBytes = 16; returnBytes += 4;// 4 bytes size
+
+
+                    // Softness is packed in the upper bits of tension and drag
+                    *returnBytes++ = (byte)(((_flexiSoftness & 2) << 6) | ((byte)(_flexiTension * 10.01f) & 0x7F));
+                    *returnBytes++ = (byte)(((_flexiSoftness & 1) << 7) | ((byte)(_flexiDrag * 10.01f) & 0x7F));
+                    *returnBytes++ = (byte)((_flexiGravity + 10.0f) * 10.01f);
+                    *returnBytes++ = (byte)(_flexiWind * 10.01f);
+                    Utils.FloatToBytes(_flexiForceX, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_flexiForceY, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_flexiForceZ, returnBytes); returnBytes += 4;
+                }
+
+                if (_lightEntry)
+                {
+                    *returnBytes = LightEP; returnBytes += 2;
+                    *returnBytes = 16; returnBytes += 4;
+
+                    // Alpha channel in color is intensity
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorR);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorG);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightColorB);
+                    *returnBytes++ = Utils.FloatZeroOneToByte(_lightIntensity);
+
+                    Utils.FloatToBytes(_lightRadius, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_lightCutoff, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_lightFalloff, returnBytes); returnBytes += 4;
+                }
+
+                if (_sculptEntry)
+                {
+                    //if(_sculptType == 5)
+                    //    *returnBytes = MeshEP; returnBytes += 2;
+                    //else
+                    *returnBytes = SculptEP; returnBytes += 2;
+                    *returnBytes = 17; returnBytes += 4;
+
+                    _sculptTexture.ToBytes(returnBytes); returnBytes += 16;
+                    *returnBytes++ = _sculptType;
+                }
+
+                if (_projectionEntry)
+                {
+                    *returnBytes = ProjectionEP; returnBytes += 2;
+                    *returnBytes = 28; returnBytes += 4;
+
+                    _projectionTextureID.ToBytes(returnBytes); returnBytes += 16;
+                    Utils.FloatToBytes(_projectionFOV, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_projectionFocus, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(_projectionAmb, returnBytes); returnBytes += 4;
+                }
+
+                if (_meshFlagsEntry)
+                {
+                    *returnBytes = MeshFlagsEP; returnBytes += 2;
+                    *returnBytes = 4; returnBytes += 4;
+                    Utils.UIntToBytes(_meshFlags, returnBytes); returnBytes += 4;
+                }
+
+                if (ReflectionProbe != null)
+                {
+                    *returnBytes = ReflectionProbeEP; returnBytes += 2;
+                    *returnBytes = 9; returnBytes += 4;
+
+                    Utils.FloatToBytes(ReflectionProbe.Ambiance, returnBytes); returnBytes += 4;
+                    Utils.FloatToBytes(ReflectionProbe.ClipDistance, returnBytes); returnBytes += 4;
+                    *returnBytes = ReflectionProbe.Flags;
+                }
+
+                if (RenderMaterials != null && RenderMaterials.entries != null && RenderMaterials.entries.Length > 0)
+                {
+                    *returnBytes = MaterialsEP; returnBytes += 2;
+
+                    int len = 1 + 17 * RenderMaterials.entries.Length;
+                    *returnBytes++ = (byte)len;
+                    *returnBytes++ = (byte)(len >> 8);
+                    *returnBytes++ = (byte)(len >> 16);
+                    *returnBytes++ = (byte)(len >> 24);
+
+                    *returnBytes++ = (byte)RenderMaterials.entries.Length;
+
+                    for (int j = 0; j < RenderMaterials.entries.Length; ++j)
+                    {
+                        *returnBytes++ = RenderMaterials.entries[j].te_index;
+                        RenderMaterials.entries[j].id.ToBytes(returnBytes); returnBytes += 16;
+                    }
                 }
             }
-
-            return returnBytes;
+            return safeReturnBytes;
         }
 
         public void ReadInUpdateExtraParam(ushort type, bool inUse, byte[] data)
