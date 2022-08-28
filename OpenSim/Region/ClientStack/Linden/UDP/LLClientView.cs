@@ -980,7 +980,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 0xff, 0xff, 0, 250 // ID 250 (low frequency bigendian)
                 };
 
-        public void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
+        public unsafe void MoveAgentIntoRegion(RegionInfo regInfo, Vector3 pos, Vector3 look)
         {
             // reset agent update args
             m_thisAgentUpdateArgs.CameraAtAxis.X = float.MinValue;
@@ -988,39 +988,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_thisAgentUpdateArgs.ControlFlags = 0;
 
             UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-            byte[] data = buf.Data;
+            byte[] bdata = buf.Data;
 
             //setup header
-            Buffer.BlockCopy(AgentMovementCompleteHeader, 0, data, 0, 10);
+            Buffer.BlockCopy(AgentMovementCompleteHeader, 0, bdata, 0, 10);
 
-            //AgentData block
-            m_agentId.ToBytes(data, 10); // 26
-            m_sessionId.ToBytes(data, 26); // 42
+            fixed(byte* data = bdata)
+            {            
+                //AgentData block
+                m_agentId.ToBytes(data + 10); // 26
+                m_sessionId.ToBytes(data + 26); // 42
 
-            //Data block
-            if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
-                m_startpos.ToBytes(data, 42); //54
-            else
-                pos.ToBytes(data, 42); //54
-            look.ToBytes(data, 54); // 66
-            Utils.UInt64ToBytesSafepos(regInfo.RegionHandle, data, 66); // 74
-            Utils.UIntToBytesSafepos((uint)Util.UnixTimeSinceEpoch(), data, 74); //78
+                //Data block
+                if ((pos.X == 0) && (pos.Y == 0) && (pos.Z == 0))
+                    m_startpos.ToBytes(data + 42); //54
+                else
+                    pos.ToBytes(data + 42); //54
+                look.ToBytes(data + 54); // 66
+                    //Utils.UInt64ToBytesSafepos(regInfo.RegionHandle, data + 66); // 74
+                    //Utils.UIntToBytesSafepos((uint)Util.UnixTimeSinceEpoch(), data + 74); //78
+                    Utils.UInt64ToBytes(regInfo.RegionHandle, data + 66); // 74
+                    Utils.IntToBytes((int)Util.UnixTimeSinceEpoch(), data + 74); //78
 
-            //SimData
-            int len = m_regionChannelVersion.Length;
-            if(len == 0)
-            {
-                data[78] = 0;
-                data[79] = 0;
+                    //SimData
+                    int len = m_regionChannelVersion.Length;
+                if(len == 0)
+                {
+                    data[78] = 0;
+                    data[79] = 0;
+                }
+                else
+                {
+                    data[78] = (byte)len;
+                    data[79] = (byte)(len >> 8);
+                    Buffer.BlockCopy(m_regionChannelVersion, 0, bdata, 80, len);
+                }
+                    buf.DataLength = 80 + len;
             }
-            else
-            {
-                data[78] = (byte)len;
-                data[79] = (byte)(len >> 8);
-                Buffer.BlockCopy(m_regionChannelVersion, 0, data, 80, len);
-            }
-
-            buf.DataLength = 80 + len;
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Unknown);
         }
 
@@ -4577,7 +4581,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task);
         }
 
-        public void SendEntityTerseUpdateImmediate(ISceneEntity ent)
+        public unsafe void SendEntityTerseUpdateImmediate(ISceneEntity ent)
         {
             if (ent == null)
                 return;
@@ -4585,24 +4589,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
 
             //setup header and regioninfo block
-
             Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
-            
-            Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), buf.Data, 15);
-            buf.Data[17] = 1;
-            int pos = 18;
+            fixed(byte* bdata = &buf.Data[0])
+            {
+                Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), bdata + 15);
+                bdata[17] = 1;
+                byte* data = bdata + 18;
 
-            if (ent is ScenePresence)
-            {
-                Utils.UInt64ToBytesSafepos(((ScenePresence)ent).RegionHandle, buf.Data, 7);
-                CreateAvatartImprovedTerseBlock((ScenePresence)ent, buf.Data, ref pos);
+                if (ent is ScenePresence)
+                {
+                    Utils.UInt64ToBytes(((ScenePresence)ent).RegionHandle, bdata + 7);
+                    CreateAvatartImprovedTerseBlock((ScenePresence)ent, ref data);
+                }
+                else
+                {
+                    Utils.UInt64ToBytes(m_scene.RegionInfo.RegionHandle, bdata + 7);
+                    CreatePartImprovedTerseBlock((SceneObjectPart)ent, ref data, false);
+                }
+                buf.DataLength = (int)(data - bdata);
             }
-            else
-            {
-                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
-                CreatePartImprovedTerseBlock((SceneObjectPart)ent, buf.Data, ref pos, false);
-            }
-            buf.DataLength = pos;
             m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, true);
         }
 
@@ -6725,14 +6730,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Helper Methods
         private void ClampVectorForUint(ref Vector3 v, float max)
         {
-            float a,b;
+            float a, b;
 
             a = Math.Abs(v.X);
             b = Math.Abs(v.Y);
-            if(b > a)
+            if (b > a)
                 a = b;
-            b= Math.Abs(v.Z);
-            if(b > a)
+            b = Math.Abs(v.Z);
+            if (b > a)
                 a = b;
 
             if (a > max)
@@ -6847,6 +6852,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.FloatToUInt16Bytes(acceleration.Z, 64.0f, data, pos); pos += 2;
 
             // Rotation
+
             Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
             Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
             Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
@@ -6888,7 +6894,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Utils.UIntToBytesSafepos(part.LocalId, data, pos);
             pos += 4;
 
-            if(part.ParentGroup.AttachmentPoint == 0)
+            if (part.ParentGroup.AttachmentPoint == 0)
                 data[pos++] = 0;
             else
             {
@@ -6903,34 +6909,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             part.RelativePosition.ToBytes(data, pos);
             pos += 12;
 
-
             // Velocity
-            Vector3 vtmp = part.Velocity;
-            ClampVectorForUint(ref vtmp, 128f);
-            Utils.FloatToUInt16Bytes(vtmp.X, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Y, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Z, 128.0f, data, pos); pos += 2;
+            part.Velocity.ClampedToShortsBytes(128f, data, pos); pos += 6;
 
             // Acceleration
-            vtmp = part.Acceleration;
-            ClampVectorForUint(ref vtmp, 64f);
-            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+            part.Acceleration.ClampedToShortsBytes(64f, data, pos); pos += 6;
 
             // Rotation
-            Quaternion rotation = part.RotationOffset;
-            Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+            part.RotationOffset.ToShortsBytes(data, pos); pos += 8;
 
             // Angular Velocity
-            vtmp = part.AngularVelocity;
-            ClampVectorForUint(ref vtmp, 64f);
-            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+            part.AngularVelocity.ClampedToShortsBytes(64f, data, pos); pos += 6;
 
             // texture entry block size
             if (includeTexture && part.Shape.TextureEntry != null)
@@ -6955,6 +6944,66 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // total size 47 + (texture size + 4)
         }
 
+        protected unsafe void CreatePartImprovedTerseBlock(SceneObjectPart part, ref byte* data, bool includeTexture)
+        {
+            //object block size
+            *data++ = 44;
+
+            // LocalID
+            Utils.UIntToBytes(part.LocalId, data);
+            data += 4;
+
+            if (part.ParentGroup.AttachmentPoint == 0)
+                *data++ = 0;
+            else
+            {
+                uint attachPoint = 0xff & part.ParentGroup.AttachmentPoint;
+                *data++ = (byte)(attachPoint << 4 | attachPoint >> 4);
+            }
+
+            // no Avatar/CollisionPlane
+            *data++ = 0;
+
+            // Position
+            part.RelativePosition.ToBytes(data);
+            data += 12;
+
+            // Velocity
+            part.Velocity.ClampedToShortsBytes(128f, data); data += 6;
+
+            // Acceleration
+            part.Acceleration.ClampedToShortsBytes(64f, data); data += 6;
+
+            // Rotation
+            part.RotationOffset.ToShortsBytes(data); data += 8;
+
+            // Angular Velocity
+            part.AngularVelocity.ClampedToShortsBytes(64f, data); data += 6;
+
+            // texture entry block size
+            if (includeTexture && part.Shape.TextureEntry != null)
+            {
+                byte[] te = part.Shape.TextureEntry;
+                int len = te.Length & 0x7fff;
+                int totlen = len + 4;
+                *data++ = (byte)totlen;
+                *data++ = (byte)(totlen >> 8);
+                *data++ = (byte)len; // wtf ???
+                *data++ = (byte)(len >> 8);
+                *data++ = 0;
+                *data++ = 0;
+                fixed(byte* t = &te[0])
+                    Buffer.MemoryCopy(t, data, 4096, (long)len);
+                data += len;
+            }
+            else
+            {
+                *data++ = 0;
+                *data++ = 0;
+            }
+            // total size 47 + (texture size + 4)
+        }
+
         protected void CreateAvatartImprovedTerseBlock(ScenePresence presence, byte[] data, ref int pos)
         {
             //m_log.DebugFormat(
@@ -6971,13 +7020,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Avatar/CollisionPlane
             data[pos++] = 1;
-            Vector4 collisionPlane = presence.CollisionPlane;
 
             //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
-            if (collisionPlane == Vector4.Zero)
+            if (presence.CollisionPlane.IsZero())
                 Vector4.UnitW.ToBytes(data, pos);
             else
-                collisionPlane.ToBytes(data, pos);
+                presence.CollisionPlane.ToBytes(data, pos);
             pos += 16;
 
             // Position
@@ -6985,11 +7033,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 12;
 
             // Velocity
-            Vector3 vtmp = presence.Velocity;
-            ClampVectorForUint(ref vtmp, 128f);
-            Utils.FloatToUInt16Bytes(vtmp.X, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Y, 128.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Z, 128.0f, data, pos); pos += 2;
+            presence.Velocity.ClampedToShortsBytes(128f, data, pos); pos += 6;
 
             // Acceleration is zero
             Utils.UIntToBytesSafepos(0x7fff7fff, data, pos); pos += 4;
@@ -7004,7 +7048,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 float rz = rotation.Z;
                 float rw = rotation.W;
                 float a = rz * rz + rw * rw;
-                if(a > -1e-6f && a < 1e-6f)
+                if (a > -1e-6f && a < 1e-6f)
                 {
                     Utils.UIntToBytesSafepos(0xffff7fff, data, pos); pos += 4;
                 }
@@ -7017,22 +7061,82 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                Utils.FloatToUInt16Bytes(rotation.X, 1.0f, data, pos); pos += 2;
-                Utils.FloatToUInt16Bytes(rotation.Y, 1.0f, data, pos); pos += 2;
-                Utils.FloatToUInt16Bytes(rotation.Z, 1.0f, data, pos); pos += 2;
-                Utils.FloatToUInt16Bytes(rotation.W, 1.0f, data, pos); pos += 2;
+                rotation.ToShortsBytes(data, pos); pos += 8;
             }
 
             // Angular Velocity
-            vtmp = presence.AngularVelocity;
-            ClampVectorForUint(ref vtmp, 64f);
-            Utils.FloatToUInt16Bytes(vtmp.X, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Y, 64.0f, data, pos); pos += 2;
-            Utils.FloatToUInt16Bytes(vtmp.Z, 64.0f, data, pos); pos += 2;
+            presence.AngularVelocity.ClampedToShortsBytes(64f, data, pos); pos += 6;
 
             //texture
             data[pos++] = 0;
             data[pos++] = 0;
+            // total size 63
+        }
+
+        protected unsafe void CreateAvatartImprovedTerseBlock(ScenePresence presence, ref byte* data)
+        {
+            //m_log.DebugFormat(
+            //    "[LLCLIENTVIEW]: Sending terse update to {0} with position {1} in {2}", Name, presence.OffsetPosition, m_scene.Name);
+
+            //object block size
+            *data++ = 60;
+            // LocalID
+            Utils.UIntToBytes(presence.LocalId, data);
+            data += 4;
+
+            *data++ = presence.State;
+
+            // Avatar/CollisionPlane
+            *data++ = 1;
+            //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
+            if (presence.CollisionPlane.IsZero())
+                Vector4.UnitW.ToBytes(data);
+            else
+                presence.CollisionPlane.ToBytes(data);
+            data += 16;
+
+            // Position
+            presence.OffsetPosition.ToBytes(data);
+            data += 12;
+
+            // Velocity
+            presence.Velocity.ClampedToShortsBytes(128f, data); data += 6;
+
+            // Acceleration is zero
+            Utils.UIntToBytes(0x7fff7fff, data); data += 4;
+            Utils.UInt16ToBytes(0x7fff, data); data += 2;
+
+            // Rotation
+            // tpvs can only see rotations around Z in some cases
+            Quaternion rotation = presence.Rotation;
+            if (!presence.Flying && !presence.IsSatOnObject)
+            {
+                Utils.UIntToBytes(0x7fff7fff, data); data += 4;
+                float rz = rotation.Z;
+                float rw = rotation.W;
+                float a = rz * rz + rw * rw;
+                if (a > -1e-6f && a < 1e-6f)
+                {
+                    Utils.UIntToBytes(0xffff7fff, data); data += 4;
+                }
+                else
+                {
+                    a = 1.0f / (float)Math.Sqrt(a);
+                    Utils.FloatToUInt16Bytes(rz * a, 1.0f, data); data += 2;
+                    Utils.FloatToUInt16Bytes(rw * a, 1.0f, data); data += 2;
+                }
+            }
+            else
+            {
+                rotation.ToShortsBytes(data); data += 8;
+            }
+
+            // Angular Velocity
+            presence.AngularVelocity.ClampedToShortsBytes(64f, data); data += 6;
+
+            //texture
+            *data++ = 0;
+            *data++ = 0;
             // total size 63
         }
 
