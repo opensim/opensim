@@ -34,7 +34,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLUDPZeroEncoder
     {
-        private byte[] m_tmp = new byte[16];
         private byte[] m_dest;
         private int zerocount;
         private int pos;
@@ -89,7 +88,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public unsafe void AddZeros(int len)
         {
             zerocount += len;
-            while (zerocount > 255)
+            while (zerocount > 0xff)
             {
                 m_dest[pos++] = 0x00;
                 m_dest[pos++] = 0xff;
@@ -100,7 +99,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe int Finish()
         {
-            if(zerocount > 0)
+            if (zerocount > 0)
             {
                 m_dest[pos++] = 0x00;
                 m_dest[pos++] = (byte)zerocount;
@@ -114,8 +113,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (src[i] == 0x00)
                 {
-                    zerocount++;
-                    if (zerocount == 256)
+                    if (zerocount != 0xff)
+                        zerocount++;
+                    else
                     {
                         m_dest[pos++] = 0x00;
                         m_dest[pos++] = 0xff;
@@ -142,8 +142,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (src[i] == 0x00)
                 {
-                    zerocount++;
-                    if (zerocount == 256)
+                    if (zerocount != 0xff)
+                        zerocount++;
+                    else
                     {
                         m_dest[pos++] = 0x00;
                         m_dest[pos++] = 0xff;
@@ -168,8 +169,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (v == 0x00)
             {
-                zerocount++;
-                if (zerocount == 256)
+                if (zerocount != 0xff)
+                    zerocount++;
+                else
                 {
                     m_dest[pos++] = 0x00;
                     m_dest[pos++] = 0xff;
@@ -190,38 +192,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddInt16(short v)
+        public unsafe void AddInt16(short v)
         {
             if (v == 0)
                 AddZeros(2);
             else
             {
-                Utils.Int16ToBytes(v, m_tmp, 0);
-                AddBytes(m_tmp, 2);
+                byte* b = stackalloc byte[2];
+                Utils.Int16ToBytes(v, b);
+                AddBytes(b, 2);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddUInt16(ushort v)
+        public unsafe void AddUInt16(ushort v)
         {
             if (v == 0)
                 AddZeros(2);
             else
             {
-                Utils.UInt16ToBytes(v, m_tmp, 0);
-                AddBytes(m_tmp, 2);
+                byte* b = stackalloc byte[2];
+                Utils.UInt16ToBytes(v, b);
+                AddBytes(b, 2);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddInt(int v)
+        public unsafe void AddInt(int v)
         {
             if (v == 0)
                 AddZeros(4);
             else
             {
-                Utils.IntToBytesSafepos(v, m_tmp, 0);
-                AddBytes(m_tmp, 4);
+                byte* b = stackalloc byte[4];
+                Utils.IntToBytes(v, b);
+                AddBytes(b, 4);
             }
         }
 
@@ -232,90 +237,99 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AddZeros(4);
             else
             {
-                Utils.UIntToBytesSafepos(v, m_tmp, 0);
-                AddBytes(m_tmp, 4);
+                byte* b = stackalloc byte[4];
+                Utils.UIntToBytes(v, b);
+                AddBytes(b, 4);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddFloatToUInt16(float v, float range)
+        public unsafe void AddFloatToUInt16(float v, float range)
         {
-            Utils.FloatToUInt16Bytes(v, range, m_tmp, 0);
-            AddBytes(m_tmp, 2);
+            byte* b = stackalloc byte[2];
+            Utils.FloatToUInt16Bytes(v, range, b);
+            AddBytes(b, 2);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddFloat(float v)
+        public unsafe void AddFloat(float v)
         {
             if (v == 0f)
                 AddZeros(4);
             else
             {
-                Utils.FloatToBytesSafepos(v, m_tmp, 0);
-                AddBytes(m_tmp, 4);
+                byte* b = stackalloc byte[4];
+                Utils.FloatToBytes(v, b);
+                AddBytes(b, 4);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddInt64(long v)
+        public unsafe void AddInt64(long v)
         {
             if (v == 0)
                 AddZeros(8);
             else
             {
-                Utils.Int64ToBytesSafepos(v, m_tmp, 0);
-                AddBytes(m_tmp, 8);
+                byte* b = stackalloc byte[8];
+                Utils.Int64ToBytes(v, b);
+                AddBytes(b, 8);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddUInt64(ulong v)
+        public unsafe void AddUInt64(ulong v)
         {
             if (v == 0)
                 AddZeros(8);
             else
             {
-                Utils.UInt64ToBytesSafepos(v, m_tmp, 0);
-                AddBytes(m_tmp, 8);
+                byte* b = stackalloc byte[8];
+                Utils.UInt64ToBytes(v, b);
+                AddBytes(b, 8);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddVector3(Vector3 v)
+        public unsafe void AddVector3(Vector3 v)
         {
             if (v.IsZero())
                 AddZeros(12);
             else
             {
-                v.ToBytes(m_tmp, 0);
-                AddBytes(m_tmp, 12);
+                byte* b = stackalloc byte[12];
+                v.ToBytes(b);
+                AddBytes(b, 12);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddVector4(Vector4 v)
+        public unsafe void AddVector4(Vector4 v)
         {
             if (v.IsZero())
                 AddZeros(16);
             else
             {
-                v.ToBytes(m_tmp, 0);
-                AddBytes(m_tmp, 16);
+                byte* b = stackalloc byte[16];
+                v.ToBytes(b);
+                AddBytes(b, 16);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddNormQuat(Quaternion v)
+        public unsafe void AddNormQuat(Quaternion v)
         {
-            v.ToBytes(m_tmp, 0);
-            AddBytes(m_tmp, 12);
+            byte* b = stackalloc byte[12];
+            v.ToBytes(b);
+            AddBytes(b, 12);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddUUID(UUID v)
+        public unsafe void AddUUID(UUID v)
         {
-            v.ToBytes(m_tmp, 0);
-            AddBytes(m_tmp, 16);
+            byte* b = stackalloc byte[16];
+            v.ToBytes(b);
+            AddBytes(b, 16);
         }
 
         // maxlen <= 255 and includes null termination byte
@@ -371,7 +385,377 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortLimitedUTF8(osUTF8 str)
         {
-            if(str == null)
+            if (str == null)
+            {
+                AddZeros(1);
+                return;
+            }
+
+            int len = str.Length;
+            if (len == 0)
+            {
+                AddZeros(1);
+                return;
+            }
+
+            AddByte((byte)(len + 1)); // add null
+            AddBytes(str.GetArray(), len);
+            AddZeros(1);
+        }
+    }
+    public unsafe class LLUDPUnsafeZeroEncoder
+    {
+        private byte* m_destStart;
+        private int m_zerocount;
+        private byte* m_dest;
+
+        public LLUDPUnsafeZeroEncoder()
+        {
+        }
+
+        public LLUDPUnsafeZeroEncoder(byte* data)
+        {
+            m_destStart = data;
+            m_dest = data;
+            m_zerocount = 0;
+        }
+
+        public byte* Data
+        {
+            get
+            {
+                return m_destStart;
+            }
+            set
+            {
+                m_destStart = value;
+                m_dest = value;
+            }
+        }
+
+        public int ZeroCount
+        {
+            get
+            {
+                return m_zerocount;
+            }
+            set
+            {
+                m_zerocount = value;
+            }
+        }
+
+        public int Position
+        {
+            get
+            {
+                return (int)(m_dest - m_destStart);
+            }
+            set
+            {
+                m_dest = m_destStart + value;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void AddZeros(int len)
+        {
+            m_zerocount += len;
+            while (m_zerocount > 0xff)
+            {
+                *m_dest++ = 0x00;
+                *m_dest++ = 0xff;
+                m_zerocount -= 256;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe int Finish()
+        {
+            if (m_zerocount > 0)
+            {
+                *m_dest++ = 0x00;
+                *m_dest++ = (byte)m_zerocount;
+            }
+            return (int)(m_dest - m_destStart);
+        }
+
+        public unsafe void AddBytes(byte[] src, int srclen)
+        {
+            for (int i = 0; i < srclen; ++i)
+            {
+                if (src[i] == 0x00)
+                {
+                    if (m_zerocount != 0xff)
+                        m_zerocount++;
+                    else
+                    {
+                        *m_dest++ = 0x00;
+                        *m_dest++ = 0xff;
+                        m_zerocount = 1;
+                    }
+                }
+                else
+                {
+                    if (m_zerocount != 0)
+                    {
+                        *m_dest++ = 0x00;
+                        *m_dest++ = (byte)m_zerocount;
+                        m_zerocount = 0;
+                    }
+                    *m_dest++ = src[i];
+                }
+            }
+        }
+
+        public unsafe void AddBytes(byte* src, int srclen)
+        {
+            for (int i = 0; i < srclen; ++i)
+            {
+                if (src[i] == 0x00)
+                {
+                    if (m_zerocount != 0xff)
+                        m_zerocount++;
+                    else
+                    {
+                        *m_dest++ = 0x00;
+                        *m_dest++ = 0xff;
+                        m_zerocount = 1;
+                    }
+                }
+                else
+                {
+                    if (m_zerocount != 0)
+                    {
+                        *m_dest++ = 0x00;
+                        *m_dest++ = (byte)m_zerocount;
+                        m_zerocount = 0;
+                    }
+                    *m_dest++ = src[i];
+                }
+            }
+        }
+
+        public unsafe void AddByte(byte v)
+        {
+            if (v == 0x00)
+            {
+                if (m_zerocount != 0xff)
+                    m_zerocount++;
+                else
+                {
+                    *m_dest++ = 0x00;
+                    *m_dest++ = 0xff;
+                    m_zerocount = 1;
+                }
+            }
+            else
+            {
+                if (m_zerocount != 0)
+                {
+                    *m_dest++ = 0x00;
+                    *m_dest++ = (byte)m_zerocount;
+                    m_zerocount = 0;
+                }
+                *m_dest++ = v;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddInt16(short v)
+        {
+            if (v == 0)
+                AddZeros(2);
+            else
+            {
+                byte* b = stackalloc byte[2];
+                Utils.Int16ToBytes(v, b);
+                AddBytes(b, 2);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddUInt16(ushort v)
+        {
+            if (v == 0)
+                AddZeros(2);
+            else
+            {
+                byte* b = stackalloc byte[2];
+                Utils.UInt16ToBytes(v, b);
+                AddBytes(b, 2);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddInt(int v)
+        {
+            if (v == 0)
+                AddZeros(4);
+            else
+            {
+                byte* b = stackalloc byte[4];
+                Utils.IntToBytes(v, b);
+                AddBytes(b, 4);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void AddUInt(uint v)
+        {
+            if (v == 0)
+                AddZeros(4);
+            else
+            {
+                byte* b = stackalloc byte[4];
+                Utils.UIntToBytes(v, b);
+                AddBytes(b, 4);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddFloatToUInt16(float v, float range)
+        {
+            byte* b = stackalloc byte[2];
+            Utils.FloatToUInt16Bytes(v, range, b);
+            AddBytes(b, 2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddFloat(float v)
+        {
+            if (v == 0f)
+                AddZeros(4);
+            else
+            {
+                byte* b = stackalloc byte[4];
+                Utils.FloatToBytes(v, b);
+                AddBytes(b, 4);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddInt64(long v)
+        {
+            if (v == 0)
+                AddZeros(8);
+            else
+            {
+                byte* b = stackalloc byte[8];
+                Utils.Int64ToBytes(v, b);
+                AddBytes(b, 8);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddUInt64(ulong v)
+        {
+            if (v == 0)
+                AddZeros(8);
+            else
+            {
+                byte* b = stackalloc byte[8];
+                Utils.UInt64ToBytes(v, b);
+                AddBytes(b, 8);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddVector3(Vector3 v)
+        {
+            if (v.IsZero())
+                AddZeros(12);
+            else
+            {
+                byte* b = stackalloc byte[12];
+                v.ToBytes(b);
+                AddBytes(b, 12);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddVector4(Vector4 v)
+        {
+            if (v.IsZero())
+                AddZeros(16);
+            else
+            {
+                byte* b = stackalloc byte[16];
+                v.ToBytes(b);
+                AddBytes(b, 16);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddNormQuat(Quaternion v)
+        {
+            byte* b = stackalloc byte[12];
+            v.ToBytes(b);
+            AddBytes(b, 12);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AddUUID(UUID v)
+        {
+            byte* b = stackalloc byte[16];
+            v.ToBytes(b);
+            AddBytes(b, 16);
+        }
+
+        // maxlen <= 255 and includes null termination byte
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void AddShortString(string str, int maxlen)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                AddZeros(1);
+                return;
+            }
+
+            byte* data = stackalloc byte[maxlen];
+            int len = Util.osUTF8Getbytes(str, data, maxlen, true);
+
+            if (len == 0)
+            {
+                AddZeros(1);
+                return;
+            }
+
+            AddByte((byte)(len));
+            AddBytes(data, len);
+        }
+
+        // maxlen <= 255 and includes null termination byte, maxchars == max len of utf16 source
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void AddShortString(string str, int maxchars, int maxlen)
+        {
+            if (String.IsNullOrEmpty(str))
+            {
+                AddZeros(1);
+                return;
+            }
+
+            if (str.Length > maxchars)
+                str = str.Substring(0, maxchars);
+
+            byte* data = stackalloc byte[maxlen];
+            int len = Util.osUTF8Getbytes(str, data, maxlen, true);
+
+            if (len == 0)
+            {
+                AddZeros(1);
+                return;
+            }
+
+            AddByte((byte)(len));
+            AddBytes(data, len);
+        }
+
+        // maxlen <= 254 because null termination byte
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void AddShortLimitedUTF8(osUTF8 str)
+        {
+            if (str == null)
             {
                 AddZeros(1);
                 return;
