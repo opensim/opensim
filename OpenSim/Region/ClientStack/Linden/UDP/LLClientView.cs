@@ -7408,14 +7408,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (part.IsRoot)
                 {
-                    UUID fromID = part.ParentGroup.FromItemID;
-                    if(fromID.IsZero())
-                        fromID = part.UUID;
-                    nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
+                    if (part.ParentGroup.FromItemID.IsZero())
+                        nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.UUID.ToString());
+                    else
+                        nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID.ToString());
                 }
 
-                int st = (int)part.ParentGroup.AttachmentPoint;
-                state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
+                int st = 0xff & (int)part.ParentGroup.AttachmentPoint;
+                state = (byte)((st >> 4) | (st << 4));
             }
 
             // filter out mesh faces hack
@@ -7658,8 +7658,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
                 }
 
-                int st = (int)part.ParentGroup.AttachmentPoint;
-                state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
+                int st = 0xff & (int)part.ParentGroup.AttachmentPoint;
+                state = (byte)((st & >> 4) | (st << 4));
             }
 
             bool hastext = part.Text != null && part.Text.Length > 0;
@@ -7868,7 +7868,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             PrimFlags primflags = (PrimFlags)m_scene.Permissions.GenerateClientFlags(part, sp);
             // Don't send the CreateSelected flag to everyone
             primflags &= ~PrimFlags.CreateSelected;
-            if (sp.UUID == part.OwnerID)
+            if (sp.UUID.Equals(part.OwnerID))
             {
                 if (part.CreateSelected)
                 {
@@ -7925,13 +7925,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (part.IsRoot)
                 {
-                    UUID fromID = part.ParentGroup.FromItemID;
-                    if (fromID.IsZero())
-                        fromID = part.UUID;
-                nv = Util.StringToBytes256("AttachItemID STRING RW SV " + fromID.ToString());
+                    if (part.ParentGroup.FromItemID.IsZero())
+                        nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.UUID.ToString());
+                    else
+                        nv = Util.StringToBytes256("AttachItemID STRING RW SV " + part.ParentGroup.FromItemID.ToString());
                 }
-                int st = (int)part.ParentGroup.AttachmentPoint;
-                state = (byte)(((st & 0xf0) >> 4) + ((st & 0x0f) << 4)); ;
+                int st = 0xff & (int)part.ParentGroup.AttachmentPoint;
+                state = (byte)((st >> 4) | (st << 4));
             }
 
             bool hastext = false;
@@ -8068,10 +8068,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.AddByte(part.ClickAction);
             zc.AddVector3(part.Shape.Scale);
             zc.AddVector3(part.RelativePosition);
-            if (pcode == PCode.Grass)
-                zc.AddZeros(12);
-            else
-                zc.AddNormQuat(part.RotationOffset);
+            zc.AddNormQuat(part.RotationOffset);
 
             zc.AddUInt((uint)cflags);
 

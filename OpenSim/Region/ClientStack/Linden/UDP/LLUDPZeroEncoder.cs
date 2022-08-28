@@ -26,14 +26,13 @@
  */
 
 using System;
-using System.Text;
+using System.Runtime.CompilerServices;
 using OpenSim.Framework;
-using Nini.Config;
 using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public sealed class LLUDPZeroEncoder
+    public class LLUDPZeroEncoder
     {
         private byte[] m_tmp = new byte[16];
         private byte[] m_dest;
@@ -86,6 +85,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddZeros(int len)
         {
             zerocount += len;
@@ -97,6 +97,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe int Finish()
         {
             if(zerocount > 0)
@@ -114,11 +115,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (src[i] == 0x00)
                 {
                     zerocount++;
-                    if (zerocount == 0)
+                    if (zerocount == 256)
                     {
                         m_dest[pos++] = 0x00;
                         m_dest[pos++] = 0xff;
-                        zerocount++;
+                        zerocount = 1;
                     }
                 }
                 else
@@ -142,11 +143,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (src[i] == 0x00)
                 {
                     zerocount++;
-                    if (zerocount == 0)
+                    if (zerocount == 256)
                     {
                         m_dest[pos++] = 0x00;
                         m_dest[pos++] = 0xff;
-                        zerocount++;
+                        zerocount = 1;
                     }
                 }
                 else
@@ -168,11 +169,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (v == 0x00)
             {
                 zerocount++;
-                if (zerocount == 0)
+                if (zerocount == 256)
                 {
                     m_dest[pos++] = 0x00;
                     m_dest[pos++] = 0xff;
-                    zerocount++;
+                    zerocount = 1;
                 }
             }
             else
@@ -188,6 +189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddInt16(short v)
         {
             if (v == 0)
@@ -199,6 +201,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddUInt16(ushort v)
         {
             if (v == 0)
@@ -210,6 +213,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddInt(int v)
         {
             if (v == 0)
@@ -221,6 +225,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddUInt(uint v)
         {
             if (v == 0)
@@ -232,12 +237,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddFloatToUInt16(float v, float range)
         {
             Utils.FloatToUInt16Bytes(v, range, m_tmp, 0);
             AddBytes(m_tmp, 2);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddFloat(float v)
         {
             if (v == 0f)
@@ -249,6 +256,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddInt64(long v)
         {
             if (v == 0)
@@ -260,6 +268,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddUInt64(ulong v)
         {
             if (v == 0)
@@ -271,6 +280,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddVector3(Vector3 v)
         {
             if (v.IsZero())
@@ -282,6 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddVector4(Vector4 v)
         {
             if (v.IsZero())
@@ -293,12 +304,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddNormQuat(Quaternion v)
         {
             v.ToBytes(m_tmp, 0);
             AddBytes(m_tmp, 12);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddUUID(UUID v)
         {
             v.ToBytes(m_tmp, 0);
@@ -306,6 +319,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // maxlen <= 255 and includes null termination byte
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxlen)
         {
             if (String.IsNullOrEmpty(str))
@@ -328,6 +342,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // maxlen <= 255 and includes null termination byte, maxchars == max len of utf16 source
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxchars, int maxlen)
         {
             if (String.IsNullOrEmpty(str))
@@ -353,6 +368,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         // maxlen <= 254 because null termination byte
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortLimitedUTF8(osUTF8 str)
         {
             if(str == null)
