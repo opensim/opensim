@@ -2290,8 +2290,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     currentPacket.ItemData[itemsSent % MAX_ITEMS_PER_PACKET] = CreateItemDataBlock(items[itemsSent++]);
                 else
                 {
-//                    m_log.DebugFormat(
-//                        "[LLCLIENTVIEW]: Sending inventory folder details packet to {0} for folder {1}", Name, folderID);
+                    //m_log.DebugFormat(
+                    //    "[LLCLIENTVIEW]: Sending inventory folder details packet to {0} for folder {1}", Name, folderID);
                     OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
                     currentPacket = null;
                 }
@@ -2299,8 +2299,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (currentPacket != null)
             {
-//                m_log.DebugFormat(
-//                    "[LLCLIENTVIEW]: Sending inventory folder details packet to {0} for folder {1}", Name, folderID);
+                //m_log.DebugFormat(
+                //    "[LLCLIENTVIEW]: Sending inventory folder details packet to {0} for folder {1}", Name, folderID);
                 OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
             }
         }
@@ -4568,7 +4568,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             zc.Position = 7;
 
             zc.AddUInt64(m_scene.RegionInfo.RegionHandle);
-            zc.AddUInt16(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f));
+            zc.AddUInt16(Utils.FloatZeroOneToushort(m_scene.TimeDilation));
 
             zc.AddByte(1); // block count
 
@@ -4592,10 +4592,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
             fixed(byte* bdata = &buf.Data[0])
             {
-                Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), bdata + 15);
+                Utils.UInt16ToBytes(Utils.FloatZeroOneToushort(m_scene.TimeDilation), bdata + 15);
                 bdata[17] = 1;
-                byte* data = bdata + 18;
 
+                byte* data = bdata + 18;
                 if (ent is ScenePresence)
                 {
                     Utils.UInt64ToBytes(((ScenePresence)ent).RegionHandle, bdata + 7);
@@ -4980,7 +4980,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         if (objectUpdateProbes == null)
                         {
-                            objectUpdateProbes = new List<EntityUpdate>(32);
+                            objectUpdateProbes = new List<EntityUpdate>(64);
                             maxUpdatesBytes -= 18;
                         }
                         objectUpdateProbes.Add(update);
@@ -5128,7 +5128,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!IsActive)
                 return;
 
-            timeDilation = Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
+            timeDilation = Utils.FloatZeroOneToushort(m_scene.TimeDilation);
 
             if(objectUpdates != null)
             {
@@ -5385,61 +5385,74 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 UDPPacketBuffer buf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
                 byte[] data = buf.Data;
-
                 Buffer.BlockCopy(ObjectUpdateCachedHeader, 0, data, 0, 7);
 
                 Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, data, 7); // 15
                 Utils.UInt16ToBytes(timeDilation, data, 15); // 17
 
-                int countposition = 17; // blocks count position
-                int pos = 18;
+                const int countposition = 17; // blocks count index
+                int pos = countposition + 1;
 
                 int count = 0;
                 EntityUpdate eu;
-                for (int indx = 0; indx < objectUpdateProbes.Count; ++indx)
+
+                int indx = 0;
+                while (indx < objectUpdateProbes.Count)
                 {
-                    eu = objectUpdateProbes[indx];
-                    SceneObjectPart sop = (SceneObjectPart)eu.Entity;
-                    if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
-                        continue;
-                    uint primflags = m_scene.Permissions.GenerateClientFlags(sop, mysp);
-                    if (mysp.UUID != sop.OwnerID)
-                        primflags &= ~(uint)PrimFlags.CreateSelected;
-                    else
+                    unsafe
                     {
-                        if (sop.CreateSelected)
-                            primflags |= (uint)PrimFlags.CreateSelected;
-                        else
-                            primflags &= ~(uint)PrimFlags.CreateSelected;
+                        fixed(byte* bdata = &data[countposition + 1])
+                        {
+                            byte* ptr = bdata;
+                            while (indx < objectUpdateProbes.Count)
+                            {
+                                eu = objectUpdateProbes[indx++];
+                                SceneObjectPart sop = (SceneObjectPart)eu.Entity;
+                                if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
+                                    continue;
+                                uint primflags = m_scene.Permissions.GenerateClientFlags(sop, mysp);
+                                if (mysp.UUID.NotEqual(sop.OwnerID))
+                                    primflags &= ~(uint)PrimFlags.CreateSelected;
+                                else
+                                {
+                                    if (sop.CreateSelected)
+                                        primflags |= (uint)PrimFlags.CreateSelected;
+                                    else
+                                        primflags &= ~(uint)PrimFlags.CreateSelected;
+                                }
+
+                                Utils.UIntToBytes(sop.LocalId, ptr); ptr += 4;
+                                Utils.UIntToBytes((uint)sop.PseudoCRC, ptr); ptr += 4; //WRONG
+                                Utils.UIntToBytes(primflags, ptr); ptr += 4;
+                                eu.Free();
+
+                                ++count;
+                                pos += 12;
+
+                                if (pos > (LLUDPServer.MAXPAYLOAD - 13))
+                                {
+                                    // we need more packets
+                                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                                    Buffer.BlockCopy(data, 0, newbuf.Data, 0, countposition); // start is the same
+
+                                    data[countposition] = (byte)count;
+                                    buf.DataLength = pos;
+                                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false);
+
+                                    buf = newbuf;
+                                    data = buf.Data;
+                                    count = 0;
+                                    pos = countposition + 1;
+                                    break;
+                                }
+                            }
+                        }
                     }
-
-                    Utils.UIntToBytes(sop.LocalId, data, pos); pos += 4;
-                    Utils.UIntToBytes((uint)sop.PseudoCRC, data, pos); pos += 4; //WRONG
-                    Utils.UIntToBytes(primflags, data, pos); pos += 4;
-
-                    ++count;
-                    if (pos > (LLUDPServer.MAXPAYLOAD - 13))
-                    {
-                        // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, countposition); // start is the same
-
-                        buf.Data[countposition] = (byte)count;
-                        buf.DataLength = pos;
-                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false);
-
-                        buf = newbuf;
-                        data = buf.Data;
-                        pos = 18;
-
-                        count = 0;
-                    }
-                    eu.Free();
                 }
 
                 if (count > 0)
                 {
-                    buf.Data[countposition] = (byte)count;
+                    data[countposition] = (byte)count;
                     buf.DataLength = pos;
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, false);
                 }
@@ -5456,56 +5469,68 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
                 Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
                 Utils.UInt16ToBytes(timeDilation, buf.Data, 15);
-                int pos = 18;
+                const int COUNTINDEX = 17;
+                int pos = COUNTINDEX + 1;
                 int lastpos = 0;
-
                 int count = 0;
                 EntityUpdate eu;
-                for (int indx = 0; indx < terseUpdates.Count; ++indx)
+                int indx = 0;
+                while (indx < terseUpdates.Count)
                 {
-                    eu = terseUpdates[indx];
-                    lastpos = pos;
-                    if(eu.Entity is ScenePresence)
-                        CreateAvatartImprovedTerseBlock((ScenePresence)eu.Entity, buf.Data, ref pos);
-                    else
-                        CreatePartImprovedTerseBlock((SceneObjectPart)eu.Entity, buf.Data, ref pos, (eu.Flags & PrimUpdateFlags.Textures) != 0);
-                    if (pos < LLUDPServer.MAXPAYLOAD)
+                    unsafe
                     {
-                        //tau.Add(eu);
-                        ++count;
-                        --blocks;
+                        fixed(byte* bdata = &buf.Data[0])
+                        {
+                            byte* data = bdata + pos;
+                            while (indx < terseUpdates.Count)
+                            {
+                                eu = terseUpdates[indx++];
+                                lastpos = pos;
+                                if(eu.Entity is ScenePresence sp)
+                                    CreateAvatartImprovedTerseBlock(sp, ref data);
+                                else
+                                    CreatePartImprovedTerseBlock((SceneObjectPart)eu.Entity, ref data, (eu.Flags & PrimUpdateFlags.Textures) != 0);
+                                eu.Free();
+                                pos = (int)(data - bdata);
+                                --blocks;
+                                if (pos < LLUDPServer.MAXPAYLOAD)
+                                {
+                                    //tau.Add(eu);
+                                    ++count;
+                                }
+                                else if (blocks > 0)
+                                {
+                                    // we need more packets
+                                    UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
+                                    Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, COUNTINDEX); // start is the same
+                                    // copy what we done in excess
+                                    int extralen = pos - lastpos;
+                                    if(extralen > 0)
+                                        Buffer.BlockCopy(buf.Data, lastpos, newbuf.Data, 18, extralen);
+
+                                    pos = COUNTINDEX + 1 + extralen;
+
+                                    buf.Data[COUNTINDEX] = (byte)count;
+                                    buf.DataLength = lastpos;
+                                    // zero encode is not as spec
+                                    m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
+                                        //delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, true);
+                                        null, true);
+
+                                    //tau = new List<EntityUpdate>(30);
+                                    //tau.Add(eu);
+                                    count = 1;
+                                    buf = newbuf;
+                                    break;
+                                }
+                            }
+                        }
                     }
-                    else if (blocks > 0)
-                    {
-                        // we need more packets
-                        UDPPacketBuffer newbuf = m_udpServer.GetNewUDPBuffer(m_udpClient.RemoteEndPoint);
-                        Buffer.BlockCopy(buf.Data, 0, newbuf.Data, 0, 17); // start is the same
-                        // copy what we done in excess
-                        int extralen = pos - lastpos;
-                        if(extralen > 0)
-                            Buffer.BlockCopy(buf.Data, lastpos, newbuf.Data, 18, extralen);
-
-                        pos = 18 + extralen;
-
-                        buf.Data[17] = (byte)count;
-                        buf.DataLength = lastpos;
-                        // zero encode is not as spec
-                        m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
-                            //delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, true);
-                            null, true);
-
-                        //tau = new List<EntityUpdate>(30);
-                        //tau.Add(eu);
-                        count = 1;
-                        --blocks;
-                        buf = newbuf;
-                    }
-                    eu.Free(); //remove if using resend
                 }
 
                 if (count > 0)
                 {
-                    buf.Data[17] = (byte)count;
+                    buf.Data[COUNTINDEX] = (byte)count;
                     buf.DataLength = pos;
                     m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task,
                         //delegate (OutgoingPacket oPacket) { ResendPrimUpdates(tau, oPacket); }, true);
@@ -6950,8 +6975,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             *data++ = 44;
 
             // LocalID
-            Utils.UIntToBytes(part.LocalId, data);
-            data += 4;
+            Utils.UIntToBytes(part.LocalId, data); data += 4;
 
             if (part.ParentGroup.AttachmentPoint == 0)
                 *data++ = 0;
@@ -6965,8 +6989,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             *data++ = 0;
 
             // Position
-            part.RelativePosition.ToBytes(data);
-            data += 12;
+            part.RelativePosition.ToBytes(data); data += 12;
 
             // Velocity
             part.Velocity.ClampedToShortsBytes(128f, data); data += 6;
@@ -6984,14 +7007,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (includeTexture && part.Shape.TextureEntry != null)
             {
                 byte[] te = part.Shape.TextureEntry;
-                int len = te.Length & 0x7fff;
-                int totlen = len + 4;
-                *data++ = (byte)totlen;
-                *data++ = (byte)(totlen >> 8);
-                *data++ = (byte)len; // wtf ???
-                *data++ = (byte)(len >> 8);
-                *data++ = 0;
-                *data++ = 0;
+                uint len = (uint)te.Length & 0x7fff;
+                ushort totlen = (ushort)(len + 4);
+                Utils.UInt16ToBytes(totlen, data); data += 2;
+                Utils.UIntToBytes(len, data); data += 4;
                 fixed(byte* t = &te[0])
                     Buffer.MemoryCopy(t, data, 4096, (long)len);
                 data += len;
@@ -7081,8 +7100,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //object block size
             *data++ = 60;
             // LocalID
-            Utils.UIntToBytes(presence.LocalId, data);
-            data += 4;
+            Utils.UIntToBytes(presence.LocalId, data); data += 4;
 
             *data++ = presence.State;
 
@@ -7096,8 +7114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data += 16;
 
             // Position
-            presence.OffsetPosition.ToBytes(data);
-            data += 12;
+            presence.OffsetPosition.ToBytes(data); data += 12;
 
             // Velocity
             presence.Velocity.ClampedToShortsBytes(128f, data); data += 6;
@@ -7122,8 +7139,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                 {
                     a = 1.0f / (float)Math.Sqrt(a);
-                    Utils.FloatToUInt16Bytes(rz * a, 1.0f, data); data += 2;
-                    Utils.FloatToUInt16Bytes(rw * a, 1.0f, data); data += 2;
+                    Utils.UInt16ToBytes(Utils.FloatToUnitUInt16(rz * a), data); data += 2;
+                    Utils.UInt16ToBytes(Utils.FloatToUnitUInt16(rw * a), data); data += 2;
                 }
             }
             else
@@ -13768,12 +13785,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 //setup header and regioninfo block
                 Buffer.BlockCopy(terseUpdateHeader, 0, buf.Data, 0, 7);
-                Utils.UInt64ToBytesSafepos(m_scene.RegionInfo.RegionHandle, buf.Data, 7);
-                Utils.UInt16ToBytes(Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f), buf.Data, 15);
-                buf.Data[17] = 1;
-                int pos = 18;
-                CreateAvatartImprovedTerseBlock((ScenePresence)p, buf.Data, ref pos);
-                buf.DataLength = pos;
+                unsafe
+                {
+                    fixed(byte* bdata = &buf.Data[0])
+                    {
+                        Utils.UInt64ToBytes(m_scene.RegionInfo.RegionHandle, bdata + 7);
+                        Utils.UInt16ToBytes(Utils.FloatZeroOneToushort(m_scene.TimeDilation), bdata + 15);
+                        bdata[17] = 1;
+                        byte* data = bdata + 18;
+                        CreateAvatartImprovedTerseBlock((ScenePresence)p, ref data);
+                        buf.DataLength = (int)(data - bdata);
+                    }
+                }
                 m_udpServer.SendUDPPacket(m_udpClient, buf, ThrottleOutPacketType.Task, null, true);
             }
         }
