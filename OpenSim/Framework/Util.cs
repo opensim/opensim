@@ -2058,17 +2058,17 @@ namespace OpenSim.Framework
             int clip = input.Length;
 
             // Test for ++ string terminator
-            int pos = input.IndexOf("\0");
+            int pos = input.IndexOf('\0');
             if (pos != -1 && pos < clip)
                 clip = pos;
 
             // Test for CR
-            pos = input.IndexOf("\r");
+            pos = input.IndexOf('\r');
             if (pos != -1 && pos < clip)
                 clip = pos;
 
             // Test for LF
-            pos = input.IndexOf("\n");
+            pos = input.IndexOf('\n');
             if (pos != -1 && pos < clip)
                 clip = pos;
 
@@ -4400,11 +4400,10 @@ namespace OpenSim.Framework
             using (Graphics graphics = Graphics.FromImage(result))
             {
                 atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
-                atrib.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
                 graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                 graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
 
                 graphics.DrawImage(image, new Rectangle(0, 0, result.Width, result.Height),
                     0, 0, image.Width, image.Height, GraphicsUnit.Pixel, atrib);
