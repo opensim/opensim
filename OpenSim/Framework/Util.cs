@@ -2052,28 +2052,15 @@ namespace OpenSim.Framework
 
         public static string CleanString(string input)
         {
-            if (input.Length == 0)
-                return input;
-
-            int clip = input.Length;
-
-            // Test for ++ string terminator
-            int pos = input.IndexOf('\0');
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Test for CR
-            pos = input.IndexOf('\r');
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Test for LF
-            pos = input.IndexOf('\n');
-            if (pos != -1 && pos < clip)
-                clip = pos;
-
-            // Truncate string before first end-of-line character found
-            return input.Substring(0, clip);
+            if (input.Length > 0)
+            {
+                for (int i = 0; i < input.Length; i++)
+                {
+                    if (input[i] == '\0' || input[i] == '\r' || input[i] == '\n')
+                        return input.Substring(0, i);
+                }
+            }
+            return input;
         }
 
         /// <summary>
