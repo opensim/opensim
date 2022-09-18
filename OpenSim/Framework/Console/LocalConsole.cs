@@ -254,38 +254,42 @@ namespace OpenSim.Framework.Console
         private void SetCursorTopLeft(int top, int left)
         {
             if (top <= 0)
-                System.Console.CursorTop = 0;
+                top = 0;
             else
             {
                 int bufferHeight = System.Console.BufferHeight;
                 if (bufferHeight > 0 && top >= bufferHeight)
                     top = bufferHeight - 1;
-                System.Console.CursorTop = top;
             }
 
             if (left <= 0)
-                System.Console.CursorLeft = 0;
+                left = 0;
             else
             {
                 int bufferWidth = System.Console.BufferWidth;
                 if (bufferWidth > 0 && left >= bufferWidth)
                     left = bufferWidth - 1;
-                System.Console.CursorLeft = left;
             }
+            System.Console.SetCursorPosition(left, top);
         }
 
         private int SetCursorTopZeroLeft(int top)
         {
-            System.Console.CursorLeft = 0;
             if (top <= 0)
             {
-                System.Console.CursorTop = 0;
+                System.Console.SetCursorPosition(0, 0);
                 return 0;
             }
+
             int bufferHeight = System.Console.BufferHeight;
             if (bufferHeight > 0 && top >= bufferHeight)
+            {
                 top = bufferHeight - 1;
-            System.Console.CursorTop = top;
+                System.Console.SetCursorPosition(0, top);
+            }
+            else
+                System.Console.CursorLeft = 0;
+
             return top;
         }
 
@@ -487,13 +491,13 @@ namespace OpenSim.Framework.Console
             m_echo = e;
             int historyLine = m_history.Count;
 
-            SetCursorLeft(0); // Needed for mono
-            System.Console.Write(" "); // Needed for mono
-
             lock (m_commandLine)
             {
+                SetCursorLeft(0); // Needed for mono
+                System.Console.Write(" "); // Needed for mono
+
                 m_cursorYPosition = System.Console.CursorTop;
-                m_commandLine.Remove(0, m_commandLine.Length);
+                m_commandLine.Clear();
             }
 
             while (true)
@@ -501,7 +505,7 @@ namespace OpenSim.Framework.Console
                 Show();
                 //Reduce collisions with internal read terminal information like cursor position on linux
                 while(System.Console.KeyAvailable == false)
-                    Thread.Sleep(250);
+                    Thread.Sleep(100);
 
                 ConsoleKeyInfo key = System.Console.ReadKey(true);
 
@@ -537,8 +541,7 @@ namespace OpenSim.Framework.Console
                         m_commandLine.Remove(m_cursorXPosition-1, 1);
                         m_cursorXPosition--;
 
-                        SetCursorLeft(0);
-                        m_cursorYPosition = SetCursorTop(m_cursorYPosition);
+                        m_cursorYPosition = SetCursorTopZeroLeft(m_cursorYPosition);
 
                         if (m_echo)
                             System.Console.Write("{0}{1} ", prompt, m_commandLine);
