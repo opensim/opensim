@@ -6338,9 +6338,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetDate()
         {
-            DateTime date = DateTime.Now.ToUniversalTime();
-            string result = date.ToString("yyyy-MM-dd");
-            return result;
+            return DateTime.UtcNow.ToString("yyyy-MM-dd");
         }
 
         public LSL_Integer llEdgeOfWorld(LSL_Vector pos, LSL_Vector dir)
@@ -10983,7 +10981,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_String llGetTimestamp()
         {
-            return DateTime.Now.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+            return DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
         }
 
         public LSL_Integer llGetNumberOfPrims()

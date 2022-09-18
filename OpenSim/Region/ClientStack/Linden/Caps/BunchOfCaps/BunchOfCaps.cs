@@ -185,11 +185,9 @@ namespace OpenSim.Region.ClientStack.Linden
                     m_enableFreeTestUpload = EconomyConfig.GetBoolean("AllowFreeTestUpload", m_enableFreeTestUpload);
                     m_ForceFreeTestUpload = EconomyConfig.GetBoolean("ForceFreeTestUpload", m_ForceFreeTestUpload);
                     string testcreator = EconomyConfig.GetString("TestAssetsCreatorID", "");
-                    if (testcreator != "")
+                    if (!string.IsNullOrEmpty(testcreator))
                     {
-                        UUID id;
-                        UUID.TryParse(testcreator, out id);
-                        if (id != null)
+                        if (UUID.TryParse(testcreator, out UUID id))
                             m_testAssetsCreatorID = id;
                     }
                 }
@@ -198,19 +196,19 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (CapsConfig != null)
                 {
                     string homeLocationUrl = CapsConfig.GetString("Cap_HomeLocation", "localhost");
-                    if(homeLocationUrl == String.Empty)
+                    if(homeLocationUrl.Length == 0)
                         m_AllowCapHomeLocation = false;
 
                     string GroupMemberDataUrl = CapsConfig.GetString("Cap_GroupMemberData", "localhost");
-                    if(GroupMemberDataUrl == String.Empty)
+                    if(GroupMemberDataUrl.Length == 0)
                         m_AllowCapGroupMemberData = false;
 
                     string LandResourcesUrl = CapsConfig.GetString("Cap_LandResources", "localhost");
-                    if (LandResourcesUrl == String.Empty)
+                    if (LandResourcesUrl.Length == 0)
                         m_AllowCapLandResources = false;
 
                     string AttachmentResourcesUrl = CapsConfig.GetString("Cap_AttachmentResources", "localhost");
-                    if (AttachmentResourcesUrl == String.Empty)
+                    if (AttachmentResourcesUrl.Length == 0)
                         m_AllowCapAttachmentResources = false;
                 }
             }

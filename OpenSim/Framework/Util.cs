@@ -1316,8 +1316,8 @@ namespace OpenSim.Framework
         public static UUID ComputeSHA1UUID(byte[] src)
         {
             byte[] ret;
-            using (SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider())
-                ret = SHA1.ComputeHash(src);
+            using (SHA1 sha = SHA1.Create())
+                ret = sha.ComputeHash(src);
             return new UUID(ret, 2);
         }
 
@@ -1378,6 +1378,12 @@ namespace OpenSim.Framework
         public static string FieldToString(byte[] bytes)
         {
             return FieldToString(bytes, String.Empty);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string FieldToASCIIString(byte[] bytes, int limit)
+        {
+            return CleanString(Encoding.ASCII.GetString(bytes, 0, limit < bytes.Length ? limit : bytes.Length));
         }
 
         /// <summary>
@@ -2052,13 +2058,10 @@ namespace OpenSim.Framework
 
         public static string CleanString(string input)
         {
-            if (input.Length > 0)
+            for (int i = 0; i < input.Length; i++)
             {
-                for (int i = 0; i < input.Length; i++)
-                {
-                    if (input[i] == '\0' || input[i] == '\r' || input[i] == '\n')
-                        return input.Substring(0, i);
-                }
+                if (input[i] == '\0' || input[i] == '\r' || input[i] == '\n')
+                    return input.Substring(0, i);
             }
             return input;
         }
