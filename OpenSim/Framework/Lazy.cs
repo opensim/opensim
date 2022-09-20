@@ -45,7 +45,6 @@ namespace OpenSim.Framework
 
     [SerializableAttribute]
     [ComVisibleAttribute(false)]
-    [HostProtectionAttribute(SecurityAction.LinkDemand, Synchronization = true, ExternalThreading = true)]
     public class Lazy<T>
     {
         T value;
