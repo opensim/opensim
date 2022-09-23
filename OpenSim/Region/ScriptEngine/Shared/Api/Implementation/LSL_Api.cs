@@ -4431,11 +4431,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCreateLink(LSL_Key target, LSL_Integer parent)
         {
-            if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
-                && !m_automaticLinkPermission)
+            if (!m_automaticLinkPermission)
             {
-                Error("llCreateLink", "PERMISSION_CHANGE_LINKS permission not set");
-                return;
+                if ((m_item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0)
+                {
+                    Error("llCreateLink", "PERMISSION_CHANGE_LINKS required");
+                    return;
+                }
+                if (m_item.PermsGranter.NotEqual(m_host.ParentGroup.OwnerID))
+                {
+                    Error("llCreateLink", "PERMISSION_CHANGE_LINKS not set by script owner");
+                    return;
+                }
             }
 
             CreateLink(target, parent);
