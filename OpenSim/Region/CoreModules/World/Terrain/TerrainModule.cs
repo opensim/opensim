@@ -1218,13 +1218,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         private List<PatchesToSend> GetModifiedPatchesInViewDistance(PatchUpdates pups)
-        {
+        
+            {
             List<PatchesToSend> ret = new List<PatchesToSend>();
             if (!pups.HasUpdates())
                 return ret;
 
             ScenePresence presence = pups.Presence;
-            if (presence == null)
+            if (presence == null || presence.IsDeleted)
                 return ret;
 
             float minz = presence.AbsolutePosition.Z;
@@ -1235,9 +1236,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (minz > 1500f)
                 return ret;
 
-            int DrawDistance = (int)presence.DrawDistance;
-
-            DrawDistance = DrawDistance / Constants.TerrainPatchSize;
+            int DrawDistance = (int)presence.DrawDistance / Constants.TerrainPatchSize;
 
             int testposX;
             int testposY;
@@ -1253,8 +1252,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 testposX = (int)presence.AbsolutePosition.X / Constants.TerrainPatchSize;
                 testposY = (int)presence.AbsolutePosition.Y / Constants.TerrainPatchSize;
             }
-            int limitX = (int)m_scene.RegionInfo.RegionSizeX / Constants.TerrainPatchSize;
-            int limitY = (int)m_scene.RegionInfo.RegionSizeY / Constants.TerrainPatchSize;
+            int limitX = pups.xsize;
+            int limitY = pups.ysize;
 
             // Compute the area of patches within our draw distance
             int startX = testposX - DrawDistance;
@@ -1307,7 +1306,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             if (npatchs++ > 1024)
                             {
                                 y = endY;
-                                x = endX;
+                                break;
                             }
                         }
                     }

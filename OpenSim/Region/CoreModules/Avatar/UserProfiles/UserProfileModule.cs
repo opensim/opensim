@@ -1687,10 +1687,9 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             }
 
             // flush cache
-            UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
             {
-                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out uce) && uce != null)
+                if(m_profilesCache.TryGetValue(remoteClient.AgentId, out UserProfileCacheEntry uce) && uce != null)
                 {
                     uce.props = null;
                     uce.ClientsWaitingProps = null;

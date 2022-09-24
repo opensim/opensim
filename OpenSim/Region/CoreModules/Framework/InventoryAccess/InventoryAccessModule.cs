@@ -993,25 +993,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 pos;
 
-            bool single
-                = m_Scene.GetObjectsToRez(
+            bool single = m_Scene.GetObjectsToRez(
                     rezAsset.Data, attachment, out objlist, out veclist, out bbox, out offsetHeight);
 
+            pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
+                    RayTargetID, Quaternion.Identity,
+                    BypassRayCast, bRayEndIsIntersection, true,
+                    bbox, false);
+
             if (single)
-            {
-                pos = m_Scene.GetNewRezLocation(
-                    RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                    BypassRayCast, bRayEndIsIntersection, true, bbox, false);
                 pos.Z += offsetHeight;
-            }
             else
-            {
-                pos = m_Scene.GetNewRezLocation(RayStart, RayEnd,
-                        RayTargetID, Quaternion.Identity,
-                        BypassRayCast, bRayEndIsIntersection, true,
-                        bbox, false);
                 pos -= bbox / 2;
-            }
 
             int primcount = 0;
             if(attachment)
@@ -1037,7 +1030,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     primcount += g.PrimCount;
             }
 
-
             if (!m_Scene.Permissions.CanRezObject(
                 primcount, remoteClient.AgentId, pos)
                 && !attachment)
@@ -1046,13 +1038,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // have already removed the item from the folder
                 // if it's no copy.
                 // Put it back if it's not an attachment
-                //
+
                 if (item != null)
                 {
                     if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!attachment))
                         remoteClient.SendBulkUpdateInventory(item);
                 }
-
                 return null;
             }
 
