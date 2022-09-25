@@ -232,6 +232,27 @@ namespace Prebuild.Core.Utilities
             return true;
         }
 
+        public static bool DeleteFolderIfExists(string file)
+        {
+            string resFile = null;
+            try
+            {
+                resFile = ResolvePath(file);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+
+            if (!Directory.Exists(resFile))
+            {
+                return false;
+            }
+
+            Directory.Delete(resFile, true);
+            return true;
+        }
+
         static readonly char seperator = Path.DirectorySeparatorChar;
 
         // This little gem was taken from the NeL source, thanks guys!

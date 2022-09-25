@@ -315,6 +315,67 @@ namespace Prebuild.Core.Nodes
             }
         }
 
+        [OptionNode("EnableDefaultItems")]
+        private bool m_EnableDefaultItems = true;
+
+        public bool EnableDefaultItems
+        {
+            get
+            {
+                return m_EnableDefaultItems;
+            }
+            set
+            {
+                m_EnableDefaultItems = value;
+            }
+        }
+
+        [OptionNode("UseCommonOutputDirectory")]
+        private bool m_UseCommonOutputDirectory = false;
+
+        public bool UseCommonOutputDirectory
+        {
+            get
+            {
+                return m_UseCommonOutputDirectory;
+            }
+            set
+            {
+                m_UseCommonOutputDirectory = value;
+            }
+        }
+
+        [OptionNode("AppendTargetFrameworkToOutputPath")]
+        private bool m_AppendTargetFrameworkToOutputPath = true;
+
+        public bool AppendTargetFrameworkToOutputPath
+        {
+            get
+            {
+                return m_AppendTargetFrameworkToOutputPath;
+            }
+            set
+            {
+                m_AppendTargetFrameworkToOutputPath = value;
+            }
+        }
+
+        [OptionNode("AppendRuntimeIdentifierToOutputPath")]
+        private bool m_AppendRuntimeIdentifierToOutputPath = true;
+
+        public bool AppendRuntimeIdentifierToOutputPath
+        {
+            get
+            {
+                return m_AppendRuntimeIdentifierToOutputPath;
+            }
+            set
+            {
+                m_AppendRuntimeIdentifierToOutputPath = value;
+            }
+        }
+
+
         [OptionNode("OutputPath")]
         private string m_OutputPath = "bin/";
 

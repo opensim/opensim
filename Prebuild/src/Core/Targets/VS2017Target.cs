@@ -14,17 +14,17 @@ namespace Prebuild.Core.Targets
     /// <summary>
     /// 
     /// </summary>
-    [Target("vs2019")]
-    public class VS2019Target : VSGenericTarget
+    [Target("vs2017")]
+    public class VS2017Target : VSGenericTarget
     {
         #region Fields
 
         string solutionVersion = "12.00";
-        string productVersion = "16.7.3";
+        string productVersion = "15.9.50";
         string schemaVersion = "2.0";
-        string versionName = "Visual Studio 19";
-        string name = "vs2019";
-        VSVersion version = VSVersion.VS19;
+        string versionName = "Visual Studio 17";
+        string name = "vs2017";
+        VSVersion version = VSVersion.VS17;
 
         #endregion
 
@@ -106,13 +106,8 @@ namespace Prebuild.Core.Targets
         {
             switch (frameworkVersion)
             {
-                case FrameworkVersion.netstandard2_0:
-                case FrameworkVersion.net5_0:
-                case FrameworkVersion.net6_0:
-                case FrameworkVersion.net7_0:
                 case FrameworkVersion.v4_8:
                 case FrameworkVersion.v4_7_2:
-                    return "ToolsVersion=\"16.0\"";
                 case FrameworkVersion.v4_7_1:
                 case FrameworkVersion.v4_7:
                     return "ToolsVersion=\"15.0\"";
@@ -136,7 +131,7 @@ namespace Prebuild.Core.Targets
 
         public override string SolutionTag
         {
-            get { return "# Visual Studio 19"; }
+            get { return "# Visual Studio 17"; }
         }
 
         #endregion
@@ -146,7 +141,7 @@ namespace Prebuild.Core.Targets
         /// <summary>
         /// Initializes a new instance of the <see cref="VS2012Target"/> class.
         /// </summary>
-        public VS2019Target()
+        public VS2017Target()
             : base()
         {
         }
