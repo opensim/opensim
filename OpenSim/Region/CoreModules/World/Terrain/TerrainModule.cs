@@ -1218,8 +1218,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         private List<PatchesToSend> GetModifiedPatchesInViewDistance(PatchUpdates pups)
-        
-            {
+        {
             List<PatchesToSend> ret = new List<PatchesToSend>();
             if (!pups.HasUpdates())
                 return ret;
