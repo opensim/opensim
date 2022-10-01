@@ -30,6 +30,7 @@
 //	2019-07-26	Use the extras interface to set the currency to the local symbol (WIP).
 //	2020/12/13	Integrate previous changes with 0.9.2
 //	2021/05/04	Permit HG visitors to transact. Ensure The money symbol is sent to the viewer.
+//  2022/09/29  Send the helper URI to the viewer only when the EconomyHelper setting in OpenSim.ini
 
 using log4net;
 using Mono.Addins;
@@ -56,7 +57,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-[assembly: Addin("DTLNSLMoneyModule", "1.0.3")]
+[assembly: Addin("DTLNSLMoneyModule", "1.0.4")]
 [assembly: AddinDescription("OpenSim Addin for DTL Money Module")]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 
@@ -207,6 +208,7 @@ namespace OpenSim.Region.OptionalModules.Currency
 
         private IConfigSource m_config;
 
+        private string m_moneyHelperURI = string.Empty;
         private string m_moneyServURL = string.Empty;
         private string m_moneySymbol = string.Empty;
         private bool m_entryalert = true;
@@ -286,11 +288,10 @@ namespace OpenSim.Region.OptionalModules.Currency
 
             m_enable_server = false;
             m_sellEnabled = false;
-            
             // Handle the parameters errors.
             if (source == null)
             {
-            	return;
+                return;
             }
 
             try
@@ -310,10 +311,20 @@ namespace OpenSim.Region.OptionalModules.Currency
                 }
                 else
                 {
-                    m_log.InfoFormat("[MONEY]: Initialise: The DTL/NSL MoneyModule is enabled");
+                    m_log.InfoFormat("[MONEY]: Initialise: The DTL/NSL MoneyModule is selected");
                 }
-                
-                m_sellEnabled  = economyConfig.GetBoolean("SellEnabled", m_sellEnabled);
+
+                // An optional URI pointing to the economy helpers. If missing, the Robust 'economy'
+                // setting is used.
+                m_moneyHelperURI = economyConfig.GetString("EconomyHelper", m_moneyHelperURI);
+                if (string.IsNullOrEmpty(m_moneyHelperURI))
+                {
+                    m_log.WarnFormat("[MONEY]: EconomyHelper missing; the robust specified economy helper URL is used.");
+                }
+                else
+                {
+                    m_log.InfoFormat("[MONEY]: The economy helper URL is {0}", m_moneyHelperURI);
+                }
 
                 // A URL pointing to the money server is required. If missing,
                 // terminate initialization.
@@ -343,7 +354,6 @@ namespace OpenSim.Region.OptionalModules.Currency
                 // Client Certification
                 m_certFilename = economyConfig.GetString("ClientCertFilename", m_certFilename);
                 m_certPassword = economyConfig.GetString("ClientCertPassword", m_certPassword);
-
                 if (m_certFilename != "")
                 {
                     m_cert = new X509Certificate2(m_certFilename, m_certPassword);
@@ -353,7 +363,6 @@ namespace OpenSim.Region.OptionalModules.Currency
                 // Server Authentication
                 m_checkServerCert = economyConfig.GetBoolean("CheckServerCert", m_checkServerCert);
                 m_cacertFilename = economyConfig.GetString("CACertFilename", m_cacertFilename);
-
                 if (m_cacertFilename != "")
                 {
                     m_certVerify.SetPrivateCA(m_cacertFilename);
@@ -364,15 +373,15 @@ namespace OpenSim.Region.OptionalModules.Currency
                     m_checkServerCert = false;
                     m_log.Info("[MONEY]: Initialise: CACertFilename is empty. Therefor, CheckServerCert is forced to false");
                 }
-                
-                if (m_checkServerCert) 
+
+                if (m_checkServerCert)
                 {
-					m_log.Info("[MONEY MODULE]: Initialise: Execute Authentication of Server. CA Cert File is " + m_cacertFilename);
-				}
-				else 
-				{
+                    m_log.Info("[MONEY MODULE]: Initialise: Execute Authentication of Server. CA Cert File is " + m_cacertFilename);
+                }
+                else
+                {
                     m_log.Info("[MONEY MODULE]: Initialise: No check Money Server or CACertFilename is empty. CheckServerCert is false.");
-				}
+                }
 
                 ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(m_certVerify.ValidateServerCertificate);
 
@@ -429,9 +438,8 @@ namespace OpenSim.Region.OptionalModules.Currency
                 m_log.ErrorFormat("[MONEY]: AddRegion ignored; module is disabled");
                 return;
             }
-            
-            scene.RegisterModuleInterface<IMoneyModule>(this);
-            
+            scene.RegisterModuleInterface<IMoneyModule>(this);  // 競合するモジュールの排除
+
             lock (m_sceneList)
             {
                 if (m_sceneList.Count == 0)
@@ -662,7 +670,6 @@ namespace OpenSim.Region.OptionalModules.Currency
         public void RegionLoaded(Scene scene)
         {
             m_log.InfoFormat("[MONEY]: RegionLoaded:");
-            
             if ((scene == null) || (m_enable_server == false))
             {
                 m_log.ErrorFormat("[MONEY]: RegionLoaded ignored; module is disabled");
@@ -695,7 +702,11 @@ namespace OpenSim.Region.OptionalModules.Currency
 
             // Add our values to the extras map
             extrasMap["currency"] = m_moneySymbol;
-            extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
+            //extrasMap["currency-base-uri"] = GetCurrencyBaseURI(scene);
+            if (!string.IsNullOrEmpty(m_moneyHelperURI))
+            {
+                extrasMap["currency-base-uri"] = m_moneyHelperURI;
+            }
         }
 
         private string GetCurrencyBaseURI(Scene scene)
