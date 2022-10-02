@@ -1,0 +1,6 @@
+{
+  "configProperties": {
+    "System.GC.Server": false,
+	"System.Drawing.EnableUnixSupport": true
+  }
+}
