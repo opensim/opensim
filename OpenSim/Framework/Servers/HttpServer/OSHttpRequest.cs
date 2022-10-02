@@ -73,21 +73,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         private string m_contentType;
 
-        public HttpCookieCollection Cookies
-        {
-            get
-            {
-                RequestCookies cookies = m_request.Cookies;
-                HttpCookieCollection httpCookies = new HttpCookieCollection();
-                if(cookies != null)
-                {
-                    foreach (RequestCookie cookie in cookies)
-                        httpCookies.Add(new HttpCookie(cookie.Name, cookie.Value));
-                }
-                return httpCookies;
-            }
-        }
-
         public bool HasEntityBody
         {
             get { return m_request.ContentLength != 0; }
