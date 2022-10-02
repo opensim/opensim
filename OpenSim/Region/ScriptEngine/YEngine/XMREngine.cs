@@ -60,6 +60,8 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
+using SceneScriptEvents = OpenSim.Region.Framework.Scenes.scriptEvents;
+
 [assembly: Addin("YEngine", OpenSim.VersionInfo.VersionNumber)]
 [assembly: AddinDependency("OpenSim.Region.Framework", OpenSim.VersionInfo.VersionNumber)]
 
@@ -229,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 catch { }
                 try
                 {
-                    oscode = ((OpenSim.Region.Framework.Scenes.scriptEvents)(1ul << i)).ToString();
+                    oscode = ((SceneScriptEvents)(1ul << i)).ToString();
                     Convert.ToInt64(oscode);
                     oscode = "undefined";
                 }
@@ -712,8 +714,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 lock(m_SleepQueue)
                     Monitor.PulseAll(m_SleepQueue);
 
-                if(!m_SleepThread.Join(250))
-                    m_SleepThread.Abort();
+                //if(!m_SleepThread.Join(250))
+                //    m_SleepThread.Abort();
                 m_SleepThread = null;
             }
 

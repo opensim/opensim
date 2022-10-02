@@ -41,6 +41,9 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 
+using SharedEventParams = OpenSim.Region.ScriptEngine.Shared.EventParams;
+using SharedScriptBaseClass = OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass;
+
 namespace OpenSim.Region.ScriptEngine.Yengine
 {
     public partial class Yengine
@@ -253,8 +256,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return;
                 i++;
             }
-            OpenSim.Region.ScriptEngine.Shared.EventParams eps =
-                    new OpenSim.Region.ScriptEngine.Shared.EventParams(eventname, paramvalues, zeroDetectParams);
+            SharedEventParams eps = new SharedEventParams(eventname, paramvalues, zeroDetectParams);
 
              // Scan instance list to find those that match selection criteria.
             if(!Monitor.TryEnter(m_InstancesDict, 100))
@@ -367,7 +369,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(token is TokenName)
             {
-                FieldInfo field = typeof(OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass).GetField(((TokenName)token).val);
+                FieldInfo field = typeof(SharedScriptBaseClass).GetField(((TokenName)token).val);
                 if((field != null) && field.IsPublic && (field.IsLiteral || (field.IsStatic && field.IsInitOnly)))
                 {
                     return field.GetValue(null);

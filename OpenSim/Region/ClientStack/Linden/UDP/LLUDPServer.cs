@@ -1799,10 +1799,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         incomingPacket = null;
                     }
                 }
+                /*
                 catch (ThreadAbortException)
                 {
                     Thread.ResetAbort();
                 }
+                */
                 catch (Exception ex)
                 {
                     m_log.Error("[LLUDPSERVER]: Error in the incoming packet handler loop: " + ex.Message, ex);

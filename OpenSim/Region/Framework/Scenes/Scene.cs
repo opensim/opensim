@@ -1612,7 +1612,7 @@ namespace OpenSim.Region.Framework.Scenes
 //proc.WaitForExit();
 //Thread.Sleep(1000);
 //Environment.Exit(1);
-                m_heartbeatThread.Abort();
+                //m_heartbeatThread.Abort();
                 Watchdog.AbortThread(m_heartbeatThread.ManagedThreadId);
                 m_heartbeatThread = null;
             }

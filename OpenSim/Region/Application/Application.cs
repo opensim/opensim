@@ -73,6 +73,8 @@ namespace OpenSim
             // First line, hook the appdomain to the crash reporter
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            System.AppContext.SetSwitch("System.Drawing.EnableUnixSupport", true);
+
             Culture.SetCurrentCulture();
             Culture.SetDefaultCurrentCulture();
 
@@ -97,7 +99,7 @@ namespace OpenSim
             }
             else
             {
-                XmlConfigurator.Configure();
+                XmlConfigurator.Configure(new System.IO.FileInfo("OpenSim.exe.config"));
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
 

@@ -197,8 +197,8 @@ namespace OpenSim.Framework.Monitoring
                     // m_log.DebugFormat(
                     //    "[WATCHDOG]: Stop: Removing thread {0}, ID {1}", twi.Thread.Name, twi.Thread.ManagedThreadId);
 
-                    if(t.IsAlive)
-                        t.Abort();
+                    //if(t.IsAlive)
+                    //    t.Abort();
                 }
                 m_threads.Clear();
             }
@@ -271,8 +271,8 @@ namespace OpenSim.Framework.Monitoring
             {
                 if (m_threads.ContainsKey(threadID))
                 {
-                    ThreadWatchdogInfo twi = m_threads[threadID];
-                    twi.Thread.Abort();
+                    //ThreadWatchdogInfo twi = m_threads[threadID];
+                    //twi.Thread.Abort();
                     RemoveThread(threadID);
 
                     return true;
