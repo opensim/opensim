@@ -863,6 +863,9 @@ namespace Amib.Threading
             // Each iteration we update the time left for the timeout.
             foreach (ThreadEntry te in threadEntries)
             {
+                if (te == null)
+                    continue;
+
                 Thread thread = te.WorkThread;
 
                 // Join don't work with negative numbers
@@ -894,6 +897,9 @@ namespace Amib.Threading
                 // Abort the threads in the pool
                 foreach (ThreadEntry te in threadEntries)
                 {
+                    if (te == null)
+                        continue;
+
                     Thread thread = te.WorkThread;
                     if ((thread != null) && thread.IsAlive )
                     {
