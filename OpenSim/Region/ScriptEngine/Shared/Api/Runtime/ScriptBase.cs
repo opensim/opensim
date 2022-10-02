@@ -26,45 +26,16 @@
  */
 
 using System;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Lifetime;
-using System.Security.Permissions;
-using System.Threading;
 using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics; //for [DebuggerNonUserCode]
 using OpenSim.Region.ScriptEngine.Interfaces;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.ScriptEngine.Shared.Api.Runtime;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass : MarshalByRefObject, IScript
     {
         private Dictionary<string, MethodInfo> inits = new Dictionary<string, MethodInfo>();
-//        private ScriptSponsor m_sponser;
-
-        public override Object InitializeLifetimeService()
-        {
-            ILease lease = (ILease)base.InitializeLifetimeService();
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                // Infinite
-                lease.InitialLeaseTime = TimeSpan.FromMinutes(0);
-//                lease.RenewOnCallTime = TimeSpan.FromSeconds(10.0);
-//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(1.0);
-            }
-            return lease;
-        }
-#if DEBUG
-        // For tracing GC while debugging
-        public static bool GCDummy = false;
-        ~ScriptBaseClass()
-        {
-            GCDummy = true;
-        }
-#endif
 
         public ScriptBaseClass()
         {

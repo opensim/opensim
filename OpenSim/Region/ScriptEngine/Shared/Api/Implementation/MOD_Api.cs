@@ -29,7 +29,6 @@ using System;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
@@ -84,19 +83,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
             if (m_comms == null)
                 m_MODFunctionsEnabled = false;
-        }
-
-        public override Object InitializeLifetimeService()
-        {
-            ILease lease = (ILease)base.InitializeLifetimeService();
-
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                lease.InitialLeaseTime = TimeSpan.FromMinutes(0);
-//                lease.RenewOnCallTime = TimeSpan.FromSeconds(10.0);
-//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(1.0);
-            }
-            return lease;
         }
 
         public Scene World

@@ -41,7 +41,6 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -56,8 +55,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture]
     public class LSL_ApiAvatarTests : OpenSimTestCase
     {
+        /*
         protected Scene m_scene;
-        protected XEngine.XEngine m_engine;
 
         [SetUp]
         public override void SetUp()
@@ -76,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             m_scene = new SceneHelpers().SetupScene();
             SceneHelpers.SetupSceneModules(m_scene, initConfigSource);
 
-            m_engine = new XEngine.XEngine();
+            m_engine = new YEngine.XEngine();
             m_engine.Initialise(initConfigSource);
             m_engine.AddRegion(m_scene);
         }
@@ -159,7 +158,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 m_scene.Update(1);
                 Assert.That(entityUpdates, Is.EqualTo(4));
             }
-*/
+
         }
+        */
     }
 }

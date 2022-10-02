@@ -527,19 +527,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_sleepMsOnEmail = EMAIL_PAUSE_TIME * 1000;
         }
 
-        public override Object InitializeLifetimeService()
-        {
-            ILease lease = (ILease)base.InitializeLifetimeService();
-
-            if (lease.CurrentState == LeaseState.Initial)
-            {
-                lease.InitialLeaseTime = TimeSpan.FromMinutes(0);
-//                lease.RenewOnCallTime = TimeSpan.FromSeconds(10.0);
-//                lease.SponsorshipTimeout = TimeSpan.FromMinutes(1.0);
-            }
-            return lease;
-        }
-
         protected SceneObjectPart MonitoringObject()
         {
             UUID m = m_host.ParentGroup.MonitoringObject;

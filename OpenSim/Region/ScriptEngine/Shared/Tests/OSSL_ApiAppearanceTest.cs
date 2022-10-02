@@ -41,7 +41,6 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 
@@ -53,6 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture]
     public class OSSL_ApiAppearanceTest : OpenSimTestCase
     {
+        /*
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
@@ -163,4 +163,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.That(savedAppearance.AvatarHeight, Is.EqualTo(sp.Appearance.AvatarHeight));
         }
     }
+        */
 }

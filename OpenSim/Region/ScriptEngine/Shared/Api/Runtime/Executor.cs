@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Reflection;
-using System.Runtime.Remoting.Lifetime;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using log4net;

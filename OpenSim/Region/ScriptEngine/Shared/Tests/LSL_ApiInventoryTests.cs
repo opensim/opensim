@@ -42,7 +42,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Permissions;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using PermissionMask = OpenSim.Framework.PermissionMask;
@@ -53,6 +52,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     /// Tests for inventory functions in LSL
     /// </summary>
     [TestFixture]
+    /*
     public class LSL_ApiInventoryTests : OpenSimTestCase
     {
         protected Scene m_scene;
@@ -296,4 +296,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.IsNull(otherOwnedTargetSo.RootPart.Inventory.GetInventoryItem("script"));
         }
     }
+    */
 }

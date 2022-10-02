@@ -41,7 +41,6 @@ using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
@@ -58,6 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture]
     public class LSL_ApiLinkingTests : OpenSimTestCase
     {
+        /*
         protected Scene m_scene;
         protected XEngine.XEngine m_engine;
 
@@ -99,7 +99,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
                 = TaskInventoryHelpers.AddNotecard(
                     m_scene.AssetService, grp1.RootPart, "ncItem", TestHelpers.ParseTail(0x800), TestHelpers.ParseTail(0x900), "Hello World!");
             grp1Item.PermsMask |= ScriptBaseClass.PERMISSION_CHANGE_LINKS;
-            grp1Item.PermsGranter = ownerId;
 
             SceneObjectGroup grp2 = SceneHelpers.CreateSceneObject(2, ownerId, "grp2-", 0x20);
             grp2.AbsolutePosition = new Vector3(20, 20, 20);
@@ -189,4 +188,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             }
         }
     }
+        */
 }
