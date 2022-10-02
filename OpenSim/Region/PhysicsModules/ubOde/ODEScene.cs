@@ -2210,7 +2210,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                     m_terrainHeightsHandler.Free();
                 m_terrainHeights = null;
 
-                if (m_contactsHandler != null && m_contactsHandler.IsAllocated)
+                if (m_contactsHandler.IsAllocated)
                 {
                     m_contactsHandler.Free();
                     ContactgeomsArray = IntPtr.Zero;

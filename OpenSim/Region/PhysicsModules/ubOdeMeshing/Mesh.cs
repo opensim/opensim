@@ -100,9 +100,6 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         public unsafe Mesh Scale(Vector3 scale)
         {
-            if (m_verticesPtr == null || m_indicesPtr == null)
-                return null;
-
             Mesh result = new Mesh(false);
 
             float x = scale.X;

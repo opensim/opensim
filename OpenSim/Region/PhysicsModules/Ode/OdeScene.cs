@@ -2744,8 +2744,7 @@ namespace OpenSim.Region.PhysicsModule.ODE
             waterlevel = baseheight;
         }
 
-        [HandleProcessCorruptedStateExceptions]
-        public override void Dispose()
+         public override void Dispose()
         {
             lock(SimulationLock)
                 lock(OdeLock)
