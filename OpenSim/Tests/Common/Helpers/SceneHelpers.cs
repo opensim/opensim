@@ -47,6 +47,8 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Region.PhysicsModule.BasicPhysics;
 using OpenSim.Services.Interfaces;
 
+using BaseServerUtils = OpenSim.Server.Base.ServerUtils;
+
 namespace OpenSim.Tests.Common
 {
     /// <summary>
@@ -97,8 +99,7 @@ namespace OpenSim.Tests.Common
 
             m_physicsScene = StartPhysicsScene();
 
-            SimDataService
-                = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
+            SimDataService = BaseServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
         }
 
         /// <summary>

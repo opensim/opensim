@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
 using System.Reflection;
 using System.Runtime.Caching;
@@ -33,15 +32,17 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using log4net;
 
 namespace OpenSim.Tests.Common
 {
     public class TestsAssetCache : ISharedRegionModule, IAssetCache
     {
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled;
-        private MemoryCache m_Cache;
+        public MemoryCache m_Cache;
 
         public string Name
         {
@@ -97,8 +98,8 @@ namespace OpenSim.Tests.Common
         {
             if (asset != null)
             {
-                CacheItemPolicy policy = new CacheItemPolicy();
-                m_Cache.Set(asset.ID, asset, policy);
+                //CacheItemPolicy policy = new CacheItemPolicy();
+                //m_Cache.Set(asset.ID, asset, policy);
             }
         }
 
@@ -109,24 +110,27 @@ namespace OpenSim.Tests.Common
 
         public bool Get(string id, out AssetBase asset)
         {
-            asset = (AssetBase)m_Cache.Get(id);
+            //asset = (AssetBase)m_Cache.Get(id);
+            asset = null;
             return true;
         }
 
         public bool GetFromMemory(string id, out AssetBase asset)
         {
-            asset = (AssetBase)m_Cache.Get(id);
+            //asset = (AssetBase)m_Cache.Get(id);
+            asset = null;
             return true;
         }
 
         public AssetBase GetCached(string id)
         {
-            return (AssetBase)m_Cache.Get(id);
+            //return (AssetBase)m_Cache.Get(id);
+            return null;
         }
 
         public void Expire(string id)
         {
-            m_Cache.Remove(id);
+            //m_Cache.Remove(id);
         }
 
         public void Clear()
