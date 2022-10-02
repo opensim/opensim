@@ -1,8 +1,13 @@
 #git clone
+
 get or update source from git
+
 	git clone git://opensimulator.org/git/opensim
+	
 change to dotnet6 test branch
+
     git checkout dotnet6
+
 
 # Building on Windows
 
