@@ -282,16 +282,6 @@ namespace Amib.Threading
         private CanceledWorkItemsGroup _canceledSmartThreadPool = new CanceledWorkItemsGroup();
 
         /// <summary>
-        /// Windows STP performance counters
-        /// </summary>
-        private ISTPInstancePerformanceCounters _windowsPCs = NullSTPInstancePerformanceCounters.Instance;
-
-        /// <summary>
-        /// Local STP performance counters
-        /// </summary>
-        private ISTPInstancePerformanceCounters _localPCs = NullSTPInstancePerformanceCounters.Instance;
-
-        /// <summary>
         /// An event to call after a thread is created, but before 
         /// it's first use.
         /// </summary>
@@ -397,24 +387,6 @@ namespace Amib.Threading
 
             _isSuspended = _stpStartInfo.StartSuspended;
 
-            if (null != _stpStartInfo.PerformanceCounterInstanceName)
-            {
-                try
-                {
-                    _windowsPCs = new STPInstancePerformanceCounters(_stpStartInfo.PerformanceCounterInstanceName);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("Unable to create Performance Counters: " + e);
-                    _windowsPCs = NullSTPInstancePerformanceCounters.Instance;
-                }
-            }
-
-            if (_stpStartInfo.EnableLocalPerformanceCounters)
-            {
-                _localPCs = new LocalSTPInstancePerformanceCounters();
-            }
-
             // If the STP is not started suspended then start the threads.
             if (!_isSuspended)
             {
@@ -511,9 +483,6 @@ namespace Amib.Threading
 
         private void IncrementWorkItemsCount()
         {
-            _windowsPCs.SampleWorkItems(_workItemsQueue.Count, _workItemsProcessed);
-            _localPCs.SampleWorkItems(_workItemsQueue.Count, _workItemsProcessed);
-
             int count = Interlocked.Increment(ref _currentWorkItemsCount);
             //Trace.WriteLine("WorkItemsCount = " + _currentWorkItemsCount.ToString());
             if (count == 1)
@@ -534,14 +503,6 @@ namespace Amib.Threading
             }
 
             Interlocked.Increment(ref _workItemsProcessed);
-
-            if (!_shutdown)
-            {
-                // The counter counts even if the work item was cancelled
-                _windowsPCs.SampleWorkItems(_workItemsQueue.Count, _workItemsProcessed);
-                _localPCs.SampleWorkItems(_workItemsQueue.Count, _workItemsProcessed);
-            }
-
         }
 
         private int baseWorkIDs = Environment.TickCount;
@@ -572,8 +533,6 @@ namespace Amib.Threading
             if (_workerThreads.TryRemove(Thread.CurrentThread.ManagedThreadId, out ThreadEntry te))
             {
                 te.Clean();
-                _windowsPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
-                _localPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
             }
         }
 
@@ -644,9 +603,6 @@ namespace Amib.Threading
                     _workerThreads[workerThread.ManagedThreadId] = new ThreadEntry(this, workerThread);
 
                     workerThread.Start();
-
-                    _windowsPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
-                    _localPCs.SampleThreads(_workerThreads.Count, _inUseWorkerThreads);
                 }
             }
         }
@@ -755,8 +711,6 @@ namespace Amib.Threading
                         // Execute the callback.  Make sure to accurately
                         // record how many callbacks are currently executing.
                         int inUseWorkerThreads = Interlocked.Increment(ref _inUseWorkerThreads);
-                        _windowsPCs.SampleThreads(_workerThreads.Count, inUseWorkerThreads);
-                        _localPCs.SampleThreads(_workerThreads.Count, inUseWorkerThreads);
 
                         // Mark that the _inUseWorkerThreads incremented, so in the finally{}
                         // statement we will decrement it correctly.
@@ -785,8 +739,6 @@ namespace Amib.Threading
                         if (bInUseWorkerThreadsWasIncremented)
                         {
                             int inUseWorkerThreads = Interlocked.Decrement(ref _inUseWorkerThreads);
-                            _windowsPCs.SampleThreads(_workerThreads.Count, inUseWorkerThreads);
-                            _localPCs.SampleThreads(_workerThreads.Count, inUseWorkerThreads);
                         }
 
                         // Notify that the work item has been completed.
@@ -799,12 +751,14 @@ namespace Amib.Threading
                     }
                 }
             }
+            /*
             catch (ThreadAbortException tae)
             {
-                tae.GetHashCode();
+                //tae.GetHashCode();
                 // Handle the abort exception gracfully.
-                Thread.ResetAbort();
+                //Thread.ResetAbort();
             }
+            */
             catch (Exception e)
             {
                 Debug.Assert(null != e);
@@ -821,16 +775,12 @@ namespace Amib.Threading
 
         private void ExecuteWorkItem(WorkItem workItem)
         {
-            _windowsPCs.SampleWorkItemsWaitTime(workItem.WaitingTime);
-            _localPCs.SampleWorkItemsWaitTime(workItem.WaitingTime);
             try
             {
                 workItem.Execute();
             }
             finally
             {
-                _windowsPCs.SampleWorkItemsProcessTime(workItem.ProcessTime);
-                _localPCs.SampleWorkItemsProcessTime(workItem.ProcessTime);
             }
         }
 
@@ -887,17 +837,6 @@ namespace Amib.Threading
         public void Shutdown(bool forceAbort, int millisecondsTimeout)
         {
             ValidateNotDisposed();
-
-            ISTPInstancePerformanceCounters pcs = _windowsPCs;
-
-            if (NullSTPInstancePerformanceCounters.Instance != _windowsPCs)
-            {
-                // Set the _pcs to "null" to stop updating the performance
-                // counters
-                _windowsPCs = NullSTPInstancePerformanceCounters.Instance;
-
-                pcs.Dispose();
-            }
 
             ThreadEntry[] threadEntries;
             lock (_workerThreadsLock)
@@ -960,7 +899,7 @@ namespace Amib.Threading
                     {
                         try
                         {
-                            thread.Abort(); // Shutdown
+                            //thread.Abort(); // Shutdown
                             te.WorkThread = null;
                         }
                         catch (SecurityException e)
@@ -1334,7 +1273,7 @@ namespace Amib.Threading
         {
             if (IsWorkItemCanceled)
             {
-                Thread.CurrentThread.Abort();
+                //Thread.CurrentThread.Abort();
             }
         }
 
@@ -1352,15 +1291,6 @@ namespace Amib.Threading
         public bool IsShuttingdown
         {
             get { return _shutdown; }
-        }
-
-        /// <summary>
-        /// Return the local calculated performance counters
-        /// Available only if STPStartInfo.EnableLocalPerformanceCounters is true.
-        /// </summary>
-        public ISTPPerformanceCountersReader PerformanceCountersReader
-        {
-            get { return (ISTPPerformanceCountersReader)_localPCs; }
         }
 
         #endregion
@@ -1394,9 +1324,6 @@ namespace Amib.Threading
                     _isIdleWaitHandle.Close();
                     _isIdleWaitHandle = null;
                 }
-
-                if (_stpStartInfo.EnableLocalPerformanceCounters)
-                    _localPCs.Dispose();
 
                 _isDisposed = true;
             }

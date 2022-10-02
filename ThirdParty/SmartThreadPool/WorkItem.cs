@@ -427,12 +427,11 @@ namespace Amib.Threading.Internal
                 // If we got a ThreadAbortException and the STP is not shutting down, it means the 
                 // work items was cancelled.
                 tae.GetHashCode();
-                if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
-                {
-                    Thread.ResetAbort();
-                }
+                //if (!SmartThreadPool.CurrentThreadEntry.AssociatedSmartThreadPool.IsShuttingdown)
+                //{
+                //    Thread.ResetAbort();
+                //}
             }
-
             if (!SmartThreadPool.IsWorkItemCanceled)
             {
                 SetResult(result, exception);
@@ -728,7 +727,7 @@ namespace Amib.Threading.Internal
                             Thread executionThread = Interlocked.CompareExchange(ref _executingThread, null, _executingThread);
                             if (null != executionThread)
                             {
-                                executionThread.Abort(); // "Cancel"
+                                //executionThread.Abort(); // "Cancel"
                                 // No need to signalComplete, because we already cancelled this work item
                                 // so it already signaled its completion.
                                 //signalComplete = true;
@@ -745,7 +744,7 @@ namespace Amib.Threading.Internal
                             Thread executionThread = Interlocked.CompareExchange(ref _executingThread, null, _executingThread);
                             if (null != executionThread)
                             {
-                                executionThread.Abort(); // "Cancel"
+                                //executionThread.Abort(); // "Cancel"
                                 success = true;
                                 signalComplete = true;
                             }
