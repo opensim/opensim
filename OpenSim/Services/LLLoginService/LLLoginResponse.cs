@@ -277,7 +277,7 @@ namespace OpenSim.Services.LLLoginService
                     DST = "N";
                     break;
                 case "local":
-                    DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                    DST = TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
                     break;
                 default:
                     TimeZoneInfo dstTimeZone = null;
@@ -300,7 +300,7 @@ namespace OpenSim.Services.LLLoginService
                     {
                         m_log.WarnFormat(
                             "[LLOGIN RESPONSE]: No valid timezone found for DST in {0}, falling back to system time.", tzList);
-                        DST = TimeZone.CurrentTimeZone.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
+                        DST = TimeZoneInfo.Local.IsDaylightSavingTime(DateTime.Now) ? "Y" : "N";
                     }
                     else
                     {
