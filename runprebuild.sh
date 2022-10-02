@@ -2,26 +2,24 @@
 
 case "$1" in
 
-  'clean')
+ 'clean')
+    mono bin/Prebuild.exe /file prebuild.xml /clean
 
-    mono bin/Prebuild.exe /clean
   ;;
 
 
   'autoclean')
 
-    echo y|mono bin/Prebuild.exe /clean
+    echo y|mono bin/Prebuild.exe /file prebuild.xml /clean
 
   ;;
+
 
 
   *)
 
-    mono bin/Prebuild.exe /target nant
-    mono bin/Prebuild.exe /target vs2015 /excludedir = "obj | bin"
+    mono bin/Prebuild.exe /target vs2022 /targetframework net6_0 /excludedir = "obj | bin" /file prebuild.xml
 
   ;;
 
 esac
-    rm -fr bin/addin-db-002
-

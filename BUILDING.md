@@ -1,16 +1,16 @@
 # Building on Windows
 
 ## Requirements
-  For building under Windows, the following is required:
+  To building under Windows, the following is required:
 
-  * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2015 or later
+  * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2019 or later
 
 ### Building
  To create the project files, run   
 
  ```runprebuild.bat```
 
-Load the generated OpenSim.sln into Visual Studio .NET and build the solution.
+Load the generated OpenSim.sln into Visual Studio and build the solution.
 
 Configure, see below
 
@@ -20,26 +20,18 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
 ## Requirements
 
- *	[Mono > 5.0](https://www.mono-project.com/download/stable/#download-lin)
- *	On some Linux distributions you may need to install additional packages.
- *	msbuild or xbuild(deprecated) if still supported by the mono version
- *   See [the wiki](http://opensimulator.org/wiki/Dependencies) for more information.
+ *	[dotnet 6.0 ADK and DeskTop runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Building
   To create the project files, run:
 
   ```./runprebuild.sh```
 
-  then run ```msbuild``` or ```xbuild``` if xbuild was installed.
+  then run dotnet build --configuration Release OpenSim.sln
 
 Configure. See below
 
 run `./opensim.sh` from the `bin` folder, and set up the region
-
-For rebuilding and debugging use the msbuild option switches
-  *  clean:  `msbuild /target:clean`
-  *  debug: (default) `msbuild /property:Configuration=Debug`
-  *  release: `msbuild /property:Configuration=Release`
 
 
 # Configure #
