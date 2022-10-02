@@ -15,11 +15,8 @@ namespace OSHttpServer
         private readonly IHttpContextFactory m_contextFactory;
         private readonly int m_port;
         private readonly ManualResetEvent m_shutdownEvent = new ManualResetEvent(false);
-#if NET48
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#else
-        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Ssl3 | SslProtocols.Ssl2;
-#endif
+        private readonly SslProtocols m_sslProtocols = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12 | SslProtocols.Tls13;
+
         private TcpListener m_listener;
         private ILogWriter m_logWriter = NullLogWriter.Instance;
         private int m_pendingAccepts;

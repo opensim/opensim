@@ -7617,7 +7617,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
                     }
-
                 }
                 prules.CRC = 1;
 
