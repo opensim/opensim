@@ -12459,7 +12459,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     d = delarray[j];
                     if (d != null)
                     {
-                        int index = src.IndexOf(d, i);
+                        int index = src.IndexOf(d, i, StringComparison.Ordinal);
                         if (index < 0)
                         {
                             delarray[j] = null;     // delim nowhere in src, don't check it anymore
