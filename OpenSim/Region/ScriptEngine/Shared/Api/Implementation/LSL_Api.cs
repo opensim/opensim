@@ -52,7 +52,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -5986,7 +5985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llListRandomize(LSL_List src, int stride)
         {
             LSL_List result;
-            BetterRandom rand = new BetterRandom();
+            Random rand = new Random();
 
             int   chunkk;
             int[] chunks;
