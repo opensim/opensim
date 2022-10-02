@@ -114,13 +114,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 {
                     for(int i = 0; i < 4; i++)
                     {
-                        AssetBase asset = null;
-
                         // asset cache indexes are strings
-                        string cacheName ="MAP" + textureIDs[i].ToString();
+                        string cacheName = "MAP" + textureIDs[i].ToString();
 
                         // Try to fetch a cached copy of the decoded/resized version of this texture
-                        asset = assetService.GetCached(cacheName);
+                        AssetBase asset = assetService.GetCached(cacheName);
                         if(asset != null)
                         {
                             try
@@ -222,14 +220,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             for(int y = 0; y < ylen; y += bmdata.Stride)
                             {
                                 byte* ptrc = (byte*)bmdata.Scan0 + y;
-                                for(int x = 0 ; x < bmdata.Width; ++x)
+                                for(int x = 0 ; x < bmdata.Width; ++x, ptrc += 3)
                                 {
-                                    cR += *(ptrc++);
-                                    cG += *(ptrc++);
-                                    cB += *(ptrc++);
+                                    cR += ptrc[0];
+                                    cG += ptrc[1];
+                                    cB += ptrc[2];
                                 }
                             }
-
                         }
                         detailTexture[t].UnlockBits(bmdata);
                         detailTexture[t].Dispose();
@@ -264,6 +261,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     detailTexture[i] = Util.ResizeImageSolid(origBitmap, 16, 16);
                             }
                         }
+                        //detailTexture[i].Save("terr" + i.ToString()+".png", ImageFormat.Png);
                     }
                 }
             }
@@ -302,24 +300,24 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             float layer;
             float layerDiff;
             int l0;
-            int l1;
             uint yglobalpos;
 
             if(usecolors)
             {
                 float a;
                 float b;
+                int l1;
                 unsafe
                 {
                     byte* ptrO;
                     for(int y = 0; y < theight; ++y)
                     {
                         pcty = y * invtheightMinus1;
-                        ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
+                        ptrO = (byte*)outputData.Scan0.ToPointer() + y * outputData.Stride;
                         ty = (int)(y * yFactor);
                         yglobalpos = (uint)ty + regionPositionY;
 
-                        for(int x = 0; x < twidth; ++x)
+                        for(int x = 0; x < twidth; ++x, ptrO +=3)
                         {
                             tx = (int)(x * xFactor);
                             pctx = x  * invtwitdthMinus1;
@@ -330,21 +328,23 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                             // Select two textures
                             l0 = (int)layer;
-                            l1 = Math.Min(l0 + 1, 3);
-
                             layerDiff = layer - l0;
+                            if (l0 >= 2)
+                                l1 = 3;
+                            else
+                                l1 = l0 + 1;
 
-                            a = mapColorsRed[l0];
+                            a = mapColorsRed[l0];                         
                             b = mapColorsRed[l1];
-                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
+                            ptrO[0] = (byte)(a + layerDiff * (b - a));
 
                             a = mapColorsGreen[l0];
                             b = mapColorsGreen[l1];
-                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
+                            ptrO[1] = (byte)(a + layerDiff * (b - a));
 
                             a = mapColorsBlue[l0];
                             b = mapColorsBlue[l1];
-                            *(ptrO++) = (byte)(a + layerDiff * (b - a));
+                            ptrO[2] = (byte)(a + layerDiff * (b - a));
                         }
                     }
                 }
@@ -371,15 +371,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                     byte* ptr;
                     byte* ptrO;
-                    for(int y = 0; y < theight; y++)
+                    for (int y = 0; y < theight; y++)
                     {
                         pcty = y * invtheightMinus1;
-                        int ypatch = ((int)(y * yFactor) & 0x0f) * datas[0].Stride;
-                        ptrO = (byte*)outputData.Scan0 + y * outputData.Stride;
                         ty = (int)(y * yFactor);
+                        int ypatch = (ty & 0x0f) * datas[0].Stride;
                         yglobalpos = (uint)ty + regionPositionY;
+                        ptrO = (byte*)outputData.Scan0.ToPointer() + y * outputData.Stride;
 
-                        for(int x = 0; x < twidth; x++)
+                        for (int x = 0; x < twidth; x++, ptrO += 3)
                         {
                             tx = (int)(x * xFactor);
                             pctx = x  * invtwitdthMinus1;
@@ -394,26 +394,29 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                             int patchOffset = (tx & 0x0f) * 3 + ypatch;
 
-                            ptr = (byte*)datas[l0].Scan0 + patchOffset;
-                            aB = *(ptr++);
-                            aG = *(ptr++);
-                            aR = *(ptr);
+                            ptr = (byte*)datas[l0].Scan0.ToPointer() + patchOffset;
+                            aB = ptr[0];
+                            aG = ptr[1];
+                            aR = ptr[2];
 
-                            l1 = Math.Min(l0 + 1, 3);
-                            ptr = (byte*)datas[l1].Scan0 + patchOffset;
-                            bB = *(ptr++);
-                            bG = *(ptr++);
-                            bR = *(ptr);
+                            if(l0 >= 2 )
+                                l0 = 3;
+                            else
+                                l0++;
 
+                            ptr = (byte*)datas[l0].Scan0.ToPointer() + patchOffset;
+                            bB = ptr[0];
+                            bG = ptr[1];
+                            bR = ptr[2];
 
                             // Interpolate between the two selected textures
-                            *(ptrO++) = (byte)(aB + layerDiff * (bB - aB));
-                            *(ptrO++) = (byte)(aG + layerDiff * (bG - aG));
-                            *(ptrO++) = (byte)(aR + layerDiff * (bR - aR));
+                            ptrO[0] = (byte)(aB + layerDiff * (bB - aB));
+                            ptrO[1] = (byte)(aG + layerDiff * (bG - aG));
+                            ptrO[2] = (byte)(aR + layerDiff * (bR - aR));
                         }
                     }
 
-                    for(int i = 0; i < detailTexture.Length; i++)
+                    for (int i = 0; i < detailTexture.Length; i++)
                         detailTexture[i].UnlockBits(datas[i]);
                 }
 
@@ -424,7 +427,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             output.UnlockBits(outputData);
 
-//output.Save("terr.png",ImageFormat.Png);
+//output.Save("terr.jpg",ImageFormat.Jpeg);
 
             #endregion Texture Compositing
 
@@ -437,21 +440,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             // Use bilinear interpolation between the four corners of start height and
             // height range to select the current values at this position
-            float startHeight = ImageUtils.Bilinear(
-                startHeights[0], startHeights[2],
-                startHeights[1], startHeights[3],
-                pctX, pctY);
+            float startHeight = ImageUtils.Bilinear(startHeights, pctX, pctY);
             if (float.IsNaN(startHeight))
                 return 0;
 
             startHeight = Utils.Clamp(startHeight, 0f, 255f);
 
-            float heightRange = ImageUtils.Bilinear(
-                heightRanges[0], heightRanges[2],
-                heightRanges[1], heightRanges[3],
-                pctX, pctY);
+            float heightRange = ImageUtils.Bilinear(heightRanges, pctX, pctY);
             heightRange = Utils.Clamp(heightRange, 0f, 255f);
-            if(heightRange == 0f || float.IsNaN(heightRange))
+            if(heightRange == 0f)
                 return 0;
 
             // Generate two frequencies of perlin noise based on our global position

@@ -190,7 +190,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         private Vector3 cameraPos;
         private Vector3 cameraDir;
-        private int viewWitdh = 256;
+        private int viewWidth = 256;
         private int viewHeight = 256;
         private float fov;
         private bool orto;
@@ -203,11 +203,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 m_primMesher = RenderingLoader.LoadRenderer(renderers[0]);
             }
 
-            viewWitdh = (int)m_scene.RegionInfo.RegionSizeX;
+            viewWidth = (int)m_scene.RegionInfo.RegionSizeX;
             viewHeight = (int)m_scene.RegionInfo.RegionSizeY;
 
             cameraPos = new Vector3(
-                            viewWitdh * 0.5f,
+                            viewWidth * 0.5f,
                             viewHeight * 0.5f,
                             m_cameraHeight);
 
@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Bitmap tile = GenImage();
             // image may be reloaded elsewhere, so no compression format
             string filename = "MAP-" + m_scene.RegionInfo.RegionID.ToString() + ".png";
-            tile.Save(filename, ImageFormat.Png);
+            tile.Save(filename,ImageFormat.Png);
             m_primMesher = null;
             return tile;
         }
@@ -232,7 +232,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             cameraPos = camPos;
             cameraDir = camDir;
-            viewWitdh = width;
+            viewWidth = width;
             viewHeight = height;
             fov = pfov;
             orto = false;
@@ -249,8 +249,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             WarpRenderer renderer = new WarpRenderer();
 
-            if (!renderer.CreateScene(viewWitdh, viewHeight))
-                return new Bitmap(viewWitdh, viewHeight);
+            if (!renderer.CreateScene(viewWidth, viewHeight))
+                return new Bitmap(viewWidth, viewHeight);
 
             #region Camera
 
@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Vector lookat = warp_Vector.add(pos, ConvertVector(cameraDir));
 
             if (orto)
-                renderer.Scene.defaultCamera.setOrthographic(true, viewWitdh, viewHeight);
+                renderer.Scene.defaultCamera.setOrthographic(true, viewWidth, viewHeight);
             else
                 renderer.Scene.defaultCamera.setFov(fov);
 
@@ -440,7 +440,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         m_scene.RegionInfo.WorldLocX, m_scene.RegionInfo.WorldLocY,
                         m_scene.AssetService, m_imgDecoder, m_textureTerrain, m_textureAverageTerrain,
                         twidth, twidth))
-                texture = new warp_Texture(image);
+                    texture = new warp_Texture(image);
 
             warp_Material material = new warp_Material(texture);
             renderer.Scene.addMaterial("TerrainMat", material);
@@ -871,56 +871,52 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     height = bitmap.Height;
 
                     BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-                    pixelBytes = (bitmap.PixelFormat == PixelFormat.Format24bppRgb) ? 3 : 4;
+                    pixelBytes = (bitmapData.PixelFormat == PixelFormat.Format24bppRgb) ? 3 : 4;
 
                     // Sum up the individual channels
                     unsafe
                     {
+                        byte* start = (byte*)bitmapData.Scan0;
                         if (pixelBytes == 4)
                         {
                             for (int y = 0; y < height; y++)
                             {
-                                byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-
-                                for (int x = 0; x < width; x++)
+                                
+                                byte* end = start + 4 * width;
+                                for(byte* row = start; row < end; row += 4)
                                 {
-                                    b += row[x * pixelBytes + 0];
-                                    g += row[x * pixelBytes + 1];
-                                    r += row[x * pixelBytes + 2];
-                                    a += row[x * pixelBytes + 3];
+                                    b += row[0];
+                                    g += row[1];
+                                    r += row[2];
+                                    a += row[3];
                                 }
+                                start += bitmapData.Stride;
                             }
                         }
                         else
                         {
                             for (int y = 0; y < height; y++)
                             {
-                                byte* row = (byte*)bitmapData.Scan0 + (y * bitmapData.Stride);
-
-                                for (int x = 0; x < width; x++)
+                                byte* end = start + 3 * width;
+                                for (byte* row = start; row < end; row += 3)
                                 {
-                                    b += row[x * pixelBytes + 0];
-                                    g += row[x * pixelBytes + 1];
-                                    r += row[x * pixelBytes + 2];
+                                    b += row[0];
+                                    g += row[1];
+                                    r += row[2];
                                 }
+                                start += bitmapData.Stride;
                             }
                         }
                     }
+                    bitmap.UnlockBits(bitmapData);
                 }
                 // Get the averages for each channel
-                const decimal OO_255 = 1m / 255m;
-                decimal totalPixels = (decimal)(width * height);
-
-                decimal rm = ((decimal)r / totalPixels) * OO_255;
-                decimal gm = ((decimal)g / totalPixels) * OO_255;
-                decimal bm = ((decimal)b / totalPixels) * OO_255;
-                decimal am = ((decimal)a / totalPixels) * OO_255;
-
-                if (pixelBytes == 3)
-                    am = 1m;
-
+                double invtotalPixels = 1.0/(255.0 * width * height);
+                double rm = r * invtotalPixels;
+                double gm = g * invtotalPixels;
+                double bm = b * invtotalPixels;
+                double am = pixelBytes == 3 ? 1.0 : a * invtotalPixels;
                 return new Color4((float)rm, (float)gm, (float)bm, (float)am);
-
             }
             catch (Exception ex)
             {
@@ -952,6 +948,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public static float Bilinear(float v00, float v01, float v10, float v11, float xPercent, float yPercent)
         {
             return Utils.Lerp(Utils.Lerp(v00, v01, xPercent), Utils.Lerp(v10, v11, xPercent), yPercent);
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        public static float Bilinear(float[] v, float xPercent, float yPercent)
+        {
+            return Utils.Lerp(Utils.Lerp(v[0], v[2], xPercent), Utils.Lerp(v[1], v[3], xPercent), yPercent);
         }
     }
 }
