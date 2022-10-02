@@ -2339,24 +2339,12 @@ namespace OpenSim.Framework
 
         public static string GetRuntimeInformation()
         {
-            string ru = String.Empty;
-
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            return Environment.OSVersion.Platform switch
             {
-                ru = "Unix/Mono";
-            }
-            else
-                if (Environment.OSVersion.Platform == PlatformID.MacOSX)
-                ru = "OSX/Mono";
-            else
-            {
-                if (IsPlatformMono)
-                    ru = "Win/Mono";
-                else
-                    ru = "Win/.NET";
-            }
-
-            return ru;
+                PlatformID.MacOSX => "OSX/DotNet",
+                PlatformID.Unix => "Unix/DotNet",
+                _ => "Win/DotNet",
+            };
         }
 
         /// <summary>
