@@ -496,8 +496,8 @@ namespace OpenSim.Framework.Console
             {
                 Show();
                 //Reduce collisions with internal read terminal information like cursor position on linux
-                //while(System.Console.KeyAvailable == false)
-                //    Thread.Sleep(100);
+                while(System.Console.KeyAvailable == false)
+                    Thread.Sleep(100);
 
                 ConsoleKeyInfo key = System.Console.ReadKey(true);
 
