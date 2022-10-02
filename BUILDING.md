@@ -20,7 +20,7 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
 ## Requirements
 
- *	[dotnet 6.0 ADK and DeskTop runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ *	[dotnet 6.0 SDK and DeskTop runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Building
   To create the project files, run:
