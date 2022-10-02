@@ -499,6 +499,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             m_log.DebugFormat("[XFER]: Created item {0} with asset {1}",
                     item.ID, item.AssetID);
 
+            // special AnimationSet case
+            if (item.InvType == (int)CustomInventoryType.AnimationSet)
+                AnimationSet.enforceItemPermitions(item, true);
+
             if (m_Scene.AddInventoryItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, m_transactionID, callbackID);
             else
