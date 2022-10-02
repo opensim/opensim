@@ -1,6 +1,7 @@
 {
   "configProperties": {
     "System.GC.Server": false,
-	"System.Drawing.EnableUnixSupport": true
+	"System.Drawing.EnableUnixSupport": true,
+	"System.Globalization.UseNls": true
   }
 }
