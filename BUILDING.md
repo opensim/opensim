@@ -2,11 +2,11 @@
 
 get or update source from git
 
-	`git clone git://opensimulator.org/git/opensim`
+ git clone git://opensimulator.org/git/opensim
 	
 change to dotnet6 test branch
 
-    `git checkout dotnet6`
+ git checkout dotnet6
 
 
 # Building on Windows
@@ -14,12 +14,16 @@ change to dotnet6 test branch
 ## Requirements
   To building under Windows, the following is required:
 
-  * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2019 or later
+  * [Visual Studio .NET](https://visualstudio.microsoft.com/vs/features/net-development/), version 2022 or later
+  
+  or just
+  
+  [dotnet 6.0 SDK, Runtime and Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Building
  To create the project files, run   
 
- ```runprebuild.bat```
+  runprebuild.bat
 
 Load the generated OpenSim.sln into Visual Studio and build the solution.
 
@@ -33,16 +37,16 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
 ## Requirements
 
- *	[dotnet 6.0 SDK and DeskTop runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+ *	[dotnet 6.0 SDK and Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Building
   To create the project files, run:
 
-  ```./runprebuild.sh```
-
+  ./runprebuild.sh
+  
   then run
 
-  `dotnet build --configuration Release OpenSim.sln`
+ dotnet build --configuration Release OpenSim.sln
   
   copy file bin/System.Drawing.Common.dll.linux to bin/System.Drawing.Common.dll
 
