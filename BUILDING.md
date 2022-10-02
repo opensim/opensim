@@ -2,11 +2,11 @@
 
 get or update source from git
 
-	git clone git://opensimulator.org/git/opensim
+	`git clone git://opensimulator.org/git/opensim`
 	
 change to dotnet6 test branch
 
-    git checkout dotnet6
+    `git checkout dotnet6`
 
 
 # Building on Windows
@@ -42,13 +42,14 @@ Now just run `OpenSim.exe` from the `bin` folder, and set up the region.
 
   then run
 
-  dotnet build --configuration Release OpenSim.sln
+  `dotnet build --configuration Release OpenSim.sln`
   
   copy file bin/System.Drawing.Common.dll.linux to bin/System.Drawing.Common.dll
 
 Configure. See below
 
 run `./opensim.sh` from the `bin` folder, and set up the region
+
 
 
 # Configure #
