@@ -366,11 +366,11 @@ namespace OpenSim.Framework
         public static Quaternion Axes2Rot(Vector3 fwd, Vector3 left, Vector3 up)
         {
             float s;
-            float tr = (float)(fwd.X + left.Y + up.Z + 1.0);
+            float tr = (fwd.X + left.Y + up.Z + 1.0f);
 
             if (tr >= 1.0)
             {
-                s = (float)(0.5 / Math.Sqrt(tr));
+                s = (0.5f / MathF.Sqrt(tr));
                 return new Quaternion(
                         (left.Z - up.Y) * s,
                         (up.X - fwd.Z) * s,
@@ -383,9 +383,9 @@ namespace OpenSim.Framework
 
                 if (max < fwd.X)
                 {
-                    s = (float)(Math.Sqrt(fwd.X - (left.Y + up.Z) + 1.0));
-                    float x = (float)(s * 0.5);
-                    s = (float)(0.5 / s);
+                    s = MathF.Sqrt(fwd.X - (left.Y + up.Z) + 1.0f);
+                    float x = s * 0.5f;
+                    s = 0.5f / s;
                     return new Quaternion(
                             x,
                             (fwd.Y + left.X) * s,
@@ -394,9 +394,9 @@ namespace OpenSim.Framework
                 }
                 else if (max == left.Y)
                 {
-                    s = (float)(Math.Sqrt(left.Y - (up.Z + fwd.X) + 1.0));
-                    float y = (float)(s * 0.5);
-                    s = (float)(0.5 / s);
+                    s = MathF.Sqrt(left.Y - (up.Z + fwd.X) + 1.0f);
+                    float y = s * 0.5f;
+                    s = 0.5f / s;
                     return new Quaternion(
                             (fwd.Y + left.X) * s,
                             y,
@@ -405,9 +405,9 @@ namespace OpenSim.Framework
                 }
                 else
                 {
-                    s = (float)(Math.Sqrt(up.Z - (fwd.X + left.Y) + 1.0));
-                    float z = (float)(s * 0.5);
-                    s = (float)(0.5 / s);
+                    s = MathF.Sqrt(up.Z - (fwd.X + left.Y) + 1.0f);
+                    float z = s * 0.5f;
+                    s = 0.5f / s;
                     return new Quaternion(
                             (up.X + fwd.Z) * s,
                             (left.Z + up.Y) * s,
