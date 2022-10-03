@@ -83,7 +83,7 @@ namespace OpenSim.Framework
             map["underWaterFogMod"] = underWaterFogMod;
             map["waterFogColor"] = new Vector4(waterFogColor.X, waterFogColor.Y, waterFogColor.Z, 1);
             map["waterFogDensity"] = waterFogDensity;
-            //map["waterFogDensity"] = (float)Math.Pow(2.0f, waterFogDensity);
+            //map["waterFogDensity"] = MathF.Pow(2.0f, waterFogDensity);
             map["wave1Dir"] = wave1Dir;
             map["wave2Dir"] = wave2Dir;
 

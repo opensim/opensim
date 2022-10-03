@@ -519,7 +519,7 @@ namespace OpenSim.Framework
                             for (int xx = 0; xx < SizeX; xx++)
                             {
                                 // reduce to 1mm resolution
-                                float val = (float)Math.Round(m_heightmap[xx, yy],3,MidpointRounding.AwayFromZero);
+                                float val = MathF.Round(m_heightmap[xx, yy],3,MidpointRounding.AwayFromZero);
                                 bw.Write(val);
                             }
                     }
@@ -549,7 +549,7 @@ namespace OpenSim.Framework
                             for (int xx = 0; xx < SizeX; xx++)
                             {
                                 //bw.Write((float)m_heightmap[xx, yy]);
-                                bw.Write((float)Math.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
+                                bw.Write(MathF.Round(m_heightmap[xx, yy], 3, MidpointRounding.AwayFromZero));
                             }
 
                         bw.Flush();

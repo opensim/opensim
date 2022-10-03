@@ -115,21 +115,21 @@ namespace OpenSim.Framework
             if (Utils.ApproxEqual(al, 0, 1e-3f) || Utils.ApproxEqual(Math.Abs(al), Utils.TWO_PI, 1e-3f))
             {
                 az *= 0.5f;
-                return new Quaternion(0, 0, (float)Math.Sin(az), (float)Math.Cos(az));
+                return new Quaternion(0, 0, MathF.Sin(az), MathF.Cos(az));
             }
 
             if (Utils.ApproxEqual(az, 0, 1e-3f) || Utils.ApproxEqual(Math.Abs(az), Utils.TWO_PI, 1e-3f))
             {
                 al *= 0.5f;
-                return new Quaternion(0, -(float)Math.Sin(al), 0, (float)Math.Cos(al));
+                return new Quaternion(0, -MathF.Sin(al), 0, MathF.Cos(al));
             }
 
             az *= 0.5f;
-            float sz = (float)Math.Sin(az);
-            float cz = (float)Math.Cos(az);
+            float sz = MathF.Sin(az);
+            float cz = MathF.Cos(az);
             al *= 0.5f;
-            float sl = (float)Math.Sin(al);
-            float cl = (float)Math.Cos(al);
+            float sl = MathF.Sin(al);
+            float cl = MathF.Cos(al);
 
             Quaternion rot = new Quaternion(sl * sz, -sl * cz, cl * sz, cl * cz);
             rot.Normalize();
@@ -142,7 +142,7 @@ namespace OpenSim.Framework
             float al = sun_angle;
 
             sky.sun_rotation = AzAlToRot(az, al);
-            sky.moon_rotation = AzAlToRot(az, al + (float)Math.PI);
+            sky.moon_rotation = AzAlToRot(az, al + MathF.PI);
         }
 
         public static Vector3 Xrot(Quaternion rot)
@@ -162,17 +162,16 @@ namespace OpenSim.Framework
             else if (v.Z > -0.12)
             {
                 float m = v.Y * v.Y + v.Z * v.Z;
-                m = 1/(float)Math.Sqrt(m);
+                m = 1.0f / MathF.Sqrt(m);
                 lightnorm = new Vector4(v.Y * m, 0, v.X * m, 1);
             }
             else
                 lightnorm = new Vector4(-v.Y, -v.Z, -v.X, 1);
 
-            sun_angle = (float)Math.Asin(v.Z);
-            east_angle = -(float)Math.Atan2(v.Y, v.X);
+            sun_angle = MathF.Asin(v.Z);
+            east_angle = -MathF.Atan2(v.Y, v.X);
 
-
-            if (Math.Abs(east_angle) < 1e-6)
+            if (MathF.Abs(east_angle) < 1e-6f)
                 east_angle = 0;
             else if (east_angle < 0)
                 east_angle = Utils.TWO_PI + east_angle;
@@ -185,7 +184,7 @@ namespace OpenSim.Framework
                 sun_angle = Utils.PI - sun_angle;
             }
             */
-            if (Math.Abs(sun_angle) < 1e-6)
+            if (MathF.Abs(sun_angle) < 1e-6f)
                 sun_angle = 0;
             else if (sun_angle < 0)
                 sun_angle = Utils.TWO_PI + sun_angle;
@@ -197,7 +196,7 @@ namespace OpenSim.Framework
             WaterData water = new WaterData();
 
             water.waterFogColor = ls.waterColor / 256f;
-            water.waterFogDensity = (float)Math.Pow(2.0f, ls.waterFogDensityExponent);
+            water.waterFogDensity = MathF.Pow(2.0f, ls.waterFogDensityExponent);
             //water.waterFogDensity = ls.waterFogDensityExponent;
             water.underWaterFogMod = ls.underwaterFogModifier;
             water.normScale = ls.reflectionWaveletScale;
@@ -212,7 +211,7 @@ namespace OpenSim.Framework
             water.Name = "LightshareWater";
 
             SkyData sky = new SkyData();
-            convertFromAngles(sky, 2.0f * (float)Math.PI * ls.sunMoonPosition, 2.0f * (float)Math.PI * ls.eastAngle);
+            convertFromAngles(sky, Utils.TWO_PI * ls.sunMoonPosition, Utils.TWO_PI * ls.eastAngle);
             sky.sunlight_color = ls.sunMoonColor * 3.0f;
             sky.ambient = new Vector3(ls.ambient.X * 3.0f, ls.ambient.Y * 3.0f, ls.ambient.Z * 3.0f);
             sky.blue_horizon = new Vector3(ls.horizon.X * 2.0f, ls.horizon.Y * 2.0f, ls.horizon.Z * 2.0f);
@@ -261,7 +260,7 @@ namespace OpenSim.Framework
                 if (Cycle.waterframes.TryGetValue(te.frameName, out WaterData water))
                 {
                     ls.waterColor = water.waterFogColor * 256f;
-                    ls.waterFogDensityExponent = (float)Math.Sqrt(water.waterFogDensity);
+                    ls.waterFogDensityExponent = MathF.Sqrt(water.waterFogDensity);
                     //ls.waterFogDensityExponent = water.waterFogDensity;
                     ls.underwaterFogModifier = water.underWaterFogMod;
                     ls.reflectionWaveletScale = water.normScale;
@@ -283,8 +282,8 @@ namespace OpenSim.Framework
                 {
                     Vector4 lightnorm;
                     convertToAngles(sky, out ls.sunMoonPosition, out ls.eastAngle, out lightnorm);
-                    ls.sunMoonPosition *= 0.5f / (float)Math.PI;
-                    ls.eastAngle *= 0.5f / (float)Math.PI;
+                    ls.sunMoonPosition *= 0.5f / MathF.PI;
+                    ls.eastAngle *= 0.5f / MathF.PI;
                     ls.sunMoonColor = sky.sunlight_color / 3f;
                     ls.ambient = new Vector4(sky.ambient.X / 3.0f, sky.ambient.Y / 3.0f, sky.ambient.Z / 3.0f, 1);
                     ls.horizon = new Vector4(sky.blue_horizon.X / 2.0f, sky.blue_horizon.Y / 2.0f, sky.blue_horizon.Z / 2.0f, 1);

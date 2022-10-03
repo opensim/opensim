@@ -6757,11 +6757,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             float a, b;
 
-            a = Math.Abs(v.X);
-            b = Math.Abs(v.Y);
+            a = MathF.Abs(v.X);
+            b = MathF.Abs(v.Y);
             if (b > a)
                 a = b;
-            b = Math.Abs(v.Z);
+            b = MathF.Abs(v.Z);
             if (b > a)
                 a = b;
 
@@ -7073,7 +7073,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    a = 1.0f / (float)Math.Sqrt(a);
+                    a = 1.0f / MathF.Sqrt(a);
                     Utils.FloatToUInt16Bytes(rz * a, 1.0f, data, pos); pos += 2;
                     Utils.FloatToUInt16Bytes(rw * a, 1.0f, data, pos); pos += 2;
                 }
@@ -7138,7 +7138,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    a = 1.0f / (float)Math.Sqrt(a);
+                    a = 1.0f / MathF.Sqrt(a);
                     Utils.UInt16ToBytes(Utils.FloatToUnitUInt16(rz * a), data); data += 2;
                     Utils.UInt16ToBytes(Utils.FloatToUnitUInt16(rw * a), data); data += 2;
                 }
@@ -8500,11 +8500,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 || (x.ControlFlags & ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FINISH_ANIM) != (uint)AgentManager.ControlFlags.NONE
                 || (x.Flags != m_thisAgentUpdateArgs.Flags)                 // significant if Flags changed
                 || (x.State != m_thisAgentUpdateArgs.State)                 // significant if Stats changed
-                || (Math.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32)      // significant if far distance changed
+                || (MathF.Abs(x.Far - m_thisAgentUpdateArgs.Far) >= 32f)      // significant if far distance changed
                 )
                 return true;
 
-            float qdelta = Math.Abs(x.BodyRotation.Dot(m_thisAgentUpdateArgs.BodyRotation));
+            float qdelta = MathF.Abs(x.BodyRotation.Dot(m_thisAgentUpdateArgs.BodyRotation));
             return qdelta < QDELTABody; // significant if body rotation above(below cos) threshold
         }
 
@@ -8516,15 +8516,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name='x'></param>
         private bool CheckAgentCameraUpdateSignificance(AgentUpdatePacket.AgentDataBlock x)
         {
-             return (Math.Abs(x.CameraCenter.X - m_thisAgentUpdateArgs.CameraCenter.X) > VDELTA ||
-                     Math.Abs(x.CameraCenter.Y - m_thisAgentUpdateArgs.CameraCenter.Y) > VDELTA ||
-                     Math.Abs(x.CameraCenter.Z - m_thisAgentUpdateArgs.CameraCenter.Z) > VDELTA ||
+             return (MathF.Abs(x.CameraCenter.X - m_thisAgentUpdateArgs.CameraCenter.X) > VDELTA ||
+                     MathF.Abs(x.CameraCenter.Y - m_thisAgentUpdateArgs.CameraCenter.Y) > VDELTA ||
+                     MathF.Abs(x.CameraCenter.Z - m_thisAgentUpdateArgs.CameraCenter.Z) > VDELTA ||
 
-                     Math.Abs(x.CameraAtAxis.X - m_thisAgentUpdateArgs.CameraAtAxis.X) > VDELTA ||
-                     Math.Abs(x.CameraAtAxis.Y - m_thisAgentUpdateArgs.CameraAtAxis.Y) > VDELTA ||
+                     MathF.Abs(x.CameraAtAxis.X - m_thisAgentUpdateArgs.CameraAtAxis.X) > VDELTA ||
+                     MathF.Abs(x.CameraAtAxis.Y - m_thisAgentUpdateArgs.CameraAtAxis.Y) > VDELTA ||
 
-                     Math.Abs(x.CameraUpAxis.X - m_thisAgentUpdateArgs.CameraUpAxis.X) > VDELTA ||
-                     Math.Abs(x.CameraUpAxis.Y - m_thisAgentUpdateArgs.CameraUpAxis.Y) > VDELTA
+                     MathF.Abs(x.CameraUpAxis.X - m_thisAgentUpdateArgs.CameraUpAxis.X) > VDELTA ||
+                     MathF.Abs(x.CameraUpAxis.Y - m_thisAgentUpdateArgs.CameraUpAxis.Y) > VDELTA
             );
          }
 
@@ -10884,8 +10884,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             ParcelPropertiesRequestPacket.ParcelDataBlock pdb = propertiesRequest.ParcelData;
-            OnParcelPropertiesRequest?.Invoke((int)Math.Round(pdb.West), (int)Math.Round(pdb.South),
-                                              (int)Math.Round(pdb.East), (int)Math.Round(pdb.North),
+            OnParcelPropertiesRequest?.Invoke((int)MathF.Round(pdb.West), (int)MathF.Round(pdb.South),
+                                              (int)MathF.Round(pdb.East), (int)MathF.Round(pdb.North),
                                               pdb.SequenceID, pdb.SnapSelection, this);
         }
 
@@ -10895,10 +10895,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (landDivide.AgentData.SessionID.NotEqual(m_sessionId) || landDivide.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-            OnParcelDivideRequest?.Invoke((int)Math.Round(landDivide.ParcelData.West),
-                                           (int)Math.Round(landDivide.ParcelData.South),
+            OnParcelDivideRequest?.Invoke((int)MathF.Round(landDivide.ParcelData.West),
+                                           (int)MathF.Round(landDivide.ParcelData.South),
                                            (int)Math.Round(landDivide.ParcelData.East),
-                                           (int)Math.Round(landDivide.ParcelData.North), this);
+                                           (int)MathF.Round(landDivide.ParcelData.North), this);
         }
 
         private void HandleParcelJoin(Packet Pack)
@@ -10907,10 +10907,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (landJoin.AgentData.SessionID.NotEqual(m_sessionId) || landJoin.AgentData.AgentID.NotEqual(m_agentId))
                 return;
 
-            OnParcelJoinRequest?.Invoke((int)Math.Round(landJoin.ParcelData.West),
-                                         (int)Math.Round(landJoin.ParcelData.South),
-                                         (int)Math.Round(landJoin.ParcelData.East),
-                                         (int)Math.Round(landJoin.ParcelData.North), this);
+            OnParcelJoinRequest?.Invoke((int)MathF.Round(landJoin.ParcelData.West),
+                                         (int)MathF.Round(landJoin.ParcelData.South),
+                                         (int)MathF.Round(landJoin.ParcelData.East),
+                                         (int)MathF.Round(landJoin.ParcelData.North), this);
         }
 
         private void HandleParcelPropertiesUpdate(Packet Pack)

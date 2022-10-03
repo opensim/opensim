@@ -611,7 +611,7 @@ namespace OpenSim
                 return;
             }
 
-            float angle = (float)(Convert.ToSingle(args[2]) / 180.0 * Math.PI);
+            float angle = Convert.ToSingle(args[2]) / 180.0f * MathF.PI;
             OpenMetaverse.Quaternion rot = OpenMetaverse.Quaternion.CreateFromAxisAngle(0, 0, 1, angle);
 
             if (args.Length > 4)

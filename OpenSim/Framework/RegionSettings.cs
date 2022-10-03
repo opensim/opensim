@@ -54,10 +54,10 @@ namespace OpenSim.Framework
             Vector3 dir = Vector3.Normalize(offset);
 
             // Get the bearing (yaw)
-            Yaw = (float)Math.Atan2(dir.Y, dir.X);
+            Yaw = MathF.Atan2(dir.Y, dir.X);
 
             // Get the elevation (pitch)
-            Pitch = (float)-Math.Atan2(dir.Z, Math.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
+            Pitch = -MathF.Atan2(dir.Z, MathF.Sqrt(dir.X * dir.X + dir.Y * dir.Y));
         }
 
         public Vector3 GetLocation(Vector3 pos, Quaternion rot)
