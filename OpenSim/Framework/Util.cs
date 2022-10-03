@@ -2332,7 +2332,7 @@ namespace OpenSim.Framework
 
         public static string GetRuntimeInformation()
         {
-            return Environment.OSVersion.Platform switch
+            return RuntimeInformation.ProcessArchitecture.ToString() + "/" + Environment.OSVersion.Platform switch
             {
                 PlatformID.MacOSX => "OSX/DotNet",
                 PlatformID.Unix => "Unix/DotNet",

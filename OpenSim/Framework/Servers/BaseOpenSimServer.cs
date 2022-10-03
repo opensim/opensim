@@ -49,6 +49,7 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using Timer=System.Timers.Timer;
 using Nini.Config;
+using System.Runtime.InteropServices;
 
 namespace OpenSim.Framework.Servers
 {
@@ -184,21 +185,12 @@ namespace OpenSim.Framework.Servers
         {
             m_log.Info("[STARTUP]: Beginning startup processing");
 
-            m_log.Info("[STARTUP]: version: " + m_version + Environment.NewLine);
-            // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
-            // the clr version number doesn't match the project version number under Mono.
-            //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
-            m_log.InfoFormat(
-                "[STARTUP]: Operating system version: {0}, .NET platform {1}, {2}-bit\n",
-                Environment.OSVersion, Environment.OSVersion.Platform, Environment.Is64BitProcess ? "64" : "32");
-
-            // next code can be changed on .net 4.7.x
-            if(Util.IsWindows())
-                m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1})",
-                    System.Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine),
-                    BitConverter.IsLittleEndian ?"le":"be");
-
-            // on other platforms we need to wait for .net4.7.1
+            m_log.Info("[STARTUP]: version: " + m_version);
+            m_log.InfoFormat("[STARTUP]: Operating system version: {0}, .NET platform {1}, Runtime {2}",
+                    Environment.OSVersion, Environment.OSVersion.Platform, Environment.Version.ToString());
+            m_log.InfoFormat("[STARTUP]: Processor Architecture: {0}({1} {2}bit)",
+                    RuntimeInformation.ProcessArchitecture.ToString(),
+                    BitConverter.IsLittleEndian ?"le":"be", Environment.Is64BitProcess ? "64" : "32");
             try
             {
                 StartupSpecific();
