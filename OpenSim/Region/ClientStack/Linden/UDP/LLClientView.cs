@@ -13455,7 +13455,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 iface = (T)o;
                 return true;
             }
-            iface = default(T);
+            iface = default;
             return false;
         }
 
