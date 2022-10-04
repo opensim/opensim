@@ -12,28 +12,23 @@ If it breaks, you get to keep *both* pieces.
 
 # Compiling OpenSim
 
-Please see BUILDING.md if you downloaded a source distribution and 
-need to build OpenSim before running it.
+Please see BUILDING.md
 
 # Running OpenSim on Windows
 
-You will need .NET 4.0 for versions up to 0.9.0.1 and .NET 4.6 for others.
+You will need dotnet 6.0 runtime (https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-We recommend that you run OpenSim from a command prompt on Windows in order
-to capture any errors.
 
 To run OpenSim from a command prompt
 
  * cd to the bin/ directory where you unpacked OpenSim
  * review and change configuration files (.ini) for your needs. see the "Configuring OpenSim" section
- * run OpenSim.exe or opensim32.exe for small regions
+ * run OpenSim.exe
 
 
-# Running OpenSim on Linux
+# Running OpenSim on Linux/Mac
 
-You will need Mono >= 2.10.8.1 up to version 0.9.0.1 and mono > 5.0 on others.  On some Linux distributions you
-may need to install additional packages.  See http://opensimulator.org/wiki/Dependencies
-for more information.
+You will need dotnet 6.0 runtime for linux or Mac (https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 To run OpenSim, from the unpacked distribution type:
 
@@ -101,9 +96,7 @@ mantis"). Useful information to include:
  * stack trace
  * OpenSim.log (attach as file)
  * OpenSim.ini (attach as file)
- * if running under mono: run OpenSim.exe with the "--debug" flag:
 
-       mono --debug OpenSim.exe
 
 # More Information on OpenSim
 
