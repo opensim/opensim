@@ -200,12 +200,6 @@ namespace OpenSim.Framework.Servers
                 m_log.Fatal("Fatal error: " + e.ToString());
                 Environment.Exit(1);
             }
-
-            //TimeSpan timeTaken = DateTime.Now - m_startuptime;
-
-//            MainConsole.Instance.OutputFormat(
-//                "PLEASE WAIT FOR LOGINS TO BE ENABLED ON REGIONS ONCE SCRIPTS HAVE STARTED.  Non-script portion of startup took {0}m {1}s.",
-//                timeTaken.Minutes, timeTaken.Seconds);
         }
 
         public string osSecret

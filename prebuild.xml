@@ -19,7 +19,6 @@
 		<UseCommonOutputDirectory>true</UseCommonOutputDirectory>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <EnableDefaultItems>false</EnableDefaultItems>
       </Options>
     </Configuration>
     <Configuration name="Release">
@@ -38,7 +37,6 @@
 		<UseCommonOutputDirectory>true</UseCommonOutputDirectory>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <EnableDefaultItems>false</EnableDefaultItems>
       </Options>
     </Configuration>
  
@@ -53,13 +51,6 @@
           <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
-
-      <ReferencePath>../../bin/</ReferencePath>
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework" path="OpenSim/Framework" type="Library">
@@ -118,13 +109,6 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer" path ="../../../bin"/>
       <Reference name="Nini" path ="../../../bin"/>
       <Reference name="log4net" path ="../../../bin"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework.Monitoring" path="OpenSim/Framework/Monitoring" type="Library">
@@ -146,12 +130,6 @@
       <Reference name="OpenMetaverse" path ="../../../bin"/>
       <Reference name="OpenMetaverse.StructuredData" path ="../../../bin"/>
       <Reference name="OpenSim.Framework" path ="../../../bin"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework.Servers.HttpServer" path="OpenSim/Framework/Servers/HttpServer" type="Library">
@@ -175,11 +153,6 @@
       <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="SmartThreadPool" path ="../../../../bin"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework.Console" path="OpenSim/Framework/Console" type="Library">
@@ -200,11 +173,6 @@
       <Reference name="OpenSim.Framework" path ="../../../bin"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer" path ="../../../bin"/>
       <Reference name="OpenMetaverseTypes" path ="../../../bin"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework.Serialization" path="OpenSim/Framework/Serialization" type="Library">
@@ -279,11 +247,6 @@
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Framework.Servers" path="OpenSim/Framework/Servers" type="Library">
@@ -368,10 +331,6 @@
       <Reference name="nunit.framework" path="../../../../bin/"/>
       <Reference name="Nini"/>
       <Reference name="log4net" path="../../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false"/>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Region.Framework" path="OpenSim/Region/Framework" type="Library">
@@ -442,11 +401,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.Base" path="OpenSim/Services/Base" type="Library">
@@ -470,11 +424,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.UserAccountService" path="OpenSim/Services/UserAccountService" type="Library">
@@ -501,11 +450,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.FriendsService" path="OpenSim/Services/Friends" type="Library">
@@ -532,11 +476,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.Connectors" path="OpenSim/Services/Connectors" type="Library">
@@ -571,11 +510,6 @@
       <Reference name="log4net"/>
       <Reference name="XMLRPC"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.SimulationService" path="OpenSim/Services/SimulationService" type="Library">
@@ -603,11 +537,6 @@
       <Reference name="log4net"/>
       <Reference name="XMLRPC"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.AssetService" path="OpenSim/Services/AssetService" type="Library">
@@ -636,11 +565,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.FSAssetService" path="OpenSim/Services/FSAssetService" type="Library">
@@ -670,11 +594,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.AuthorizationService" path="OpenSim/Services/AuthorizationService" type="Library">
@@ -702,11 +621,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.FreeswitchService" path="OpenSim/Services/FreeswitchService" type="Library">
@@ -735,11 +649,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.AuthenticationService" path="OpenSim/Services/AuthenticationService" type="Library">
@@ -769,11 +678,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.GridService" path="OpenSim/Services/GridService" type="Library">
@@ -802,11 +706,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.EstateService" path="OpenSim/Services/EstateService" type="Library">
@@ -831,11 +730,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.PresenceService" path="OpenSim/Services/PresenceService" type="Library">
@@ -863,11 +757,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.AvatarService" path="OpenSim/Services/AvatarService" type="Library">
@@ -895,11 +784,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.InventoryService" path="OpenSim/Services/InventoryService" type="Library">
@@ -1000,11 +884,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.MapImageService" path="OpenSim/Services/MapImageService" type="Library">
@@ -1031,11 +910,6 @@
       <Reference name="log4net"/>
       <Reference name="System.Drawing.Common"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.MuteListService" path="OpenSim/Services/MuteListService" type="Library">
@@ -1060,11 +934,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Services.UserProfilesService" path="OpenSim/Services/UserProfilesService" type="Library">
@@ -1095,11 +964,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
  
     <Project name="OpenSim.Server.Handlers" path="OpenSim/Server/Handlers" type="Library">
@@ -1572,11 +1436,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet" path="OpenSim/Region/PhysicsModules/ConvexDecompositionDotNet" type="Library">
@@ -1629,11 +1488,6 @@
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <!-- Physics Plug-ins -->
@@ -1656,11 +1510,6 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Region.PhysicsModule.POS" path="OpenSim/Region/PhysicsModules/POS" type="Library">
@@ -1682,11 +1531,7 @@
       <Reference name="OpenSim.Region.PhysicsModules.SharedBase"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Mono.Addins" path="../../../../bin/"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
+
     </Project>
 
     <Project name="OpenSim.Region.PhysicsModule.Ode" path="OpenSim/Region/PhysicsModules/Ode" type="Library">
@@ -1778,11 +1623,6 @@
       <Reference name="Mono.Addins" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Region.PhysicsModule.BulletS" path="OpenSim/Region/PhysicsModules/BulletS" type="Library">
@@ -1859,11 +1699,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.ApplicationPlugins.LoadRegions" path="OpenSim/ApplicationPlugins/LoadRegions" type="Library">
@@ -2060,11 +1895,6 @@
       <Reference name="log4net" path="../../../../../../bin/"/>
       <Reference name="SmartThreadPool"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
 
@@ -2100,14 +1930,6 @@
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="System.Drawing.Common"/>
 
-      <Files>
-        <Match pattern="MMR*.cs" recurse="true">
-             <Exclude name="obj" pattern="obj"/>
-        </Match>
-        <Match pattern="XMR*.cs" recurse="true">
-             <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
 </Project>
    
     
@@ -2221,11 +2043,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Tools.lslc" path="OpenSim/Tools/Compiler" type="Exe">
@@ -2249,11 +2066,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <Project name="OpenSim.Tools.Configger" path="OpenSim/Tools/Configger" type="Exe">
@@ -2273,11 +2085,6 @@
       <Reference name="Nini"/>
       <Reference name="log4net"/>
 
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-         <Exclude name="obj" pattern="obj"/>
-        </Match>
-      </Files>
     </Project>
 
     <!-- Test Clients -->
