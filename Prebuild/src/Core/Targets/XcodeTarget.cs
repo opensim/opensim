@@ -342,14 +342,14 @@ namespace Prebuild.Core.Targets
                     ss.WriteLine("            </summaries>");
                     ss.WriteLine("            <referencepaths basedir=\"${project::get-base-directory()}\">");
                     ss.WriteLine("                <include name=\"${build.dir}\" />");
-                    //					foreach(ReferenceNode refr in project.References)
-                    //					{
-                    //						string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReferencePath(solution, refr)), '/');
-                    //						if (path != "")
-                    //						{
-                    //							ss.WriteLine("                <include name=\"{0}\" />", path);
-                    //						}
-                    //					}
+                    //foreach(ReferenceNode refr in project.References)
+                    //{
+                    //   string path = Helper.NormalizePath(Helper.MakePathRelativeTo(project.FullPath, BuildReferencePath(solution, refr)), '/');
+                    //   if (path != "")
+                    //   {
+                    //       ss.WriteLine("                <include name=\"{0}\" />", path);
+                    //    }
+                    //}
                     ss.WriteLine("            </referencepaths>");
                     ss.WriteLine("            <documenters>");
                     ss.WriteLine("                <documenter name=\"MSDN\">");
