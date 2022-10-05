@@ -46,7 +46,7 @@ namespace OpenSim.Framework
                 if (index >= 0)
                     bitArray[index] = true;
                 else
-                    m_log.WarnFormat("[Asset Permissions]: Invalid AssetType {0}", s);
+                    m_log.Warn($"[Asset Permissions]: Invalid AssetType {s}");
             }
 
         }
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
             int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
             if (index >= 0 && m_DisallowExport[index])
             {
-                m_log.DebugFormat("[Asset Permissions]: Export denied: configuration does not allow export of AssetType {0}", assetTypeName);
+                m_log.Debug($"[Asset Permissions]: Export denied: configuration does not allow export of AssetType {assetTypeName}");
                 return false;
             }
 
@@ -72,7 +72,7 @@ namespace OpenSim.Framework
             int index = Array.IndexOf(m_AssetTypeNames, assetTypeName.ToLower());
             if (index >= 0 && m_DisallowImport[index])
             {
-                m_log.DebugFormat("[Asset Permissions]: Import denied: configuration does not allow import of AssetType {0}", assetTypeName);
+                m_log.Debug($"[Asset Permissions]: Import denied: configuration does not allow import of AssetType {assetTypeName}");
                 return false;
             }
 

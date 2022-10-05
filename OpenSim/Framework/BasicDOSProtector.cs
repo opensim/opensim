@@ -84,8 +84,7 @@ namespace OpenSim.Framework
                 }
                 foreach (string str in removes)
                 {
-                    m_log.InfoFormat("[{0}] client: {1} is no longer blocked.",
-                                     _options.ReportingName, str);
+                    m_log.Info($"[{_options.ReportingName}] client: {str} is no longer blocked.");
                 }
                 _blockLockSlim.EnterReadLock();
                 if (_tempBlocked.Count > 0)
@@ -160,7 +159,7 @@ namespace OpenSim.Framework
                                              Util.EnvironmentTickCount() +
                                              (int) _options.ForgetTimeSpan.TotalMilliseconds);
                             _forgetTimer.Enabled = true;
-                            m_log.WarnFormat("[{0}]: client: {1} is blocked for {2} milliseconds based on concurrency, X-ForwardedForAllowed status is {3}, endpoint:{4}", _options.ReportingName, clientstring, _options.ForgetTimeSpan.TotalMilliseconds, _options.AllowXForwardedFor, endpoint);
+                            m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms based on concurrency, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{_options.AllowXForwardedFor}");
 
                         }
                         else
@@ -241,8 +240,7 @@ namespace OpenSim.Framework
                             _tempBlocked[clientstring] = Util.EnvironmentTickCount() + (int)_options.ForgetTimeSpan.TotalMilliseconds;
                         _blockLockSlim.ExitWriteLock();
 
-                        m_log.WarnFormat("[{0}]: client: {1} is blocked for {2} milliseconds, X-ForwardedForAllowed status is {3}, endpoint:{4}", _options.ReportingName, clientstring, _options.ForgetTimeSpan.TotalMilliseconds, _options.AllowXForwardedFor, endpoint);
-
+                        m_log.Warn($"[{_options.ReportingName}]: client: {clientstring} is blocked for {_options.ForgetTimeSpan.TotalMilliseconds}ms, X-ForwardedForAllowed status is {_options.AllowXForwardedFor}, endpoint:{endpoint}");
                         return false;
                     }
                     //else

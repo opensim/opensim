@@ -27,11 +27,11 @@
 
 using System;
 using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
+using System.Text;
 
 namespace OpenSim.Framework
 {
@@ -487,27 +487,29 @@ namespace OpenSim.Framework
 // DEBUG ON
         public override String ToString()
         {
-            String s = "";
-
-            s += String.Format("Serial: {0}\n",m_serial);
+            StringBuilder sb = new();
+            sb.AppendLine($"Serial: {m_serial}");
 
             for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
                 if (m_texture.FaceTextures[i] != null)
-                    s += String.Format("Texture: {0} --> {1}\n",i,m_texture.FaceTextures[i].TextureID);
+                    sb.AppendLine($"Texture: {i} --> {m_texture.FaceTextures[i].TextureID}");
 
             foreach (AvatarWearable awear in m_wearables)
             {
                 for (int i = 0; i < awear.Count; i++)
-                    s += String.Format("Wearable: item={0}, asset={1}\n",awear[i].ItemID,awear[i].AssetID);
+                    sb.AppendLine($"Wearable: item={awear[i].ItemID}, asset={awear[i].AssetID}");
             }
 
-            s += "Visual Params: ";
-            //            for (uint j = 0; j < AvatarAppearance.VISUALPARAM_COUNT; j++)
+            sb.Append("Visual Params: ");
+            //for (uint j = 0; j < AvatarAppearance.VISUALPARAM_COUNT; j++)
             for (uint j = 0; j < m_visualparams.Length; j++)
-                s += String.Format("{0},",m_visualparams[j]);
-            s += "\n";
+            {
+                sb.Append(m_visualparams[j]);
+                sb.Append(',');
+            }
+            sb.Append('\n');
 
-            return s;
+            return sb.ToString();
         }
 // DEBUG OFF
 
@@ -609,10 +611,7 @@ namespace OpenSim.Framework
 
                     if (!existingAttachment.AssetID.IsZero() && existingAttachment.AttachPoint == (attachpoint & 0x7F))
                     {
-                        m_log.DebugFormat(
-                            "[AVATAR APPEARANCE]: Ignoring attempt to attach an already attached item {0} at point {1}",
-                            item, attachpoint);
-
+                        m_log.Debug($"[AVATAR APPEARANCE]: Ignoring attach of an already attached item {item} at point {attachpoint}");
                         return false;
                     }
                     else
