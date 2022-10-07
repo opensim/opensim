@@ -3781,7 +3781,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
                 //aceleration to force +  constant force + acc
                 fx = m_mass * fx + m_force.X + m_forceacc.X;
-                fy = m_mass * fy + m_force.Z + m_forceacc.Y;
+                fy = m_mass * fy + m_force.Y + m_forceacc.Y;
                 fz = m_mass * fz + m_force.Z + m_forceacc.Z;
 
                 m_forceacc = Vector3.Zero;
