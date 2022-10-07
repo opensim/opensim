@@ -395,7 +395,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
-            if (pa is not null && pa.IsPhysical && !vel.IsZero())
+            if (pa is not null && pa.IsPhysical && vel.IsNotZero())
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
             }
@@ -671,7 +671,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleUndo(IClientAPI remoteClient, UUID primId)
         {
-            if (!primId.IsZero())
+            if (primId.IsNotZero())
             {
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
                 part?.Undo();
@@ -680,7 +680,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
-            if (!primId.IsZero())
+            if (primId.IsNotZero())
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
                 part?.Redo();
