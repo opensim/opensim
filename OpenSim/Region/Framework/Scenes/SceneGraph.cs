@@ -1279,7 +1279,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
                     continue;
-                if (sop.Name.Equals(name));
+                if (sop.Name.Equals(name))
                     return sop;
             }
             return null;
