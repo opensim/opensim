@@ -123,7 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (_PhyScene == null)
+                if (_PhyScene is null)
                     _PhyScene = m_parentScene.RequestModuleInterface<PhysicsScene>();
                 return _PhyScene;
             }
@@ -132,12 +132,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // If we're not doing the initial set
                 // Then we've got to remove the previous
                 // event handler
-                if (_PhyScene != null)
+                if (_PhyScene is not null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
 
                 _PhyScene = value;
 
-                if (_PhyScene != null)
+                if (_PhyScene is not null)
                     _PhyScene.OnPhysicsCrash += physicsBasedCrash;
             }
         }
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scenePartsArray = null;
                 m_scenePartsByID = new Dictionary<UUID, SceneObjectPart>();
                 m_scenePartsByLocalID = new Dictionary<uint, SceneObjectPart>();
-                if (_PhyScene != null)
+                if (_PhyScene is not null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
                 _PhyScene = null;
             }
@@ -223,15 +223,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected internal float UpdatePhysics(double elapsed)
         {
-            if (PhysicsScene != null)
-                return PhysicsScene.Simulate((float)elapsed);
-            return 0;
+            return PhysicsScene is null ? 0 : PhysicsScene.Simulate((float)elapsed);
         }
 
         protected internal void ProcessPhysicsPreSimulation()
         {
-            if(PhysicsScene != null)
-                PhysicsScene.ProcessPreSimulation();
+            PhysicsScene?.ProcessPreSimulation();
         }
 
         public void GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, uint maxLocations)
@@ -384,10 +381,10 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
-            if (pos != null)
+            if (pos is not null)
                 sceneObject.AbsolutePosition = (Vector3)pos;
 
-            if (rot != null)
+            if (rot is not null)
                 sceneObject.UpdateGroupRotationR((Quaternion)rot);
 
             AddNewSceneObject(sceneObject, attachToBackup, false);
@@ -398,7 +395,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             PhysicsActor pa = sceneObject.RootPart.PhysActor;
-            if (pa != null && pa.IsPhysical && !vel.IsZero())
+            if (pa is not null && pa.IsPhysical && !vel.IsZero())
             {
                 sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
             }
@@ -427,26 +424,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            if (sceneObject == null)
+            if (sceneObject is null)
             {
-                m_log.ErrorFormat("[SCENEGRAPH]: Tried to add null scene object");
+                m_log.Error("[SCENEGRAPH]: Tried to add null scene object");
                 return false;
             }
             if (sceneObject.UUID.IsZero())
             {
-                m_log.ErrorFormat(
-                    "[SCENEGRAPH]: Tried to add scene object {0} to {1} with illegal UUID of {2}",
-                    sceneObject.Name, m_parentScene.RegionInfo.RegionName, UUID.Zero);
-
+                m_log.Error(
+                    $"[SCENEGRAPH]: Tried to add scene object {sceneObject.Name} to {m_parentScene.RegionInfo.RegionName} with Zero UUID");
                 return false;
             }
 
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-                m_log.DebugFormat(
-                    "[SCENEGRAPH]: Scene graph for {0} already contains object {1} in AddSceneObject()",
-                    m_parentScene.RegionInfo.RegionName, sceneObject.UUID);
-
+                m_log.Debug(
+                    $"[SCENEGRAPH]: Scene graph for {m_parentScene.RegionInfo.RegionName} already contains object {sceneObject.UUID} in AddSceneObject()");
                 return false;
             }
 
@@ -527,10 +520,9 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE GRAPH]: Deleting scene object with uuid {0}, resultOfObjectLinked = {1}",
 //                uuid, resultOfObjectLinked);
 
-            if (!Entities.TryGetValue(uuid, out EntityBase entity) || (!(entity is SceneObjectGroup)))
+            if (!Entities.TryGetValue(uuid, out EntityBase entity) || (entity is not SceneObjectGroup grp))
                 return false;
 
-            SceneObjectGroup grp = (SceneObjectGroup)entity;
             SceneObjectPart[] parts = grp.Parts;
             int partsLength = parts.Length;
             SceneObjectPart part;
@@ -682,8 +674,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!primId.IsZero())
             {
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
-                if (part != null)
-                    part.Undo();
+                part?.Undo();
             }
         }
 
@@ -692,16 +683,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (!primId.IsZero())
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
-
-                if (part != null)
-                    part.Redo();
+                part?.Redo();
             }
         }
 
         protected internal ScenePresence CreateAndAddChildScenePresence(
                 IClientAPI client, AvatarAppearance appearance, PresenceType type)
         {
-            ScenePresence presence = new ScenePresence(client, m_parentScene, appearance, type);
+            ScenePresence presence = new(client, m_parentScene, appearance, type);
 
             bool entered = false;
             try
@@ -823,9 +812,8 @@ namespace OpenSim.Region.Framework.Scenes
             int rootnpccount = 0;
 
             List<ScenePresence> presences = GetScenePresences();
-            for (int i = 0; i < presences.Count; ++i)
+            foreach(ScenePresence sp in presences)
             {
-                ScenePresence sp = presences[i];
                 if (sp.IsChildAgent)
                     ++childcount;
                 else
@@ -951,7 +939,7 @@ namespace OpenSim.Region.Framework.Scenes
                     entered = true;
                 }
 
-                if(m_scenePresenceList == null)
+                if(m_scenePresenceList is null)
                     m_scenePresenceList = new List<ScenePresence>(m_scenePresenceMap.Values);
 
                 return m_scenePresenceList;
@@ -1080,7 +1068,7 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
                 }
             }
-            return (avatar != null);
+            return (avatar is not null);
         }
 
         /// <summary>
@@ -1168,12 +1156,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal List<SceneObjectGroup> GetSceneObjectGroups()
         {
             EntityBase[] entities = Entities.GetEntities();
-            List<SceneObjectGroup> ret = new List<SceneObjectGroup>(256);
+            List<SceneObjectGroup> ret = new(entities.Length);
 
-            for (int i = 0; i < entities.Length; ++i)
+            foreach(EntityBase et in entities)
             {
-                if(entities[i] is SceneObjectGroup)
-                    ret.Add(entities[i] as SceneObjectGroup);
+                if(et is SceneObjectGroup sog)
+                    ret.Add(sog);
             }
             return ret;
         }
@@ -1185,8 +1173,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no such group was found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(UUID fullID)
         {
-            if (Entities.TryGetValue(fullID, out EntityBase entity) && (entity is SceneObjectGroup))
-                return entity as SceneObjectGroup;
+            if (Entities.TryGetValue(fullID, out EntityBase entity) && (entity is SceneObjectGroup sog))
+                return sog;
             return null;
         }
 
@@ -1196,8 +1184,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if no such group was found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(uint localID)
         {
-            if (Entities.TryGetValue(localID, out EntityBase entity) && (entity is SceneObjectGroup))
-                return entity as SceneObjectGroup;
+            if (Entities.TryGetValue(localID, out EntityBase entity) && (entity is SceneObjectGroup sog))
+                return sog;
             return null;
         }
 
@@ -1209,13 +1197,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the part was not found</returns>
         protected internal SceneObjectGroup GetSceneObjectGroup(string name)
         {
-            EntityBase entity = null;
-            EntityBase[] entities = Entities.GetEntities();
-            for (int i = 0; i < entities.Length; ++i)
+            foreach(EntityBase entity in Entities.GetEntities())
             {
-                entity = entities[i];
-                if (entity is SceneObjectGroup && entity.Name == name)
-                    return (SceneObjectGroup)entity;
+                if (entity is SceneObjectGroup sog && entity.Name.Equals(name))
+                    return sog;
             }
             return null;
         }
@@ -1238,7 +1223,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_scenePartsByLocalID.TryGetValue(localID, out SceneObjectPart sop))
                 {
-                    if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
+                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
                         return null;
                     return sop;
                 }
@@ -1268,7 +1253,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_scenePartsByID.TryGetValue(fullID, out SceneObjectPart sop))
                 {
-                    if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
+                    if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
                         return null;
                     return sop;
                 }
@@ -1290,13 +1275,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal SceneObjectPart GetSceneObjectPart(string name)
         {
             SceneObjectPart[] parts = GetPartsArray();
-            SceneObjectPart sop;
-            for (int i = 0; i < parts.Length; ++i)
+            foreach (SceneObjectPart sop in parts)
             {
-                sop = parts[i];
-                if (sop.ParentGroup == null || sop.ParentGroup.IsDeleted)
+                if (sop.ParentGroup is null || sop.ParentGroup.IsDeleted)
                     continue;
-                if (sop.Name == name)
+                if (sop.Name.Equals(name));
                     return sop;
             }
             return null;
@@ -1313,7 +1296,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePartsLock.EnterWriteLock();
                     entered = true;
                 }
-                if(m_scenePartsArray == null)
+                if(m_scenePartsArray is null)
                 {
                     m_scenePartsArray = new SceneObjectPart[m_scenePartsByID.Count];
                     m_scenePartsByID.Values.CopyTo(m_scenePartsArray, 0);
@@ -1352,21 +1335,17 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             EntityBase[] entities = Entities.GetEntities();
-            EntityBase entity;
-            for (int i = 0; i < entities.Length; ++i)
+            foreach (EntityBase entity in entities)
             {
-                entity = entities[i];
-                if (entity is SceneObjectGroup)
+                if (entity is SceneObjectGroup sog)
                 {
                     try
                     {
-                        action((SceneObjectGroup)entity);
+                        action(sog);
                     }
                     catch (Exception e)
                     {
-                        // Catch it and move on. This includes situations where objlist has inconsistent info
-                        m_log.WarnFormat(
-                            "[SCENEGRAPH]: Problem processing action in ForEachSOG: {0} {1}", e.Message, e.StackTrace);
+                        m_log.Warn($"[SCENEGRAPH]: Problem processing action in ForEachSOG: {e.Message}");
                     }
                 }
             }
@@ -1380,18 +1359,18 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachRootScenePresence(Action<ScenePresence> action)
         {
             List<ScenePresence> presences = GetScenePresences();
-            for (int i = 0; i < presences.Count; ++i)
+            foreach (ScenePresence sp in presences)
             {
-                if(presences[i].IsChildAgent || presences[i].IsDeleted)
+                if(sp.IsChildAgent || sp.IsDeleted)
                     continue;
 
                 try
                 {
-                    action(presences[i]);
+                    action(sp);
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                    m_log.Error($"[SCENEGRAPH]: Error in {m_parentScene.RegionInfo.RegionName}: {e.Message}");
                 }
             };
         }
@@ -1403,17 +1382,17 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             List<ScenePresence> presences = GetScenePresences();
-            for(int i = 0; i < presences.Count; ++i)
+            foreach (ScenePresence sp in presences)
             {
-                if (presences[i].IsDeleted)
+                if (sp.IsDeleted)
                     continue;
                 try
                 {
-                    action(presences[i]);
+                    action(sp);
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                    m_log.Error($"[SCENEGRAPH]: Error in {m_parentScene.RegionInfo.RegionName}: {e.Message}");
                 }
             }
         }
@@ -1427,10 +1406,10 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetSceneObjectPart(localID);
             ObjectChangeData data = (ObjectChangeData)odata;
 
-            if (part != null)
+            if (part is not null)
             {
                 SceneObjectGroup grp = part.ParentGroup;
-                if (grp != null)
+                if (grp is not null)
                 {
                     if (m_parentScene.Permissions.CanEditObject(grp, remoteClient))
                     {
@@ -1442,7 +1421,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (data.change == ObjectChangeType.groupPS)
                             data.change = ObjectChangeType.primPS;
                         part.StoreUndoState(data.change); // lets test only saving what we changed
-                        grp.doChangeObject(part, (ObjectChangeData)data);
+                        grp.doChangeObject(part, data);
                     }
                     else
                     {
@@ -1459,7 +1438,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     data.change &= (ObjectChangeType.Group | ObjectChangeType.Position | ObjectChangeType.Rotation);
 
                                     part.StoreUndoState(data.change);
-                                    grp.doChangeObject(part, (ObjectChangeData)data);
+                                    grp.doChangeObject(part, data);
                                 }
                             }
                         }
@@ -1478,12 +1457,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
 
-            if (part != null)
+            if (part is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(part.ParentGroup, remoteClient))
                 {
                     bool physbuild = false;
-                    if (part.ParentGroup.RootPart.PhysActor != null)
+                    if (part.ParentGroup.RootPart.PhysActor is not null)
                     {
                         part.ParentGroup.RootPart.PhysActor.Building = true;
                         physbuild = true;
@@ -1500,12 +1479,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimGroupScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     bool physbuild = false;
-                    if (group.RootPart.PhysActor != null)
+                    if (group.RootPart.PhysActor is not null)
                     {
                         group.RootPart.PhysActor.Building = true;
                         physbuild = true;
@@ -1531,10 +1510,7 @@ namespace OpenSim.Region.Framework.Scenes
              IClientAPI remoteClient, UUID AgentID, uint RequestFlags, UUID ObjectID)
         {
             SceneObjectGroup group = GetGroupByPrim(ObjectID);
-            if (group != null)
-            {
-                group.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
-            }
+            group?.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
         }
 
         /// <summary>
@@ -1546,7 +1522,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
@@ -1564,7 +1540,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimSingleRotationPosition(uint localID, Quaternion rot, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
@@ -1582,7 +1558,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimGroupRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
@@ -1601,7 +1577,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanMoveObject(group, remoteClient))
                 {
@@ -1619,7 +1595,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimSinglePosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanMoveObject(group, remoteClient) || group.IsAttachment)
                 {
@@ -1638,7 +1614,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup group = GetGroupByPrim(localId);
 
-            if (group != null)
+            if (group is not null)
             {
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
@@ -1674,11 +1650,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            if(part == null)
+            if(part is null)
                 return;
 
             SceneObjectGroup group = part.ParentGroup;
-            if (group != null && !group.IsDeleted)
+            if (group is not null && !group.IsDeleted)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
@@ -1702,10 +1678,10 @@ namespace OpenSim.Region.Framework.Scenes
             uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, ExtraPhysicsData PhysData, IClientAPI remoteClient)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            if(part == null)
+            if(part is null)
                 return;
             SceneObjectGroup group = part.ParentGroup;
-            if(group == null || group.IsDeleted)
+            if(group is null || group.IsDeleted)
                 return;
 
             if (!m_parentScene.Permissions.CanEditObject(group, remoteClient))
@@ -1728,11 +1704,10 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 part.UpdateExtraPhysics(PhysData);
-                if (remoteClient != null)
-                    remoteClient.SendPartPhysicsProprieties(part);
+                remoteClient?.SendPartPhysicsProprieties(part);
             }
 
-            if (wantedPhys != group.UsesPhysics && remoteClient != null)
+            if (wantedPhys != group.UsesPhysics && remoteClient is not null)
             {
                 if(m_parentScene.m_linksetPhysCapacity != 0)
                     remoteClient.SendAlertMessage("Object physics cancelled because it exceeds limits for physical prims, either size or number of primswith shape type not set to None");
@@ -1751,7 +1726,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void PrimName(IClientAPI remoteClient, uint primLocalID, string name)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
@@ -1769,7 +1744,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void PrimDescription(IClientAPI remoteClient, uint primLocalID, string description)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
@@ -1787,16 +1762,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="clickAction"></param>
         protected internal void PrimClickAction(IClientAPI remoteClient, uint primLocalID, string clickAction)
         {
-//            m_log.DebugFormat(
-//                "[SCENEGRAPH]: User {0} set click action for {1} to {2}", remoteClient.Name, primLocalID, clickAction);
+            //m_log.DebugFormat(
+            //    "[SCENEGRAPH]: User {0} set click action for {1} to {2}", remoteClient.Name, primLocalID, clickAction);
 
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     SceneObjectPart part = group.GetPart(primLocalID);
-                    if (part != null)
+                    if (part is not null)
                     {
                         part.ClickAction = Convert.ToByte(clickAction);
                         group.HasGroupChanged = true;
@@ -1808,12 +1783,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void PrimMaterial(IClientAPI remoteClient, uint primLocalID, string material)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group, remoteClient))
                 {
                     SceneObjectPart part = group.GetPart(primLocalID);
-                    if (part != null)
+                    if (part is not null)
                     {
                         part.Material = Convert.ToByte(material);
                         group.HasGroupChanged = true;
@@ -1827,7 +1802,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
 
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, agentID))
                 {
@@ -1844,11 +1819,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void UpdatePrimShape(UUID agentID, uint primLocalID, UpdateShapeArgs shapeBlock)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
+            if (group is not null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, agentID))
                 {
-                    ObjectShapePacket.ObjectDataBlock shapeData = new ObjectShapePacket.ObjectDataBlock()
+                    ObjectShapePacket.ObjectDataBlock shapeData = new()
                     {
                         ObjectLocalID = shapeBlock.ObjectLocalID,
                         PathBegin = shapeBlock.PathBegin,
@@ -1883,14 +1858,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(SceneObjectPart root, List<SceneObjectPart> children)
         {
-            if (root.KeyframeMotion != null)
+            if (root.KeyframeMotion is not null)
             {
                 root.KeyframeMotion.Stop();
                 root.KeyframeMotion = null;
             }
 
             SceneObjectGroup parentGroup = root.ParentGroup;
-            if (parentGroup == null) return;
+            if (parentGroup is null) return;
 
             // Cowardly refuse to link to a group owned root
             if (parentGroup.OwnerID == parentGroup.GroupID)
@@ -1915,7 +1890,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // So that, on delink, no prims are unwittingly
                     // left for sale and sold off
 
-                    if (child != null)
+                    if (child is not null)
                     {
                         child.RootPart.ObjectSaleType = 0;
                         child.RootPart.SalePrice = 10;
@@ -1977,20 +1952,20 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in prims)
                 {
-                    if(part == null)
+                    if(part is null)
                         continue;
                     SceneObjectGroup parentSOG = part.ParentGroup;
-                    if(parentSOG == null || parentSOG.IsDeleted || parentSOG.inTransit || parentSOG.PrimCount == 1)
+                    if(parentSOG is null || parentSOG.IsDeleted || parentSOG.inTransit || parentSOG.PrimCount == 1)
                         continue;
 
                     if (!affectedGroups.Contains(parentSOG))
                     {
                         affectedGroups.Add(parentSOG);
-                        if(parentSOG.RootPart.PhysActor != null)
+                        if(parentSOG.RootPart.PhysActor is not null)
                             parentSOG.RootPart.PhysActor.Building = true;
                     }
 
-                    if (part.KeyframeMotion != null)
+                    if (part.KeyframeMotion is not null)
                     {
                         part.KeyframeMotion.Stop();
                         part.KeyframeMotion = null;
@@ -2066,7 +2041,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 foreach (SceneObjectGroup g in affectedGroups)
                 {
-                    if(g.RootPart.PhysActor != null)
+                    if(g.RootPart.PhysActor is not null)
                         g.RootPart.PhysActor.Building = false;
                     g.AdjustChildPrimPermissions(false);
                     // Child prims that have been unlinked and deleted will
@@ -2089,7 +2064,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void MakeObjectSearchable(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
         {
             SceneObjectGroup sog = GetGroupByPrim(localID);
-            if(sog == null)
+            if(sog is null)
                 return;
 
             //Protip: In my day, we didn't call them searchable objects, we called them limited point-to-point joints
@@ -2138,7 +2113,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                originalPrimID, offset, AgentID);
 
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
-            if (original != null)
+            if (original is not null)
             {
                 if (m_parentScene.Permissions.CanDuplicateObject(original, AgentID))
                 {
@@ -2215,7 +2190,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
+                m_log.Warn($"[SCENE]: Attempted to duplicate nonexistant prim id {GroupID}");
             }
 
             return null;
