@@ -84,8 +84,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public virtual void EnableSimulator(ulong handle, IPEndPoint endPoint, UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} EnableSimulator. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, handle, endPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} EnableSimulator. handle={handle}, endPoint={endPoint}, avatarID={avatarID}");
 
             osUTF8 sb = StartEvent("EnableSimulator");
             LLSDxmlEncode2.AddArrayAndMap("SimulatorInfo", sb);
@@ -103,8 +102,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 ulong regionHandle, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} EstablishAgentCommunication. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, regionHandle, endPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} EstablishAgentCommunication. handle={regionHandle}, endPoint={endPoint}, avatarID={avatarID}");
 
             osUTF8 sb = StartEvent("EstablishAgentCommunication");
 
@@ -125,8 +123,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                         UUID avatarID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} TeleportFinishEvent. handle={1}, endPoint={2}, avatarID={3}",
-                    LogHeader, regionHandle, regionExternalEndPoint, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} TeleportFinishEvent. handle={regionHandle}, endPoint={regionExternalEndPoint}, avatarID={avatarID}");
 
             // not sure why flags get overwritten here
             if ((flags & (uint)TeleportFlags.IsFlying) != 0)
@@ -157,8 +154,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 string capsURL, UUID avatarID, UUID sessionID, int regionSizeX, int regionSizeY)
         {
             if (DebugLevel > 0)
-                m_log.DebugFormat("{0} CrossRegion. handle={1}, avatarID={2}, regionSize={3},{4}>",
-                    LogHeader, handle, avatarID, regionSizeX, regionSizeY);
+                m_log.Debug($"{LogHeader} CrossRegion. handle={handle}, avatarID={avatarID}, regionSize={regionSizeX},{regionSizeY}>");
 
             osUTF8 sb = StartEvent("CrossedRegion");
 
